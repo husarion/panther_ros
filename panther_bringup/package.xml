@@ -3,7 +3,7 @@
   <name>panther_bringup</name>
   <version>0.0.0</version>
 
-  <description>The panther_bringup package</description>
+  <description>Default launch files and configuration used to start Husarion Panther robot</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
@@ -15,8 +15,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>panther_driver</depend>
   <depend>panther_description</depend>
+  <depend>panther_driver</depend>
   <depend>panther_lights</depend>
   <depend>panther_msgs</depend>
 

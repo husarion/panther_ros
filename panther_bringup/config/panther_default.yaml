@@ -6,13 +6,13 @@ panther:
   imu:
     model: "PhidgetSpatial_1042_0B"
     localization:
-      x: 0.195
-      y: -0.01
-      z: 0.085
+      x: 0.168
+      y: 0.028
+      z: 0.083
     orientation:
-      r: 3.14159
-      p: 0.0
-      y: 3.14159
+      r: 3.14
+      p: -1.57
+      y: 0.0 
 
   power_board:
     version: "0.0"
