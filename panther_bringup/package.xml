@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>panther_bringup</name>
+  <version>0.0.0</version>
+
+  <description>Default launch files and configuration used to start Husarion Panther robot</description>
+  <license>Apache License 2.0</license>
+
+  <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
+  <maintainer email="contact@husarion.com">Husarion</maintainer>
+
+  <url type="website">https://husarion.com/</url>
+  <url type="repository">https://github.com/husarion/panther_ros</url>
+  <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>panther_description</depend>
+  <depend>panther_driver</depend>
+  <depend>panther_lights</depend>
+  <depend>panther_msgs</depend>
+
+  <export></export>
+</package>

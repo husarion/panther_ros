@@ -1,0 +1,19 @@
+<launch>
+  <!-- load default params -->
+  <rosparam command="load" file="$(find panther_bringup)/config/panther_default.yaml" />
+  <!-- override default params -->
+  <rosparam command="load" file="/tmp/panther_config.yaml" />
+
+  <arg name="kalman_params" default="true" doc="Enable/Disable kalman filter" />
+  <arg name="wheel" default="offroad" doc="Type of wheel. Possible: 'offroad', 'small_pneumatic', 'mecanum'" />
+  <arg name="measurements_file" default="$(find panther_driver)/params/measurements.yaml" />
+
+  <include file="$(find panther_driver)/launch/driver.launch">
+    <arg name="kalman_params" value="$(arg kalman_params)" />
+    <arg name="wheel" value="$(arg wheel)" />
+    <arg name="measurements_file" value="$(arg measurements_file)" />
+  </include>
+
+  <include file="$(find panther_lights)/launch/controler.launch" />
+
+</launch>

@@ -1,0 +1,29 @@
+panther:
+  config_version: "0.1"
+  serial_no: ""
+  robot_version: "1.0"
+
+  imu:
+    model: "PhidgetSpatial_1042_0B"
+    localization:
+      x: 0.168
+      y: 0.028
+      z: 0.083
+    orientation:
+      r: 3.14
+      p: -1.57
+      y: 0.0 
+
+  power_board:
+    version: "0.0"
+
+  sbc_overlay:
+    version: "1.21"
+
+  rtc:
+    model: "DS3231"
+    i2c_address: "0x51"
+
+  battery:
+    model: "Li-Ion36V20Ah"
+    count: 1
