@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>panther_hardware</name>
+  <name>panther_power_control</name>
   <version>0.0.0</version>
 
-  <description>The panther_hardware package</description>
+  <description>The panther_power_control package</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>

@@ -11,7 +11,7 @@ STAGE2_INPUT = 22
 MOTOR_ON = 6
 
 
-class PantherHardwareNode:
+class RelaysNode:
     def __init__(self, name) -> None:
         self._setup_gpio()
 
@@ -48,7 +48,7 @@ class PantherHardwareNode:
 
 
 def main():
-    panther_hardware_node = PantherHardwareNode('panther_hardware_node')
+    relays_node = RelaysNode('relays_node')
     rospy.spin()
 
 

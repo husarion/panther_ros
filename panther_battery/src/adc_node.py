@@ -8,14 +8,8 @@ from sensor_msgs.msg import BatteryState
 
 from panther_msgs.msg import DriverState
 
-A = 298.15
-B = 3950.0
-R1 = 10000.0
-R0 = 10000.0
-U_SUPPLY = 3.28
 
-
-class PantherBatteryNode:
+class ADCNode:
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=False)
 
@@ -25,6 +19,12 @@ class PantherBatteryNode:
         self._V_driv_rear = float('nan')
         self._I_driv_front = float('nan')
         self._I_driv_rear = float('nan')
+
+        self._A = 298.15
+        self._B = 3950.0
+        self._R1 = 10000.0
+        self._R0 = 10000.0
+        self._u_supply = 3.28
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -115,15 +115,14 @@ class PantherBatteryNode:
 
         return value
 
-    @staticmethod
-    def _voltage_to_deg(V_temp) -> float:
-        if V_temp == 0 or V_temp >= U_SUPPLY:
+    def _voltage_to_deg(self, V_temp) -> float:
+        if V_temp == 0 or V_temp >= self._u_supply:
             rospy.logerr(f'[{rospy.get_name()}] Temperature measurement error')
             return float('nan')
 
-        R_therm = (V_temp * R1) / (U_SUPPLY - V_temp)
+        R_therm = (V_temp * self._R1) / (self._u_supply - V_temp)
 
-        return (A * B / (A * math.log(R_therm / R0) + B)) - 273.15
+        return (self._A * self._B / (self._A * math.log(R_therm / self._R0) + self._B)) - 273.15
 
     @staticmethod
     def _read_file(path) -> int:
@@ -163,7 +162,7 @@ class PantherBatteryNode:
 
 
 def main():
-    panther_battery_node = PantherBatteryNode('panther_battery_node')
+    adc_node = ADCNode('adc_node')
     rospy.spin()
 
 

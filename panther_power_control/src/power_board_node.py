@@ -53,7 +53,7 @@ class Watchdog:
             self._watchdog_on = False
 
 
-class PantherHardwareNode:
+class PowerBoardNode:
     def __init__(self, name):
         self._pins = PatherGPIO()
 
@@ -232,7 +232,7 @@ class PantherHardwareNode:
 
 
 def main():
-    panther_hardware_node = PantherHardwareNode('panther_hardware_node')
+    power_board_node = PowerBoardNode('power_board_node')
     rospy.spin()
 
 if __name__ == '__main__':

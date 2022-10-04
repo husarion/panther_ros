@@ -7,7 +7,7 @@ from sensor_msgs.msg import BatteryState
 from panther_msgs.msg import DriverState
 
 
-class PantherBatteryNode:
+class RoboteqRepublisherNode:
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=False)
 
@@ -19,7 +19,7 @@ class PantherBatteryNode:
 
         self._battery_publisher = rospy.Publisher('battery', BatteryState, queue_size=1)
 
-        rospy.loginfo(f'{rospy.get_name()} Node started')
+        rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _battery_driv_cb(self, msg) -> None:
         V_bat = (msg.front.voltage + msg.rear.voltage) / 2.0
@@ -46,7 +46,7 @@ class PantherBatteryNode:
 
 
 def main():
-    panther_battery_node = PantherBatteryNode('panther_battery_node')
+    roboteq_republisher_node = RoboteqRepublisherNode('roboteq_republisher_node')
     rospy.spin()
 
 
