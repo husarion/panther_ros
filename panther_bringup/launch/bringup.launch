@@ -1,19 +1,29 @@
 <launch>
+  <arg name="panther_version" value="$(optenv PANTHER_ROBOT_VERSION 1.0)" />
+  <arg name="wheel_type" default="WH01" doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
+
+  <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
+  <arg name="wheel_config_file" value="$(find panther_bringup)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
+  <arg name="wheel_config_file" value="$(find panther_bringup)/config/WH02.yaml" if="$(eval wheel_type == 'WH02')" />
+  <arg name="wheel_config_file" value="$(find panther_bringup)/config/WH04.yaml" if="$(eval wheel_type == 'WH04')" />
+
   <!-- load default params -->
   <rosparam command="load" file="$(find panther_bringup)/config/panther_default.yaml" />
   <!-- override default params -->
-  <rosparam command="load" file="/tmp/panther_config.yaml" />
-
-  <arg name="kalman_params" default="true" doc="Enable/Disable kalman filter" />
-  <arg name="wheel" default="offroad" doc="Type of wheel. Possible: 'offroad', 'small_pneumatic', 'mecanum'" />
-  <arg name="measurements_file" default="$(find panther_driver)/params/measurements.yaml" />
+  <rosparam command="load" file="/tmp/panther_config.yaml" if="$(optenv PANTHER_HAS_CONFIG false)" />
 
   <include file="$(find panther_driver)/launch/driver.launch">
-    <arg name="kalman_params" value="$(arg kalman_params)" />
-    <arg name="wheel" value="$(arg wheel)" />
-    <arg name="measurements_file" value="$(arg measurements_file)" />
+    <arg name="wheel_config_file" value="$(arg wheel_config_file)" />
   </include>
 
   <include file="$(find panther_lights)/launch/controler.launch" />
+
+  <include file="$(find panther_battery)/launch/battery.launch">
+    <arg name="panther_version" value="$(arg panther_version)" />
+  </include>
+
+  <include file="$(find panther_power_control)/launch/power_control.launch">
+    <arg name="panther_version" value="$(arg panther_version)" />
+  </include>
 
 </launch>
