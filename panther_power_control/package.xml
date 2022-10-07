@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>panther_power_control</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
 
-  <description>The panther_power_control package</description>
+  <description>Nodes responsible for controling power section of Husarion Panther robot</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
-  <maintainer email="contact@husarion.com">Husarion</maintainer>
+  <maintainer email="support@husarion.com">Husarion</maintainer>
 
   <url type="website">https://husarion.com/</url>
   <url type="repository">https://github.com/husarion/panther_ros</url>
@@ -18,10 +18,10 @@
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>rospy</exec_depend>
 
-  <depend>std_msgs</depend>
-  <depend>std_srvs</depend>
   <depend>python-rpi.gpio-pip</depend>
   <depend>python3-gpiozero</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
 
   <export></export>
 </package>

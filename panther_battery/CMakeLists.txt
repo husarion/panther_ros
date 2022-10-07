@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.0.2)
 project(panther_battery)
 
 find_package(catkin REQUIRED COMPONENTS
-  rospy sensor_msgs panther_msgs
+  rospy
+  panther_msgs
+  sensor_msgs
 )
 
 catkin_package(
