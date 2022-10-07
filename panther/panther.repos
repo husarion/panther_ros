@@ -14,4 +14,4 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: 7bbcd57bbbecc1bf70d5adc1c2aef3265af1f714
+    version: ros1
