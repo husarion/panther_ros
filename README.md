@@ -1,4 +1,3 @@
-# ROS packages
 
 # panther
 
