@@ -20,7 +20,7 @@ Package containing nodes monitoring and publishing internal battery state.
 
 ### adc_node.py
 
-  Publishes battery state read from ADC unit. Available from Panther version 1.2
+  Publishes battery state read from ADC unit. Available from Panther version 1.2.
 
 #### Publishes
 
