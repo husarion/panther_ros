@@ -67,7 +67,7 @@ Node is responsible for management of a safety board and power board. Available 
 
 #### Services
 
-- `/panther_hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms etc. or disable it
+- `/panther_hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms, etc.
 - `/panther_hardware/charger_enable` [*std_srvs/SetBool*]: enable or disable charger.
 - `/panther_hardware/digital_power_enable` [*std_srvs/SetBool*]: enable or disable the internal digital power used to power on, e.g. NUC, Router, etc.
 - `/panther_hardware/motors_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
