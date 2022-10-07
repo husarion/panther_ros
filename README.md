@@ -14,7 +14,7 @@ Package containing default config and launch files, necessary to  start all base
 
 # panther_battery
 
-This package containing nodes monitoring and publishing internal battery state.
+Package containing nodes monitoring and publishing internal battery state.
 
 ## Nodes
 
