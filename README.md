@@ -1,80 +1,83 @@
-# panther_ros
-ROS package for Panther autonomous mobile robot
 
-## ROS packages
+# panther
 
-### `panther`
+ROS Metapackeage composing basic functionalities of Panther robot with links to dependency repositories.
 
-Metapackeage that contains dependencies to other repositories.
+---
 
-### `panther_bringup`
+# panther_bringup
 
-Package that contains default robot config and launch, which starts all base functionalities and parameters.
+Package containing default config and launch files, necessary to  start all base functionalities of the robot.
 
-### `panther_battery`
+---
 
-This package contains nodes that publish battery state
+# panther_battery
 
-#### Nodes
-- **`adc_node.py`**
+Package containing nodes monitoring and publishing internal battery state.
 
-  This node publishes battery state read from ADC unit available from Panther version 1.2
+## Nodes
 
-  **Topics published**
+### adc_node.py
 
-  - `battery` [*sensor_msgs/BatteryState*]: Panther batteries state
-  - `battery_1` [*sensor_msgs/BatteryState*]: Panther first battery state
-  - `battery_2` [*sensor_msgs/BatteryState*]: Panther second battery state
+  Publishes battery state read from ADC unit. Available from Panther version 1.2.
 
-  **Topics subscribed**
+#### Publishes
 
-  - `motor_controllers_state` [*panther_msgs/DriverState*]: used to get motor controllers state
+- `battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one. **TODO FIX SINGLE BATTERY**
+- `battery_1` [*sensor_msgs/BatteryState*]: first battery state.
+- `battery_2` [*sensor_msgs/BatteryState*]: second battery state.
 
-  **Parameters**
+#### Subscribes
 
-  - `~loop_rate` [*float*, default: **20**]: rate in Hz at which battery state will be calculated and published
+- `motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 
-- **`roboteq_republisher_node.py`**
+#### Parameters
 
-  This node publishes Panther battery state read from motor controllers. Used in Panther versions 1.05 and 1.06
+- `~loop_rate` [*float*, default: **20**]: rate in Hz at which battery state will be computed and published.
 
-  **Topics published**
+### roboteq_republisher_node.py
 
-  - `battery` [*sensor_msgs/BatteryState*]: Panther battery state
+Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below.
 
-  **Topics subscribed**
+#### Publishes
 
-  - `motor_controllers_state` [*panther_msgs/DriverState*]: used to get motor controllers state
+- `battery` [*sensor_msgs/BatteryState*]: battery state.
 
-### `panther_power_control`
+#### Subscribes
 
-A package that contains nodes responsible for power management in Panther robot
+- `motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 
-#### Nodes
+---
 
-- **`power_board_node.py`**
+# panther_power_control
 
-  This node is responsible for power management using safety board available from Panther version 1.2
+A package containing nodes responsible for power management of the Panther robot.
 
-  **Topics published**
+## Nodes
 
-  - `/panther_hardware/e_stop` [*std_msgs/Bool*]: Panther emergency stop state
-  - `/panther_hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected
+### power_board_node.py
 
-  **Services**
+Node is responsible for management of a safety board and power board. Available from Panther version 1.2.
 
-  - `/panther_hardware/aux_power_enable` [*std_srvs/SetBool*]: this service allows to enable auxiliary power, eg. supply to robotic arms etc. or disable it
-  - `/panther_hardware/charger_enable` [*std_srvs/SetBool*]: this service allows to enable or disable charger
-  - `/panther_hardware/digital_power_enable` [*std_srvs/SetBool*]: this service allows to enable the digital power eg. NUC, Router etc. or disable it
-  - `/panther_hardware/motors_enable` [*std_srvs/SetBool*]: this service allows to enable or disable motor drivers
-  - `/panther_hardware/fan_enable` [*std_srvs/SetBool*]: this service allows to enable or disable fan
-  - `/panther_hardware/e_stop_reset` [*std_srvs/Trigger*]: this service allows to reset emergency stop
-  - `/panther_hardware/e_stop_trigger` [*std_srvs/Trigger*]: this service allows to trigger emergency stop
+#### Publishes
 
-- **`relays_node.py`**
+- `/panther_hardware/e_stop` [*std_msgs/Bool*]: current state of emergency stop.
+- `/panther_hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
 
-  This node is responsible for power management using relays available in Panther versions 1.05 and 1.06
+#### Services
 
-  **Topics published**
+- `/panther_hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms, etc.
+- `/panther_hardware/charger_enable` [*std_srvs/SetBool*]: enable or disable charger.
+- `/panther_hardware/digital_power_enable` [*std_srvs/SetBool*]: enable or disable the internal digital power used to power on, e.g. NUC, Router, etc.
+- `/panther_hardware/motors_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
+- `/panther_hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable internal fan.
+- `/panther_hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
+- `/panther_hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.
 
-  - `/panther_hardware/motor_on` [*std_msgs/Bool*]: informs if motor controllers are on
+### relays_node.py
+
+This node is responsible for power management using relays. Available in Panther versions 1.06 and below.
+
+#### Publishes
+
+- `/panther_hardware/motor_on` [*std_msgs/Bool*]: informs if motor controllers are on.
