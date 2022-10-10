@@ -5,11 +5,11 @@ from gpiozero import PWMOutputDevice, Button
 import paramiko
 import RPi.GPIO as GPIO
 import threading
-from time import sleep
+from time import sleep, time
 
 import rospy
 
-from std_msgs.msg import Bool
+from geometry_msgs.msg import Twist
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
@@ -72,6 +72,7 @@ class PowerBoardNode:
         
         self._ip = rospy.get_param('~ip', '127.0.0.1')
         self._username = rospy.get_param('~username', 'husarion')
+        self._cmd_vel_msg_time = time()
 
         # -------------------------------
         #   Publishers
@@ -79,6 +80,12 @@ class PowerBoardNode:
 
         self._e_stop_state_pub = rospy.Publisher('/panther_hardware/e_stop', Bool, queue_size=1)
         self._charger_state_pub = rospy.Publisher('/panther_hardware/charger_connected', Bool, queue_size=1)
+        
+        # -------------------------------
+        #   Subscribers
+        # -------------------------------
+
+        rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
         
         # -------------------------------
         #   Services
@@ -114,6 +121,9 @@ class PowerBoardNode:
         self._timer_e_stop = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
+
+    def _cmd_vel_cb(self, data) -> None:
+        self._cmd_vel_msg_time = time()
 
     def _motor_start_sequence(self) -> None:
         self._write_to_pin(self._pins.VMOT_ON, 1)
@@ -164,6 +174,11 @@ class PowerBoardNode:
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
             return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
+        elif time() - self._cmd_vel_msg_time <= 2.0:
+            return TriggerResponse(
+                False,
+                'E-STOP reset failed, some messages are published on the /cmd_vel topic',
+            )
 
         self._reset_e_stop()
 
