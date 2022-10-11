@@ -10,6 +10,7 @@ from time import sleep, time
 import rospy
 
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Bool
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
