@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
 import RPi.GPIO as GPIO
-from time import sleep
+from time import sleep, time
 
 import rospy
 
+from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
@@ -19,6 +20,7 @@ class RelaysNode:
         rospy.init_node(name, anonymous=False)
 
         self._e_stop_state = False
+        self._cmd_vel_command_last_time = time()
 
         # -------------------------------
         #   Publishers
@@ -26,6 +28,12 @@ class RelaysNode:
 
         self._motor_on_pub = rospy.Publisher('/panther_hardware/motor_on', Bool, queue_size=1)
         self._e_stop_state_pub = rospy.Publisher('/panther_hardware/e_stop', Bool, queue_size=1)
+
+        # -------------------------------
+        #   Subscribers
+        # -------------------------------
+
+        self._cmd_vel_bub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
 
         # -------------------------------
         #   Services
@@ -47,13 +55,21 @@ class RelaysNode:
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
+    def _cmd_vel_cb(self, data) -> None:
+        self._cmd_vel_msg_time = time()
+
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
+        if time() - self._cmd_vel_msg_time <= 2.0:
+            return TriggerResponse(
+                False,
+                'E-STOP reset failed, some messages are published on the /cmd_vel topic',
+            )
         self._e_stop_state = False
-        return TriggerResponse(True, 'E-STOP reset')
+        return TriggerResponse(True, 'E-STOP reset successfully')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
         self._e_stop_state = True
-        return TriggerResponse(True, 'E-SROP triggered')
+        return TriggerResponse(True, 'E-SROP triggered successfully')
 
     def _publish_e_stop_state(self, *args) -> None:
         self._e_stop_state_pub.publish(self._e_stop_state)
