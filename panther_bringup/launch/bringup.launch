@@ -1,11 +1,12 @@
 <launch>
   <arg name="panther_version" value="$(optenv PANTHER_ROBOT_VERSION 1.0)" />
   <arg name="wheel_type" default="WH01" doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
+  <arg name="panther_common_config_file" value="$(find panther_bringup)/config/panther_common.yaml" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
-  <arg name="wheel_config_file" value="$(find panther_bringup)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
-  <arg name="wheel_config_file" value="$(find panther_bringup)/config/WH02.yaml" if="$(eval wheel_type == 'WH02')" />
-  <arg name="wheel_config_file" value="$(find panther_bringup)/config/WH04.yaml" if="$(eval wheel_type == 'WH04')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH02.yaml" if="$(eval wheel_type == 'WH02')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH04.yaml" if="$(eval wheel_type == 'WH04')" />
 
   <!-- load default params -->
   <rosparam command="load" file="$(find panther_bringup)/config/panther_default.yaml" />
@@ -14,6 +15,7 @@
 
   <include file="$(find panther_driver)/launch/driver.launch">
     <arg name="wheel_config_file" value="$(arg wheel_config_file)" />
+    <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
   </include>
 
   <include file="$(find panther_lights)/launch/controler.launch" />
