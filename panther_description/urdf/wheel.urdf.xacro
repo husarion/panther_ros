@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- wheel defining macro -->
+  <xacro:macro name="wheel" params="wheel_config prefix wheel_separation_x">
+
+    <xacro:if value="${prefix == 'fl'}">
+      <xacro:property name="x" value="${wheel_separation_x/2.0}" />
+      <xacro:property name="y" value="${wheel_config['wheel_separation']/2.0}" />
+      <xacro:property name="inertia_y_offset" value="${wheel_config['inertia_y_offset']}" />
+    </xacro:if>
+    <xacro:if value="${prefix == 'fr'}">
+      <xacro:property name="x" value="${wheel_separation_x/2.0}" />
+      <xacro:property name="y" value="-${wheel_config['wheel_separation']/2.0}" />
+      <xacro:property name="inertia_y_offset" value="${-wheel_config['inertia_y_offset']}" />
+    </xacro:if>
+    <xacro:if value="${prefix == 'rl'}">
+      <xacro:property name="x" value="-${wheel_separation_x/2.0}" />
+      <xacro:property name="y" value="${wheel_config['wheel_separation']/2.0}" />
+      <xacro:property name="inertia_y_offset" value="${wheel_config['inertia_y_offset']}" />
+    </xacro:if>
+    <xacro:if value="${prefix == 'rr'}">
+      <xacro:property name="x" value="-${wheel_separation_x/2.0}" />
+      <xacro:property name="y" value="-${wheel_config['wheel_separation']/2.0}" />
+      <xacro:property name="inertia_y_offset" value="${-wheel_config['inertia_y_offset']}" />
+    </xacro:if>
+
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="body_link" />
+      <child link="${prefix}_wheel_link" />
+      <origin xyz="${x} ${y} 0.0" rpy="0.0 0.0 0.0" />
+      <axis xyz="0.0 1.0 0.0" />
+
+      <limit effort="34.5" velocity="2.0" />
+      <dynamics damping="0.01" friction="0.01" />
+    </joint>
+    
+    <link name="${prefix}_wheel_link">
+       <visual>
+        <geometry>
+            <mesh filename="file://$(find ${wheel_config['mesh_package']})/${wheel_config['folder_path']}/${prefix}_wheel.dae" />
+        </geometry>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      </visual>
+
+      <collision>
+        <geometry>
+            <mesh filename="file://$(find ${wheel_config['mesh_package']})/${wheel_config['folder_path']}/collision.stl" />
+        </geometry>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      </collision>
+
+      <inertial>
+        <origin xyz="0.0 ${inertia_y_offset} 0.0" rpy="0.0 0.0 0.0"/>
+        <mass value="${wheel_config['mass']}" />
+        <inertia ixx="${wheel_config['inertia']['ixx']}"
+                 ixy="0.0"
+                 ixz="0.0"
+                 iyy="${wheel_config['inertia']['iyy']}"
+                 iyz="0.0"
+                 izz="${wheel_config['inertia']['izz']}" />
+      </inertial>
+    </link>
+
+    <transmission name="${prefix}_wheel_transmission" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}_wheel_joint">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}_wheel_actuator">
+        <mechanicalReduction>1</mechanicalReduction>
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </actuator>
+    </transmission>
+
+    <gazebo reference="${prefix}_wheel_joint">
+      <provideFeedback>true</provideFeedback>
+    </gazebo>
+
+    
+  </xacro:macro>
+
+</robot>
