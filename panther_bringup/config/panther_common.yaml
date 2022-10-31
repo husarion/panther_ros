@@ -1,0 +1,11 @@
+can_interface: panther_can
+odom_frame: odom
+base_link_frame: base_link
+publish_tf: true
+publish_odom: true
+publish_pose: false
+publish_joints: true
+motor_torque_constant: 2.6149
+gear_ratio: 30.08
+encoder_resolution: 1600 # 400 * 4
+robot_length: 0.44
