@@ -1,30 +1,33 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>panther_driver</name>
-  <version>0.0.0</version>
-  <description>The panther_driver package</description>
+  <version>0.0.1</version>
 
-  <maintainer email="lukasz.mitka@husarion.com">Łukasz Mitka</maintainer>
+  <description>Software for controlling Panther robot motors via CAN interface and launching IMU.</description>
+  <license>Apache License 2.0</license>
 
-  <license>TODO</license>
-
-  <!-- <url type="website">http://wiki.ros.org/panther_driver</url> -->
-
+  <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
+  <author email="pawel.kowalski@husarion.com">Pawel Kowalski</author>
   <author email="lukasz.mitka@husarion.com">Łukasz Mitka</author>
+  <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
+  <maintainer email="support@husarion.com">Husarion</maintainer>
+
+  <url type="website">https://husarion.com/</url>
+  <url type="repository">https://github.com/husarion/panther_ros</url>
+  <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <exec_depend>roscpp</exec_depend>
+  <build_export_depend>rospy</build_export_depend>
   <exec_depend>rospy</exec_depend>
-  <exec_depend>gpiozero</exec_depend>
-  <exec_depend>paramiko</exec_depend>
 
-  <build_depend>panther_msgs</build_depend>
-  <exec_depend>panther_msgs</exec_depend>
+  <depend>canopen-pip</depend>
+  <depend>imu_filter_madgwick</depend>
+  <depend>nodelet</depend>
+  <depend>panther_msgs</depend>
+  <depend>phidgets_spatial</depend>
+  <depend>tf</depend>
+  <depend>tf2_ros</depend>
 
-  <export>
-
-  </export>
+  <export></export>
 </package>
