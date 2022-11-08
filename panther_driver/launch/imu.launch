@@ -1,0 +1,27 @@
+<!-- Phidgets Spatial launch file -->
+
+<launch>
+  <arg name="imu_config_file" default="$(find panther_driver)/config/imu_config.yaml" />
+
+  <!-- Load IMU parameters -->
+  <rosparam command="load" file="$(arg imu_config_file)" />
+
+  <!-- IMU static transform publisher -->
+  <node pkg="tf" type="static_transform_publisher" name="imu_link" args="$(optenv PANTHER_IMU_LOCALIZATION_X 0.168) 
+    $(optenv PANTHER_IMU_LOCALIZATION_Y 0.028) 
+    $(optenv PANTHER_IMU_LOCALIZATION_Z 0.083) 
+    $(optenv PANTHER_IMU_ORIENTATION_R 3.14) 
+    $(optenv PANTHER_IMU_ORIENTATION_P -1.57) 
+    $(optenv PANTHER_IMU_ORIENTATION_Y 0.0) 
+    base_link imu_link 100" />
+
+  <!-- Nodelet manager -->
+  <node pkg="nodelet" type="nodelet" name="imu_manager" args="manager" output="screen" />
+
+  <!-- Spatial Driver -->
+  <node pkg="nodelet" type="nodelet" name="PhidgetsSpatialNodelet" args="load phidgets_spatial/PhidgetsSpatialNodelet imu_manager" output="screen" />
+
+  <!-- IMU Orientation Filter -->
+  <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet" args="load imu_filter_madgwick/ImuFilterNodelet imu_manager" output="screen" />
+
+</launch>

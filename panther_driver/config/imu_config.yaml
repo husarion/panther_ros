@@ -1,0 +1,33 @@
+ImuFilterNodelet:
+  publish_tf: false
+  use_mag: false
+  use_magnetic_field_msg: false
+  fixed_frame: imu_link
+  stateless: false
+
+PhidgetsSpatialNodelet:
+  # See README.md for more information on the parameters
+  
+  data_interval_ms: 8  # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
+  publish_rate: 100  # optional param publish_rate, defaults to 0
+  # serial: 123456  # optional param serial, default is -1
+  # hub_port: 0 # optional param hub_port, used if connected to a VINT hub
+  # frame_id: imu_link  # optional param frame_id, default is "imu_link"
+  # linear_acceleration_stdev: 0.002745862  # optional param linear_acceleration_stdev, default is 280ug
+  # angular_velocity_stdev: 0.000349  # optional param angular_velocity_stdev, default is 0.095 deg/s
+  # magnetic_field_stdev: 1.1e-7  # optional param magnetic_field_stdev, default is 1.1 milligauss
+
+  # compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)
+  # cc_mag_field: 0.52859
+  # cc_offset0: 0.03921
+  # cc_offset1: 0.19441
+  # cc_offset2: -0.03493
+  # cc_gain0: 1.81704
+  # cc_gain1: 1.81028
+  # cc_gain2: 2.04819
+  # cc_t0: 0.00142
+  # cc_t1: -0.03591
+  # cc_t2: 0.00160 
+  # cc_t3: -0.05038
+  # cc_t4: -0.03942
+  # cc_t5: -0.05673
