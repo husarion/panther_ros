@@ -9,7 +9,7 @@ Software for controlling Panther robot motors via CAN interface.
   - `/odom/wheel` *(nav_msgs/Odometry)* - robot odometry calculated from wheels.
   - `/pose` *(geometry_msgs/Pose)* - robot position.
   - `/tf` *(tf2_msgs/TFMessage)* - transform between `odom_frame` and `base_link_frame`.
-  - `motor_controller_state` *(panther_msgs/DriverState)* - motor controllers current, voltage, fault flags, and runtime error flags
+  - `/motor_controller_state` *(panther_msgs/DriverState)* - motor controllers current, voltage, fault flags and runtime error flags
 
 For a `/joint_states` message is crying given data:
 
