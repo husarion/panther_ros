@@ -33,7 +33,7 @@ class RelaysNode:
         #   Subscribers
         # -------------------------------
 
-        self._cmd_vel_bub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
+        self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
 
         # -------------------------------
         #   Services
