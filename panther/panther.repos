@@ -3,11 +3,11 @@ repositories:
     type: git
     url: https://github.com/husarion/panther_description.git
     version: ros1
-  panther_lights:
-    type: git
-    url: https://github.com/husarion/panther_lights.git
-    version: master
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
     version: ros1
+  apa102-pi:
+    type: git
+    url: https://github.com/byq77/apa102-pi.git
+    version: master
