@@ -12,9 +12,9 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger
 
-from panther_msgs.msg import DriverState, FaultFlag, RuntimeError
+from panther_msgs.msg import DriverState, FaultFlag, ScriptFlag, RuntimeError
 
-from panther_can import PantherCAN
+from panther_can import PantherCANUSB, PantherCANUART
 from panther_kinematics import PantherDifferential, PantherMecanum
 
 
@@ -23,6 +23,7 @@ class PantherDriverNode:
         rospy.init_node(name, anonymous=False)
 
         self._eds_file = rospy.get_param('~eds_file')
+        self._can_communication_protocol = rospy.get_param('~can_communication_protocol', 'USB')
         self._can_interface = rospy.get_param('~can_interface', 'panther_can')
         self._kinematics_type = rospy.get_param('~kinematics', 'differential')
         self._motor_torque_constant = rospy.get_param('~motor_torque_constant', 2.6149)
@@ -63,6 +64,7 @@ class PantherDriverNode:
         self._wheels_ang_vel = [0.0, 0.0, 0.0, 0.0]
         self._motors_effort = [0.0, 0.0, 0.0, 0.0]
         self._roboteq_fault_flags = [0, 0]
+        self._roboteq_script_flags = [0, 0]
         self._roboteq_runtime_flags = [0, 0, 0, 0]
 
         self._estop_triggered = False
@@ -101,7 +103,16 @@ class PantherDriverNode:
         #   CAN interface
         # -------------------------------
 
-        self._panther_can = PantherCAN(eds_file=self._eds_file, can_interface=self._can_interface)
+        if self._can_communication_protocol == 'USB':
+            self._panther_can = PantherCANUSB(eds_file=self._eds_file, can_interface=self._can_interface)
+        elif self._can_communication_protocol == 'UART':
+            self._panther_can = PantherCANUART(eds_file=self._eds_file, can_interface=self._can_interface)
+        else:
+            rospy.logerr(
+                f'[{rospy.get_name()}] Invalid CAN communication protocol type. Valid options are: \'USB\', \'UART\''
+            )
+            rospy.signal_shutdown('Invalid CAN communication protocol')
+            return
         sleep(4)
 
         # -------------------------------
@@ -219,19 +230,23 @@ class PantherDriverNode:
         ] = self._panther_can.query_battery_data()
 
         self._roboteq_fault_flags = list(self._panther_can.query_fault_flags())
+        self._roboteq_script_flags = list(self._panther_can.query_script_flags())
         self._roboteq_runtime_flags = list(self._panther_can.query_runtime_stat_flag())
 
         self._driver_state_msg.front.fault_flag = self._decode_fault_flag(self._roboteq_fault_flags[0])
         self._driver_state_msg.rear.fault_flag = self._decode_fault_flag(self._roboteq_fault_flags[1])
 
+        self._driver_state_msg.front.script_flag = self._decode_script_flag(self._roboteq_script_flags[0])
+        self._driver_state_msg.rear.script_flag = self._decode_script_flag(self._roboteq_script_flags[1])
+
         self._driver_state_msg.front.right_motor.runtime_error = \
-            self._decode_runtime_flag(self._roboteq_runtime_flags[0]) 
+            self._decode_runtime_flag(self._roboteq_runtime_flags[0])
         self._driver_state_msg.front.left_motor.runtime_error = \
-            self._decode_runtime_flag(self._roboteq_runtime_flags[1]) 
+            self._decode_runtime_flag(self._roboteq_runtime_flags[1])
         self._driver_state_msg.rear.right_motor.runtime_error = \
-            self._decode_runtime_flag(self._roboteq_runtime_flags[2]) 
+            self._decode_runtime_flag(self._roboteq_runtime_flags[2])
         self._driver_state_msg.rear.left_motor.runtime_error = \
-            self._decode_runtime_flag(self._roboteq_runtime_flags[3])         
+            self._decode_runtime_flag(self._roboteq_runtime_flags[3])   
 
         self._driver_state_publisher.publish(self._driver_state_msg)
 
@@ -280,7 +295,7 @@ class PantherDriverNode:
         ref_flag_val = 0b00000001
 
         msg = FaultFlag()
-        msg.can_net_err = self._panther_can.can_connection_correct()
+        msg.can_net_err = not self._panther_can.can_connection_correct()
         msg.overheat = bool(flag_val & ref_flag_val << 0)
         msg.overvoltage = bool(flag_val & ref_flag_val << 1)
         msg.undervoltage = bool(flag_val & ref_flag_val << 2)
@@ -289,6 +304,17 @@ class PantherDriverNode:
         msg.motor_or_sensor_setup_fault = bool(flag_val & ref_flag_val << 5)
         msg.mosfet_failure = bool(flag_val & ref_flag_val << 6)
         msg.default_config_loaded_at_startup = bool(flag_val & ref_flag_val << 7)
+
+        return msg
+
+    @staticmethod
+    def _decode_script_flag(flag_val: int) -> int:
+        ref_flag_val = 0b00000001
+
+        msg = ScriptFlag()
+        msg.loop_error = bool(flag_val & ref_flag_val << 0)
+        msg.encoder_disconected = bool(flag_val & ref_flag_val << 1)
+        msg.amp_limiter = bool(flag_val & ref_flag_val << 2)
 
         return msg
 

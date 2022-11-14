@@ -51,4 +51,5 @@ qtcreator-*
 CATKIN_IGNORE
 
 .vscode
+.devcontainer
 __pycache__/
