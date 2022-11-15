@@ -279,23 +279,23 @@ class PantherCANUART(PantherCAN):
             return True
 
     def _update_wheels_pos_cb(self, message, motor_controller):
-        for i in range(len(message)):
-            motor_controller.wheel_pos[i] = message[i].raw
+        for i, wheel in enumerate(self._wheels):
+            motor_controller.wheel_pos[i] = message[wheel - 1].raw
 
     def _update_wheels_speed_cb(self, message, motor_controller):
-        for i in range(len(message)):
-            motor_controller.wheel_vel[i] = message[i].raw
+        for i, wheel in enumerate(self._wheels):
+            motor_controller.wheel_vel[i] = message[wheel - 1].raw
 
     def _update_wheels_current_cb(self, message, motor_controller):
-        for i in range(len(message)):
-            motor_controller.wheel_curr[i] = message[i].raw
+        for i, wheel in enumerate(self._wheels):
+            motor_controller.wheel_curr[i] = message[wheel - 1].raw
 
     def _update_wheels_flags_cb(self, message, motor_controller):
         motor_controller.fault_flags = message[0].data[0]
         motor_controller.script_flags = message[0].data[2]
 
-        for i in range(len(self._wheels)):
-            motor_controller.runtime_stat_flag[i] = message[1].data[i]
+        for i, wheel in enumerate(self._wheels):
+            motor_controller.runtime_stat_flag[i] = message[1].data[wheel - 1]
 
     def _restart_roboteq_script(self):
         with self._lock:
