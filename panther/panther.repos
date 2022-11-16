@@ -1,8 +1,4 @@
 repositories:
-  panther_description:
-    type: git
-    url: https://github.com/husarion/panther_description.git
-    version: ros1
   panther_lights:
     type: git
     url: https://github.com/husarion/panther_lights.git
@@ -10,4 +6,8 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
+    version: ros1
+  ros_components_description:
+    type: git
+    url: https://github.com/husarion/ros_components_description.git
     version: ros1

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- body defining macro -->
+  <xacro:macro name="body" params="
+    wheel_radius simulation_engine
+    imu_pos_x imu_pos_y imu_pos_z
+    imu_rot_r imu_rot_p imu_rot_y" >
+
+    <link name="base_link" /> 
+
+    <joint name="base_link_to_body_link_joint" type="fixed">
+      <origin xyz="0.0 0.0 ${wheel_radius}" rpy="0.0 0.0 0.0" />
+      <parent link="base_link" />
+      <child link="body_link" />
+    </joint>
+
+    <link name="body_link">
+      <visual>
+        <geometry>
+          <mesh filename="file://$(find panther_description)/meshes/body.dae" />
+        </geometry>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      </visual>
+
+      <collision>
+        <geometry>
+          <mesh filename="file://$(find panther_description)/meshes/body_collision.stl" />
+        </geometry>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      </collision>
+
+      <inertial>
+        <origin xyz="-0.008 0.01 0.029" rpy="0.0 0.0 0.0"/>
+        <mass value="43.0" />
+        <inertia ixx="2.630036" ixy="-0.023480" ixz="0.052320"
+                                iyy="2.463509"  iyz="0.009337"
+                                                izz="4.611945" />
+      </inertial>
+    </link>
+
+    <joint name="body_link_to_imu_link_joint" type="fixed">
+      <origin xyz="${imu_pos_x} ${imu_pos_y} ${imu_pos_z}"
+              rpy="${imu_rot_r} ${imu_rot_p} ${imu_rot_y}" />
+      <parent link="body_link" />
+      <child link="imu_link" />
+    </joint>
+
+    <link name="imu_link" />
+    
+    <joint name="body_link_front_light_link_joint" type="fixed">
+      <origin xyz="0.362 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <parent link="body_link" />
+      <child link="front_light_link" />
+    </joint>
+    
+    <link name="front_light_link" />
+    
+    <joint name="body_link_to_rear_light_link_joint" type="fixed">
+      <origin xyz="-0.362 0.0 0.0" rpy="0.0 0.0 ${pi}" />
+      <parent link="body_link" />
+      <child link="rear_light_link" />
+    </joint>
+    
+    <link name="rear_light_link" />
+    
+    <joint name="body_link_to_cover_link_joint" type="fixed">
+      <origin xyz="0.0 0.0 0.1715" rpy="0.0 0.0 0.0" />
+      <parent link="body_link" />
+      <child link="cover_link" />
+    </joint>
+    
+    <link name="cover_link" />
+    
+    <xacro:if value="${simulation_engine == 'gazebo-classic'}">
+      <!-- based on PhidgetSpatial datasheet -->
+      <xacro:property name="imu_acc_noise"  value="${280.0*1e-6*9.81}" />
+      <xacro:property name="imu_acc_drift"  value="${40.6*1e-6*9.81}" />
+      <xacro:property name="imu_gyro_noise" value="${0.095*(pi/180.0)}" />
+      <xacro:property name="imu_gyro_drift" value="${0.0042*(pi/180.0)}" />
+      <gazebo>
+        <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so">
+          <robotNamespace>/</robotNamespace>
+          <updateRate>100.0</updateRate>
+          <bodyName>imu_link</bodyName>
+          <topicName>imu</topicName>
+          <accelDrift>${imu_acc_drift} ${imu_acc_drift} ${imu_acc_drift}</accelDrift>
+          <accelGaussianNoise>${imu_acc_noise} ${imu_acc_noise} ${imu_acc_noise}</accelGaussianNoise>
+          <rateDrift>${imu_gyro_drift} ${imu_gyro_drift} ${imu_gyro_drift}</rateDrift>
+          <rateGaussianNoise>${imu_gyro_noise} ${imu_gyro_noise} ${imu_gyro_noise}</rateGaussianNoise>
+        </plugin>
+      </gazebo>
+  </xacro:if>
+
+  </xacro:macro>
+
+</robot>

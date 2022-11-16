@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<robot name="panther" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="use_sim" default="false" /> 
+  <xacro:arg name="use_gpu" default="false" /> 
+  <xacro:arg name="dual_bat" default="false" /> 
+  <xacro:arg name="imu_pos_x" default="0.169" /> 
+  <xacro:arg name="imu_pos_y" default="0.025" /> 
+  <xacro:arg name="imu_pos_z" default="0.092" /> 
+  <xacro:arg name="imu_rot_r" default="0.0" /> 
+  <xacro:arg name="imu_rot_p" default="0.0" /> 
+  <xacro:arg name="imu_rot_y" default="-1.57" /> 
+  <xacro:arg name="wheel_config_path" default="$(find panther_description)/config/WH01.yaml" />
+  <xacro:arg name="simulation_engine" default="gazebo-classic" /> 
+
+  <xacro:include filename="$(find panther_description)/urdf/panther_macro.urdf.xacro" ns="husarion" />
+  <xacro:husarion.panther_robot 
+    use_sim="$(arg use_sim)"
+    dual_bat="$(arg dual_bat)"
+    imu_pos_x="$(arg imu_pos_x)"
+    imu_pos_y="$(arg imu_pos_y)"
+    imu_pos_z="$(arg imu_pos_z)"
+    imu_rot_r="$(arg imu_rot_r)"
+    imu_rot_p="$(arg imu_rot_p)"
+    imu_rot_y="$(arg imu_rot_y)"
+    wheel_config_path="$(arg wheel_config_path)"
+    simulation_engine="$(arg simulation_engine)" />
+    
+</robot>
