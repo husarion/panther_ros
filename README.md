@@ -81,3 +81,9 @@ This node is responsible for power management using relays. Available in Panther
 #### Publishes
 
 - `/panther_hardware/motor_on` [*std_msgs/Bool*]: informs if motor controllers are on.
+- `/panther_hardware/e_stop` [*std_msgs/Bool*]: current state of emergency stop.
+
+#### Services
+
+- `/panther_hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
+- `/panther_hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.

@@ -1,8 +1,4 @@
 repositories:
-  panther_driver:
-    type: git
-    url: https://github.com/husarion/panther_driver.git
-    version: devel-ros1-panther-1.2
   panther_lights:
     type: git
     url: https://github.com/husarion/panther_lights.git
