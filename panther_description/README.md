@@ -2,21 +2,6 @@
 
 A package containing the description of the Husarion Panther robot.
 
-
-## Installation
-
-This package contains a basic Panther configuration. To install additional components run:
-``` bash
-vcs import < components.repos src
-```
-
-In order to install all dependencies and build the package run:
-```
-rosdep update --rosdistro $ROS_DISTRO
-rosdep install --from-path src --rosdistro $ROS_DISTRO -y -i
-catkin build
-```
-
 ## Usage
 
 Basic Panther configuration can be found in file [panther.urdf.xacro](./panther_description/urdf/panther.urdf.xacro). This is an example configuration showing how to use the model. This can be used to import within launch files as a baseline model. For more advanced use cases, [panther_macro.urdf.xacro](./panther_description/urdf/panther_macro.urdf.xacro) is designed to be integrated into custom robot configurations.
@@ -67,4 +52,4 @@ GPS antenna component is defined in [external_antenna.urdf.xacro](./urdf/compone
 
 ## Sensor configuration
 
-Sensors are defined in [husarion/ros_components_description](https://github.com/husarion/ros_components_description) repository. Which can be additionally downloaded by VCS in the installation step. A guide on how to combine those sensors with the robot will be written soon.
+Sensors are defined in [husarion/ros_components_description](https://github.com/husarion/ros_components_description) repository. A guide on how to combine those sensors with the robot will be written soon.
