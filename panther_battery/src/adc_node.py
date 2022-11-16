@@ -21,7 +21,7 @@ class ADCNode:
         self._I_driv_rear = float('nan')
 
         self._A = 298.15
-        self._B = 3950.0
+        self._B = 3977.0
         self._R1 = 10000.0
         self._R0 = 10000.0
         self._u_supply = 3.28
