@@ -42,10 +42,10 @@ class PantherDriverNode:
         power_factor = rospy.get_param('~power_factor', 0.04166667)
 
         self._wheels_joints_names = [
-            'fl_joint',
-            'fr_joint',
-            'rl_joint',
-            'rr_joint',
+            'fl_wheel_joint',
+            'fr_wheel_joint',
+            'rl_wheel_joint',
+            'rr_wheel_joint',
         ]
 
         self._main_timer_period = 1.0 / 15.0           # freq. 15 Hz
