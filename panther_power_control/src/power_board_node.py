@@ -79,8 +79,8 @@ class PowerBoardNode:
         #   Publishers
         # -------------------------------
 
-        self._e_stop_state_pub = rospy.Publisher('/panther_hardware/e_stop', Bool, queue_size=1)
-        self._charger_state_pub = rospy.Publisher('/panther_hardware/charger_connected', Bool, queue_size=1)
+        self._e_stop_state_pub = rospy.Publisher('~e_stop', Bool, queue_size=1)
+        self._charger_state_pub = rospy.Publisher('~charger_connected', Bool, queue_size=1)
         
         # -------------------------------
         #   Subscribers
@@ -93,25 +93,25 @@ class PowerBoardNode:
         # -------------------------------
 
         self._aux_power_enable_srv = rospy.Service(
-            '/panther_hardware/aux_power_enable', SetBool, self._aux_power_enable_cb
+            '~aux_power_enable', SetBool, self._aux_power_enable_cb
         )
         self._charger_enable_srv = rospy.Service(
-            '/panther_hardware/charger_enable', SetBool, self._charger_enable_cb
+            '~charger_enable', SetBool, self._charger_enable_cb
         )
         self._digital_power_enable_srv = rospy.Service(
-            '/panther_hardware/digital_power_enable', SetBool, self._digital_power_enable_cb,
+            '~digital_power_enable', SetBool, self._digital_power_enable_cb,
         )
         self._motors_enable_srv = rospy.Service(
-            '/panther_hardware/motors_enable', SetBool, self._motors_enable_cb
+            '~motors_enable', SetBool, self._motors_enable_cb
         )
         self._fan_enable_srv = rospy.Service(
-            '/panther_hardware/fan_enable', SetBool, self._fan_enable_cb
+            '~fan_enable', SetBool, self._fan_enable_cb
         )
         self._e_stop_reset_srv = rospy.Service(
-            '/panther_hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
+            '~e_stop_reset', Trigger, self._e_stop_reset_cb
         )
         self._e_stop_trigger_srv = rospy.Service(
-            '/panther_hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
+            '~e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
 
         # -------------------------------
