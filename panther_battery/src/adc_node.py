@@ -14,7 +14,7 @@ class ADCNode:
         rospy.init_node(name, anonymous=False)
 
         loop_rate = rospy.get_param('~loop_rate', 20)
-        self._battery_count = rospy.get_param('~panther/battery/count', 2)
+        self._battery_count = rospy.get_param('/panther/battery/count', 1)
 
         self._V_driv_front = float('nan')
         self._V_driv_rear = float('nan')
@@ -45,6 +45,7 @@ class ADCNode:
 
         rospy.Timer(rospy.Duration(1.0 / loop_rate), self._battery_timer_cb)
 
+        rospy.loginfo(f'[{rospy.get_name()}] Battery count: {self._battery_count}')
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _battery_driv_cb(self, msg) -> None:
