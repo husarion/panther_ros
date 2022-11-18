@@ -60,11 +60,11 @@ class PantherCAN:
 
         rospy.loginfo(f'[{rospy.get_name()}] Connected to the CAN bus.')
     
-    def can_connection_correct(self) -> bool:
+    def can_connection_error(self) -> bool:
         if time() - self._err_times[-1] >= 2.0:
-            return True
+            return False
 
-        return (self._err_times[-1] - self._err_times[0] >= 1.0)
+        return (self._err_times[-1] - self._err_times[0] < 1.0)
 
     def write_wheels_enc_velocity(self, vel: list) -> None:
         with self._lock:
@@ -117,7 +117,7 @@ class PantherCAN:
                 motor_controller.can_node.sdo['Cmd_MGO'].raw = 1
 
 
-class PantherCANUSB(PantherCAN):
+class PantherCANSDO(PantherCAN):
     def __init__(self, eds_file, can_interface):
         super().__init__(eds_file, can_interface)
 
@@ -200,13 +200,19 @@ class PantherCANUSB(PantherCAN):
                     yield motor_controller.runtime_stat_flag[i]
 
 
-class PantherCANUART(PantherCAN):
+class PantherCANPDO(PantherCAN):
     def __init__(self, eds_file, can_interface):
         super().__init__(eds_file, can_interface)
 
+        number_of_retries = 0
         while not self._configure_tpdo() and not rospy.is_shutdown():
+            if number_of_retries >= 5:
+                rospy.logerr(f'[{rospy.get_name()}] Failed to configure TPDO. Shutting down.')
+                rospy.signal_shutdown('Failed to configure TPDO')
+                return
             rospy.loginfo(f'[{rospy.get_name()}] Retrying TPDO configuration.')
-            sleep(1)
+            number_of_retries += 1
+            sleep(1.0)
 
         self._restart_roboteq_script()
 
@@ -251,7 +257,7 @@ class PantherCANUART(PantherCAN):
                 try:
                     motor_controller.can_node.tpdo.read()
                 except canopen.SdoCommunicationError:
-                    rospy.logwarn(f'[{rospy.get_name()}] Failed to read TPDO configuration.')
+                    rospy.loginfo(f'[{rospy.get_name()}] Failed to read TPDO configuration.')
                     return False
 
                 motor_controller.can_node.tpdo[1].add_callback(

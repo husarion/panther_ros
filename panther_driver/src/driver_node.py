@@ -14,7 +14,7 @@ from std_srvs.srv import Trigger
 
 from panther_msgs.msg import DriverState, FaultFlag, ScriptFlag, RuntimeError
 
-from panther_can import PantherCANUSB, PantherCANUART
+from panther_can import PantherCANSDO, PantherCANPDO
 from panther_kinematics import PantherDifferential, PantherMecanum
 
 
@@ -23,7 +23,7 @@ class PantherDriverNode:
         rospy.init_node(name, anonymous=False)
 
         self._eds_file = rospy.get_param('~eds_file')
-        self._can_communication_protocol = rospy.get_param('~can_communication_protocol', 'USB')
+        self._use_pdo = rospy.get_param('~use_pdo', False)
         self._can_interface = rospy.get_param('~can_interface', 'panther_can')
         self._kinematics_type = rospy.get_param('~kinematics', 'differential')
         self._motor_torque_constant = rospy.get_param('~motor_torque_constant', 2.6149)
@@ -103,17 +103,11 @@ class PantherDriverNode:
         #   CAN interface
         # -------------------------------
 
-        if self._can_communication_protocol == 'USB':
-            self._panther_can = PantherCANUSB(eds_file=self._eds_file, can_interface=self._can_interface)
-        elif self._can_communication_protocol == 'UART':
-            self._panther_can = PantherCANUART(eds_file=self._eds_file, can_interface=self._can_interface)
+        if self._use_pdo:
+            self._panther_can = PantherCANPDO(eds_file=self._eds_file, can_interface=self._can_interface)
         else:
-            rospy.logerr(
-                f'[{rospy.get_name()}] Invalid CAN communication protocol type. Valid options are: \'USB\', \'UART\''
-            )
-            rospy.signal_shutdown('Invalid CAN communication protocol')
-            return
-        sleep(4)
+            self._panther_can = PantherCANSDO(eds_file=self._eds_file, can_interface=self._can_interface)
+        sleep(4.0)
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -251,7 +245,7 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-        if not self._panther_can.can_connection_correct() and not self._estop_triggered:
+        if self._panther_can.can_connection_error() and not self._estop_triggered:
             self._trigger_panther_estop()
             self._stop_cmd_vel_cb = True
 
@@ -295,7 +289,7 @@ class PantherDriverNode:
         ref_flag_val = 0b00000001
 
         msg = FaultFlag()
-        msg.can_net_err = not self._panther_can.can_connection_correct()
+        msg.can_net_err = self._panther_can.can_connection_error()
         msg.overheat = bool(flag_val & ref_flag_val << 0)
         msg.overvoltage = bool(flag_val & ref_flag_val << 1)
         msg.undervoltage = bool(flag_val & ref_flag_val << 2)
