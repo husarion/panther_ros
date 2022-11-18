@@ -104,7 +104,10 @@ class PantherDifferential(PantherKinematics):
         self._robot_x_pos = self._robot_x_pos + delta_x
         self._robot_y_pos = self._robot_y_pos + delta_y
 
-        return self._robot_x_pos, self._robot_y_pos, self._robot_th_pos
+        robot_pose = [self._robot_x_pos, self._robot_y_pos, self._robot_th_pos]
+        robot_vel = [linear_velocity_x, linear_velocity_y, angular_velocity_z]
+
+        return robot_pose, robot_vel
 
 
 class PantherMecanum(PantherKinematics):
@@ -165,4 +168,7 @@ class PantherMecanum(PantherKinematics):
         self._robot_x_pos = self._robot_x_pos + delta_x
         self._robot_y_pos = self._robot_y_pos + delta_y
 
-        return self._robot_x_pos, self._robot_y_pos, self._robot_th_pos
+        robot_pose = [self._robot_x_pos, self._robot_y_pos, self._robot_th_pos]
+        robot_vel = [linear_velocity_x, linear_velocity_y, angular_velocity_z]
+
+        return robot_pose, robot_vel

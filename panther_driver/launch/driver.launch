@@ -1,4 +1,5 @@
 <launch>
+  <arg name="panther_version" />
   <arg name="panther_common_config_file" default="$(find panther_driver)/config/panther_common.yaml" />
   <arg name="wheel_config_file" />
 
@@ -6,6 +7,8 @@
   <node pkg="panther_driver" name="panther_driver" type="driver_node.py" output="screen" required="true">
     <rosparam command="load" file="$(arg panther_common_config_file)" />
     <rosparam command="load" file="$(arg wheel_config_file)" />
+    <param name="use_pdo" value="false" unless="$(eval panther_version >= 1.2)" />
+    <param name="use_pdo" value="true" if="$(eval panther_version >= 1.2)" />
     <param name="eds_file" type="string" value="$(find panther_driver)/params/roboteq_motor_controllers_v60.eds" />
   </node>
 
