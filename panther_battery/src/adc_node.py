@@ -14,6 +14,7 @@ class ADCNode:
         rospy.init_node(name, anonymous=False)
 
         loop_rate = rospy.get_param('~loop_rate', 20)
+        self._battery_count = rospy.get_param('/panther/battery/count', 1)
 
         self._V_driv_front = float('nan')
         self._V_driv_rear = float('nan')
@@ -33,8 +34,10 @@ class ADCNode:
         self._battery_driv_sub = rospy.Subscriber('motor_controllers_state', DriverState, self._battery_driv_cb)
 
         self._battery_publisher = rospy.Publisher('battery', BatteryState, queue_size=1)
-        self._battery_1_publisher = rospy.Publisher('battery_1', BatteryState, queue_size=1)
-        self._battery_2_publisher = rospy.Publisher('battery_2', BatteryState, queue_size=1)
+
+        if self._battery_count == 2:
+            self._battery_1_publisher = rospy.Publisher('battery_1', BatteryState, queue_size=1)
+            self._battery_2_publisher = rospy.Publisher('battery_2', BatteryState, queue_size=1)
 
         # -------------------------------
         #   Timers
@@ -42,6 +45,7 @@ class ADCNode:
 
         rospy.Timer(rospy.Duration(1.0 / loop_rate), self._battery_timer_cb)
 
+        rospy.loginfo(f'[{rospy.get_name()}] Battery count: {self._battery_count}')
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _battery_driv_cb(self, msg) -> None:
@@ -79,17 +83,8 @@ class ADCNode:
         except:
             rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error excep')
             return
-
-        # Check battery num
-        if V_temp_bat_2 > 3.03:  # One battery
-            # Calculate Temp in deg of Celcius
-            temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
-
-            self._publish_battery_msg(self._battery_1_publisher, True, V_bat_1, temp_bat_1, I_bat_1)
-            self._publish_battery_msg(self._battery_2_publisher, False)
         
-        else:
-            # Calculate Temp in deg of Celcius
+        if self._battery_count == 2:
             temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
             temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
 
@@ -108,6 +103,10 @@ class ADCNode:
             self._publish_battery_msg(
                 self._battery_publisher, True, V_bat_avereage, temp_average, -I_bat_average + I_charge_bat_average
             )
+
+        else: 
+            temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
+            self._publish_battery_msg(self._battery_publisher, True, V_bat_1, temp_bat_1, I_bat_1)
 
     def _get_adc_measurement(self, path, offset, LSB) -> float:
         raw_value = self._read_file(path)
