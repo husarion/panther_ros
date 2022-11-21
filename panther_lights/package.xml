@@ -16,16 +16,18 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>message_generation</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
   <exec_depend>message_runtime</exec_depend>
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>rospy</exec_depend>
-  
+
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+
+  <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>
   <depend>python3-imageio</depend>
   <depend>python3-pil</depend>
+  <depend>python3-yaml</depend>
 
 </package>
