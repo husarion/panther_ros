@@ -1,6 +1,6 @@
 # panther_battery
 
-Package containing nodes monitoring and publishing internal battery state.
+Package containing nodes monitoring and publishing internal battery state of the Husarion Panther robot.
 
 ## ROS Nodes
 

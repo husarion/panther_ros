@@ -10,6 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+catkin_python_setup()
+
 add_message_files(
   FILES
   LightsMessage.msg
@@ -46,5 +48,5 @@ install(DIRECTORY
   config
   launch
   scripts
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
