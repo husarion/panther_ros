@@ -15,7 +15,7 @@ Node responsible for management of the safety board and the power board. Availab
 
 #### Services
 
-- `/panther_hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms, etc.
+- `/panther_hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms.
 - `/panther_hardware/charger_enable` [*std_srvs/SetBool*]: enable or disable charger.
 - `/panther_hardware/digital_power_enable` [*std_srvs/SetBool*]: enable or disable the internal digital power used to power on, e.g. NUC, Router, etc.
 - `/panther_hardware/motors_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
