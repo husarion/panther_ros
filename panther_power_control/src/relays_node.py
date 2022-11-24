@@ -40,10 +40,10 @@ class RelaysNode:
         # -------------------------------
 
         self._e_stop_reset_srv = rospy.Service(
-            '~e_stop_reset', Trigger, self._e_stop_reset_cb
+            'hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
         )
         self._e_stop_trigger_srv = rospy.Service(
-            '~e_stop_trigger', Trigger, self._e_stop_trigger_cb
+            'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
 
         # -------------------------------
