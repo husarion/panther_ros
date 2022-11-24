@@ -8,24 +8,26 @@ from sensor_msgs.msg import BatteryState
 
 from panther_msgs.msg import DriverState
 
+BAT02_DETECT_THRESH = 3.03
 
 class ADCNode:
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=False)
 
         loop_rate = rospy.get_param('~loop_rate', 20)
-        self._battery_count = rospy.get_param('/panther/battery/count', 1)
-
+        
         self._V_driv_front = float('nan')
         self._V_driv_rear = float('nan')
         self._I_driv_front = float('nan')
         self._I_driv_rear = float('nan')
-
+        
         self._A = 298.15
         self._B = 3977.0
         self._R1 = 10000.0
         self._R0 = 10000.0
         self._u_supply = 3.28
+
+        self._battery_count = self._check_battery_count()
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -107,6 +109,16 @@ class ADCNode:
         else: 
             temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
             self._publish_battery_msg(self._battery_publisher, True, V_bat_1, temp_bat_1, I_bat_1)
+
+    def _check_battery_count(self) -> int:
+        try:
+            V_temp_bat_2 = self._get_adc_measurement(
+                    path="/sys/bus/iio/devices/iio:device0/in_voltage0_raw", LSB=0.002, offset=0
+                )
+        except:
+            rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error excep')
+        
+        return 1 if V_temp_bat_2 > BAT02_DETECT_THRESH else 2
 
     def _get_adc_measurement(self, path, offset, LSB) -> float:
         raw_value = self._read_file(path)
