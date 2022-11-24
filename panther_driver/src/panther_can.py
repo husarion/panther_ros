@@ -207,7 +207,8 @@ class PantherCANPDO(PantherCAN):
         number_of_retries = 0
         while not self._configure_tpdo() and not rospy.is_shutdown():
             if number_of_retries >= 5:
-                rospy.logerr(f'[{rospy.get_name()}] Failed to configure TPDO. Shutting down.')
+                rospy.logerr(f'[{rospy.get_name()}] Failed to configure TPDO.')
+                rospy.logerr(f'[{rospy.get_name()}] Check CAN connection. Shutting down.')
                 rospy.signal_shutdown('Failed to configure TPDO')
                 return
             rospy.loginfo(f'[{rospy.get_name()}] Retrying TPDO configuration.')
