@@ -6,7 +6,7 @@ A package containing nodes responsible for power management of the Husarion Pant
 
 ### power_board_node.py
 
-Node responsible for management of the safety board and the power board. Available from Panther version 1.2.
+Node responsible for management of the safety board and the power board. Available since Panther version 1.2.
 
 #### Publishes
 
