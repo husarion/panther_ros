@@ -44,13 +44,13 @@ class FanControllerNode:
 
         self._system_status_sub = rospy.Subscriber('system_status', SystemStatus, self._system_status_cb, queue_size=1)
         self._driver_state_sub = rospy.Subscriber('motor_controllers_state', DriverState, self._driver_state_cb, queue_size=1)
-        self._fan_state_sub = rospy.Subscriber('/panther_hardware/fan_enabled', Bool, self._fan_state_cb, queue_size=1)
+        self._fan_state_sub = rospy.Subscriber('hardware/fan_enabled', Bool, self._fan_state_cb, queue_size=1)
 
         # -------------------------------
         #   Services
         # -------------------------------
 
-        self._fan_enable_service = rospy.ServiceProxy('/panther_hardware/fan_enable', SetBool)
+        self._fan_enable_service = rospy.ServiceProxy('hardware/fan_enable', SetBool)
 
         # -------------------------------
         #   Timers
