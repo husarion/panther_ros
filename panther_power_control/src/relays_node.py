@@ -26,8 +26,8 @@ class RelaysNode:
         #   Publishers
         # -------------------------------
 
-        self._motor_on_pub = rospy.Publisher('~motor_on', Bool, queue_size=1)
-        self._e_stop_state_pub = rospy.Publisher('~e_stop', Bool, queue_size=1)
+        self._motor_on_pub = rospy.Publisher('hardware/motor_on', Bool, queue_size=1)
+        self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1)
 
         # -------------------------------
         #   Subscribers
