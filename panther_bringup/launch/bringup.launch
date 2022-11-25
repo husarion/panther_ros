@@ -1,4 +1,5 @@
 <launch>
+  <arg name="namespace" value="panther" />
   <arg name="panther_version" value="$(optenv PANTHER_ROBOT_VERSION 1.0)" />
   <arg name="wheel_type" default="WH01" doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
   <arg name="panther_common_config_file" value="$(find panther_bringup)/config/panther_common.yaml" />
@@ -13,21 +14,25 @@
   <!-- override default params -->
   <rosparam command="load" file="/tmp/panther_config.yaml" if="$(optenv PANTHER_HAS_CONFIG false)" />
 
-  <include file="$(find panther_driver)/launch/driver.launch">
-    <arg name="panther_version" value="$(arg panther_version)" />
-    <arg name="wheel_config_file" value="$(arg wheel_config_file)" />
-    <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
-  </include>
+  <group ns="$(arg namespace)">
 
-  <include file="$(find panther_lights)/launch/controler.launch" />
+    <include file="$(find panther_driver)/launch/driver.launch">
+      <arg name="panther_version" value="$(arg panther_version)" />
+      <arg name="wheel_config_file" value="$(arg wheel_config_file)" />
+      <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
+    </include>
 
-  <include file="$(find panther_battery)/launch/battery.launch">
-    <arg name="panther_version" value="$(arg panther_version)" />
-  </include>
+    <include file="$(find panther_lights)/launch/controler.launch" />
 
-  <include file="$(find panther_power_control)/launch/power_control.launch">
-    <arg name="panther_version" value="$(arg panther_version)" />
-  </include>
+    <include file="$(find panther_battery)/launch/battery.launch">
+      <arg name="panther_version" value="$(arg panther_version)" />
+    </include>
+
+    <include file="$(find panther_power_control)/launch/power_control.launch">
+      <arg name="panther_version" value="$(arg panther_version)" />
+    </include>
+    
+  </group>
 
   <include file="$(find panther_logger)/launch/logger.launch" />
 

@@ -26,8 +26,8 @@ class RelaysNode:
         #   Publishers
         # -------------------------------
 
-        self._motor_on_pub = rospy.Publisher('/panther_hardware/motor_on', Bool, queue_size=1)
-        self._e_stop_state_pub = rospy.Publisher('/panther_hardware/e_stop', Bool, queue_size=1)
+        self._motor_on_pub = rospy.Publisher('hardware/motor_on', Bool, queue_size=1)
+        self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1)
 
         # -------------------------------
         #   Subscribers
@@ -40,10 +40,10 @@ class RelaysNode:
         # -------------------------------
 
         self._e_stop_reset_srv = rospy.Service(
-            '/panther_hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
+            'hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
         )
         self._e_stop_trigger_srv = rospy.Service(
-            '/panther_hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
+            'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
 
         # -------------------------------

@@ -14,14 +14,15 @@
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rospy</build_depend>
-  <build_export_depend>rospy</build_export_depend>
-  <exec_depend>rospy</exec_depend>
 
-  <depend>python-rpi.gpio-pip</depend>
-  <depend>python3-gpiozero</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
 
-  <export></export>
+  <!-- Python dependencies -->
+  <depend>python-rpi.gpio-pip</depend>
+  <depend>python3-gpiozero</depend>
+  <depend>python3-paramiko</depend>
+
 </package>

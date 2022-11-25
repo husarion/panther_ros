@@ -79,9 +79,9 @@ class PowerBoardNode:
         #   Publishers
         # -------------------------------
 
-        self._e_stop_state_pub = rospy.Publisher('/panther_hardware/e_stop', Bool, queue_size=1)
-        self._charger_state_pub = rospy.Publisher('/panther_hardware/charger_connected', Bool, queue_size=1)
-        self._fan_state_pub = rospy.Publisher('/panther_hardware/fan_enabled', Bool, queue_size=1)
+        self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1)
+        self._charger_state_pub = rospy.Publisher('hardware/charger_connected', Bool, queue_size=1)
+        self._fan_state_pub = rospy.Publisher('hardware/fan_enabled', Bool, queue_size=1)
         
         # -------------------------------
         #   Subscribers
@@ -94,25 +94,25 @@ class PowerBoardNode:
         # -------------------------------
 
         self._aux_power_enable_srv = rospy.Service(
-            '/panther_hardware/aux_power_enable', SetBool, self._aux_power_enable_cb
+            'hardware/aux_power_enable', SetBool, self._aux_power_enable_cb
         )
         self._charger_enable_srv = rospy.Service(
-            '/panther_hardware/charger_enable', SetBool, self._charger_enable_cb
+            'hardware/charger_enable', SetBool, self._charger_enable_cb
         )
         self._digital_power_enable_srv = rospy.Service(
-            '/panther_hardware/digital_power_enable', SetBool, self._digital_power_enable_cb,
+            'hardware/digital_power_enable', SetBool, self._digital_power_enable_cb,
         )
         self._motors_enable_srv = rospy.Service(
-            '/panther_hardware/motors_enable', SetBool, self._motors_enable_cb
+            'hardware/motors_enable', SetBool, self._motors_enable_cb
         )
         self._fan_enable_srv = rospy.Service(
-            '/panther_hardware/fan_enable', SetBool, self._fan_enable_cb
+            'hardware/fan_enable', SetBool, self._fan_enable_cb
         )
         self._e_stop_reset_srv = rospy.Service(
-            '/panther_hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
+            'hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
         )
         self._e_stop_trigger_srv = rospy.Service(
-            '/panther_hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
+            'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
 
         # -------------------------------

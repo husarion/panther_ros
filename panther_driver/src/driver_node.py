@@ -117,7 +117,7 @@ class PantherDriverNode:
             self._joint_state_msg = JointState()
             self._joint_state_msg.header.frame_id = self._base_link_frame
             self._joint_state_msg.name = self._wheels_joints_names
-            self._joint_publisher = rospy.Publisher('joint_states', JointState, queue_size=1)
+            self._joint_publisher = rospy.Publisher('/joint_states', JointState, queue_size=1)
 
         if self._publish_pose:
             self._pose_msg = Pose()
@@ -139,16 +139,16 @@ class PantherDriverNode:
         self._driver_state_msg.front.right_motor.motor_joint_name = self._wheels_joints_names[1]
         self._driver_state_msg.rear.left_motor.motor_joint_name = self._wheels_joints_names[2]
         self._driver_state_msg.rear.right_motor.motor_joint_name = self._wheels_joints_names[3]
-        self._driver_state_publisher = rospy.Publisher('motor_controllers_state', DriverState, queue_size=1)
+        self._driver_state_publisher = rospy.Publisher('driver/motor_controllers_state', DriverState, queue_size=1)
 
         rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
-        rospy.Subscriber('/panther_hardware/e_stop', Bool, self._estop_cb, queue_size=1)
+        rospy.Subscriber('hardware/e_stop', Bool, self._estop_cb, queue_size=1)
 
         # -------------------------------
         #   Services
         # -------------------------------
 
-        self._estop_trigger = rospy.ServiceProxy('/panther_hardware/e_stop_trigger', Trigger)
+        self._estop_trigger = rospy.ServiceProxy('hardware/e_stop_trigger', Trigger)
 
         # -------------------------------
         #   Timers

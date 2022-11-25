@@ -15,11 +15,12 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>panther_battery</depend>
   <depend>panther_bringup</depend>
   <depend>panther_description</depend>
   <depend>panther_driver</depend>
   <depend>panther_lights</depend>
   <depend>panther_msgs</depend>
+  <depend>panther_power_control</depend>
 
-  <export></export>
 </package>

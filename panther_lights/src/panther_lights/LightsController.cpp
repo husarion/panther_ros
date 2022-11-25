@@ -19,7 +19,7 @@ LightsController::~LightsController()
 void LightsController::initializeSubscribers()
 {
     ROS_INFO("Initializing Subscribers");
-    battery_sub = nh_.subscribe("/battery", 1, &LightsController::batteryCallback, this);
+    battery_sub = nh_.subscribe("battery", 1, &LightsController::batteryCallback, this);
     move_base_sub = nh_.subscribe("move_base/status", 1, &LightsController::moveBaseCallback, this);
 }
 
