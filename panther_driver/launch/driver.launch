@@ -3,7 +3,6 @@
   <arg name="panther_common_config_file" />
   <arg name="wheel_config_file" />
 
-  <!-- launch driver node -->
   <node pkg="panther_driver" name="panther_driver" type="driver_node.py" output="screen" required="true">
     <rosparam command="load" file="$(arg panther_common_config_file)" />
     <rosparam command="load" file="$(arg wheel_config_file)" />
@@ -11,8 +10,5 @@
     <param name="use_pdo" value="true" if="$(eval panther_version >= 1.2)" />
     <param name="eds_file" type="string" value="$(find panther_driver)/params/roboteq_motor_controllers_v60.eds" />
   </node>
-
-  <!-- launch IMU node -->
-  <include file="$(find panther_driver)/launch/imu.launch" />
-
+  
 </launch>
