@@ -2,21 +2,21 @@ cmake_minimum_required(VERSION 3.0.2)
 project(panther_driver)
 
 find_package(catkin REQUIRED COMPONENTS
-  rospy
   geometry_msgs
   nav_msgs
   panther_msgs
+  rospy
   sensor_msgs
   std_msgs
   std_srvs
+  tf2_ros
 )
 
-catkin_package(
-  LIBRARIES panther_driver
-  CATKIN_DEPENDS rospy panther_msgs
-)
+catkin_package()
 
-include_directories(
-  include config launch params
-  ${catkin_INCLUDE_DIRS}
+install(DIRECTORY
+  config
+  launch
+  params
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

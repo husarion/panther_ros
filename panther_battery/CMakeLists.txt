@@ -7,12 +7,9 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-catkin_package(
-  LIBRARIES panther_battery
-  CATKIN_DEPENDS rospy panther_msgs
-)
+catkin_package()
 
-include_directories(
+install(DIRECTORY 
   launch
-  ${catkin_INCLUDE_DIRS}
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

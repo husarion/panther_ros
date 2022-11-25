@@ -1,6 +1,6 @@
 <launch>
   <arg name="panther_version" />
-  <arg name="panther_common_config_file" default="$(find panther_driver)/config/panther_common.yaml" />
+  <arg name="panther_common_config_file" />
   <arg name="wheel_config_file" />
 
   <!-- launch driver node -->
