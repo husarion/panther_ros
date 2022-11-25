@@ -31,7 +31,7 @@ class ADCNode:
         #   Publishers & Subscribers
         # -------------------------------
 
-        self._battery_driv_sub = rospy.Subscriber('motor_controllers_state', DriverState, self._battery_driv_cb)
+        self._battery_driv_sub = rospy.Subscriber('driver/motor_controllers_state', DriverState, self._battery_driv_cb)
 
         self._battery_publisher = rospy.Publisher('battery', BatteryState, queue_size=1)
 
