@@ -81,6 +81,7 @@ class PowerBoardNode:
 
         self._e_stop_state_pub = rospy.Publisher('/panther_hardware/e_stop', Bool, queue_size=1)
         self._charger_state_pub = rospy.Publisher('/panther_hardware/charger_connected', Bool, queue_size=1)
+        self._fan_state_pub = rospy.Publisher('/panther_hardware/fan_enabled', Bool, queue_size=1)
         
         # -------------------------------
         #   Subscribers
@@ -120,6 +121,7 @@ class PowerBoardNode:
 
         self._timer_charger = rospy.Timer(rospy.Duration(0.5), self._publish_charger_state_cb)
         self._timer_e_stop = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
+        self._timer_fan = rospy.Timer(rospy.Duration(1.0), self._publish_fan_state_cb)
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
@@ -147,6 +149,11 @@ class PowerBoardNode:
         msg = Bool()
         msg.data = self._read_pin(self._pins.CHRG_SENSE)
         self._charger_state_pub.publish(msg)
+        
+    def _publish_fan_state_cb(self, event=None) -> None:
+        msg = Bool()
+        msg.data = self._read_pin(self._pins.FAN_SW)
+        self._fan_state_pub.publish(msg)
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         return self._handle_set_bool_srv(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
