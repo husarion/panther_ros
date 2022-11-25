@@ -40,7 +40,6 @@ class PantherDriverNode:
         robot_width = rospy.get_param('~wheel_separation', 0.697)
         robot_length = rospy.get_param('~robot_length', 0.44)
         wheel_radius = rospy.get_param('~wheel_radius', 0.1825)
-        power_factor = rospy.get_param('~power_factor', 0.04166667)
 
         self._wheels_joints_names = [
             'fl_wheel_joint',
@@ -82,21 +81,19 @@ class PantherDriverNode:
 
         if self._kinematics_type == 'differential':
             self._panther_kinematics = PantherDifferential(
-                robot_width=robot_width, 
-                robot_length=robot_length, 
-                wheel_radius=wheel_radius, 
-                encoder_resolution=self._encoder_resolution, 
-                gear_ratio=self._gear_ratio, 
-                power_factor=power_factor
+                robot_width=robot_width,
+                robot_length=robot_length,
+                wheel_radius=wheel_radius,
+                encoder_resolution=self._encoder_resolution,
+                gear_ratio=self._gear_ratio,
             )
         else:
             self._panther_kinematics = PantherMecanum(
-                robot_width=robot_width, 
-                robot_length=robot_length, 
-                wheel_radius=wheel_radius, 
-                encoder_resolution=self._encoder_resolution, 
-                gear_ratio=self._gear_ratio, 
-                power_factor=power_factor
+                robot_width=robot_width,
+                robot_length=robot_length,
+                wheel_radius=wheel_radius,
+                encoder_resolution=self._encoder_resolution,
+                gear_ratio=self._gear_ratio,
             )
 
         # -------------------------------

@@ -15,13 +15,12 @@ class PantherKinematics:
             wheel_radius,
             encoder_resolution,
             gear_ratio,
-            power_factor,
         ) -> None:
 
         self._robot_width = robot_width
         self._robot_length = robot_length
         self._wheel_radius = wheel_radius  # Distance of the wheel center, to the roller center
-        self._const_factor = power_factor * float(encoder_resolution * gear_ratio) / (2.0 * math.pi)
+        self._motor_speed_const = float(encoder_resolution * gear_ratio) / (2.0 * math.pi)
 
         self._wheels_enc_speed = [0.0, 0.0, 0.0, 0.0]
         self._lin_x = 0.0
@@ -49,7 +48,7 @@ class PantherKinematics:
 
     def _get_motor_speed(self, wheel_ang_vel: list) -> list:
         return [
-            clip(self._const_factor * ang_vel, -self._max_speed, self._max_speed) 
+            clip(self._motor_speed_const * ang_vel, -self._max_speed, self._max_speed) 
             for ang_vel in wheel_ang_vel
         ]
 
