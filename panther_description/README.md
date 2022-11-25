@@ -10,20 +10,19 @@ Basic Panther configuration can be found in file [panther.urdf.xacro](./panther_
 
 Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the same as parameters of [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro). Thus, this section covers both of them.
 
-
-- `use_sim` *(default: false)* - Unused. Kept for ROS 2 compatibility.
-- `dual_bat` *(default: false)* - Changes inertia and mass for robot body to match 2 batteries setup.
-- `imu_pos_x` *(default: 0.169)* - **x** coordinate of IMU sensor in relation to `body_link`.
-- `imu_pos_y` *(default: 0.025)* - **y** coordinate of IMU sensor in relation to `body_link`.
-- `imu_pos_z` *(default: 0.092)* - **z** coordinate of IMU sensor in relation to `body_link`.
-- `imu_rot_r` *(default: 0.0)* - roll rotation of IMU sensor in relation to `body_link`.
-- `imu_rot_p` *(default: 0.0)* - pitch rotation of IMU sensor in relation to `body_link`.
-- `imu_rot_y`  *(default: 0.0)* - yaw rotation of IMU sensor in relation to `body_link`.
-- `wheel_config_path` *(default: $(find panther_description)/config/WH01.yaml)* - absolute path to YAML file defining wheel properties.
-- `simulation_engine` *(default: gazebo-classic)* - physics engine to select plugins for. Supported engines: `gazebo-classic`. Kept for compatibility with ROS2 model. Currently, no other engines are planned to be supported.
+- `dual_bat` [*boolean*, default: **false**]: Changes inertia and mass for robot body to match 2 batteries setup.
+- `imu_pos_x` [*float*, default: **0.169**]: **X** coordinate of IMU sensor in relation to `body_link`.
+- `imu_pos_y` [*float*, default: **0.025**]: **Y** coordinate of IMU sensor in relation to `body_link`.
+- `imu_pos_z` [*float*,default: **0.092**]: **Z** coordinate of IMU sensor in relation to `body_link`.
+- `imu_rot_r` [*float*, default: **0.0**]: roll rotation of IMU sensor in relation to `body_link`.
+- `imu_rot_p` [*float*, default: **0.0**]: pitch rotation of IMU sensor in relation to `body_link`.
+- `imu_rot_y`  [*float*, default: **0.0**]: yaw rotation of IMU sensor in relation to `body_link`.
+- `use_sim` [*boolean*, default: **false**]: Unused. Kept for ROS 2 compatibility.
+- `wheel_config_path` [*float*, default: **$(find panther_description)/config/WH01.yaml**]: - absolute path to YAML file defining wheel properties.
+- `simulation_engine` [*float*, default: **gazebo-classic**]: physics engine to select plugins for. Supported engines: `gazebo-classic`. Kept for compatibility with ROS2 model. Currently, no other engines are planned to be supported.
 
 There is one additional [panther.urdf.xacro](./urdf/panther.urdf.xacro) argument:
-- `use_gpu` *(default: false)* - Turns on GPU acceleration for sensors.
+- `use_gpu` [*float*, default: **false**]: Turns on GPU acceleration for sensors.
 It is not present in the [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) since base of a robot does not have any sensors that can be accelerated with GPU.
 
 Parameter `wheel_config_path` allows using non-standard wheels with Panther robot without modifying URDF file. The syntax is following:
