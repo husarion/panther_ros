@@ -39,7 +39,7 @@ class PantherCAN:
         self._max_err_per_sec = 2
         self._err_times = [0] * self._max_err_per_sec
         # factor to convert motor speed (rps) to CANGO command 
-        # for Roboteq controller operating in Closed Loop Speed mode.
+        # used by Roboteq controller operating in Closed Loop Speed mode.
         self._cmd_cango_factor = 0.04166667
         
         self._lock = Lock()
