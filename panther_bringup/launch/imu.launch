@@ -1,7 +1,7 @@
 <!-- Phidgets Spatial launch file -->
 
 <launch>
-  <arg name="imu_config_file" default="$(find panther_driver)/config/imu_config.yaml" />
+  <arg name="imu_config_file" default="$(find panther_bringup)/config/imu_config.yaml" />
 
   <!-- Load IMU parameters -->
   <rosparam command="load" file="$(arg imu_config_file)" />
