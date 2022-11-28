@@ -14,7 +14,7 @@ Observes internal temperatures of the robot and turns on and off builting coolin
 - `/panther/motor_controllers_state` [*panther_msgs/DriverState*]: information about driver temperature.
 - `/panther/hardware/fan_enabled` [*std_msgs/Bool*]: feedback if fan is currently turned on.
 
-#### Services
+#### Services subscribed
 
 - `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: turns on and off internal fan.
 
@@ -23,10 +23,12 @@ Observes internal temperatures of the robot and turns on and off builting coolin
 - `~cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **deg C** of CPU, above which the fan is turned on.
 - `~cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, below which the fan is turned off.
 - `~driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
-- `~driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg** C of any drivers below which the fan is turned off.
+- `~driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
 - `~hysteresis` [*float*, default: **60.0**]: minimum time of work before turning off the fan.
 - `~cpu_window_len` [*int*, default: **6**]: length of moving average used to smooth out temperature readings of CPU.
 - `~driver_window_len` [*int*, default: **6**]: length of moving average used to smooth out temperature readings of each driver.
+
+In movind acerage is updated at each time step. In oder to modify the averaging 
 
 ### power_board_node.py
 
