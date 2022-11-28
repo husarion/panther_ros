@@ -6,7 +6,7 @@ A package containing nodes responsible for logging the state of the Husarion Pan
 
 ### system_status_node.py
 
-Publishes stats status of internal computer. Stats include CPU utilization and temperature as well as disc and RAM usage.
+Publishes stats status of internal computer. Stats include CPU utilization and temperature, as well as disc and RAM usage.
 
 #### Publishes
 
