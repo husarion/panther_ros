@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import math
+from time import sleep
 
 import rospy
 
@@ -111,12 +112,23 @@ class ADCNode:
             self._publish_battery_msg(self._battery_publisher, True, V_bat_1, temp_bat_1, I_bat_1)
 
     def _check_battery_count(self) -> int:
+        trials_num = 10
+        V_temp_sum = 0.0
+
         try:
-            V_temp_bat_2 = self._get_adc_measurement(
-                    path="/sys/bus/iio/devices/iio:device0/in_voltage0_raw", LSB=0.002, offset=0
-                )
+            for i in range(trials_num):
+                V_temp_sum += self._get_adc_measurement(
+                        path="/sys/bus/iio/devices/iio:device0/in_voltage0_raw", LSB=0.002, offset=0
+                    )
+                sleep(0.2)
+
+            V_temp_bat_2 = V_temp_sum / trials_num
+
         except:
-            rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error excep')
+            rospy.logerr(
+                f'[{rospy.get_name()}] Battery ADC measurement error excep. '
+                f'The number of batteries cannot be determined. The single battery was adopted. '
+            )
         
         return 1 if V_temp_bat_2 > BAT02_DETECT_THRESH else 2
 
