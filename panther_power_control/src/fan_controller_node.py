@@ -29,15 +29,23 @@ class FanControllerNode:
 
         if self._cpu_fan_on_temp < self._cpu_fan_off_temp:
             rospy.logerr(f'[{rospy.get_name()}] Error: '
-                f'Turning off temperature is higher than turning of temperature!')
+                f'Turning off temperature for CPU is higher than turning of temperature!')
+            raise ValueError
         
         if self._driver_fan_on_temp < self._driver_fan_off_temp:
             rospy.logerr(f'[{rospy.get_name()}] Error: '
-                f'Turning off temperature is higher than turning of temperature!')
+                f'Turning off temperature for driver is higher than turning of temperature!')
+            raise ValueError
 
         if self._hysteresis < 0.0:
             rospy.logerr(f'[{rospy.get_name()}] Error: '
                 f'Hysteresis can not be negative!')
+            raise ValueError
+            
+        if self._cpu_window_len <= 0 or self._driver_window_len <= 0:
+            rospy.logerr(f'[{rospy.get_name()}] Error: '
+                f'Smoothing window has to be positive!')
+            raise ValueError
         
         # -------------------------------
         #   Subscribers
