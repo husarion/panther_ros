@@ -23,7 +23,3 @@ panther:
   rtc:
     model: "DS3231"
     i2c_address: "0x51"
-
-  battery:
-    model: "Li-Ion36V20Ah"
-    count: 1
