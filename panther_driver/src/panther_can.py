@@ -233,7 +233,7 @@ class PantherCANPDO(PantherCAN):
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for curr in motor_controller.wheel_curr:
-                    yield curr
+                    yield curr / 10.0
 
     def query_fault_flags(self) -> Generator:
         with self._lock:
