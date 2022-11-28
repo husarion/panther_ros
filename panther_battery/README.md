@@ -32,4 +32,4 @@ Node publishing Panther battery state read from motor controllers. Used in Panth
 
 #### Subscribes
 
-- `/panther/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
