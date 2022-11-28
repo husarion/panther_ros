@@ -10,9 +10,9 @@ Observes internal temperatures of the robot and turns on and off builting coolin
 
 #### Subscribes
 
-- `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer temperature.
-- `/panther/motor_controllers_state` [*panther_msgs/DriverState*]: information about driver temperature.
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: information about driver temperature.
 - `/panther/hardware/fan_enabled` [*std_msgs/Bool*]: feedback if fan is currently turned on.
+- `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer temperature.
 
 #### Services subscribed
 
