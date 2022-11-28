@@ -10,13 +10,13 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2.
 
 #### Publishes
 
-- `battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one.
-- `battery_1` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
-- `battery_2` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
+- `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one.
+- `/panther/battery_1` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
+- `/panther/battery_2` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
 
 #### Subscribes
 
-- `motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+- `/panther/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 
 #### Parameters
 
@@ -28,8 +28,8 @@ Node publishing Panther battery state read from motor controllers. Used in Panth
 
 #### Publishes
 
-- `battery` [*sensor_msgs/BatteryState*]: battery state.
+- `/panther/battery` [*sensor_msgs/BatteryState*]: battery state.
 
 #### Subscribes
 
-- `motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+- `/panther/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.

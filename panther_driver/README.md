@@ -2,14 +2,18 @@
 
 Software for controlling the Husarion Panther robot motors via CAN interface.
 
-## ROS API
+## ROS Nodes
 
-### Publishes
+### driver_node.py
+
+Node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot.
+
+#### Publishes
 
 - `/joint_states` [*sensor_msgs/JointState*]: robot joints states.
-- `/motor_controller_state` [*panther_msgs/DriverState*]: motor controllers current, voltage, fault flags, script flags and runtime error flags.
-- `/odom/wheel` [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
-- `/pose` [*geometry_msgs/Pose*]: robot position.
+- `/panther/motor_controller_state` [*panther_msgs/DriverState*]: motor controllers current, voltage, fault flags, script flags and runtime error flags.
+- `/panther/odom/wheel` [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
+- `/panther/pose` [*geometry_msgs/Pose*]: robot position.
 - `/tf` [*tf2_msgs/TFMessage*]: transform between `odom_frame` and `base_link_frame`.
 
 For a `/joint_states` message is crying given data:
@@ -18,15 +22,16 @@ For a `/joint_states` message is crying given data:
 - `velocity = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Encoder pulses per second.
 - `effort = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Approximate motor torque in Nm.
 
-### Subscribe
+#### Subscribe
+
 - `/cmd_vel` [*geometry_msgs/Twist*]: robot desired control velocity.
-- `/panther_hardware/e_stop` [*std_msgs/Bool*]: robot emergency stop state.
+- `/panther/hardware/e_stop` [*std_msgs/Bool*]: robot emergency stop state.
 
-### Service clients
+#### Services subscribed
 
-- `/panther_hardware/e_stop_trigger` [*std_srvs/Trigger*]: allows to trigger robot emergency stop.
+- `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: allows to trigger robot emergency stop.
 
-### Parameters
+#### Parameters
 
 - `~base_link_frame` [*string*, default: **'base_link'**]: the name of the base link frame.
 - `~can_interface` [*string, default: **'panther_can'**]: the name of the socket CAN interface.
@@ -45,6 +50,6 @@ For a `/joint_states` message is crying given data:
 - `~wheel_radius` [*float*, default: **0.1825**]: wheel radius in **[m]**.
 - `~wheel_separation` [*float*, default: **0.697**]: separation of wheels alongside y axis in **[m]**.
 
-### Kinematics type
+#### Kinematics type - explanation
 
 The Panther robot can be configured with different wheels to match your needs, we provide 2 different kinematics types `differential`/`mecanum`. You can change the wheel type by providing an appropriate launch parameter with a path to the wheel configuration file - `wheel_config_file`. Basic wheel configuration files (*WH01.yaml, WH04.yaml*): are located in `panther_description` package.
