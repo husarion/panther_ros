@@ -66,8 +66,8 @@ class LightsNode:
 
         rospy.on_shutdown(self.shutdown_cb)
         self.lights.start()
-        self.__serv_lights = rospy.Service('set_panther_lights', SetLights, self.set_lights_callback)
-        self.__serv_brightness = rospy.Service('set_panther_lights_brightness', SetBrightness, self.set_brightness_callback)
+        self.__serv_lights = rospy.Service('lights/set_panther_lights', SetLights, self.set_lights_callback)
+        self.__serv_brightness = rospy.Service('lights/set_panther_lights_brightness', SetBrightness, self.set_brightness_callback)
 
     def set_brightness_callback(self,msg):
         info_str = "Data %f" % msg.brightness

@@ -140,8 +140,8 @@ void LightsController::setLights()
         return;
     }
 
-    ros::service::waitForService("set_panther_lights");
-    if (ros::service::call("set_panther_lights", lights_message))
+    ros::service::waitForService("lights/set_panther_lights");
+    if (ros::service::call("lights/set_panther_lights", lights_message))
     {
         ; // set success
     }

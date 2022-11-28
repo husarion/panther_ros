@@ -42,8 +42,8 @@ void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
                 return;
             }
 
-            ros::service::waitForService("set_panther_lights");
-            if (ros::service::call("set_panther_lights", message))
+            ros::service::waitForService("lights/set_panther_lights");
+            if (ros::service::call("lights/set_panther_lights", message))
             {
                 ROS_INFO("New move_base state!");
                 last_status = status;
@@ -58,8 +58,8 @@ void statusCallback(const actionlib_msgs::GoalStatusArray &msg)
             panther_lights::SetLights message;
             message.request.animation = 9;
             message.request.custom_color = "0x49d925 0x49d925";
-            ros::service::waitForService("set_panther_lights");
-            if (ros::service::call("set_panther_lights", message))
+            ros::service::waitForService("lights/set_panther_lights");
+            if (ros::service::call("lights/set_panther_lights", message))
             {
                 ROS_INFO("New move_base state!");
                 last_status = status;
