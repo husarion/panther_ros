@@ -75,7 +75,7 @@ class FanControllerNode:
             return
         
         if self._cpu_temp_window is None:
-            rospy.loginfo(f'[{rospy.get_name()}] Waiting for system_staus message to arrive.')
+            rospy.loginfo(f'[{rospy.get_name()}] Waiting for system_status message to arrive.')
             return
     
         if self._front_driver_temp_window is None or self._rear_driver_temp_window is None:
