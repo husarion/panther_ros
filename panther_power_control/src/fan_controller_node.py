@@ -11,7 +11,6 @@ class FanControllerNode:
 
         rospy.init_node(name, anonymous=False)
 
-        self._num_observations = 6
         self._cpu_temp_window = None
         self._front_driver_temp_window = None
         self._rear_driver_temp_window = None
@@ -25,6 +24,8 @@ class FanControllerNode:
         self._driver_fan_on_temp = rospy.get_param('~driver_fan_on_temp', 45.0)
         self._driver_fan_off_temp = rospy.get_param('~driver_fan_off_temp', 35.0)
         self._hysteresis = rospy.get_param('~hysteresis', 60.0)
+        self._cpu_window_len = rospy.get_param('~cpu_window_len', 6)
+        self._driver_window_len = rospy.get_param('~driver_window_len', 6)
 
         if self._cpu_fan_on_temp < self._cpu_fan_off_temp:
             rospy.logerr(f'[{rospy.get_name()}] Error: '
@@ -108,15 +109,15 @@ class FanControllerNode:
         if self._cpu_temp_window is not None:
             self._cpu_temp_window = self._move_window(self._cpu_temp_window, data.cpu_temp)
         else:
-            self._cpu_temp_window = [data.cpu_temp] * self._num_observations
+            self._cpu_temp_window = [data.cpu_temp] * self._cpu_window_len
         
     def _driver_state_cb(self, data) -> None:
         if self._front_driver_temp_window is not None and self._rear_driver_temp_window  is not None:
             self._front_driver_temp_window = self._move_window(self._front_driver_temp_window, data.front.temperature)
             self._rear_driver_temp_window = self._move_window(self._rear_driver_temp_window, data.rear.temperature)
         else:
-            self._front_driver_temp_window = [data.front.temperature] * self._num_observations
-            self._rear_driver_temp_window = [data.rear.temperature] * self._num_observations
+            self._front_driver_temp_window = [data.front.temperature] * self._driver_window_len
+            self._rear_driver_temp_window = [data.rear.temperature] * self._driver_window_len
             
     def _fan_state_cb(self, data) -> None:
         self._fan_state = data.data
