@@ -38,6 +38,9 @@ class PantherCAN:
     def __init__(self, eds_file, can_interface) -> None:
         self._max_err_per_sec = 2
         self._err_times = [0] * self._max_err_per_sec
+        # factor to convert motor speed (rps) to CANGO command 
+        # used by Roboteq controller operating in Closed Loop Speed mode.
+        self._cmd_cango_factor = 0.04166667
         
         self._lock = Lock()
         self._network = canopen.Network()
@@ -71,7 +74,7 @@ class PantherCAN:
             for motor_controller, enc_vel in zip(self._motor_controllers, [vel[:2], vel[2:]]):
                 for i, wheel in enumerate(self._wheels):
                     try:
-                        motor_controller.can_node.sdo['Cmd_CANGO'][wheel].raw = enc_vel[i]
+                        motor_controller.can_node.sdo['Cmd_CANGO'][wheel].raw = self._cmd_cango_factor * enc_vel[i]
                     except:
                         rospy.logwarn(
                             f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
