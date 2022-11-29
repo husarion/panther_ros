@@ -21,5 +21,4 @@
   <depend>std_msgs</depend>
   <depend>panther_msgs</depend>
 
-  <export></export>
 </package>
