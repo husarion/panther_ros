@@ -20,7 +20,12 @@ class PantherKinematics:
         self._robot_width = robot_width
         self._robot_length = robot_length
         self._wheel_radius = wheel_radius  # Distance of the wheel center, to the roller center
-        self._motor_speed_const = float(encoder_resolution * gear_ratio) / (2.0 * math.pi)
+
+        # factor to convert motor speed (rps) to CANGO command 
+        # used by Roboteq controller operating in Closed Loop Speed mode.
+        self._cmd_cango_factor = 0.04166667
+        
+        self._motor_speed_const = float(self._cmd_cango_factor * encoder_resolution * gear_ratio) / (2.0 * math.pi)
 
         self._wheels_enc_speed = [0.0, 0.0, 0.0, 0.0]
         self._lin_x = 0.0
@@ -29,7 +34,7 @@ class PantherKinematics:
         self._robot_x_pos = 0.0
         self._robot_y_pos = 0.0
         self._robot_th_pos = 0.0
-        self._max_speed = 950.0
+        self._max_speed = 1000.0
         self._scale_factor_x = 0.25
         self._scale_factor_y = 0.25
         self._scale_factor_th = 0.125

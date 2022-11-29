@@ -81,19 +81,19 @@ class PantherDriverNode:
 
         if self._kinematics_type == 'differential':
             self._panther_kinematics = PantherDifferential(
-                robot_width=robot_width,
-                robot_length=robot_length,
-                wheel_radius=wheel_radius,
-                encoder_resolution=self._encoder_resolution,
-                gear_ratio=self._gear_ratio,
+                robot_width=robot_width, 
+                robot_length=robot_length, 
+                wheel_radius=wheel_radius, 
+                encoder_resolution=self._encoder_resolution, 
+                gear_ratio=self._gear_ratio
             )
         else:
             self._panther_kinematics = PantherMecanum(
-                robot_width=robot_width,
-                robot_length=robot_length,
-                wheel_radius=wheel_radius,
-                encoder_resolution=self._encoder_resolution,
-                gear_ratio=self._gear_ratio,
+                robot_width=robot_width, 
+                robot_length=robot_length, 
+                wheel_radius=wheel_radius, 
+                encoder_resolution=self._encoder_resolution, 
+                gear_ratio=self._gear_ratio
             )
 
         # -------------------------------
