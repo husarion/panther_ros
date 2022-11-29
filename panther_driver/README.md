@@ -41,6 +41,7 @@ For a `/joint_states` message is crying given data:
 - `~kinematics` [*string*, default: **'differential'**]: kinematics type, possible are: differential, mecanum.
 - `~motor_torque_constant` [*float*, default: **2.6149**]: constant used to estimate torque.
 - `~odom_frame` [*string*, default: **'odom'**]: the name of the odom frame.
+- `~power_factor` [*float*, default: **0.04166667**]: power factor used to convert desired motor speed to controller format.
 - `~publish_joints` [*boolean*, default: **True**]: whether to publish robot joints states.
 - `~publish_odometry` [*boolean*, default: **True**]: whether to publish robot odometry.
 - `~publish_pose` [*boolean*, default: **True**]: whether to publish robot pose.
