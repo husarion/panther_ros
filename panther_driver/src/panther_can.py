@@ -27,7 +27,7 @@ class MotorController:
     wheel_curr = [0.0, 0.0]
     battery_data = [0.0, 0.0] # V, I
     runtime_stat_flag = [0, 0]
-    temperature = 0
+    temperature = 0.0
     fault_flags = 0
     script_flags = 0
 
@@ -109,12 +109,8 @@ class PantherCAN:
     def query_driver_temperature_data(self) -> Generator:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                try:
-                    # division by 10 is needed according to documentation
-                    motor_controller.temperature = \
-                        float(
-                            motor_controller.can_node.sdo['Qry_TEMP'][0].raw
-                        )
+                try:  
+                    motor_controller.temperature = float(motor_controller.can_node.sdo['Qry_TEMP'][1].raw)
                 except canopen.SdoCommunicationError:
                     rospy.logwarn(
                         f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 

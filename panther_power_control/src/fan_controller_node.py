@@ -131,7 +131,7 @@ class FanControllerNode:
         self._fan_state = data.data
         
     def _set_fan_state(self, state):
-        rospy.wait_for_service('/panther_hardware/fan_enable')
+        rospy.wait_for_service('hardware/fan_enable')
         self._fan_enable_service(SetBoolRequest(state))
         
     def _move_window(self, window, elem):
