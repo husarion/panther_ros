@@ -6,10 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   panther_msgs
 )
 
-catkin_package(
-  LIBRARIES panther_logger
-  CATKIN_DEPENDS rospy
-)
+catkin_package()
 
 include_directories(
   launch
