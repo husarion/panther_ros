@@ -35,7 +35,6 @@
     <include file="$(find panther_logger)/launch/logger.launch" />
     
     <include file="$(find panther_bringup)/launch/imu.launch" />
-
+  
   </group>
-
 </launch>

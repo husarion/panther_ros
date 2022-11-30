@@ -6,6 +6,7 @@ import rospy
 
 from panther_msgs.msg import SystemStatus
 
+
 class SystemStatusNode:
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=False)

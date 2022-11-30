@@ -2,9 +2,11 @@
 
 import rospy
 
-from panther_msgs.msg import DriverState, SystemStatus
 from std_msgs.msg import Bool
 from std_srvs.srv import SetBool, SetBoolRequest
+
+from panther_msgs.msg import DriverState, SystemStatus
+
 
 class FanControllerNode:
     def __init__(self, name) -> None:
@@ -29,12 +31,12 @@ class FanControllerNode:
 
         if self._cpu_fan_on_temp < self._cpu_fan_off_temp:
             rospy.logerr(f'[{rospy.get_name()}] Error: '
-                f'Turning off temperature for CPU is higher than turning of temperature!')
+                f'Turning off temperature for CPU is higher than turning on temperature!')
             raise ValueError
         
         if self._driver_fan_on_temp < self._driver_fan_off_temp:
             rospy.logerr(f'[{rospy.get_name()}] Error: '
-                f'Turning off temperature for driver is higher than turning of temperature!')
+                f'Turning off temperature for driver is higher than turning on temperature!')
             raise ValueError
 
         if self._hysteresis < 0.0:
@@ -89,7 +91,7 @@ class FanControllerNode:
         
         if self._front_driver_avg_temp > self._critical_driver_temp:
             rospy.logerr_throttle(60,
-                f'[{rospy.get_name()}] Rear driver reached critical ',
+                f'[{rospy.get_name()}] Front driver reached critical ',
                 f'temperature of {int(round(self._front_driver_avg_temp) + 0.1)} deg C!')
         if self._rear_driver_avg_temp > self._critical_driver_temp:
             rospy.logerr_throttle(60,

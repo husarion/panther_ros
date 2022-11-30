@@ -28,8 +28,6 @@ Observes internal temperatures of the robot and turns on and off builting coolin
 - `~cpu_window_len` [*int*, default: **6**]: length of moving average used to smooth out temperature readings of CPU.
 - `~driver_window_len` [*int*, default: **6**]: length of moving average used to smooth out temperature readings of each driver.
 
-In movind acerage is updated at each time step. In oder to modify the averaging 
-
 ### power_board_node.py
 
 Node responsible for management of the safety board and the power board. Available since Panther version 1.2.

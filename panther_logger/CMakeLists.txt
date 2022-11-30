@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package()
 
-include_directories(
+install(DIRECTORY 
   launch
-  ${catkin_INCLUDE_DIRS}
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
