@@ -15,11 +15,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>imu_filter_madgwick</depend>
   <depend>panther_battery</depend>
   <depend>panther_description</depend>
   <depend>panther_driver</depend>
   <depend>panther_lights</depend>
   <depend>panther_msgs</depend>
   <depend>panther_power_control</depend>
-
+  <depend>phidgets_spatial</depend>
+  
 </package>

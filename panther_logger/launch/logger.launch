@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="panther_logger" name="system_status_node" type="system_status_node.py" required="true" output="screen" />
+</launch>

@@ -19,11 +19,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>geometry_msgs</depend>
-  <depend>imu_filter_madgwick</depend>
   <depend>nav_msgs</depend>
   <depend>nodelet</depend>
   <depend>panther_msgs</depend>
-  <depend>phidgets_spatial</depend>
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>

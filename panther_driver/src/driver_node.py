@@ -219,6 +219,11 @@ class PantherDriverNode:
             self._driver_state_msg.rear.voltage, 
             self._driver_state_msg.rear.current,
         ] = self._panther_can.query_battery_data()
+        
+        [
+            self._driver_state_msg.front.temperature,
+            self._driver_state_msg.rear.temperature
+        ] = self._panther_can.query_driver_temperature_data()
 
         self._roboteq_fault_flags = list(self._panther_can.query_fault_flags())
         self._roboteq_script_flags = list(self._panther_can.query_script_flags())
