@@ -46,23 +46,23 @@ class SystemStatusNode:
                 f'temperature of {int(round(self._cpu_temp) + 0.1)} deg C!')
 
     @property
-    def _cpu_percent(self):
+    def _cpu_percent(self) -> float:
         return psutil.cpu_percent(interval=1, percpu=True)
 
     @property
-    def _cpu_temp(self):
+    def _cpu_temp(self) -> float:
         return psutil.sensors_temperatures()['cpu_thermal'][0].current
 
     @property
-    def _avg_load_percent(self):
+    def _avg_load_percent(self) -> float:
         return psutil.getloadavg()[2]
 
     @property
-    def _ram_usage_percent(self):
+    def _ram_usage_percent(self) -> float:
         return psutil.virtual_memory().percent
 
     @property
-    def _disc_usage_percent(self):
+    def _disc_usage_percent(self) -> float:
         return psutil.disk_usage('/').percent
 
 

@@ -71,7 +71,7 @@ class FanControllerNode:
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
         
-    def _fan_control_loop_cb(self, event=None):
+    def _fan_control_loop_cb(self, event=None) -> None:
         if self._fan_state is None:
             rospy.loginfo(f'[{rospy.get_name()}] Waiting for fan state message to arrive.')
             return
@@ -132,16 +132,16 @@ class FanControllerNode:
     def _fan_state_cb(self, data) -> None:
         self._fan_state = data.data
         
-    def _set_fan_state(self, state):
+    def _set_fan_state(self, state) -> None:
         rospy.wait_for_service('hardware/fan_enable')
         self._fan_enable_service(SetBoolRequest(state))
         
-    def _move_window(self, window, elem):
+    def _move_window(self, window, elem) -> list:
         window = window[1:]
         window.append(elem)
         return window
     
-    def _get_mean(self, window):
+    def _get_mean(self, window) -> float:
         return sum(window) / len(window)
 
 
