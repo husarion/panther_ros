@@ -6,7 +6,7 @@ A package containing nodes responsible for power management of the Husarion Pant
 
 ### fan_controller_node.py
 
-Observes internal temperatures of the robot and turns on and off builting cooling fan. Fan is turned on based on internal computer CPU temperature and motor driver temperature. Available since Panther version 1.2.
+Observes internal temperatures of the robot and turns on and off the built-in cooling fan. The fan is turned on based on the internal computer CPU temperature and motor driver temperature. Available since Panther version 1.2.
 
 #### Subscribes
 
