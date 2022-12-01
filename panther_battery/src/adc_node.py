@@ -109,7 +109,7 @@ class ADCNode:
 
         else: 
             temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
-            self._publish_battery_msg(self._battery_publisher, True, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1)
+            self._publish_battery_msg(self._battery_publisher, True, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1)
 
     def _check_battery_count(self) -> int:
         trials_num = 10
