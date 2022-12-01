@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from dataclasses import dataclass
-from gpiozero import PWMOutputDevice, Button
+from gpiozero import PWMOutputDevice
 import paramiko
 import RPi.GPIO as GPIO
 import threading
@@ -135,9 +135,11 @@ class PowerBoardNode:
         sleep(0.2)
         self._write_to_pin(self._pins.AUX_PW_EN, 1)
 
-    def _soft_shutdown(self):
-        button = Button(self._pins.SHDN_INIT, pull_up=False)
-        button.wait_for_press()
+    def _soft_shutdown(self) -> None:
+        while(not self._read_pin(self._pins.SHDN_INIT)):
+            sleep(0.2)
+
+        rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
         self._shutdown_host()
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
@@ -241,6 +243,7 @@ class PowerBoardNode:
         GPIO.setup(self._pins.VDIG_OFF, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.DRIVER_EN, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)  # USED AS I/O
+        GPIO.setup(self._pins.SHDN_INIT, GPIO.IN)
 
     def _read_pin(self, pin: int) -> bool:
         if pin in self._pins.inverse_logic_pins:
