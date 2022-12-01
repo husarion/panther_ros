@@ -133,7 +133,6 @@ class PowerBoardNode:
         sleep(0.5)
         self._write_to_pin(self._pins.DRIVER_EN, 1)
         sleep(0.2)
-        self._write_to_pin(self._pins.AUX_PW_EN, 1)
 
     def _soft_shutdown(self) -> None:
         while(not self._read_pin(self._pins.SHDN_INIT)):
