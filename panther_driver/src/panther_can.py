@@ -14,7 +14,6 @@ class ControllerChannels:
     LEFT_WHEEL = 2
     RIGHT_WHEEL = 1
     VOLT_CHANNEL = 2
-    AMP_CHANNEL = 1 
 
     def __setattr__(self, name, value):
         raise AttributeError(f'can\'t reassign constant {name}')
@@ -84,14 +83,19 @@ class PantherCAN:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 try:
-                    # division by 10 is needed according to documentation
+                    tmp_batamps = 0.0                   
+
+                    for wheel in self._wheels:
+                        # division by 10 is needed according to documentation
+                        tmp_batamps += \
+                            float(
+                                motor_controller.can_node.sdo['Qry_BATAMPS'][wheel].raw
+                            ) / 10.0
+                            
+                    motor_controller.battery_data[1] = tmp_batamps
                     motor_controller.battery_data[0] = \
                         float(
                             motor_controller.can_node.sdo['Qry_VOLTS'][self._channels.VOLT_CHANNEL].raw
-                        ) / 10.0
-                    motor_controller.battery_data[1] = \
-                        float(
-                            motor_controller.can_node.sdo['Qry_BATAMPS'][self._channels.AMP_CHANNEL].raw
                         ) / 10.0
                 except canopen.SdoCommunicationError:
                     rospy.logwarn(
