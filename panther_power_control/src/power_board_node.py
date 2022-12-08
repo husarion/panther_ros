@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from gpiozero import PWMOutputDevice
 import paramiko
 import RPi.GPIO as GPIO
-from threading import Thread
+from threading import Thread, Lock
 from time import sleep, time
 
 import rospy
@@ -69,7 +69,7 @@ class PowerBoardNode:
         self._watchdog = Watchdog()
         self._watchdog.turn_on()
 
-        self._locked = False
+        self._lock = Lock()
 
         rospy.init_node(name, anonymous=False)
         
@@ -144,7 +144,7 @@ class PowerBoardNode:
         self._shutdown_host()
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
-        if not self._locked:
+        with self._lock:
             msg = Bool()
             msg.data = self._read_pin(self._pins.E_STOP_RESET)
             self._e_stop_state_pub.publish(msg)
@@ -184,8 +184,7 @@ class PowerBoardNode:
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        self._locked = True
-        try:
+        with self._lock:
             if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
                 return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
             elif time() - self._cmd_vel_msg_time <= 2.0:
@@ -203,10 +202,6 @@ class PowerBoardNode:
                 )
 
             return TriggerResponse(True, 'E-STOP reset successful')
-        except:
-            return TriggerResponse(False, 'E-STOP reset failure')
-        finally:
-            self._locked = False
 
     def _reset_e_stop(self) -> None:
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
