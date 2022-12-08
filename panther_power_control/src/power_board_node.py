@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from gpiozero import PWMOutputDevice
 import paramiko
 import RPi.GPIO as GPIO
-import threading
+from threading import Thread, Lock
 from time import sleep, time
 
 import rospy
@@ -61,13 +61,15 @@ class PowerBoardNode:
         self._setup_gpio()
         self._motor_start_sequence()
 
-        self.soft_shutdown_thread = threading.Thread(
+        self.soft_shutdown_thread = Thread(
             name='Soft shutdown thread', target=self._soft_shutdown
         )
         self.soft_shutdown_thread.start()
 
         self._watchdog = Watchdog()
         self._watchdog.turn_on()
+
+        self._lock = Lock()
 
         rospy.init_node(name, anonymous=False)
         
@@ -142,9 +144,10 @@ class PowerBoardNode:
         self._shutdown_host()
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
-        msg = Bool()
-        msg.data = self._read_pin(self._pins.E_STOP_RESET)
-        self._e_stop_state_pub.publish(msg)
+        with self._lock:
+            msg = Bool()
+            msg.data = self._read_pin(self._pins.E_STOP_RESET)
+            self._e_stop_state_pub.publish(msg)
 
     def _publish_charger_state_cb(self, event=None) -> None:
         msg = Bool()
@@ -181,23 +184,24 @@ class PowerBoardNode:
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
-            return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
-        elif time() - self._cmd_vel_msg_time <= 2.0:
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, some messages are published on the /cmd_vel topic',
-            )
+        with self._lock:
+            if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
+                return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
+            elif time() - self._cmd_vel_msg_time <= 2.0:
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, some messages are published on the /cmd_vel topic',
+                )
 
-        self._reset_e_stop()
+            self._reset_e_stop()
 
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
-            )
+            if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
+                )
 
-        return TriggerResponse(True, 'E-STOP reset successful')
+            return TriggerResponse(True, 'E-STOP reset successful')
 
     def _reset_e_stop(self) -> None:
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
