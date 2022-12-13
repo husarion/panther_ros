@@ -77,14 +77,6 @@
       <provideFeedback>true</provideFeedback>
     </gazebo>
 
-    <gazebo reference="${prefix}_wheel_link">
-      <mu1 value="0.8" />
-      <mu2 value="0.8" />
-      <kp value="100000000.0" />
-      <kd value="10.0" />
-      <fdir1 value="1.0 0.0 0.0" />
-    </gazebo>
-
   </xacro:macro>
 
 </robot>
