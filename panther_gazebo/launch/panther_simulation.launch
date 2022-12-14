@@ -1,0 +1,11 @@
+<launch>
+  <arg name="use_rviz" default="true" />
+  <arg name="rviz_config" default="$(find panther_description)/rviz/panther.rviz" />
+
+  <include file="$(find panther_gazebo)/launch/panther_world.launch" />
+
+  <include file="$(find panther_gazebo)/launch/panther_spawn.launch" />
+
+  <node if="$(arg use_rviz)" name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(arg rviz_config)" />
+
+</launch>
