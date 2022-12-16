@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <launch>
   <rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
   <node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller" />
