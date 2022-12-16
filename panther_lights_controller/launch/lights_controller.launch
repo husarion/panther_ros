@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="panther_lights_controller" name="lights_controller_node" type="controller_node.py" output="screen">
+    <param name="animation_description" value="$(find panther_lights_controller)/config/panther_lights_animations.yaml" />
+  </node>
+
+</launch>
