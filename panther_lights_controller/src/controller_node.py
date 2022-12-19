@@ -8,7 +8,6 @@ from threading import Lock
 import rospkg
 import rospy
 
-from animation.image_animation import ImageAnimation
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
 from panther_msgs.srv import SetLEDBrightness, SetLEDBrightnessRequest, SetLEDBrightnessResponse
 from panther_msgs.srv import (
@@ -18,6 +17,7 @@ from panther_msgs.srv import (
 )
 
 import panther_apa102_driver
+from animation.image_animation import ImageAnimation
 
 
 MAX_BRIGHTNESS = 31
@@ -124,7 +124,10 @@ class LightsControllerNode:
         try:
             animation = self._get_animation_by_id(req.animation.id)
             self._interrupt = animation.interrupting
-            self._anim_queue.put(animation)
+            if self._interrupt:
+                self._anim_queue.queue.insert(0, animation)
+            else:
+                self._anim_queue.put(animation)
             if req.repeat:
                 self._default_animation = animation
         except ImageAnimation.AnimationYAMLError as err:
