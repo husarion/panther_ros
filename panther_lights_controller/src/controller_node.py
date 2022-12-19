@@ -26,6 +26,7 @@ MAX_BRIGHTNESS = 31
 class PantherAnimation:
     front: ImageAnimation
     rear: ImageAnimation
+    interrupting = False
 
 
 class LightsControllerNode:
@@ -56,6 +57,7 @@ class LightsControllerNode:
             apa_driver_brightness = MAX_BRIGHTNESS
 
         self._num_led = rospy.get_param('num_led', 46)
+        self._controller_frequency = rospy.get_param('controller_frequency', 100)
 
         # define controller and clear all panels
         self._controller = panther_apa102_driver.PantherAPA102Driver(
@@ -84,7 +86,9 @@ class LightsControllerNode:
         #   Timers
         # -------------------------------
 
-        self._controller_timer = rospy.Timer(rospy.Duration(0.01), self._controller_timer_cb)
+        self._controller_timer = rospy.Timer(
+            rospy.Duration(1 / self._controller_frequency), self._controller_timer_cb
+        )
 
         rospy.loginfo(f'{rospy.get_name()} Node started')
 
@@ -95,7 +99,7 @@ class LightsControllerNode:
                     self._current_animation = self._default_animation
                 else:
                     self._current_animation = self._anim_queue.get(block=False)
-                    self._animation_finished = False
+                    self._interrupt = False
 
             if self._current_animation:
                 if not self._current_animation.front.finished:
@@ -119,6 +123,7 @@ class LightsControllerNode:
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
             animation = self._get_animation_by_id(req.animation.id)
+            self._interrupt = animation.interrupting
             self._anim_queue.put(animation)
             if req.repeat:
                 self._default_animation = animation
@@ -134,7 +139,6 @@ class LightsControllerNode:
         pass
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
-        '''rosservice callback for /lights/brightness'''
         if 0 <= req.data <= 1:
             brightness = int(req.data * MAX_BRIGHTNESS)
             self._controller.set_brightness(brightness)
@@ -155,15 +159,28 @@ class LightsControllerNode:
         for anim in animation_description['animations']:
             if anim['id'] == animation_id:
                 if 'both' in anim['animation']:
-                    animation.front = ImageAnimation(anim['animation']['both'], self._num_led)
-                    animation.rear = ImageAnimation(anim['animation']['both'], self._num_led)
-                    return animation
+                    animation.front = ImageAnimation(
+                        anim['animation']['both'], self._num_led, self._controller_frequency
+                    )
+                    animation.rear = ImageAnimation(
+                        anim['animation']['both'], self._num_led, self._controller_frequency
+                    )
                 elif 'front' in anim['animation'] and 'rear' in anim['animation']:
-                    animation.front = ImageAnimation(anim['animation']['front'], self._num_led)
-                    animation.rear = ImageAnimation(anim['animation']['rear'], self._num_led)
-                    return animation
+                    animation.front = ImageAnimation(
+                        anim['animation']['front'], self._num_led, self._controller_frequency
+                    )
+                    animation.rear = ImageAnimation(
+                        anim['animation']['rear'], self._num_led, self._controller_frequency
+                    )
                 else:
-                    rospy.logerr('missing \'both\' or \'front\'/\'rear\' in animation description')
+                    raise ImageAnimation.AnimationYAMLError(
+                        'Missing \'both\' or \'front\'/\'rear\' in animation description'
+                    )
+
+                if 'interrupting' in anim:
+                    animation.interrupting = anim['interrupting']
+
+                return animation
 
         raise ImageAnimation.AnimationYAMLError(f'No Animation with id: {animation_id}')
 

@@ -3,16 +3,16 @@ import numpy as np
 import os
 from PIL import Image
 
-from .animation import Animation
-
 import rospkg
+
+from .animation import Animation
 
 
 class ImageAnimation(Animation):
 
     ANIMATION_NAME = 'image_animation'
 
-    def __init__(self, anim_yaml, num_led) -> None:
+    def __init__(self, anim_yaml, num_led, controller_frequency) -> None:
         super().__init__(anim_yaml, num_led)
 
         if not 'image' in anim_yaml.keys():
@@ -29,14 +29,11 @@ class ImageAnimation(Animation):
 
         # resize image to match duration
         original_img = imageio.imread(img_path)
-        main_timer_hz = 100
-        resized_image = Image.fromarray(original_img).resize(
-            (num_led, int(self._duration * main_timer_hz))
+        resized_img = Image.fromarray(original_img).resize(
+            (num_led, int(self._duration * controller_frequency))
         )
-        self._img = np.array(resized_image)
-
-        (img_y, _, _) = np.shape(self._img)
-        self._img_y = img_y
+        self._img = np.array(resized_img)
+        (self._img_y, _, _) = np.shape(self._img)
 
         # overwrite animation's color
         if 'color' in anim_yaml.keys():
@@ -69,10 +66,8 @@ class ImageAnimation(Animation):
         self._img.astype(np.uint8)
 
         self._i = 0
-        self._frame_time = self._duration / self._img_y
 
     def __call__(self) -> np.ndarray:
-        '''returns new frame'''
         if self._i < self._img_y:
             frame = self._img[self._i, :]
             self._i += 1
@@ -83,9 +78,6 @@ class ImageAnimation(Animation):
                 self._finished = True
             return frame
         raise Animation.AnimationFinished
-
-    def sleep_time(self) -> float:
-        return self._frame_time
 
     def reset(self) -> None:
         self._i = 0

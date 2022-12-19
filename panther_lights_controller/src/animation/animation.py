@@ -50,10 +50,6 @@ class Animation:
         '''returns new frame'''
         raise NotImplementedError
 
-    def sleep_time(self):
-        '''returns time needed to sleep in thread between frames'''
-        raise NotImplementedError
-
     def reset(self):
         '''restets animation to it's initial state'''
         raise NotImplementedError
