@@ -5,7 +5,7 @@ animations:
     animation:
       both:
         image: triangle01_red.png
-        duration: 3.7
+        duration: 2
 
   - id: 2
     name: 'READY'
@@ -39,7 +39,7 @@ animations:
 
   - id: 6
     name: 'GOAL_ACHIEVED'
-    interrupting: True
+    interrupting: true
     animation:
       both:
         image: strip01_purple.png
@@ -56,7 +56,7 @@ animations:
 
   - id: 8
     name: 'CRITICAL_BATTERY'
-    interrupting: True
+    interrupting: true
     animation:
       both:
         image: battery_critical.png

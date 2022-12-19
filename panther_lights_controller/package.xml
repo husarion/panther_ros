@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_lights_controller</name>
-  <version>0.3.0</version>
+  <version>0.2.0</version>
 
   <description>The panther_lights_controller package</description>
   <license>Apache License 2.0</license>
@@ -21,6 +21,6 @@
 
   <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>
-  <depend>python-yaml</depend>
+  <depend>python3-yaml</depend>
 
 </package>

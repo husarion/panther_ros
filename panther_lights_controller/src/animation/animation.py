@@ -1,20 +1,15 @@
 class Animation:
     class AnimationYAMLError(Exception):
-        '''basic animation import error'''
-
-        def __init__(self, message='YAML keyword error'):
+        def __init__(self, message='YAML keyword error') -> None:
             self.message = message
             super().__init__(self.message)
 
     class AnimationFinished(Exception):
-        '''exception indication that animation finished'''
-
-        def __init__(self, message='Animation finished'):
+        def __init__(self, message='Animation finished') -> None:
             self.message = message
             super().__init__(self.message)
 
-    def __init__(self, anim_yaml, num_led):
-        '''animation base class'''
+    def __init__(self, anim_yaml, num_led: int) -> None:
         self._brightness = 100
         self._num_led = num_led
         self._param = None
@@ -46,31 +41,26 @@ class Animation:
                 )
             self._brightness = int(round(self._brightness * 100))
 
-    def __call__(self):
+    def __call__(self) -> None:
         '''returns new frame'''
         raise NotImplementedError
 
-    def reset(self):
-        '''restets animation to it's initial state'''
+    def reset(self) -> None:
         raise NotImplementedError
 
-    def param(self, val):
-        '''sets animations param'''
+    def param(self, val) -> None:
         raise NotImplementedError
 
     param = property(None, param)
 
     @property
-    def brightness(self):
-        '''returns animation brightness'''
+    def brightness(self) -> float:
         return self._brightness
 
     @property
-    def num_led(self):
-        '''returns panel's LED count'''
+    def num_led(self) -> int:
         return self._num_led
 
     @property
-    def finished(self):
-        '''returns panel's LED count'''
+    def finished(self) -> bool:
         return self._finished

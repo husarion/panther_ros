@@ -12,7 +12,7 @@ class ImageAnimation(Animation):
 
     ANIMATION_NAME = 'image_animation'
 
-    def __init__(self, anim_yaml, num_led, controller_frequency) -> None:
+    def __init__(self, anim_yaml, num_led: int, controller_frequency: float) -> None:
         super().__init__(anim_yaml, num_led)
 
         if not 'image' in anim_yaml.keys():
