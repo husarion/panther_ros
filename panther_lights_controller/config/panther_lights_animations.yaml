@@ -1,6 +1,6 @@
 animations:
   - id: 1
-    name: 'E-STOP'
+    name: 'E_STOP'
     interrupting: true
     animation:
       both:

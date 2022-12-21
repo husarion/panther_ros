@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(panther_lights_controller)
 
-find_package(Threads REQUIRED)
-
 find_package(catkin REQUIRED COMPONENTS
   panther_msgs
   rospy

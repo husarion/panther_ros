@@ -14,11 +14,11 @@ class PantherAPA102Driver:
 
     def __init__(
         self,
-        num_led,
-        panel_count: Optional[int] = 2,
-        brightness: Optional[int] = 31,
-        led_switch_pin: Optional[int] = 20,
-        led_power_pin: Optional[int] = 26,
+        num_led: int,
+        panel_count: int = 2,
+        brightness: int = 31,
+        led_switch_pin: int = 20,
+        led_power_pin: int = 26,
     ) -> None:
 
         self._num_led = num_led
@@ -50,7 +50,7 @@ class PantherAPA102Driver:
             ),
         )
 
-    def set_panel_frame(self, panel_num, panel_frame, brightness: Optional[int] = 100) -> None:
+    def set_panel_frame(self, panel_num: int, panel_frame: list, brightness: int = 100) -> None:
         with self._lock:
             # select panel
             if panel_num == 0 and self._front_active:
@@ -65,7 +65,7 @@ class PantherAPA102Driver:
                 self._pixels.set_pixel_rgb(i, int(panel_frame[i]), brightness)
             self._pixels.show()
 
-    def set_panel_state(self, panel_num, state) -> None:
+    def set_panel_state(self, panel_num: int, state: bool) -> None:
         if not state:
             self.clear_panel(panel_num)
         with self._lock:
@@ -74,11 +74,11 @@ class PantherAPA102Driver:
             elif panel_num == 1:
                 self._rear_active = state
 
-    def set_brightness(self, brightness) -> None:
+    def set_brightness(self, brightness: int) -> None:
         with self._lock:
             self._pixels.global_brightness = brightness
 
-    def clear_panel(self, panel_num) -> None:
+    def clear_panel(self, panel_num: int) -> None:
         self.set_panel_frame(panel_num, [0] * self._num_led)
 
     def __del__(self) -> None:

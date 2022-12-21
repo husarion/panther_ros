@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-import os
-import yaml
 from queue import Queue
 from threading import Lock
 
-import rospkg
 import rospy
 
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
@@ -16,11 +13,8 @@ from panther_msgs.srv import (
     SetLEDImageAnimationResponse,
 )
 
-import panther_apa102_driver
 from animation.image_animation import ImageAnimation
-
-
-MAX_BRIGHTNESS = 31
+import panther_apa102_driver
 
 
 class PantherAnimation:
@@ -30,6 +24,10 @@ class PantherAnimation:
 
 
 class LightsControllerNode:
+    MAX_BRIGHTNESS = 31
+    PANEL_FRONT = 0
+    PANEL_REAR = 1
+
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=False)
 
@@ -39,32 +37,32 @@ class LightsControllerNode:
         self._animation_finished = True
         self._anim_queue = Queue()
         self._lock = Lock()
-        rospack = rospkg.RosPack()
 
-        default_animation_description = os.path.join(
-            rospack.get_path('panther_lights_controller') + '/config/panther_lights_animations.yaml'
-        )
+        # check for required ROS parameters
+        if not rospy.has_param('~animations'):
+            rospy.logerr(
+                f'{rospy.get_name()} Missing required parameter \'~animations\'. Shutting down'
+            )
+            rospy.signal_shutdown('Missing required parameter')
+            return
 
-        self._animation_description = rospy.get_param(
-            'animation_description', default_animation_description
-        )
+        self._animations = rospy.get_param('~animations')
+        self._controller_frequency = rospy.get_param('~controller_frequency', 100)
+        self._num_led = rospy.get_param('~num_led', 46)
+        global_brightness = rospy.get_param('~global_brightness', 1.0)
 
-        global_brightness = rospy.get_param('global_brightness', 1.0)
-        if 0.0 <= global_brightness <= 1.0:
-            apa_driver_brightness = int(global_brightness * MAX_BRIGHTNESS)
-        else:
-            rospy.logwarn(f'{rospy.get_name()} Brightness out of range <0,1>. Using default.')
-            apa_driver_brightness = MAX_BRIGHTNESS
-
-        self._num_led = rospy.get_param('num_led', 46)
-        self._controller_frequency = rospy.get_param('controller_frequency', 100)
+        try:
+            apa_driver_brightness = self._percent_to_apa_driver_brightness(global_brightness)
+        except ValueError as err:
+            rospy.logwarn(f'{rospy.get_name()} Invalid brightness: {err}. Using default')
+            apa_driver_brightness = LightsControllerNode.MAX_BRIGHTNESS
 
         # define controller and clear all panels
         self._controller = panther_apa102_driver.PantherAPA102Driver(
             num_led=self._num_led, brightness=apa_driver_brightness
         )
-        self._controller.clear_panel(0)
-        self._controller.clear_panel(1)
+        self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
+        self._controller.clear_panel(LightsControllerNode.PANEL_REAR)
 
         # -------------------------------
         #   Services
@@ -92,6 +90,15 @@ class LightsControllerNode:
 
         rospy.loginfo(f'{rospy.get_name()} Node started')
 
+    def _percent_to_apa_driver_brightness(self, brightness_percent) -> int:
+        if 0 <= brightness_percent <= 1:
+            brightness = int(brightness_percent * LightsControllerNode.MAX_BRIGHTNESS)
+            # set minimal brightness for small values
+            if brightness == 0 and brightness_percent > 0:
+                brightness = 1
+            return brightness
+        raise ValueError('Brightness out of range <0,1>')
+
     def _controller_timer_cb(self, *args) -> None:
         with self._lock:
             if self._animation_finished or self._interrupt:
@@ -105,11 +112,15 @@ class LightsControllerNode:
                 if not self._current_animation.front.finished:
                     frame_front = self._current_animation.front()
                     brightness_front = self._current_animation.front.brightness
-                    self._controller.set_panel_frame(0, frame_front, brightness_front)
+                    self._controller.set_panel_frame(
+                        LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
+                    )
                 if not self._current_animation.rear.finished:
                     frame_rear = self._current_animation.rear()
                     brightness_rear = self._current_animation.rear.brightness
-                    self._controller.set_panel_frame(1, frame_rear, brightness_rear)
+                    self._controller.set_panel_frame(
+                        LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
+                    )
 
                 self._animation_finished = (
                     self._current_animation.front.finished and self._current_animation.rear.finished
@@ -128,10 +139,9 @@ class LightsControllerNode:
                 self._anim_queue.queue.insert(0, animation)
             else:
                 self._anim_queue.put(animation)
-            if req.repeat:
+            if req.repeating:
                 self._default_animation = animation
-        except ImageAnimation.AnimationYAMLError as err:
-            rospy.logerr(err)
+        except KeyError as err:
             return f'failure: {err}'
 
         return 'success'
@@ -142,24 +152,18 @@ class LightsControllerNode:
         pass
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
-        if 0 <= req.data <= 1:
-            brightness = int(req.data * MAX_BRIGHTNESS)
+        try:
+            brightness = self._percent_to_apa_driver_brightness(req.data)
             self._controller.set_brightness(brightness)
-        else:
-            return f'brightness out of range <0,1>'
+        except ValueError as err:
+            return f'failure: {err}'
         return f'brightness: {req.data}'
 
-    def _get_animation_by_id(self, animation_id) -> ImageAnimation:
-
-        with open(self._animation_description, 'r') as yaml_file:
-            try:
-                animation_description = yaml.safe_load(yaml_file)
-            except yaml.YAMLError as err:
-                rospy.logerr(err)
+    def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
 
         animation = PantherAnimation()
 
-        for anim in animation_description['animations']:
+        for anim in self._animations:
             if anim['id'] == animation_id:
                 if 'both' in anim['animation']:
                     animation.front = ImageAnimation(
@@ -176,7 +180,7 @@ class LightsControllerNode:
                         anim['animation']['rear'], self._num_led, self._controller_frequency
                     )
                 else:
-                    raise ImageAnimation.AnimationYAMLError(
+                    raise KeyError(
                         'Missing \'both\' or \'front\'/\'rear\' in animation description'
                     )
 
@@ -185,7 +189,7 @@ class LightsControllerNode:
 
                 return animation
 
-        raise ImageAnimation.AnimationYAMLError(f'No Animation with id: {animation_id}')
+        raise KeyError(f'No Animation with id: {animation_id}')
 
 
 def main():

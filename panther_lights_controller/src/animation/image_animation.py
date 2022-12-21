@@ -12,13 +12,13 @@ class ImageAnimation(Animation):
 
     ANIMATION_NAME = 'image_animation'
 
-    def __init__(self, anim_yaml, num_led: int, controller_frequency: float) -> None:
-        super().__init__(anim_yaml, num_led)
+    def __init__(self, animation_description: dict, num_led: int, controller_freq: float) -> None:
+        super().__init__(animation_description, num_led, controller_freq)
 
-        if not 'image' in anim_yaml.keys():
-            raise Animation.AnimationYAMLError('no image in parameters YAML')
+        if not 'image' in animation_description:
+            raise KeyError('No image in aniamtion description')
 
-        img_name = anim_yaml['image']
+        img_name = animation_description['image']
         if not os.path.isabs(img_name):
             rospack = rospkg.RosPack()
             img_path = os.path.join(
@@ -30,32 +30,14 @@ class ImageAnimation(Animation):
         # resize image to match duration
         original_img = imageio.imread(img_path)
         resized_img = Image.fromarray(original_img).resize(
-            (num_led, int(self._duration * controller_frequency))
+            (num_led, int(self._duration * controller_freq))
         )
         self._img = np.array(resized_img)
         (self._img_y, _, _) = np.shape(self._img)
 
         # overwrite animation's color
-        if 'color' in anim_yaml.keys():
-            color = anim_yaml['color']
-            # change from hex to RGB
-            r = (np.uint32(color) >> 16) & (0x0000FF)
-            g = (np.uint32(color) >> 8) & (0x0000FF)
-            b = (np.uint32(color)) & (0x0000FF)
-
-            # turn image to grayscale
-            self._img = (
-                0.2989 * self._img[:, :, 0]
-                + 0.5870 * self._img[:, :, 1]
-                + 0.1140 * self._img[:, :, 2]
-            )
-            # normalize brightness
-            self._img = self._img / np.max(self._img) * 255
-            img_r = (self._img.astype(np.uint32) * r / 255).astype(np.uint8)
-            img_g = (self._img.astype(np.uint32) * g / 255).astype(np.uint8)
-            img_b = (self._img.astype(np.uint32) * b / 255).astype(np.uint8)
-            # reconstruct image
-            self._img = np.dstack((img_r, img_g, img_b))
+        if 'color' in animation_description:
+            self._set_image_color(animation_description['color'])
 
         # convert image from RGB to HEX
         self._img = self._img.astype(np.uint32)
@@ -66,6 +48,24 @@ class ImageAnimation(Animation):
         self._img.astype(np.uint8)
 
         self._i = 0
+
+    def _set_image_color(self, color: int):
+        # change from hex to RGB
+        r = (np.uint32(color) >> 16) & (0x0000FF)
+        g = (np.uint32(color) >> 8) & (0x0000FF)
+        b = (np.uint32(color)) & (0x0000FF)
+
+        # turn image to grayscale
+        self._img = (
+            0.2989 * self._img[:, :, 0] + 0.5870 * self._img[:, :, 1] + 0.1140 * self._img[:, :, 2]
+        )
+        # normalize brightness
+        self._img = self._img / np.max(self._img) * 255
+        img_r = (self._img.astype(np.uint32) * r / 255).astype(np.uint8)
+        img_g = (self._img.astype(np.uint32) * g / 255).astype(np.uint8)
+        img_b = (self._img.astype(np.uint32) * b / 255).astype(np.uint8)
+        # reconstruct image
+        self._img = np.dstack((img_r, img_g, img_b))
 
     def __call__(self) -> np.ndarray:
         if self._i < self._img_y:
