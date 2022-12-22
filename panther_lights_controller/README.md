@@ -18,7 +18,7 @@ Package used to control the Husarion Panther LED panels.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness.
 - `~num_led` [*int*, default: **46**]: number of LEDs in single panel.
 - `~controller_frequency` [*float*, default: **100**]: frequency at which the lights controller node will process animations.
-- `~test` [*bool*, default: **false**]: allows testing mode with some extra funcionalities.
+- `~test` [*bool*, default: **false**]: allows testing mode with some extra functionalities.
 
 ## Animations
 
