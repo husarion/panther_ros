@@ -1,7 +1,9 @@
 <launch>
+  <arg name="test" default="false" />
 
   <node pkg="panther_lights_controller" name="lights_controller_node" type="controller_node.py" output="screen">
     <rosparam command="load" file="$(find panther_lights_controller)/config/panther_lights_animations.yaml" /> 
+    <param name="test" value="$(arg test)" />
   </node>
 
 </launch>

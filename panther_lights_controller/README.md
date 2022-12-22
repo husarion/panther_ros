@@ -10,7 +10,7 @@ Package used to control the Husarion Panther LED panels.
 
 - `panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
 - `panther/lights/controller/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
-- `panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images.
+- `panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images, available in testing mode.
 
 #### Parameters
 
@@ -18,6 +18,7 @@ Package used to control the Husarion Panther LED panels.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness.
 - `~num_led` [*int*, default: **46**]: number of LEDs in single panel.
 - `~controller_frequency` [*float*, default: **100**]: frequency at which the lights controller node will process animations.
+- `~test` [*bool*, default: **false**]: allows testing mode with some extra funcionalities.
 
 ## Animations
 
