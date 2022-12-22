@@ -1,0 +1,5 @@
+<launch>
+
+  <node pkg="panther_lights_scheduler" name="lights_scheduler_node" type="scheduler_node.py" output="screen" />
+
+</launch>
