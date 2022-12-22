@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>panther_lights</name>
-  <version>0.1.0</version>
+  <name>panther_lights_controller</name>
+  <version>0.2.0</version>
 
-  <description>The panther_lights package</description>
+  <description>The panther_lights_controller package</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
-  <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
+  <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
   <maintainer email="support@husarion.com">Husarion</maintainer>
 
   <url type="website">https://husarion.com/</url>
@@ -15,19 +15,11 @@
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
 
-  <depend>actionlib</depend>
-  <depend>actionlib_msgs</depend>
-  <depend>roscpp</depend>
+  <depend>panther_msgs</depend>
   <depend>rospy</depend>
-  <depend>std_msgs</depend>
 
   <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>
-  <depend>python3-imageio</depend>
-  <depend>python3-pil</depend>
-  <depend>python3-yaml</depend>
 
 </package>
