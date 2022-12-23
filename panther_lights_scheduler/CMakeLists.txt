@@ -4,6 +4,8 @@ project(panther_lights_scheduler)
 find_package(catkin REQUIRED COMPONENTS
   panther_msgs
   rospy
+  sensor_msgs
+  std_msgs
 )
 
 catkin_package()
