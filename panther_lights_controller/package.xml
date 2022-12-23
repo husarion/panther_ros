@@ -21,5 +21,6 @@
 
   <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>
+  <depend>python3-imageio</depend>
 
 </package>

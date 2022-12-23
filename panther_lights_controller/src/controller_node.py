@@ -5,6 +5,7 @@ from threading import Lock
 
 import rospy
 
+from panther_msgs.msg import LEDImageAnimation
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
 from panther_msgs.srv import SetLEDBrightness, SetLEDBrightnessRequest, SetLEDBrightnessResponse
 from panther_msgs.srv import (
@@ -21,6 +22,7 @@ class PantherAnimation:
     front: ImageAnimation
     rear: ImageAnimation
     interrupting = False
+    repeating = False
 
 
 class LightsControllerNode:
@@ -50,6 +52,7 @@ class LightsControllerNode:
         self._controller_frequency = rospy.get_param('~controller_frequency', 100)
         self._num_led = rospy.get_param('~num_led', 46)
         global_brightness = rospy.get_param('~global_brightness', 1.0)
+        test = rospy.get_param('~test', False)
 
         try:
             apa_driver_brightness = self._percent_to_apa_driver_brightness(global_brightness)
@@ -71,14 +74,15 @@ class LightsControllerNode:
         self._set_animation_service = rospy.Service(
             'lights/controller/set/animation', SetLEDAnimation, self._set_animation_cb
         )
-        self._set_image_animation_service = rospy.Service(
-            'lights/controller/set/image_animation',
-            SetLEDImageAnimation,
-            self._set_image_animation_cb,
-        )
         self._set_brightness_service = rospy.Service(
             'lights/controller/set/brightness', SetLEDBrightness, self._set_brightness_cb
         )
+        if test:
+            self._set_image_animation_service = rospy.Service(
+                'lights/controller/set/image_animation',
+                SetLEDImageAnimation,
+                self._set_image_animation_cb,
+            )
 
         # -------------------------------
         #   Timers
@@ -134,22 +138,12 @@ class LightsControllerNode:
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
             animation = self._get_animation_by_id(req.animation.id)
-            self._interrupt = animation.interrupting
-            if self._interrupt:
-                self._anim_queue.queue.insert(0, animation)
-            else:
-                self._anim_queue.put(animation)
-            if req.repeating:
-                self._default_animation = animation
+            animation.repeating = req.repeating
+            self._add_animation_to_queue(animation)
         except KeyError as err:
             return f'failure: {err}'
 
         return 'success'
-
-    def _set_image_animation_cb(
-        self, req: SetLEDImageAnimationRequest
-    ) -> SetLEDImageAnimationResponse:
-        pass
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
         try:
@@ -158,6 +152,31 @@ class LightsControllerNode:
         except ValueError as err:
             return f'failure: {err}'
         return f'brightness: {req.data}'
+
+    def _set_image_animation_cb(
+        self, req: SetLEDImageAnimationRequest
+    ) -> SetLEDImageAnimationResponse:
+
+        animation = PantherAnimation()
+        animation.interrupting = req.interrupting
+        animation.repeating = req.repeating
+
+        try:
+            animation_description_front = self._get_image_animation_description(req.front)
+            animation_description_rear = self._get_image_animation_description(req.rear)
+
+            animation.front = ImageAnimation(
+                animation_description_front, self._num_led, self._controller_frequency
+            )
+            animation.rear = ImageAnimation(
+                animation_description_rear, self._num_led, self._controller_frequency
+            )
+
+            self._add_animation_to_queue(animation)
+        except Exception as err:
+            return f'failed: {err}'
+
+        return 'success'
 
     def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
 
@@ -190,6 +209,31 @@ class LightsControllerNode:
                 return animation
 
         raise KeyError(f'No Animation with id: {animation_id}')
+
+    def _add_animation_to_queue(self, animation: PantherAnimation):
+        self._interrupt = animation.interrupting
+        if self._interrupt:
+            self._anim_queue.queue.insert(0, animation)
+        else:
+            self._anim_queue.put(animation)
+        if animation.repeating:
+            self._default_animation = animation
+
+    def _get_image_animation_description(self, animation: LEDImageAnimation):
+        if not animation.image:
+            raise Exception('missing required field \'image\'')
+
+        animation_description = {
+            'image': animation.image,
+            'duration': animation.duration,
+            'repeat': animation.repeat,
+            'brightness': animation.brightness,
+        }
+
+        if animation.color:
+            animation_description.update({'color': animation.color})
+
+        return animation_description
 
 
 def main():
