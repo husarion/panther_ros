@@ -1,5 +1,5 @@
 animations:
-  - id: 1
+  - id: 0
     name: 'E_STOP'
     interrupting: true
     animation:
@@ -7,14 +7,14 @@ animations:
         image: triangle01_red.png
         duration: 2
 
-  - id: 2
+  - id: 1
     name: 'READY'
     animation:
       both:
         image: triangle01_green.png
         duration: 1
 
-  - id: 3
+  - id: 2
     name: 'ERROR'
     interrupting: true
     animation:
@@ -23,21 +23,21 @@ animations:
         duration: 3
         repeat: 2
 
-  - id: 4
+  - id: 3
     name: 'MANUAL_ACTION'
     animation:
       both:
         image: triangle01_blue.png
         duration: 3
 
-  - id: 5
+  - id: 4
     name: 'AUTONOMOUS_ACTION'
     animation:
       both:
         image: triangle01_orange.png
         duration: 3
 
-  - id: 6
+  - id: 5
     name: 'GOAL_ACHIEVED'
     interrupting: true
     animation:
@@ -46,7 +46,7 @@ animations:
         duration: 3
         repeat: 3
 
-  - id: 7
+  - id: 6
     name: 'LOW_BATTERY'
     animation:
       both:
@@ -54,7 +54,7 @@ animations:
         duration: 2
         repeat: 2
 
-  - id: 8
+  - id: 7
     name: 'CRITICAL_BATTERY'
     interrupting: true
     animation:

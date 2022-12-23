@@ -2,11 +2,111 @@
 
 import rospy
 
+from sensor_msgs.msg import BatteryState
+from std_msgs.msg import Bool
+
+from panther_msgs.msg import LEDAnimation
+from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest
+
 
 class LightsSchedulerNode:
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._battery_percentage = 1.0
+        self._charger_connected = False
+        self._e_stop_state = None
+        self._led_e_stop_state = None
+        self._last_battery_anim_time = 0.0
+
+        self._critical_battery_anim_period = rospy.get_param('critical_battery_anim_period', 15.0)
+        self._critical_battery_margin = rospy.get_param('critical_battery_margin', 0.1)
+        self._low_battery_anim_period = rospy.get_param('low_battery_anim_period', 30.0)
+        self._low_battery_margin = rospy.get_param('low_battery_margin', 0.4)
+
+        # -------------------------------
+        #   Publishers & Subscribers
+        # -------------------------------
+
+        rospy.Subscriber('battery', BatteryState, self._battery_cb, queue_size=1)
+        rospy.Subscriber(
+            'hardware/charger_connected', Bool, self._charger_connected_cb, queue_size=1
+        )
+        rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb, queue_size=1)
+
+        # -------------------------------
+        #   Services
+        # -------------------------------
+
+        self._set_led_animation = rospy.ServiceProxy(
+            '/lights/controller/set/animation', SetLEDAnimation
+        )
+
+        # -------------------------------
+        #   Timers
+        # -------------------------------
+
+        self._scheduler_timer = rospy.Timer(rospy.Duration(0.1), self._scheduler_timer_cb)
+
+        rospy.loginfo(f'{rospy.get_name()} Node started')
+
+    def _scheduler_timer_cb(self, *args) -> None:
+
+        if self._led_e_stop_state != self._e_stop_state:
+            req = SetLEDAnimationRequest()
+            req.repeating = True
+            if self._e_stop_state:
+                req.animation.id = LEDAnimation.E_STOP
+                req.animation.name = 'E_STOP'
+                success = self._call_led_animation_srv(req)
+            else:
+                req.animation.id = LEDAnimation.READY
+                req.animation.name = 'READY'
+                success = self._call_led_animation_srv(req)
+            if success:
+                self._led_e_stop_state = self._e_stop_state
+
+        if not self._charger_connected:
+            if (
+                self._battery_percentage < self._critical_battery_margin
+                and (rospy.get_time() - self._last_battery_anim_time)
+                > self._critical_battery_anim_period
+            ):
+                req = SetLEDAnimationRequest()
+                req.animation.id = LEDAnimation.CRITICAL_BATTERY
+                req.animation.name = 'CRITICAL_BATTERY'
+                self._call_led_animation_srv(req)
+                self._last_battery_anim_time = rospy.get_time()
+            elif (
+                self._battery_percentage < self._low_battery_margin
+                and (rospy.get_time() - self._last_battery_anim_time)
+                > self._low_battery_anim_period
+            ):
+                req = SetLEDAnimationRequest()
+                req.animation.id = LEDAnimation.LOW_BATTERY
+                req.animation.name = 'LOW_BATTERY'
+                self._call_led_animation_srv(req)
+                self._last_battery_anim_time = rospy.get_time()
+
+    def _battery_cb(self, msg: BatteryState) -> None:
+        self._battery_percentage = msg.percentage
+
+    def _charger_connected_cb(self, msg: Bool) -> None:
+        self._charger_connected = msg.data
+
+    def _e_stop_cb(self, msg: Bool) -> None:
+        self._e_stop_state = msg.data
+
+    def _call_led_animation_srv(self, req: SetLEDAnimationRequest) -> bool:
+        try:
+            response = self._set_led_animation.call(req)
+            rospy.loginfo(
+                f'[{rospy.get_name()}] Setting {req.animation.name} animation. Response: ({response})'
+            )
+            return response.success
+        except rospy.ServiceException as err:
+            rospy.logerr(f'Calling {self._set_led_animation.resolved_name} service failed: {err}')
+            return False
 
 def main():
     lights_scheduler_node = LightsSchedulerNode('lights_scheduler_node')

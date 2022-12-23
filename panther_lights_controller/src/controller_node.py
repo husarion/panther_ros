@@ -141,17 +141,18 @@ class LightsControllerNode:
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
         except KeyError as err:
-            return f'failure: {err}'
+            return SetLEDAnimationResponse(False, f'{err}')
 
-        return 'success'
+        return SetLEDAnimationResponse(True, '')
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
         try:
             brightness = self._percent_to_apa_driver_brightness(req.data)
             self._controller.set_brightness(brightness)
         except ValueError as err:
-            return f'failure: {err}'
-        return f'brightness: {req.data}'
+            return SetLEDBrightnessResponse(False, f'{err}')
+
+        return SetLEDBrightnessResponse(True, f'brightness: {req.data}')
 
     def _set_image_animation_cb(
         self, req: SetLEDImageAnimationRequest
@@ -174,9 +175,9 @@ class LightsControllerNode:
 
             self._add_animation_to_queue(animation)
         except Exception as err:
-            return f'failed: {err}'
+            return SetLEDImageAnimationResponse(False, f'{err}')
 
-        return 'success'
+        return SetLEDImageAnimationResponse(True, '')
 
     def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
 
