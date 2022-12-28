@@ -20,10 +20,17 @@ class ImageAnimation(Animation):
 
         img_name = animation_description['image']
         if not os.path.isabs(img_name):
+            if 'animations_package' in animation_description:
+                animation_package = animation_description['animations_package']
+            else:
+                animation_package = 'panther_lights_controller'
             rospack = rospkg.RosPack()
-            img_path = os.path.join(
-                rospack.get_path('panther_lights_controller') + f'/animations/{img_name}'
-            )
+            try:
+                img_path = os.path.join(
+                    rospack.get_path(animation_package) + f'/animations/{img_name}'
+                )
+            except rospkg.ResourceNotFound:
+                raise KeyError(f'Can\'t find ROS package: {animation_package}')
         else:
             img_path = img_name
 

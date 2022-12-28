@@ -5,6 +5,8 @@ from threading import Lock
 
 import rospy
 
+from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
+
 from panther_msgs.msg import LEDImageAnimation
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
 from panther_msgs.srv import SetLEDBrightness, SetLEDBrightnessRequest, SetLEDBrightnessResponse
@@ -54,6 +56,8 @@ class LightsControllerNode:
         global_brightness = rospy.get_param('~global_brightness', 1.0)
         test = rospy.get_param('~test', False)
 
+        self._update_animations()
+
         try:
             apa_driver_brightness = self._percent_to_apa_driver_brightness(global_brightness)
         except ValueError as err:
@@ -83,6 +87,9 @@ class LightsControllerNode:
                 SetLEDImageAnimation,
                 self._set_image_animation_cb,
             )
+        self._update_animations_service = rospy.Service(
+            'lights/controller/update_animations', Trigger, self._update_animations_cb
+        )
 
         # -------------------------------
         #   Timers
@@ -178,6 +185,10 @@ class LightsControllerNode:
 
         return 'success'
 
+    def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
+        self._update_animations()
+        return TriggerResponse(True, '')
+
     def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
 
         animation = PantherAnimation()
@@ -234,6 +245,24 @@ class LightsControllerNode:
             animation_description.update({'color': animation.color})
 
         return animation_description
+
+    def _update_animations(self):
+
+        user_animations = rospy.get_param('~user_animations', '')
+
+        for animation in user_animations:
+            # ID numbers from 0 to 20 are reserved for system animations
+            if animation['id'] > 20:
+                rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
+                # remove old animation definition
+                for anim in self._animations:
+                    if anim['id'] == animation['id']:
+                        self._animations.remove(anim)
+                self._animations.append(animation)
+            else:
+                rospy.logwarn(
+                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 20.'
+                )
 
 
 def main():
