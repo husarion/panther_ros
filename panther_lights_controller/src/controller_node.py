@@ -16,13 +16,13 @@ from panther_msgs.srv import (
     SetLEDImageAnimationResponse,
 )
 
-from animation.image_animation import ImageAnimation
+from animation import Animation, BASIC_ANIMATIONS
 import panther_apa102_driver
 
 
 class PantherAnimation:
-    front: ImageAnimation
-    rear: ImageAnimation
+    front: Animation
+    rear: Animation
     interrupting = False
     repeating = False
 
@@ -172,10 +172,10 @@ class LightsControllerNode:
             animation_description_front = self._get_image_animation_description(req.front)
             animation_description_rear = self._get_image_animation_description(req.rear)
 
-            animation.front = ImageAnimation(
+            animation.front = BASIC_ANIMATIONS['image_animation'](
                 animation_description_front, self._num_led, self._controller_frequency
             )
-            animation.rear = ImageAnimation(
+            animation.rear = BASIC_ANIMATIONS['image_animation'](
                 animation_description_rear, self._num_led, self._controller_frequency
             )
 
@@ -189,27 +189,43 @@ class LightsControllerNode:
         self._update_animations()
         return TriggerResponse(True, '')
 
-    def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
+    def _get_animation_by_id(self, animation_id: int) -> PantherAnimation:
 
         animation = PantherAnimation()
 
         for anim in self._animations:
             if anim['id'] == animation_id:
-                if 'both' in anim['animation']:
-                    animation.front = ImageAnimation(
-                        anim['animation']['both'], self._num_led, self._controller_frequency
-                    )
-                    animation.rear = ImageAnimation(
-                        anim['animation']['both'], self._num_led, self._controller_frequency
-                    )
-                elif 'front' in anim['animation'] and 'rear' in anim['animation']:
-                    animation.front = ImageAnimation(
-                        anim['animation']['front'], self._num_led, self._controller_frequency
-                    )
-                    animation.rear = ImageAnimation(
-                        anim['animation']['rear'], self._num_led, self._controller_frequency
-                    )
-                else:
+                for panel in anim['animation']:
+                    anim_desc = anim['animation'][panel]
+
+                    if not 'type' in anim_desc:
+                        raise KeyError('Missing \'type\' in animation description')
+
+                    try:
+                        BASIC_ANIMATIONS[anim_desc['type']]
+                    except KeyError as err:
+                        raise KeyError(f'Undefined animation type: {err}')
+
+                    if panel == 'both':
+                        animation.front = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                        animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                        break
+                    elif panel == 'front':
+                        animation.front = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                    elif panel == 'rear':
+                        animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                    else:
+                        raise KeyError(f'Invalid panel type: {panel}')
+
+                if not hasattr(animation, 'front') or not hasattr(animation, 'rear'):
                     raise KeyError(
                         'Missing \'both\' or \'front\'/\'rear\' in animation description'
                     )
