@@ -15,7 +15,7 @@ from panther_msgs.srv import (
 )
 
 from animation.image_animation import ImageAnimation
-import panther_apa102_driver
+# import panther_apa102_driver
 
 
 class PantherAnimation:
@@ -60,12 +60,12 @@ class LightsControllerNode:
             rospy.logwarn(f'{rospy.get_name()} Invalid brightness: {err}. Using default')
             apa_driver_brightness = LightsControllerNode.MAX_BRIGHTNESS
 
-        # define controller and clear all panels
-        self._controller = panther_apa102_driver.PantherAPA102Driver(
-            num_led=self._num_led, brightness=apa_driver_brightness
-        )
-        self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
-        self._controller.clear_panel(LightsControllerNode.PANEL_REAR)
+        # # define controller and clear all panels
+        # self._controller = panther_apa102_driver.PantherAPA102Driver(
+        #     num_led=self._num_led, brightness=apa_driver_brightness
+        # )
+        # self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
+        # self._controller.clear_panel(LightsControllerNode.PANEL_REAR)
 
         # -------------------------------
         #   Services
@@ -111,20 +111,21 @@ class LightsControllerNode:
                 else:
                     self._current_animation = self._anim_queue.get(block=False)
                     self._interrupt = False
+                    print("new animation")
 
             if self._current_animation:
                 if not self._current_animation.front.finished:
                     frame_front = self._current_animation.front()
                     brightness_front = self._current_animation.front.brightness
-                    self._controller.set_panel_frame(
-                        LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
-                    )
+                    # self._controller.set_panel_frame(
+                    #     LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
+                    # )
                 if not self._current_animation.rear.finished:
                     frame_rear = self._current_animation.rear()
                     brightness_rear = self._current_animation.rear.brightness
-                    self._controller.set_panel_frame(
-                        LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
-                    )
+                    # self._controller.set_panel_frame(
+                    #     LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
+                    # )
 
                 self._animation_finished = (
                     self._current_animation.front.finished and self._current_animation.rear.finished
@@ -143,7 +144,9 @@ class LightsControllerNode:
         except KeyError as err:
             return SetLEDAnimationResponse(False, f'{err}')
 
-        return SetLEDAnimationResponse(True, '')
+        return SetLEDAnimationResponse(
+            True, f'Successfully set an animation with id {req.animation.id}'
+        )
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
         try:
@@ -152,7 +155,7 @@ class LightsControllerNode:
         except ValueError as err:
             return SetLEDBrightnessResponse(False, f'{err}')
 
-        return SetLEDBrightnessResponse(True, f'brightness: {req.data}')
+        return SetLEDBrightnessResponse(True, f'Changed brightness to {req.data}')
 
     def _set_image_animation_cb(
         self, req: SetLEDImageAnimationRequest
@@ -177,7 +180,7 @@ class LightsControllerNode:
         except Exception as err:
             return SetLEDImageAnimationResponse(False, f'{err}')
 
-        return SetLEDImageAnimationResponse(True, '')
+        return SetLEDImageAnimationResponse(True, f'Successfully set custom animation')
 
     def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
 

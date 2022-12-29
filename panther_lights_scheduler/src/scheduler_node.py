@@ -17,12 +17,13 @@ class LightsSchedulerNode:
         self._charger_connected = False
         self._e_stop_state = None
         self._led_e_stop_state = None
-        self._last_battery_anim_time = 0.0
 
         self._critical_battery_anim_period = rospy.get_param('critical_battery_anim_period', 15.0)
-        self._critical_battery_margin = rospy.get_param('critical_battery_margin', 0.1)
+        self._critical_battery_threshold_percent = rospy.get_param(
+            'critical_battery_threshold_percent', 0.1
+        )
         self._low_battery_anim_period = rospy.get_param('low_battery_anim_period', 30.0)
-        self._low_battery_margin = rospy.get_param('low_battery_margin', 0.4)
+        self._low_battery_threshold_percent = rospy.get_param('low_battery_threshold_percent', 0.4)
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -39,7 +40,7 @@ class LightsSchedulerNode:
         # -------------------------------
 
         self._set_led_animation = rospy.ServiceProxy(
-            '/lights/controller/set/animation', SetLEDAnimation
+            'lights/controller/set/animation', SetLEDAnimation
         )
 
         # -------------------------------
@@ -47,11 +48,18 @@ class LightsSchedulerNode:
         # -------------------------------
 
         self._scheduler_timer = rospy.Timer(rospy.Duration(0.1), self._scheduler_timer_cb)
+        self._critical_battery_timer = rospy.Timer(
+            rospy.Duration(self._critical_battery_anim_period), self._critical_battery_timer_cb
+        )
+        self._low_battery_timer = rospy.Timer(
+            rospy.Duration(self._low_battery_anim_period), self._low_battery_timer_cb
+        )
 
         rospy.loginfo(f'{rospy.get_name()} Node started')
 
     def _scheduler_timer_cb(self, *args) -> None:
 
+        # call animation service only when e_stop state changes
         if self._led_e_stop_state != self._e_stop_state:
             req = SetLEDAnimationRequest()
             req.repeating = True
@@ -66,27 +74,27 @@ class LightsSchedulerNode:
             if success:
                 self._led_e_stop_state = self._e_stop_state
 
-        if not self._charger_connected:
-            if (
-                self._battery_percentage < self._critical_battery_margin
-                and (rospy.get_time() - self._last_battery_anim_time)
-                > self._critical_battery_anim_period
-            ):
-                req = SetLEDAnimationRequest()
-                req.animation.id = LEDAnimation.CRITICAL_BATTERY
-                req.animation.name = 'CRITICAL_BATTERY'
-                self._call_led_animation_srv(req)
-                self._last_battery_anim_time = rospy.get_time()
-            elif (
-                self._battery_percentage < self._low_battery_margin
-                and (rospy.get_time() - self._last_battery_anim_time)
-                > self._low_battery_anim_period
-            ):
-                req = SetLEDAnimationRequest()
-                req.animation.id = LEDAnimation.LOW_BATTERY
-                req.animation.name = 'LOW_BATTERY'
-                self._call_led_animation_srv(req)
-                self._last_battery_anim_time = rospy.get_time()
+    def _critical_battery_timer_cb(self, *args):
+        if (
+            self._battery_percentage < self._critical_battery_threshold_percent
+            and not self._charger_connected
+        ):
+            req = SetLEDAnimationRequest()
+            req.animation.id = LEDAnimation.CRITICAL_BATTERY
+            req.animation.name = 'CRITICAL_BATTERY'
+            self._call_led_animation_srv(req)
+
+    def _low_battery_timer_cb(self, *args):
+        if (
+            self._critical_battery_threshold_percent
+            <= self._battery_percentage
+            < self._low_battery_threshold_percent
+            and not self._charger_connected
+        ):
+            req = SetLEDAnimationRequest()
+            req.animation.id = LEDAnimation.LOW_BATTERY
+            req.animation.name = 'LOW_BATTERY'
+            self._call_led_animation_srv(req)
 
     def _battery_cb(self, msg: BatteryState) -> None:
         self._battery_percentage = msg.percentage
@@ -100,13 +108,16 @@ class LightsSchedulerNode:
     def _call_led_animation_srv(self, req: SetLEDAnimationRequest) -> bool:
         try:
             response = self._set_led_animation.call(req)
-            rospy.loginfo(
+            rospy.logdebug(
                 f'[{rospy.get_name()}] Setting {req.animation.name} animation. Response: ({response})'
             )
             return response.success
         except rospy.ServiceException as err:
-            rospy.logerr(f'Calling {self._set_led_animation.resolved_name} service failed: {err}')
+            rospy.logerr(
+                f'Calling {self._set_led_animation.resolved_name} service for message id {req.animation.id} failed. Error: {err}'
+            )
             return False
+
 
 def main():
     lights_scheduler_node = LightsSchedulerNode('lights_scheduler_node')
