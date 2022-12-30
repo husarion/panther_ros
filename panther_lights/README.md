@@ -6,6 +6,8 @@ Package used to control the Husarion Panther LED panels.
 
 ### controller_node.py
 
+Node responsible for displaying animations on the Husarion Panther robot LED panels.
+
 #### Services
 
 - `panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
@@ -20,6 +22,27 @@ Package used to control the Husarion Panther LED panels.
 - `~num_led` [*int*, default: **46**]: number of LEDs in single panel.
 - `~test` [*bool*, default: **false**]: enables testing mode with some extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
+
+### scheduler_node.py
+
+Node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's current state.
+
+#### Subscribe
+
+- `/panther/battery` [*sensor_msgs/BatteryState*]: robot battery state.
+- `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
+- `/panther/hardware/e_stop` [*std_msgs/Bool*]: robot emergency stop state.
+
+#### Services subscribed
+
+- `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
+
+#### Parameters
+
+- `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
+- `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will be displayed.
+- `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
+- `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will be displayed.
 
 ## Animations
 

@@ -17,7 +17,7 @@ from panther_msgs.srv import (
 )
 
 from animation import Animation, BASIC_ANIMATIONS
-import panther_apa102_driver
+from panther_apa102_driver import PantherAPA102Driver
 
 
 class PantherAnimation:
@@ -65,7 +65,7 @@ class LightsControllerNode:
             apa_driver_brightness = LightsControllerNode.MAX_BRIGHTNESS
 
         # define controller and clear all panels
-        self._controller = panther_apa102_driver.PantherAPA102Driver(
+        self._controller = PantherAPA102Driver(
             num_led=self._num_led, brightness=apa_driver_brightness
         )
         self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
