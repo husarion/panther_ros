@@ -42,7 +42,7 @@ class Animation:
         raise NotImplementedError
 
     @property
-    def brightness(self) -> float:
+    def brightness(self) -> int:
         return self._brightness
 
     @property

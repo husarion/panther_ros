@@ -147,7 +147,7 @@ class LightsControllerNode:
             animation = self._get_animation_by_id(req.animation.id)
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
-        except KeyError as err:
+        except (KeyError, FileNotFoundError) as err:
             return f'failure: {err}'
 
         return 'success'
@@ -187,7 +187,7 @@ class LightsControllerNode:
 
     def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
         self._update_animations()
-        return TriggerResponse(True, '')
+        return TriggerResponse(True, 'Animations updated successfully')
 
     def _get_animation_by_id(self, animation_id: int) -> PantherAnimation:
 
@@ -267,8 +267,8 @@ class LightsControllerNode:
         user_animations = rospy.get_param('~user_animations', '')
 
         for animation in user_animations:
-            # ID numbers from 0 to 20 are reserved for system animations
-            if animation['id'] > 20:
+            # ID numbers from 0 to 19 are reserved for system animations
+            if animation['id'] > 19:
                 rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
                 # remove old animation definition
                 for anim in self._animations:
@@ -277,7 +277,7 @@ class LightsControllerNode:
                 self._animations.append(animation)
             else:
                 rospy.logwarn(
-                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 20.'
+                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
                 )
 
 
