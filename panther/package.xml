@@ -24,4 +24,6 @@
   <depend>panther_msgs</depend>
   <depend>panther_power_control</depend>
 
+  <depend condition="$HUSARION_ROS_BUILD == simulation">panther_gazebo</depend>
+
 </package>
