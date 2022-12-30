@@ -4,14 +4,16 @@ animations:
     interrupting: true
     animation:
       both:
-        image: triangle01_red.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/triangle01_red.png
         duration: 2
 
   - id: 1
     name: 'READY'
     animation:
       both:
-        image: triangle01_green.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/triangle01_green.png
         duration: 1
 
   - id: 2
@@ -19,7 +21,8 @@ animations:
     interrupting: true
     animation:
       both:
-        image: strip01_red.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/strip01_red.png
         duration: 3
         repeat: 2
 
@@ -27,14 +30,16 @@ animations:
     name: 'MANUAL_ACTION'
     animation:
       both:
-        image: triangle01_blue.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/triangle01_blue.png
         duration: 3
 
   - id: 4
     name: 'AUTONOMOUS_ACTION'
     animation:
       both:
-        image: triangle01_orange.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/triangle01_orange.png
         duration: 3
 
   - id: 5
@@ -42,7 +47,8 @@ animations:
     interrupting: true
     animation:
       both:
-        image: strip01_purple.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/strip01_purple.png
         duration: 3
         repeat: 3
 
@@ -50,7 +56,8 @@ animations:
     name: 'LOW_BATTERY'
     animation:
       both:
-        image: battery_low.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/battery_low.png
         duration: 2
         repeat: 2
 
@@ -59,7 +66,8 @@ animations:
     interrupting: true
     animation:
       both:
-        image: battery_critical.png
+        type: image_animation
+        image: $(find panther_lights_controller)/animations/battery_critical.png
         duration: 2
         repeat: 2
 

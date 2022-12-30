@@ -5,6 +5,8 @@ from threading import Lock
 
 import rospy
 
+from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
+
 from panther_msgs.msg import LEDImageAnimation
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
 from panther_msgs.srv import SetLEDBrightness, SetLEDBrightnessRequest, SetLEDBrightnessResponse
@@ -14,13 +16,13 @@ from panther_msgs.srv import (
     SetLEDImageAnimationResponse,
 )
 
-from animation.image_animation import ImageAnimation
-# import panther_apa102_driver
+from animation import Animation, BASIC_ANIMATIONS
+import panther_apa102_driver
 
 
 class PantherAnimation:
-    front: ImageAnimation
-    rear: ImageAnimation
+    front: Animation
+    rear: Animation
     interrupting = False
     repeating = False
 
@@ -54,18 +56,20 @@ class LightsControllerNode:
         global_brightness = rospy.get_param('~global_brightness', 1.0)
         test = rospy.get_param('~test', False)
 
+        self._update_animations()
+
         try:
             apa_driver_brightness = self._percent_to_apa_driver_brightness(global_brightness)
         except ValueError as err:
             rospy.logwarn(f'{rospy.get_name()} Invalid brightness: {err}. Using default')
             apa_driver_brightness = LightsControllerNode.MAX_BRIGHTNESS
 
-        # # define controller and clear all panels
-        # self._controller = panther_apa102_driver.PantherAPA102Driver(
-        #     num_led=self._num_led, brightness=apa_driver_brightness
-        # )
-        # self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
-        # self._controller.clear_panel(LightsControllerNode.PANEL_REAR)
+        # define controller and clear all panels
+        self._controller = panther_apa102_driver.PantherAPA102Driver(
+            num_led=self._num_led, brightness=apa_driver_brightness
+        )
+        self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
+        self._controller.clear_panel(LightsControllerNode.PANEL_REAR)
 
         # -------------------------------
         #   Services
@@ -83,6 +87,9 @@ class LightsControllerNode:
                 SetLEDImageAnimation,
                 self._set_image_animation_cb,
             )
+        self._update_animations_service = rospy.Service(
+            'lights/controller/update_animations', Trigger, self._update_animations_cb
+        )
 
         # -------------------------------
         #   Timers
@@ -141,7 +148,7 @@ class LightsControllerNode:
             animation = self._get_animation_by_id(req.animation.id)
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
-        except KeyError as err:
+        except (KeyError, FileNotFoundError) as err:
             return SetLEDAnimationResponse(False, f'{err}')
 
         return SetLEDAnimationResponse(
@@ -169,10 +176,10 @@ class LightsControllerNode:
             animation_description_front = self._get_image_animation_description(req.front)
             animation_description_rear = self._get_image_animation_description(req.rear)
 
-            animation.front = ImageAnimation(
+            animation.front = BASIC_ANIMATIONS['image_animation'](
                 animation_description_front, self._num_led, self._controller_frequency
             )
-            animation.rear = ImageAnimation(
+            animation.rear = BASIC_ANIMATIONS['image_animation'](
                 animation_description_rear, self._num_led, self._controller_frequency
             )
 
@@ -182,27 +189,47 @@ class LightsControllerNode:
 
         return SetLEDImageAnimationResponse(True, f'Successfully set custom animation')
 
-    def _get_animation_by_id(self, animation_id: int) -> ImageAnimation:
+    def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
+        self._update_animations()
+        return TriggerResponse(True, 'Animations updated successfully')
+
+    def _get_animation_by_id(self, animation_id: int) -> PantherAnimation:
 
         animation = PantherAnimation()
 
         for anim in self._animations:
             if anim['id'] == animation_id:
-                if 'both' in anim['animation']:
-                    animation.front = ImageAnimation(
-                        anim['animation']['both'], self._num_led, self._controller_frequency
-                    )
-                    animation.rear = ImageAnimation(
-                        anim['animation']['both'], self._num_led, self._controller_frequency
-                    )
-                elif 'front' in anim['animation'] and 'rear' in anim['animation']:
-                    animation.front = ImageAnimation(
-                        anim['animation']['front'], self._num_led, self._controller_frequency
-                    )
-                    animation.rear = ImageAnimation(
-                        anim['animation']['rear'], self._num_led, self._controller_frequency
-                    )
-                else:
+                for panel in anim['animation']:
+                    anim_desc = anim['animation'][panel]
+
+                    if not 'type' in anim_desc:
+                        raise KeyError('Missing \'type\' in animation description')
+
+                    try:
+                        BASIC_ANIMATIONS[anim_desc['type']]
+                    except KeyError as err:
+                        raise KeyError(f'Undefined animation type: {err}')
+
+                    if panel == 'both':
+                        animation.front = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                        animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                        break
+                    elif panel == 'front':
+                        animation.front = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                    elif panel == 'rear':
+                        animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
+                            anim_desc, self._num_led, self._controller_frequency
+                        )
+                    else:
+                        raise KeyError(f'Invalid panel type: {panel}')
+
+                if not hasattr(animation, 'front') or not hasattr(animation, 'rear'):
                     raise KeyError(
                         'Missing \'both\' or \'front\'/\'rear\' in animation description'
                     )
@@ -238,6 +265,24 @@ class LightsControllerNode:
             animation_description.update({'color': animation.color})
 
         return animation_description
+
+    def _update_animations(self):
+
+        user_animations = rospy.get_param('~user_animations', '')
+
+        for animation in user_animations:
+            # ID numbers from 0 to 19 are reserved for system animations
+            if animation['id'] > 19:
+                rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
+                # remove old animation definition
+                for anim in self._animations:
+                    if anim['id'] == animation['id']:
+                        self._animations.remove(anim)
+                self._animations.append(animation)
+            else:
+                rospy.logwarn(
+                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
+                )
 
 
 def main():

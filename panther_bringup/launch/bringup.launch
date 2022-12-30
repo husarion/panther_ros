@@ -3,6 +3,8 @@
   <arg name="panther_version" value="$(optenv PANTHER_ROBOT_VERSION 1.0)" />
   <arg name="wheel_type" default="WH01" doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
   <arg name="panther_common_config_file" value="$(find panther_bringup)/config/panther_common.yaml" />
+  <arg name="test_animations" default="false" />
+  <arg name="user_animations_file" default="" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
   <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
@@ -22,7 +24,10 @@
       <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
     </include>
 
-    <include file="$(find panther_lights_controller)/launch/lights_controler.launch" />
+    <include file="$(find panther_lights_controller)/launch/lights_controller.launch">
+      <arg name="test" value="$(arg test_animations)" />
+      <arg name="user_animations_file" value="$(arg user_animations_file)" />
+    </include>
 
     <include file="$(find panther_battery)/launch/battery.launch">
       <arg name="panther_version" value="$(arg panther_version)" />
