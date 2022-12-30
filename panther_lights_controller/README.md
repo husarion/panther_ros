@@ -14,12 +14,12 @@ Package used to control the Husarion Panther LED panels.
 
 #### Parameters
 
-- `~animations` [*list*, default: None]: it is a required ROS parameter containing a list of defined animations.
+- `~animations` [*list*, default: **None**]:  required list of defined animations.
 - `~controller_frequency` [*float*, default: **100**]: frequency at which the lights controller node will process animations.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
 - `~num_led` [*int*, default: **46**]: number of LEDs in single panel.
 - `~test` [*bool*, default: **false**]: enables testing mode with some extra functionalities.
-- `~user_animations` [*list*, default: None]: it is an optional ROS parameter containing a list of animations defined by the user.
+- `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
 ## Animations
 
@@ -43,7 +43,9 @@ Default animations are described and loaded on the node start, directly from `co
 - `interrupting` [*bool*, optional]: if *true* animation will interrupt currently displayed animation.
 - `name` [*string*, optional]: name of an animation.
 
-### ImageAnimation
+### Animation types
+
+#### ImageAnimation
 
 Animation returning frame to display based on an image. Supported keys are:
 
@@ -54,15 +56,17 @@ Animation returning frame to display based on an image. Supported keys are:
 - `repeat` [*int*, optional]: number of times the animation will be repeated, by default animation will run once.
 - `type` [*string*]: required field specyfying animation type, for `ImageAnimation` value should be `image_animation`.
 
-**NOTE:** The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
+:bulb: **NOTE:** The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
 
 ### Defining animations
 
 User can define own animations using basic animation types. Similar to basic ones user animations are parsed using a ROS parameter `/panther/lights/lights_controller_node/user_animations`. They can be loaded on node start or updated using the `/panther/lights/controller/update_animations` ROS service. For `ImageAnimation` you can use basic images from the `animations` folder and change their color with the `color` key ([see ImageAnimation](#imageanimation)). Follow the example below to add custom animations. 
 
-1. Create a yaml file with an animation description list. Example file: 
+#### 1. Create an animation description list.
 
-**NOTE:** ID numbers from 0 to 19 are reserved for system animations.
+Create a yaml file with an animation description list. Example file: 
+
+:bulb: **NOTE:** ID numbers from 0 to 19 are reserved for system animations.
 
 ```yaml
 # user_animations.yaml
@@ -99,7 +103,9 @@ user_animations:
            repeat: 1
 ```
 
-1. Add docker volume with a previously created animation description list. If using custom images for `ImageAnimation`, add also a docker volume with a folder containing custom images. On Raspberry Pi modify `compose.yaml`:
+#### 2. Modify compose file.
+
+Add docker volume with a previously created animation description list. If using custom images for `ImageAnimation`, add also a docker volume with a folder containing custom images. On Raspberry Pi modify `compose.yaml`:
 
 ```yaml
 volumes:
@@ -107,34 +113,36 @@ volumes:
   - ./animations:/animations
 ```
 
-**Warning**
-While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker imge can be  found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
-
-3. Modify `command` in `compose.yaml` to use user animations:
+Modify also `command` to use user animations:
 
 ```yaml
 command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_animations.yaml --wait
 ```
 
-4. Restart the docker container:
+:warning: **Warning**
+While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker imge can be  found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
+
+#### 3. Restart the docker container:
 
 ```
 docker compose up -d
 ```
 
-5. Display new animations:
+#### 4. Display new animations:
 
 ```bash
 rosservice call /lights/controller/set/animation "{animation: {id: 21, name: 'ANIMATION_1'}, repeating: false}"
 ```
 
-#### Updating animation list at a runtime
+### Updating animation list at a runtime
 
 User animations can be also updated at a runtime.
 
-1. Create a yaml file with an animation description list similar to step 1 in [Defining animations](#defining-animations).
+#### 1. Create animation description list
 
-2. Update user animations ROS parameter:
+Create a yaml file with an animation description list similar to step 1 in [Defining animations](#defining-animations).
+
+#### 2. Update user animations ROS parameter:
 
 ```bash
 rosparam load /path_to_description_file /namespace
@@ -142,13 +150,13 @@ rosparam load /path_to_description_file /namespace
 rosparam load ./user_animations.yaml /panther/lights_controller_node
 ```
 
-3. Update animation list with ROS service:
+#### 3. Update animation list with ROS service:
 
 ```bash
 rosservice call /panther/lights/controller/update_animations "{}"
 ```
 
-4. Display new animations:
+#### 4. Display new animations:
 
 ```bash
 rosservice call /lights/controller/set/animation "{animation: {id: 21, name: 'ANIMATION_1'}, repeating: false}"
@@ -174,11 +182,11 @@ Methods:
 
 Properties:
 
-- `brightness` [*int]: returns animation brightness from `self._brightness`.
+- `brightness` [*int*]: returns animation brightness from `self._brightness`.
 - `num_led` [*int*]: returns number of LEDs in panel from `self._num_led`.
 - `finished` [*bool*]: returns if animation execution is finished from `self._finished`.
 
-The new animation definition should contain `ANIMATION_NAME` used to identify it. Animation frames are processed in ticks with a frequency of `controller_freq`. To tweak animation duration time use the `controller_freq` and `_duration` variables. For an example see other animation definitions.
+The new animation definition should contain `ANIMATION_NAME` used to identify it. Animation frames are processed in ticks with a frequency of `controller_freq`. To tweak animation duration time use the `controller_freq` and `_duration` variables. As an example see other animation definitions.
 
 To add a new animation definition to basic animations edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:
 
