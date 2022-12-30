@@ -2,6 +2,7 @@ import imageio
 import numpy as np
 import os
 from PIL import Image
+import re
 
 import rospkg
 
@@ -20,10 +21,21 @@ class ImageAnimation(Animation):
 
         img_name = animation_description['image']
         if not os.path.isabs(img_name):
-            rospack = rospkg.RosPack()
-            img_path = os.path.join(
-                rospack.get_path('panther_lights_controller') + f'/animations/{img_name}'
-            )
+            if img_name[0] == '$':
+                if re.search('^\$\(find .*\)', img_name):
+                    path_sub_strings = re.split('(?<=\))', img_name, 1)
+                    animation_package = re.sub('^\$\(find |\)$', '', path_sub_strings[0])
+                    img_name = path_sub_strings[1]
+                else:
+                    raise KeyError('Can\'t process substitution expression')
+
+                rospack = rospkg.RosPack()
+                try:
+                    img_path = os.path.join(rospack.get_path(animation_package) + img_name)
+                except rospkg.ResourceNotFound:
+                    raise KeyError(f'Can\'t find ROS package: {animation_package}')
+            else:
+                raise KeyError('Invalid image path')
         else:
             img_path = img_name
 
