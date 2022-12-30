@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(panther_lights_scheduler)
+project(panther_lights)
 
 find_package(catkin REQUIRED COMPONENTS
   panther_msgs

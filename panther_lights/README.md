@@ -1,4 +1,4 @@
-# panther_lights_controller
+# panther_lights
 
 Package used to control the Husarion Panther LED panels.
 
@@ -77,7 +77,7 @@ user_animations:
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/strip01_green.png
+        image: $(find panther_lights)/animations/strip01_red.png
         duration: 2
         repeat: 2
         color: 0xffff00
@@ -93,14 +93,14 @@ user_animations:
         repeat: 1
 
    # animation with custom image from custom ROS package
-   - id: 23
-       name: 'ANIMATION_3'
-       animation:
-         both:
-           type: image_animation
-           image: $(find my_custom_animation_package)/animations/custom_image.png
-           duration: 3
-           repeat: 1
+  - id: 23
+    name: 'ANIMATION_3'
+    animation:
+      both:
+        type: image_animation
+        image: $(find my_custom_animation_package)/animations/custom_image.png
+        duration: 3
+        repeat: 1
 ```
 
 #### 2. Modify compose file.

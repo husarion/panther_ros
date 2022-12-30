@@ -5,6 +5,7 @@
   <arg name="panther_common_config_file" value="$(find panther_bringup)/config/panther_common.yaml" />
   <arg name="test_animations" default="false" />
   <arg name="user_animations_file" default="" />
+  <arg name="launch_lights_scheduler" default="true" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
   <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
@@ -25,6 +26,7 @@
     </include>
 
     <include file="$(find panther_lights_controller)/launch/lights_controller.launch">
+      <arg name="launch_scheduler" value="$(arg launch_lights_scheduler)" />
       <arg name="test" value="$(arg test_animations)" />
       <arg name="user_animations_file" value="$(arg user_animations_file)" />
     </include>

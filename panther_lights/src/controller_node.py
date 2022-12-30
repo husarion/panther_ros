@@ -118,21 +118,20 @@ class LightsControllerNode:
                 else:
                     self._current_animation = self._anim_queue.get(block=False)
                     self._interrupt = False
-                    print("new animation")
 
             if self._current_animation:
                 if not self._current_animation.front.finished:
                     frame_front = self._current_animation.front()
                     brightness_front = self._current_animation.front.brightness
-                    # self._controller.set_panel_frame(
-                    #     LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
-                    # )
+                    self._controller.set_panel_frame(
+                        LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
+                    )
                 if not self._current_animation.rear.finished:
                     frame_rear = self._current_animation.rear()
                     brightness_rear = self._current_animation.rear.brightness
-                    # self._controller.set_panel_frame(
-                    #     LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
-                    # )
+                    self._controller.set_panel_frame(
+                        LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
+                    )
 
                 self._animation_finished = (
                     self._current_animation.front.finished and self._current_animation.rear.finished

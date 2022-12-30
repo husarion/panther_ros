@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>panther_lights_scheduler</name>
-  <version>0.0.1</version>
+  <name>panther_lights</name>
+  <version>0.2.0</version>
 
-  <description>The panther_lights_scheduler package</description>
+  <description>The panther_lights package</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
+  <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
   <maintainer email="support@husarion.com">Husarion</maintainer>
 
   <url type="website">https://husarion.com/</url>
@@ -19,5 +20,9 @@
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+
+  <!-- Python dependencies -->
+  <depend>python-rpi.gpio-pip</depend>
+  <depend>python3-imageio</depend>
 
 </package>
