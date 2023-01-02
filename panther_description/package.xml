@@ -19,4 +19,6 @@
   <depend>urdf</depend>
   <depend>xacro</depend>
 
+  <depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">gazebo_plugins</depend>
+
 </package>
