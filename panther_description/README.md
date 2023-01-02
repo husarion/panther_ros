@@ -39,7 +39,7 @@ Parameter `wheel_config_path` allows using non-standard wheels with Panther robo
 - `kinematics` - kinematics type. Possible options: `differential`, `mecanum`.
 
 Wheels have to be named as follows:
-- `collision.stl` - wheel collision mesh.
+- `wheel_collision.stl` - wheel collision mesh.
 - `fl_wheel.dae` - front, left wheel visual mesh.
 - `fr_wheel.dae` - front, right wheel visual mesh.
 - `rl_wheel.dae` - rear, left wheel visual mesh.
