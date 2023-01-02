@@ -4,7 +4,7 @@ A package containing the description of the Husarion Panther robot.
 
 ## Usage
 
-Basic Panther configuration can be found in file [panther.urdf.xacro](./panther_description/urdf/panther.urdf.xacro). This is an example configuration showing how to use the model. This can be used to import within launch files as a baseline model. For more advanced use cases, [panther_macro.urdf.xacro](./panther_description/urdf/panther_macro.urdf.xacro) is designed to be integrated into custom robot configurations.
+Basic Panther configuration can be found in file [panther.urdf.xacro](./urdf/panther.urdf.xacro). This is an example configuration showing how to use the model. This can be used to import within launch files as a baseline model. For more advanced use cases, [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) is designed to be integrated into custom robot configurations.
 
 ## Parameters
 
