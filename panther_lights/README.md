@@ -25,7 +25,7 @@ Node responsible for displaying animations on the Husarion Panther robot LED pan
 
 ### scheduler_node.py
 
-Node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's current state.
+Node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
 
 #### Subscribe
 
