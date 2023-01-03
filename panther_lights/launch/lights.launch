@@ -5,7 +5,7 @@
 
   <node pkg="panther_lights" name="lights_controller_node" type="controller_node.py" output="screen">
     <rosparam command="load" file="$(find panther_lights)/config/panther_lights_animations.yaml" /> 
-    <rosparam command="load" file="$(arg user_animations_file)" unless="$(eval user_animations_file == '')"/> 
+    <rosparam command="load" file="$(arg user_animations_file)" unless="$(eval user_animations_file == '')" /> 
     <param name="test" value="$(arg test)" />
   </node>
 
