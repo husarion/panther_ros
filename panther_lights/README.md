@@ -31,7 +31,7 @@ Node responsible for scheduling animations displayed on LED panels based on the 
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: robot battery state.
 - `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
-- `/panther/hardware/e_stop` [*std_msgs/Bool*]: robot emergency stop state.
+- `/panther/hardware/e_stop` [*std_msgs/Bool*]: informs if robot is in emergency stop state.
 
 #### Services subscribed
 
