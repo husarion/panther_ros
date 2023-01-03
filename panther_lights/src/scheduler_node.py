@@ -65,11 +65,9 @@ class LightsSchedulerNode:
             req.repeating = True
             if self._e_stop_state:
                 req.animation.id = LEDAnimation.E_STOP
-                req.animation.name = 'E_STOP'
                 success = self._call_led_animation_srv(req)
             else:
                 req.animation.id = LEDAnimation.READY
-                req.animation.name = 'READY'
                 success = self._call_led_animation_srv(req)
             if success:
                 self._led_e_stop_state = self._e_stop_state
@@ -81,7 +79,6 @@ class LightsSchedulerNode:
         ):
             req = SetLEDAnimationRequest()
             req.animation.id = LEDAnimation.CRITICAL_BATTERY
-            req.animation.name = 'CRITICAL_BATTERY'
             self._call_led_animation_srv(req)
 
     def _low_battery_timer_cb(self, *args):
@@ -93,7 +90,6 @@ class LightsSchedulerNode:
         ):
             req = SetLEDAnimationRequest()
             req.animation.id = LEDAnimation.LOW_BATTERY
-            req.animation.name = 'LOW_BATTERY'
             self._call_led_animation_srv(req)
 
     def _battery_cb(self, msg: BatteryState) -> None:
@@ -109,7 +105,7 @@ class LightsSchedulerNode:
         try:
             response = self._set_led_animation.call(req)
             rospy.logdebug(
-                f'[{rospy.get_name()}] Setting {req.animation.name} animation. Response: ({response})'
+                f'[{rospy.get_name()}] Setting animation with ID: {req.animation.id}. Response: ({response})'
             )
             return response.success
         except rospy.ServiceException as err:

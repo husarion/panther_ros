@@ -25,7 +25,7 @@
       <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
     </include>
 
-    <include file="$(find panther_lights_controller)/launch/lights_controller.launch">
+    <include file="$(find panther_lights)/launch/lights.launch">
       <arg name="launch_scheduler" value="$(arg launch_lights_scheduler)" />
       <arg name="test" value="$(arg test_animations)" />
       <arg name="user_animations_file" value="$(arg user_animations_file)" />
