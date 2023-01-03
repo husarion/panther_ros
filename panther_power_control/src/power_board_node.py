@@ -196,6 +196,7 @@ class PowerBoardNode:
             self._reset_e_stop()
 
             if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+                self._watchdog.turn_off()
                 return TriggerResponse(
                     False,
                     'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
