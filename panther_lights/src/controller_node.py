@@ -387,7 +387,7 @@ class LightsControllerNode:
                         rospy.logwarn(
                             f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
                         )
-                        return
+                        continue
 
                 rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
                 # remove old animation definition
