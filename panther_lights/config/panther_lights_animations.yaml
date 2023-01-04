@@ -1,73 +1,73 @@
 animations:
-  - id: 1
+  - id: 0
     name: 'E_STOP'
     interrupting: true
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/triangle01_red.png
+        image: $(find panther_lights)/animations/triangle01_red.png
         duration: 2
 
-  - id: 2
+  - id: 1
     name: 'READY'
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/triangle01_green.png
+        image: $(find panther_lights)/animations/triangle01_green.png
         duration: 1
 
-  - id: 3
+  - id: 2
     name: 'ERROR'
     interrupting: true
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/strip01_red.png
+        image: $(find panther_lights)/animations/strip01_red.png
         duration: 3
         repeat: 2
 
-  - id: 4
+  - id: 3
     name: 'MANUAL_ACTION'
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/triangle01_blue.png
+        image: $(find panther_lights)/animations/triangle01_blue.png
         duration: 3
 
-  - id: 5
+  - id: 4
     name: 'AUTONOMOUS_ACTION'
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/triangle01_orange.png
+        image: $(find panther_lights)/animations/triangle01_orange.png
         duration: 3
 
-  - id: 6
+  - id: 5
     name: 'GOAL_ACHIEVED'
     interrupting: true
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/strip01_purple.png
+        image: $(find panther_lights)/animations/strip01_purple.png
         duration: 3
         repeat: 3
 
-  - id: 7
+  - id: 6
     name: 'LOW_BATTERY'
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/battery_low.png
+        image: $(find panther_lights)/animations/battery_low.png
         duration: 2
         repeat: 2
 
-  - id: 8
+  - id: 7
     name: 'CRITICAL_BATTERY'
     interrupting: true
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/battery_critical.png
+        image: $(find panther_lights)/animations/battery_critical.png
         duration: 2
         repeat: 2
 

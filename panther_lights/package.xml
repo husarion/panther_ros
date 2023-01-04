@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>panther_lights_controller</name>
+  <name>panther_lights</name>
   <version>0.2.0</version>
 
-  <description>The panther_lights_controller package</description>
+  <description>Package containing nodes responsible for displaying and scheduling animations on LED lights on Husarion Panther robot</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
@@ -18,6 +18,8 @@
 
   <depend>panther_msgs</depend>
   <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
 
   <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>

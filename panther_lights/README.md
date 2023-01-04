@@ -1,10 +1,12 @@
-# panther_lights_controller
+# panther_lights
 
 Package used to control the Husarion Panther LED panels.
 
 ## ROS Nodes
 
 ### controller_node.py
+
+Node responsible for displaying animations on the Husarion Panther robot LED panels.
 
 #### Services
 
@@ -20,6 +22,27 @@ Package used to control the Husarion Panther LED panels.
 - `~num_led` [*int*, default: **46**]: number of LEDs in single panel.
 - `~test` [*bool*, default: **false**]: enables testing mode with some extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
+
+### scheduler_node.py
+
+Node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
+
+#### Subscribe
+
+- `/panther/battery` [*sensor_msgs/BatteryState*]: robot battery state.
+- `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
+- `/panther/hardware/e_stop` [*std_msgs/Bool*]: informs if robot is in emergency stop state.
+
+#### Services subscribed
+
+- `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
+
+#### Parameters
+
+- `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
+- `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
+- `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
+- `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
 
 ## Animations
 
@@ -77,7 +100,7 @@ user_animations:
     animation:
       both:
         type: image_animation
-        image: $(find panther_lights_controller)/animations/strip01_green.png
+        image: $(find panther_lights)/animations/strip01_red.png
         duration: 2
         repeat: 2
         color: 0xffff00
@@ -93,14 +116,14 @@ user_animations:
         repeat: 1
 
    # animation with custom image from custom ROS package
-   - id: 23
-       name: 'ANIMATION_3'
-       animation:
-         both:
-           type: image_animation
-           image: $(find my_custom_animation_package)/animations/custom_image.png
-           duration: 3
-           repeat: 1
+  - id: 23
+    name: 'ANIMATION_3'
+    animation:
+      both:
+        type: image_animation
+        image: $(find my_custom_animation_package)/animations/custom_image.png
+        duration: 3
+        repeat: 1
 ```
 
 #### 2. Modify compose file.

@@ -17,7 +17,7 @@ from panther_msgs.srv import (
 )
 
 from animation import Animation, BASIC_ANIMATIONS
-import panther_apa102_driver
+from panther_apa102_driver import PantherAPA102Driver
 
 
 class PantherAnimation:
@@ -65,7 +65,7 @@ class LightsControllerNode:
             apa_driver_brightness = LightsControllerNode.MAX_BRIGHTNESS
 
         # define controller and clear all panels
-        self._controller = panther_apa102_driver.PantherAPA102Driver(
+        self._controller = PantherAPA102Driver(
             num_led=self._num_led, brightness=apa_driver_brightness
         )
         self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
@@ -148,17 +148,20 @@ class LightsControllerNode:
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
         except (KeyError, FileNotFoundError) as err:
-            return f'failure: {err}'
+            return SetLEDAnimationResponse(False, f'{err}')
 
-        return 'success'
+        return SetLEDAnimationResponse(
+            True, f'Successfully set an animation with id {req.animation.id}'
+        )
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
         try:
             brightness = self._percent_to_apa_driver_brightness(req.data)
             self._controller.set_brightness(brightness)
         except ValueError as err:
-            return f'failure: {err}'
-        return f'brightness: {req.data}'
+            return SetLEDBrightnessResponse(False, f'{err}')
+
+        return SetLEDBrightnessResponse(True, f'Changed brightness to {req.data}')
 
     def _set_image_animation_cb(
         self, req: SetLEDImageAnimationRequest
@@ -181,9 +184,9 @@ class LightsControllerNode:
 
             self._add_animation_to_queue(animation)
         except Exception as err:
-            return f'failed: {err}'
+            return SetLEDImageAnimationResponse(False, f'{err}')
 
-        return 'success'
+        return SetLEDImageAnimationResponse(True, f'Successfully set custom animation')
 
     def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
         self._update_animations()
