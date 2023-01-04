@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from queue import Queue
 from threading import Lock
 
 import rospy
@@ -21,10 +20,89 @@ from panther_apa102_driver import PantherAPA102Driver
 
 
 class PantherAnimation:
+    ANIMATION_DEFAULT_PRIORITY = 3
+    ANIMATION_DEFAULT_TIMEOUT = 120
+
     front: Animation
     rear: Animation
-    interrupting = False
-    repeating = False
+    name: str = 'NAME_NOT_DEFINED'
+    priority: int = ANIMATION_DEFAULT_PRIORITY
+    timeout: float = ANIMATION_DEFAULT_TIMEOUT
+    repeating: bool = False
+
+    def __init__(self) -> None:
+        self._init_time = rospy.get_time()
+
+    @property
+    def init_time(self) -> float:
+        return self._init_time
+
+
+class AnimationsQueue:
+    def __init__(self, max_queue_size) -> None:
+        self._queue = []
+        self._max_queue_size = max_queue_size
+
+    def put(self, animation: PantherAnimation, put_front: int = False) -> None:
+        self.validate_queue()
+
+        if animation.priority == 1:
+            self.clear()
+
+        if len(self._queue) == self._max_queue_size:
+            rospy.logwarn(f'{rospy.get_name()} Animation queue overloaded')
+            return
+
+        if put_front:
+            self._queue.insert(0, animation)
+        else:
+            self._queue.append(animation)
+        self._queue.sort(key=self._get_priority)
+
+    def get(self) -> PantherAnimation:
+        return self._queue.pop(0)
+
+    def empty(self) -> bool:
+        return len(self._queue) == 0
+
+    def clear(self) -> None:
+        # clears queue except items with priority 1
+        remove_animation_list = []
+        for animation in self._queue:
+            if animation.priority > 1:
+                remove_animation_list.append(animation)
+        for animation in remove_animation_list:
+            self._queue.remove(animation)
+
+    def remove(self, animation) -> None:
+        if self.has_animation(animation):
+            self._queue.remove(animation)
+
+    def get_next_anim_priority(self) -> int:
+        if not self.empty():
+            return self._queue[0].priority
+        else:
+            return PantherAnimation.ANIMATION_DEFAULT_PRIORITY
+
+    def has_animation(self, animation: PantherAnimation) -> bool:
+        for anim in self._queue:
+            if anim == animation:
+                return True
+        return False
+
+    def validate_queue(self) -> None:
+        remove_animation_list = []
+        for animation in self._queue:
+            if rospy.get_time() - animation.init_time > animation.timeout:
+                remove_animation_list.append(animation)
+                rospy.logwarn(
+                    f'{rospy.get_name()} Timeout for animation: {animation.name}. Romoving from the queue'
+                )
+        for animation in remove_animation_list:
+            self._queue.remove(animation)
+
+    def _get_priority(self, animation: PantherAnimation) -> int:
+        return animation.priority
 
 
 class LightsControllerNode:
@@ -37,9 +115,8 @@ class LightsControllerNode:
 
         self._current_animation = None
         self._default_animation = None
-        self._interrupt = False
         self._animation_finished = True
-        self._anim_queue = Queue()
+        self._anim_queue = AnimationsQueue(max_queue_size=10)
         self._lock = Lock()
 
         # check for required ROS parameters
@@ -112,14 +189,30 @@ class LightsControllerNode:
 
     def _controller_timer_cb(self, *args) -> None:
         with self._lock:
-            if self._animation_finished or self._interrupt:
-                if self._anim_queue.empty():
-                    self._current_animation = self._default_animation
-                else:
-                    self._current_animation = self._anim_queue.get(block=False)
-                    self._interrupt = False
+            if self._animation_finished:
+                self._anim_queue.validate_queue()
+
+                if self._default_animation and not self._anim_queue.has_animation(
+                    self._default_animation
+                ):
+                    self._anim_queue.put(self._default_animation)
+
+                if not self._anim_queue.empty():
+                    self._current_animation = self._anim_queue.get()
 
             if self._current_animation:
+                if self._current_animation.priority > self._anim_queue.get_next_anim_priority():
+                    self._current_animation.front.reset()
+                    self._current_animation.rear.reset()
+                    if (
+                        self._current_animation.front.progress < 0.9
+                        and not self._current_animation.repeating
+                    ):
+                        self._anim_queue.put(self._current_animation, put_front=True)
+                    self._animation_finished = True
+                    self._current_animation = None
+                    return
+
                 if not self._current_animation.front.finished:
                     frame_front = self._current_animation.front()
                     brightness_front = self._current_animation.front.brightness
@@ -168,7 +261,6 @@ class LightsControllerNode:
     ) -> SetLEDImageAnimationResponse:
 
         animation = PantherAnimation()
-        animation.interrupting = req.interrupting
         animation.repeating = req.repeating
 
         try:
@@ -233,25 +325,43 @@ class LightsControllerNode:
                         'Missing \'both\' or \'front\'/\'rear\' in animation description'
                     )
 
-                if 'interrupting' in anim:
-                    animation.interrupting = anim['interrupting']
+                if 'name' in anim:
+                    animation.name = anim['name']
+
+                if 'priority' in anim:
+                    priority = anim['priority']
+                    if (
+                        not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY
+                        or not isinstance(priority, int)
+                    ):
+                        priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
+                        rospy.logwarn(
+                            f'{rospy.get_name()} Invalid priority for animaiton: {animation.name}. Using default'
+                        )
+                    animation.priority = priority
+
+                if 'timeout' in anim:
+                    timeout = anim['timeout']
+                    if timeout <= 0:
+                        rospy.logwarn(
+                            f'{rospy.get_name} Invalid timeout for animation: {animation.name}. Using default'
+                        )
+                        timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
+                    animation.timeout = timeout
 
                 return animation
 
         raise KeyError(f'No Animation with id: {animation_id}')
 
     def _add_animation_to_queue(self, animation: PantherAnimation):
-        self._interrupt = animation.interrupting
-        if self._interrupt:
-            self._anim_queue.queue.insert(0, animation)
-        else:
-            self._anim_queue.put(animation)
+        self._anim_queue.put(animation)
         if animation.repeating:
+            self._anim_queue.remove(self._default_animation)
             self._default_animation = animation
 
     def _get_image_animation_description(self, animation: LEDImageAnimation):
         if not animation.image:
-            raise Exception('missing required field \'image\'')
+            raise Exception('Missing required field \'image\'')
 
         animation_description = {
             'image': animation.image,
@@ -272,6 +382,13 @@ class LightsControllerNode:
         for animation in user_animations:
             # ID numbers from 0 to 19 are reserved for system animations
             if animation['id'] > 19:
+                if 'priority' in animation:
+                    if animation['priority'] == 1:
+                        rospy.logwarn(
+                            f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
+                        )
+                        return
+
                 rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
                 # remove old animation definition
                 for anim in self._animations:

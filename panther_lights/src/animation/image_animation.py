@@ -41,11 +41,8 @@ class ImageAnimation(Animation):
 
         # resize image to match duration
         original_img = imageio.imread(img_path)
-        resized_img = Image.fromarray(original_img).resize(
-            (num_led, int(self._duration * controller_freq))
-        )
+        resized_img = Image.fromarray(original_img).resize((num_led, self._anim_len))
         self._img = np.array(resized_img)
-        (self._img_y, _, _) = np.shape(self._img)
 
         # overwrite animation's color
         if 'color' in animation_description:
@@ -58,8 +55,6 @@ class ImageAnimation(Animation):
         b = self._img[:, :, 2]
         self._img = r + g + b
         self._img.astype(np.uint8)
-
-        self._i = 0
 
     def _set_image_color(self, color: int):
         # change from hex to RGB
@@ -79,19 +74,5 @@ class ImageAnimation(Animation):
         # reconstruct image
         self._img = np.dstack((img_r, img_g, img_b))
 
-    def __call__(self) -> np.ndarray:
-        if self._i < self._img_y:
-            frame = self._img[self._i, :]
-            self._i += 1
-            if self._i == self._img_y:
-                self._i = 0
-                self._current_cycle += 1
-            if self._current_cycle > self._loops:
-                self._finished = True
-            return frame
-        raise Animation.AnimationFinished
-
-    def reset(self) -> None:
-        self._i = 0
-        self._current_cycle = 1
-        self._finished = False
+    def _update_frame(self) -> list:
+        return self._img[self._anim_iteration, :]

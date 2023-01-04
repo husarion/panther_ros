@@ -9,6 +9,8 @@ class Animation:
         self._num_led = num_led
         self._current_cycle = 1
         self._finished = False
+        self._anim_iteration = 0
+        self._progress = 0.0
 
         # Check for obligatory keys
         if not 'duration' in animation_description:
@@ -34,11 +36,35 @@ class Animation:
                 raise KeyError('Brightness has to match boundaries 0 < brightness <= 1')
             self._brightness = int(round(self._brightness * 100))
 
-    def __call__(self) -> None:
-        '''returns new frame'''
-        raise NotImplementedError
+        # evaluate number of animation frames
+        self._anim_len = int(round(self._duration * controller_freq))
+        self._full_anim_len = self._anim_len * self._loops
+
+    def __call__(self) -> list:
+        if self._current_cycle <= self._loops:
+            frame = self._update_frame()
+            self._anim_iteration += 1
+            self._progress = (
+                self._anim_iteration + self._anim_len * (self._current_cycle - 1)
+            ) / self._full_anim_len
+
+            if self._anim_iteration == self._anim_len:
+                self._anim_iteration = 0
+                self._current_cycle += 1
+
+            if self._current_cycle > self._loops:
+                self._finished = True
+
+            return frame
+        raise Animation.AnimationFinished
 
     def reset(self) -> None:
+        self._anim_iteration = 0
+        self._current_cycle = 1
+        self._finished = False
+        self._progress = 0.0
+
+    def _update_frame(self) -> list:
         raise NotImplementedError
 
     @property
@@ -52,3 +78,7 @@ class Animation:
     @property
     def finished(self) -> bool:
         return self._finished
+
+    @property
+    def progress(self) -> bool:
+        return self._progress
