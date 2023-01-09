@@ -43,7 +43,7 @@ class AnimationsQueue:
         self._queue = []
         self._max_queue_size = max_queue_size
 
-    def put(self, animation: PantherAnimation, put_front: int = False) -> None:
+    def put(self, animation: PantherAnimation, put_front: bool = False) -> None:
         self.validate_queue()
 
         if animation.priority == 1:
