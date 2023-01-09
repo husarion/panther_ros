@@ -64,7 +64,10 @@ Default animations are described and loaded on the node start, directly from `co
 - `animation` [*dict*]: definition of animation. See section below for more info.
 - `id` [*int*]: ID of an animation.
 - `name` [*string*, default: **NAME_NOT_DEFINED**]: name of an animation.
-- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The lower the number the higher animation priority. Priority is an integer value in range **<1,3>**. Animations with priority 1 will also remove animations with lower priority from the queue. An animation entering the queue with higher priority than currently didplayed will interrupt it and put back in front of the queue.
+- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when ne animation with given ID arrives:
+    - **1** intterupts and removes animation with priorites **2** and **3**.
+    - **2** interrupts animations with priority **3**.
+    - **3** add adnimation to the end of queue.
 - `timeout` [*float*, default: **120.0**]: time in seconds after which animation will be removed from the queue.
 
 ### Animation types
