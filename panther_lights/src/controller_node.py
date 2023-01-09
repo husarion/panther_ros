@@ -25,7 +25,7 @@ class PantherAnimation:
 
     front: Animation
     rear: Animation
-    name: str = 'NAME_NOT_DEFINED'
+    name: str = 'UNDEFINED'
     priority: int = ANIMATION_DEFAULT_PRIORITY
     timeout: float = ANIMATION_DEFAULT_TIMEOUT
     repeating: bool = False
