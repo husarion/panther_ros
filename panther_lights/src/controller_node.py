@@ -31,6 +31,9 @@ class PantherAnimation:
     def __init__(self) -> None:
         self._init_time = rospy.get_time()
 
+    def reset_time(self):
+        self._init_time = rospy.get_time()
+
     @property
     def init_time(self) -> float:
         return self._init_time
@@ -177,6 +180,7 @@ class LightsControllerNode:
             if self._default_animation and not self._anim_queue.has_animation(
                 self._default_animation
             ):
+                self._default_animation.reset_time()
                 self._anim_queue.put(self._default_animation)
 
             if not self._anim_queue.empty():
