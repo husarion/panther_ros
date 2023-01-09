@@ -40,6 +40,9 @@ class Animation:
         self._anim_len = int(round(self._duration * controller_freq))
         self._full_anim_len = self._anim_len * self._loops
 
+        if self._anim_len < 1:
+            raise KeyError('Animation duration is too short to display with the current frequency')
+
     def __call__(self) -> list:
         if self._current_cycle <= self._loops:
             frame = self._update_frame()

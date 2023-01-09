@@ -209,15 +209,11 @@ Arguments:
 
 Methods:
 
-- `__call__` - It returns an animation frame as a list of integers, updates the `progress` variable, and sets the `finished` flag when the animation execution is finished. It uses the `_update_animation` method to get the current animation frame.
 - `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
 - `_update_animation` - returns list of integers of lenght `num_led` with colors for LED panel to be displayed. Colors are stored in **HEX** format as integers. By default not implemented.
 
 Properties:
 
-- `brightness` [*int*]: returns animation brightness from `self._brightness`.
-- `num_led` [*int*]: returns number of LEDs in panel from `self._num_led`.
-- `finished` [*bool*]: returns if animation execution is finished from `self._finished`.
 - `progress` [*float*]: returns animation execution progress from `self._progress`.
 
 The new animation definition should contain `ANIMATION_NAME` used to identify it. Animation frames are processed in ticks with a frequency of `controller_freq`. It is required to overwrite the `_update_animation` method which must return a list representing the animation frame. The advised way is to use the `self._anim_iteration` variable  (current animation tick) to produce an animation frame. As an example see other animation definitions.

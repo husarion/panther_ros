@@ -1,4 +1,3 @@
-import imageio
 import numpy as np
 import os
 from PIL import Image
@@ -40,8 +39,8 @@ class ImageAnimation(Animation):
             img_path = img_name
 
         # resize image to match duration
-        original_img = imageio.imread(img_path)
-        resized_img = Image.fromarray(original_img).resize((num_led, self._anim_len))
+        original_img = Image.open(img_path)
+        resized_img = original_img.resize((num_led, self._anim_len))
         self._img = np.array(resized_img)
 
         # overwrite animation's color

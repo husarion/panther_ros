@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from threading import Lock
-
 import rospy
 
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
@@ -43,7 +41,7 @@ class AnimationsQueue:
         self._queue = []
         self._max_queue_size = max_queue_size
 
-    def put(self, animation: PantherAnimation, put_front: bool = False) -> None:
+    def put(self, animation: PantherAnimation) -> None:
         if animation.priority == 1:
             self.clear()
         self.validate_queue()
@@ -52,11 +50,9 @@ class AnimationsQueue:
             rospy.logwarn(f'{rospy.get_name()} Animation queue overloaded')
             return
 
-        if put_front:
-            self._queue.insert(0, animation)
-        else:
-            self._queue.append(animation)
-        self._queue.sort(key=self._get_priority)
+        self._queue.append(animation)
+        self._queue.sort(key=lambda x: x.init_time)
+        self._queue.sort(key=lambda x: x.priority)
 
     def get(self) -> PantherAnimation:
         return self._queue.pop(0)
@@ -64,30 +60,22 @@ class AnimationsQueue:
     def empty(self) -> bool:
         return len(self._queue) == 0
 
-    def clear(self) -> None:
-        # clears queue except items with priority 1
-        remove_animation_list = []
-        for animation in self._queue:
-            if animation.priority > 1:
-                remove_animation_list.append(animation)
-        for animation in remove_animation_list:
-            self._queue.remove(animation)
+    def clear(self, priority: int = 2) -> None:
+        # clears queue except items below specified priority
+        self._queue = [animation for animation in self._queue if animation.priority < priority]
 
     def remove(self, animation) -> None:
         if self.has_animation(animation):
             self._queue.remove(animation)
 
-    def get_next_anim_priority(self) -> int:
+    def get_first_anim_priority(self) -> int:
         if not self.empty():
             return self._queue[0].priority
         else:
             return PantherAnimation.ANIMATION_DEFAULT_PRIORITY
 
     def has_animation(self, animation: PantherAnimation) -> bool:
-        for anim in self._queue:
-            if anim == animation:
-                return True
-        return False
+        return animation in self._queue
 
     def validate_queue(self) -> None:
         remove_animation_list = []
@@ -95,13 +83,10 @@ class AnimationsQueue:
             if rospy.get_time() - animation.init_time > animation.timeout:
                 remove_animation_list.append(animation)
                 rospy.loginfo(
-                    f'{rospy.get_name()} Timeout for animation: {animation.name}. Removing from the queue'
+                    f'{rospy.get_name()} Timeout for animation: {animation.name}. Romoving from the queue'
                 )
         for animation in remove_animation_list:
             self._queue.remove(animation)
-
-    def _get_priority(self, animation: PantherAnimation) -> int:
-        return animation.priority
 
 
 class LightsControllerNode:
@@ -116,7 +101,6 @@ class LightsControllerNode:
         self._default_animation = None
         self._animation_finished = True
         self._anim_queue = AnimationsQueue(max_queue_size=10)
-        self._lock = Lock()
 
         # check for required ROS parameters
         if not rospy.has_param('~animations'):
@@ -187,52 +171,51 @@ class LightsControllerNode:
         raise ValueError('Brightness out of range <0,1>')
 
     def _controller_timer_cb(self, *args) -> None:
-        with self._lock:
-            if self._animation_finished:
-                self._anim_queue.validate_queue()
+        if self._animation_finished:
+            self._anim_queue.validate_queue()
 
-                if self._default_animation and not self._anim_queue.has_animation(
-                    self._default_animation
+            if self._default_animation and not self._anim_queue.has_animation(
+                self._default_animation
+            ):
+                self._anim_queue.put(self._default_animation)
+
+            if not self._anim_queue.empty():
+                self._current_animation = self._anim_queue.get()
+
+        if self._current_animation:
+            if self._current_animation.priority > self._anim_queue.get_first_anim_priority():
+                if (
+                    self._current_animation.front.progress < 0.9
+                    and not self._current_animation.repeating
                 ):
-                    self._anim_queue.put(self._default_animation)
+                    self._anim_queue.put(self._current_animation)
+                self._current_animation.front.reset()
+                self._current_animation.rear.reset()
+                self._animation_finished = True
+                self._current_animation = None
+                return
 
-                if not self._anim_queue.empty():
-                    self._current_animation = self._anim_queue.get()
-
-            if self._current_animation:
-                if self._current_animation.priority > self._anim_queue.get_next_anim_priority():
-                    self._current_animation.front.reset()
-                    self._current_animation.rear.reset()
-                    if (
-                        self._current_animation.front.progress < 0.9
-                        and not self._current_animation.repeating
-                    ):
-                        self._anim_queue.put(self._current_animation, put_front=True)
-                    self._animation_finished = True
-                    self._current_animation = None
-                    return
-
-                if not self._current_animation.front.finished:
-                    frame_front = self._current_animation.front()
-                    brightness_front = self._current_animation.front.brightness
-                    self._controller.set_panel_frame(
-                        LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
-                    )
-                if not self._current_animation.rear.finished:
-                    frame_rear = self._current_animation.rear()
-                    brightness_rear = self._current_animation.rear.brightness
-                    self._controller.set_panel_frame(
-                        LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
-                    )
-
-                self._animation_finished = (
-                    self._current_animation.front.finished and self._current_animation.rear.finished
+            if not self._current_animation.front.finished:
+                frame_front = self._current_animation.front()
+                brightness_front = self._current_animation.front.brightness
+                self._controller.set_panel_frame(
+                    LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
+                )
+            if not self._current_animation.rear.finished:
+                frame_rear = self._current_animation.rear()
+                brightness_rear = self._current_animation.rear.brightness
+                self._controller.set_panel_frame(
+                    LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
                 )
 
-                if self._animation_finished:
-                    self._current_animation.front.reset()
-                    self._current_animation.rear.reset()
-                    self._current_animation = None
+            self._animation_finished = (
+                self._current_animation.front.finished and self._current_animation.rear.finished
+            )
+
+            if self._animation_finished:
+                self._current_animation.front.reset()
+                self._current_animation.rear.reset()
+                self._current_animation = None
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
