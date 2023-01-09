@@ -211,7 +211,7 @@ Methods:
 
 - `__call__` - It returns an animation frame as a list of integers, updates the `progress` variable, and sets the `finished` flag when the animation execution is finished. It uses the `_update_animation` method to get the current animation frame.
 - `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
-- `_update_animation` - by default it is not implemented. This method is used to update the animation frame.
+- `_update_animation` - returns list of integers of lenght `num_led` with colors for LED panel to be displayed. Colors are stored in **HEX** format as integers. By default not implemented.
 
 Properties:
 
