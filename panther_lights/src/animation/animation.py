@@ -48,7 +48,7 @@ class Animation:
                 self._anim_iteration + self._anim_len * (self._current_cycle - 1)
             ) / self._full_anim_len
 
-            if self._anim_iteration == self._anim_len:
+            if self._anim_iteration >= self._anim_len:
                 self._anim_iteration = 0
                 self._current_cycle += 1
 
