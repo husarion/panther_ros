@@ -210,7 +210,7 @@ Arguments:
 Methods:
 
 - `__call__` - It returns an animation frame as a list of integers, updates the `progress` variable, and sets the `finished` flag when the animation execution is finished. It uses the `_update_animation` method to get the current animation frame.
-- `reset` - It allows resetting animation to its initial state.
+- `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
 - `_update_animation` - by default it is not implemented. This method is used to update the animation frame.
 
 Properties:
