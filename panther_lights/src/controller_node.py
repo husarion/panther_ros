@@ -95,7 +95,7 @@ class AnimationsQueue:
         for animation in self._queue:
             if rospy.get_time() - animation.init_time > animation.timeout:
                 remove_animation_list.append(animation)
-                rospy.logwarn(
+                rospy.loginfo(
                     f'{rospy.get_name()} Timeout for animation: {animation.name}. Romoving from the queue'
                 )
         for animation in remove_animation_list:
