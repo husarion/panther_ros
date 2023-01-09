@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from copy import deepcopy
+
 import rospy
 
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
@@ -104,6 +106,7 @@ class LightsControllerNode:
         self._default_animation = None
         self._animation_finished = True
         self._anim_queue = AnimationsQueue(max_queue_size=10)
+        self._animations = []
 
         # check for required ROS parameters
         if not rospy.has_param('~animations'):
@@ -113,7 +116,7 @@ class LightsControllerNode:
             rospy.signal_shutdown('Missing required parameter')
             return
 
-        self._animations = rospy.get_param('~animations')
+        self._animations_description = rospy.get_param('~animations')
         self._controller_frequency = rospy.get_param('~controller_frequency', 100)
         self._num_led = rospy.get_param('~num_led', 46)
         global_brightness = rospy.get_param('~global_brightness', 1.0)
@@ -226,7 +229,7 @@ class LightsControllerNode:
             animation = self._get_animation_by_id(req.animation.id)
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
-        except (KeyError, FileNotFoundError) as err:
+        except ValueError as err:
             return SetLEDAnimationResponse(False, f'{err}')
 
         return SetLEDAnimationResponse(
@@ -267,15 +270,76 @@ class LightsControllerNode:
         return SetLEDImageAnimationResponse(True, f'Successfully set custom animation')
 
     def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
-        self._update_animations()
+        try:
+            self._update_animations()
+        except (KeyError, FileNotFoundError) as err:
+            return TriggerResponse(False, f'Failed to update animations: {err}')
         return TriggerResponse(True, 'Animations updated successfully')
 
     def _get_animation_by_id(self, animation_id: int) -> PantherAnimation:
+        for animation in self._animations:
+            if animation['id'] == animation_id:
+                return deepcopy(animation['animation'])
+        raise ValueError(f'No Animation with id: {animation_id}')
 
-        animation = PantherAnimation()
+    def _add_animation_to_queue(self, animation: PantherAnimation):
+        self._anim_queue.put(animation)
+        if animation.repeating:
+            self._anim_queue.remove(self._default_animation)
+            self._default_animation = animation
 
-        for anim in self._animations:
-            if anim['id'] == animation_id:
+    def _get_image_animation_description(self, animation: LEDImageAnimation):
+        if not animation.image:
+            raise Exception('Missing required field \'image\'')
+
+        animation_description = {
+            'image': animation.image,
+            'duration': animation.duration,
+            'repeat': animation.repeat,
+            'brightness': animation.brightness,
+        }
+
+        if animation.color:
+            animation_description.update({'color': animation.color})
+
+        return animation_description
+
+    def _update_animations(self):
+
+        user_animations = rospy.get_param('~user_animations', '')
+
+        for animation in user_animations:
+            # ID numbers from 0 to 19 are reserved for system animations
+            if animation['id'] > 19:
+                if 'priority' in animation:
+                    if animation['priority'] == 1:
+                        rospy.logwarn(
+                            f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
+                        )
+                        continue
+
+                rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
+                # remove old animation definition
+                for anim in self._animations_description:
+                    if anim['id'] == animation['id']:
+                        self._animations_description.remove(anim)
+                self._animations_description.append(animation)
+            else:
+                rospy.logwarn(
+                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
+                )
+
+        self._update_animations_list()
+
+    def _update_animations_list(self):
+        
+        animations = []
+
+        for anim in self._animations_description:
+            if 'id' in anim:
+
+                animation = PantherAnimation()
+
                 for panel in anim['animation']:
                     anim_desc = anim['animation'][panel]
 
@@ -335,56 +399,12 @@ class LightsControllerNode:
                         timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
                     animation.timeout = timeout
 
-                return animation
+                animations.append(dict(id=anim['id'], animation=animation))
 
-        raise KeyError(f'No Animation with id: {animation_id}')
-
-    def _add_animation_to_queue(self, animation: PantherAnimation):
-        self._anim_queue.put(animation)
-        if animation.repeating:
-            self._anim_queue.remove(self._default_animation)
-            self._default_animation = animation
-
-    def _get_image_animation_description(self, animation: LEDImageAnimation):
-        if not animation.image:
-            raise Exception('Missing required field \'image\'')
-
-        animation_description = {
-            'image': animation.image,
-            'duration': animation.duration,
-            'repeat': animation.repeat,
-            'brightness': animation.brightness,
-        }
-
-        if animation.color:
-            animation_description.update({'color': animation.color})
-
-        return animation_description
-
-    def _update_animations(self):
-
-        user_animations = rospy.get_param('~user_animations', '')
-
-        for animation in user_animations:
-            # ID numbers from 0 to 19 are reserved for system animations
-            if animation['id'] > 19:
-                if 'priority' in animation:
-                    if animation['priority'] == 1:
-                        rospy.logwarn(
-                            f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
-                        )
-                        continue
-
-                rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
-                # remove old animation definition
-                for anim in self._animations:
-                    if anim['id'] == animation['id']:
-                        self._animations.remove(anim)
-                self._animations.append(animation)
             else:
-                rospy.logwarn(
-                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
-                )
+                raise KeyError(f'Missing ID in animation description')
+
+        self._animations = animations
 
 
 def main():

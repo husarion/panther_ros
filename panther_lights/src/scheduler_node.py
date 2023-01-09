@@ -103,6 +103,7 @@ class LightsSchedulerNode:
 
     def _call_led_animation_srv(self, req: SetLEDAnimationRequest) -> bool:
         try:
+            self._set_led_animation.wait_for_service(5.0)
             response = self._set_led_animation.call(req)
             rospy.logdebug(
                 f'[{rospy.get_name()}] Setting animation with ID: {req.animation.id}. Response: ({response})'
