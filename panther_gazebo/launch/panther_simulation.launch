@@ -7,5 +7,5 @@
   <include file="$(find panther_gazebo)/launch/panther_spawn.launch" />
 
   <node if="$(arg use_rviz)" name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(arg rviz_config)" />
-
+  
 </launch>
