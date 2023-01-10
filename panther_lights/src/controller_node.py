@@ -56,8 +56,7 @@ class AnimationsQueue:
             return
 
         self._queue.append(animation)
-        self._queue.sort(key=lambda x: x.init_time)
-        self._queue.sort(key=lambda x: x.priority)
+        self._queue = sorted(self._queue, key=lambda x: (x.priority, x.init_time))
 
     def get(self) -> PantherAnimation:
         return self._queue.pop(0)
@@ -106,7 +105,7 @@ class LightsControllerNode:
         self._default_animation = None
         self._animation_finished = True
         self._anim_queue = AnimationsQueue(max_queue_size=10)
-        self._animations = []
+        self._animations = {}
 
         # check for required ROS parameters
         if not rospy.has_param('~animations'):
@@ -195,9 +194,10 @@ class LightsControllerNode:
                     self._current_animation.front.progress < 0.9
                     and not self._current_animation.repeating
                 ):
+                    self._current_animation.front.reset()
+                    self._current_animation.rear.reset()
                     self._anim_queue.put(self._current_animation)
-                self._current_animation.front.reset()
-                self._current_animation.rear.reset()
+                del self._current_animation
                 self._animation_finished = True
                 self._current_animation = None
                 return
@@ -277,10 +277,12 @@ class LightsControllerNode:
         return TriggerResponse(True, 'Animations updated successfully')
 
     def _get_animation_by_id(self, animation_id: int) -> PantherAnimation:
-        for animation in self._animations:
-            if animation['id'] == animation_id:
-                return deepcopy(animation['animation'])
-        raise ValueError(f'No Animation with id: {animation_id}')
+        try:
+            animation = deepcopy(self._animations[animation_id])
+            animation.reset_time()
+            return animation
+        except KeyError:
+            raise ValueError(f'No Animation with id: {animation_id}')
 
     def _add_animation_to_queue(self, animation: PantherAnimation):
         self._anim_queue.put(animation)
@@ -332,8 +334,8 @@ class LightsControllerNode:
         self._update_animations_list()
 
     def _update_animations_list(self):
-        
-        animations = []
+
+        animations = {}
 
         for anim in self._animations_description:
             if 'id' in anim:
@@ -399,7 +401,7 @@ class LightsControllerNode:
                         timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
                     animation.timeout = timeout
 
-                animations.append(dict(id=anim['id'], animation=animation))
+                animations[anim['id']] = animation
 
             else:
                 raise KeyError(f'Missing ID in animation description')
