@@ -55,7 +55,7 @@ class ImageAnimation(Animation):
         self._img = r + g + b
         self._img.astype(np.uint8)
 
-    def _set_image_color(self, color: int):
+    def _set_image_color(self, color: int) -> None:
         # change from hex to RGB
         r = (np.uint32(color) >> 16) & (0x0000FF)
         g = (np.uint32(color) >> 8) & (0x0000FF)

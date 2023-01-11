@@ -33,7 +33,7 @@ class PantherAnimation:
     def __init__(self) -> None:
         self._init_time = rospy.get_time()
 
-    def reset_time(self):
+    def reset_time(self) -> None:
         self._init_time = rospy.get_time()
 
     @property
@@ -203,13 +203,13 @@ class LightsControllerNode:
                 return
 
             if not self._current_animation.front.finished:
-                frame_front = self._current_animation.front()
+                frame_front = [led for led in self._current_animation.front()]
                 brightness_front = self._current_animation.front.brightness
                 self._controller.set_panel_frame(
                     LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
                 )
             if not self._current_animation.rear.finished:
-                frame_rear = self._current_animation.rear()
+                frame_rear = [led for led in self._current_animation.rear()]
                 brightness_rear = self._current_animation.rear.brightness
                 self._controller.set_panel_frame(
                     LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
@@ -284,13 +284,13 @@ class LightsControllerNode:
         except KeyError:
             raise ValueError(f'No Animation with id: {animation_id}')
 
-    def _add_animation_to_queue(self, animation: PantherAnimation):
+    def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
         self._anim_queue.put(animation)
         if animation.repeating:
             self._anim_queue.remove(self._default_animation)
             self._default_animation = animation
 
-    def _get_image_animation_description(self, animation: LEDImageAnimation):
+    def _get_image_animation_description(self, animation: LEDImageAnimation) -> dict:
         if not animation.image:
             raise Exception('Missing required field \'image\'')
 
@@ -306,7 +306,7 @@ class LightsControllerNode:
 
         return animation_description
 
-    def _update_animations(self):
+    def _update_animations(self) -> None:
 
         user_animations = rospy.get_param('~user_animations', '')
 
@@ -333,7 +333,7 @@ class LightsControllerNode:
 
         self._update_animations_list()
 
-    def _update_animations_list(self):
+    def _update_animations_list(self) -> None:
 
         animations = {}
 

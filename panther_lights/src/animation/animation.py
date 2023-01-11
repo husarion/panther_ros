@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 class Animation:
     class AnimationFinished(Exception):
         def __init__(self, message='Animation finished') -> None:
@@ -43,7 +45,7 @@ class Animation:
         if self._anim_len < 1:
             raise KeyError('Animation duration is too short to display with the current frequency')
 
-    def __call__(self) -> list:
+    def __call__(self) -> Generator:
         if self._current_cycle <= self._loops:
             frame = self._update_frame()
             self._anim_iteration += 1
@@ -58,8 +60,10 @@ class Animation:
             if self._current_cycle > self._loops:
                 self._finished = True
 
-            return frame
-        raise Animation.AnimationFinished
+            for led in frame:
+                yield led
+        else:
+            raise Animation.AnimationFinished
 
     def reset(self) -> None:
         self._anim_iteration = 0
