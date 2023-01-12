@@ -87,5 +87,5 @@ class Animation:
         return self._finished
 
     @property
-    def progress(self) -> bool:
+    def progress(self) -> flaot:
         return self._progress
