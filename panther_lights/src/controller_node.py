@@ -220,7 +220,8 @@ class LightsControllerNode:
             )
 
             if self._animation_finished:
-                del self._current_animation
+                self._current_animation.front.reset()
+                self._current_animation.rear.reset()
                 self._current_animation = None
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
