@@ -20,7 +20,7 @@ class RelaysNode:
         rospy.init_node(name, anonymous=False)
 
         self._e_stop_state = False
-        self._cmd_vel_command_last_time = time()
+        self._cmd_vel_msg_last_time = time()
 
         # -------------------------------
         #   Publishers
@@ -56,10 +56,10 @@ class RelaysNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _cmd_vel_cb(self, data) -> None:
-        self._cmd_vel_msg_time = time()
+        self._cmd_vel_msg_last_time = time()
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        if time() - self._cmd_vel_msg_time <= 2.0:
+        if time() - self._cmd_vel_msg_last_time <= 2.0:
             return TriggerResponse(
                 False,
                 'E-STOP reset failed, some messages are published on the /cmd_vel topic',
