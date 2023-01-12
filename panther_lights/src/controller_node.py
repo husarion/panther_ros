@@ -68,7 +68,7 @@ class AnimationsQueue:
         # clears queue except items below specified priority
         self._queue = [animation for animation in self._queue if animation.priority < priority]
 
-    def remove(self, animation) -> None:
+    def remove(self, animation: PantherAnimation) -> None:
         if self.has_animation(animation):
             self._queue.remove(animation)
 
