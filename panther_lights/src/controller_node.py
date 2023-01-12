@@ -42,7 +42,7 @@ class PantherAnimation:
 
 
 class AnimationsQueue:
-    def __init__(self, max_queue_size) -> None:
+    def __init__(self, max_queue_size: int = 5) -> None:
         self._queue = []
         self._max_queue_size = max_queue_size
 
