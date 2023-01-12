@@ -302,7 +302,7 @@ class LightsControllerNode:
         }
 
         if animation.color:
-            animation_description.update({'color': animation.color})
+            animation_description['color'] = animation.color
 
         return animation_description
 
