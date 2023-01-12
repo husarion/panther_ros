@@ -72,25 +72,26 @@ class AnimationsQueue:
         if self.has_animation(animation):
             self._queue.remove(animation)
 
-    def get_first_anim_priority(self) -> int:
-        if not self.empty():
-            return self._queue[0].priority
-        else:
-            return PantherAnimation.ANIMATION_DEFAULT_PRIORITY
-
     def has_animation(self, animation: PantherAnimation) -> bool:
         return animation in self._queue
 
     def validate_queue(self) -> None:
-        remove_animation_list = []
-        for animation in self._queue:
-            if rospy.get_time() - animation.init_time > animation.timeout:
-                remove_animation_list.append(animation)
-                rospy.loginfo(
-                    f'{rospy.get_name()} Timeout for animation: {animation.name}. Romoving from the queue'
-                )
-        for animation in remove_animation_list:
-            self._queue.remove(animation)
+        time = rospy.get_time()
+        remove_animation_list = [
+            anim for anim in self._queue if time - anim.init_time > anim.timeout
+        ]
+        for anim in remove_animation_list:
+            rospy.loginfo(
+                f'{rospy.get_name()} Timeout for animation: {anim.name}. Romoving from the queue'
+            )
+            self._queue.remove(anim)
+
+    @property
+    def first_anim_priority(self) -> int:
+        if not self.empty():
+            return self._queue[0].priority
+        else:
+            return PantherAnimation.ANIMATION_DEFAULT_PRIORITY
 
 
 class LightsControllerNode:
@@ -98,7 +99,7 @@ class LightsControllerNode:
     PANEL_FRONT = 0
     PANEL_REAR = 1
 
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
         self._current_animation = None
@@ -166,7 +167,7 @@ class LightsControllerNode:
 
         rospy.loginfo(f'{rospy.get_name()} Node started')
 
-    def _percent_to_apa_driver_brightness(self, brightness_percent) -> int:
+    def _percent_to_apa_driver_brightness(self, brightness_percent: float) -> int:
         if 0 <= brightness_percent <= 1:
             brightness = int(brightness_percent * LightsControllerNode.MAX_BRIGHTNESS)
             # set minimal brightness for small values
@@ -189,7 +190,7 @@ class LightsControllerNode:
                 self._current_animation = self._anim_queue.get()
 
         if self._current_animation:
-            if self._current_animation.priority > self._anim_queue.get_first_anim_priority():
+            if self._current_animation.priority > self._anim_queue.first_anim_priority:
                 if (
                     self._current_animation.front.progress < 0.9
                     and not self._current_animation.repeating
@@ -197,19 +198,18 @@ class LightsControllerNode:
                     self._current_animation.front.reset()
                     self._current_animation.rear.reset()
                     self._anim_queue.put(self._current_animation)
-                del self._current_animation
                 self._animation_finished = True
                 self._current_animation = None
                 return
 
             if not self._current_animation.front.finished:
-                frame_front = [led for led in self._current_animation.front()]
+                frame_front = self._current_animation.front()
                 brightness_front = self._current_animation.front.brightness
                 self._controller.set_panel_frame(
                     LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
                 )
             if not self._current_animation.rear.finished:
-                frame_rear = [led for led in self._current_animation.rear()]
+                frame_rear = self._current_animation.rear()
                 brightness_rear = self._current_animation.rear.brightness
                 self._controller.set_panel_frame(
                     LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
@@ -220,17 +220,17 @@ class LightsControllerNode:
             )
 
             if self._animation_finished:
-                self._current_animation.front.reset()
-                self._current_animation.rear.reset()
+                del self._current_animation
                 self._current_animation = None
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
-            animation = self._get_animation_by_id(req.animation.id)
+            animation = deepcopy(self._animations[req.animation.id])
+            animation.reset_time()
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
-        except ValueError as err:
-            return SetLEDAnimationResponse(False, f'{err}')
+        except ValueError:
+            return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
 
         return SetLEDAnimationResponse(
             True, f'Successfully set an animation with id {req.animation.id}'
@@ -275,14 +275,6 @@ class LightsControllerNode:
         except (KeyError, FileNotFoundError) as err:
             return TriggerResponse(False, f'Failed to update animations: {err}')
         return TriggerResponse(True, 'Animations updated successfully')
-
-    def _get_animation_by_id(self, animation_id: int) -> PantherAnimation:
-        try:
-            animation = deepcopy(self._animations[animation_id])
-            animation.reset_time()
-            return animation
-        except KeyError:
-            raise ValueError(f'No Animation with id: {animation_id}')
 
     def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
         self._anim_queue.put(animation)
@@ -334,9 +326,6 @@ class LightsControllerNode:
         self._update_animations_list()
 
     def _update_animations_list(self) -> None:
-
-        animations = {}
-
         for anim in self._animations_description:
             if 'id' in anim:
 
@@ -381,11 +370,8 @@ class LightsControllerNode:
                     animation.name = anim['name']
 
                 if 'priority' in anim:
-                    priority = anim['priority']
-                    if (
-                        not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY
-                        or not isinstance(priority, int)
-                    ):
+                    priority = int(round(anim['priority']))
+                    if not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY:
                         priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
                         rospy.logwarn(
                             f'{rospy.get_name()} Invalid priority for animaiton: {animation.name}. Using default'
@@ -401,12 +387,10 @@ class LightsControllerNode:
                         timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
                     animation.timeout = timeout
 
-                animations[anim['id']] = animation
+                self._animations[anim['id']] = animation
 
             else:
                 raise KeyError(f'Missing ID in animation description')
-
-        self._animations = animations
 
 
 def main():

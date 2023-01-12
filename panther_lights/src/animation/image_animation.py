@@ -12,13 +12,13 @@ class ImageAnimation(Animation):
 
     ANIMATION_NAME = 'image_animation'
 
-    def __init__(self, animation_description: dict, num_led: int, controller_freq: float) -> None:
-        super().__init__(animation_description, num_led, controller_freq)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
-        if not 'image' in animation_description:
+        if not 'image' in self._animation_description:
             raise KeyError('No image in aniamtion description')
 
-        img_name = animation_description['image']
+        img_name = self._animation_description['image']
         if not os.path.isabs(img_name):
             if img_name[0] == '$':
                 if re.search('^\$\(find .*\)', img_name):
@@ -40,12 +40,12 @@ class ImageAnimation(Animation):
 
         # resize image to match duration
         original_img = Image.open(img_path)
-        resized_img = original_img.resize((num_led, self._anim_len))
+        resized_img = original_img.resize((self._num_led, self._anim_len))
         self._img = np.array(resized_img)
 
         # overwrite animation's color
-        if 'color' in animation_description:
-            self._set_image_color(animation_description['color'])
+        if 'color' in self._animation_description:
+            self._set_image_color(self._animation_description['color'])
 
         # convert image from RGB to HEX
         self._img = self._img.astype(np.uint32)
@@ -74,4 +74,4 @@ class ImageAnimation(Animation):
         self._img = np.dstack((img_r, img_g, img_b))
 
     def _update_frame(self) -> list:
-        return self._img[self._anim_iteration, :]
+        return self._img[self._anim_iteration, :].tolist()
