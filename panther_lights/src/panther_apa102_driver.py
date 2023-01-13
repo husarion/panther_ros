@@ -33,6 +33,7 @@ class PantherAPA102Driver:
         self._led_power_pin = led_power_pin
         self._front_active = True
         self._rear_active = True
+        self._color_correction_rgb = [255, 200, 62]
 
         # setup and activate panels
         self._setup_panels()
@@ -51,6 +52,13 @@ class PantherAPA102Driver:
 
     def set_panel_frame(self, panel_num: int, panel_frame: list, brightness: int = 100) -> None:
         with self._lock:
+
+            for i, led in enumerate(panel_frame):
+                panel_frame[i][0] = int(led[0] * self._color_correction_rgb[0] / 255)
+                panel_frame[i][1] = int(led[1] * self._color_correction_rgb[1] / 255)
+                panel_frame[i][2] = int(led[2] * self._color_correction_rgb[2] / 255)
+            panel_frame_hex = [(led[0] << 16) + (led[1] << 8) + led[2] for led in panel_frame]
+
             # select panel
             if panel_num == 0 and self._front_active:
                 GPIO.output(self._led_switch_pin, PantherAPA102Driver.LED_SWITCH_FRONT_STATE)
@@ -61,7 +69,7 @@ class PantherAPA102Driver:
 
             # set all LED in this panel
             for i in range(self._num_led):
-                self._pixels.set_pixel_rgb(i, int(panel_frame[i]), brightness)
+                self._pixels.set_pixel_rgb(i, int(panel_frame_hex[i]), brightness)
             self._pixels.show()
 
     def set_panel_state(self, panel_num: int, state: bool) -> None:
@@ -78,7 +86,7 @@ class PantherAPA102Driver:
             self._pixels.global_brightness = brightness
 
     def clear_panel(self, panel_num: int) -> None:
-        self.set_panel_frame(panel_num, [0] * self._num_led)
+        self.set_panel_frame(panel_num, [[0, 0, 0]] * self._num_led)
 
     def __del__(self) -> None:
         self.clear_panel(0)

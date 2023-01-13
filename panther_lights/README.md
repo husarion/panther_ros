@@ -210,7 +210,7 @@ Arguments:
 Methods:
 
 - `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
-- `_update_animation` - returns list of integers of lenght `num_led` with colors for LED panel to be displayed. Colors are stored in **HEX** format as integers. By default not implemented.
+- `_update_animation` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel. Colors are described as a list of integers with respectively **R**, **G**, and **B** color values. By default not implemented.
 
 Properties:
 
