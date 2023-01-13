@@ -227,6 +227,8 @@ class LightsControllerNode:
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
             animation = deepcopy(self._animations[req.animation.id])
+            animation.front.set_param(req.animation.param)
+            animation.rear.set_param(req.animation.param)
             animation.reset_time()
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
