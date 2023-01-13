@@ -33,6 +33,9 @@ class PantherAPA102Driver:
         self._led_power_pin = led_power_pin
         self._front_active = True
         self._rear_active = True
+        color_correction_rgb = [255, 200, 62]
+        # rgb values normalized to avoid additional division
+        self._color_correction = [value / 255 for value in color_correction_rgb]
 
         # setup and activate panels
         self._setup_panels()
@@ -59,9 +62,12 @@ class PantherAPA102Driver:
             else:
                 raise ValueError('panther lights have only two panels')
 
-            # set all LED in this panel
-            for i in range(self._num_led):
-                self._pixels.set_pixel_rgb(i, int(panel_frame[i]), brightness)
+            for i, pixel in enumerate(panel_frame):
+                r = int(pixel[0] * self._color_correction[0])
+                g = int(pixel[1] * self._color_correction[1])
+                b = int(pixel[2] * self._color_correction[2])
+                pixel_hex = (r << 16) + (g << 8) + b
+                self._pixels.set_pixel_rgb(i, pixel_hex, brightness)
             self._pixels.show()
 
     def set_panel_state(self, panel_num: int, state: bool) -> None:
@@ -78,7 +84,7 @@ class PantherAPA102Driver:
             self._pixels.global_brightness = brightness
 
     def clear_panel(self, panel_num: int) -> None:
-        self.set_panel_frame(panel_num, [0] * self._num_led)
+        self.set_panel_frame(panel_num, [[0, 0, 0]] * self._num_led)
 
     def __del__(self) -> None:
         self.clear_panel(0)

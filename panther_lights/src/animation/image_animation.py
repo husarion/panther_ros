@@ -42,18 +42,11 @@ class ImageAnimation(Animation):
         original_img = Image.open(img_path)
         resized_img = original_img.resize((self._num_led, self._anim_len))
         self._img = np.array(resized_img)
+        self._img = self._img[:, :,:3]
 
         # overwrite animation's color
         if 'color' in self._animation_description:
             self._set_image_color(self._animation_description['color'])
-
-        # convert image from RGB to HEX
-        self._img = self._img.astype(np.uint32)
-        r = self._img[:, :, 0] << 16
-        g = self._img[:, :, 1] << 8
-        b = self._img[:, :, 2]
-        self._img = r + g + b
-        self._img.astype(np.uint8)
 
     def _set_image_color(self, color: int) -> None:
         # change from hex to RGB
