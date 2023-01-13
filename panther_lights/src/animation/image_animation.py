@@ -42,7 +42,7 @@ class ImageAnimation(Animation):
         original_img = Image.open(img_path)
         resized_img = original_img.resize((self._num_led, self._anim_len))
         self._img = np.array(resized_img)
-        self._img = self._img[:, :, 0:3]
+        self._img = self._img[:, :,:3]
 
         # overwrite animation's color
         if 'color' in self._animation_description:
