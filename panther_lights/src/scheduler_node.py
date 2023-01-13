@@ -72,7 +72,7 @@ class LightsSchedulerNode:
             if success:
                 self._led_e_stop_state = self._e_stop_state
 
-    def _critical_battery_timer_cb(self, *args):
+    def _critical_battery_timer_cb(self, *args) -> None:
         if (
             self._battery_percentage < self._critical_battery_threshold_percent
             and not self._charger_connected
@@ -81,7 +81,7 @@ class LightsSchedulerNode:
             req.animation.id = LEDAnimation.CRITICAL_BATTERY
             self._call_led_animation_srv(req)
 
-    def _low_battery_timer_cb(self, *args):
+    def _low_battery_timer_cb(self, *args) -> None:
         if (
             self._critical_battery_threshold_percent
             <= self._battery_percentage
@@ -103,6 +103,7 @@ class LightsSchedulerNode:
 
     def _call_led_animation_srv(self, req: SetLEDAnimationRequest) -> bool:
         try:
+            self._set_led_animation.wait_for_service(5.0)
             response = self._set_led_animation.call(req)
             rospy.logdebug(
                 f'[{rospy.get_name()}] Setting animation with ID: {req.animation.id}. Response: ({response})'

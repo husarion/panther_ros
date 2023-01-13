@@ -19,7 +19,7 @@
   <depend>panther_battery</depend>
   <depend>panther_description</depend>
   <depend>panther_driver</depend>
-  <depend>panther_lights_controller</depend>
+  <depend>panther_lights</depend>
   <depend>panther_msgs</depend>
   <depend>panther_power_control</depend>
   <depend>phidgets_spatial</depend>

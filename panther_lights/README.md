@@ -63,8 +63,12 @@ Default animations are described and loaded on the node start, directly from `co
 
 - `animation` [*dict*]: definition of animation. See section below for more info.
 - `id` [*int*]: ID of an animation.
-- `interrupting` [*bool*, optional]: if *true* animation will interrupt currently displayed animation.
-- `name` [*string*, optional]: name of an animation.
+- `name` [*string*, default: **NAME_NOT_DEFINED**]: name of an animation.
+- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when ne animation with given ID arrives:
+    - **1** intterupts and removes animation with priorites **2** and **3**.
+    - **2** interrupts animations with priority **3**.
+    - **3** add adnimation to the end of queue.
+- `timeout` [*float*, default: **120.0**]: time in seconds after which animation will be removed from the queue.
 
 ### Animation types
 
@@ -91,12 +95,15 @@ Create a yaml file with an animation description list. Example file:
 
 :bulb: **NOTE:** ID numbers from 0 to 19 are reserved for system animations.
 
+:bulb: **NOTE:** Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
+
 ```yaml
 # user_animations.yaml
 user_animations:
   # animation with default image and custom color
   - id: 21
     name: 'ANIMATION_1'
+    priority: 2
     animation:
       both:
         type: image_animation
@@ -108,6 +115,7 @@ user_animations:
   # animation with custom image
   - id: 22
     name: 'ANIMATION_2'
+    priority: 3
     animation:
       both:
         type: image_animation
@@ -118,6 +126,7 @@ user_animations:
    # animation with custom image from custom ROS package
   - id: 23
     name: 'ANIMATION_3'
+    priority: 3
     animation:
       both:
         type: image_animation
@@ -200,16 +209,14 @@ Arguments:
 
 Methods:
 
-- `__call__` - by default it is not implemented and must be overwritten. It returns an animation frame as a list of integers. It should also set the `self._finished` variable `true` when the last animation frame is returned.
-- `reset` - by default it is not implemented. It allows resetting animation.
+- `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
+- `_update_animation` - returns list of integers of lenght `num_led` with colors for LED panel to be displayed. Colors are stored in **HEX** format as integers. By default not implemented.
 
 Properties:
 
-- `brightness` [*int*]: returns animation brightness from `self._brightness`.
-- `num_led` [*int*]: returns number of LEDs in panel from `self._num_led`.
-- `finished` [*bool*]: returns if animation execution is finished from `self._finished`.
+- `progress` [*float*]: returns animation execution progress from `self._progress`.
 
-The new animation definition should contain `ANIMATION_NAME` used to identify it. Animation frames are processed in ticks with a frequency of `controller_freq`. To tweak animation duration time use the `controller_freq` and `_duration` variables. As an example see other animation definitions.
+The new animation definition should contain `ANIMATION_NAME` used to identify it. Animation frames are processed in ticks with a frequency of `controller_freq`. It is required to overwrite the `_update_animation` method which must return a list representing the animation frame. The advised way is to use the `self._anim_iteration` variable  (current animation tick) to produce an animation frame. As an example see other animation definitions.
 
 To add a new animation definition to basic animations edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:
 

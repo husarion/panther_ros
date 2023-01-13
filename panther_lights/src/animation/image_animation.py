@@ -1,4 +1,3 @@
-import imageio
 import numpy as np
 import os
 from PIL import Image
@@ -13,13 +12,13 @@ class ImageAnimation(Animation):
 
     ANIMATION_NAME = 'image_animation'
 
-    def __init__(self, animation_description: dict, num_led: int, controller_freq: float) -> None:
-        super().__init__(animation_description, num_led, controller_freq)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
-        if not 'image' in animation_description:
+        if not 'image' in self._animation_description:
             raise KeyError('No image in aniamtion description')
 
-        img_name = animation_description['image']
+        img_name = self._animation_description['image']
         if not os.path.isabs(img_name):
             if img_name[0] == '$':
                 if re.search('^\$\(find .*\)', img_name):
@@ -40,16 +39,13 @@ class ImageAnimation(Animation):
             img_path = img_name
 
         # resize image to match duration
-        original_img = imageio.imread(img_path)
-        resized_img = Image.fromarray(original_img).resize(
-            (num_led, int(self._duration * controller_freq))
-        )
+        original_img = Image.open(img_path)
+        resized_img = original_img.resize((self._num_led, self._anim_len))
         self._img = np.array(resized_img)
-        (self._img_y, _, _) = np.shape(self._img)
 
         # overwrite animation's color
-        if 'color' in animation_description:
-            self._set_image_color(animation_description['color'])
+        if 'color' in self._animation_description:
+            self._set_image_color(self._animation_description['color'])
 
         # convert image from RGB to HEX
         self._img = self._img.astype(np.uint32)
@@ -59,9 +55,7 @@ class ImageAnimation(Animation):
         self._img = r + g + b
         self._img.astype(np.uint8)
 
-        self._i = 0
-
-    def _set_image_color(self, color: int):
+    def _set_image_color(self, color: int) -> None:
         # change from hex to RGB
         r = (np.uint32(color) >> 16) & (0x0000FF)
         g = (np.uint32(color) >> 8) & (0x0000FF)
@@ -79,19 +73,5 @@ class ImageAnimation(Animation):
         # reconstruct image
         self._img = np.dstack((img_r, img_g, img_b))
 
-    def __call__(self) -> np.ndarray:
-        if self._i < self._img_y:
-            frame = self._img[self._i, :]
-            self._i += 1
-            if self._i == self._img_y:
-                self._i = 0
-                self._current_cycle += 1
-            if self._current_cycle > self._loops:
-                self._finished = True
-            return frame
-        raise Animation.AnimationFinished
-
-    def reset(self) -> None:
-        self._i = 0
-        self._current_cycle = 1
-        self._finished = False
+    def _update_frame(self) -> list:
+        return self._img[self._anim_iteration, :].tolist()

@@ -20,9 +20,9 @@
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
 
   <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>
-  <depend>python3-imageio</depend>
 
 </package>
