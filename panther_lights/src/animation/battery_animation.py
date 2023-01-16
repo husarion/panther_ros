@@ -44,6 +44,7 @@ class BatteryAnimation(Animation):
             if i <= display_iterations:
                 ind_f = i / self._anim_len * self._num_led * 1 / 0.9
                 anim_ind = round(ind_f)
+                # variables used to include additional LEDs to improve animation transition, especially with short duration
                 r = ind_f % 1
                 a = 0
                 b = 0
@@ -72,7 +73,7 @@ class BatteryAnimation(Animation):
             anim = convolve2d(anim, conv_mat, mode='same', fillvalue=1, boundary='symm')
 
         # set final animation color
-        h = (self._h_max - self._h_min) * pow(max(0, battery_percent), 0.75) + self._h_min
+        h = (self._h_max - self._h_min) * np.sin(max(0, battery_percent) * np.pi / 2) + self._h_min
         s = 1.0
         v = 1.0
 
@@ -84,7 +85,9 @@ class BatteryAnimation(Animation):
         # dynamically change color during first part of the animation
         for i in range(round(display_iterations / 2)):
             anim_iter = i / (display_iterations / 2)
-            h = (self._h_max - self._h_min) * pow(battery_percent, 0.75) * anim_iter + self._h_min
+            h = (self._h_max - self._h_min) * np.sin(
+                max(0, battery_percent) * np.pi / 2
+            ) * anim_iter + self._h_min
 
             (r, g, b) = hsv_to_rgb(h / 360, s, v)
             anim_r[i] = np.uint32(anim[i] * np.uint8(r * 255))
