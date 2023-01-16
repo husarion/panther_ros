@@ -117,7 +117,7 @@ class LightsControllerNode:
             return
 
         self._animations_description = rospy.get_param('~animations')
-        self._controller_frequency = rospy.get_param('~controller_frequency', 100)
+        self._controller_frequency = rospy.get_param('~controller_frequency', 46)
         self._num_led = rospy.get_param('~num_led', 46)
         global_brightness = rospy.get_param('~global_brightness', 1.0)
         test = rospy.get_param('~test', False)
