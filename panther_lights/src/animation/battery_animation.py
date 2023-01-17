@@ -43,7 +43,7 @@ class BatteryAnimation(Animation):
 
         if percent_point < 1:
             percent_point = 1
-            display_iterations = 0
+            display_iterations = 1
 
         # create binary animation
         for i in range(resolution):
