@@ -83,3 +83,11 @@ animations:
         type: battery_animation
         duration: 3
 
+  - id: 9
+    name: 'CHARGING_BATTERY'
+    priority: 1
+    animation:
+      both:
+        type: charging_animation
+        duration: 4
+

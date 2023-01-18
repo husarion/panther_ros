@@ -15,6 +15,8 @@ class LightsSchedulerNode:
 
         self._battery_percentage = 1.0
         self._charger_connected = False
+        self._update_charging_anim_treshold = 0.1
+        self._charging_percentage = -1.0
         self._e_stop_state = None
         self._led_e_stop_state = None
 
@@ -75,6 +77,23 @@ class LightsSchedulerNode:
                 success = self._call_led_animation_srv(req)
             if success:
                 self._led_e_stop_state = self._e_stop_state
+
+        if self._charger_connected:
+            if (
+                abs(self._battery_percentage - self._charging_percentage)
+                >= self._update_charging_anim_treshold
+            ):
+                self._charging_percentage = (
+                    round(self._battery_percentage / self._update_charging_anim_treshold)
+                    * self._update_charging_anim_treshold
+                )
+                req = SetLEDAnimationRequest()
+                req.repeating = True
+                req.animation.id = LEDAnimation.CHARGING_BATTERY
+                req.animation.param = self._battery_percentage
+                self._call_led_animation_srv(req)
+        else:
+            self._charging_percentage = -1.0
 
     def _critical_battery_timer_cb(self, *args) -> None:
         if (
