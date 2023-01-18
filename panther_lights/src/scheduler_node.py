@@ -15,7 +15,6 @@ class LightsSchedulerNode:
 
         self._battery_percentage = 1.0
         self._charger_connected = False
-        self._update_charging_anim_treshold = 0.1
         self._charging_percentage = -1.0
         self._e_stop_state = None
         self._led_e_stop_state = None
@@ -27,6 +26,7 @@ class LightsSchedulerNode:
         self._battery_state_anim_period = rospy.get_param('battery_state_anim_period', 120.0)
         self._low_battery_anim_period = rospy.get_param('low_battery_anim_period', 30.0)
         self._low_battery_threshold_percent = rospy.get_param('low_battery_threshold_percent', 0.4)
+        self._update_charging_anim_step = rospy.get_param('update_charging_anim_step', 0.1)
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -81,11 +81,11 @@ class LightsSchedulerNode:
         if self._charger_connected:
             if (
                 abs(self._battery_percentage - self._charging_percentage)
-                >= self._update_charging_anim_treshold
+                >= self._update_charging_anim_step
             ):
                 self._charging_percentage = (
-                    round(self._battery_percentage / self._update_charging_anim_treshold)
-                    * self._update_charging_anim_treshold
+                    round(self._battery_percentage / self._update_charging_anim_step)
+                    * self._update_charging_anim_step
                 )
                 req = SetLEDAnimationRequest()
                 req.repeating = True

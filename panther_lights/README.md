@@ -43,6 +43,7 @@ Node responsible for scheduling animations displayed on LED panels based on the 
 - `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
 - `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
 - `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
+- `~update_charging_animation_step` [*float*, defualt: **0.1**]: percentage value representing a step for updating the charging battery animation.
 
 ## Animations
 
