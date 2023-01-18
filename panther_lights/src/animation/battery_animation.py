@@ -16,6 +16,7 @@ class BatteryAnimation(Animation):
         self._h_min = 0.0
         self._h_max = 120.0
         self._resolution = 100
+        self._gaussian_blur_radius = 1.5
 
     def _update_frame(self) -> list:
         return self._anim[self._anim_iteration, :].tolist()
@@ -70,6 +71,6 @@ class BatteryAnimation(Animation):
 
         # filter to smooth animation and resize to match duration
         img = Image.fromarray(anim)
-        img = img.filter(ImageFilter.GaussianBlur(1.5))
+        img = img.filter(ImageFilter.GaussianBlur(self._gaussian_blur_radius))
         img = img.resize((self._num_led, self._anim_len))
         self._anim = np.array(img)

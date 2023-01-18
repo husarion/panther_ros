@@ -87,7 +87,7 @@ class LightsSchedulerNode:
 
     def _battery_state_timer_cb(self, *args):
         req = SetLEDAnimationRequest()
-        req.animation.id = LEDAnimation.SHOW_BATTERY
+        req.animation.id = LEDAnimation.BATTERY_STATE
         req.animation.param = self._battery_percentage
         self._call_led_animation_srv(req)
 
