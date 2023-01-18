@@ -58,6 +58,7 @@ Basic animations are parsed as a list using the ROS parameter. Default animation
 | 5   | GOAL_ACHIEVED     | purple blinking three times                                 |
 | 6   | LOW_BATTERY       | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | two red stripes moving towards the center, repeats twice    |
+| 8   | BATTERY_STATE      | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
 
 Default animations are described and loaded on the node start, directly from `config/panther_lights_animations.yaml`. Supported keys are:
 
@@ -82,6 +83,15 @@ Animation returning frame to display based on an image. Supported keys are:
 - `image` [*string*]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
 - `repeat` [*int*, optional]: number of times the animation will be repeated, by default animation will run once.
 - `type` [*string*]: required field specyfying animation type, for `ImageAnimation` value should be `image_animation`.
+
+#### BatteryAnimation
+
+Animation returning frame to display based on `param` value representing battery percentage. Animation displays two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center. Color changes from red (battery discharged) to green (battery full). Supported keys are:
+
+- `brightness` [*float*, optional]: animation brightness. This will overwrite `global_brightness` for a given animation.
+- `duration` [*float*]: duration of a single battery animation.
+- `repeat` [*int*, optional]: number of times the animation will be repeated, by default animation will run once.
+- `type` [*string*]: required field specyfying animation type, for `BatteryAnimation` value should be `battery_animation`.
 
 :bulb: **NOTE:** The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
 

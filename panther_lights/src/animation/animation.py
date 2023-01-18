@@ -7,6 +7,7 @@ class Animation:
         self._finished = False
         self._anim_iteration = 0
         self._progress = 0.0
+        self._param = None
 
         # Check for obligatory keys
         if not 'duration' in animation_description:
@@ -65,6 +66,9 @@ class Animation:
 
     def _update_frame(self) -> list:
         raise NotImplementedError
+
+    def set_param(self, value: float) -> None:
+        self._param = value
 
     @property
     def brightness(self) -> int:

@@ -75,4 +75,11 @@ animations:
         duration: 2
         repeat: 2
 
+  - id: 8
+    name: 'BATTERY_STATE'
+    priority: 3
+    animation:
+      both:
+        type: battery_animation
+        duration: 3
 
