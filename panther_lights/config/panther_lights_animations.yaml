@@ -76,7 +76,7 @@ animations:
         repeat: 2
 
   - id: 8
-    name: 'SHOW_BATTERY'
+    name: 'BATTERY_STATE'
     priority: 3
     animation:
       both:

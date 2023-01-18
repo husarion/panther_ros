@@ -58,7 +58,7 @@ Basic animations are parsed as a list using the ROS parameter. Default animation
 | 5   | GOAL_ACHIEVED     | purple blinking three times                                 |
 | 6   | LOW_BATTERY       | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | two red stripes moving towards the center, repeats twice    |
-| 8   | SHOW_BATTERY      | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
+| 8   | BATTERY_STATE      | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
 
 Default animations are described and loaded on the node start, directly from `config/panther_lights_animations.yaml`. Supported keys are:
 
