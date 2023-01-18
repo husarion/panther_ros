@@ -13,8 +13,8 @@ class BatteryAnimation(Animation):
         super().__init__(*args, **kwargs)
 
         self._anim = np.zeros((self._anim_len, self.num_led))
-        self._h_min = 0
-        self._h_max = 120
+        self._h_min = 0.0
+        self._h_max = 120.0
         self._resolution = 100
 
     def _update_frame(self) -> list:
