@@ -19,7 +19,7 @@ class LightsSchedulerNode:
         self._charging_percentage = -1.0  # -1.0 to trigger animation when charger gets connected
         self._e_stop_state = None
         self._led_e_stop_state = None
-        self._main_timer_period = 0.2  # 5Hz
+        self._charging_battery_timer = None
 
         self._critical_battery_anim_period = rospy.get_param('~critical_battery_anim_period', 15.0)
         self._critical_battery_threshold_percent = rospy.get_param(
@@ -53,9 +53,7 @@ class LightsSchedulerNode:
         #   Timers
         # -------------------------------
 
-        self._scheduler_timer = rospy.Timer(
-            rospy.Duration(self._main_timer_period), self._scheduler_timer_cb
-        )
+        self._scheduler_timer = rospy.Timer(rospy.Duration(0.2), self._scheduler_timer_cb)  # 5 Hz
         self._critical_battery_timer = rospy.Timer(
             rospy.Duration(self._critical_battery_anim_period), self._critical_battery_timer_cb
         )
@@ -83,22 +81,21 @@ class LightsSchedulerNode:
             if success:
                 self._led_e_stop_state = self._e_stop_state
 
-        if self._charger_state != self._charger_connected:
-            self._charger_state = self._charger_connected
-            if self._charger_connected:
-                self._charging_battery_timer_cb()  # manually trigger timers callback
-                self._charging_battery_timer = rospy.Timer(
-                    rospy.Duration(self._charging_battery_anim_period),
-                    self._charging_battery_timer_cb,
-                )
-
-    def _charging_battery_timer_cb(self, *args) -> None:
-        if not self._charger_connected:
+        if self._charger_connected and not self._charging_battery_timer:
+            self._charging_battery_timer_cb()  # manually trigger timers callback
+            self._charging_battery_timer = rospy.Timer(
+                rospy.Duration(self._charging_battery_anim_period),
+                self._charging_battery_timer_cb,
+            )
+        elif not self._charger_connected and self._charging_battery_timer:
             self._charging_battery_timer.shutdown()
+            self._charging_battery_timer.join()
+            del self._charging_battery_timer
+            self._charging_battery_timer = None
             self._charging_percentage = -1.0
             self._led_e_stop_state = None
-            return
 
+    def _charging_battery_timer_cb(self, *args) -> None:
         if self._e_stop_state:
             req = SetLEDAnimationRequest()
             req.animation.id = LEDAnimation.E_STOP
