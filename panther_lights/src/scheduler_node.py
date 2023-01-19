@@ -20,16 +20,16 @@ class LightsSchedulerNode:
         self._e_stop_state = None
         self._led_e_stop_state = None
 
-        self._main_timer_period = rospy.get_param('main_timer_period', 0.2)
-        self._critical_battery_anim_period = rospy.get_param('critical_battery_anim_period', 15.0)
+        self._main_timer_period = rospy.get_param('~main_timer_period', 0.2)
+        self._critical_battery_anim_period = rospy.get_param('~critical_battery_anim_period', 15.0)
         self._critical_battery_threshold_percent = rospy.get_param(
-            'critical_battery_threshold_percent', 0.1
+            '~critical_battery_threshold_percent', 0.1
         )
-        self._battery_state_anim_period = rospy.get_param('battery_state_anim_period', 120.0)
-        self._low_battery_anim_period = rospy.get_param('low_battery_anim_period', 30.0)
-        self._low_battery_threshold_percent = rospy.get_param('low_battery_threshold_percent', 0.4)
-        self._update_charging_anim_step = rospy.get_param('update_charging_anim_step', 0.1)
-        self._charging_battery_anim_period = rospy.get_param('low_battery_anim_period', 20.0)
+        self._battery_state_anim_period = rospy.get_param('~battery_state_anim_period', 120.0)
+        self._low_battery_anim_period = rospy.get_param('~low_battery_anim_period', 30.0)
+        self._low_battery_threshold_percent = rospy.get_param('~low_battery_threshold_percent', 0.4)
+        self._update_charging_anim_step = rospy.get_param('~update_charging_anim_step', 0.1)
+        self._charging_battery_anim_period = rospy.get_param('~charging_battery_anim_period', 20.0)
 
         # -------------------------------
         #   Publishers & Subscribers

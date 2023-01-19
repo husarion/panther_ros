@@ -39,11 +39,13 @@ Node responsible for scheduling animations displayed on LED panels based on the 
 
 #### Parameters
 
+- `~charging_battery_anim_period` [*float*, default: **20.0**]: time in seconds to wait before updating the charging battery animation if the battery percentage has changed by the value specified in the `update_charging_animation_step` param.
 - `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
 - `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
 - `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
 - `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
-- `~update_charging_animation_step` [*float*, defualt: **0.1**]: percentage value representing a step for updating the charging battery animation.
+- `~main_timer_period` [*float*, default: **0.2**]: period in seconds of the node's main timer where e-stop and charging animations are being handled.
+- `~update_charging_animation_step` [*float*, default: **0.1**]: percentage value representing a step for updating the charging battery animation.
 
 ## Animations
 
