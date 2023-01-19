@@ -44,7 +44,7 @@ class ChargingAnimation(Animation):
         return self._frame.tolist()
 
     def set_param(self, value: float) -> None:
-        battery_percent = np.clip(value, 0, 1)
+        battery_percent = np.clip(value, 0.0, 1.0)
         self._on_duration = int(round(self._anim_len * battery_percent))
         h = (self._h_max - self._h_min) * battery_percent + self._h_min
         s = 1.0
