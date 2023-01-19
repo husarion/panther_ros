@@ -86,7 +86,7 @@ class LightsSchedulerNode:
         if self._charger_state != self._charger_connected:
             self._charger_state = self._charger_connected
             if self._charger_connected:
-                self._charging_battery_timer_cb()  # immediately trigger timers callback
+                self._charging_battery_timer_cb()  # manually trigger timers callback
                 self._charging_battery_timer = rospy.Timer(
                     rospy.Duration(self._charging_battery_anim_period),
                     self._charging_battery_timer_cb,
