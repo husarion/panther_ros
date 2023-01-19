@@ -19,8 +19,8 @@ class LightsSchedulerNode:
         self._charging_percentage = -1.0  # -1.0 to trigger animation when charger gets connected
         self._e_stop_state = None
         self._led_e_stop_state = None
+        self._main_timer_period = 0.2  # 5Hz
 
-        self._main_timer_period = rospy.get_param('~main_timer_period', 0.2)
         self._critical_battery_anim_period = rospy.get_param('~critical_battery_anim_period', 15.0)
         self._critical_battery_threshold_percent = rospy.get_param(
             '~critical_battery_threshold_percent', 0.1
