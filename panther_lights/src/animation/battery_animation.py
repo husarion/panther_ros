@@ -26,7 +26,7 @@ class BatteryAnimation(Animation):
         self._create_anim(value)
 
     def _create_anim(self, battery_percent: float) -> None:
-        battery_percent = np.clip(battery_percent, 0, 1)
+        battery_percent = np.clip(battery_percent, 0.0, 1.0)
         # define basic HSV color
         h = self._h_min
         s = 1.0

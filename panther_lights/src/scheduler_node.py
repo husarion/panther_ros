@@ -14,17 +14,22 @@ class LightsSchedulerNode:
         rospy.init_node(name, anonymous=False)
 
         self._battery_percentage = 1.0
-        self._charger_connected = False
+        self._charger_connected = None
+        self._charger_state = None
+        self._charging_percentage = -1.0  # -1.0 to trigger animation when charger gets connected
         self._e_stop_state = None
         self._led_e_stop_state = None
+        self._charging_battery_timer = None
 
-        self._critical_battery_anim_period = rospy.get_param('critical_battery_anim_period', 15.0)
+        self._critical_battery_anim_period = rospy.get_param('~critical_battery_anim_period', 15.0)
         self._critical_battery_threshold_percent = rospy.get_param(
-            'critical_battery_threshold_percent', 0.1
+            '~critical_battery_threshold_percent', 0.1
         )
-        self._battery_state_anim_period = rospy.get_param('battery_state_anim_period', 120.0)
-        self._low_battery_anim_period = rospy.get_param('low_battery_anim_period', 30.0)
-        self._low_battery_threshold_percent = rospy.get_param('low_battery_threshold_percent', 0.4)
+        self._battery_state_anim_period = rospy.get_param('~battery_state_anim_period', 120.0)
+        self._low_battery_anim_period = rospy.get_param('~low_battery_anim_period', 30.0)
+        self._low_battery_threshold_percent = rospy.get_param('~low_battery_threshold_percent', 0.4)
+        self._update_charging_anim_step = rospy.get_param('~update_charging_anim_step', 0.1)
+        self._charging_battery_anim_period = rospy.get_param('~charging_battery_anim_period', 20.0)
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -48,7 +53,7 @@ class LightsSchedulerNode:
         #   Timers
         # -------------------------------
 
-        self._scheduler_timer = rospy.Timer(rospy.Duration(0.1), self._scheduler_timer_cb)
+        self._scheduler_timer = rospy.Timer(rospy.Duration(0.2), self._scheduler_timer_cb)  # 5 Hz
         self._critical_battery_timer = rospy.Timer(
             rospy.Duration(self._critical_battery_anim_period), self._critical_battery_timer_cb
         )
@@ -64,7 +69,7 @@ class LightsSchedulerNode:
     def _scheduler_timer_cb(self, *args) -> None:
 
         # call animation service only when e_stop state changes
-        if self._led_e_stop_state != self._e_stop_state:
+        if self._led_e_stop_state != self._e_stop_state and not self._charger_connected:
             req = SetLEDAnimationRequest()
             req.repeating = True
             if self._e_stop_state:
@@ -75,6 +80,40 @@ class LightsSchedulerNode:
                 success = self._call_led_animation_srv(req)
             if success:
                 self._led_e_stop_state = self._e_stop_state
+
+        if self._charger_connected and not self._charging_battery_timer:
+            self._charging_battery_timer_cb()  # manually trigger timers callback
+            self._charging_battery_timer = rospy.Timer(
+                rospy.Duration(self._charging_battery_anim_period),
+                self._charging_battery_timer_cb,
+            )
+        elif not self._charger_connected and self._charging_battery_timer:
+            self._charging_battery_timer.shutdown()
+            self._charging_battery_timer.join()
+            del self._charging_battery_timer
+            self._charging_battery_timer = None
+            self._charging_percentage = -1.0
+            self._led_e_stop_state = None
+
+    def _charging_battery_timer_cb(self, *args) -> None:
+        if self._e_stop_state:
+            req = SetLEDAnimationRequest()
+            req.animation.id = LEDAnimation.E_STOP
+            self._call_led_animation_srv(req)
+
+        if (
+            abs(self._battery_percentage - self._charging_percentage)
+            >= self._update_charging_anim_step
+        ):
+            self._charging_percentage = (
+                round(self._battery_percentage / self._update_charging_anim_step)
+                * self._update_charging_anim_step
+            )
+            req = SetLEDAnimationRequest()
+            req.repeating = True
+            req.animation.id = LEDAnimation.CHARGING_BATTERY
+            req.animation.param = self._battery_percentage
+            self._call_led_animation_srv(req)
 
     def _critical_battery_timer_cb(self, *args) -> None:
         if (

@@ -39,10 +39,12 @@ Node responsible for scheduling animations displayed on LED panels based on the 
 
 #### Parameters
 
+- `~charging_battery_anim_period` [*float*, default: **20.0**]: time in seconds to wait before updating the charging battery animation if the battery percentage has changed by the value specified in the `update_charging_animation_step` param.
 - `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
 - `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
 - `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
 - `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
+- `~update_charging_animation_step` [*float*, default: **0.1**]: percentage value representing a step for updating the charging battery animation.
 
 ## Animations
 
@@ -59,6 +61,7 @@ Basic animations are parsed as a list using the ROS parameter. Default animation
 | 6   | LOW_BATTERY       | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE      | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
+| 9   | CHARGING_BATTERY  | solid color with a duty cycle proportional to the battery percentage, color changes from red to green |
 
 Default animations are described and loaded on the node start, directly from `config/panther_lights_animations.yaml`. Supported keys are:
 
@@ -73,27 +76,31 @@ Default animations are described and loaded on the node start, directly from `co
 
 ### Animation types
 
-#### ImageAnimation
+#### Animation
 
-Animation returning frame to display based on an image. Supported keys are:
+Basic animation definition. Supported keys are:
 
 - `brightness` [*float*, optional]: animation brightness. This will overwrite `global_brightness` for a given animation.
-- `color` [*int*, optional]: image will be turned into grayscale and then the color will be applied with brightness from grayscale. Values have to be in HEX format.
 - `duration` [*float*]: duration of a single image animation.
-- `image` [*string*]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
 - `repeat` [*int*, optional]: number of times the animation will be repeated, by default animation will run once.
-- `type` [*string*]: required field specyfying animation type, for `ImageAnimation` value should be `image_animation`.
+- `type` [*string*]: required field specyfying animation type, currently suported animation types are: `image_animation`, `battery_animation`, `charging_animation`.
+
+:bulb: **NOTE:** The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
+
+#### ImageAnimation
+
+Animation of type `image_animation` returning frame to display based on an image. Additional keys are:
+
+- `color` [*int*, optional]: image will be turned into grayscale and then the color will be applied with brightness from grayscale. Values have to be in HEX format.
+- `image` [*string*]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
 
 #### BatteryAnimation
 
-Animation returning frame to display based on `param` value representing battery percentage. Animation displays two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center. Color changes from red (battery discharged) to green (battery full). Supported keys are:
+Animation of type `battery_animation` returning frame to display based on `param` value representing battery percentage. Animation displays two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center. Color changes from red (battery discharged) to green (battery full).
 
-- `brightness` [*float*, optional]: animation brightness. This will overwrite `global_brightness` for a given animation.
-- `duration` [*float*]: duration of a single battery animation.
-- `repeat` [*int*, optional]: number of times the animation will be repeated, by default animation will run once.
-- `type` [*string*]: required field specyfying animation type, for `BatteryAnimation` value should be `battery_animation`.
+### ChargingAnimation
 
-:bulb: **NOTE:** The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
+Animation of type `charging_animation` returning frame to display based on `param` value representing battery percentage. Displays solid color with a duty cycle proportional to the battery percentage. Color is changing from red (battery discharged) to green (battery fully charged).
 
 ### Defining animations
 
