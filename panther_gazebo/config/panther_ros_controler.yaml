@@ -28,6 +28,6 @@ panther_base_controller:
   angular:
     z:
       has_velocity_limits    : true
-      max_velocity           : 4.0   # rad/s
+      max_velocity           : 5.73   # rad/s
       has_acceleration_limits: true
       max_acceleration       : 25.0   # rad/s^2
