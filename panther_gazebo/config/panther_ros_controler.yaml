@@ -1,6 +1,6 @@
 joint_state_controller:
   type: joint_state_controller/JointStateController
-  publish_rate: 50 
+  publish_rate: 50.0
 
 panther_base_controller:
   type: "diff_drive_controller/DiffDriveController"
