@@ -1,12 +1,26 @@
 <launch>
-  <rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
-  <node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller" />
+  <arg name="use_ros_control" />
 
   <param name="robot_description"
-         command="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
+    command="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
                   wheel_config_path:=$(find panther_description)/config/WH01.yaml
-                  simulation_engine:=gazebo-classic" />
+                  simulation_engine:=gazebo-classic
+                  use_ros_control:=$(arg use_ros_control)" />
 
-  <node name="panther_spawn" pkg="gazebo_ros" type="spawn_model" output="screen" args="-urdf -param robot_description -model panther" />
+  <node name="panther_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+    args="-urdf -param robot_description -model panther" />
+
+  <group if="$(arg use_ros_control)">
+    <rosparam file="$(find panther_gazebo)/config/panther_ros_controler.yaml" command="load" />
+    <node name="panther_controller_manager" pkg="controller_manager" type="spawner"
+      respawn="false" output="screen" args="joint_state_controller panther_base_controller" />
+  </group>
+
+  <group unless="$(arg use_ros_control)">
+    <rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
+    <node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner"
+      output="screen" args="joint_state_controller" />
+  </group>
+
   <node name="state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 </launch>
