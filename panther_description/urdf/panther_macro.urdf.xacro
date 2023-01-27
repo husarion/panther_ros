@@ -3,7 +3,7 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
   <xacro:macro name="panther_robot"
-    params="use_sim:=false
+               params="use_sim:=false
                        dual_bat:=false
                        imu_pos_x:=0.168 
                        imu_pos_y:=0.028
