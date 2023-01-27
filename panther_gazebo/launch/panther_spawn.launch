@@ -13,7 +13,7 @@
   <group if="$(arg use_ros_control)">
     <rosparam file="$(find panther_gazebo)/config/panther_ros_controler.yaml" command="load" />
     <node name="panther_controller_manager" pkg="controller_manager" type="spawner"
-      respawn="false" output="screen" args="joint_state_controller panther_base_controller" />
+      output="screen" args="joint_state_controller panther_base_controller" />
   </group>
 
   <group unless="$(arg use_ros_control)">
