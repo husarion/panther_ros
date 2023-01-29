@@ -6,6 +6,7 @@ import paramiko
 import RPi.GPIO as GPIO
 from threading import Thread, Lock
 from time import sleep, time
+import os
 
 import rospy
 
@@ -73,8 +74,30 @@ class PowerBoardNode:
 
         rospy.init_node(name, anonymous=False)
         
-        self._ip = rospy.get_param('~ip', '127.0.0.1')
-        self._username = rospy.get_param('~username', 'husarion')
+        self._shutdown_timeout = rospy.get_param('~shutdown_timeout', 60.0)
+        
+        self._ip = rospy.get_param('~self_ip', '127.0.0.1')
+        self._username = rospy.get_param('~self_username', 'husarion')
+        self._default_identity_file = rospy.get_param('~default_identity_file', '~/.ssh/id_rsa')
+        if rospy.has_para('~self_identity_file'):
+            self._identity_file = rospy.get_param('~self_identity_file')
+        else:
+            self._identity_file = self._default_identity_file
+            
+        self._hosts = rospy.get_param('~hosts')
+        for host in self._hosts:
+            # check if all heys are provided
+            if {'ip', 'username'} != set(host.keys()):
+                rospy.logerr(f'[{rospy.get_name()}] Missing info for remote host!')
+                raise Exception
+            if 'identity_file' not in host.keys():
+                host['identity_file'] = self._default_identity_file
+                
+            if not os.path.exists(host['identity_file']):
+                rospy.logerr(f'[{rospy.get_name()}]'
+                    'Can\'t find provided identity file for host {host["ip"]}!')
+                raise Exception
+        
         self._cmd_vel_msg_time = time()
 
         # -------------------------------
@@ -126,6 +149,9 @@ class PowerBoardNode:
         self._timer_fan = rospy.Timer(rospy.Duration(1.0), self._publish_fan_state_cb)
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
+        
+    def _check_ip(self, host):
+      return os.system("ping -c 1 -w 1 " + host + " > /dev/null") == 0
 
     def _cmd_vel_cb(self, data) -> None:
         self._cmd_vel_msg_time = time()
@@ -137,11 +163,28 @@ class PowerBoardNode:
         sleep(0.2)
 
     def _soft_shutdown(self) -> None:
-        while(not self._read_pin(self._pins.SHDN_INIT)):
-            sleep(0.2)
-
         rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
-        self._shutdown_host()
+        for host in self._hosts:
+            self._request_shutdown(host['ip'], host['key_path'], host['username'])
+        
+        start_time = rospy.get_time()
+        while rospy.get_time() - start_time < self._shutdown_timeout:
+            any_host_available = False
+            for host in self._hosts:
+                if self._check_ip(host['ip']):
+                    any_host_available = True
+                
+                if not any_host_available:
+                    rospy.loginfo(f'[{rospy.get_name()}] All computes shat dowm gracefully.')
+                    break
+        
+        else:
+            rospy.loginfo(f'[{rospy.get_name()}] '
+                'Shutdown timeout reached. Cutting out power from computers.')
+            
+        # ensure all computers did full shutdown
+        rospy.loginfo(f'[{rospy.get_name()}] Shutting down itself.')
+        self._request_shutdown(self._ip, self._identity_file, self._username)
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
         with self._lock:
@@ -227,15 +270,22 @@ class PowerBoardNode:
     def _validate_gpio_pin(self, pin: int, value: bool) -> bool:
         return self._read_pin(pin) == value
 
-    def _shutdown_host(self) -> None:
-        pkey = paramiko.RSAKey.from_private_key_file('/root/.ssh/id_rsa')
-        client = paramiko.SSHClient()
-        policy = paramiko.AutoAddPolicy()
-        client.set_missing_host_key_policy(policy)
-        client.connect(self._ip, username=self._username, pkey=pkey)
-        _, stdout, _ = client.exec_command('sudo shutdown now')
-        rospy.loginfo(f'[{rospy.get_name()}] stdout: {stdout.read().decode()}')
-        client.close()
+    def _request_shutdown(self, ip, identity_file, username) -> None:
+        # shutdown only if host available
+        if self._check_ip(ip):
+            pkey = paramiko.RSAKey.from_private_key_file(identity_file)
+            client = paramiko.SSHClient()
+            policy = paramiko.AutoAddPolicy()
+            client.set_missing_host_key_policy(policy)
+            client.connect(ip, username=username, pkey=pkey)
+            _, stdout, stderr = client.exec_command('sudo reboot now')
+            if len(stdout.read().decode()) > 0:
+                rospy.logerr(f'[{rospy.get_name()}] stdout: {stdout.read().decode()}')
+            if len(stderr.read().decode()) > 0:
+                rospy.logerr(f'[{rospy.get_name()}] stderr: {stderr.read().decode()}')
+            client.close()
+        else:
+            rospy.loginfo(f'[{rospy.get_name()}] Device at IP: {ip} not available.')
 
     def _setup_gpio(self) -> None:
         GPIO.setmode(GPIO.BCM)

@@ -25,5 +25,6 @@
   <depend>python-rpi.gpio-pip</depend>
   <depend>python3-gpiozero</depend>
   <depend>python3-paramiko</depend>
+  <depend>iputils-ping</depend>
 
 </package>

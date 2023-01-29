@@ -32,6 +32,12 @@ Observes internal temperatures of the robot and turns on and off the built-in co
 
 Node responsible for management of the safety board and the power board. Available since Panther version 1.2.
 
+In order to set up connection with new user computer, login to the built-in computer with `ssh husarion@10.15.20.2`.
+Add built-in computer's public key to **known_hosts** of a computer you want to shut down automatically:
+``` bash
+ssh-copy-id username@10.15.20.XX
+```
+
 #### Publishes
 
 - `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
@@ -46,6 +52,19 @@ Node responsible for management of the safety board and the power board. Availab
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.
 - `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable internal fan.
 - `/panther/hardware/motors_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
+
+#### Parameters
+
+- `~shutdown_timeout` [*float*, default: **60.0**]: time in seconds to wait for graceful shutdown. After timeout power will be cut from all devices.
+- `~self_ip` [*string*, default: **127.0.0.1**]: IP used to shut down device running this node.
+- `~self_username` [*string*, default: **husarion**]: username used to shut down device running this node.
+- `~default_identity_file` [*string*, default: **~/.ssh/id_rsa**]: default path used to find identity global file for SSH.
+- `~self_identity_file` [*string*, default: **None**]: identity file global path to shut down device running this node. If not set defaults to `~default_identity_file`.
+- `~hosts` [*list*, default: **None**]: list of hosts to request shutdown.
+  - `~hosts/ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
+  - `~hosts/username` [*string*, default: **None**]: username used to login to over SSH.
+  - `~hosts/identity_file` [*string*, default: **None**]: SSH identity file global path. If not set defaults to `~default_identity_file`.
+
 
 ### relays_node.py
 
