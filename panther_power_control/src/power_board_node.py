@@ -151,7 +151,7 @@ class PowerBoardNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
         
     def _check_ip(self, host):
-      return os.system("ping -c 1 -w 1 " + host + " > /dev/null") == 0
+      return os.system('ping -c 1 -w 3 ' + host + ' > /dev/null') == 0
 
     def _cmd_vel_cb(self, data) -> None:
         self._cmd_vel_msg_time = time()
@@ -273,19 +273,22 @@ class PowerBoardNode:
     def _request_shutdown(self, ip, identity_file, username) -> None:
         # shutdown only if host available
         if self._check_ip(ip):
-            pkey = paramiko.RSAKey.from_private_key_file(identity_file)
-            client = paramiko.SSHClient()
-            policy = paramiko.AutoAddPolicy()
-            client.set_missing_host_key_policy(policy)
-            client.connect(ip, username=username, pkey=pkey)
-            _, stdout, stderr = client.exec_command('sudo reboot now')
-            if len(stdout.read().decode()) > 0:
-                rospy.logerr(f'[{rospy.get_name()}] stdout: {stdout.read().decode()}')
-            if len(stderr.read().decode()) > 0:
-                rospy.logerr(f'[{rospy.get_name()}] stderr: {stderr.read().decode()}')
-            client.close()
+            try:
+                pkey = paramiko.RSAKey.from_private_key_file(identity_file)
+                client = paramiko.SSHClient()
+                policy = paramiko.AutoAddPolicy()
+                client.set_missing_host_key_policy(policy)
+                client.connect(ip, username=username, pkey=pkey)
+                _, stdout, stderr = client.exec_command('sudo reboot now')
+                if len(stdout.read().decode()) > 0:
+                    rospy.logerr(f'[{rospy.get_name()}] stdout: {stdout.read().decode()}')
+                if len(stderr.read().decode()) > 0:
+                    rospy.logerr(f'[{rospy.get_name()}] stderr: {stderr.read().decode()}')
+                client.close()
+            except:
+                rospy.logerr(f'[{rospy.get_name()}] Can\' SSH to device at {ip}!')
         else:
-            rospy.loginfo(f'[{rospy.get_name()}] Device at IP: {ip} not available.')
+            rospy.loginfo(f'[{rospy.get_name()}] Device at {ip} not available.')
 
     def _setup_gpio(self) -> None:
         GPIO.setmode(GPIO.BCM)
