@@ -286,7 +286,7 @@ class PowerBoardNode:
                     rospy.logerr(f'[{rospy.get_name()}] stderr: {stderr.read().decode()}')
                 client.close()
             except:
-                rospy.logerr(f'[{rospy.get_name()}] Can\' SSH to device at {ip}!')
+                rospy.logerr(f'[{rospy.get_name()}] Can\'t SSH to device at {ip}!')
         else:
             rospy.loginfo(f'[{rospy.get_name()}] Device at {ip} not available.')
 
