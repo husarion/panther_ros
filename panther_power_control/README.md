@@ -38,6 +38,11 @@ Add built-in computer's public key to **known_hosts** of a computer you want to 
 ssh-copy-id username@10.15.20.XX
 ```
 
+In order to allow your computer to be shut down without sudo password login to it and run:
+``` bash
+echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
+```
+
 #### Publishes
 
 - `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
