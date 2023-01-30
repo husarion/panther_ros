@@ -18,7 +18,7 @@
 
   <group unless="$(arg use_ros_control)">
     <rosparam file="$(find joint_state_controller)/joint_state_controller.yaml" command="load" />
-    <node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner"
+    <node name="panther_controller_spawner" pkg="controller_manager" type="spawner"
       output="screen" args="joint_state_controller" />
   </group>
 
