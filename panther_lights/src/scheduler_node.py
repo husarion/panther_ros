@@ -64,7 +64,7 @@ class LightsSchedulerNode:
             rospy.Duration(self._low_battery_anim_period), self._low_battery_timer_cb
         )
 
-        rospy.loginfo(f'{rospy.get_name()} Node started')
+        rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _scheduler_timer_cb(self, *args) -> None:
 
