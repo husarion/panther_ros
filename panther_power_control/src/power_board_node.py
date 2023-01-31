@@ -6,7 +6,6 @@ import RPi.GPIO as GPIO
 from threading import Thread, Lock
 from time import sleep, time
 
-
 import rospy
 
 from geometry_msgs.msg import Twist
