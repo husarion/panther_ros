@@ -100,7 +100,7 @@ class ShutdownNode:
                     pass
                 client.close()
                 return True
-            except Exception as e:
+            except Exception:
                 rospy.logerr(f'[{rospy.get_name()}] Can\'t SSH to device at {ip}!')
                 return False
         else:
