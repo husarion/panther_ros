@@ -6,7 +6,8 @@
   <description>Set of nodes used for high level management of Husarion Panther robot</description>
   <license>Apache License 2.0</license>
 
-  <author email="krzysztof.wojciechowski@husarion.com">Dawid Kmak</author>
+  <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
+  <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
   <maintainer email="support@husarion.com">Husarion</maintainer>
 
   <url type="website">https://husarion.com/</url>
@@ -17,6 +18,8 @@
   
   <depend>panther_msgs</depend>
   <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
 
 </package>
