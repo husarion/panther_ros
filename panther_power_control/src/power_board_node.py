@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from gpiozero import PWMOutputDevice
-import paramiko
 import RPi.GPIO as GPIO
 from threading import Thread, Lock
 from time import sleep, time
@@ -64,7 +63,6 @@ class PowerBoardNode:
         self.soft_shutdown_thread = Thread(
             name='Soft shutdown thread', target=self._soft_shutdown
         )
-        self.soft_shutdown_thread.start()
 
         self._watchdog = Watchdog()
         self._watchdog.turn_on()
@@ -73,8 +71,6 @@ class PowerBoardNode:
 
         rospy.init_node(name, anonymous=False)
         
-        self._ip = rospy.get_param('~ip', '127.0.0.1')
-        self._username = rospy.get_param('~username', 'husarion')
         self._cmd_vel_msg_time = time()
 
         # -------------------------------
@@ -116,6 +112,8 @@ class PowerBoardNode:
         self._e_stop_trigger_srv = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
+        
+        self._shutdown_service = rospy.ServiceProxy('shutdown', SetBool)
 
         # -------------------------------
         #   Timers
@@ -125,7 +123,9 @@ class PowerBoardNode:
         self._timer_e_stop = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
         self._timer_fan = rospy.Timer(rospy.Duration(1.0), self._publish_fan_state_cb)
 
+        self.soft_shutdown_thread.start()
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
+        
 
     def _cmd_vel_cb(self, data) -> None:
         self._cmd_vel_msg_time = time()
@@ -139,9 +139,8 @@ class PowerBoardNode:
     def _soft_shutdown(self) -> None:
         while(not self._read_pin(self._pins.SHDN_INIT)):
             sleep(0.2)
-
-        rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
-        self._shutdown_host()
+        rospy.wait_for_service('shutdown')
+        self._shutdown_service(SetBoolRequest(True))
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
         with self._lock:
@@ -226,16 +225,6 @@ class PowerBoardNode:
 
     def _validate_gpio_pin(self, pin: int, value: bool) -> bool:
         return self._read_pin(pin) == value
-
-    def _shutdown_host(self) -> None:
-        pkey = paramiko.RSAKey.from_private_key_file('/root/.ssh/id_rsa')
-        client = paramiko.SSHClient()
-        policy = paramiko.AutoAddPolicy()
-        client.set_missing_host_key_policy(policy)
-        client.connect(self._ip, username=self._username, pkey=pkey)
-        _, stdout, _ = client.exec_command('sudo shutdown now')
-        rospy.loginfo(f'[{rospy.get_name()}] stdout: {stdout.read().decode()}')
-        client.close()
 
     def _setup_gpio(self) -> None:
         GPIO.setmode(GPIO.BCM)
