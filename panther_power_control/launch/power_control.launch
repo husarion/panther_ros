@@ -1,14 +1,11 @@
 <launch>
   <arg name="panther_version" />
-  <arg name="shutdown_hosts_config" />
 
   <group unless="$(eval panther_version >= 1.2)">
     <node pkg="panther_power_control" name="power_control" type="relays_node.py" required="true" output="screen" />
   </group>
 
   <group if="$(eval panther_version >= 1.2)">
-    <rosparam command="load" file="$(eval shutdown_hosts_config)" />
-    <node pkg="panther_power_control" name="fan_controller" type="fan_controller_node.py" required="true" output="screen" />
     <node pkg="panther_power_control" name="power_control" type="power_board_node.py" required="true" output="screen" />
   </group>
 

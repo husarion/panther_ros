@@ -141,7 +141,7 @@ class PowerBoardNode:
         while(not self._read_pin(self._pins.SHDN_INIT)):
             sleep(0.2)
         rospy.wait_for_service('shutdown')
-        self._fan_enable_service(SetBoolRequest(True))
+        self._shutdown_service(SetBoolRequest(True))
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
         with self._lock:

@@ -29,7 +29,7 @@ class ShutdownNode:
             
         self._hosts = rospy.get_param('~hosts', [])
         for host in self._hosts:
-            # check if all heys are provided
+            # check if all keys are provided
             if {'ip', 'username'} != set(host.keys()):
                 rospy.logerr(f'[{rospy.get_name()}] Missing info for remote host!')
                 raise Exception
@@ -57,7 +57,7 @@ class ShutdownNode:
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
         
-    def _check_ip(self, host):
+    def _check_ip(self, host) -> bool:
       return os.system('ping -c 1 -w 1 ' + host + ' > /dev/null') == 0
     
     def _shutdown_cb(self) -> None:          
