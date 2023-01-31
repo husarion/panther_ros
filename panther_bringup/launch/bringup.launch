@@ -31,7 +31,6 @@
 
     <include file="$(find panther_power_control)/launch/power_control.launch">
       <arg name="panther_version" value="$(arg panther_version)" />
-      <arg name="panther_version" value="$(arg shutdown_hosts_config)" />
     </include>
     
     <include file="$(find panther_manager)/launch/manager.launch">
