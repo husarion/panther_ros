@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 import RPi.GPIO as GPIO
 
-
 import rospy
 
 from geometry_msgs.msg import Twist
@@ -29,32 +28,67 @@ class PatherGPIO:
     # define inverse logic pins here to be used by _read_pin() method
     inverse_logic_pins = [VDIG_OFF, E_STOP_RESET, CHRG_SENSE]
 
-    def __setattr__(self, name, value):
-        raise AttributeError(f'can\'t reassign constant {name}')
+    def __setattr__(self, name: str, value: int) -> None:
+        raise AttributeError(f'Can\'t reassign constant {name}')
+
+
+class Watchdog:
+    def __init__(self, pin: int) -> None:
+        self._pin = pin
+        self._last_state = False
+        self._enabled = True
+        
+    def __call__(self) -> None:
+        if self._enabled:
+            GPIO.output(self._pin, self._pwm_state)
+            self._pwm_state = not self._pwm_state
+
+    def turn_on(self) -> None:
+        self._enabled = True
+
+    def turn_off(self) -> None:
+        self._enabled = True
+        self._last_state = False
+        GPIO.output(self._pin, self._pwm_state)
+
 
 class PowerBoardNode:
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
         self._pins = PatherGPIO()
+        
         self._setup_gpio()
         self._motor_start_sequence()
+        self._watchdog = Watchdog(self._pins.WATCHDOG)
+
+        self._cmd_vel_msg_time = rospy.get_time()
         
-        self._pwm_state = False
-
-        self._cmd_vel_msg_time = time()
-
         # -------------------------------
         #   Publishers
         # -------------------------------
 
-        self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1)
-        self._charger_state_pub = rospy.Publisher('hardware/charger_connected', Bool, queue_size=1, latch=True)
-        self._fan_state_pub = rospy.Publisher('hardware/fan_enabled', Bool, queue_size=1, latch=True)
-        self._power_button_pressed_pub = rospy.Publisher('hardware/power_button_pressed', Bool, queue_size=1, latch=True)
+        self._e_stop_state_pub = rospy.Publisher(
+            'hardware/e_stop', Bool, queue_size=1
+        )
+        self._charger_state_pub = rospy.Publisher(
+            'hardware/charger_connected', Bool,queue_size=1, latch=True
+        )
+        self._fan_state_pub = rospy.Publisher(
+            'hardware/fan_enabled', Bool, queue_size=1, latch=True
+        )
+        self._power_button_pressed_pub = rospy.Publisher(
+            'hardware/power_button_pressed', Bool, queue_size=1, latch=True
+        )
         
-        msg = Bool()
-        msg.data = False
+        # initialise all publishers
+        msg = Bool(self._read_pin(self._pins.CHRG_SENSE))
+        self._charger_state_pub.publish()
+        
+        msg = Bool(self._read_pin(self._pins.FAN_SW))
+        self._fan_state_pub.publish(msg)
+        
+        msg = Bool(False)
         self._power_button_pressed_pub.publish(msg)
         
         
@@ -77,95 +111,73 @@ class PowerBoardNode:
         self._digital_power_enable_srv = rospy.Service(
             'hardware/digital_power_enable', SetBool, self._digital_power_enable_cb,
         )
-        self._motors_enable_srv = rospy.Service(
-            'hardware/motors_enable', SetBool, self._motors_enable_cb
-        )
-        self._fan_enable_srv = rospy.Service(
-            'hardware/fan_enable', SetBool, self._fan_enable_cb
-        )
         self._e_stop_reset_srv = rospy.Service(
             'hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
         )
         self._e_stop_trigger_srv = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
-        
-        self._shutdown_service = rospy.ServiceProxy('shutdown', SetBool)
+        self._fan_enable_srv = rospy.Service(
+            'hardware/fan_enable', SetBool, self._fan_enable_cb
+        )
+        self._motors_enable_srv = rospy.Service(
+            'hardware/motors_enable', SetBool, self._motors_enable_cb
+        )
 
         # -------------------------------
         #   Timers
         # -------------------------------
 
-        self._timer_charger = rospy.Timer(rospy.Duration(0.5), self._publish_charger_state_cb)
-        self._timer_e_stop = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
-        self._timer_fan = rospy.Timer(rospy.Duration(1.0), self._publish_fan_state_cb)
-        self._timer_motor_pwm = rospy.Timer(rospy.Duration(1 / (50.0 * 2)), self._motor_pwm_cb)
+        # 10 e-stop publishing timer
+        self._e_stop_timer = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
+        # 50 Hz of software PWM
+        self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
+        
+        # -------------------------------
+        #   GPIO callbacks
+        # -------------------------------
+    
+        GPIO.add_event_detect(self._pins.SHDN_INIT, GPIO.RISING,
+                              callback=self._soft_shutdow_cb, bouncetime=200)
+        
+        GPIO.add_event_detect(self._pins.CHRG_SENSE, GPIO.BOTH, 
+                              callback=self._publish_charger_state_cb, bouncetime=200)
 
-        self.soft_shutdown_thread.start()
+
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
         
-    def _motor_pwm_cb(self, *args) -> None:
-        self._write_to_pin(self._pins.WATCHDOG, self._pwm_state)
-        self._pwm_state = not self._pwm_state
-
     def _cmd_vel_cb(self, *args) -> None:
-        self._cmd_vel_msg_time = time()
+        self._cmd_vel_msg_time = rospy.get_time()
 
-    def _motor_start_sequence(self) -> None:
-        self._write_to_pin(self._pins.VMOT_ON, 1)
-        rospy.rostime.wallsleep(0.5)
-        self._write_to_pin(self._pins.DRIVER_EN, 1)
-        rospy.rostime.wallsleep(0.2)
-
-    def _soft_shutdown(self) -> None:
+    def _soft_shutdow_cb(self) -> None:
         rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-        msg = Bool()
-        msg.data = True
+        msg = Bool(True)
         self._power_button_pressed_pub.publish(msg)
 
-    def _publish_e_stop_state_cb(self, *args) -> None:
-        msg = Bool()
-        msg.data = self._read_pin(self._pins.E_STOP_RESET)
-        self._e_stop_state_pub.publish(msg)
-
-    def _publish_charger_state_cb(self, *args) -> None:
-        msg = Bool()
-        msg.data = self._read_pin(self._pins.CHRG_SENSE)
+    def _publish_charger_state_cb(self) -> None:
+        msg = Bool(self._read_pin(self._pins.CHRG_SENSE))
         self._charger_state_pub.publish(msg)
         
-    def _publish_fan_state_cb(self, *args) -> None:
-        msg = Bool()
-        msg.data = self._read_pin(self._pins.FAN_SW)
-        self._fan_state_pub.publish(msg)
+    def _publish_e_stop_state_cb(self, *args) -> None:
+        msg = Bool(self._read_pin(self._pins.E_STOP_RESET))
+        self._e_stop_state_pub.publish(msg)
 
+    def _watchdog_cb(self, *args) -> None:
+        self._watchdog()
+        
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        return self._handle_set_bool_srv(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
+        return self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
 
     def _charger_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        return self._handle_set_bool_srv(req.data, self._pins.CHRG_EN, 'Charger enable')
+        return self._set_bool_srv_handle(req.data, self._pins.CHRG_EN, 'Charger enable')
 
     def _digital_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        return self._handle_set_bool_srv(req.data, self._pins.VDIG_OFF, 'Digital power enable')
-
-    def _motors_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        resp_1 = self._handle_set_bool_srv(req.data, self._pins.VMOT_ON, 'Motors driver enable')
-        resp_2 = self._handle_set_bool_srv(req.data, self._pins.DRIVER_EN, 'Motors driver enable')
-
-        if resp_1.success and resp_2.success:
-            return SetBoolResponse(True, resp_1.message)
-        return SetBoolResponse(False, resp_1.message)
-
-    def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        return self._handle_set_bool_srv(req.data, self._pins.FAN_SW, 'Fan enable')
-
-    def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
-        self._watchdog.turn_off()
-        return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
+        return self._set_bool_srv_handle(req.data, self._pins.VDIG_OFF, 'Digital power enable')
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
             return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
-        elif time() - self._cmd_vel_msg_time <= 2.0:
+        elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
             return TriggerResponse(
                 False,
                 'E-STOP reset failed, some messages are published on the /cmd_vel topic',
@@ -182,6 +194,36 @@ class PowerBoardNode:
 
         return TriggerResponse(True, 'E-STOP reset successful')
 
+    def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
+        self._watchdog.turn_off()
+        return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
+    
+    def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+        ret = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
+        if ret:
+            msg = Bool()
+            msg.data = req.data
+            self._fan_state_pub.publish(msg)
+        return ret
+    
+    def _motors_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+        resp_1 = self._set_bool_srv_handle(req.data, self._pins.VMOT_ON, 'Motors driver enable')
+        resp_2 = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motors driver enable')
+
+        if resp_1.success and resp_2.success:
+            return SetBoolResponse(True, resp_1.message)
+        return SetBoolResponse(False, resp_1.message)
+
+    def _set_bool_srv_handle(self, value: bool, pin: int, name: str) -> SetBoolResponse:
+        rospy.logdebug(f'[{rospy.get_name()}] Requested {name} = {value}')
+        self._write_to_pin(pin, value)
+        success = self._validate_gpio_pin(pin, value)
+        msg = f'{name} write {value} failed'
+        if success:
+            msg = f'{name} write {value} successful'
+
+        return SetBoolResponse(success, msg)
+    
     def _reset_e_stop(self) -> None:
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
         self._watchdog.turn_on()
@@ -192,18 +234,11 @@ class PowerBoardNode:
 
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
 
-    def _handle_set_bool_srv(self, value: bool, pin: int, name: str) -> SetBoolResponse:
-        rospy.logdebug(f'[{rospy.get_name()}] Requested {name} = {value}')
-        self._write_to_pin(pin, value)
-        success = self._validate_gpio_pin(pin, value)
-        msg = f'{name} write {value} failed'
-        if success:
-            msg = f'{name} write {value} successful'
-
-        return SetBoolResponse(success, msg)
-
-    def _validate_gpio_pin(self, pin: int, value: bool) -> bool:
-        return self._read_pin(pin) == value
+    def _motor_start_sequence(self) -> None:
+        self._write_to_pin(self._pins.VMOT_ON, 1)
+        rospy.rostime.wallsleep(0.5)
+        self._write_to_pin(self._pins.DRIVER_EN, 1)
+        rospy.rostime.wallsleep(0.2)
 
     def _setup_gpio(self) -> None:
         GPIO.setmode(GPIO.BCM)
@@ -218,8 +253,6 @@ class PowerBoardNode:
         GPIO.setup(self._pins.VMOT_ON, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.WATCHDOG, GPIO.IN, initial=0)
         
-        GPIO.add_event_detect(self._pins.SHDN_INIT, GPIO.RISING, callback=self._soft_shutdown)
-
     def _read_pin(self, pin: int) -> bool:
         if pin in self._pins.inverse_logic_pins:
             return not GPIO.input(pin)
@@ -231,10 +264,14 @@ class PowerBoardNode:
             return
         GPIO.output(pin, value)
 
+    def _validate_gpio_pin(self, pin: int, value: bool) -> bool:
+        return self._read_pin(pin) == value
+
 
 def main():
     power_board_node = PowerBoardNode('power_board_node')
     rospy.spin()
+
 
 if __name__ == '__main__':
     try:
