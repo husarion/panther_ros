@@ -79,8 +79,8 @@ class PowerBoardNode:
         # -------------------------------
 
         self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1)
-        self._charger_state_pub = rospy.Publisher('hardware/charger_connected', Bool, queue_size=1)
-        self._fan_state_pub = rospy.Publisher('hardware/fan_enabled', Bool, queue_size=1)
+        self._charger_state_pub = rospy.Publisher('hardware/charger_connected', Bool, queue_size=1, latch=True)
+        self._fan_state_pub = rospy.Publisher('hardware/fan_enabled', Bool, queue_size=1, latch=True)
         
         # -------------------------------
         #   Subscribers
