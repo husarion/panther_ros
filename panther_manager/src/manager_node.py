@@ -160,7 +160,8 @@ class ManagerNode:
 
     def _overwrite_fan_control_cb(self, req: SetBoolRequest):
         self._overwrite_fan_control = req.data
-        self._set_fan_state(req.data)
+        if req.data:
+            self._set_fan_state(req.data)
 
     def _manager_timer_cb(self, *args) -> None:
         if self._bat_temp > self._fatal_bat_temp:
