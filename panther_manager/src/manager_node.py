@@ -41,7 +41,7 @@ class ManagerNode:
             # check if all keys are provided
             if {'ip', 'username'} != set(host.keys()):
                 rospy.logerr(f'[{rospy.get_name()}] Missing info for remote host!')
-                raise Exception
+                raise KeyError
             if 'identity_file' not in host.keys():
                 host['identity_file'] = self._default_identity_file
             else:
