@@ -2,9 +2,11 @@
   <arg name="panther_version" />
   <arg name="shutdown_hosts_config_file" />
 
-  <node pkg="panther_manager" name="system_status_node" type="system_status_node.py" required="true" output="screen" />
+  <node pkg="panther_manager" name="system_status_node" type="system_status_node.py" required="true"
+    output="screen" />
 
-  <node pkg="panther_manager" name="panther_manager_node" type="manager_node.py" required="true" output="screen">
+  <node pkg="panther_manager" name="panther_manager_node" type="manager_node.py" required="true"
+    output="screen" if="$(eval panther_version >= 1.2)">
     <param name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
   </node>
 </launch>
