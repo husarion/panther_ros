@@ -81,6 +81,12 @@ class PowerBoardNode:
         self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1)
         self._charger_state_pub = rospy.Publisher('hardware/charger_connected', Bool, queue_size=1, latch=True)
         self._fan_state_pub = rospy.Publisher('hardware/fan_enabled', Bool, queue_size=1, latch=True)
+        self._power_button_pressed_pub = rospy.Publisher('hardware/power_button_pressed', Bool, queue_size=1, latch=True)
+        
+        msg = Bool()
+        msg.data = False
+        self._power_button_pressed_pub.publish(msg)
+        
         
         # -------------------------------
         #   Subscribers
@@ -113,8 +119,6 @@ class PowerBoardNode:
         self._e_stop_trigger_srv = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
-        
-        self._shutdown_service = rospy.ServiceProxy('shutdown', SetBool)
 
         # -------------------------------
         #   Timers
@@ -138,10 +142,10 @@ class PowerBoardNode:
         sleep(0.2)
 
     def _soft_shutdown(self) -> None:
-        while(not self._read_pin(self._pins.SHDN_INIT)):
-            sleep(0.2)
-        rospy.wait_for_service('shutdown')
-        self._fan_enable_service(SetBoolRequest(True))
+        if self._read_pin(self._pins.SHDN_INIT):
+            msg = Bool()
+            msg.data = True
+            self._power_button_pressed_pub.publish(msg)
 
     def _publish_e_stop_state_cb(self, event=None) -> None:
         with self._lock:
