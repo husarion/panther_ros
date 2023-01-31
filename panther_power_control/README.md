@@ -66,9 +66,10 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~default_identity_file` [*string*, default: **~/.ssh/id_rsa**]: default path used to find identity global file for SSH.
 - `~self_identity_file` [*string*, default: **None**]: identity file global path to shut down device running this node. If not set defaults to `~default_identity_file`.
 - `~hosts` [*list*, default: **None**]: list of hosts to request shutdown.
-  - `~hosts/ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
-  - `~hosts/username` [*string*, default: **None**]: username used to login to over SSH.
-  - `~hosts/identity_file` [*string*, default: **None**]: SSH identity file global path. If not set defaults to `~default_identity_file`.
+  - `cmd` [*string*, default: **sudo shutdown now**]: command to be executed on to shutdown of given device.
+  - `identity_file` [*string*, default: **None**]: SSH identity file global path. If not set defaults to `~default_identity_file`.
+  - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
+  - `username` [*string*, default: **None**]: username used to login to over SSH.
 
 
 ### relays_node.py

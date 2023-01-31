@@ -103,6 +103,10 @@ class PowerBoardNode:
                     f' Can\'t find provided identity file for host {host["ip"]}!'
                     f' Path \'{host["identity_file"]}\' doesn\'t exist')
                 raise Exception
+            
+            if 'cmd' not in host.keys():
+                host['cmd'] = 'sudo shutdown now'
+                
         
         self._cmd_vel_msg_time = time()
 
@@ -176,7 +180,7 @@ class PowerBoardNode:
         rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
         # create new list of computers that confirmed shutdown procedure
         hosts_to_check = [h for h in self._hosts
-                          if self._request_shutdown(h['ip'], h['identity_file'], h['username'])]
+                          if self._request_shutdown(h['ip'], h['identity_file'], h['username'], h['cmd'])]
         
         start_time = rospy.get_time()
         if len(hosts_to_check) > 0:
@@ -192,9 +196,9 @@ class PowerBoardNode:
             
         # ensure all computers did full shutdown
         rospy.loginfo(f'[{rospy.get_name()}] Shutting down itself.')
-        self._request_shutdown(self._ip, self._identity_file, self._username)
+        self._request_shutdown(self._ip, self._identity_file, self._username, 'sudo shutdown now')
         
-    def _request_shutdown(self, ip, identity_file, username) -> bool:
+    def _request_shutdown(self, ip, identity_file, username, cmd) -> bool:
         # shutdown only if host available
         if self._check_ip(ip):
             try:
@@ -205,7 +209,7 @@ class PowerBoardNode:
                 client.connect(ip, username=username, pkey=pkey, timeout=0.5)
                 rospy.loginfo(f'[{rospy.get_name()}] Shutting down device at {ip}')
                 try:
-                    client.exec_command('sudo reboot now', timeout=0.5)
+                    client.exec_command(cmd, timeout=0.5)
                 except socket.timeout:
                     # some systems do not close SSH connection on shut down
                     # this will handle the timeout to allow shutting other devices
@@ -213,7 +217,6 @@ class PowerBoardNode:
                 client.close()
                 return True
             except Exception as e:
-                rospy.logwarn(e)
                 rospy.logerr(f'[{rospy.get_name()}] Can\'t SSH to device at {ip}!')
                 return False
         else:
