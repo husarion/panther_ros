@@ -1,4 +1,4 @@
-# panther_logger
+# panther_manager
 
 A package containing nodes responsible for logging the state of the Husarion Panther robot.
 
