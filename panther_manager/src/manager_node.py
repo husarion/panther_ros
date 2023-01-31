@@ -18,7 +18,6 @@ class ManagerNode:
         rospy.init_node(name, anonymous=False)
 
         self._bat_temp = 0.0
-        self._manager_timer_period = 1.0 / 10.0
 
         self._high_bat_temp = rospy.get_param('~high_bat_temp', 40.0)
         self._critical_bat_temp = rospy.get_param('~critical_bat_temp', 50.0)
