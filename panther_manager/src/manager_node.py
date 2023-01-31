@@ -122,7 +122,7 @@ class ManagerNode:
         # -------------------------------
 
         self._manager_timer = rospy.Timer(
-            rospy.Duration(self._manager_timer_period), self._manager_timer_cb
+            rospy.Duration(0.1), self._manager_timer_cb
         )
         self._fan_control_timer = rospy.Timer(rospy.Duration(2.0), self._fan_control_timer_cb)
 
