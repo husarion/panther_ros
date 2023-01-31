@@ -4,22 +4,44 @@ Package used to control the Husarion Panther LED panels.
 
 ## ROS Nodes
 
+### driver_node.py
+
+Node responsible for displaying frames on the Husarion Panther robot LED panels.
+
+#### Subscribe
+
+- `panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot front LED panel. 
+- `panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot rear LED panel.
+
+#### Services
+
+- `panther/lights/controller/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
+
+#### Parameters
+
+- `~frame_timeout` [*float*, default: **0.1**]: time in seconds, after which an incoming frame will be ignored if not processed.
+- `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
+- `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
+
 ### controller_node.py
 
-Node responsible for displaying animations on the Husarion Panther robot LED panels.
+Node responsible for processing animations and publish frames to be displayed on the Husarion Panther robot LED panels.
+
+#### Publish
+
+- `panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot front LED panel. 
+- `panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot rear LED panel.
 
 #### Services
 
 - `panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
-- `panther/lights/controller/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
 - `panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images, available in testing mode.
 
 #### Parameters
 
 - `~animations` [*list*, default: **None**]:  required list of defined animations.
 - `~controller_frequency` [*float*, default: **100**]: frequency at which the lights controller node will process animations.
-- `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
-- `~num_led` [*int*, default: **46**]: number of LEDs in single panel.
+- `~num_led` [*int*, default: **46**]: number of LEDs in a single panel. Must match driver `num_led`.
 - `~test` [*bool*, default: **false**]: enables testing mode with some extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
@@ -218,7 +240,7 @@ It is possible to define your own animation type with expected, new behavior. Al
 Arguments:
 
 - `animation_description` [*dict*]: a dictionary containing animation description, `Animation` class will process:
-  - `brightness` [*float*, optional]: will be assigned to the `self._brightness` variable as a value in range [0,100].
+  - `brightness` [*float*, optional]: will be assigned to the `self._brightness` variable as a value in range [0,255].
   - `duration` [*float*]: will be assigned to `self._duration` variable.
   - `repeat` [*int*, optional]: will be assigned to `self._loops` variable.
 - `num_led` [*int*]: number of LEDs in a panel.
