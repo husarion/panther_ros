@@ -128,7 +128,7 @@ class PowerBoardNode:
         #   Timers
         # -------------------------------
 
-        # 10 e-stop publishing timer
+        # 10 Hz e-stop publishing timer
         self._e_stop_timer = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
         # 50 Hz of software PWM
         self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
