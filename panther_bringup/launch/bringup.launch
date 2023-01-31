@@ -34,7 +34,10 @@
       <arg name="panther_version" value="$(arg shutdown_hosts_config)" />
     </include>
     
-    <include file="$(find panther_logger)/launch/logger.launch" />
+    <include file="$(find panther_manager)/launch/manager.launch">
+      <arg name="panther_version" value="$(arg panther_version)" />
+      <arg name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
+    </include>
     
     <include file="$(find panther_bringup)/launch/imu.launch" />
   

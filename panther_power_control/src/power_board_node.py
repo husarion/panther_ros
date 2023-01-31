@@ -89,6 +89,8 @@ class PowerBoardNode:
         self._e_stop_trigger_srv = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
+        
+        self._shutdown_service = rospy.ServiceProxy('shutdown', SetBool)
 
         # -------------------------------
         #   Timers
@@ -99,6 +101,7 @@ class PowerBoardNode:
         self._timer_fan = rospy.Timer(rospy.Duration(1.0), self._publish_fan_state_cb)
         self._timer_motor_pwm = rospy.Timer(rospy.Duration(1 / (50.0 * 2)), self._motor_pwm_cb)
 
+        self.soft_shutdown_thread.start()
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
         
     def _motor_pwm_cb(self, *args) -> None:

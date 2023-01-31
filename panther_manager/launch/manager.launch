@@ -1,3 +1,6 @@
 <launch>
-  <node pkg="panther_logger" name="system_status_node" type="system_status_node.py" required="true" output="screen" />
+  <arg name="panther_version" />
+  <arg name="shutdown_hosts_config" />
+
+  <node pkg="panther_manager" name="system_status_node" type="system_status_node.py" required="true" output="screen" />
 </launch>
