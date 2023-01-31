@@ -35,7 +35,7 @@ class ManagerNode:
         else:
             self._identity_file = self._default_identity_file
 
-        self._hosts = rospy.get_param('~shutdown_hosts_config_file', [])
+        self._hosts = rospy.get_param('~hosts', [])
         for host in self._hosts:
             # check if all keys are provided
             if {'ip', 'username'} != set(host.keys()):
@@ -57,6 +57,14 @@ class ManagerNode:
             if 'cmd' not in host.keys():
                 host['cmd'] = 'sudo shutdown now'
 
+        self._cpu_temp_window = None
+        self._front_driver_temp_window = None
+        self._rear_driver_temp_window = None
+        self._fan_state = None
+        self._turn_on_time = rospy.Time.now()
+        
+        self._critical_driver_temp = 60.0
+
         self._cpu_fan_on_temp = rospy.get_param('~cpu_fan_on_temp', 70.0)
         self._cpu_fan_off_temp = rospy.get_param('~cpu_fan_off_temp', 60.0)
         self._driver_fan_on_temp = rospy.get_param('~driver_fan_on_temp', 45.0)
@@ -65,8 +73,6 @@ class ManagerNode:
         self._cpu_window_len = rospy.get_param('~cpu_window_len', 6)
         self._driver_window_len = rospy.get_param('~driver_window_len', 6)
         self._overwrite_fan_control = rospy.get_param('~overwrite_fan_control', False)
-
-        self._set_fan_state(self._overwrite_fan_control)
 
         if self._cpu_fan_on_temp < self._cpu_fan_off_temp:
             rospy.logerr(
@@ -124,6 +130,8 @@ class ManagerNode:
             rospy.Duration(0.1), self._manager_timer_cb
         )
         self._fan_control_timer = rospy.Timer(rospy.Duration(2.0), self._fan_control_timer_cb)
+
+        self._set_fan_state(self._overwrite_fan_control)
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
@@ -288,7 +296,11 @@ class ManagerNode:
             return
 
     def _set_fan_state(self, state: bool) -> None:
-        rospy.wait_for_service('hardware/fan_enable')
+        try:
+            rospy.wait_for_service('hardware/fan_enable', 5.0)
+        except rospy.exceptions.ROSException as err:
+            rospy.logerr(f'[{rospy.get_name()}] {err}')
+            return
         self._fan_enable_client(SetBoolRequest(state))
 
     def _move_window(self, window: list, elem: float) -> list:

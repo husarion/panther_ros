@@ -40,8 +40,8 @@ class Watchdog:
         
     def __call__(self) -> None:
         if self._enabled:
-            GPIO.output(self._pin, self._pwm_state)
-            self._pwm_state = not self._pwm_state
+            GPIO.output(self._pin, self._last_state)
+            self._last_state = not self._last_state
 
     def turn_on(self) -> None:
         self._enabled = True
@@ -49,7 +49,7 @@ class Watchdog:
     def turn_off(self) -> None:
         self._enabled = True
         self._last_state = False
-        GPIO.output(self._pin, self._pwm_state)
+        GPIO.output(self._pin, self._last_state)
 
 
 class PowerBoardNode:
@@ -128,6 +128,8 @@ class PowerBoardNode:
         #   Timers
         # -------------------------------
 
+        # 2 Hz chearger publishing timer
+        self._charger_state_timer = rospy.Timer(rospy.Duration(0.5), self._publish_charger_state_cb)
         # 10 Hz e-stop publishing timer
         self._e_stop_timer = rospy.Timer(rospy.Duration(0.1), self._publish_e_stop_state_cb)
         # 50 Hz of software PWM
@@ -139,24 +141,22 @@ class PowerBoardNode:
     
         GPIO.add_event_detect(self._pins.SHDN_INIT, GPIO.RISING,
                               callback=self._soft_shutdow_cb, bouncetime=200)
-        
-        GPIO.add_event_detect(self._pins.CHRG_SENSE, GPIO.BOTH, 
-                              callback=self._publish_charger_state_cb, bouncetime=200)
-
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
         
     def _cmd_vel_cb(self, *args) -> None:
         self._cmd_vel_msg_time = rospy.get_time()
 
-    def _soft_shutdow_cb(self) -> None:
-        rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-        msg = Bool(True)
-        self._power_button_pressed_pub.publish(msg)
+    def _soft_shutdow_cb(self, pin) -> None:
+        if pin == self._pins.SHDN_INIT:
+            rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
+            self._power_button_pressed_pub.publish(Bool(True))
 
-    def _publish_charger_state_cb(self) -> None:
-        msg = Bool(self._read_pin(self._pins.CHRG_SENSE))
-        self._charger_state_pub.publish(msg)
+    def _publish_charger_state_cb(self, *args) -> None:
+        charger_state = self._read_pin(self._pins.CHRG_SENSE)
+        if self._charger_state_pub.impl.latch.data != charger_state:
+            msg = Bool(charger_state)
+            self._charger_state_pub.publish(msg)
         
     def _publish_e_stop_state_cb(self, *args) -> None:
         msg = Bool(self._read_pin(self._pins.E_STOP_RESET))
@@ -199,12 +199,10 @@ class PowerBoardNode:
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
     
     def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        ret = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
-        if ret:
-            msg = Bool()
-            msg.data = req.data
-            self._fan_state_pub.publish(msg)
-        return ret
+        res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
+        if res:
+            self._fan_state_pub.publish(Bool(req.data))
+        return res
     
     def _motors_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         resp_1 = self._set_bool_srv_handle(req.data, self._pins.VMOT_ON, 'Motors driver enable')
@@ -251,7 +249,7 @@ class PowerBoardNode:
         GPIO.setup(self._pins.SHDN_INIT, GPIO.IN)
         GPIO.setup(self._pins.VDIG_OFF, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.VMOT_ON, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.WATCHDOG, GPIO.IN, initial=0)
+        GPIO.setup(self._pins.WATCHDOG, GPIO.OUT, initial=0)
         
     def _read_pin(self, pin: int) -> bool:
         if pin in self._pins.inverse_logic_pins:
