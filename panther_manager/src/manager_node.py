@@ -53,7 +53,7 @@ class ManagerNode:
                     f' Can\'t find provided identity file for host {host["ip"]}!'
                     f' Path \'{host["identity_file"]}\' doesn\'t exist'
                 )
-                raise Exception
+                raise ValueError
 
             if 'cmd' not in host.keys():
                 host['cmd'] = 'sudo shutdown now'
