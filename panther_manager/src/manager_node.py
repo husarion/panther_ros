@@ -158,7 +158,6 @@ class ManagerNode:
             self._cpu_temp_window = self._move_window(self._cpu_temp_window, system_status.cpu_temp)
         else:
             self._cpu_temp_window = [system_status.cpu_temp] * self._cpu_window_len
-            self._e_stop_trigger_client.call()
 
     def _overwrite_fan_control_cb(self, req: SetBoolRequest):
         self._overwrite_fan_control = req.data
@@ -173,6 +172,7 @@ class ManagerNode:
             self._aux_power_enable_client.call(SetBoolRequest(False))
         elif self._bat_temp > self._high_bat_temp and not self._e_stop_state:
             rospy.logwarn(f'[{rospy.get_name()}] High battery temperature, triggering E-STOP')
+            self._e_stop_trigger_client.call()
 
     def _shutdown(self) -> None:
         rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
