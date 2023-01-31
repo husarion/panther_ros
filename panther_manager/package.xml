@@ -19,4 +19,7 @@
   <depend>rospy</depend>
   <depend>std_msgs</depend>
 
+  <depend>python3-paramiko</depend>
+  <depend>iputils-ping</depend>
+
 </package>
