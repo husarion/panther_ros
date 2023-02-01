@@ -194,10 +194,10 @@ class ManagerNode:
             return
 
         if self._battery_temp_window is None:
-            rospy.loginfo(f'[{rospy.get_name()}] Waiting for battery message to arrive.')
+            rospy.loginfo_throttle(5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.')
             return
 
-        self._battery_avg_temp = self._get_mean(self._front_driver_temp_window)
+        self._battery_avg_temp = self._get_mean(self._battery_temp_window)
         if self._battery_avg_temp > self._fatal_bat_temp:
             rospy.logerr_throttle(
                 5.0, f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot'
