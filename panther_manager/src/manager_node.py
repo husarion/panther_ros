@@ -198,7 +198,7 @@ class ManagerNode:
             )
             if not self._e_stop_state:
                 self._call_trigger_service(self._e_stop_trigger_client)
-            if not self._aux_power_state:
+            if self._aux_power_state:
                 self._call_set_bool_service(self._aux_power_enable_client, SetBoolRequest(False))
         elif self._bat_temp > self._high_bat_temp:
             rospy.logerr_throttle(
@@ -340,7 +340,7 @@ class ManagerNode:
                 rospy.logerr(
                     f'[{rospy.get_name()}] Failed to trigger {service.resolved_name} service. Response: {res.message}'
                 )
-        except rospy.exceptions.ROSException as err:
+        except (rospy.exceptions.ROSException, rospy.service.ServiceException) as err:
             rospy.logerr(f'[{rospy.get_name()}] {err}')
 
     def _call_set_bool_service(self, service: rospy.ServiceProxy, req: SetBoolRequest) -> None:
@@ -355,7 +355,7 @@ class ManagerNode:
                 rospy.logerr(
                     f'[{rospy.get_name()}] Failed to call {service.resolved_name} service. Response: {res.message}'
                 )
-        except rospy.exceptions.ROSException as err:
+        except (rospy.exceptions.ROSException, rospy.service.ServiceException) as err:
             rospy.logerr(f'[{rospy.get_name()}] {err}')
 
 
