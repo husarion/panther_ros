@@ -165,10 +165,10 @@ class PowerBoardNode:
         self._watchdog()
         
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        ret = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
-        if ret.success:
+        res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
+        if res.success:
             self._publish_io_state('aux_power', req.data)
-        return ret
+        return res
 
     def _charger_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         return self._set_bool_srv_handle(req.data, self._pins.CHRG_EN, 'Charger enable')
