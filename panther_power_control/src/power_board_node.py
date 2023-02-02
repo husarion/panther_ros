@@ -193,7 +193,6 @@ class PowerBoardNode:
                 'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
             )
 
-        # self._e_stop_state_pub.publish(Bool(False))
         return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
