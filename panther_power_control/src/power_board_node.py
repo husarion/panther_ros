@@ -200,10 +200,10 @@ class PowerBoardNode:
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
     
     def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        ret = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
-        if ret.success:
+        res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
+        if res.success:
             self._publish_io_state('fan', req.data)
-        return ret
+        return res
     
     def _motors_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         resp_1 = self._set_bool_srv_handle(req.data, self._pins.VMOT_ON, 'Motors driver enable')
