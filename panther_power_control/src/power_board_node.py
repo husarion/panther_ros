@@ -157,7 +157,7 @@ class PowerBoardNode:
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
             rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-            self._io_state_pub.publish('power_btn', True)
+            self._publish_io_state('power_btn', True)
             
         if pin == self._pins.E_STOP_RESET:
             self._e_stop_event()
