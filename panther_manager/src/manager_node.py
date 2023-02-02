@@ -8,20 +8,24 @@ import rospy
 
 from sensor_msgs.msg import BatteryState
 from std_msgs.msg import Bool
-from std_srvs.srv import Trigger, SetBool, SetBoolRequest
+from std_srvs.srv import Trigger, SetBool, SetBoolRequest, SetBoolResponse
 
-from panther_msgs.msg import DriverState, SystemStatus
+from panther_msgs.msg import DriverState, SystemStatus, IOState
 
 
 class ManagerNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        self._bat_temp = 0.0
+        self._aux_power_state = None
+        self._e_stop_state = None
+        self._fan_state = None
+        self._power_button_state = None
 
-        self._high_bat_temp = rospy.get_param('~high_bat_temp', 40.0)
-        self._critical_bat_temp = rospy.get_param('~critical_bat_temp', 50.0)
-        self._fatal_bat_temp = rospy.get_param('~fatal_bat_temp', 60.0)
+        self._high_bat_temp = rospy.get_param('~high_bat_temp', 55.0)
+        self._critical_bat_temp = rospy.get_param('~critical_bat_temp', 59.0)
+        self._fatal_bat_temp = rospy.get_param('~fatal_bat_temp', 62.0)
+        self._battery_window_len = rospy.get_param('~battery_window_len', 6)
 
         self._shutdown_timeout = rospy.get_param('~shutdown_timeout', 15.0)
         self._ip = rospy.get_param('~self_ip', '127.0.0.1')
@@ -57,12 +61,12 @@ class ManagerNode:
             if 'cmd' not in host.keys():
                 host['cmd'] = 'sudo shutdown now'
 
+        self._battery_temp_window = None
         self._cpu_temp_window = None
         self._front_driver_temp_window = None
         self._rear_driver_temp_window = None
-        self._fan_state = None
         self._turn_on_time = rospy.Time.now()
-        
+
         self._critical_driver_temp = 60.0
 
         self._cpu_fan_on_temp = rospy.get_param('~cpu_fan_on_temp', 70.0)
@@ -105,7 +109,7 @@ class ManagerNode:
             'driver/motor_controllers_state', DriverState, self._driver_state_cb
         )
         self._e_stop_sub = rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb)
-        self._fan_state_sub = rospy.Subscriber('hardware/fan_enabled', Bool, self._fan_state_cb)
+        self._io_state_sub = rospy.Subscriber('hardware/io_state', IOState, self._io_state_cb)
         self._system_status_sub = rospy.Subscriber(
             'system_status', SystemStatus, self._system_status_cb
         )
@@ -114,29 +118,38 @@ class ManagerNode:
         #   Services
         # -------------------------------
 
+        self._overwrite_fan_control_srv = rospy.Service(
+            'manager/overwrite_fan_control', SetBool, self._overwrite_fan_control_cb
+        )
+
+        # -------------------------------
+        #   Service clients
+        # -------------------------------
+
         self._aux_power_enable_client = rospy.ServiceProxy('hardware/aux_power_enable', SetBool)
         self._e_stop_trigger_client = rospy.ServiceProxy('hardware/e_stop_trigger', Trigger)
         self._fan_enable_client = rospy.ServiceProxy('hardware/fan_enable', SetBool)
-
-        self._overwrite_fan_control_srv = rospy.ServiceProxy(
-            'manager/overwrite_fan_control', SetBool, self._overwrite_fan_control_cb
-        )
 
         # -------------------------------
         #   Timers
         # -------------------------------
 
-        self._manager_timer = rospy.Timer(
-            rospy.Duration(0.1), self._manager_timer_cb
-        )
+        self._manager_timer = rospy.Timer(rospy.Duration(0.1), self._manager_timer_cb)
         self._fan_control_timer = rospy.Timer(rospy.Duration(2.0), self._fan_control_timer_cb)
 
-        self._set_fan_state(self._overwrite_fan_control)
+        self._call_set_bool_service(self._fan_enable_client, self._overwrite_fan_control)
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _battery_cb(self, battery_state: BatteryState) -> None:
-        self._bat_temp = battery_state.temperature
+        if self._battery_temp_window is not None:
+            self._battery_temp_window = self._move_window(
+                self._battery_temp_window, battery_state.temperature
+            )
+        else:
+            self._battery_temp_window = [
+                battery_state.temperature
+            ] * self._battery_window_len
 
     def _driver_state_cb(self, driver_state: DriverState) -> None:
         if self._front_driver_temp_window is not None and self._rear_driver_temp_window is not None:
@@ -157,8 +170,10 @@ class ManagerNode:
     def _e_stop_cb(self, e_stop_state: Bool) -> None:
         self._e_stop_state = e_stop_state.data
 
-    def _fan_state_cb(self, fan_state: Bool) -> None:
-        self._fan_state = fan_state.data
+    def _io_state_cb(self, io_state: IOState) -> None:
+        self._aux_power_state = io_state.aux_power
+        self._fan_state = io_state.fan
+        self._power_button_state = io_state.power_btn
 
     def _system_status_cb(self, system_status: SystemStatus) -> None:
         if self._cpu_temp_window is not None:
@@ -166,21 +181,42 @@ class ManagerNode:
         else:
             self._cpu_temp_window = [system_status.cpu_temp] * self._cpu_window_len
 
-    def _overwrite_fan_control_cb(self, req: SetBoolRequest):
+    def _overwrite_fan_control_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         self._overwrite_fan_control = req.data
         if req.data:
-            self._set_fan_state(req.data)
+            self._call_set_bool_service(self._fan_enable_client, req.data)
+        return SetBoolResponse(True, f'Overwrite fan control set to: {req.data}')
 
     def _manager_timer_cb(self, *args) -> None:
-        if self._bat_temp > self._fatal_bat_temp:
-            rospy.logerr(f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot')
+        if self._power_button_state:
+            rospy.loginfo(f'[{rospy.get_name()}] Power button pressed, shutting down robot')
             self._shutdown()
-        elif self._bat_temp > self._critical_bat_temp:
-            rospy.logerr(f'[{rospy.get_name()}] Critical battery temperature, disabling AUX')
-            self._aux_power_enable_client.call(SetBoolRequest(False))
-        elif self._bat_temp > self._high_bat_temp and not self._e_stop_state:
-            rospy.logwarn(f'[{rospy.get_name()}] High battery temperature, triggering E-STOP')
-            self._e_stop_trigger_client.call()
+            return
+
+        if self._battery_temp_window is None:
+            rospy.loginfo_throttle(5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.')
+            return
+
+        self._battery_avg_temp = self._get_mean(self._battery_temp_window)
+        if self._battery_avg_temp > self._fatal_bat_temp:
+            rospy.logerr_throttle(
+                5.0, f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot'
+            )
+            self._shutdown()
+        elif self._battery_avg_temp > self._high_bat_temp:
+            if self._battery_avg_temp > self._critical_bat_temp:
+                rospy.logerr_throttle(
+                    5.0,
+                    f'[{rospy.get_name()}] Critical battery temperature, triggering E-STOP and disabling AUX',
+                )
+                if self._aux_power_state:
+                    self._call_set_bool_service(self._aux_power_enable_client, False)
+            else:
+                rospy.logerr_throttle(
+                    5.0, f'[{rospy.get_name()}] High battery temperature, triggering E-STOP'
+                )
+            if not self._e_stop_state:
+                self._call_trigger_service(self._e_stop_trigger_client)
 
     def _shutdown(self) -> None:
         rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
@@ -277,9 +313,9 @@ class ManagerNode:
             or self._front_driver_avg_temp > self._driver_fan_on_temp
             or self._rear_driver_avg_temp > self._driver_fan_on_temp
         ):
-            self._turn_on_time = rospy.Time.now()
-            self._set_fan_state(True)
             rospy.loginfo(f'[{rospy.get_name()}] Turning on fan. Cooling the robot.')
+            self._turn_on_time = rospy.Time.now()
+            self._call_set_bool_service(self._fan_enable_client, True)
             return
 
         if (
@@ -291,17 +327,9 @@ class ManagerNode:
                 and self._rear_driver_avg_temp < self._driver_fan_on_temp
             )
         ):
-            self._set_fan_state(False)
             rospy.loginfo(f'[{rospy.get_name()}] Turning off fan.')
+            self._call_set_bool_service(self._fan_enable_client, False)
             return
-
-    def _set_fan_state(self, state: bool) -> None:
-        try:
-            rospy.wait_for_service('hardware/fan_enable', 5.0)
-        except rospy.exceptions.ROSException as err:
-            rospy.logerr(f'[{rospy.get_name()}] {err}')
-            return
-        self._fan_enable_client(SetBoolRequest(state))
 
     def _move_window(self, window: list, elem: float) -> list:
         window = window[1:]
@@ -310,6 +338,36 @@ class ManagerNode:
 
     def _get_mean(self, window: list) -> float:
         return sum(window) / len(window)
+
+    def _call_trigger_service(self, service: rospy.ServiceProxy) -> None:
+        try:
+            service.wait_for_service(5.0)
+            res = service.call()
+            if res.success:
+                rospy.loginfo(
+                    f'[{rospy.get_name()}] Successfuly triggered {service.resolved_name} service. Response: {res.message}'
+                )
+            else:
+                rospy.logerr(
+                    f'[{rospy.get_name()}] Failed to trigger {service.resolved_name} service. Response: {res.message}'
+                )
+        except (rospy.exceptions.ROSException, rospy.service.ServiceException) as err:
+            rospy.logerr(f'[{rospy.get_name()}] {err}')
+
+    def _call_set_bool_service(self, service: rospy.ServiceProxy, state: bool) -> None:
+        try:
+            service.wait_for_service(5.0)
+            res = service.call(SetBoolRequest(state))
+            if res.success:
+                rospy.loginfo(
+                    f'[{rospy.get_name()}] Successfuly called {service.resolved_name} service. Response: {res.message}'
+                )
+            else:
+                rospy.logerr(
+                    f'[{rospy.get_name()}] Failed to call {service.resolved_name} service. Response: {res.message}'
+                )
+        except (rospy.exceptions.ROSException, rospy.service.ServiceException) as err:
+            rospy.logerr(f'[{rospy.get_name()}] {err}')
 
 
 def main():
