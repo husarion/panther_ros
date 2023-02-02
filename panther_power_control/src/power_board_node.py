@@ -78,16 +78,6 @@ class PowerBoardNode:
             'hardware/io_state', IOState, queue_size=1, latch=True
         )
         
-        # initialise all publishers
-        self._e_stop_state_pub = rospy.Publisher(
-            'hardware/e_stop', Bool, queue_size=1, latch=True
-        )
-        self._io_state_pub = rospy.Publisher(
-            'hardware/io_state', IOState, queue_size=1, latch=True
-        )
-        
-        # initialise all publishers
-        
         msg = Bool(self._read_pin(self._pins.E_STOP_RESET))
         self._e_stop_state_pub.publish(msg)
         
