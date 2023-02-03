@@ -16,6 +16,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>diff_drive_controller</depend>
   <depend>controller_manager</depend>
   <depend>gazebo_plugins</depend>
   <depend>gazebo_ros</depend>
