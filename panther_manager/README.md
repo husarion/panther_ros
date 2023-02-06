@@ -43,7 +43,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, above which the fan is turned off.
 - `~cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
 - `~cpu_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
-- `~critical_bat_temp` [*float*, default: **59.0**]: temperature of battery above which robot enters e-stop state.
+- `~critical_bat_temp` [*float*, default: **59.0**]: extends `high_bat_temp` by turning off AUX power.
 - `~default_identity_file` [*string*, default: **~/.ssh/id_rsa**]: 
  default path used to find identity global file for SSH. 
 - `~driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
