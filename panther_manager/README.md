@@ -50,7 +50,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
 - `~driver_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
 - `~fatal_bat_temp` [*float*, default: **62.0**]: temperature of battery above which robot shuts down.
-- `~high_bat_temp` [*float*, default: **55.0**]: temperature of battery above which robots starts displaying warning log.
+- `~high_bat_temp` [*float*, default: **55.0**]: temperature of battery above which robots starts displaying warning log and e-stop is triggered.
 - `~hosts` [*list*, default: **empty list**]: list of hosts to request shutdown.
   - `cmd` [*string*, default: **sudo shutdown now**]: command executed to on shutdown of given device.
   - `identity_file` [*string*, default: **None**]: SSH identity file global path. If not set, defaults to `~default_identity_file`.
