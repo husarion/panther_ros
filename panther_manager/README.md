@@ -52,7 +52,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~fatal_bat_temp` [*float*, default: **62.0**]: temperature of battery above which robot shuts down.
 - `~high_bat_temp` [*float*, default: **55.0**]: temperature of battery above which robots starts displaying warning log and e-stop is triggered.
 - `~hosts` [*list*, default: **empty list**]: list of hosts to request shutdown.
-  - `cmd` [*string*, default: **sudo shutdown now**]: command executed to on shutdown of given device.
+  - `cmd` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `identity_file` [*string*, default: **None**]: SSH identity file global path. If not set, defaults to `~default_identity_file`.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
