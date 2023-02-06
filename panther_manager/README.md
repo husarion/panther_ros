@@ -44,8 +44,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
 - `~cpu_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
 - `~critical_bat_temp` [*float*, default: **59.0**]: extends `high_bat_temp` by turning off AUX power.
-- `~default_identity_file` [*string*, default: **~/.ssh/id_rsa**]: 
- default path used to find identity global file for SSH. 
+- `~default_identity_file` [*string*, default: **~/.ssh/id_rsa**]: path to find identity file for SSH to be used as default. 
 - `~driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
 - `~driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
 - `~driver_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
