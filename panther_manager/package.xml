@@ -22,7 +22,8 @@
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
 
-  <depend>python3-paramiko</depend>
   <depend>iputils-ping</depend>
+  <depend>python3-paramiko</depend>
+  <depend>python3-psutil</depend>
 
 </package>
