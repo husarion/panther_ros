@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>panther_logger</name>
+  <name>panther_manager</name>
   <version>0.0.1</version>
 
-  <description>Set of nodes used to monitor and log state of the Husarion Panther robot</description>
+  <description>Set of nodes used for high level management of Husarion Panther robot</description>
   <license>Apache License 2.0</license>
 
-  <author email="krzysztof.wojciechowski@husarion.com">Dawid Kmak</author>
+  <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
+  <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
   <maintainer email="support@husarion.com">Husarion</maintainer>
 
   <url type="website">https://husarion.com/</url>
@@ -17,6 +18,12 @@
   
   <depend>panther_msgs</depend>
   <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+
+  <depend>iputils-ping</depend>
+  <depend>python3-paramiko</depend>
+  <depend>python3-psutil</depend>
 
 </package>

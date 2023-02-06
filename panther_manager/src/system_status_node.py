@@ -8,13 +8,13 @@ from panther_msgs.msg import SystemStatus
 
 
 class SystemStatusNode:
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
         self._critical_cpu_temp = 80.0
         
-        if self._disc_usage_percent > 95.0:
-            rospy.logwarn(f'[{rospy.get_name()}] High disc usage. {self._disc_usage_percent}% used.')
+        if self._disc_usage_percent > 0.95:
+            rospy.logwarn(f'[{rospy.get_name()}] High disc usage. {round(self._disc_usage_percent * 100.0, 2)}% used.')
 
         # -------------------------------
         #   Publishers
@@ -30,14 +30,14 @@ class SystemStatusNode:
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
-    def _stats_timer_cb(self, event=None) -> None:
+    def _stats_timer_cb(self, *args) -> None:
         status_msg = SystemStatus()
         status_msg.header.stamp = rospy.Time.now()
-        status_msg.cpu_percent = [round(p) for p in self._cpu_percent]
-        status_msg.cpu_temp = round(self._cpu_temp)
-        status_msg.avg_load_percent = round(self._avg_load_percent)
-        status_msg.ram_usage_percent = round(self._ram_usage_percent)
-        status_msg.disc_usage_percent = round(self._disc_usage_percent)
+        status_msg.cpu_percent = self._cpu_percent
+        status_msg.cpu_temp = self._cpu_temp
+        status_msg.avg_load_percent = self._avg_load_percent
+        status_msg.ram_usage_percent = self._ram_usage_percent
+        status_msg.disc_usage_percent = self._disc_usage_percent
         self._system_status_publisher.publish(status_msg)
 
         if self._cpu_temp > self._critical_cpu_temp:
@@ -47,7 +47,7 @@ class SystemStatusNode:
 
     @property
     def _cpu_percent(self) -> float:
-        return psutil.cpu_percent(interval=1, percpu=True)
+        return [p / 100.0 for p in psutil.cpu_percent(interval=1, percpu=True)]
 
     @property
     def _cpu_temp(self) -> float:
@@ -55,15 +55,15 @@ class SystemStatusNode:
 
     @property
     def _avg_load_percent(self) -> float:
-        return psutil.getloadavg()[2]
+        return psutil.getloadavg()[2] / 100.0
 
     @property
     def _ram_usage_percent(self) -> float:
-        return psutil.virtual_memory().percent
+        return psutil.virtual_memory().percent / 100.0
 
     @property
     def _disc_usage_percent(self) -> float:
-        return psutil.disk_usage('/').percent
+        return psutil.disk_usage('/').percent / 100.0
 
 
 def main():
