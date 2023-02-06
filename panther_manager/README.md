@@ -6,7 +6,7 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 ### manager_node.py
 
-Node responsible for managing the Husarion Panther robot. Controls built-in fan and controls software shutdown of components.
+Node responsible for managing the Husarion Panther robot. Controls built-in fan and software shutdown of components.
 
 To set up connection with a new user computer, login to the built-in computer with `ssh husarion@10.15.20.2`.
 Add built-in computer's public key to **known_hosts** of a computer you want to shut down automatically:
