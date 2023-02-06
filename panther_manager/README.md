@@ -55,7 +55,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
   - `identity_file` [*string*, default: **None**]: SSH identity file global path. If not set, defaults to `~default_identity_file`.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
-- `~hysteresis` [*float*, default: **60.0**]: minimum time of fan being turned on.
+- `~fun_enable_hysteresis` [*float*, default: **60.0**]: minimum time of fan being turned on.
 - `~overwrite_fan_control` [*bool*, default: **False**]: enable the fan to be always on at start of the node. It can be turned off later by `/panther/manager/overwrite_fan_control` service.
 - `~self_identity_file` [*float*, default: **~/.ssh/id_rsa**]: identity file global path to shutdown device running this node. If not, set defaults to `~default_identity_file`.
 - `~self_ip` [*string*, default: **127.0.0.1**]: IP used to shutdown device running this node.

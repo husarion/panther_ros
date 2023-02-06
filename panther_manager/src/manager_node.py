@@ -8,7 +8,7 @@ import rospy
 
 from sensor_msgs.msg import BatteryState
 from std_msgs.msg import Bool
-from std_srvs.srv import Trigger, SetBool, SetBoolRequest, SetBoolResponse
+from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse, Trigger
 
 from panther_msgs.msg import DriverState, IOState, SystemStatus
 
@@ -73,7 +73,7 @@ class ManagerNode:
         self._cpu_fan_off_temp = rospy.get_param('~cpu_fan_off_temp', 60.0)
         self._driver_fan_on_temp = rospy.get_param('~driver_fan_on_temp', 45.0)
         self._driver_fan_off_temp = rospy.get_param('~driver_fan_off_temp', 35.0)
-        self._hysteresis = rospy.get_param('~hysteresis', 60.0)
+        self._fun_enable_hysteresis = rospy.get_param('~fun_enable_hysteresis', 60.0)
         self._cpu_window_len = rospy.get_param('~cpu_window_len', 6)
         self._driver_window_len = rospy.get_param('~driver_window_len', 6)
         self._overwrite_fan_control = rospy.get_param('~overwrite_fan_control', False)
@@ -92,8 +92,8 @@ class ManagerNode:
             )
             raise ValueError
 
-        if self._hysteresis < 0.0:
-            rospy.logerr(f'[{rospy.get_name()}] Hysteresis can not be negative!')
+        if self._fun_enable_hysteresis < 0.0:
+            rospy.logerr(f'[{rospy.get_name()}] Fan enable hysteresis can not be negative!')
             raise ValueError
 
         if self._cpu_window_len <= 0 or self._driver_window_len <= 0:
@@ -147,9 +147,7 @@ class ManagerNode:
                 self._battery_temp_window, battery_state.temperature
             )
         else:
-            self._battery_temp_window = [
-                battery_state.temperature
-            ] * self._battery_window_len
+            self._battery_temp_window = [battery_state.temperature] * self._battery_window_len
 
     def _driver_state_cb(self, driver_state: DriverState) -> None:
         if self._front_driver_temp_window is not None and self._rear_driver_temp_window is not None:
@@ -194,7 +192,9 @@ class ManagerNode:
             return
 
         if self._battery_temp_window is None:
-            rospy.loginfo_throttle(5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.')
+            rospy.loginfo_throttle(
+                5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.'
+            )
             return
 
         self._battery_avg_temp = self._get_mean(self._battery_temp_window)
@@ -320,11 +320,11 @@ class ManagerNode:
 
         if (
             self._fan_state
-            and (rospy.Time.now() - self._turn_on_time).secs > self._hysteresis
+            and (rospy.Time.now() - self._turn_on_time).secs > self._fun_enable_hysteresis
             and (
                 self._cpu_avg_temp < self._cpu_fan_off_temp
-                and self._front_driver_avg_temp < self._driver_fan_on_temp
-                and self._rear_driver_avg_temp < self._driver_fan_on_temp
+                and self._front_driver_avg_temp < self._driver_fan_off_temp
+                and self._rear_driver_avg_temp < self._driver_fan_off_temp
             )
         ):
             rospy.loginfo(f'[{rospy.get_name()}] Turning off fan.')
