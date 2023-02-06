@@ -1,6 +1,5 @@
 <launch>
   <arg name="panther_version" />
-  <arg name="shutdown_hosts_config" />
 
   <group unless="$(eval panther_version >= 1.2)">
     <node pkg="panther_power_control" name="power_control" type="relays_node.py" required="true" output="screen" />

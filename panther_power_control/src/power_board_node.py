@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 import RPi.GPIO as GPIO
-GPIO.setwarnings(False)
 
 import rospy
 
@@ -25,7 +24,7 @@ class PatherGPIO:
     SHDN_INIT = 16      # Shutdown Init managed by systemd service
     VDIG_OFF = 21       # Turn the digital power off eg. NUC, Router etc. (1 - off)
     VMOT_ON = 6         # Enable mamin power supply to motors (1 - on)
-    WATCHDOG = 14       # Watchdog pin, if PWM is on tish pin Panther will work
+    WATCHDOG = 14       # Watchdog pin, if PWM is on this pin Panther will work
 
     # define inverse logic pins here to be used by _read_pin() method
     inverse_logic_pins = [VDIG_OFF, E_STOP_RESET, CHRG_SENSE]
@@ -230,7 +229,7 @@ class PowerBoardNode:
 
         # Sending False because of inverse logic
         self._write_to_pin(self._pins.E_STOP_RESET, False)
-        rospy.rostime.wallsleep(0.1)
+        rospy.sleep(0.1)
 
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
         self._clearing_e_stop = False
@@ -248,11 +247,12 @@ class PowerBoardNode:
             
     def _motor_start_sequence(self) -> None:
         self._write_to_pin(self._pins.VMOT_ON, 1)
-        rospy.rostime.wallsleep(0.5)
+        rospy.sleep(0.5)
         self._write_to_pin(self._pins.DRIVER_EN, 1)
-        rospy.rostime.wallsleep(0.2)
+        rospy.sleep(0.2)
 
     def _setup_gpio(self) -> None:
+        GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._pins.AUX_PW_EN, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.CHRG_EN, GPIO.OUT, initial=1)
