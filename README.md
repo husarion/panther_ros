@@ -5,7 +5,7 @@ API for each node can be found in each package folder.
 
 ## Build and run on hardware
 
-In order to build the Panther for hardware setup on internal computer, use following commands.
+In order to build the Panther ROS interface for hardware setup on internal computer, use following commands:
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
