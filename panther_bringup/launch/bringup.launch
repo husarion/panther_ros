@@ -1,16 +1,21 @@
 <launch>
   <arg name="namespace" value="panther" />
   <arg name="panther_version" value="$(optenv PANTHER_ROBOT_VERSION 1.0)" />
-  <arg name="wheel_type" default="WH01" doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
+  <arg name="wheel_type" default="WH01"
+    doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
   <arg name="panther_common_config_file" value="$(find panther_bringup)/config/panther_common.yaml" />
   <arg name="test_animations" default="false" />
   <arg name="user_animations_file" default="" />
   <arg name="launch_lights_scheduler" default="true" />
+  <arg name="shutdown_hosts_config_file" value="$(find panther_bringup)/config/shutdown_hosts.yaml" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
-  <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
-  <arg name="wheel_config_file" value="$(find panther_description)/config/WH02.yaml" if="$(eval wheel_type == 'WH02')" />
-  <arg name="wheel_config_file" value="$(find panther_description)/config/WH04.yaml" if="$(eval wheel_type == 'WH04')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml"
+    if="$(eval wheel_type == 'WH01')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH02.yaml"
+    if="$(eval wheel_type == 'WH02')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH04.yaml"
+    if="$(eval wheel_type == 'WH04')" />
 
   <!-- load default params -->
   <rosparam command="load" file="$(find panther_bringup)/config/panther_default.yaml" />
@@ -39,9 +44,12 @@
       <arg name="panther_version" value="$(arg panther_version)" />
     </include>
 
-    <include file="$(find panther_logger)/launch/logger.launch" />
+    <include file="$(find panther_manager)/launch/manager.launch">
+      <arg name="panther_version" value="$(arg panther_version)" />
+      <arg name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
+    </include>
 
     <include file="$(find panther_bringup)/launch/imu.launch" />
-  
+
   </group>
 </launch>

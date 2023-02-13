@@ -8,6 +8,7 @@
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
   <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
+  <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
   <maintainer email="support@husarion.com">Husarion</maintainer>
 
   <url type="website">https://husarion.com/</url>
@@ -23,7 +24,5 @@
 
   <!-- Python dependencies -->
   <depend>python-rpi.gpio-pip</depend>
-  <depend>python3-gpiozero</depend>
-  <depend>python3-paramiko</depend>
 
 </package>

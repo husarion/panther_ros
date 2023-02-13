@@ -20,8 +20,10 @@
   <depend>panther_description</depend>
   <depend>panther_driver</depend>
   <depend>panther_lights</depend>
-  <depend>panther_logger</depend>
+  <depend>panther_manager</depend>
   <depend>panther_msgs</depend>
   <depend>panther_power_control</depend>
+
+  <depend condition="$HUSARION_ROS_BUILD == simulation">panther_gazebo</depend>
 
 </package>

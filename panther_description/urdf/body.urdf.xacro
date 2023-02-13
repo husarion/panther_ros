@@ -9,7 +9,7 @@
 
     <link name="base_link" /> 
 
-    <joint name="base_link_to_body_link_joint" type="fixed">
+    <joint name="base_to_body_joint" type="fixed">
       <origin xyz="0.0 0.0 ${wheel_radius}" rpy="0.0 0.0 0.0" />
       <parent link="base_link" />
       <child link="body_link" />
@@ -17,21 +17,21 @@
 
     <link name="body_link">
       <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
           <mesh filename="file://$(find panther_description)/meshes/body.dae" />
         </geometry>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
       </visual>
 
       <collision>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
           <mesh filename="file://$(find panther_description)/meshes/body_collision.stl" />
         </geometry>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
       </collision>
 
       <inertial>
-        <origin xyz="-0.008 0.01 0.029" rpy="0.0 0.0 0.0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <mass value="43.0" />
         <inertia ixx="2.630036" ixy="-0.023480" ixz="0.052320"
                                 iyy="2.463509"  iyz="0.009337"
@@ -39,7 +39,7 @@
       </inertial>
     </link>
 
-    <joint name="body_link_to_imu_link_joint" type="fixed">
+    <joint name="body_to_imu_joint" type="fixed">
       <origin xyz="${imu_pos_x} ${imu_pos_y} ${imu_pos_z}"
               rpy="${imu_rot_r} ${imu_rot_p} ${imu_rot_y}" />
       <parent link="body_link" />
@@ -48,7 +48,7 @@
 
     <link name="imu_link" />
     
-    <joint name="body_link_front_light_link_joint" type="fixed">
+    <joint name="body_to_front_light_joint" type="fixed">
       <origin xyz="0.362 0.0 0.0" rpy="0.0 0.0 0.0" />
       <parent link="body_link" />
       <child link="front_light_link" />
@@ -56,7 +56,7 @@
     
     <link name="front_light_link" />
     
-    <joint name="body_link_to_rear_light_link_joint" type="fixed">
+    <joint name="body_to_rear_light_joint" type="fixed">
       <origin xyz="-0.362 0.0 0.0" rpy="0.0 0.0 ${pi}" />
       <parent link="body_link" />
       <child link="rear_light_link" />
@@ -64,7 +64,7 @@
     
     <link name="rear_light_link" />
     
-    <joint name="body_link_to_cover_link_joint" type="fixed">
+    <joint name="body_to_cover_joint" type="fixed">
       <origin xyz="0.0 0.0 0.1715" rpy="0.0 0.0 0.0" />
       <parent link="body_link" />
       <child link="cover_link" />
