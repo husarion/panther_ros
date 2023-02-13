@@ -142,6 +142,7 @@ class ManagerNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _battery_cb(self, battery_state: BatteryState) -> None:
+        self._battery_status = battery_state.power_supply_status
         if self._battery_temp_window is not None:
             self._battery_temp_window = self._move_window(
                 self._battery_temp_window, battery_state.temperature
@@ -196,6 +197,9 @@ class ManagerNode:
                 5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.'
             )
             return
+
+        if self._battery_status == BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING:
+            rospy.logwarn_throttle(5.0, f'[{rospy.get_name()}] Battery is not charging.')
 
         self._battery_avg_temp = self._get_mean(self._battery_temp_window)
         if self._battery_avg_temp > self._fatal_bat_temp:

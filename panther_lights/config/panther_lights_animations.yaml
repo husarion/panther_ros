@@ -6,7 +6,7 @@ animations:
       both:
         type: image_animation
         image: $(find panther_lights)/animations/triangle01_red.png
-        duration: 2
+        duration: 1
 
   - id: 1
     name: 'READY'
@@ -57,7 +57,7 @@ animations:
 
   - id: 6
     name: 'LOW_BATTERY'
-    priority: 2
+    priority: 1
     animation:
       both:
         type: image_animation
@@ -82,6 +82,7 @@ animations:
       both:
         type: battery_animation
         duration: 3
+        repeat: 3
 
   - id: 9
     name: 'CHARGING_BATTERY'
