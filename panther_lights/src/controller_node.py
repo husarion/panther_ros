@@ -265,11 +265,8 @@ class LightsControllerNode:
         img_msg.width = self._num_led
         img_msg.step = 4 * self._num_led
 
-        rgb_bytearray = bytearray()
-        for rgb in rgb_frame:
-            rgb_bytearray.extend(rgb)
-            rgb_bytearray.append(brightness)
-        img_msg.data = bytes(rgb_bytearray)
+        rgba_array = [val for rgba in [rgb + [brightness] for rgb in rgb_frame] for val in rgba]
+        img_msg.data = bytes(rgba_array)
 
         return img_msg
 

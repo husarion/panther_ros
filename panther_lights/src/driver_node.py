@@ -38,7 +38,6 @@ class LightsDriverNode:
             rospy.logwarn(f'[{rospy.get_name()}] Invalid brightness: {err}. Using default')
             apa_driver_brightness = LEDConstants.LED_MAX_BRIGHTNESS
 
-        self._lock = Lock()
         self._pixels = apa102.APA102(
             num_led=self._num_led,
             order='rgb',
@@ -48,6 +47,8 @@ class LightsDriverNode:
         )
         self._front_active = True
         self._rear_active = True
+        self._last_time_stamp_front = rospy.get_time()
+        self._last_time_stamp_rear = rospy.get_time()
         color_correction_rgb = [255, 200, 62]
         # rgb values normalized to avoid additional division
         self._color_correction = [value / 255 for value in color_correction_rgb]
@@ -64,10 +65,10 @@ class LightsDriverNode:
         # -------------------------------
 
         self._front_frame_sub = rospy.Subscriber(
-            'lights/driver/front_panel_frame', Image, self._front_frame_cb, queue_size=1
+            'lights/driver/front_panel_frame', Image, self._front_frame_cb, queue_size=3
         )
         self._rear_frame_sub = rospy.Subscriber(
-            'lights/driver/rear_panel_frame', Image, self._rear_frame_cb, queue_size=1
+            'lights/driver/rear_panel_frame', Image, self._rear_frame_cb, queue_size=3
         )
 
         # -------------------------------
@@ -105,6 +106,10 @@ class LightsDriverNode:
         if (rospy.Time.now() - image.header.stamp) > rospy.Duration(self._frame_timeout):
             rospy.logwarn(f'[{rospy.get_name()}] Front frame timeout exceeded, ignoring frame.')
             return
+        if (image.header.stamp < self._last_time_stamp_front):
+            rospy.logwarn(f'[{rospy.get_name()}] Dropping message from past for front panel.')
+            return
+        self._last_time_stamp_front = image.header.stamp
         rgb_frame, brightness = self._decode_img_msg(image)
         self._set_panel_frame(LEDConstants.PANEL_FRONT, rgb_frame, brightness)
 
@@ -112,42 +117,36 @@ class LightsDriverNode:
         if (rospy.Time.now() - image.header.stamp) > rospy.Duration(self._frame_timeout):
             rospy.logwarn(f'[{rospy.get_name()}] Rear frame timeout exceeded, ignoring frame.')
             return
+        if (image.header.stamp < self._last_time_stamp_front):
+            rospy.logwarn(f'[{rospy.get_name()}] Dropping message from past for rear panel.')
+            return
+        self._last_time_stamp_front = image.header.stamp
         rgb_frame, brightness = self._decode_img_msg(image)
         self._set_panel_frame(LEDConstants.PANEL_REAR, rgb_frame, brightness)
 
     def _decode_img_msg(self, image: Image) -> tuple:
         rgb_frame = [[image.data[i + j] for j in range(3)] for i in range(0, len(image.data), 4)]
-        brightness = int(image.data[3] / 255 * 100)
+        brightness = image.data[3]
         return rgb_frame, brightness
 
-    def _set_panel_frame(self, panel_num: int, panel_frame: list, brightness: int = 100) -> None:
-        with self._lock:
-            # select panel
-            if panel_num == LEDConstants.PANEL_FRONT and self._front_active:
-                GPIO.output(
-                    LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_FRONT_STATE
-                )
-            elif panel_num == LEDConstants.PANEL_REAR and self._rear_active:
-                GPIO.output(LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_REAR_STATE)
-            else:
-                raise ValueError('panther lights have only two panels')
+    def _set_panel_frame(self, panel_num: int, panel_frame: list, brightness: int = 255) -> None:
+        # select panel
+        if panel_num == LEDConstants.PANEL_FRONT and self._front_active:
+            GPIO.output(
+                LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_FRONT_STATE
+            )
+        elif panel_num == LEDConstants.PANEL_REAR and self._rear_active:
+            GPIO.output(LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_REAR_STATE)
+        else:
+            raise ValueError('panther lights have only two panels')
 
-            for i, pixel in enumerate(panel_frame):
-                r = int(pixel[0] * self._color_correction[0])
-                g = int(pixel[1] * self._color_correction[1])
-                b = int(pixel[2] * self._color_correction[2])
-                pixel_hex = (r << 16) + (g << 8) + b
-                self._pixels.set_pixel_rgb(i, pixel_hex, brightness)
-            self._pixels.show()
-
-    def _set_panel_state(self, panel_num: int, state: bool) -> None:
-        if not state:
-            self._clear_panel(panel_num)
-        with self._lock:
-            if panel_num == LEDConstants.PANEL_FRONT:
-                self._front_active = state
-            elif panel_num == LEDConstants.PANEL_REAR:
-                self._rear_active = state
+        for i, pixel in enumerate(panel_frame):
+            r = int(pixel[0] * self._color_correction[0])
+            g = int(pixel[1] * self._color_correction[1])
+            b = int(pixel[2] * self._color_correction[2])
+            pixel_hex = (r << 16) + (g << 8) + b
+            self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255 * 100))
+        self._pixels.show()
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
         try:
