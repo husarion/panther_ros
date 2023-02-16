@@ -47,8 +47,8 @@ class LightsDriverNode:
         )
         self._front_active = True
         self._rear_active = True
-        self._last_time_stamp_front = rospy.get_time()
-        self._last_time_stamp_rear = rospy.get_time()
+        self._last_time_stamp_front = rospy.Time.now()
+        self._last_time_stamp_rear = rospy.Time.now()
         color_correction_rgb = [255, 200, 62]
         # rgb values normalized to avoid additional division
         self._color_correction = [value / 255 for value in color_correction_rgb]
@@ -117,10 +117,10 @@ class LightsDriverNode:
         if (rospy.Time.now() - image.header.stamp) > rospy.Duration(self._frame_timeout):
             rospy.logwarn(f'[{rospy.get_name()}] Rear frame timeout exceeded, ignoring frame.')
             return
-        if (image.header.stamp < self._last_time_stamp_front):
+        if (image.header.stamp < self._last_time_stamp_rear):
             rospy.logwarn(f'[{rospy.get_name()}] Dropping message from past for rear panel.')
             return
-        self._last_time_stamp_front = image.header.stamp
+        self._last_time_stamp_rear = image.header.stamp
         rgb_frame, brightness = self._decode_img_msg(image)
         self._set_panel_frame(LEDConstants.PANEL_REAR, rgb_frame, brightness)
 
