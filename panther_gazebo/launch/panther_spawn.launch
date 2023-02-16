@@ -1,11 +1,10 @@
 <launch>
   <arg name="use_ros_control" />
-
-  <param command="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
-                  wheel_config_path:=$(find panther_description)/config/WH01.yaml
-                  simulation_engine:=gazebo-classic
-                  use_ros_control:=$(arg use_ros_control)"
-         name="robot_description" />
+  <arg name="robot_description"
+    default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
+              wheel_config_path:=$(find panther_description)/config/$(arg wheel_type).yaml
+              simulation_engine:=gazebo-classic
+              use_ros_control:=$(arg use_ros_control)" />
 
   <node name="panther_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
     args="-urdf -param robot_description -model panther" />
@@ -22,5 +21,8 @@
       output="screen" args="joint_state_controller" />
   </group>
 
-  <node name="state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <include file="$(find panther_description)/launch/panther_state_publisher.launch" if="$(arg publish_robot_state)">
+    <arg name="robot_description" value="$(arg robot_description)" />
+  </include>
+
 </launch>
