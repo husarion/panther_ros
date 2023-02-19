@@ -20,6 +20,7 @@ Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the 
 - `use_sim` [*bool*, default: **false**]: Unused. Kept for ROS 2 compatibility.
 - `wheel_config_path` [*float*, default: **$(find panther_description)/config/WH01.yaml**]: - absolute path to YAML file defining wheel properties.
 - `simulation_engine` [*float*, default: **gazebo-classic**]: physics engine to select plugins for. Supported engines: `gazebo-classic`. Kept for compatibility with ROS2 model. Currently, no other engines are planned to be supported.
+- `use_ros_control` [*bool*, default: **false**]: whether to use `ros_control`.
 
 There is one additional [panther.urdf.xacro](./urdf/panther.urdf.xacro) argument:
 - `use_gpu` [*float*, default: **false**]: Turns on GPU acceleration for sensors.

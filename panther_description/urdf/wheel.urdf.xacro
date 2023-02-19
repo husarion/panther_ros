@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- wheel defining macro -->
-  <xacro:macro name="wheel" params="wheel_config prefix wheel_separation_x">
+  <xacro:macro name="wheel" params="wheel_config wheel_separation_x hardware_interface prefix">
 
     <xacro:if value="${prefix == 'fl'}">
       <xacro:property name="x" value="${wheel_separation_x/2.0}" />
@@ -65,11 +65,11 @@
     <transmission name="${prefix}_wheel_transmission" type="SimpleTransmission">
       <type>transmission_interface/SimpleTransmission</type>
       <joint name="${prefix}_wheel_joint">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <hardwareInterface>hardware_interface/${hardware_interface}</hardwareInterface>
       </joint>
       <actuator name="${prefix}_wheel_actuator">
         <mechanicalReduction>1</mechanicalReduction>
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <hardwareInterface>hardware_interface/${hardware_interface}</hardwareInterface>
       </actuator>
     </transmission>
 
