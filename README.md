@@ -77,7 +77,7 @@ This will launch Gazebo and Rviz.
 
 ## Robot configuration
 
-Parameters stored in [panther_default.yaml](./panther_bringup/config/panther_default.yaml) are generic and are overwritten with your specific panther configuration on start.
+Parameters stored in [**panther_default.yaml**](./panther_bringup/config/panther_default.yaml) are generic and are overwritten with your specific panther configuration on start.
 
 In order to change wheels used with your robot, add `wheel_type:=WH0X` to launch command as follows:
 ``` bash
@@ -89,7 +89,7 @@ Possible wheels names:
 - `WH02`: mecanum.
 - `WH04`: small pneumatic wheels.
 
-If you want to use custom wheels, use argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as [default panther wheel configurations](./panther_description/config/WH01.yaml).
+If you want to use custom wheels, use argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as default panther wheel configurations found in [**WH01.yaml**](./panther_description/config/WH01.yaml).
 
 ## Shutting down On-board Computers
 
