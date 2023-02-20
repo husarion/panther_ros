@@ -3,8 +3,12 @@
 Packages composing basic functionalities of the Husarion Panther robot.
 API for each node can be found in each package folder.
 
+![Panther dark](https://husarion.com/assets/images/night_with_lights-f1e591289905c18c839b2142160e00ef.png#gh-dark-mode-only)
+![Panther light](https://husarion.com/assets/images/day_no_light_crop-6072a2346aede8746029b888fa16b214.png#gh-light-mode-only)
+
+
 :warning: **Warning**: 
-Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Internal Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#internal-computer-raspberry-pi-4).
+Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Build-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#internal-computer-raspberry-pi-4).
 
 We are making great effort to achieve backward compatibility, but can not test everything. Currently, fully tested images are `v1.0.0` and above. If the command below shows you the tag, you can be assured the newest code will work on your robot.
 ``` bash
@@ -25,7 +29,7 @@ Example **compose.yaml** can be found on [husarion/panther-docker](https://githu
 
 ## Build and run on hardware
 
-To build hardware interface packages running on for Panther robot's internal computer, use the following commands:
+To build hardware interface packages running on for Panther robot's Build-in Computer, use the following commands:
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
@@ -91,10 +95,10 @@ Possible wheels names:
 
 If you want to use custom wheels, use argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as default panther wheel configurations found in [**WH01.yaml**](./panther_description/config/WH01.yaml).
 
-## Shutting down On-board Computers
+## Shutting down User Computers
 
 You can shut down any computer within internal Panther's network.
-You can do so by exchanging SSH public keys between the Internal Computer and the one you want to shutdown. Later you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
+You can do so by exchanging SSH public keys between the Build-in Computer and the one you want to shutdown. Later you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
 ``` yaml
 hosts:
   - ip: 10.15.20.XX
