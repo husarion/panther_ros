@@ -73,7 +73,7 @@ class PantherCAN:
                     try:
                         motor_controller.can_node.sdo['Cmd_CANGO'][wheel].raw = enc_vel[i]
                     except:
-                        rospy.logwarn(
+                        rospy.logdebug(
                             f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
                             f'occurred while setting wheels velocity'
                         )
@@ -98,7 +98,7 @@ class PantherCAN:
                             motor_controller.can_node.sdo['Qry_VOLTS'][self._channels.VOLT_CHANNEL].raw
                         ) / 10.0
                 except canopen.SdoCommunicationError:
-                    rospy.logwarn(
+                    rospy.logdebug(
                         f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
                         f'occurred while reading battery data'
                     )       
@@ -113,7 +113,7 @@ class PantherCAN:
                 try:  
                     motor_controller.temperature = float(motor_controller.can_node.sdo['Qry_TEMP'][1].raw)
                 except canopen.SdoCommunicationError:
-                    rospy.logwarn(
+                    rospy.logdebug(
                         f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
                         f'occurred while reading battery data'
                     )       
@@ -147,7 +147,7 @@ class PantherCANSDO(PantherCAN):
                     try:
                         motor_controller.wheel_pos[i] = motor_controller.can_node.sdo['Qry_ABCNTR'][wheel].raw
                     except canopen.SdoCommunicationError:
-                        rospy.logwarn(
+                        rospy.logdebug(
                             f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
                             f'occurred while reading wheels position'
                         )
@@ -161,7 +161,7 @@ class PantherCANSDO(PantherCAN):
                     try:
                         motor_controller.wheel_vel[i] = motor_controller.can_node.sdo['Qry_ABSPEED'][wheel].raw
                     except canopen.SdoCommunicationError:
-                        rospy.logwarn(
+                        rospy.logdebug(
                             f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
                             f'occurred while reading wheels velocity'
                         )
@@ -176,7 +176,7 @@ class PantherCANSDO(PantherCAN):
                         # division by 10 is needed according to documentation
                         motor_controller.wheel_curr[i] = motor_controller.can_node.sdo['Qry_MOTAMPS'][wheel].raw / 10.0
                     except canopen.SdoCommunicationError:
-                        rospy.logwarn(
+                        rospy.logdebug(
                             f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
                             f'occurred while reading motor current'
                         )
@@ -189,7 +189,7 @@ class PantherCANSDO(PantherCAN):
                 try:
                     motor_controller.fault_flags = motor_controller.can_node.sdo['Qry_FLTFLAG'].raw
                 except canopen.SdoCommunicationError:
-                    rospy.logwarn(
+                    rospy.logdebug(
                         f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
                         f'occurred while reading fault flags'
                     )
@@ -211,7 +211,7 @@ class PantherCANSDO(PantherCAN):
                             motor_controller.can_node.sdo['Qry_MOTFLAGS'][wheel].data, 'little'
                         ) 
                     except canopen.SdoCommunicationError:
-                        rospy.logwarn(
+                        rospy.logdebug(
                             f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
                             f'occurred while reading runtime status flag'
                         )
@@ -329,7 +329,7 @@ class PantherCANPDO(PantherCAN):
                 try:
                     motor_controller.can_node.sdo['Cmd_BRUN'].raw = 2
                 except:
-                    rospy.logwarn(
+                    rospy.logdebug(
                         f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
                         f'occurred while restarting roboteq script'
                     )
