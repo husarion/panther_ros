@@ -29,7 +29,7 @@ Example **compose.yaml** can be found on [husarion/panther-docker](https://githu
 
 ## Build and run on hardware
 
-To build hardware interface packages running on for Panther robot's Build-in Computer, use the following commands:
+To build hardware interface packages running on the Panther robot's internal computer, use the following commands:
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
