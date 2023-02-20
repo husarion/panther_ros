@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
-from threading import Lock
 
 from apa102_pi.driver import apa102
 import RPi.GPIO as GPIO

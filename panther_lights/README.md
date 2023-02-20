@@ -10,8 +10,8 @@ Node responsible for displaying frames on the Husarion Panther robot LED panels.
 
 #### Subscribe
 
-- `panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot front LED panel. 
-- `panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot rear LED panel.
+- `panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*]: an animation frame of size **1 x num_led** pixels to be displayed on robot front LED panel.
+- `panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*]: an animation frame of size **1 x num_led** pixels to be displayed on robot rear LED panel.
 
 #### Services
 
@@ -29,9 +29,8 @@ Node responsible for processing animations and publish frames to be displayed on
 
 #### Publish
 
-- `panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot front LED panel. 
-- `panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*]: an animation frame to be displayed on robot rear LED panel.
-
+- `panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*]: an animation frame of size **1 x num_led** pixels to be displayed on robot front LED panel.
+- `panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*]: an animation frame of size **1 x num_led** pixels to be displayed on robot rear LED panel.
 #### Services
 
 - `panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
