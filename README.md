@@ -3,9 +3,10 @@
 Packages composing basic functionalities of the Husarion Panther robot.
 API for each node can be found in each package folder.
 
-![Panther](https://husarion.com/assets/images/night_with_lights-f1e591289905c18c839b2142160e00ef.png#gh-dark-mode-only)
-![Panther](https://husarion.com/assets/images/day_no_light_crop-6072a2346aede8746029b888fa16b214.png#gh-light-mode-only)
-
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://husarion.com/assets/images/night_with_lights-f1e591289905c18c839b2142160e00ef.png">
+  <img alt="Panther preview" src="https://husarion.com/assets/images/day_no_light_crop-6072a2346aede8746029b888fa16b214.png">
+</picture>
 
 :warning: **Warning**: 
 Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Build-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#internal-computer-raspberry-pi-4).
