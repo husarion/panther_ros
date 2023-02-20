@@ -5,7 +5,7 @@ API for each node can be found in each package folder.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://husarion.com/assets/images/night_with_lights-f1e591289905c18c839b2142160e00ef.png">
-  <img alt="Panther preview" src="https://img.atlasobscura.com/OmYTfCcBikbUYBeXAH5hX6j0dCBlx_eQASVmoVukrIo/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy8wNDM0/Y2RiODEyZTY3ZDMw/ZjVfd2luZG93c194/cF9ibGlzcy13aWRl/LmpwZw.jpg">
+  <img alt="Panther preview" src="https://husarion.com/assets/images/day_no_lights-c6e648b30e184a69ccadfb1d8dff0040.png">
 </picture>
 
 :warning: **Warning**: 
