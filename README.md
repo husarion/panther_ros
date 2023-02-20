@@ -5,7 +5,8 @@ API for each node can be found in each package folder.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://husarion.com/assets/images/night_with_lights-f1e591289905c18c839b2142160e00ef.png">
-  <img alt="Panther preview" src="https://husarion.com/assets/images/day_no_light_crop-6072a2346aede8746029b888fa16b214.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://husarion.com/assets/images/day_no_light_crop-6072a2346aede8746029b888fa16b214.png">
+  <img alt="Panther preview">
 </picture>
 
 :warning: **Warning**: 
