@@ -2,11 +2,15 @@
 
 Package used to control the Husarion Panther LED panels.
 
+## ROS structure
+
+![panther_lights ROS structure](docs/panther-lights-ros-structure.png)
+
 ## ROS Nodes
 
 ### driver_node.py
 
-Node responsible for displaying frames on the Husarion Panther robot LED panels.
+The node responsible for displaying frames on the Husarion Panther robot LED panels.
 
 #### Subscribe
 
@@ -25,7 +29,7 @@ Node responsible for displaying frames on the Husarion Panther robot LED panels.
 
 ### controller_node.py
 
-Node responsible for processing animations and publish frames to be displayed on the Husarion Panther robot LED panels.
+The node responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot LED panels.
 
 #### Publish
 
@@ -35,6 +39,7 @@ Node responsible for processing animations and publish frames to be displayed on
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
 - `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images, available in testing mode.
+- `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user defined animations based on `~user_animations` parameter.
 
 #### Parameters
 
@@ -46,7 +51,7 @@ Node responsible for processing animations and publish frames to be displayed on
 
 ### scheduler_node.py
 
-Node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
+The node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
 
 #### Subscribe
 
@@ -69,30 +74,30 @@ Node responsible for scheduling animations displayed on LED panels based on the 
 
 ## Animations
 
-Basic animations are parsed as a list using the ROS parameter. Default animations supplied by Husarion are listed in table below.
+Basic animations provided by Husarion are loaded upon node start and parsed as a list using the ROS parameter. Default animations can be found in the table below:
 
-| ID  | NAME              | DESCRIPTION                                                 |
-| --- | ----------------- | ----------------------------------------------------------- |
-| 0   | E_STOP            | red expanding from the center to the edges                  |
-| 1   | READY             | green expanding from center to the edges                    |
-| 2   | ERROR             | red blinking twice                                          |
-| 3   | MANUAL_ACTION     | blue expanding from the center to the edges                 |
-| 4   | AUTONOMOUS_ACTION | orange expanding from center to the edges                   |
-| 5   | GOAL_ACHIEVED     | purple blinking three times                                 |
-| 6   | LOW_BATTERY       | two orange stripes moving towards the center, repeats twice |
-| 7   | CRITICAL_BATTERY  | two red stripes moving towards the center, repeats twice    |
-| 8   | BATTERY_STATE      | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
-| 9   | CHARGING_BATTERY  | solid color with a duty cycle proportional to the battery percentage, color changes from red to green |
+| ID  | NAME              | PRIORITY | DESCRIPTION                                                 |
+| :-: | ----------------- | :------: | ----------------------------------------------------------- |
+| 0   | E_STOP            | 1        | red expanding from the center to the edges                  |
+| 1   | READY             | 3        | green expanding from center to the edges                    |
+| 2   | ERROR             | 1        | red blinking twice                                          |
+| 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
+| 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
+| 5   | GOAL_ACHIEVED     | 2        | purple blinking three times                                 |
+| 6   | LOW_BATTERY       | 1        | two orange stripes moving towards the center, repeats twice |
+| 7   | CRITICAL_BATTERY  | 1        | two red stripes moving towards the center, repeats twice    |
+| 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
+| 9   | CHARGING_BATTERY  | 1        | solid color with a duty cycle proportional to the battery percentage, color changes from red to green |
 
-Default animations are described and loaded on the node start, directly from `config/panther_lights_animations.yaml`. Supported keys are:
+Default animations are described in [`panther_lights_animations.yaml`](config/panther_lights_animations.yaml). Supported keys are:
 
 - `animation` [*dict*]: definition of animation. See section below for more info.
 - `id` [*int*]: ID of an animation.
 - `name` [*string*, default: **NAME_NOT_DEFINED**]: name of an animation.
-- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when ne animation with given ID arrives:
+- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when an animation with given ID arrives:
     - **1** intterupts and removes animation with priorites **2** and **3**.
     - **2** interrupts animations with priority **3**.
-    - **3** add adnimation to the end of queue.
+    - **3** adds adnimation to the end of queue.
 - `timeout` [*float*, default: **120.0**]: time in seconds after which animation will be removed from the queue.
 
 ### Animation types
@@ -189,8 +194,8 @@ Modify also `command` to use user animations:
 command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_animations.yaml --wait
 ```
 
-:warning: **Warning**
-While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker imge can be  found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
+:warning: **Warning**:
+While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
 
 #### 3. Restart the docker container:
 
@@ -201,7 +206,7 @@ docker compose up -d
 #### 4. Display new animations:
 
 ```bash
-rosservice call /lights/controller/set/animation "{animation: {id: 21, name: 'ANIMATION_1'}, repeating: false}"
+rosservice call /lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
 ```
 
 ### Updating animation list at a runtime
@@ -229,43 +234,9 @@ rosservice call /panther/lights/controller/update_animations "{}"
 #### 4. Display new animations:
 
 ```bash
-rosservice call /lights/controller/set/animation "{animation: {id: 21, name: 'ANIMATION_1'}, repeating: false}"
+rosservice call /lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
 ```
 
 ### Defining new animation type
 
-It is possible to define your own animation type with expected, new behavior. All animation definitions are stored in `/src/animation` and inherit from the basic class `Animation`. This class consists of:
-
-Arguments:
-
-- `animation_description` [*dict*]: a dictionary containing animation description, `Animation` class will process:
-  - `brightness` [*float*, optional]: will be assigned to the `self._brightness` variable as a value in range [0,255].
-  - `duration` [*float*]: will be assigned to `self._duration` variable.
-  - `repeat` [*int*, optional]: will be assigned to `self._loops` variable.
-- `num_led` [*int*]: number of LEDs in a panel.
-- `controller_freq` [*float*]: controller frequency at which animation frames will be processed.
-
-Methods:
-
-- `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
-- `_update_animation` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel. Colors are described as a list of integers with respectively **R**, **G**, and **B** color values. By default not implemented.
-
-Properties:
-
-- `progress` [*float*]: returns animation execution progress from `self._progress`.
-
-The new animation definition should contain `ANIMATION_NAME` used to identify it. Animation frames are processed in ticks with a frequency of `controller_freq`. It is required to overwrite the `_update_animation` method which must return a list representing the animation frame. The advised way is to use the `self._anim_iteration` variable  (current animation tick) to produce an animation frame. As an example see other animation definitions.
-
-To add a new animation definition to basic animations edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:
-
-```
-from .my_animation import MyAnimation
-```
-
-then add it to the `BASIC_ANIMATIONS` dictionary:
-
-```
-BASIC_ANIMATIONS = {
-    ImageAnimation.ANIMATION_NAME: ImageAnimation,
-    MyAnimation.ANIMATION_NAME : MyAnimation,
-}
+It is possible to define your own animation type with expected, new behavior. For more information see: [Animation API](./docs/lights_api.md).
