@@ -4,11 +4,11 @@ from copy import deepcopy
 
 import rospy
 
+from sensor_msgs.msg import Image
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
 from panther_msgs.msg import LEDImageAnimation
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
-from panther_msgs.srv import SetLEDBrightness, SetLEDBrightnessRequest, SetLEDBrightnessResponse
 from panther_msgs.srv import (
     SetLEDImageAnimation,
     SetLEDImageAnimationRequest,
@@ -16,7 +16,6 @@ from panther_msgs.srv import (
 )
 
 from animation import Animation, BASIC_ANIMATIONS
-from panther_apa102_driver import PantherAPA102Driver
 
 
 class PantherAnimation:
@@ -52,7 +51,7 @@ class AnimationsQueue:
         self.validate_queue()
 
         if len(self._queue) == self._max_queue_size:
-            rospy.logwarn(f'{rospy.get_name()} Animation queue overloaded')
+            rospy.logwarn(f'[{rospy.get_name()}] Animation queue overloaded')
             return
 
         self._queue.append(animation)
@@ -82,7 +81,7 @@ class AnimationsQueue:
         ]
         for anim in remove_animation_list:
             rospy.loginfo(
-                f'{rospy.get_name()} Timeout for animation: {anim.name}. Romoving from the queue'
+                f'[{rospy.get_name()}] Timeout for animation: {anim.name}. Romoving from the queue'
             )
             self._queue.remove(anim)
 
@@ -95,23 +94,13 @@ class AnimationsQueue:
 
 
 class LightsControllerNode:
-    MAX_BRIGHTNESS = 31
-    PANEL_FRONT = 0
-    PANEL_REAR = 1
-
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
-
-        self._current_animation = None
-        self._default_animation = None
-        self._animation_finished = True
-        self._anim_queue = AnimationsQueue(max_queue_size=10)
-        self._animations = {}
 
         # check for required ROS parameters
         if not rospy.has_param('~animations'):
             rospy.logerr(
-                f'{rospy.get_name()} Missing required parameter \'~animations\'. Shutting down'
+                f'[{rospy.get_name()}] Missing required parameter \'~animations\'. Shutting down'
             )
             rospy.signal_shutdown('Missing required parameter')
             return
@@ -119,23 +108,27 @@ class LightsControllerNode:
         self._animations_description = rospy.get_param('~animations')
         self._controller_frequency = rospy.get_param('~controller_frequency', 46)
         self._num_led = rospy.get_param('~num_led', 46)
-        global_brightness = rospy.get_param('~global_brightness', 1.0)
         test = rospy.get_param('~test', False)
+
+        self._anim_queue = AnimationsQueue(max_queue_size=10)
+        self._animation_finished = True
+        self._animations = {}
+        self._current_animation = None
+        self._default_animation = None
+        self._empty_frame = [[0, 0, 0]] * self._num_led
 
         self._update_animations()
 
-        try:
-            apa_driver_brightness = self._percent_to_apa_driver_brightness(global_brightness)
-        except ValueError as err:
-            rospy.logwarn(f'{rospy.get_name()} Invalid brightness: {err}. Using default')
-            apa_driver_brightness = LightsControllerNode.MAX_BRIGHTNESS
+        # -------------------------------
+        #   Publishers
+        # -------------------------------
 
-        # define controller and clear all panels
-        self._controller = PantherAPA102Driver(
-            num_led=self._num_led, brightness=apa_driver_brightness
+        self._front_frame_publisher = rospy.Publisher(
+            'lights/driver/front_panel_frame', Image, queue_size=10
         )
-        self._controller.clear_panel(LightsControllerNode.PANEL_FRONT)
-        self._controller.clear_panel(LightsControllerNode.PANEL_REAR)
+        self._rear_frame_publisher = rospy.Publisher(
+            'lights/driver/rear_panel_frame', Image, queue_size=10
+        )
 
         # -------------------------------
         #   Services
@@ -143,9 +136,6 @@ class LightsControllerNode:
 
         self._set_animation_service = rospy.Service(
             'lights/controller/set/animation', SetLEDAnimation, self._set_animation_cb
-        )
-        self._set_brightness_service = rospy.Service(
-            'lights/controller/set/brightness', SetLEDBrightness, self._set_brightness_cb
         )
         if test:
             self._set_image_animation_service = rospy.Service(
@@ -165,18 +155,14 @@ class LightsControllerNode:
             rospy.Duration(1 / self._controller_frequency), self._controller_timer_cb
         )
 
-        rospy.loginfo(f'{rospy.get_name()} Node started')
-
-    def _percent_to_apa_driver_brightness(self, brightness_percent: float) -> int:
-        if 0 <= brightness_percent <= 1:
-            brightness = int(brightness_percent * LightsControllerNode.MAX_BRIGHTNESS)
-            # set minimal brightness for small values
-            if brightness == 0 and brightness_percent > 0:
-                brightness = 1
-            return brightness
-        raise ValueError('Brightness out of range <0,1>')
+        rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _controller_timer_cb(self, *args) -> None:
+        brightness_front = 255
+        brightness_rear = 255
+        frame_front = self._empty_frame
+        frame_rear = self._empty_frame
+
         if self._animation_finished:
             self._anim_queue.validate_queue()
 
@@ -205,16 +191,9 @@ class LightsControllerNode:
             if not self._current_animation.front.finished:
                 frame_front = self._current_animation.front()
                 brightness_front = self._current_animation.front.brightness
-                self._controller.set_panel_frame(
-                    LightsControllerNode.PANEL_FRONT, frame_front, brightness_front
-                )
             if not self._current_animation.rear.finished:
                 frame_rear = self._current_animation.rear()
                 brightness_rear = self._current_animation.rear.brightness
-                self._controller.set_panel_frame(
-                    LightsControllerNode.PANEL_REAR, frame_rear, brightness_rear
-                )
-
             self._animation_finished = (
                 self._current_animation.front.finished and self._current_animation.rear.finished
             )
@@ -223,6 +202,13 @@ class LightsControllerNode:
                 self._current_animation.front.reset()
                 self._current_animation.rear.reset()
                 self._current_animation = None
+
+        self._front_frame_publisher.publish(
+            self._rgb_frame_to_img_msg(frame_front, brightness_front, 'front_light_link')
+        )
+        self._rear_frame_publisher.publish(
+            self._rgb_frame_to_img_msg(frame_rear, brightness_rear, 'rear_light_link')
+        )
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
@@ -238,15 +224,6 @@ class LightsControllerNode:
         return SetLEDAnimationResponse(
             True, f'Successfully set an animation with id {req.animation.id}'
         )
-
-    def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
-        try:
-            brightness = self._percent_to_apa_driver_brightness(req.data)
-            self._controller.set_brightness(brightness)
-        except ValueError as err:
-            return SetLEDBrightnessResponse(False, f'{err}')
-
-        return SetLEDBrightnessResponse(True, f'Changed brightness to {req.data}')
 
     def _set_image_animation_cb(
         self, req: SetLEDImageAnimationRequest
@@ -278,6 +255,20 @@ class LightsControllerNode:
         except (KeyError, FileNotFoundError) as err:
             return TriggerResponse(False, f'Failed to update animations: {err}')
         return TriggerResponse(True, 'Animations updated successfully')
+
+    def _rgb_frame_to_img_msg(self, rgb_frame: list, brightness: int, frame_id: str) -> Image:
+        img_msg = Image()
+        img_msg.header.frame_id = frame_id
+        img_msg.header.stamp = rospy.Time.now()
+        img_msg.encoding = 'rgba8'
+        img_msg.height = 1
+        img_msg.width = self._num_led
+        img_msg.step = 4 * self._num_led
+
+        rgba_array = [val for rgba in [rgb + [brightness] for rgb in rgb_frame] for val in rgba]
+        img_msg.data = bytes(rgba_array)
+
+        return img_msg
 
     def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
         self._anim_queue.put(animation)
@@ -311,11 +302,11 @@ class LightsControllerNode:
                 if 'priority' in animation:
                     if animation['priority'] == 1:
                         rospy.logwarn(
-                            f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
+                            f'[{rospy.get_name()}] Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
                         )
                         continue
 
-                rospy.loginfo(f'{rospy.get_name()} Adding user animation: {animation["name"]}')
+                rospy.loginfo(f'[{rospy.get_name()}] Adding user animation: {animation["name"]}')
                 # remove old animation definition
                 for anim in self._animations_description:
                     if anim['id'] == animation['id']:
@@ -323,7 +314,7 @@ class LightsControllerNode:
                 self._animations_description.append(animation)
             else:
                 rospy.logwarn(
-                    f'{rospy.get_name()} Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
+                    f'[{rospy.get_name()}] Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
                 )
 
         self._update_animations_list()
@@ -377,7 +368,7 @@ class LightsControllerNode:
                     if not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY:
                         priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
                         rospy.logwarn(
-                            f'{rospy.get_name()} Invalid priority for animaiton: {animation.name}. Using default'
+                            f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default'
                         )
                     animation.priority = priority
 

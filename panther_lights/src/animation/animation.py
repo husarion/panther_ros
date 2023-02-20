@@ -1,7 +1,7 @@
 class Animation:
     def __init__(self, animation_description: dict, num_led: int, controller_freq: float) -> None:
         self._animation_description = animation_description
-        self._brightness = 100
+        self._brightness = 255
         self._num_led = num_led
         self._current_cycle = 0
         self._finished = False
@@ -31,7 +31,7 @@ class Animation:
             self._brightness = float(animation_description['brightness'])
             if not (0 < self._brightness <= 1):
                 raise KeyError('Brightness has to be in range <0,1>')
-            self._brightness = int(round(self._brightness * 100))
+            self._brightness = int(round(self._brightness * 255))
 
         # evaluate number of animation frames
         self._anim_len = int(round(self._duration * controller_freq))
