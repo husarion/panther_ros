@@ -334,16 +334,15 @@ class PantherDriverNode:
                 f'[{rospy.get_name()}] CAN interface connection error (SdoCommunicationError)'
             )
 
-        faults = []
-        for i, field in enumerate(msg_fields_list):
-            if new_val := bool(flag_val & 0b00000001 << i):
-                setattr(msg_obj, field, new_val)
-                faults.append(field)
+        faults = [
+            (lambda field: (setattr(msg_obj, field, True), field))(field_name)[1]
+            for i, field_name in enumerate(msg_fields_list)
+            if bool(flag_val & 0b00000001 << i)
+        ]
 
         if faults:
             fields_str = ', '.join(faults)
-            rospy.logwarn_throttle(
-                1.0,
+            rospy.logwarn(
                 f'[{rospy.get_name()}] Motor controller has detected a fault or runtime error: {fields_str}'
             )
 
