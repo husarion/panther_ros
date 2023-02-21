@@ -50,8 +50,8 @@ class PantherDriverNode:
         ]
 
         self._main_timer_period = 1.0 / 15.0           # freq. 15 Hz
-        self._driver_state_timer_period = 1.0 / 4.0    # freq.  4 Hz
-        self._safety_timer_period = 1.0 / 4.0          # freq.  4 Hz
+        self._driver_state_timer_period = 1.0 / 20.0   # freq. 20 Hz
+        self._safety_timer_period = 1.0 / 20.0         # freq. 20 Hz
         self._time_last = rospy.Time.now()
         self._cmd_vel_command_last_time = rospy.Time.now()
         self._cmd_vel_timeout = 0.2
@@ -70,6 +70,8 @@ class PantherDriverNode:
         self._estop_triggered = False
         self._stop_cmd_vel_cb = True
         self._state_err_no = 0
+
+        self._prev_faults_str = None
 
         # -------------------------------
         #   Kinematic type
@@ -330,7 +332,7 @@ class PantherDriverNode:
         if hasattr(msg_obj, 'can_net_err') and self._panther_can.can_connection_error():
             msg_obj.can_net_err = True
             rospy.logerr_throttle(
-                10.0, 
+                5.0, 
                 f'[{rospy.get_name()}] CAN interface connection error (SdoCommunicationError)'
             )
 
@@ -340,13 +342,21 @@ class PantherDriverNode:
             if bool(flag_val & 0b00000001 << i)
         ]
 
-        if faults:
-            fields_str = ', '.join(faults)
-            rospy.logwarn(
-                f'[{rospy.get_name()}] Motor controller has detected a fault or runtime error: {fields_str}'
-            )
+        if faults and faults != ['safety_stop_active']:
+            self._log_faults(faults)
 
         return msg_obj
+
+    def _log_faults(self, faults: list):
+        faults_str = ', '.join(faults)
+        warn_str = f'[{rospy.get_name()}] Motor controller has detected a fault or runtime error: {faults_str}'
+
+        if set(faults).issubset(self._faults_list):
+            rospy.logerr_throttle(2.0, warn_str)
+        elif set(faults).issubset(self._runtime_errors_list):
+            rospy.logwarn_throttle(2.0, warn_str)
+        elif set(faults).issubset(self._script_flags_list):
+            rospy.logerr_throttle(2.0, warn_str)
 
     def _trigger_panther_estop(self) -> bool:
         try:
