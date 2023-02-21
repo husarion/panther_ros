@@ -4,8 +4,8 @@ Packages composing basic functionalities of the Husarion Panther robot.
 API for each node can be found in each package folder.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://husarion.com/assets/images/night_with_lights-f1e591289905c18c839b2142160e00ef.png">
-  <img alt="Panther preview" src="https://husarion.com/assets/images/day_no_lights-c6e648b30e184a69ccadfb1d8dff0040.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/day_with_lights.png">
+  <img alt="Panther preview" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/day_no_lights.png">
 </picture>
 
 :warning: **Warning**: 
