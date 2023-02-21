@@ -8,15 +8,15 @@ API for each node can be found in each package folder.
   <img alt="Panther preview" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/day_no_lights.png">
 </picture>
 
-:warning: **Warning**: 
-Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Build-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#internal-computer-raspberry-pi-4).
-
-We are making great effort to achieve backward compatibility, but can not test everything. Currently, fully tested images are `v1.0.0` and above. If the command below shows you the tag, you can be assured the newest code will work on your robot.
-``` bash
-echo $SYSTEM_BUILD_VERSION
-```
-
-If you are running an older OS image, the software should run within docker. We did our best to achieve backward compatibility, yet we do not advise using the newest software stack with older OS images.
+> **Warning**: 
+> Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Build-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#internal-computer-raspberry-pi-4).
+>
+> We are making great effort to achieve backward compatibility, but can not test everything. Currently, fully tested images are `v1.0.0` and above. If the command below shows you the tag, you can be assured the newest code will work on your robot.
+> ``` bash
+> echo $SYSTEM_BUILD_VERSION
+> ```
+>
+> If you are running an older OS image, the software should run within docker. We did our best to achieve backward compatibility, yet we do not advise using the newest software stack with older OS images.
 
 ## Docker image
 
