@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
+from threading import Lock
 
 from apa102_pi.driver import apa102
 import RPi.GPIO as GPIO
@@ -37,6 +38,7 @@ class LightsDriverNode:
             rospy.logwarn(f'[{rospy.get_name()}] Invalid brightness: {err}. Using default')
             apa_driver_brightness = LEDConstants.LED_MAX_BRIGHTNESS
 
+        self._lock = Lock()
         self._pixels = apa102.APA102(
             num_led=self._num_led,
             order='rgb',
@@ -129,23 +131,24 @@ class LightsDriverNode:
         return rgb_frame, brightness
 
     def _set_panel_frame(self, panel_num: int, panel_frame: list, brightness: int = 255) -> None:
-        # select panel
-        if panel_num == LEDConstants.PANEL_FRONT and self._front_active:
-            GPIO.output(
-                LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_FRONT_STATE
-            )
-        elif panel_num == LEDConstants.PANEL_REAR and self._rear_active:
-            GPIO.output(LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_REAR_STATE)
-        else:
-            raise ValueError('panther lights have only two panels')
+        with self._lock:
+            # select panel
+            if panel_num == LEDConstants.PANEL_FRONT and self._front_active:
+                GPIO.output(
+                    LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_FRONT_STATE
+                )
+            elif panel_num == LEDConstants.PANEL_REAR and self._rear_active:
+                GPIO.output(LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_REAR_STATE)
+            else:
+                raise ValueError('panther lights have only two panels')
 
-        for i, pixel in enumerate(panel_frame):
-            r = int(pixel[0] * self._color_correction[0])
-            g = int(pixel[1] * self._color_correction[1])
-            b = int(pixel[2] * self._color_correction[2])
-            pixel_hex = (r << 16) + (g << 8) + b
-            self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255 * 100))
-        self._pixels.show()
+            for i, pixel in enumerate(panel_frame):
+                r = int(pixel[0] * self._color_correction[0])
+                g = int(pixel[1] * self._color_correction[1])
+                b = int(pixel[2] * self._color_correction[2])
+                pixel_hex = (r << 16) + (g << 8) + b
+                self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255 * 100))
+            self._pixels.show()
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
         try:

@@ -39,7 +39,7 @@ class ImageAnimation(Animation):
             img_path = img_name
 
         # resize image to match duration
-        original_img = Image.open(img_path)
+        original_img = Image.open(img_path).convert('RGB')
         resized_img = original_img.resize((self._num_led, self._anim_len))
         self._img = np.array(resized_img)
         self._img = self._img[:, :,:3]
