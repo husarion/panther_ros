@@ -44,6 +44,6 @@ then add it to the `BASIC_ANIMATIONS` dictionary:
 ```
 BASIC_ANIMATIONS = {
     ImageAnimation.ANIMATION_NAME: ImageAnimation,
-    MyAnimation.ANIMATION_NAME: MyAnimation,
+    MyCoolAnimation.ANIMATION_NAME: MyCoolAnimation,
 }
 ```
