@@ -239,4 +239,4 @@ rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, p
 
 ### Defining new animation type
 
-It is possible to define your own animation type with expected, new behavior. For more information see: [Animation API](./docs/lights_api.md).
+It is possible to define your own animation type with expected, new behavior. For more information see: [**Animation API**](./docs/lights_api.md).
