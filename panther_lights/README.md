@@ -53,7 +53,7 @@ The node responsible for processing animations and publishing frames to be displ
 
 The node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
 
-#### Subscribe
+#### Subscribes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: robot battery state.
 - `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
