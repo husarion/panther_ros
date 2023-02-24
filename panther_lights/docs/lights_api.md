@@ -6,7 +6,7 @@ Basic animation type. This class consists of:
 
 Arguments:
 
-- `animation_description` [*dict*]: a dictionary containing animation description, `Animation` class will process:
+- `animation_description` [*dict*]: a dictionary containing animation description. Contain following keys:
   - `brightness` [*float*, optional]: will be assigned to the `self._brightness` variable as a value in a range [0,255].
   - `duration` [*float*]: will be assigned to `self._duration` variable.
   - `repeat` [*int*, optional]: will be assigned to `self._loops` variable.
