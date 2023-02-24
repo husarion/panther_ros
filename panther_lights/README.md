@@ -206,7 +206,7 @@ docker compose up -d
 #### 4. Display new animations:
 
 ```bash
-rosservice call /lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
+rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
 ```
 
 ### Updating animation list at a runtime
