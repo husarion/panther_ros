@@ -33,10 +33,30 @@ It is possible to define your own animation type with expected, new behavior. Al
 
 The new animation definition should contain `ANIMATION_NAME` used to identify it. Frames are processed in ticks with a frequency of `controller_freq`. It is required to overwrite the `_update_animation` method which must return a list representing frame for a given tick. The advised way is to use the `self._anim_iteration` variable  (current animation tick) to produce an animation frame. The length of the frame has to match `self._num_led`. Each element of the frame represents a color for a single LED in the LED panel. Colors are described as a list of integers with respectively **R**, **G**, and **B** color values. Additional parameters (eg. image path) can be passed to the `animaiton_description` and processed using the `self._animation_description` variable. See example below or other animation definitions.
 
+Create new animation type:
+
+```python 
+# my_cool_animation.py
+from animation import Animation
+
+
+class MyCoolAnimation(Animation):
+    ANIMATION_NAME = 'my_cool_animation'
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def _update_frame(self) -> list:
+        return [[self._param, self._param, self._param]] * self._num_led
+
+    def set_param(self, value: float) -> None:
+        self._param = value
+```
+
 To add a new animation definition to basic animations edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:
 
 ```
-from .my_animation import MyAnimation
+from .my_cool_animation import MyCoolAnimation
 ```
 
 then add it to the `BASIC_ANIMATIONS` dictionary:
