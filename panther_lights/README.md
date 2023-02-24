@@ -238,6 +238,7 @@ rosservice call /panther/lights/controller/update_animations "{}"
 rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
 ```
 
-### Defining new animation type
+---
+## Defining custom animation type
 
 It is possible to define your own animation type with expected, new behavior. For more information see: [**Animation API**](./lights_api.md).
