@@ -234,7 +234,7 @@ rosservice call /panther/lights/controller/update_animations "{}"
 #### 4. Display new animations:
 
 ```bash
-rosservice call /lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
+rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
 ```
 
 ### Defining new animation type
