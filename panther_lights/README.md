@@ -4,28 +4,10 @@ Package used to control the Husarion Panther LED panels.
 
 ## ROS structure
 
-![panther_lights ROS structure](docs/panther-lights-ros-structure.png)
+![panther_lights ROS structure](https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/panther_lights.drawio.svg
+)
 
 ## ROS Nodes
-
-### driver_node.py
-
-The node responsible for displaying frames on the Husarion Panther robot LED panels.
-
-#### Subscribe
-
-- `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot front LED panel.
-- `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot rear LED panel.
-
-#### Services
-
-- `/panther/lights/controller/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
-
-#### Parameters
-
-- `~frame_timeout` [*float*, default: **0.1**]: time in seconds, after which an incoming frame will be ignored if not processed.
-- `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
-- `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
 
 ### controller_node.py
 
@@ -35,7 +17,7 @@ The node responsible for processing animations and publishing frames to be displ
 
 - `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot front LED panel.
 - `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot rear LED panel.
-#### Services
+#### Services advertised
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
 - `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images, available in testing mode.
@@ -48,6 +30,25 @@ The node responsible for processing animations and publishing frames to be displ
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel. Must match driver `num_led`.
 - `~test` [*bool*, default: **false**]: enables testing mode with some extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
+
+### driver_node.py
+
+The node responsible for displaying frames on the Husarion Panther robot LED panels.
+
+#### Subscribe
+
+- `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot front LED panel.
+- `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot rear LED panel.
+
+#### Services advertised
+
+- `/panther/lights/controller/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
+
+#### Parameters
+
+- `~frame_timeout` [*float*, default: **0.1**]: time in seconds, after which an incoming frame will be ignored if not processed.
+- `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
+- `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
 
 ### scheduler_node.py
 
@@ -74,7 +75,18 @@ The node responsible for scheduling animations displayed on LED panels based on 
 
 ## Animations
 
-Basic animations provided by Husarion are loaded upon node start and parsed as a list using the ROS parameter. Default animations can be found in the table below:
+Basic animations provided by Husarion are loaded upon node start from [`panther_lights_animations.yaml`](config/panther_lights_animations.yaml) and parsed as a list using the ROS parameter. Supported keys are:
+
+- `animation` [*dict*]: definition of animation. See [**Animation types**](#animation-types) section for more info.
+- `id` [*int*]: ID of an animation.
+- `name` [*string*, default: **NAME_NOT_DEFINED**]: name of an animation.
+- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when an animation with given ID arrives:
+    - **1** intterupts and removes animation with priorites **2** and **3**.
+    - **2** interrupts animations with priority **3**.
+    - **3** adds adnimation to the end of queue.
+- `timeout` [*float*, default: **120.0**]: time in seconds after which animation will be removed from the queue.
+
+Default animations can be found in the table below:
 
 | ID  | NAME              | PRIORITY | DESCRIPTION                                                 |
 | :-: | ----------------- | :------: | ----------------------------------------------------------- |
@@ -89,36 +101,25 @@ Basic animations provided by Husarion are loaded upon node start and parsed as a
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
 | 9   | CHARGING_BATTERY  | 1        | solid color with a duty cycle proportional to the battery percentage, color changes from red to green |
 
-Default animations are described in [`panther_lights_animations.yaml`](config/panther_lights_animations.yaml). Supported keys are:
-
-- `animation` [*dict*]: definition of animation. See section below for more info.
-- `id` [*int*]: ID of an animation.
-- `name` [*string*, default: **NAME_NOT_DEFINED**]: name of an animation.
-- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when an animation with given ID arrives:
-    - **1** intterupts and removes animation with priorites **2** and **3**.
-    - **2** interrupts animations with priority **3**.
-    - **3** adds adnimation to the end of queue.
-- `timeout` [*float*, default: **120.0**]: time in seconds after which animation will be removed from the queue.
-
 ### Animation types
 
 #### Animation
 
-Basic animation definition. Supported keys are:
+Basic animation definition. Keys are inherited from basic **Animation** class by all animations. Supported keys are:
 
-- `brightness` [*float*, optional]: animation brightness. This will overwrite `global_brightness` for a given animation.
-- `duration` [*float*]: duration of a single image animation.
-- `repeat` [*int*, optional]: number of times the animation will be repeated, by default animation will run once.
-- `type` [*string*]: required field specyfying animation type, currently suported animation types are: `image_animation`, `battery_animation`, `charging_animation`.
+- `brightness` [*float*, optional]: animation brightness relative to APA102 driver `global_brightness`. Range between [0,1].
+- `duration` [*float*, required]: duration of a single image animation.
+- `repeat` [*int*, default: **1**]: number of times the animation will be repeated, by default animation will run once.
+- `type` [*string*, required]: required field specyfying animation type, currently suported animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
-:bulb: **NOTE:** The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
+> **NOTE:**: The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
 
 #### ImageAnimation
 
 Animation of type `image_animation` returning frame to display based on an image. Additional keys are:
 
 - `color` [*int*, optional]: image will be turned into grayscale and then the color will be applied with brightness from grayscale. Values have to be in HEX format.
-- `image` [*string*]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
+- `image` [*string*, required]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
 
 #### BatteryAnimation
 
@@ -136,9 +137,9 @@ User can define own animations using basic animation types. Similar to basic one
 
 Create a yaml file with an animation description list. Example file: 
 
-:bulb: **NOTE:** ID numbers from 0 to 19 are reserved for system animations.
+> **NOTE:**: ID numbers from 0 to 19 are reserved for system animations.
 
-:bulb: **NOTE:** Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
+> **NOTE:**: Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
 
 ```yaml
 # user_animations.yaml
@@ -194,8 +195,8 @@ Modify also `command` to use user animations:
 command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_animations.yaml --wait
 ```
 
-:warning: **Warning**:
-While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
+> **Warning**:
+> While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
 
 #### 3. Restart the docker container:
 
@@ -239,4 +240,4 @@ rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, p
 
 ### Defining new animation type
 
-It is possible to define your own animation type with expected, new behavior. For more information see: [**Animation API**](./docs/lights_api.md).
+It is possible to define your own animation type with expected, new behavior. For more information see: [**Animation API**](./lights_api.md).

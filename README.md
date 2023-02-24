@@ -104,3 +104,7 @@ hosts:
     username: my-username
 ```
 Refer to the [panther_manager documentation](./panther_manager/README.md) for more information.
+
+## Managing LED animations
+
+Detailed descriptions of default behavior and customization options for Panther LED panels are available in [panther_lights documentation](./panther_lights/README.md).
