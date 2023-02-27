@@ -204,7 +204,7 @@ command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_an
 docker compose up -d
 ```
 
-#### 4. Display new animations:
+#### 4. Test new animations:
 
 ```bash
 rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
