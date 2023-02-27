@@ -232,7 +232,7 @@ rosparam load ./user_animations.yaml /panther/lights_controller_node
 rosservice call /panther/lights/controller/update_animations "{}"
 ```
 
-#### 4. Display new animations:
+#### 4. Test new animations:
 
 ```bash
 rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
