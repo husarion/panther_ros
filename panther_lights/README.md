@@ -92,7 +92,7 @@ Default animations can be found in the table below:
 | :-: | ----------------- | :------: | ----------------------------------------------------------- |
 | 0   | E_STOP            | 1        | red expanding from the center to the edges                  |
 | 1   | READY             | 3        | green expanding from center to the edges                    |
-| 2   | ERROR             | 1        | red blinking twice                                          |
+| 2   | ERROR             | 1        | red, whole panel blinking twice                                          |
 | 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
 | 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
 | 5   | GOAL_ACHIEVED     | 2        | purple blinking three times                                 |
