@@ -53,7 +53,7 @@ class MyCoolAnimation(Animation):
         self._param = value
 ```
 
-To add a new animation definition to basic animations edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:
+To make new animation available in system edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:
 
 ```
 from .my_cool_animation import MyCoolAnimation

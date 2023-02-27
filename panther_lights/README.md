@@ -11,7 +11,7 @@ Package used to control the Husarion Panther LED panels.
 
 ### controller_node.py
 
-The node responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot LED panels.
+This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot LED panels.
 
 #### Publishes
 
@@ -21,19 +21,19 @@ The node responsible for processing animations and publishing frames to be displ
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
 - `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images. Only available if `test` is set to **true**.
-- `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user defined animations based on `~user_animations` parameter.
+- `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user defined animations uisng `~user_animations` parameter.
 
 #### Parameters
 
 - `~animations` [*list*, default: **None**]:  required list of defined animations.
-- `~controller_frequency` [*float*, default: **100**]: frequency at which the lights controller node will process animations.
+- `~controller_frequency` [*float*, default: **46**]: frequency at which the lights controller node will process animations.
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel. Must match driver `num_led`.
 - `~test` [*bool*, default: **false**]: enables testing mode, enabling extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
 ### driver_node.py
 
-The node responsible for displaying frames on the Husarion Panther robot LED panels.
+This node is responsible for displaying frames on the Husarion Panther robot LED panels.
 
 #### Subscribes
 
@@ -52,12 +52,11 @@ The node responsible for displaying frames on the Husarion Panther robot LED pan
 
 ### scheduler_node.py
 
-The node responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
+This node is responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
 
 #### Subscribes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: robot battery state.
-- `/panther/hardware/charger_connected` [*std_msgs/Bool*]: informs if charger is connected.
 - `/panther/hardware/e_stop` [*std_msgs/Bool*]: informs if robot is in emergency stop state.
 
 #### Services subscribed
@@ -66,6 +65,7 @@ The node responsible for scheduling animations displayed on LED panels based on 
 
 #### Parameters
 
+- `~battery_state_anim_period` [*float*, default: **120.0**]: time in seconds to wait before repeating animation representing current battery percentage.
 - `~charging_battery_anim_period` [*float*, default: **20.0**]: time in seconds to wait before updating the charging battery animation if the battery percentage has changed by the value specified in the `update_charging_animation_step` param.
 - `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
 - `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
@@ -77,7 +77,10 @@ The node responsible for scheduling animations displayed on LED panels based on 
 
 Basic animations provided by Husarion are loaded upon node start from [`panther_lights_animations.yaml`](config/panther_lights_animations.yaml) and parsed as a list using the ROS parameter. Supported keys are:
 
-- `animation` [*dict*]: definition of animation. See [**Animation types**](#animation-types) section for more info.
+- `animation` [*dict*]: definition of animation for each LED panel. Use keys described below to display the same animation on both panels or different ones on each. The keys for configuration of different animations are explained in detail under the [**Animation types**](#animation-types) section.
+  - `both` animation for front and rear LED panel.
+  - `front` animation for front LED panel.
+  - `rear` animation for rear LED panel.
 - `id` [*int*]: ID of an animation.
 - `name` [*string*, default: **NAME_NOT_DEFINED**]: name of an animation.
 - `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when an animation with given ID arrives:
@@ -92,10 +95,10 @@ Default animations can be found in the table below:
 | :-: | ----------------- | :------: | ----------------------------------------------------------- |
 | 0   | E_STOP            | 1        | red expanding from the center to the edges                  |
 | 1   | READY             | 3        | green expanding from center to the edges                    |
-| 2   | ERROR             | 1        | red, whole panel blinking twice                                          |
+| 2   | ERROR             | 1        | red, whole panel blinking twice                             |
 | 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
 | 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
-| 5   | GOAL_ACHIEVED     | 2        | purple, whole panel blinking three times                                 |
+| 5   | GOAL_ACHIEVED     | 2        | purple, whole panel blinking three times                    |
 | 6   | LOW_BATTERY       | 1        | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | 1        | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
@@ -112,7 +115,7 @@ Basic animation definition. Keys are inherited from basic **Animation** class by
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
 - `type` [*string*, required]: animation type, default animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
-> **Note**: The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
+> **Note**: Overall display duration of an animation is a product of a single image duration and repeat count. Result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
 
 #### ImageAnimation
 
@@ -133,13 +136,11 @@ Animation of type `charging_animation` returning frame to display based on `para
 
 User can define own animations using basic animation types. Similar to basic ones user animations are parsed using a ROS parameter `/panther/lights/lights_controller_node/user_animations`. They can be loaded on node start or updated using the `/panther/lights/controller/update_animations` ROS service. For `ImageAnimation` you can use basic images from the `animations` folder and change their color with the `color` key ([see ImageAnimation](#imageanimation)). Follow the example below to add custom animations. 
 
-#### 1. Create an animation description list.
-
-Create a yaml file with an animation description list. Example file: 
+1. Create a yaml file with an animation description list. Example file: 
 
 > **Note**: ID numbers from 0 to 19 are reserved for system animations.
 
-> **Note**: Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
+> **Note**: Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
 
 ```yaml
 # user_animations.yaml
@@ -179,17 +180,14 @@ user_animations:
         repeat: 1
 ```
 
-#### 2. Modify compose file.
-
-Add docker volume with a previously created animation description list. If using custom images for `ImageAnimation`, add also a docker volume with a folder containing custom images. On Raspberry Pi modify `compose.yaml`:
+2. Add docker volume with a previously created animation description list. If using custom images for `ImageAnimation`, add also a docker volume with a folder containing custom images. On built-in computer modify `compose.yaml`:
 
 ```yaml
 volumes:
   - ./user_animations.yaml:/user_animations.yaml
   - ./animations:/animations
 ```
-
-Modify also `command` to use user animations:
+Remember to modify command to use user animations:
 
 ```yaml
 command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_animations.yaml --wait
@@ -198,13 +196,13 @@ command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_an
 > **Warning**:
 > While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will only refere to paths inside docker container.
 
-#### 3. Restart the docker container:
+3. Restart the docker container:
 
 ```
 docker compose up -d
 ```
 
-#### 4. Test new animations:
+4. Test new animations:
 
 ```bash
 rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
@@ -214,11 +212,9 @@ rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, p
 
 User animations can be also updated at a runtime.
 
-#### 1. Create animation description list
+1. Create a yaml file with an animation description list similar to one in [Defining animations](#defining-animations).
 
-Create a yaml file with an animation description list similar to step 1 in [Defining animations](#defining-animations).
-
-#### 2. Update user animations ROS parameter:
+2. Update user animations ROS parameter:
 
 ```bash
 rosparam load /path_to_description_file /namespace
@@ -226,13 +222,13 @@ rosparam load /path_to_description_file /namespace
 rosparam load ./user_animations.yaml /panther/lights_controller_node
 ```
 
-#### 3. Update animation list with ROS service:
+3. Update animation list with ROS service:
 
 ```bash
 rosservice call /panther/lights/controller/update_animations "{}"
 ```
 
-#### 4. Test new animations:
+4. Test new animations:
 
 ```bash
 rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
