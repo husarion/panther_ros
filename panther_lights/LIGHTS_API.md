@@ -15,7 +15,7 @@ Arguments:
 
 Functions:
 
-- `__call__` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel based on the `_update_animation` method. Handles animation repeating updates animation iteration and progress.
+- `__call__` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel based on the `_update_animation` method. Handles looping over animation based on `repeating` parameter, iterating over animation, and updating its progress.
 - `_update_animation` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel. Colors are described as a list of integers with respectively **R**, **G**, and **B** color values. By default not implemented.
 - `reset` - resets animation to initial state. If overwritten requires calling parent class implementation first.
 - `set_param` - allows processing an additional parameter passed to the animation when it is created. 
