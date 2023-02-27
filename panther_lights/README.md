@@ -196,7 +196,7 @@ command: roslaunch panther_bringup bringup.launch user_animations_file:=/user_an
 ```
 
 > **Warning**:
-> While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will refere to paths inside docker container.
+> While using docker you will only be able to find packages that are within that docker. Only images from packages that were built inside that docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will only refere to paths inside docker container.
 
 #### 3. Restart the docker container:
 
