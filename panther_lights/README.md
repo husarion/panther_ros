@@ -110,7 +110,7 @@ Basic animation definition. Keys are inherited from basic **Animation** class by
 - `brightness` [*float*, optional]: animation brightness relative to APA102 driver `global_brightness`. Range between [0,1].
 - `duration` [*float*, required]: duration of an animation for a given panel.
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
-- `type` [*string*, required]: required field specyfying animation type, currently suported animation types are: `image_animation`, `battery_animation`, `charging_animation`.
+- `type` [*string*, required]: animation type, default animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
 > **Note**: The overall display duration of an animation is a product of a single image duration and repeat count. It can't exceed 10 seconds.
 
