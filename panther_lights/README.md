@@ -20,7 +20,7 @@ The node responsible for processing animations and publishing frames to be displ
 #### Services advertised
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
-- `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images, available in testing mode.
+- `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images. Only available if `test` is set to **true**.
 - `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user defined animations based on `~user_animations` parameter.
 
 #### Parameters
