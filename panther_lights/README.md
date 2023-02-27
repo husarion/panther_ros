@@ -137,7 +137,7 @@ User can define own animations using basic animation types. Similar to basic one
 
 Create a yaml file with an animation description list. Example file: 
 
-> **NOTE:**: ID numbers from 0 to 19 are reserved for system animations.
+> **Note**: ID numbers from 0 to 19 are reserved for system animations.
 
 > **NOTE:**: Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
 
