@@ -108,7 +108,7 @@ Default animations can be found in the table below:
 Basic animation definition. Keys are inherited from basic **Animation** class by all animations. Supported keys are:
 
 - `brightness` [*float*, optional]: animation brightness relative to APA102 driver `global_brightness`. Range between [0,1].
-- `duration` [*float*, required]: duration of a single image animation.
+- `duration` [*float*, required]: duration of an animation for a given panel.
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated, by default animation will run once.
 - `type` [*string*, required]: required field specyfying animation type, currently suported animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
