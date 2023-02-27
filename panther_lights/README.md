@@ -139,7 +139,7 @@ Create a yaml file with an animation description list. Example file:
 
 > **Note**: ID numbers from 0 to 19 are reserved for system animations.
 
-> **NOTE:**: Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
+> **Note**: Priority **1** is reserved for crucial system animations. Users can only define animations with lower priority. 
 
 ```yaml
 # user_animations.yaml
