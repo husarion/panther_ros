@@ -116,7 +116,7 @@ Basic animation definition. Keys are inherited from basic **Animation** class by
 
 #### ImageAnimation
 
-Animation of type `image_animation` returning frame to display based on an image. Additional keys are:
+Animation of type `image_animation`, returns frames to display based on an supplied image. Extends `Animation` with keys:
 
 - `color` [*int*, optional]: image will be turned into grayscale and then the color will be applied with brightness from grayscale. Values have to be in HEX format.
 - `image` [*string*, required]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
