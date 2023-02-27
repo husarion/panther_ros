@@ -35,7 +35,7 @@ The node responsible for processing animations and publishing frames to be displ
 
 The node responsible for displaying frames on the Husarion Panther robot LED panels.
 
-#### Subscribe
+#### Subscribes
 
 - `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot front LED panel.
 - `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot rear LED panel.
