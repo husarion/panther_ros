@@ -99,7 +99,7 @@ Default animations can be found in the table below:
 | 6   | LOW_BATTERY       | 1        | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | 1        | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
-| 9   | CHARGING_BATTERY  | 1        | solid color with a duty cycle proportional to the battery percentage, color changes from red to green |
+| 9   | CHARGING_BATTERY  | 1        | whole panel blinking with a duty cycle proportional to the battery percentage. Short blinking means low battery, no blinking means full battery. Color changes from red to green |
 
 ### Animation types
 
