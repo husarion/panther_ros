@@ -13,7 +13,7 @@ Arguments:
 - `num_led` [*int*]: number of LEDs in a panel.
 - `controller_freq` [*float*]: controller frequency at which animation frames will be processed.
 
-Methods:
+Functions:
 
 - `__call__` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel based on the `_update_animation` method. Handles animation repeating updates animation iteration and progress.
 - `_update_animation` - returns a list of length `num_led` with **RGB** values of colors to be displayed on the LED panel. Colors are described as a list of integers with respectively **R**, **G**, and **B** color values. By default not implemented.
