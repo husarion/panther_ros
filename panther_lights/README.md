@@ -95,7 +95,7 @@ Default animations can be found in the table below:
 | 2   | ERROR             | 1        | red, whole panel blinking twice                                          |
 | 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
 | 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
-| 5   | GOAL_ACHIEVED     | 2        | purple blinking three times                                 |
+| 5   | GOAL_ACHIEVED     | 2        | purple, whole panel blinking three times                                 |
 | 6   | LOW_BATTERY       | 1        | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | 1        | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
