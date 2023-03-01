@@ -21,7 +21,7 @@ This node is responsible for processing animations and publishing frames to be d
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
 - `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images. Only available if `~test` parameter is set to **true**.
-- `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user defined animations uisng `~user_animations` parameter.
+- `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user defined animations using `~user_animations` parameter.
 
 #### Parameters
 
@@ -83,11 +83,11 @@ Basic animations provided by Husarion are loaded upon node start from [`panther_
   - `rear` animation for rear LED panel.
 - `id` [*int*]: ID of an animation.
 - `name` [*string*, default: **UNDEFINED**]: name of an animation.
-- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. List below shows behaviour when an animation with given ID arrives:
-    - **1** intterupts and removes animation with priorites **2** and **3**.
+- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows behavior when an animation with a given ID arrives:
+    - **1** interrupts and removes animation with priorities **2** and **3**.
     - **2** interrupts animations with priority **3**.
-    - **3** adds adnimation to the end of queue.
-- `timeout` [*float*, default: **120.0**]: time in seconds after which animation will be removed from the queue.
+    - **3** adds animation to the end of queue.
+- `timeout` [*float*, default: **120.0**]: time in seconds, after which animation will be removed from the queue.
 
 Default animations can be found in the table below:
 
@@ -126,7 +126,7 @@ Animation of type `image_animation`, returns frames to display based on an suppl
 
 #### BatteryAnimation
 
-Animation of type `battery_animation` returning frame to display based on `param` value representing battery percentage. Animation displays two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center. Color changes from red (battery discharged) to green (battery full).
+Animation of type `battery_animation` returning frame to display based on `param` value representing battery percentage. The animation displays two stripes moving towards the edges, stopping at a point representing battery percentage and filling back to the center. Color changes from red (battery discharged) to green (battery full).
 
 ### ChargingAnimation
 
@@ -134,7 +134,7 @@ Animation of type `charging_animation` returning frame to display based on `para
 
 ### Defining animations
 
-User can define own animations using basic animation types. Similar to basic ones user animations are parsed using a ROS parameter `/panther/lights/lights_controller_node/user_animations`. They can be loaded on node start or updated using the `/panther/lights/controller/update_animations` ROS service. For `ImageAnimation` you can use basic images from the `animations` folder and change their color with the `color` key ([see ImageAnimation](#imageanimation)). Follow the example below to add custom animations. 
+User can define own animations using basic animation types. Similar to basic ones, user animations are parsed using a ROS parameter `/panther/lights/lights_controller_node/user_animations`. They can be loaded on node start or updated using the `/panther/lights/controller/update_animations` ROS service. For `ImageAnimation` you can use basic images from the `animations` folder and change their color with the `color` key ([see ImageAnimation](#imageanimation)). Follow the example below to add custom animations. 
 
 Create a yaml file with an animation description list. Example file: 
 
@@ -230,7 +230,7 @@ rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, p
 
 ### Updating animation list at a runtime
 
-User animations can be also updated at a runtime.
+User animations can also be updated at a runtime.
 
 Create a yaml file with an animation description list similar to one in [Defining animations](#defining-animations). Then update user animations ROS parameter:
 
