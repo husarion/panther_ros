@@ -107,7 +107,7 @@ Refer to the [panther_manager documentation](./panther_manager/README.md) for mo
 
 ## Managing LED animations
 
-You can easily customize Panther LED panels by defining new animations based on images. They can be created with simple YAML snippet, such as the one shown below: 
+You can easily customize Panther LED panels by defining new animations based on images. They can be created with simple YAML syntax, such as the one shown below: 
 
 ```python
 # user_animations.yaml
