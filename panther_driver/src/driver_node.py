@@ -314,9 +314,14 @@ class PantherDriverNode:
             self._driver_flag_loggers['script_flags'](flag_val)
             for flag_val in self._panther_can.query_script_flags()
         ]
-        self._driver_state_msg.front.script_flag.can_net_err = (
-            self._driver_state_msg.rear.script_flag.can_net_err
-        ) = self._can_interface.can_connection_error()
+
+        if self._can_interface.can_connection_error():
+            self._driver_state_msg.front.script_flag.can_net_err = (
+                self._driver_state_msg.rear.script_flag.can_net_err
+            ) = True
+            rospy.logerr_throttle(
+                10.0, f'[{rospy.get_name()}] CAN interface connection error.'
+            )
 
         [
             self._driver_state_msg.front.right_motor.runtime_error,
