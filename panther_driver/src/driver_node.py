@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
+from dataclasses import dataclass
 import math
 from time import sleep
-from typing import Union
+from typing import TypeVar
 
 import rospy
 import tf2_ros
@@ -17,6 +18,45 @@ from panther_msgs.msg import DriverState, FaultFlag, ScriptFlag, RuntimeError
 
 from panther_can import PantherCANSDO, PantherCANPDO
 from panther_kinematics import PantherDifferential, PantherMecanum
+
+
+class DriverFlagLogger:
+    MAX_LOG_INTERVAL = 2.0
+    MsgType = TypeVar('MsgType', FaultFlag, RuntimeError, ScriptFlag)
+
+    def __init__(self, flag_list: list, msg_type: MsgType) -> None:
+        self._flag_list = flag_list
+        self._msg_type = msg_type
+        self._last_log_time = rospy.Time.now()
+        self._last_logged_msg_state = None
+
+    def __call__(self, flag_val: int) -> MsgType:
+        msg = self._msg_type()
+
+        faults = [
+            self._set_msg_field_and_return_name(field_name, msg)
+            for i, field_name in enumerate(self._flag_list)
+            if bool(flag_val & 0b00000001 << i)
+        ]
+        faults.remove('safety_stop_active') if 'safety_stop_active' in faults else None
+
+        if faults and (
+            (rospy.Time.now() - self._last_log_time).secs > self.MAX_LOG_INTERVAL
+            or self._last_logged_msg_state != flag_val
+        ):
+            faults_str = ', '.join(faults)
+            rospy.logwarn(
+                f'[{rospy.get_name()}] Motor controller faults: {faults_str}'
+            )
+
+            self._last_log_time = rospy.Time.now()
+            self._last_logged_msg_state = flag_val
+
+        return msg
+    
+    def _set_msg_field_and_return_name(self, field_name: str, msg: MsgType) -> str:
+        setattr(msg, field_name, True)
+        return field_name
 
 
 class PantherDriverNode:
@@ -141,7 +181,7 @@ class PantherDriverNode:
         self._driver_state_msg.rear.right_motor.motor_joint_name = self._wheels_joints_names[3]
         self._driver_state_publisher = rospy.Publisher('driver/motor_controllers_state', DriverState, queue_size=1)
 
-        self._faults_list = [
+        driver_fault_flags = [
             'overheat', 
             'overvoltage',
             'undervoltage',
@@ -151,7 +191,7 @@ class PantherDriverNode:
             'mosfet_failure',
             'default_config_loaded_at_startup', 
         ]
-        self._runtime_errors_list = [
+        driver_runtime_errors = [
             'amps_limit_active',
             'motor_stall',
             'loop_error',
@@ -160,11 +200,17 @@ class PantherDriverNode:
             'reverse_limit_triggered',
             'amps_trigger_activated',
         ]
-        self._script_flags_list = [
+        script_flags = [
             'loop_error',
             'encoder_disconected',
             'amp_limiter',
         ]
+
+        self._driver_flag_loggers = {
+            'fault_flags': DriverFlagLogger(driver_fault_flags, FaultFlag),
+            'runtime_errors': DriverFlagLogger(driver_runtime_errors, RuntimeError),
+            'script_flags': DriverFlagLogger(script_flags, ScriptFlag),
+        }
 
         rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
         rospy.Subscriber('hardware/e_stop', Bool, self._estop_cb, queue_size=1)
@@ -257,17 +303,20 @@ class PantherDriverNode:
             self._driver_state_msg.front.fault_flag, 
             self._driver_state_msg.rear.fault_flag,
         ] = [
-            self._decode_flag(msg_obj=FaultFlag(), msg_fields_list=self._faults_list, flag_val=flag_val)
+            self._driver_flag_loggers['fault_flags'](flag_val)
             for flag_val in self._panther_can.query_fault_flags()
         ]
-
+        
         [
             self._driver_state_msg.front.script_flag,
             self._driver_state_msg.rear.script_flag,
         ] = [
-            self._decode_flag(msg_obj=ScriptFlag(), msg_fields_list=self._script_flags_list, flag_val=flag_val)
+            self._driver_flag_loggers['script_flags'](flag_val)
             for flag_val in self._panther_can.query_script_flags()
         ]
+        self._driver_state_msg.front.script_flag.can_net_err = (
+            self._driver_state_msg.rear.script_flag.can_net_err
+        ) = self._can_interface.can_connection_error()
 
         [
             self._driver_state_msg.front.right_motor.runtime_error,
@@ -275,7 +324,7 @@ class PantherDriverNode:
             self._driver_state_msg.rear.right_motor.runtime_error,
             self._driver_state_msg.rear.left_motor.runtime_error
         ] = [
-            self._decode_flag(msg_obj=RuntimeError(), msg_fields_list=self._runtime_errors_list, flag_val=flag_val) 
+            self._driver_flag_loggers['runtime_errors'](flag_val)
             for flag_val in self._panther_can.query_runtime_stat_flag()
         ]
 
@@ -302,11 +351,6 @@ class PantherDriverNode:
         if not self._stop_cmd_vel_cb:
             self._panther_kinematics.inverse_kinematics(data)
         else:
-            rospy.loginfo_throttle(
-                2.0, 
-                f'[{rospy.get_name()}] Temporary break in enforcement of commands from '
-                f'/cmd_vel topic due to abnormalities communicated by motor controllers.'
-            )
             self._panther_kinematics.inverse_kinematics(Twist())
 
         self._cmd_vel_command_last_time = rospy.Time.now()
@@ -324,39 +368,6 @@ class PantherDriverNode:
             self._state_err_no = 0
     
         return (self._state_err_no <= 1 / self._driver_state_timer_period)
-    
-    def _decode_flag(
-        self, msg_obj: Union[FaultFlag, RuntimeError, ScriptFlag], msg_fields_list: list, flag_val: int
-    ) -> Union[FaultFlag, RuntimeError, ScriptFlag]:
-        
-        if hasattr(msg_obj, 'can_net_err') and self._panther_can.can_connection_error():
-            msg_obj.can_net_err = True
-            rospy.logerr_throttle(
-                5.0, 
-                f'[{rospy.get_name()}] CAN interface connection error (SdoCommunicationError)'
-            )
-
-        faults = [
-            (lambda field: (setattr(msg_obj, field, True), field))(field_name)[1]
-            for i, field_name in enumerate(msg_fields_list)
-            if bool(flag_val & 0b00000001 << i)
-        ]
-
-        if faults and faults != ['safety_stop_active']:
-            self._log_faults(faults)
-
-        return msg_obj
-
-    def _log_faults(self, faults: list):
-        faults_str = ', '.join(faults)
-        warn_str = f'[{rospy.get_name()}] Motor controller has detected a fault or runtime error: {faults_str}'
-
-        if set(faults).issubset(self._faults_list):
-            rospy.logerr_throttle(2.0, warn_str)
-        elif set(faults).issubset(self._runtime_errors_list):
-            rospy.logwarn_throttle(2.0, warn_str)
-        elif set(faults).issubset(self._script_flags_list):
-            rospy.logerr_throttle(2.0, warn_str)
 
     def _trigger_panther_estop(self) -> bool:
         try:
