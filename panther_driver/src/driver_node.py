@@ -351,7 +351,7 @@ class PantherDriverNode:
         if self._panther_can.can_connection_error() and not self._estop_triggered:
             self._trigger_panther_estop()
             self._stop_cmd_vel_cb = True
-        elif (not driver_state_correct or self._estop_triggered):
+        elif not driver_state_correct or self._estop_triggered:
             self._stop_cmd_vel_cb = True
         else:
             self._stop_cmd_vel_cb = False
