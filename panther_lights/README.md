@@ -17,6 +17,8 @@ This node is responsible for processing animations and publishing frames to be d
 
 - `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot front LED panel.
 - `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot rear LED panel.
+- `/panther/lights/controller/queue` [*panther_msgs/LEDAnimationQueue*]: list with names of animations that are being processed by controller node, the first element of the list is currently displayed animation.
+
 #### Services advertised
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
