@@ -114,15 +114,13 @@ You can easily customize Panther LED panels by defining new animations based on 
 user_animations:
   # animation with default image and custom color
   - id: 21
-    name: 'ANIMATION_1'
+    name: 'MY_AWESOME_ANIMATION'
     priority: 2
     animation:
       both:
         type: image_animation
         image: $(find panther_lights)/animations/strip01_red.png
         duration: 2
-        repeat: 2
-        color: 0xffff00
 ```
 
 You also have the option to create code-based animations. Detailed information on how to make use of these features, as well as a description of default behavior and customization options for Panther LED panels, can be found in [panther_lights documentation](./panther_lights/README.md).
