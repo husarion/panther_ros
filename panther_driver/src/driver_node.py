@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-from dataclasses import dataclass
 import math
 from time import sleep
 from typing import TypeVar
@@ -24,13 +23,41 @@ class DriverFlagLogger:
     MAX_LOG_INTERVAL = 2.0
     MsgType = TypeVar('MsgType', FaultFlag, RuntimeError, ScriptFlag)
 
-    def __init__(self, flag_list: list, msg_type: MsgType) -> None:
+    def __init__(self, flag_list: list, msg_type: MsgType, driver_state_timer_period: int) -> None:
         self._flag_list = flag_list
         self._msg_type = msg_type
         self._last_log_time = rospy.Time.now()
         self._last_logged_msg_state = None
 
+        self._state_err_cnt = 0
+        self._max_state_err_cnt = 20.0  # timer freq. 20 Hz
+        self._driver_state_correct = False
+
     def __call__(self, flag_val: int) -> MsgType:
+        self._driver_state_correct = self._driver_state_is_correct(flag_val)
+        faults, msg = self._decode_flag(flag_val)
+
+        if faults and (
+            (rospy.Time.now() - self._last_log_time).secs > self.MAX_LOG_INTERVAL
+            or self._last_logged_msg_state != flag_val
+        ):
+            faults_str = ', '.join(faults)
+            rospy.logwarn(f'[{rospy.get_name()}] Motor controller faults: {faults_str}')
+
+            self._last_log_time = rospy.Time.now()
+            self._last_logged_msg_state = flag_val
+
+        return msg
+
+    @property
+    def driver_state_correct(self):
+        return self._driver_state_correct
+
+    def _driver_state_is_correct(self, flag_val: int) -> bool:
+        self._state_err_cnt = self._state_err_cnt + 1 if flag_val else 0
+        return self._state_err_cnt <= self._max_state_err_cnt
+
+    def _decode_flag(self, flag_val: int) -> list:
         msg = self._msg_type()
 
         faults = [
@@ -40,20 +67,8 @@ class DriverFlagLogger:
         ]
         faults.remove('safety_stop_active') if 'safety_stop_active' in faults else None
 
-        if faults and (
-            (rospy.Time.now() - self._last_log_time).secs > self.MAX_LOG_INTERVAL
-            or self._last_logged_msg_state != flag_val
-        ):
-            faults_str = ', '.join(faults)
-            rospy.logwarn(
-                f'[{rospy.get_name()}] Motor controller faults: {faults_str}'
-            )
+        return faults, msg
 
-            self._last_log_time = rospy.Time.now()
-            self._last_logged_msg_state = flag_val
-
-        return msg
-    
     def _set_msg_field_and_return_name(self, field_name: str, msg: MsgType) -> str:
         setattr(msg, field_name, True)
         return field_name
@@ -103,15 +118,9 @@ class PantherDriverNode:
         self._wheels_ang_pos = [0.0, 0.0, 0.0, 0.0]
         self._wheels_ang_vel = [0.0, 0.0, 0.0, 0.0]
         self._motors_effort = [0.0, 0.0, 0.0, 0.0]
-        self._roboteq_fault_flags = [0, 0]
-        self._roboteq_script_flags = [0, 0]
-        self._roboteq_runtime_flags = [0, 0, 0, 0]
 
         self._estop_triggered = False
         self._stop_cmd_vel_cb = True
-        self._state_err_no = 0
-
-        self._prev_faults_str = None
 
         # -------------------------------
         #   Kinematic type
@@ -200,7 +209,7 @@ class PantherDriverNode:
             'reverse_limit_triggered',
             'amps_trigger_activated',
         ]
-        script_flags = [
+        driver_script_flags = [
             'loop_error',
             'encoder_disconected',
             'amp_limiter',
@@ -209,7 +218,7 @@ class PantherDriverNode:
         self._driver_flag_loggers = {
             'fault_flags': DriverFlagLogger(driver_fault_flags, FaultFlag),
             'runtime_errors': DriverFlagLogger(driver_runtime_errors, RuntimeError),
-            'script_flags': DriverFlagLogger(script_flags, ScriptFlag),
+            'script_flags': DriverFlagLogger(driver_script_flags, ScriptFlag),
         }
 
         rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
@@ -336,15 +345,14 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
+        driver_state_correct = any(
+            logger.driver_state_correct for logger in self._driver_flag_loggers.values()
+        )
         if self._panther_can.can_connection_error() and not self._estop_triggered:
             self._trigger_panther_estop()
             self._stop_cmd_vel_cb = True
-
-        elif (
-            not self._roboteq_state_is_correct([self._roboteq_fault_flags, self._roboteq_runtime_flags]) or
-            self._estop_triggered):
+        elif (not driver_state_correct or self._estop_triggered):
             self._stop_cmd_vel_cb = True
-
         else:
             self._stop_cmd_vel_cb = False
 
@@ -359,20 +367,6 @@ class PantherDriverNode:
             self._panther_kinematics.inverse_kinematics(Twist())
 
         self._cmd_vel_command_last_time = rospy.Time.now()
-
-    def _roboteq_state_is_correct(self, flags: list) -> bool:
-        error_detected = False
-        
-        for flag in flags:
-            if flag.count(0.0) != len(flag):
-                error_detected = True 
-
-        if error_detected:
-            self._state_err_no += 1  
-        else:
-            self._state_err_no = 0
-    
-        return (self._state_err_no <= 1 / self._driver_state_timer_period)
 
     def _trigger_panther_estop(self) -> bool:
         try:
