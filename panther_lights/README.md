@@ -42,7 +42,7 @@ This node is responsible for displaying frames on the Husarion Panther robot LED
 
 #### Services advertised
 
-- `/panther/lights/controller/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
+- `/panther/lights/driver/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows to set global LED brightness, value ranges from 0 to 1.
 
 #### Parameters
 
