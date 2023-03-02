@@ -60,9 +60,6 @@ class AnimationsQueue:
     def get(self) -> PantherAnimation:
         return self._queue.pop(0)
 
-    def get_queue(self) -> list:
-        return self._queue
-
     def empty(self) -> bool:
         return len(self._queue) == 0
 
@@ -94,6 +91,10 @@ class AnimationsQueue:
             return self._queue[0].priority
         else:
             return PantherAnimation.ANIMATION_DEFAULT_PRIORITY
+
+    @property
+    def queue(self) -> list:
+        return self._queue
 
 
 class LightsControllerNode:
@@ -223,7 +224,7 @@ class LightsControllerNode:
     def _animation_queue_timer_cb(self, *args):
         anim_queue_msg = LEDAnimationQueue()
         if not self._anim_queue.empty():
-            anim_queue_msg.queue = [anim.name for anim in self._anim_queue.get_queue()]
+            anim_queue_msg.queue = [anim.name for anim in self._anim_queue.queue]
         if self._current_animation:
             anim_queue_msg.queue.insert(0, self._current_animation.name)
         self._animation_queue_publisher.publish(anim_queue_msg)
