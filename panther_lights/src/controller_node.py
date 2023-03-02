@@ -7,7 +7,7 @@ import rospy
 from sensor_msgs.msg import Image
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
-from panther_msgs.msg import LEDImageAnimation
+from panther_msgs.msg import LEDAnimationQueue, LEDImageAnimation
 from panther_msgs.srv import SetLEDAnimation, SetLEDAnimationRequest, SetLEDAnimationResponse
 from panther_msgs.srv import (
     SetLEDImageAnimation,
@@ -92,6 +92,10 @@ class AnimationsQueue:
         else:
             return PantherAnimation.ANIMATION_DEFAULT_PRIORITY
 
+    @property
+    def queue(self) -> list:
+        return self._queue
+
 
 class LightsControllerNode:
     def __init__(self, name: str) -> None:
@@ -129,6 +133,9 @@ class LightsControllerNode:
         self._rear_frame_publisher = rospy.Publisher(
             'lights/driver/rear_panel_frame', Image, queue_size=10
         )
+        self._animation_queue_publisher = rospy.Publisher(
+            'lights/controller/queue', LEDAnimationQueue, queue_size=10
+        )
 
         # -------------------------------
         #   Services
@@ -153,6 +160,10 @@ class LightsControllerNode:
 
         self._controller_timer = rospy.Timer(
             rospy.Duration(1 / self._controller_frequency), self._controller_timer_cb
+        )
+        # Running at 2Hz
+        self._animation_queue_timer = rospy.Timer(
+            rospy.Duration(0.5), self._animation_queue_timer_cb
         )
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
@@ -209,6 +220,14 @@ class LightsControllerNode:
         self._rear_frame_publisher.publish(
             self._rgb_frame_to_img_msg(frame_rear, brightness_rear, 'rear_light_link')
         )
+
+    def _animation_queue_timer_cb(self, *args):
+        anim_queue_msg = LEDAnimationQueue()
+        if not self._anim_queue.empty():
+            anim_queue_msg.queue = [anim.name for anim in self._anim_queue.queue]
+        if self._current_animation:
+            anim_queue_msg.queue.insert(0, self._current_animation.name)
+        self._animation_queue_publisher.publish(anim_queue_msg)
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         try:
