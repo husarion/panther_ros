@@ -178,7 +178,7 @@ class LightsControllerNode:
         if self._current_animation:
             if self._current_animation.priority > self._anim_queue.first_anim_priority:
                 if (
-                    self._current_animation.front.progress < 0.9
+                    self._current_animation.front.progress < 0.8
                     and not self._current_animation.repeating
                 ):
                     self._current_animation.front.reset()
@@ -211,6 +211,9 @@ class LightsControllerNode:
         )
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
+        if not req.animation.id in self._animations:
+            return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
+
         try:
             animation = deepcopy(self._animations[req.animation.id])
             animation.front.set_param(req.animation.param)
@@ -218,8 +221,8 @@ class LightsControllerNode:
             animation.reset_time()
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
-        except ValueError:
-            return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
+        except ValueError as err:
+            return SetLEDAnimationResponse(False, f'Failed to add animation to queue: {err}')
 
         return SetLEDAnimationResponse(
             True, f'Successfully set an animation with id {req.animation.id}'

@@ -143,7 +143,7 @@ Create a yaml file with an animation description list. Example file:
 user_animations:
   # animation with default image and custom color
   - id: 21
-    name: 'ANIMATION_1'
+    name: ANIMATION_1
     priority: 2
     animation:
       both:
@@ -155,7 +155,7 @@ user_animations:
 
   # animation with custom image
   - id: 22
-    name: 'ANIMATION_2'
+    name: ANIMATION_2
     priority: 3
     animation:
       both:
@@ -166,7 +166,7 @@ user_animations:
 
   # animation with custom image from custom ROS package
   - id: 23
-    name: 'ANIMATION_3'
+    name: ANIMATION_3
     priority: 3
     animation:
       both:
@@ -177,7 +177,7 @@ user_animations:
 
   # different animations for front and rear panel
   - id: 24
-    name: 'ANIMATION_4'
+    name: ANIMATION_4
     priority: 3
     animation:
       front:

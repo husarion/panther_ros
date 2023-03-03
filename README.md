@@ -109,12 +109,12 @@ Refer to the [panther_manager documentation](./panther_manager/README.md) for mo
 
 You can easily customize Panther LED panels by defining new animations based on images. They can be created with simple YAML syntax, such as the one shown below: 
 
-```python
+```yaml
 # user_animations.yaml
 user_animations:
   # animation with default image and custom color
   - id: 21
-    name: 'MY_AWESOME_ANIMATION'
+    name: MY_AWESOME_ANIMATION
     priority: 2
     animation:
       both:
