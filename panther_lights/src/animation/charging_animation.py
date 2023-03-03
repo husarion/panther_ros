@@ -26,17 +26,19 @@ class ChargingAnimation(Animation):
         if self._on_duration >= self._anim_len:
             self._fade_duration = 0
 
-        if self._anim_iteration < self._fade_duration:
+        if self._anim_iteration < self._fill_start:
+            self._frame.fill(0)
+        elif self._anim_iteration < self._fill_start + self._fade_duration:
             self._frame[:] = self._color * np.sin(
-                np.pi / 2.0 * (self._anim_iteration / self._fade_duration)
+                np.pi / 2.0 * ((self._anim_iteration - self._fill_start) / self._fade_duration)
             )
-        elif self._anim_iteration < self._on_duration - self._fade_duration:
+        elif self._anim_iteration <= self._fill_end - self._fade_duration:
             self._frame[:] = self._color
-        elif self._anim_iteration < self._on_duration:
+        elif self._anim_iteration < self._fill_end:
             self._frame[:] = self._color * np.sin(
                 np.pi
                 / (2.0 * self._fade_duration)
-                * (self._anim_iteration - self._on_duration + 2.0 * self._fade_duration)
+                * (self._anim_iteration - self._fill_end + 2.0 * self._fade_duration)
             )
         else:
             self._frame.fill(0)
@@ -48,8 +50,10 @@ class ChargingAnimation(Animation):
             battery_percent = np.clip(float(value), 0.0, 1.0)
         except ValueError:
             raise ValueError('Can not cast param to float!')
-    
+
         self._on_duration = int(round(self._anim_len * battery_percent))
+        self._fill_start = (self._anim_len - self._on_duration) / 2
+        self._fill_end = (self._anim_len + self._on_duration) / 2
         h = (self._h_max - self._h_min) * battery_percent + self._h_min
         s = 1.0
         v = 1.0
