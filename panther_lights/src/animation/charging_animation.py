@@ -21,11 +21,6 @@ class ChargingAnimation(Animation):
 
     def _update_frame(self) -> list:
 
-        if self._on_duration < 2 * self._fade_duration:
-            self._on_duration = 2 * self._fade_duration
-        if self._on_duration >= self._anim_len:
-            self._fade_duration = 0
-
         if self._anim_iteration < self._fill_start:
             self._frame.fill(0)
         elif self._anim_iteration < self._fill_start + self._fade_duration:
@@ -52,6 +47,10 @@ class ChargingAnimation(Animation):
             raise ValueError('Can not cast param to float!')
 
         self._on_duration = int(round(self._anim_len * battery_percent))
+        if self._on_duration < 2 * self._fade_duration:
+            self._on_duration = 2 * self._fade_duration
+        if self._on_duration >= self._anim_len:
+            self._fade_duration = 0
         self._fill_start = (self._anim_len - self._on_duration) / 2
         self._fill_end = (self._anim_len + self._on_duration) / 2
         h = (self._h_max - self._h_min) * battery_percent + self._h_min
