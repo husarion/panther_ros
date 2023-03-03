@@ -39,6 +39,10 @@ class PantherAnimation:
     def init_time(self) -> float:
         return self._init_time
 
+    @init_time.setter
+    def init_time(self, init_time: float) -> None:
+        self._init_time = init_time
+
 
 class AnimationsQueue:
     def __init__(self, max_queue_size: int = 5) -> None:
@@ -274,10 +278,15 @@ class LightsControllerNode:
         return img_msg
 
     def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
-        self._anim_queue.put(animation)
         if animation.repeating:
+            interupting_animation = deepcopy(animation)
+            interupting_animation.init_time = float('inf')
+            if interupting_animation.priority > 2:
+                interupting_animation.priority = 2
+            self._anim_queue.put(interupting_animation)
             self._anim_queue.remove(self._default_animation)
             self._default_animation = animation
+        self._anim_queue.put(animation)
 
     def _get_image_animation_description(self, animation: LEDImageAnimation) -> dict:
         if not animation.image:

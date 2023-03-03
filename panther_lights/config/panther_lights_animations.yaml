@@ -1,7 +1,7 @@
 animations:
   - id: 0
     name: E_STOP
-    priority: 1
+    priority: 3
     animation:
       both:
         type: image_animation
@@ -57,7 +57,7 @@ animations:
 
   - id: 6
     name: LOW_BATTERY
-    priority: 1
+    priority: 2
     animation:
       both:
         type: image_animation
@@ -67,7 +67,7 @@ animations:
 
   - id: 7
     name: CRITICAL_BATTERY
-    priority: 1
+    priority: 2
     animation:
       both:
         type: image_animation
@@ -86,9 +86,10 @@ animations:
 
   - id: 9
     name: CHARGING_BATTERY
-    priority: 1
+    priority: 3
     animation:
       both:
         type: charging_animation
-        duration: 4
+        duration: 3
+        repeat: 2
 
