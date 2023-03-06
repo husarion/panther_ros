@@ -39,6 +39,10 @@ class PantherAnimation:
     def init_time(self) -> float:
         return self._init_time
 
+    @init_time.setter
+    def init_time(self, init_time: float) -> None:
+        self._init_time = init_time
+
 
 class AnimationsQueue:
     def __init__(self, max_queue_size: int = 5) -> None:
@@ -189,7 +193,7 @@ class LightsControllerNode:
         if self._current_animation:
             if self._current_animation.priority > self._anim_queue.first_anim_priority:
                 if (
-                    self._current_animation.front.progress < 0.9
+                    self._current_animation.front.progress < 0.8
                     and not self._current_animation.repeating
                 ):
                     self._current_animation.front.reset()
@@ -230,6 +234,9 @@ class LightsControllerNode:
         self._animation_queue_publisher.publish(anim_queue_msg)
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
+        if not req.animation.id in self._animations:
+            return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
+
         try:
             animation = deepcopy(self._animations[req.animation.id])
             animation.front.set_param(req.animation.param)
@@ -237,8 +244,8 @@ class LightsControllerNode:
             animation.reset_time()
             animation.repeating = req.repeating
             self._add_animation_to_queue(animation)
-        except ValueError:
-            return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
+        except ValueError as err:
+            return SetLEDAnimationResponse(False, f'Failed to add animation to queue: {err}')
 
         return SetLEDAnimationResponse(
             True, f'Successfully set an animation with id {req.animation.id}'
@@ -290,10 +297,15 @@ class LightsControllerNode:
         return img_msg
 
     def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
-        self._anim_queue.put(animation)
         if animation.repeating:
+            interupting_animation = deepcopy(animation)
+            interupting_animation.init_time = float('inf')
+            if interupting_animation.priority > 2:
+                interupting_animation.priority = 2
+            self._anim_queue.put(interupting_animation)
             self._anim_queue.remove(self._default_animation)
             self._default_animation = animation
+        self._anim_queue.put(animation)
 
     def _get_image_animation_description(self, animation: LEDImageAnimation) -> dict:
         if not animation.image:

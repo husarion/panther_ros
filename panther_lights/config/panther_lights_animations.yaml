@@ -1,24 +1,24 @@
 animations:
   - id: 0
-    name: 'E_STOP'
-    priority: 1
+    name: E_STOP
+    priority: 3
     animation:
       both:
         type: image_animation
         image: $(find panther_lights)/animations/triangle01_red.png
-        duration: 1
+        duration: 2
 
   - id: 1
-    name: 'READY'
+    name: READY
     priority: 3
     animation:
       both:
         type: image_animation
         image: $(find panther_lights)/animations/triangle01_green.png
-        duration: 1
+        duration: 2
 
   - id: 2
-    name: 'ERROR'
+    name: ERROR
     priority: 1
     animation:
       both:
@@ -28,7 +28,7 @@ animations:
         repeat: 2
 
   - id: 3
-    name: 'MANUAL_ACTION'
+    name: MANUAL_ACTION
     priority: 3
     animation:
       both:
@@ -37,7 +37,7 @@ animations:
         duration: 3
 
   - id: 4
-    name: 'AUTONOMOUS_ACTION'
+    name: AUTONOMOUS_ACTION
     priority: 3
     animation:
       both:
@@ -46,18 +46,18 @@ animations:
         duration: 3
 
   - id: 5
-    name: 'GOAL_ACHIEVED'
+    name: GOAL_ACHIEVED
     priority: 2
     animation:
       both:
         type: image_animation
         image: $(find panther_lights)/animations/strip01_purple.png
         duration: 3
-        repeat: 3
+        repeat: 2
 
   - id: 6
-    name: 'LOW_BATTERY'
-    priority: 1
+    name: LOW_BATTERY
+    priority: 2
     animation:
       both:
         type: image_animation
@@ -66,8 +66,8 @@ animations:
         repeat: 2
 
   - id: 7
-    name: 'CRITICAL_BATTERY'
-    priority: 1
+    name: CRITICAL_BATTERY
+    priority: 2
     animation:
       both:
         type: image_animation
@@ -76,7 +76,7 @@ animations:
         repeat: 2
 
   - id: 8
-    name: 'BATTERY_STATE'
+    name: BATTERY_STATE
     priority: 3
     animation:
       both:
@@ -85,10 +85,11 @@ animations:
         repeat: 3
 
   - id: 9
-    name: 'CHARGING_BATTERY'
-    priority: 1
+    name: CHARGING_BATTERY
+    priority: 3
     animation:
       both:
         type: charging_animation
-        duration: 4
+        duration: 3
+        repeat: 2
 

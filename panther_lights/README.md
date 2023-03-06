@@ -95,16 +95,16 @@ Default animations can be found in the table below:
 
 | ID  | NAME              | PRIORITY | DESCRIPTION                                                 |
 | :-: | ----------------- | :------: | ----------------------------------------------------------- |
-| 0   | E_STOP            | 1        | red expanding from the center to the edges                  |
+| 0   | E_STOP            | 3        | red expanding from the center to the edges                  |
 | 1   | READY             | 3        | green expanding from center to the edges                    |
 | 2   | ERROR             | 1        | red, whole panel blinking twice                             |
 | 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
 | 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
 | 5   | GOAL_ACHIEVED     | 2        | purple, whole panel blinking three times                    |
-| 6   | LOW_BATTERY       | 1        | two orange stripes moving towards the center, repeats twice |
-| 7   | CRITICAL_BATTERY  | 1        | two red stripes moving towards the center, repeats twice    |
+| 6   | LOW_BATTERY       | 2        | two orange stripes moving towards the center, repeats twice |
+| 7   | CRITICAL_BATTERY  | 2        | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
-| 9   | CHARGING_BATTERY  | 1        | whole panel blinking with a duty cycle proportional to the battery percentage. Short blinking means low battery, no blinking means full battery. Color changes from red to green |
+| 9   | CHARGING_BATTERY  | 3        | whole panel blinking with a duty cycle proportional to the battery percentage. Short blinking means low battery, no blinking means full battery. Color changes from red to green |
 
 ### Animation types
 
@@ -145,7 +145,7 @@ Create a yaml file with an animation description list. Example file:
 user_animations:
   # animation with default image and custom color
   - id: 21
-    name: 'ANIMATION_1'
+    name: ANIMATION_1
     priority: 2
     animation:
       both:
@@ -157,7 +157,7 @@ user_animations:
 
   # animation with custom image
   - id: 22
-    name: 'ANIMATION_2'
+    name: ANIMATION_2
     priority: 3
     animation:
       both:
@@ -168,7 +168,7 @@ user_animations:
 
   # animation with custom image from custom ROS package
   - id: 23
-    name: 'ANIMATION_3'
+    name: ANIMATION_3
     priority: 3
     animation:
       both:
@@ -179,7 +179,7 @@ user_animations:
 
   # different animations for front and rear panel
   - id: 24
-    name: 'ANIMATION_4'
+    name: ANIMATION_4
     priority: 3
     animation:
       front:
@@ -227,7 +227,7 @@ docker compose up -d
 Test new animations:
 
 ```bash
-rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
+rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: ''}, repeating: false}"
 ```
 
 ### Updating animation list at a runtime
@@ -249,7 +249,7 @@ rosservice call /panther/lights/controller/update_animations "{}"
 Test new animations:
 
 ```bash
-rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: 0.0}, repeating: false}"
+rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, param: ''}, repeating: false}"
 ```
 
 ---

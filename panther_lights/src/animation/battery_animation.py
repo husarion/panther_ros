@@ -21,9 +21,13 @@ class BatteryAnimation(Animation):
     def _update_frame(self) -> list:
         return self._anim[self._anim_iteration, :].tolist()
 
-    def set_param(self, value: float) -> None:
-        self._param = value
-        self._create_anim(value)
+    def set_param(self, value: str) -> None:
+        try:
+            battery_percent = float(value)
+        except ValueError:
+            raise ValueError('Can not cast param to float!')
+        self._param = battery_percent
+        self._create_anim(battery_percent)
 
     def _create_anim(self, battery_percent: float) -> None:
         battery_percent = np.clip(battery_percent, 0.0, 1.0)

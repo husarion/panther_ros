@@ -50,7 +50,7 @@ class MyCoolAnimation(Animation):
         return [[self._param, self._param, self._param]] * self._num_led
 
     def set_param(self, value: float) -> None:
-        self._param = value
+        self._param = float(value)
 ```
 
 To make new animation available in system edit the `__init__.py` file in `/src/animation`, and import the newly created animation class:

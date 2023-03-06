@@ -67,7 +67,7 @@ class Animation:
     def _update_frame(self) -> list:
         raise NotImplementedError
 
-    def set_param(self, value: float) -> None:
+    def set_param(self, value: str) -> None:
         self._param = value
 
     @property
