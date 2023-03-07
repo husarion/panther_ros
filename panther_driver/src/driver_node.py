@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import math
-from time import sleep
 from typing import TypeVar
 
 import rospy
@@ -11,7 +10,7 @@ from geometry_msgs.msg import Pose, TransformStamped, Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
 from panther_msgs.msg import DriverState, FaultFlag, ScriptFlag, RuntimeError
 
@@ -23,18 +22,13 @@ class DriverFlagLogger:
     MAX_LOG_INTERVAL = 2.0
     MsgType = TypeVar('MsgType', FaultFlag, RuntimeError, ScriptFlag)
 
-    def __init__(self, flag_list: list, msg_type: MsgType, driver_state_timer_period: int) -> None:
+    def __init__(self, flag_list: list, msg_type: MsgType) -> None:
         self._flag_list = flag_list
         self._msg_type = msg_type
         self._last_log_time = rospy.Time.now()
         self._last_logged_msg_state = None
 
-        self._state_err_cnt = 0
-        self._max_state_err_cnt = 20.0  # timer freq. 20 Hz
-        self._driver_state_correct = False
-
     def __call__(self, flag_val: int) -> MsgType:
-        self._driver_state_correct = self._driver_state_is_correct(flag_val)
         faults, msg = self._decode_flag(flag_val)
 
         if faults and (
@@ -48,16 +42,8 @@ class DriverFlagLogger:
             self._last_logged_msg_state = flag_val
 
         return msg
-
-    @property
-    def driver_state_correct(self):
-        return self._driver_state_correct
-
-    def _driver_state_is_correct(self, flag_val: int) -> bool:
-        self._state_err_cnt = self._state_err_cnt + 1 if flag_val else 0
-        return self._state_err_cnt <= self._max_state_err_cnt
-
-    def _decode_flag(self, flag_val: int) -> list:
+    
+    def _decode_flag(self, flag_val: int) -> list: # add ret type
         msg = self._msg_type()
 
         faults = [
@@ -105,13 +91,12 @@ class PantherDriverNode:
         ]
 
         self._main_timer_period = 1.0 / 15.0           # freq. 15 Hz
-        self._driver_state_timer_period = 1.0 / 20.0   # freq. 20 Hz
+        self._driver_state_timer_period = 1.0 / 10.0   # freq. 10 Hz
         self._safety_timer_period = 1.0 / 20.0         # freq. 20 Hz
         self._time_last = rospy.Time.now()
         self._cmd_vel_command_last_time = rospy.Time.now()
         self._cmd_vel_timeout = 0.2
         
-
         self._robot_pos = [0.0, 0.0, 0.0]                   # x,  y,  yaw
         self._robot_vel = [0.0, 0.0, 0.0]                   # lin_x, lin_y, ang_z
         self._robot_orientation_quat = [0.0, 0.0, 0.0, 0.0] # qx, qy, qz, qw
@@ -156,7 +141,7 @@ class PantherDriverNode:
             self._panther_can = PantherCANPDO(eds_file=self._eds_file, can_interface=self._can_interface)
         else:
             self._panther_can = PantherCANSDO(eds_file=self._eds_file, can_interface=self._can_interface)
-        sleep(4.0)
+        rospy.sleep(4.0)
 
         # -------------------------------
         #   Publishers & Subscribers
@@ -229,6 +214,11 @@ class PantherDriverNode:
         # -------------------------------
 
         self._estop_trigger = rospy.ServiceProxy('hardware/e_stop_trigger', Trigger)
+
+        if self._use_pdo:
+            self._reset_roboteq_script_srv = rospy.Service(
+                'driver/reset_roboteq_script', Trigger, self._reset_roboteq_script_cb
+            )
 
         # -------------------------------
         #   Timers
@@ -315,7 +305,12 @@ class PantherDriverNode:
             self._driver_flag_loggers['fault_flags'](flag_val)
             for flag_val in self._panther_can.query_fault_flags()
         ]
-        
+
+        if self._panther_can.can_connection_error():
+            self._driver_state_msg.front.fault_flag.can_net_err = (
+                self._driver_state_msg.rear.fault_flag.can_net_err
+            ) = True
+
         [
             self._driver_state_msg.front.script_flag,
             self._driver_state_msg.rear.script_flag,
@@ -323,14 +318,6 @@ class PantherDriverNode:
             self._driver_flag_loggers['script_flags'](flag_val)
             for flag_val in self._panther_can.query_script_flags()
         ]
-
-        if self._can_interface.can_connection_error():
-            self._driver_state_msg.front.script_flag.can_net_err = (
-                self._driver_state_msg.rear.script_flag.can_net_err
-            ) = True
-            rospy.logerr_throttle(
-                10.0, f'[{rospy.get_name()}] CAN interface connection error.'
-            )
 
         [
             self._driver_state_msg.front.right_motor.runtime_error,
@@ -345,14 +332,15 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-        driver_state_correct = any(
-            logger.driver_state_correct for logger in self._driver_flag_loggers.values()
-        )
+
         if self._panther_can.can_connection_error() and not self._estop_triggered:
             self._trigger_panther_estop()
             self._stop_cmd_vel_cb = True
-        elif not driver_state_correct or self._estop_triggered:
-            self._stop_cmd_vel_cb = True
+            rospy.logerr_throttle(
+                10.0, f'[{rospy.get_name()}] CAN interface connection error.'
+            )
+        elif self._estop_triggered:
+            self._stop_cmd_vel_cb = True 
         else:
             self._stop_cmd_vel_cb = False
 
@@ -368,19 +356,13 @@ class PantherDriverNode:
 
         self._cmd_vel_command_last_time = rospy.Time.now()
 
-    def _trigger_panther_estop(self) -> bool:
+    def _reset_roboteq_script_cb(self, req: TriggerRequest) -> TriggerResponse:
         try:
-            response = self._estop_trigger()
-            rospy.logwarn(f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
-
-            if not response.success:
-                return True
-
-        except rospy.ServiceException as e:
-            rospy.logerr(f'[{rospy.get_name()}] Can\'t trigger Panther e-stop... \n{e}')
-
-        return False
-
+            if self._panther_can.restart_roboteq_script():
+                return TriggerResponse(True, 'Roboteq script reset successful.')
+        except Exception as e:
+            return TriggerResponse(False, f'Roboteq script reset failed: \n{e}')
+    
     def _publish_joint_state_cb(self) -> None:
         self._joint_state_msg.header.stamp = rospy.Time.now()
         self._joint_state_msg.position = self._wheels_ang_pos
@@ -420,6 +402,19 @@ class PantherDriverNode:
         self._odom_msg.twist.twist.linear.y = self._robot_vel[1]
         self._odom_msg.twist.twist.angular.z = self._robot_vel[2]
         self._odom_publisher.publish(self._odom_msg)
+    
+    def _trigger_panther_estop(self) -> bool:
+        try:
+            response = self._estop_trigger()
+            rospy.logwarn(f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
+
+            if not response.success:
+                return True
+
+        except rospy.ServiceException as e:
+            rospy.logerr(f'[{rospy.get_name()}] Can\'t trigger Panther e-stop... \n{e}')
+
+        return False
     
     @staticmethod
     def euler_to_quaternion(yaw, pitch, roll):
