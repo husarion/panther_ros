@@ -234,7 +234,7 @@ class PantherCANPDO(PantherCAN):
             number_of_retries += 1
             sleep(1.0)
 
-        self._restart_roboteq_script()
+        self.restart_roboteq_script()
 
     def query_wheels_enc_pose(self) -> Generator:
         with self._lock:
@@ -305,25 +305,20 @@ class PantherCANPDO(PantherCAN):
             return True
 
     def _update_wheels_pos_cb(self, message, motor_controller):
-        for i, wheel in enumerate(self._wheels):
-            motor_controller.wheel_pos[i] = message[wheel - 1].raw
+        motor_controller.wheel_pos = [m.raw for m in reversed(message)]
 
     def _update_wheels_speed_cb(self, message, motor_controller):
-        for i, wheel in enumerate(self._wheels):
-            motor_controller.wheel_vel[i] = message[wheel - 1].raw
+        motor_controller.wheel_vel = [m.raw for m in reversed(message)]
 
     def _update_wheels_current_cb(self, message, motor_controller):
-        for i, wheel in enumerate(self._wheels):
-            motor_controller.wheel_curr[i] = message[wheel - 1].raw
+        motor_controller.wheel_curr = [m.raw for m in reversed(message)]
 
     def _update_wheels_flags_cb(self, message, motor_controller):
         motor_controller.fault_flags = message[0].data[0]
         motor_controller.script_flags = message[0].data[2]
+        motor_controller.runtime_stat_flag = [m for m in message[1].data[:2]]
 
-        for i, wheel in enumerate(self._wheels):
-            motor_controller.runtime_stat_flag[i] = message[1].data[wheel - 1]
-
-    def _restart_roboteq_script(self):
+    def restart_roboteq_script(self) -> bool:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 try:
@@ -334,3 +329,5 @@ class PantherCANPDO(PantherCAN):
                         f'occurred while restarting roboteq script'
                     )
                     self._error_handle()
+                    return False
+        return True
