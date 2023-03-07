@@ -64,7 +64,7 @@ class PowerBoardNode:
         self._motor_start_sequence()
         self._watchdog = Watchdog(self._pins.WATCHDOG)
         
-        self._gpio_wait = 0.01 # seconds
+        self._gpio_wait = 0.05 # seconds
         self._e_stop_interrupt_time = float('inf')
         self._chrg_sense_interrupt_time = float('inf')
 
@@ -127,8 +127,8 @@ class PowerBoardNode:
         #   Timers
         # -------------------------------
 
-        # 2 Hz publish non asynch pin state
-        self._charger_state_timer = rospy.Timer(rospy.Duration(0.5), self._publish_pin_state_cb)
+        # 5 Hz publish non asynch pin state
+        self._charger_state_timer = rospy.Timer(rospy.Duration(0.2), self._publish_pin_state_cb)
         # 50 Hz of software PWM. Timer running at 100 Hz for raising and falling edges
         self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
         
@@ -136,7 +136,7 @@ class PowerBoardNode:
         #   GPIO callbacks
         # -------------------------------
     
-        # for fast e-stop detection
+        # register e-stop and power button pin change imminently
         GPIO.add_event_detect(self._pins.E_STOP_RESET, GPIO.BOTH,
                               callback=self._gpio_interrupt_cb, bouncetime=200)
         
@@ -151,16 +151,15 @@ class PowerBoardNode:
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
             self._chrg_sense_interrupt_time = rospy.get_time()
-            rospy.logwarn(f'[{rospy.get_name()}] SHDN_INIT detected.')
             
         if pin == self._pins.E_STOP_RESET:
             self._e_stop_interrupt_time = rospy.get_time()
-            rospy.logwarn(f'[{rospy.get_name()}] E_STOP_RESET detected.')
             
     def _publish_pin_state_cb(self, *args) -> None:
         charger_state = self._read_pin(self._pins.CHRG_SENSE)
         self._publish_io_state('charger_connected', charger_state)
         
+        # filter short spikes of voltage on GPIO
         if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
             if self._read_pin(self._pins.SHDN_INIT):
                 rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
