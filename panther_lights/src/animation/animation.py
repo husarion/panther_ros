@@ -13,13 +13,13 @@ class Animation:
         if not 'duration' in animation_description:
             raise KeyError('No duration in animation description')
 
-        self._duration = animation_description['duration']
+        self._duration = float(animation_description['duration'])
         if self._duration <= 0:
             raise KeyError('Duration has to be positive')
 
         if 'repeat' in animation_description:
-            self._loops = animation_description['repeat']
-            if self._loops <= 0 or isinstance(self._loops, float):
+            self._loops = int(animation_description['repeat'])
+            if self._loops <= 0:
                 raise KeyError('Repeat has to be a positive integer')
         else:
             self._loops = 1
@@ -29,7 +29,7 @@ class Animation:
 
         if 'brightness' in animation_description:
             self._brightness = float(animation_description['brightness'])
-            if not (0 < self._brightness <= 1):
+            if not (0 <= self._brightness <= 1):
                 raise KeyError('Brightness has to be in range <0,1>')
             self._brightness = int(round(self._brightness * 255))
 

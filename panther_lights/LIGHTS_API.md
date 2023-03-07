@@ -49,7 +49,7 @@ class MyCoolAnimation(Animation):
     def _update_frame(self) -> list:
         return [[self._param, self._param, self._param]] * self._num_led
 
-    def set_param(self, value: float) -> None:
+    def set_param(self, value: str) -> None:
         self._param = float(value)
 ```
 
