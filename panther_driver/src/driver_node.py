@@ -332,7 +332,6 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-
         if self._panther_can.can_connection_error() and not self._estop_triggered:
             self._trigger_panther_estop()
             self._stop_cmd_vel_cb = True
@@ -362,6 +361,8 @@ class PantherDriverNode:
                 return TriggerResponse(True, 'Roboteq script reset successful.')
         except Exception as e:
             return TriggerResponse(False, f'Roboteq script reset failed: \n{e}')
+
+        return TriggerResponse(False, f'Roboteq script reset failed')
     
     def _publish_joint_state_cb(self) -> None:
         self._joint_state_msg.header.stamp = rospy.Time.now()
