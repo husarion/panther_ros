@@ -244,6 +244,7 @@ class PowerBoardNode:
 
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
         self._clearing_e_stop = False
+        self._e_stop_event()
 
     def _e_stop_event(self) -> None:
         e_stop_state = self._read_pin(self._pins.E_STOP_RESET)
