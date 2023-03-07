@@ -63,6 +63,10 @@ class PowerBoardNode:
         self._setup_gpio()
         self._motor_start_sequence()
         self._watchdog = Watchdog(self._pins.WATCHDOG)
+        
+        self._gpio_wait = 0.01 # seconds
+        self._e_stop_interrupt_time = float('inf')
+        self._chrg_sense_interrupt_time = float('inf')
 
         self._cmd_vel_msg_time = rospy.get_time()
         
@@ -146,18 +150,26 @@ class PowerBoardNode:
         
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
-            rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-            self._publish_io_state('power_btn', True)
+            self._chrg_sense_interrupt_time = rospy.get_time()
+            rospy.logwarn(f'[{rospy.get_name()}] SHDN_INIT detected.')
             
         if pin == self._pins.E_STOP_RESET:
-            self._e_stop_event()
+            self._e_stop_interrupt_time = rospy.get_time()
+            rospy.logwarn(f'[{rospy.get_name()}] E_STOP_RESET detected.')
             
     def _publish_pin_state_cb(self, *args) -> None:
         charger_state = self._read_pin(self._pins.CHRG_SENSE)
         self._publish_io_state('charger_connected', charger_state)
         
-        # to ensure correct e-stop state is published
-        self._e_stop_event()
+        if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
+            if self._read_pin(self._pins.SHDN_INIT):
+                rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
+                self._publish_io_state('power_btn', True)
+            self._chrg_sense_interrupt_time = float('inf')
+                
+        if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
+            self._e_stop_event()
+            self._e_stop_interrupt_time = float('inf')
             
 
     def _watchdog_cb(self, *args) -> None:
