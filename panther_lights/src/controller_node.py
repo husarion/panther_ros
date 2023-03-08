@@ -420,7 +420,7 @@ class LightsControllerNode:
                 if not isinstance(priority, int):
                     priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
                     rospy.logwarn(
-                        f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default'
+                        f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default: {priority}'
                     )
                 elif not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY:
                     priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
