@@ -84,7 +84,7 @@ Basic animations provided by Husarion are loaded upon node start from [`panther_
   - `front` animation for front LED panel.
   - `rear` animation for rear LED panel.
 - `id` [*int*]: ID of an animation.
-- `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to `ANIMATION_<ID>`, where `<ID>` is this animation ID.
+- `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to `ANIMATION_<ID>`, where `<ID>` is eqal to `id` parameter of given animation.
 - `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows behavior when an animation with a given ID arrives:
     - **1** interrupts and removes animation with priorities **2** and **3**.
     - **2** interrupts animations with priority **3**.
