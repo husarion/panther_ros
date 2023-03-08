@@ -433,7 +433,7 @@ class LightsControllerNode:
                 timeout = float(anim['timeout'])
                 if timeout <= 0:
                     rospy.logwarn(
-                        f'[{rospy.get_name()}] Invalid timeout for animation: {animation.name}. Using default'
+                        f'[{rospy.get_name()}] Invalid timeout for animation: {animation.name}. Using default: {round(timeout, 2)}'
                     )
                     timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
                 animation.timeout = timeout
