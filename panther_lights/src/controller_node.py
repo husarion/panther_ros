@@ -20,11 +20,11 @@ from animation import Animation, BASIC_ANIMATIONS
 
 class PantherAnimation:
     ANIMATION_DEFAULT_PRIORITY = 3
-    ANIMATION_DEFAULT_TIMEOUT = 120
+    ANIMATION_DEFAULT_TIMEOUT = 120.0
 
     front: Animation
     rear: Animation
-    name: str
+    name: str = 'UNDEFINED'
     priority: int = ANIMATION_DEFAULT_PRIORITY
     timeout: float = ANIMATION_DEFAULT_TIMEOUT
     repeating: bool = False
@@ -378,6 +378,9 @@ class LightsControllerNode:
             animation = PantherAnimation()
 
             for panel in anim['animation']:
+                if panel not in ('both', 'front', 'rear'):
+                    raise KeyError(f'Invalid panel type: {panel}')
+
                 anim_desc = anim['animation'][panel]
 
                 if not 'type' in anim_desc:
@@ -425,17 +428,17 @@ class LightsControllerNode:
                 elif not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY:
                     priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
                     rospy.logwarn(
-                        f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default: priority'
+                        f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default: {priority}'
                     )
                 animation.priority = priority
 
             if 'timeout' in anim:
                 timeout = float(anim['timeout'])
                 if timeout <= 0:
-                    rospy.logwarn(
-                        f'[{rospy.get_name()}] Invalid timeout for animation: {animation.name}. Using default: {round(timeout, 2)}'
-                    )
                     timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
+                    rospy.logwarn(
+                        f'[{rospy.get_name()}] Invalid timeout for animation: {animation.name}. Using default: {timeout}'
+                    )
                 animation.timeout = timeout
 
             self._animations[anim['id']] = animation
