@@ -11,8 +11,8 @@ from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
 
 @dataclass
-class PatherGPIO:              
-    MOTOR_ON = 6       # Pin to enable motor controllers 
+class PatherGPIO:
+    MOTOR_ON = 6  # Pin to enable motor controllers
     STAGE2_INPUT = 22  # Check if power can be forwarded to motor controllers
 
     def __setattr__(self, name: str, value: int) -> None:
@@ -25,7 +25,7 @@ class RelaysNode:
 
         self._pins = PatherGPIO()
         self._setup_gpio()
-        
+
         self._e_stop_state = False
         self._cmd_vel_msg_time = rospy.get_time()
 
@@ -33,20 +33,14 @@ class RelaysNode:
         #   Publishers
         # -------------------------------
 
-        self._motor_on_pub = rospy.Publisher(
-            'hardware/motor_on', Bool, queue_size=1, latch=True
-        )
-        self._e_stop_state_pub = rospy.Publisher(
-            'hardware/e_stop', Bool, queue_size=1, latch=True
-        )
+        self._motor_on_pub = rospy.Publisher('hardware/motor_on', Bool, queue_size=1, latch=True)
+        self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1, latch=True)
 
         # -------------------------------
         #   Subscribers
         # -------------------------------
 
-        self._cmd_vel_sub = rospy.Subscriber(
-            '/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1
-        )
+        self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
 
         # -------------------------------
         #   Services
