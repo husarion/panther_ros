@@ -18,7 +18,7 @@ class ImageAnimation(Animation):
         if not 'image' in self._animation_description:
             raise KeyError('No image in aniamtion description')
 
-        img_name = self._animation_description['image']
+        img_name = str(self._animation_description['image'])
         if not os.path.isabs(img_name):
             if img_name[0] == '$':
                 if re.search('^\$\(find .*\)', img_name):

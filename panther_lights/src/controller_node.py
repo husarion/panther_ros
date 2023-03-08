@@ -20,7 +20,7 @@ from animation import Animation, BASIC_ANIMATIONS
 
 class PantherAnimation:
     ANIMATION_DEFAULT_PRIORITY = 3
-    ANIMATION_DEFAULT_TIMEOUT = 120
+    ANIMATION_DEFAULT_TIMEOUT = 120.0
 
     front: Animation
     rear: Animation
@@ -125,7 +125,8 @@ class LightsControllerNode:
         self._default_animation = None
         self._empty_frame = [[0, 0, 0]] * self._num_led
 
-        self._update_animations()
+        self._update_default_animations()
+        self._update_user_animations()
 
         # -------------------------------
         #   Publishers
@@ -277,8 +278,8 @@ class LightsControllerNode:
 
     def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
         try:
-            self._update_animations()
-        except (KeyError, FileNotFoundError) as err:
+            self._update_user_animations()
+        except Exception as err:
             return TriggerResponse(False, f'Failed to update animations: {err}')
         return TriggerResponse(True, 'Animations updated successfully')
 
@@ -323,99 +324,127 @@ class LightsControllerNode:
 
         return animation_description
 
-    def _update_animations(self) -> None:
+    def _update_default_animations(self) -> None:
+        for animation in self._animations_description:
+            self._update_animations_dict(animation)
+
+    def _update_user_animations(self) -> None:
 
         user_animations = rospy.get_param('~user_animations', '')
 
         for animation in user_animations:
+            if not 'id' in animation:
+                rospy.logwarn(f'[{rospy.get_name()}] Ignoring user animation with missing ID.')
+                continue
+
+            if not isinstance(animation['id'], int):
+                rospy.logwarn(f'[{rospy.get_name()}] Ignoring user animation with invalid ID.')
+                continue
+
+            if not 'name' in animation:
+                animation['name'] = 'ANIMATION_' + str(animation['id'])
+
             # ID numbers from 0 to 19 are reserved for system animations
             if animation['id'] > 19:
                 if 'priority' in animation:
                     if animation['priority'] == 1:
                         rospy.logwarn(
-                            f'[{rospy.get_name()}] Ignoring user animation: {animation["name"]}. User animation can\'t have priority 1.'
+                            f'[{rospy.get_name()}] Ignoring user animation: {animation["name"]}. User animation can not have priority 1.'
                         )
                         continue
 
-                rospy.loginfo(f'[{rospy.get_name()}] Adding user animation: {animation["name"]}')
-                # remove old animation definition
-                for anim in self._animations_description:
-                    if anim['id'] == animation['id']:
-                        self._animations_description.remove(anim)
-                self._animations_description.append(animation)
+                try:
+                    self._update_animations_dict(animation)
+                except (FileNotFoundError, KeyError, ValueError, TypeError) as err:
+                    rospy.logwarn(
+                        f'[{rospy.get_name()}] Failed to add animation: {animation["name"]}. Reason: {err}'
+                    )
+                    continue
+
+                rospy.loginfo(
+                    f'[{rospy.get_name()}] Successfuly added user animation: {animation["name"]}'
+                )
             else:
                 rospy.logwarn(
                     f'[{rospy.get_name()}] Ignoring user animation: {animation["name"]}. Animation ID must be greater than 19.'
                 )
 
-        self._update_animations_list()
+    def _update_animations_dict(self, anim: dict) -> None:
+        if 'id' in anim:
 
-    def _update_animations_list(self) -> None:
-        for anim in self._animations_description:
-            if 'id' in anim:
+            if not isinstance(anim['id'], int):
+                raise KeyError('Invalid animation ID')
 
-                animation = PantherAnimation()
+            animation = PantherAnimation()
 
-                for panel in anim['animation']:
-                    anim_desc = anim['animation'][panel]
+            for panel in anim['animation']:
+                if panel not in ('both', 'front', 'rear'):
+                    raise KeyError(f'Invalid panel type: {panel}')
 
-                    if not 'type' in anim_desc:
-                        raise KeyError('Missing \'type\' in animation description')
+                anim_desc = anim['animation'][panel]
 
-                    try:
-                        BASIC_ANIMATIONS[anim_desc['type']]
-                    except KeyError as err:
-                        raise KeyError(f'Undefined animation type: {err}')
+                if not 'type' in anim_desc:
+                    raise KeyError('Missing \'type\' in animation description')
 
-                    if panel == 'both':
-                        animation.front = BASIC_ANIMATIONS[anim_desc['type']](
-                            anim_desc, self._num_led, self._controller_frequency
-                        )
-                        animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
-                            anim_desc, self._num_led, self._controller_frequency
-                        )
-                        break
-                    elif panel == 'front':
-                        animation.front = BASIC_ANIMATIONS[anim_desc['type']](
-                            anim_desc, self._num_led, self._controller_frequency
-                        )
-                    elif panel == 'rear':
-                        animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
-                            anim_desc, self._num_led, self._controller_frequency
-                        )
-                    else:
-                        raise KeyError(f'Invalid panel type: {panel}')
+                try:
+                    BASIC_ANIMATIONS[anim_desc['type']]
+                except KeyError as err:
+                    raise KeyError(f'Undefined animation type: {err}')
 
-                if not hasattr(animation, 'front') or not hasattr(animation, 'rear'):
-                    raise KeyError(
-                        'Missing \'both\' or \'front\'/\'rear\' in animation description'
+                if panel == 'both':
+                    animation.front = BASIC_ANIMATIONS[anim_desc['type']](
+                        anim_desc, self._num_led, self._controller_frequency
                     )
+                    animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
+                        anim_desc, self._num_led, self._controller_frequency
+                    )
+                    break
+                elif panel == 'front':
+                    animation.front = BASIC_ANIMATIONS[anim_desc['type']](
+                        anim_desc, self._num_led, self._controller_frequency
+                    )
+                elif panel == 'rear':
+                    animation.rear = BASIC_ANIMATIONS[anim_desc['type']](
+                        anim_desc, self._num_led, self._controller_frequency
+                    )
+                else:
+                    raise KeyError(f'Invalid panel type: {panel}')
 
-                if 'name' in anim:
-                    animation.name = anim['name']
+            if not hasattr(animation, 'front') or not hasattr(animation, 'rear'):
+                raise KeyError('Missing \'both\' or \'front\'/\'rear\' in animation description')
 
-                if 'priority' in anim:
-                    priority = int(round(anim['priority']))
-                    if not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY:
-                        priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
-                        rospy.logwarn(
-                            f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default'
-                        )
-                    animation.priority = priority
-
-                if 'timeout' in anim:
-                    timeout = anim['timeout']
-                    if timeout <= 0:
-                        rospy.logwarn(
-                            f'{rospy.get_name} Invalid timeout for animation: {animation.name}. Using default'
-                        )
-                        timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
-                    animation.timeout = timeout
-
-                self._animations[anim['id']] = animation
-
+            if 'name' in anim:
+                animation.name = str(anim['name'])
             else:
-                raise KeyError(f'Missing ID in animation description')
+                animation.name = 'ANIMATION_' + str(anim['id'])
+
+            if 'priority' in anim:
+                priority = anim['priority']
+                if not isinstance(priority, int):
+                    priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
+                    rospy.logwarn(
+                        f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default: {priority}'
+                    )
+                elif not 0 < priority <= PantherAnimation.ANIMATION_DEFAULT_PRIORITY:
+                    priority = PantherAnimation.ANIMATION_DEFAULT_PRIORITY
+                    rospy.logwarn(
+                        f'[{rospy.get_name()}] Invalid priority for animaiton: {animation.name}. Using default: {priority}'
+                    )
+                animation.priority = priority
+
+            if 'timeout' in anim:
+                timeout = float(anim['timeout'])
+                if timeout <= 0:
+                    timeout = PantherAnimation.ANIMATION_DEFAULT_TIMEOUT
+                    rospy.logwarn(
+                        f'[{rospy.get_name()}] Invalid timeout for animation: {animation.name}. Using default: {timeout}'
+                    )
+                animation.timeout = timeout
+
+            self._animations[anim['id']] = animation
+
+        else:
+            raise KeyError(f'Missing ID in animation description')
 
 
 def main():
