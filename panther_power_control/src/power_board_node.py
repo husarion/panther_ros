@@ -63,6 +63,10 @@ class PowerBoardNode:
         self._setup_gpio()
         self._motor_start_sequence()
         self._watchdog = Watchdog(self._pins.WATCHDOG)
+        
+        self._gpio_wait = 0.05 # seconds
+        self._e_stop_interrupt_time = float('inf')
+        self._chrg_sense_interrupt_time = float('inf')
 
         self._cmd_vel_msg_time = rospy.get_time()
         
@@ -123,8 +127,8 @@ class PowerBoardNode:
         #   Timers
         # -------------------------------
 
-        # 2 Hz publish non asynch pin state
-        self._charger_state_timer = rospy.Timer(rospy.Duration(0.5), self._publish_pin_state_cb)
+        # 5 Hz publish non asynch pin state
+        self._publish_pin_state_timer = rospy.Timer(rospy.Duration(0.2), self._publish_pin_state_cb)
         # 50 Hz of software PWM. Timer running at 100 Hz for raising and falling edges
         self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
         
@@ -132,7 +136,7 @@ class PowerBoardNode:
         #   GPIO callbacks
         # -------------------------------
     
-        # for fast e-stop detection
+        # register e-stop and power button pin change imminently
         GPIO.add_event_detect(self._pins.E_STOP_RESET, GPIO.BOTH,
                               callback=self._gpio_interrupt_cb, bouncetime=200)
         
@@ -146,18 +150,25 @@ class PowerBoardNode:
         
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
-            rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-            self._publish_io_state('power_btn', True)
+            self._chrg_sense_interrupt_time = rospy.get_time()
             
         if pin == self._pins.E_STOP_RESET:
-            self._e_stop_event()
+            self._e_stop_interrupt_time = rospy.get_time()
             
     def _publish_pin_state_cb(self, *args) -> None:
         charger_state = self._read_pin(self._pins.CHRG_SENSE)
         self._publish_io_state('charger_connected', charger_state)
         
-        # to ensure correct e-stop state is published
-        self._e_stop_event()
+        # filter short spikes of voltage on GPIO
+        if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
+            if self._read_pin(self._pins.SHDN_INIT):
+                rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
+                self._publish_io_state('power_btn', True)
+            self._chrg_sense_interrupt_time = float('inf')
+                
+        if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
+            self._e_stop_event()
+            self._e_stop_interrupt_time = float('inf')
             
 
     def _watchdog_cb(self, *args) -> None:
@@ -233,6 +244,7 @@ class PowerBoardNode:
 
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
         self._clearing_e_stop = False
+        self._e_stop_event()
 
     def _e_stop_event(self) -> None:
         e_stop_state = self._read_pin(self._pins.E_STOP_RESET)
