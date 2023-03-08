@@ -62,6 +62,7 @@ class RelaysNode:
 
         # init e-stop state
         self._e_stop_state_pub.publish(self._e_stop_state)
+        self._motor_on_pub.publish(GPIO.input(self._pins.STAGE2_INPUT))
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
@@ -89,7 +90,6 @@ class RelaysNode:
         if motor_state != self._motor_on_pub.impl.latch.data:
             self._motor_on_pub.publish(motor_state)
 
-    @staticmethod
     def _setup_gpio(self) -> None:
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
