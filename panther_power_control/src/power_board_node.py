@@ -181,7 +181,7 @@ class PowerBoardNode:
         elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
             return TriggerResponse(
                 False,
-                'E-STOP reset failed, /cmd_vel is still being published!',
+                'E-STOP reset failed, messages are still published on /cmd_vel topic!',
             )
 
         self._reset_e_stop()
