@@ -72,7 +72,7 @@ class RelaysNode:
         if rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
             return TriggerResponse(
                 False,
-                'E-STOP reset failed, /cmd_vel is still being published!',
+                'E-STOP reset failed, messages are still published on /cmd_vel topic!',
             )
         self._e_stop_state = False
         self._e_stop_state_pub.publish(self._e_stop_state)
