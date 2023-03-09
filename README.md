@@ -34,6 +34,11 @@ To build hardware interface packages running on the Panther robot's internal com
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
+<<<<<<< HEAD
+=======
+pip3 install apa102-pi rosdep vcstool
+
+>>>>>>> ros1
 git clone https://github.com/husarion/panther_ros.git src/panther_ros
 vcs import src < src/panther_ros/panther/panther.repos
 rm -r src/panther_ros/panther_gazebo
