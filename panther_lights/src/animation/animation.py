@@ -14,7 +14,7 @@ class Animation:
             raise KeyError('No duration in animation description')
 
         self._duration = float(animation_description['duration'])
-        if self._duration <= 0:
+        if self._duration <= 0.0:
             raise KeyError('Duration has to be positive')
 
         if 'repeat' in animation_description:
