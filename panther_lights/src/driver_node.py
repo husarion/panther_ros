@@ -83,7 +83,7 @@ class LightsDriverNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _percent_to_apa_driver_brightness(self, brightness_percent: float) -> int:
-        if 0 <= brightness_percent <= 1:
+        if 0.0 <= brightness_percent <= 1.0:
             brightness = int(brightness_percent * LEDConstants.LED_MAX_BRIGHTNESS)
             # set minimal brightness for small values
             if brightness == 0 and brightness_percent > 0:
