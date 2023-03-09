@@ -86,7 +86,7 @@ class LightsDriverNode:
         if 0.0 <= brightness_percent <= 1.0:
             brightness = int(brightness_percent * LEDConstants.LED_MAX_BRIGHTNESS)
             # set minimal brightness for small values
-            if brightness == 0 and brightness_percent > 0:
+            if brightness == 0 and brightness_percent > 0.0:
                 brightness = 1
             return brightness
         raise ValueError('Brightness out of range <0,1>')
