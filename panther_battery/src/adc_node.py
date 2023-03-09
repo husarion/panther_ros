@@ -15,7 +15,7 @@ class ADCNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        loop_rate = rospy.get_param('~loop_rate', 10)
+        loop_rate = rospy.get_param('~loop_rate', 10.0)
 
         self._V_driv_front = None
         self._V_driv_rear = None
