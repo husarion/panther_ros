@@ -306,10 +306,10 @@ class PantherDriverNode:
             for flag_val in self._panther_can.query_fault_flags()
         ]
 
-        if self._panther_can.can_connection_error():
-            self._driver_state_msg.front.fault_flag.can_net_err = (
-                self._driver_state_msg.rear.fault_flag.can_net_err
-            ) = True
+        (
+            self._driver_state_msg.front.fault_flag.can_net_err,
+            self._driver_state_msg.rear.fault_flag.can_net_err
+        ) = self._panther_can.can_connection_error()
 
         [
             self._driver_state_msg.front.script_flag,
