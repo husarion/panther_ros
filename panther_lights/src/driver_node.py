@@ -147,7 +147,7 @@ class LightsDriverNode:
                 g = int(pixel[1] * self._color_correction[1])
                 b = int(pixel[2] * self._color_correction[2])
                 pixel_hex = (r << 16) + (g << 8) + b
-                self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255 * 100))
+                self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255.0 * 100.0))
             self._pixels.show()
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:
