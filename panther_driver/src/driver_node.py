@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import math
-from typing import TypeVar
+from typing import List, Tuple, TypeVar
 
 import rospy
 import tf2_ros
@@ -43,7 +43,7 @@ class DriverFlagLogger:
 
         return msg
     
-    def _decode_flag(self, flag_val: int) -> list: # add ret type
+    def _decode_flag(self, flag_val: int) ->  Tuple[List[str], MsgType]:
         msg = self._msg_type()
 
         faults = [
@@ -61,7 +61,7 @@ class DriverFlagLogger:
 
 
 class PantherDriverNode:
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
         self._eds_file = rospy.get_param('~eds_file')
@@ -343,10 +343,10 @@ class PantherDriverNode:
         else:
             self._stop_cmd_vel_cb = False
 
-    def _estop_cb(self, data) -> None:
+    def _estop_cb(self, data: Bool) -> None:
         self._estop_triggered = data.data            
 
-    def _cmd_vel_cb(self, data) -> None:
+    def _cmd_vel_cb(self, data: Twist) -> None:
         # Block all motors if any Roboteq controller returns a fault flag or runtime error flag
         if not self._stop_cmd_vel_cb:
             self._panther_kinematics.inverse_kinematics(data)
@@ -418,7 +418,7 @@ class PantherDriverNode:
         return False
     
     @staticmethod
-    def euler_to_quaternion(yaw, pitch, roll):
+    def euler_to_quaternion(yaw: float, pitch: float, roll: float) -> List[float]:
         qx = math.sin(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) - \
             math.cos(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
         qy = math.cos(roll/2) * math.sin(pitch/2) * math.cos(yaw/2) + \
