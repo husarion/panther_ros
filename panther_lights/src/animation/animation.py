@@ -29,7 +29,7 @@ class Animation:
 
         if 'brightness' in animation_description:
             self._brightness = float(animation_description['brightness'])
-            if not (0 <= self._brightness <= 1):
+            if not (0.0 <= self._brightness <= 1.0):
                 raise KeyError('Brightness has to be in range <0,1>')
             self._brightness = int(round(self._brightness * 255))
 
