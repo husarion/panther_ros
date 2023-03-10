@@ -332,9 +332,11 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-        if any(self._panther_can.can_connection_error()) and not self._estop_triggered:
-            self._trigger_panther_estop()
-            self._stop_cmd_vel_cb = True
+        if any(self._panther_can.can_connection_error()):
+            if not self._estop_triggered:
+                self._trigger_panther_estop()
+                self._stop_cmd_vel_cb = True
+
             rospy.logerr_throttle(
                 10.0, f'[{rospy.get_name()}] CAN interface connection error.'
             )

@@ -77,7 +77,7 @@ class PantherCAN:
                 faults = [time_now - cb_time > rospy.Duration(0.2) for cb_time in controller.last_time_callback.values()]
                 yield any(faults)
             else:
-                self._robot_driver_initialized = time_now - self._can_init_time > rospy.Duration(10.0)
+                self._robot_driver_initialized = time_now - self._can_init_time > rospy.Duration(5.0)
                 yield False
 
     def write_wheels_enc_velocity(self, vel: list) -> None:
@@ -96,26 +96,19 @@ class PantherCAN:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 try:
-                    tmp_batamps = 0.0                   
-
-                    for wheel in self._wheels:
-                        # division by 10 is needed according to documentation
-                        tmp_batamps += \
-                            float(
-                                motor_controller.can_node.sdo['Qry_BATAMPS'][wheel].raw
-                            ) / 10.0
-                            
                     motor_controller.battery_data = [
-                        tmp_batamps,
+                        sum(
+                            [
+                                float(motor_controller.can_node.sdo['Qry_BATAMPS'][wheel].raw) / 10.0 
+                                for wheel in self._wheels
+                            ]
+                        ),
                         float(
                             motor_controller.can_node.sdo['Qry_VOLTS'][ControllerChannels.VOLT_CHANNEL].raw
                         ) / 10.0
                     ]
                 except canopen.SdoCommunicationError:
-                    rospy.logdebug(
-                        f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
-                        f'occurred while reading battery data'
-                    )       
+                    pass
                 
                 for battery_data in motor_controller.battery_data:
                     yield battery_data
@@ -126,10 +119,7 @@ class PantherCAN:
                 try:  
                     motor_controller.temperature = float(motor_controller.can_node.sdo['Qry_TEMP'][1].raw)
                 except canopen.SdoCommunicationError:
-                    rospy.logdebug(
-                        f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
-                        f'occurred while reading battery data'
-                    )       
+                    pass 
                 
                 yield motor_controller.temperature
 
@@ -151,42 +141,45 @@ class PantherCANSDO(PantherCAN):
     def query_wheels_enc_pose(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                for i, wheel in enumerate(self._wheels):
-                    try:
-                        motor_controller.wheel_pos[i] = motor_controller.can_node.sdo['Qry_ABCNTR'][wheel].raw
-                    except canopen.SdoCommunicationError:
-                        rospy.logdebug(
-                            f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
-                            f'occurred while reading wheels position'
-                        )
-                    yield motor_controller.wheel_pos[i]
+                try:
+                    motor_controller.wheel_pos = [
+                        motor_controller.can_node.sdo['Qry_ABCNTR'][wheel].raw 
+                        for wheel in self._wheels
+                    ]
+                except canopen.SdoCommunicationError:
+                    pass
+
+                for pos in motor_controller.wheel_pos:
+                    yield pos
 
     def query_wheels_enc_velocity(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                for i, wheel in enumerate(self._wheels):
-                    try:
-                        motor_controller.wheel_vel[i] = motor_controller.can_node.sdo['Qry_ABSPEED'][wheel].raw
-                    except canopen.SdoCommunicationError:
-                        rospy.logdebug(
-                            f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
-                            f'occurred while reading wheels velocity'
-                        )
-                    yield motor_controller.wheel_vel[i]
+                try:
+                    motor_controller.wheel_vel = [
+                        motor_controller.can_node.sdo['Qry_ABSPEED'][wheel].raw
+                        for wheel in self._wheels
+                    ]
+                except canopen.SdoCommunicationError:
+                    pass
+
+                for vel in motor_controller.wheel_vel:
+                    yield vel
 
     def query_motor_current(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                for i, wheel in enumerate(self._wheels):
-                    try:
-                        # division by 10 is needed according to documentation
-                        motor_controller.wheel_curr[i] = motor_controller.can_node.sdo['Qry_MOTAMPS'][wheel].raw / 10.0
-                    except canopen.SdoCommunicationError:
-                        rospy.logdebug(
-                            f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
-                            f'occurred while reading motor current'
-                        )
-                    yield motor_controller.wheel_curr[i]
+                try:
+                    # division by 10 is needed according to documentation
+                    motor_controller.wheel_curr = [
+                        motor_controller.can_node.sdo['Qry_MOTAMPS'][wheel].raw / 10.0
+                        for wheel in self._wheels 
+                    ]
+                except canopen.SdoCommunicationError:
+                    pass
+
+                for curr in motor_controller.wheel_curr:
+                    yield curr
 
     def query_fault_flags(self) -> Generator[int, None, None]:
         with self._lock:
@@ -194,32 +187,31 @@ class PantherCANSDO(PantherCAN):
                 try:
                     motor_controller.fault_flags = motor_controller.can_node.sdo['Qry_FLTFLAG'].raw
                 except canopen.SdoCommunicationError:
-                    rospy.logdebug(
-                        f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 
-                        f'occurred while reading fault flags'
-                    )
+                    pass
+
                 yield motor_controller.fault_flags
 
     # mockup for compatybility with new driver version
     def query_script_flags(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
+                # dummy assignment (compatybility)
+                motor_controller.script_flags = 0
                 yield motor_controller.script_flags
 
     def query_runtime_stat_flag(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                for i, wheel in enumerate(self._wheels):
-                    try:
-                        motor_controller.runtime_stat_flag[i] = int.from_bytes(
-                            motor_controller.can_node.sdo['Qry_MOTFLAGS'][wheel].data, 'little'
-                        ) 
-                    except canopen.SdoCommunicationError:
-                        rospy.logdebug(
-                            f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError '
-                            f'occurred while reading runtime status flag'
-                        )
-                    yield motor_controller.runtime_stat_flag[i]
+                try:
+                    motor_controller.runtime_stat_flag = [
+                        int.from_bytes(motor_controller.can_node.sdo['Qry_MOTFLAGS'][wheel].data, 'little')
+                        for wheel in self._wheels
+                    ]
+                except canopen.SdoCommunicationError:
+                    pass
+            
+                for flag in motor_controller.runtime_stat_flag:
+                    yield flag
 
 
 class PantherCANPDO(PantherCAN):
