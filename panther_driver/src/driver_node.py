@@ -410,12 +410,12 @@ class PantherDriverNode:
             rospy.logwarn_throttle(2.0, f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
 
             if not response.success:
-                return True
-
+                return False
+        
         except rospy.ServiceException as e:
             rospy.logerr(f'[{rospy.get_name()}] Can\'t trigger Panther e-stop... \n{e}')
 
-        return False
+        return True
     
     @staticmethod
     def euler_to_quaternion(yaw: float, pitch: float, roll: float) -> List[float]:
