@@ -105,11 +105,12 @@ class PantherCAN:
                                 motor_controller.can_node.sdo['Qry_BATAMPS'][wheel].raw
                             ) / 10.0
                             
-                    motor_controller.battery_data[1] = tmp_batamps
-                    motor_controller.battery_data[0] = \
+                    motor_controller.battery_data = [
+                        tmp_batamps,
                         float(
                             motor_controller.can_node.sdo['Qry_VOLTS'][ControllerChannels.VOLT_CHANNEL].raw
                         ) / 10.0
+                    ]
                 except canopen.SdoCommunicationError:
                     rospy.logdebug(
                         f'[{rospy.get_name()}] PantherCAN: SdoCommunicationError ' 

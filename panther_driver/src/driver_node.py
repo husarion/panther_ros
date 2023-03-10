@@ -332,7 +332,7 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-        if self._panther_can.can_connection_error() and not self._estop_triggered:
+        if any(self._panther_can.can_connection_error()) and not self._estop_triggered:
             self._trigger_panther_estop()
             self._stop_cmd_vel_cb = True
             rospy.logerr_throttle(
@@ -407,7 +407,7 @@ class PantherDriverNode:
     def _trigger_panther_estop(self) -> bool:
         try:
             response = self._estop_trigger()
-            rospy.logwarn(f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
+            rospy.logwarn_throttle(2.0, f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
 
             if not response.success:
                 return True
