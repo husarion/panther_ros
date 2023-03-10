@@ -92,7 +92,7 @@ class PantherCAN:
                             f'occurred while setting wheels velocity'
                         )
 
-    def query_battery_data(self) -> Generator:
+    def query_battery_data(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 try:
@@ -120,7 +120,7 @@ class PantherCAN:
                 for battery_data in motor_controller.battery_data:
                     yield battery_data
                     
-    def query_driver_temperature_data(self) -> Generator:
+    def query_driver_temperature_data(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 try:  
@@ -148,7 +148,7 @@ class PantherCANSDO(PantherCAN):
     def __init__(self, eds_file, can_interface):
         super().__init__(eds_file, can_interface)
 
-    def query_wheels_enc_pose(self) -> Generator:
+    def query_wheels_enc_pose(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for i, wheel in enumerate(self._wheels):
@@ -161,7 +161,7 @@ class PantherCANSDO(PantherCAN):
                         )
                     yield motor_controller.wheel_pos[i]
 
-    def query_wheels_enc_velocity(self) -> Generator:
+    def query_wheels_enc_velocity(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for i, wheel in enumerate(self._wheels):
@@ -174,7 +174,7 @@ class PantherCANSDO(PantherCAN):
                         )
                     yield motor_controller.wheel_vel[i]
 
-    def query_motor_current(self) -> Generator:
+    def query_motor_current(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for i, wheel in enumerate(self._wheels):
@@ -188,7 +188,7 @@ class PantherCANSDO(PantherCAN):
                         )
                     yield motor_controller.wheel_curr[i]
 
-    def query_fault_flags(self) -> Generator:
+    def query_fault_flags(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 try:
@@ -201,12 +201,12 @@ class PantherCANSDO(PantherCAN):
                 yield motor_controller.fault_flags
 
     # mockup for compatybility with new driver version
-    def query_script_flags(self) -> Generator:
+    def query_script_flags(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 yield motor_controller.script_flags
 
-    def query_runtime_stat_flag(self) -> Generator:
+    def query_runtime_stat_flag(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for i, wheel in enumerate(self._wheels):
@@ -239,35 +239,35 @@ class PantherCANPDO(PantherCAN):
 
         self.restart_roboteq_script()
 
-    def query_wheels_enc_pose(self) -> Generator:
+    def query_wheels_enc_pose(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for pos in motor_controller.wheel_pos:
                     yield pos
 
-    def query_wheels_enc_velocity(self) -> Generator:
+    def query_wheels_enc_velocity(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for vel in motor_controller.wheel_vel:
                     yield vel
 
-    def query_motor_current(self) -> Generator:
+    def query_motor_current(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for curr in motor_controller.wheel_curr:
                     yield curr / 10.0
 
-    def query_fault_flags(self) -> Generator:
+    def query_fault_flags(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 yield motor_controller.fault_flags
 
-    def query_script_flags(self) -> Generator:
+    def query_script_flags(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 yield motor_controller.script_flags
 
-    def query_runtime_stat_flag(self) -> Generator:
+    def query_runtime_stat_flag(self) -> Generator[int, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
                 for flag in motor_controller.runtime_stat_flag:
