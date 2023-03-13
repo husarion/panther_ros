@@ -202,7 +202,7 @@ class PowerBoardNode:
         elif self._can_net_err:
             return TriggerResponse(
                 False,
-                'E-STOP reset failed, unable to communicate with motor controllers! Please ensure that controllers are powered on.',
+                'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
             )
 
         self._reset_e_stop()
