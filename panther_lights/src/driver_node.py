@@ -84,10 +84,10 @@ class LightsDriverNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _percent_to_apa_driver_brightness(self, brightness_percent: float) -> int:
-        if 0 <= brightness_percent <= 1:
+        if 0.0 <= brightness_percent <= 1.0:
             brightness = int(brightness_percent * LEDConstants.LED_MAX_BRIGHTNESS)
             # set minimal brightness for small values
-            if brightness == 0 and brightness_percent > 0:
+            if brightness == 0 and brightness_percent > 0.0:
                 brightness = 1
             return brightness
         raise ValueError('Brightness out of range <0,1>')
@@ -146,7 +146,7 @@ class LightsDriverNode:
                 g = int(pixel[1] * self._color_correction[1])
                 b = int(pixel[2] * self._color_correction[2])
                 pixel_hex = (r << 16) + (g << 8) + b
-                self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255 * 100))
+                self._pixels.set_pixel_rgb(i, pixel_hex, int(brightness / 255.0 * 100.0))
             self._pixels.show()
 
     def _set_brightness_cb(self, req: SetLEDBrightnessRequest) -> SetLEDBrightnessResponse:

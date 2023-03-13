@@ -91,7 +91,9 @@ Basic animations provided by Husarion are loaded upon node start from [`panther_
     - **3** adds animation to the end of queue.
 - `timeout` [*float*, default: **120.0**]: time in seconds, after which animation will be removed from the queue.
 
-> **Warning**: If `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
+> **Warning**
+> 
+> If `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
 
 Default animations can be found in the table below:
 
@@ -119,7 +121,9 @@ Basic animation definition. Keys are inherited from basic **Animation** class by
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
 - `type` [*string*, required]: animation type, default animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
-> **Note**: Overall display duration of an animation is a product of a single image duration and repeat count. Result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
+> **Note**
+> 
+> Overall display duration of an animation is a product of a single image duration and repeat count. Result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
 
 #### ImageAnimation
 
@@ -196,9 +200,13 @@ user_animations:
         repeat: 1
 ```
 
-> **Note**: ID numbers from 0 to 19 are reserved for system animations.
+> **Note**
+>
+> ID numbers from 0 to 19 are reserved for system animations.
 
-> **Note**: Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
+> **Note**
+>
+> Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
 
 Add docker volume with a previously created animation description list. If using custom images for `ImageAnimation`, add also a docker volume with a folder containing custom images. On built-in computer modify `compose.yaml`:
 
