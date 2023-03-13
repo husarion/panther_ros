@@ -1,3 +1,6 @@
+from abc import abstractmethod
+
+
 class Animation:
     def __init__(self, animation_description: dict, num_led: int, controller_freq: float) -> None:
         self._animation_description = animation_description
@@ -64,6 +67,7 @@ class Animation:
         self._finished = False
         self._progress = 0.0
 
+    @abstractmethod
     def _update_frame(self) -> list:
         raise NotImplementedError
 
