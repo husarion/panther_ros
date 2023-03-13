@@ -200,9 +200,13 @@ user_animations:
         repeat: 1
 ```
 
-> **Note**: ID numbers from 0 to 19 are reserved for system animations.
+> **Note**
+>
+> ID numbers from 0 to 19 are reserved for system animations.
 
-> **Note**: Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
+> **Note**
+>
+> Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
 
 Add docker volume with a previously created animation description list. If using custom images for `ImageAnimation`, add also a docker volume with a folder containing custom images. On built-in computer modify `compose.yaml`:
 
