@@ -91,7 +91,9 @@ Basic animations provided by Husarion are loaded upon node start from [`panther_
     - **3** adds animation to the end of queue.
 - `timeout` [*float*, default: **120.0**]: time in seconds, after which animation will be removed from the queue.
 
-> **Warning**: If `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
+> **Warning**
+> 
+> If `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
 
 Default animations can be found in the table below:
 
