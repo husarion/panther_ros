@@ -306,10 +306,10 @@ class PantherDriverNode:
             for flag_val in self._panther_can.query_fault_flags()
         ]
 
-        if self._panther_can.can_connection_error():
-            self._driver_state_msg.front.fault_flag.can_net_err = (
-                self._driver_state_msg.rear.fault_flag.can_net_err
-            ) = True
+        (
+            self._driver_state_msg.front.fault_flag.can_net_err,
+            self._driver_state_msg.rear.fault_flag.can_net_err
+        ) = self._panther_can.can_connection_error()
 
         [
             self._driver_state_msg.front.script_flag,
@@ -332,9 +332,11 @@ class PantherDriverNode:
         self._driver_state_publisher.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-        if self._panther_can.can_connection_error() and not self._estop_triggered:
-            self._trigger_panther_estop()
-            self._stop_cmd_vel_cb = True
+        if any(self._panther_can.can_connection_error()):
+            if not self._estop_triggered:
+                self._trigger_panther_estop()
+                self._stop_cmd_vel_cb = True
+
             rospy.logerr_throttle(
                 10.0, f'[{rospy.get_name()}] CAN interface connection error.'
             )
@@ -407,11 +409,9 @@ class PantherDriverNode:
     def _trigger_panther_estop(self) -> bool:
         try:
             response = self._estop_trigger()
-            rospy.logwarn(f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
-
-            if not response.success:
-                return True
-
+            rospy.logwarn_throttle(2.0, f'[{rospy.get_name()}] Trying to trigger Panther e-stop... Response: {response.success}')
+            return response.success
+        
         except rospy.ServiceException as e:
             rospy.logerr(f'[{rospy.get_name()}] Can\'t trigger Panther e-stop... \n{e}')
 
