@@ -338,7 +338,9 @@ class PantherDriverNode:
                 self._stop_cmd_vel_cb = True
 
             rospy.logerr_throttle(
-                10.0, f'[{rospy.get_name()}] CAN interface connection error.'
+                10.0, 
+                f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure). '
+                f'Please ensure that controllers are powered on.'
             )
         elif self._estop_triggered:
             self._stop_cmd_vel_cb = True 
@@ -415,7 +417,7 @@ class PantherDriverNode:
         except rospy.ServiceException as e:
             rospy.logerr(f'[{rospy.get_name()}] Can\'t trigger Panther e-stop... \n{e}')
 
-        return False
+        return True
     
     @staticmethod
     def euler_to_quaternion(yaw: float, pitch: float, roll: float) -> List[float]:

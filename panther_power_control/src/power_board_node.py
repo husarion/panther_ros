@@ -10,7 +10,7 @@ from std_msgs.msg import Bool
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
-from panther_msgs.msg import IOState
+from panther_msgs.msg import DriverState, IOState
 
 @dataclass
 class PatherGPIO:              
@@ -69,7 +69,8 @@ class PowerBoardNode:
         self._chrg_sense_interrupt_time = float('inf')
 
         self._cmd_vel_msg_time = rospy.get_time()
-        
+        self._can_net_err = True
+
         # -------------------------------
         #   Publishers
         # -------------------------------
@@ -96,7 +97,8 @@ class PowerBoardNode:
         # -------------------------------
 
         rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
-        
+        rospy.Subscriber('driver/motor_controllers_state', DriverState, self._driver_state_cb)
+
         # -------------------------------
         #   Services
         # -------------------------------
@@ -147,6 +149,9 @@ class PowerBoardNode:
         
     def _cmd_vel_cb(self, *args) -> None:
         self._cmd_vel_msg_time = rospy.get_time()
+
+    def _driver_state_cb(self, msg) -> None:
+        self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})            
         
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
@@ -194,10 +199,16 @@ class PowerBoardNode:
                 False,
                 'E-STOP reset failed, messages are still published on /cmd_vel topic!',
             )
+        elif self._can_net_err:
+            return TriggerResponse(
+                False,
+                'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
+            )
 
         self._reset_e_stop()
 
         if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+            self._watchdog.turn_off()
             return TriggerResponse(
                 False,
                 'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
