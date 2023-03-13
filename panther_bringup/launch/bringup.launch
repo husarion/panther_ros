@@ -4,12 +4,28 @@
   <arg name="publish_robot_state" default="true" />
   <arg name="wheel_type" default="WH01" doc="Type of wheel. Possible: 'WH01', 'WH02', 'WH04', 'custom'" />
   <arg name="panther_common_config_file" default="$(find panther_bringup)/config/panther_common.yaml" />
+  <arg name="test_animations" default="false" />
+  <arg name="user_animations_file" default="" />
+  <arg name="launch_lights_scheduler" default="true" />
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
-  <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" if="$(eval wheel_type == 'WH01')" />
-  <arg name="wheel_config_file" value="$(find panther_description)/config/WH02.yaml" if="$(eval wheel_type == 'WH02')" />
-  <arg name="wheel_config_file" value="$(find panther_description)/config/WH04.yaml" if="$(eval wheel_type == 'WH04')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml"
+    if="$(eval wheel_type == 'WH01')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH02.yaml"
+    if="$(eval wheel_type == 'WH02')" />
+  <arg name="wheel_config_file" value="$(find panther_description)/config/WH04.yaml"
+    if="$(eval wheel_type == 'WH04')" />
+
+  <arg name="robot_description" if="$(arg publish_robot_state)"
+    default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
+              wheel_config_path:=$(find panther_description)/config/$(arg wheel_type).yaml
+              imu_pos_x:=$(optenv PANTHER_IMU_LOCALIZATION_X 0.168)
+              imu_pos_y:=$(optenv PANTHER_IMU_LOCALIZATION_Y 0.028)
+              imu_pos_z:=$(optenv PANTHER_IMU_LOCALIZATION_Z 0.083)
+              imu_rot_r:=$(optenv PANTHER_IMU_ORIENTATION_R 3.14)
+              imu_rot_p:=$(optenv PANTHER_IMU_ORIENTATION_P -1.57)
+              imu_rot_y:=$(optenv PANTHER_IMU_ORIENTATION_Y 0.0)" />
 
   <arg name="robot_description" if="$(arg publish_robot_state)"
     default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
@@ -34,7 +50,11 @@
       <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
     </include>
 
-    <include file="$(find panther_lights)/launch/controler.launch" />
+    <include file="$(find panther_lights)/launch/lights.launch">
+      <arg name="launch_scheduler" value="$(arg launch_lights_scheduler)" />
+      <arg name="test" value="$(arg test_animations)" />
+      <arg name="user_animations_file" value="$(arg user_animations_file)" />
+    </include>
 
     <include file="$(find panther_battery)/launch/battery.launch">
       <arg name="panther_version" value="$(arg panther_version)" />

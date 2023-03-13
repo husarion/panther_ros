@@ -1,65 +1,95 @@
-# animations.yaml
-# BLINKER_RIGHT = 0
-# BLINKER_LEFT = 1
-# BRAKE_FRONT = 2
-# BRAKE_REAR = 3
-# BRAKE_BOTH = 4
-# NORMAL_FORWARD = 5
-# NORMAL_REVERSING = 6
-# SKID_RIGHT = 7
-# SKID_LEFT = 8
-# ERROR = 9
-# TEST1 = 10
-# TEST2 = 11
-
-global_brightness: 20
-num_leds: 46
-
 animations:
-  - id: 0 # BLINKER_RIGHT
-    front: {type: 'COLOR_WIPE_HALF_DOWN_FAST', color: !!int 0xff6600}
-    back: {type: 'COLOR_WIPE_HALF_UP_FAST', color: !!int 0xff6600}
-  
-  - id: 1 # BLINKER_LEFT
-    front: {type: 'COLOR_WIPE_HALF_UP_FAST', color: !!int 0xff6600}
-    back: {type: 'COLOR_WIPE_HALF_DOWN_FAST', color: !!int 0xff6600}
-  
-  - id: 2 # BRAKE_FRONT
-    front: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
-    back: {type: 'SOLID_COLOR', color: !!int 0xffffff}
-  
-  - id: 3 # BRAKE_REAR
-    front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
-    back: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
-  
-  - id: 4 # BRAKE_BOTH
-    front: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
-    back: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+  - id: 0
+    name: E_STOP
+    priority: 3
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/triangle01_red.png
+        duration: 2
 
-  - id: 5 # NORMAL_FORWARD
-    front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
-    back: {type: 'SOLID_COLOR', color: !!int 0xffffff}
+  - id: 1
+    name: READY
+    priority: 3
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/triangle01_green.png
+        duration: 2
 
-  - id: 6 # NORMAL_REVERSING
-    front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
-    back: {type: 'FADE_COLOR', color: !!int 0xEEDD00}
+  - id: 2
+    name: ERROR
+    priority: 1
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/strip01_red.png
+        duration: 3
+        repeat: 2
 
-  - id: 7 # SKID_RIGHT
-    front: {type: 'COLOR_WIPE_DOWN_NORMAL', color: !!int 0xEEDD00}
-    back: {type: 'COLOR_WIPE_UP_NORMAL', color: !!int 0xEEDD00}
+  - id: 3
+    name: MANUAL_ACTION
+    priority: 3
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/triangle01_blue.png
+        duration: 3
 
-  - id: 8 # SKID_LEFT
-    front: {type: 'COLOR_WIPE_UP_NORMAL', color: !!int 0xEEDD00}
-    back: {type: 'COLOR_WIPE_DOWN_NORMAL', color: !!int 0xEEDD00}
+  - id: 4
+    name: AUTONOMOUS_ACTION
+    priority: 3
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/triangle01_orange.png
+        duration: 3
 
-  - id: 9 # ERROR
-    front: {type: 'FADE_COLOR', color: !!int 0xFF0000}
-    back: {type: 'FADE_COLOR', color: !!int 0xFF0000}
+  - id: 5
+    name: GOAL_ACHIEVED
+    priority: 2
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/strip01_purple.png
+        duration: 3
+        repeat: 2
 
-  - id: 10 # TEST1
-    front: {type: 'DOUBLE_COLOR_WIPE_NORMAL', color: !!int 0x22ff11}
-    back: {type: 'DOUBLE_COLOR_WIPE_NORMAL', color: !!int 0x22ff11}
+  - id: 6
+    name: LOW_BATTERY
+    priority: 2
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/battery_low.png
+        duration: 2
+        repeat: 2
 
-  - id: 11 # TEST2
-    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0x22ff11}
-    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0x22ff11}
+  - id: 7
+    name: CRITICAL_BATTERY
+    priority: 2
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/battery_critical.png
+        duration: 2
+        repeat: 2
+
+  - id: 8
+    name: BATTERY_STATE
+    priority: 3
+    animation:
+      both:
+        type: battery_animation
+        duration: 3
+        repeat: 3
+
+  - id: 9
+    name: CHARGING_BATTERY
+    priority: 3
+    animation:
+      both:
+        type: charging_animation
+        duration: 3
+        repeat: 2
+

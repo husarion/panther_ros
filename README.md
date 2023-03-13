@@ -34,8 +34,6 @@ To build hardware interface packages running on the Panther robot's internal com
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
-pip3 install apa102-pi rosdep vcstool
-
 git clone https://github.com/husarion/panther_ros.git src/panther_ros
 vcs import src < src/panther_ros/panther/panther.repos
 rm -r src/panther_ros/panther_gazebo
@@ -106,3 +104,23 @@ hosts:
     username: my-username
 ```
 Refer to the [panther_manager documentation](./panther_manager/README.md) for more information.
+
+## Managing LED animations
+
+You can easily customize Panther LED panels by defining new animations based on images. They can be created with simple YAML syntax, such as the one shown below: 
+
+```yaml
+# user_animations.yaml
+user_animations:
+  # animation with default image and custom color
+  - id: 21
+    name: MY_AWESOME_ANIMATION
+    priority: 2
+    animation:
+      both:
+        type: image_animation
+        image: $(find panther_lights)/animations/strip01_red.png
+        duration: 2
+```
+
+You also have the option to create code-based animations. Detailed information on how to make use of these features, as well as a description of default behavior and customization options for Panther LED panels, can be found in [panther_lights documentation](./panther_lights/README.md).
