@@ -24,6 +24,7 @@ class LEDConstants:
     PANEL_FRONT = 0
     PANEL_REAR = 1
 
+
 class LightsDriverNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
@@ -107,7 +108,7 @@ class LightsDriverNode:
         if (rospy.Time.now() - image.header.stamp) > rospy.Duration(self._frame_timeout):
             rospy.logwarn(f'[{rospy.get_name()}] Front frame timeout exceeded, ignoring frame.')
             return
-        if (image.header.stamp < self._last_time_stamp_front):
+        if image.header.stamp < self._last_time_stamp_front:
             rospy.logwarn(f'[{rospy.get_name()}] Dropping message from past for front panel.')
             return
         self._last_time_stamp_front = image.header.stamp
@@ -118,7 +119,7 @@ class LightsDriverNode:
         if (rospy.Time.now() - image.header.stamp) > rospy.Duration(self._frame_timeout):
             rospy.logwarn(f'[{rospy.get_name()}] Rear frame timeout exceeded, ignoring frame.')
             return
-        if (image.header.stamp < self._last_time_stamp_rear):
+        if image.header.stamp < self._last_time_stamp_rear:
             rospy.logwarn(f'[{rospy.get_name()}] Dropping message from past for rear panel.')
             return
         self._last_time_stamp_rear = image.header.stamp
@@ -134,9 +135,7 @@ class LightsDriverNode:
         with self._lock:
             # select panel
             if panel_num == LEDConstants.PANEL_FRONT and self._front_active:
-                GPIO.output(
-                    LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_FRONT_STATE
-                )
+                GPIO.output(LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_FRONT_STATE)
             elif panel_num == LEDConstants.PANEL_REAR and self._rear_active:
                 GPIO.output(LEDConstants.LED_SWITCH_PIN, LEDConstants.LED_SWITCH_REAR_STATE)
             else:
