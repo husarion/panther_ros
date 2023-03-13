@@ -254,6 +254,7 @@ class PowerBoardNode:
         rospy.sleep(0.1)
 
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
+        rospy.sleep(0.1)
         self._clearing_e_stop = False
         self._e_stop_event()
 
