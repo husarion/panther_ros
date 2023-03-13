@@ -121,7 +121,9 @@ Basic animation definition. Keys are inherited from basic **Animation** class by
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
 - `type` [*string*, required]: animation type, default animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
-> **Note**: Overall display duration of an animation is a product of a single image duration and repeat count. Result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
+> **Note**
+> 
+> Overall display duration of an animation is a product of a single image duration and repeat count. Result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
 
 #### ImageAnimation
 
