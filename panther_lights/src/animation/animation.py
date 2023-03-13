@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 
-class Animation:
+class Animation(ABC):
     def __init__(self, animation_description: dict, num_led: int, controller_freq: float) -> None:
         self._animation_description = animation_description
         self._brightness = 255
@@ -69,7 +69,7 @@ class Animation:
 
     @abstractmethod
     def _update_frame(self) -> list:
-        raise NotImplementedError
+        pass
 
     def set_param(self, value: str) -> None:
         self._param = value
