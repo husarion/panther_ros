@@ -3,7 +3,7 @@
   <name>panther_driver</name>
   <version>0.0.1</version>
 
-  <description>Software for controlling Panther robot motors via CAN interface and launching IMU.</description>
+  <description>Software for controlling Panther robot motors via CAN interface.</description>
   <license>Apache License 2.0</license>
 
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>

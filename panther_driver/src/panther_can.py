@@ -26,7 +26,7 @@ class MotorController:
         self.wheel_pos = [0.0, 0.0]
         self.wheel_vel = [0.0, 0.0]
         self.wheel_curr = [0.0, 0.0]
-        self.battery_data = [0.0, 0.0] # V, I
+        self.battery_data = [0.0, 0.0]  # V, I
         self.runtime_stat_flag = [0, 0]
         self.temperature = 0.0
         self.fault_flags = 0
@@ -36,7 +36,7 @@ class MotorController:
 
     def __setattr__(self, name: str, value: Any) -> None:
         super().__setattr__(name, value)
-        if name not in ['_last_time_callback', 'can_node']:    
+        if name not in ['_last_time_callback', 'can_node']:
             self._last_time_callback[name] = rospy.Time.now()
 
     @property
@@ -50,34 +50,36 @@ class PantherCAN:
         self._network = canopen.Network()
 
         self._motor_controllers = [
-            MotorController(1, eds_file),   # front
-            MotorController(2, eds_file)    # rear
+            MotorController(1, eds_file),  # front
+            MotorController(2, eds_file),  # rear
         ]
-        
+
         self._network.connect(channel=can_interface, bustype='socketcan')
 
         self._network.add_node(self._motor_controllers[0].can_node)
         self._network.add_node(self._motor_controllers[1].can_node)
-        
-        self._wheels = [
-            ControllerChannels.LEFT_WHEEL,
-            ControllerChannels.RIGHT_WHEEL
-        ]
-        
+
+        self._wheels = [ControllerChannels.LEFT_WHEEL, ControllerChannels.RIGHT_WHEEL]
+
         self._robot_driver_initialized = False
         self._can_init_time = rospy.Time.now()
-        
+
         rospy.loginfo(f'[{rospy.get_name()}] Connected to the CAN bus.')
-    
+
     def can_connection_error(self) -> Generator[bool, None, None]:
         time_now = rospy.Time.now()
-            
+
         for controller in self._motor_controllers:
             if self._robot_driver_initialized:
-                faults = [time_now - cb_time > rospy.Duration(0.2) for cb_time in controller.last_time_callback.values()]
+                faults = [
+                    time_now - cb_time > rospy.Duration(0.2)
+                    for cb_time in controller.last_time_callback.values()
+                ]
                 yield any(faults)
             else:
-                self._robot_driver_initialized = time_now - self._can_init_time > rospy.Duration(5.0)
+                self._robot_driver_initialized = time_now - self._can_init_time > rospy.Duration(
+                    5.0
+                )
                 yield False
 
     def write_wheels_enc_velocity(self, vel: list) -> None:
@@ -99,28 +101,34 @@ class PantherCAN:
                     motor_controller.battery_data = [
                         sum(
                             [
-                                float(motor_controller.can_node.sdo['Qry_BATAMPS'][wheel].raw) / 10.0 
+                                float(motor_controller.can_node.sdo['Qry_BATAMPS'][wheel].raw)
+                                / 10.0
                                 for wheel in self._wheels
                             ]
                         ),
                         float(
-                            motor_controller.can_node.sdo['Qry_VOLTS'][ControllerChannels.VOLT_CHANNEL].raw
-                        ) / 10.0
+                            motor_controller.can_node.sdo['Qry_VOLTS'][
+                                ControllerChannels.VOLT_CHANNEL
+                            ].raw
+                        )
+                        / 10.0,
                     ]
                 except canopen.SdoCommunicationError:
                     pass
-                
+
                 for battery_data in motor_controller.battery_data:
                     yield battery_data
-                    
+
     def query_driver_temperature_data(self) -> Generator[float, None, None]:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                try:  
-                    motor_controller.temperature = float(motor_controller.can_node.sdo['Qry_TEMP'][1].raw)
+                try:
+                    motor_controller.temperature = float(
+                        motor_controller.can_node.sdo['Qry_TEMP'][1].raw
+                    )
                 except canopen.SdoCommunicationError:
-                    pass 
-                
+                    pass
+
                 yield motor_controller.temperature
 
     def _turn_on_roboteq_emergency_stop(self) -> None:
@@ -135,7 +143,7 @@ class PantherCAN:
 
 
 class PantherCANSDO(PantherCAN):
-    def __init__(self, eds_file, can_interface):
+    def __init__(self, eds_file: str, can_interface: str):
         super().__init__(eds_file, can_interface)
 
     def query_wheels_enc_pose(self) -> Generator[float, None, None]:
@@ -143,7 +151,7 @@ class PantherCANSDO(PantherCAN):
             for motor_controller in self._motor_controllers:
                 try:
                     motor_controller.wheel_pos = [
-                        motor_controller.can_node.sdo['Qry_ABCNTR'][wheel].raw 
+                        motor_controller.can_node.sdo['Qry_ABCNTR'][wheel].raw
                         for wheel in self._wheels
                     ]
                 except canopen.SdoCommunicationError:
@@ -173,7 +181,7 @@ class PantherCANSDO(PantherCAN):
                     # division by 10 is needed according to documentation
                     motor_controller.wheel_curr = [
                         motor_controller.can_node.sdo['Qry_MOTAMPS'][wheel].raw / 10.0
-                        for wheel in self._wheels 
+                        for wheel in self._wheels
                     ]
                 except canopen.SdoCommunicationError:
                     pass
@@ -204,18 +212,20 @@ class PantherCANSDO(PantherCAN):
             for motor_controller in self._motor_controllers:
                 try:
                     motor_controller.runtime_stat_flag = [
-                        int.from_bytes(motor_controller.can_node.sdo['Qry_MOTFLAGS'][wheel].data, 'little')
+                        int.from_bytes(
+                            motor_controller.can_node.sdo['Qry_MOTFLAGS'][wheel].data, 'little'
+                        )
                         for wheel in self._wheels
                     ]
                 except canopen.SdoCommunicationError:
                     pass
-            
+
                 for flag in motor_controller.runtime_stat_flag:
                     yield flag
 
 
 class PantherCANPDO(PantherCAN):
-    def __init__(self, eds_file, can_interface):
+    def __init__(self, eds_file: str, can_interface: str) -> None:
         super().__init__(eds_file, can_interface)
 
         number_of_retries = 0
@@ -268,7 +278,6 @@ class PantherCANPDO(PantherCAN):
     def _configure_tpdo(self):
         with self._lock:
             for motor_controller in self._motor_controllers:
-
                 try:
                     motor_controller.can_node.tpdo.read()
                 except canopen.SdoCommunicationError:
@@ -299,16 +308,24 @@ class PantherCANPDO(PantherCAN):
             rospy.loginfo(f'[{rospy.get_name()}] TPDO configured successfuly.')
             return True
 
-    def _update_wheels_pos_cb(self, message, motor_controller):
+    def _update_wheels_pos_cb(
+        self, message: canopen.pdo.Map, motor_controller: MotorController
+    ) -> None:
         motor_controller.wheel_pos = [m.raw for m in reversed(message)]
 
-    def _update_wheels_speed_cb(self, message, motor_controller):
+    def _update_wheels_speed_cb(
+        self, message: canopen.pdo.Map, motor_controller: MotorController
+    ) -> None:
         motor_controller.wheel_vel = [m.raw for m in reversed(message)]
 
-    def _update_wheels_current_cb(self, message, motor_controller):
+    def _update_wheels_current_cb(
+        self, message: canopen.pdo.Map, motor_controller: MotorController
+    ) -> None:
         motor_controller.wheel_curr = [m.raw for m in reversed(message)]
 
-    def _update_wheels_flags_cb(self, message, motor_controller):
+    def _update_wheels_flags_cb(
+        self, message: canopen.pdo.Map, motor_controller: MotorController
+    ) -> None:
         motor_controller.fault_flags = message[0].data[0]
         motor_controller.script_flags = message[0].data[2]
         motor_controller.runtime_stat_flag = [m for m in message[1].data[:2]]

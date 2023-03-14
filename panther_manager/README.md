@@ -50,13 +50,13 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~driver_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
 - `~fatal_bat_temp` [*float*, default: **62.0**]: temperature of battery above which robot shuts down.
 - `~high_bat_temp` [*float*, default: **55.0**]: temperature of battery above which robots starts displaying warning log and e-stop is triggered.
-- `~hosts` [*list*, default: **empty list**]: list of hosts to request shutdown.
+- `~hosts` [*list*, default: **None**]: list of hosts to request shutdown.
   - `cmd` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `identity_file` [*string*, default: **None**]: SSH identity file global path. If not set, defaults to `~default_identity_file`.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
 - `~fun_enable_hysteresis` [*float*, default: **60.0**]: minimum time of fan being turned on.
-- `~overwrite_fan_control` [*bool*, default: **False**]: enable the fan to be always on at start of the node. It can be turned off later by `/panther/manager/overwrite_fan_control` service.
+- `~overwrite_fan_control` [*bool*, default: **false**]: enable the fan to be always on at start of the node. It can be turned off later by `/panther/manager/overwrite_fan_control` service.
 - `~self_identity_file` [*float*, default: **~/.ssh/id_rsa**]: identity file global path to shutdown device running this node. If not, set defaults to `~default_identity_file`.
 - `~self_ip` [*string*, default: **127.0.0.1**]: IP used to shutdown device running this node.
 - `~self_username` [*string*, default: **husarion**]: username used to shutdown device running this node.

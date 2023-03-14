@@ -28,7 +28,7 @@ This node is responsible for processing animations and publishing frames to be d
 #### Parameters
 
 - `~animations` [*list*, default: **None**]:  required list of defined animations.
-- `~controller_frequency` [*float*, default: **46**]: frequency at which the lights controller node will process animations.
+- `~controller_frequency` [*float*, default: **46.0**]: frequency at which the lights controller node will process animations.
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel. Must match driver `num_led`.
 - `~test` [*bool*, default: **false**]: enables testing mode, enabling extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
