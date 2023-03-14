@@ -11,14 +11,14 @@
 
   <group if="$(arg use_ros_control)">
     <rosparam command="load" file="$(find panther_gazebo)/config/panther_ros_controler.yaml" />
-    <node name="panther_controller_spawner" pkg="controller_manager" type="spawner"
-      output="screen" args="joint_state_controller panther_base_controller" />
+    <node pkg="controller_manager" type="spawner" name="panther_controller_spawner" output="screen"
+      args="joint_state_controller panther_base_controller" />
   </group>
 
   <group unless="$(arg use_ros_control)">
     <rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
-    <node name="panther_controller_spawner" pkg="controller_manager" type="spawner"
-      output="screen" args="joint_state_controller" />
+    <node pkg="controller_manager" type="spawner" name="panther_controller_spawner" output="screen"
+      args="joint_state_controller" />
   </group>
 
   <include file="$(find panther_description)/launch/panther_state_publisher.launch" if="$(arg publish_robot_state)">

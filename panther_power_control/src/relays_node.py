@@ -43,13 +43,13 @@ class RelaysNode:
         self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
 
         # -------------------------------
-        #   Services
+        #   Service servers
         # -------------------------------
 
-        self._e_stop_reset_srv = rospy.Service(
+        self._e_stop_reset_server = rospy.Service(
             'hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
         )
-        self._e_stop_trigger_srv = rospy.Service(
+        self._e_stop_trigger_server = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
 
@@ -58,7 +58,7 @@ class RelaysNode:
         # -------------------------------
 
         # check motor state at 10 Hz
-        self._timer_set_motor = rospy.Timer(rospy.Duration(0.1), self._set_motor_state)
+        self._set_motor_state_timer = rospy.Timer(rospy.Duration(0.1), self._set_motor_state_timer_cb)
 
         # init e-stop state
         self._e_stop_state_pub.publish(self._e_stop_state)
@@ -84,7 +84,7 @@ class RelaysNode:
         self._e_stop_state_pub.publish(self._e_stop_state)
         return TriggerResponse(True, 'E-SROP triggered successful')
 
-    def _set_motor_state(self, *args) -> None:
+    def _set_motor_state_timer_cb(self, *args) -> None:
         motor_state = GPIO.input(self._pins.STAGE2_INPUT)
         GPIO.output(self._pins.MOTOR_ON, motor_state)
         if motor_state != self._motor_on_pub.impl.latch.data:

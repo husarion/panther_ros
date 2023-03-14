@@ -15,8 +15,6 @@ class ADCNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        loop_rate = rospy.get_param('~loop_rate', 10.0)
-
         self._V_driv_front = None
         self._V_driv_rear = None
         self._I_driv_front = None
@@ -32,30 +30,35 @@ class ADCNode:
         self._battery_charging = True  # const for now, later this will be evaluated
 
         # -------------------------------
-        #   Publishers & Subscribers
+        #   Subscribers
         # -------------------------------
 
-        self._battery_driv_sub = rospy.Subscriber(
-            'driver/motor_controllers_state', DriverState, self._battery_driv_cb
+        self._motor_controllers_state_sub = rospy.Subscriber(
+            'driver/motor_controllers_state', DriverState, self._motor_controllers_state_cb
         )
         self._io_state_sub = rospy.Subscriber('hardware/io_state', IOState, self._io_state_cb)
 
-        self._battery_publisher = rospy.Publisher('battery', BatteryState, queue_size=1)
+        # -------------------------------
+        #   Publishers
+        # -------------------------------
+
+        self._battery_pub = rospy.Publisher('battery', BatteryState, queue_size=1)
 
         if self._battery_count == 2:
-            self._battery_1_publisher = rospy.Publisher('battery_1', BatteryState, queue_size=1)
-            self._battery_2_publisher = rospy.Publisher('battery_2', BatteryState, queue_size=1)
+            self._battery_1_pub = rospy.Publisher('battery_1', BatteryState, queue_size=1)
+            self._battery_2_pub = rospy.Publisher('battery_2', BatteryState, queue_size=1)
 
         # -------------------------------
         #   Timers
         # -------------------------------
 
-        rospy.Timer(rospy.Duration(1.0 / loop_rate), self._battery_timer_cb)
+        # Running at 10 Hz
+        self._battery_timer = rospy.Timer(rospy.Duration(0.1), self._battery_timer_cb)
 
         rospy.loginfo(f'[{rospy.get_name()}] Battery count: {self._battery_count}')
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
-    def _battery_driv_cb(self, driver_state: DriverState) -> None:
+    def _motor_controllers_state_cb(self, driver_state: DriverState) -> None:
         self._V_driv_front = driver_state.front.voltage
         self._V_driv_rear = driver_state.front.current
         self._I_driv_front = driver_state.rear.voltage
@@ -67,31 +70,31 @@ class ADCNode:
     def _battery_timer_cb(self, *args) -> None:
         try:
             V_bat_1 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device1/in_voltage0_raw", LSB=0.02504255, offset=0
+                path='/sys/bus/iio/devices/iio:device1/in_voltage0_raw', LSB=0.02504255, offset=0.0
             )
             V_bat_2 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device1/in_voltage3_raw", LSB=0.02504255, offset=0
+                path='/sys/bus/iio/devices/iio:device1/in_voltage3_raw', LSB=0.02504255, offset=0.0
             )
             V_temp_bat_1 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device0/in_voltage1_raw", LSB=0.002, offset=0
+                path='/sys/bus/iio/devices/iio:device0/in_voltage1_raw', LSB=0.002, offset=0.0
             )
             V_temp_bat_2 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device0/in_voltage0_raw", LSB=0.002, offset=0
+                path='/sys/bus/iio/devices/iio:device0/in_voltage0_raw', LSB=0.002, offset=0.0
             )
             I_charge_bat_1 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device0/in_voltage3_raw", LSB=0.005, offset=0
+                path='/sys/bus/iio/devices/iio:device0/in_voltage3_raw', LSB=0.005, offset=0.0
             )
             I_charge_bat_2 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device0/in_voltage2_raw", LSB=0.005, offset=0
+                path='/sys/bus/iio/devices/iio:device0/in_voltage2_raw', LSB=0.005, offset=0.0
             )
             I_bat_1 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device1/in_voltage2_raw", LSB=0.04, offset=625
+                path='/sys/bus/iio/devices/iio:device1/in_voltage2_raw', LSB=0.04, offset=625.0
             )
             I_bat_2 = self._get_adc_measurement(
-                path="/sys/bus/iio/devices/iio:device1/in_voltage1_raw", LSB=0.04, offset=625
+                path='/sys/bus/iio/devices/iio:device1/in_voltage1_raw', LSB=0.04, offset=625.0
             )
         except:
-            rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error excep')
+            rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error')
             return
 
         if self._battery_count == 2:
@@ -99,28 +102,28 @@ class ADCNode:
             temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
 
             self._publish_battery_msg(
-                self._battery_1_publisher, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
+                self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
             )
             self._publish_battery_msg(
-                self._battery_2_publisher, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
+                self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
             )
 
             V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
-            temp_average = (temp_bat_1 + temp_bat_2) / 2.0
+            temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
             I_bat_average = (I_bat_1 + I_bat_2) / 2.0
             I_charge_bat_average = (I_charge_bat_1 + I_charge_bat_2) / 2.0
 
             self._publish_battery_msg(
-                self._battery_publisher,
+                self._battery_pub,
                 V_bat_avereage,
-                temp_average,
+                temp_bat_average,
                 -I_bat_average + I_charge_bat_average,
             )
 
         else:
             temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
             self._publish_battery_msg(
-                self._battery_publisher, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
+                self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
             )
 
     def _check_battery_count(self) -> int:
@@ -130,7 +133,7 @@ class ADCNode:
         try:
             for i in range(trials_num):
                 V_temp_sum += self._get_adc_measurement(
-                    path="/sys/bus/iio/devices/iio:device0/in_voltage0_raw", LSB=0.002, offset=0
+                    path='/sys/bus/iio/devices/iio:device0/in_voltage0_raw', LSB=0.002, offset=0.0
                 )
                 rospy.sleep(0.2)
 
@@ -139,16 +142,14 @@ class ADCNode:
         except:
             rospy.logerr(
                 f'[{rospy.get_name()}] Battery ADC measurement error excep. '
-                f'The number of batteries cannot be determined. The single battery was adopted. '
+                f'The number of batteries cannot be determined. The single battery was adopted.'
             )
 
         return 1 if V_temp_bat_2 > ADCNode.BAT02_DETECT_THRESH else 2
 
     def _get_adc_measurement(self, path: str, offset: float, LSB: float) -> float:
         raw_value = self._read_file(path)
-        value = (raw_value - offset) * LSB
-
-        return value
+        return (raw_value - offset) * LSB
 
     def _voltage_to_deg(self, V_temp: float) -> float:
         if V_temp == 0 or V_temp >= self._u_supply:
@@ -158,14 +159,6 @@ class ADCNode:
         R_therm = (V_temp * self._R1) / (self._u_supply - V_temp)
 
         return (self._A * self._B / (self._A * math.log(R_therm / self._R0) + self._B)) - 273.15
-
-    @staticmethod
-    def _read_file(path: str) -> int:
-        with open(path, 'r') as file:
-            data = file.read().rstrip()
-        file.close()
-
-        return int(data)
 
     def _publish_battery_msg(
         self, bat_pub: rospy.Publisher, V_bat: float, temp_bat: float, I_bat: float
@@ -194,6 +187,13 @@ class ADCNode:
             battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
         bat_pub.publish(battery_msg)
+
+    @staticmethod
+    def _read_file(path: str) -> int:
+        with open(path, 'r') as file:
+            data = file.read().rstrip()
+
+        return int(data)
 
 
 def main():

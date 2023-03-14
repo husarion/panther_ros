@@ -4,7 +4,7 @@ panther:
   robot_version: "1.0"
 
   imu:
-    model: "PhidgetSpatial_1042_0B"
+    model: PhidgetSpatial_1042_0B
     localization:
       x: 0.168
       y: 0.028
@@ -12,7 +12,7 @@ panther:
     orientation:
       r: 3.14
       p: -1.57
-      y: 0.0 
+      y: 0.0
 
   power_board:
     version: "0.0"
@@ -21,5 +21,5 @@ panther:
     version: "1.21"
 
   rtc:
-    model: "DS3231"
+    model: DS3231
     i2c_address: "0x51"

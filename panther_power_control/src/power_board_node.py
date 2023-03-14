@@ -12,8 +12,9 @@ from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
 from panther_msgs.msg import DriverState, IOState
 
+
 @dataclass
-class PatherGPIO:              
+class PatherGPIO:
     AUX_PW_EN = 18      # Enable auxiliary power, eg. supply to robotic arms etc. 
     CHRG_EN = 19        # Enable charger
     CHRG_SENSE = 7      # Charger sensor (1 - charger plugged in)            
@@ -38,7 +39,7 @@ class Watchdog:
         self._pin = pin
         self._last_state = False
         self._enabled = True
-        
+
     def __call__(self) -> None:
         if self._enabled:
             GPIO.output(self._pin, self._last_state)
@@ -59,12 +60,12 @@ class PowerBoardNode:
 
         self._clearing_e_stop = False
         self._pins = PatherGPIO()
-        
+
         self._setup_gpio()
         self._motor_start_sequence()
         self._watchdog = Watchdog(self._pins.WATCHDOG)
-        
-        self._gpio_wait = 0.05 # seconds
+
+        self._gpio_wait = 0.05  # seconds
         self._e_stop_interrupt_time = float('inf')
         self._chrg_sense_interrupt_time = float('inf')
 
@@ -75,53 +76,49 @@ class PowerBoardNode:
         #   Publishers
         # -------------------------------
 
-        self._e_stop_state_pub = rospy.Publisher(
-            'hardware/e_stop', Bool, queue_size=1, latch=True
-        )
-        self._io_state_pub = rospy.Publisher(
-            'hardware/io_state', IOState, queue_size=1, latch=True
-        )
-        
+        self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1, latch=True)
+        self._io_state_pub = rospy.Publisher('hardware/io_state', IOState, queue_size=1, latch=True)
+
         msg = Bool(self._read_pin(self._pins.E_STOP_RESET))
         self._e_stop_state_pub.publish(msg)
-        
+
         io_state = IOState()
         io_state.aux_power = self._read_pin(self._pins.AUX_PW_EN)
         io_state.charger_connected = self._read_pin(self._pins.CHRG_SENSE)
         io_state.fan = self._read_pin(self._pins.FAN_SW)
         io_state.power_btn = False
         self._io_state_pub.publish(io_state)
-        
+
         # -------------------------------
         #   Subscribers
         # -------------------------------
 
-        rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
-        rospy.Subscriber('driver/motor_controllers_state', DriverState, self._driver_state_cb)
+        self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
+        self._motor_controllers_state_sub = rospy.Subscriber(
+            'driver/motor_controllers_state', DriverState, self._motor_controllers_state_cb
+        )
 
         # -------------------------------
-        #   Services
+        #   Service servers
         # -------------------------------
 
-        self._aux_power_enable_srv = rospy.Service(
+        self._aux_power_enable_server = rospy.Service(
             'hardware/aux_power_enable', SetBool, self._aux_power_enable_cb
         )
-        self._charger_enable_srv = rospy.Service(
+        self._charger_enable_server = rospy.Service(
             'hardware/charger_enable', SetBool, self._charger_enable_cb
         )
-        self._digital_power_enable_srv = rospy.Service(
-            'hardware/digital_power_enable', SetBool, self._digital_power_enable_cb,
+        self._digital_power_enable_server = rospy.Service(
+            'hardware/digital_power_enable', SetBool, self._digital_power_enable_cb
         )
-        self._e_stop_reset_srv = rospy.Service(
+        self._e_stop_reset_server = rospy.Service(
             'hardware/e_stop_reset', Trigger, self._e_stop_reset_cb
         )
-        self._e_stop_trigger_srv = rospy.Service(
+        self._e_stop_trigger_server = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
-        self._fan_enable_srv = rospy.Service(
-            'hardware/fan_enable', SetBool, self._fan_enable_cb
-        )
-        self._motors_enable_srv = rospy.Service(
+        self._fan_enable_server = rospy.Service('hardware/fan_enable', SetBool, self._fan_enable_cb)
+        self._motors_enable_server = rospy.Service(
             'hardware/motors_enable', SetBool, self._motors_enable_cb
         )
 
@@ -133,52 +130,53 @@ class PowerBoardNode:
         self._publish_pin_state_timer = rospy.Timer(rospy.Duration(0.2), self._publish_pin_state_cb)
         # 50 Hz of software PWM. Timer running at 100 Hz for raising and falling edges
         self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
-        
+
         # -------------------------------
         #   GPIO callbacks
         # -------------------------------
-    
+
         # register e-stop and power button pin change imminently
-        GPIO.add_event_detect(self._pins.E_STOP_RESET, GPIO.BOTH,
-                              callback=self._gpio_interrupt_cb, bouncetime=200)
-        
-        GPIO.add_event_detect(self._pins.SHDN_INIT, GPIO.RISING,
-                              callback=self._gpio_interrupt_cb, bouncetime=200)
-        
+        GPIO.add_event_detect(
+            self._pins.E_STOP_RESET, GPIO.BOTH, callback=self._gpio_interrupt_cb, bouncetime=200
+        )
+
+        GPIO.add_event_detect(
+            self._pins.SHDN_INIT, GPIO.RISING, callback=self._gpio_interrupt_cb, bouncetime=200
+        )
+
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
-        
+
     def _cmd_vel_cb(self, *args) -> None:
         self._cmd_vel_msg_time = rospy.get_time()
 
-    def _driver_state_cb(self, msg) -> None:
-        self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})            
-        
+    def _motor_controllers_state_cb(self, msg: DriverState) -> None:
+        self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
+
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
             self._chrg_sense_interrupt_time = rospy.get_time()
-            
+
         if pin == self._pins.E_STOP_RESET:
             self._e_stop_interrupt_time = rospy.get_time()
-            
+
     def _publish_pin_state_cb(self, *args) -> None:
         charger_state = self._read_pin(self._pins.CHRG_SENSE)
         self._publish_io_state('charger_connected', charger_state)
-        
+
         # filter short spikes of voltage on GPIO
         if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
             if self._read_pin(self._pins.SHDN_INIT):
                 rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
                 self._publish_io_state('power_btn', True)
             self._chrg_sense_interrupt_time = float('inf')
-                
+
         if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
             self._e_stop_event()
             self._e_stop_interrupt_time = float('inf')
-            
 
     def _watchdog_cb(self, *args) -> None:
         self._watchdog()
-        
+
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
         if res.success:
@@ -219,13 +217,13 @@ class PowerBoardNode:
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
         self._watchdog.turn_off()
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
-    
+
     def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
         if res.success:
             self._publish_io_state('fan', req.data)
         return res
-    
+
     def _motors_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         resp_1 = self._set_bool_srv_handle(req.data, self._pins.VMOT_ON, 'Motors driver enable')
         resp_2 = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motors driver enable')
@@ -243,13 +241,12 @@ class PowerBoardNode:
             msg = f'{name} write {value} successful'
 
         return SetBoolResponse(success, msg)
-    
+
     def _reset_e_stop(self) -> None:
         self._clearing_e_stop = True
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
         self._watchdog.turn_on()
 
-        # Sending False because of inverse logic
         self._write_to_pin(self._pins.E_STOP_RESET, False)
         rospy.sleep(0.1)
 
@@ -262,13 +259,13 @@ class PowerBoardNode:
         e_stop_state = self._read_pin(self._pins.E_STOP_RESET)
         if e_stop_state != self._e_stop_state_pub.impl.latch.data and not self._clearing_e_stop:
             self._e_stop_state_pub.publish(e_stop_state)
-            
+
     def _publish_io_state(self, attribute: str, val: bool) -> None:
         last_msg = self._io_state_pub.impl.latch
         if getattr(last_msg, attribute) != val:
             setattr(last_msg, attribute, val)
             self._io_state_pub.publish(last_msg)
-            
+
     def _motor_start_sequence(self) -> None:
         self._write_to_pin(self._pins.VMOT_ON, 1)
         rospy.sleep(0.5)
@@ -288,7 +285,7 @@ class PowerBoardNode:
         GPIO.setup(self._pins.VDIG_OFF, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.VMOT_ON, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.WATCHDOG, GPIO.OUT, initial=0)
-        
+
     def _read_pin(self, pin: int) -> bool:
         if pin in self._pins.inverse_logic_pins:
             return not GPIO.input(pin)
@@ -314,5 +311,5 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-    finally: 
+    finally:
         GPIO.cleanup()

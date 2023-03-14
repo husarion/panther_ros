@@ -8,7 +8,7 @@ from panther_msgs.msg import DriverState
 
 
 class RoboteqRepublisherNode:
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
         self._battery_voltage = None
@@ -17,12 +17,16 @@ class RoboteqRepublisherNode:
         self._last_battery_info_time = rospy.get_time()
 
         # -------------------------------
-        #   Publishers & Subscribers
+        #   Subscribers
         # -------------------------------
 
-        self._battery_driv_sub = rospy.Subscriber(
-            'driver/motor_controllers_state', DriverState, self._battery_driv_cb
+        self._motor_controllers_state_sub = rospy.Subscriber(
+            'driver/motor_controllers_state', DriverState, self._motor_controllers_state_cb
         )
+
+        # -------------------------------
+        #   Publishers
+        # -------------------------------
 
         self._battery_pub = rospy.Publisher('battery', BatteryState, queue_size=1)
 
@@ -35,7 +39,7 @@ class RoboteqRepublisherNode:
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
-    def _battery_driv_cb(self, msg: DriverState) -> None:
+    def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         self._last_battery_info_time = rospy.get_time()
         self._battery_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
         self._battery_current = (msg.front.current + msg.rear.current) / 2.0

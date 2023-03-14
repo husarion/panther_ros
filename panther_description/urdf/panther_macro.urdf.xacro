@@ -1,19 +1,19 @@
-<?xml version='1.0'?>
-
+<?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
-  <xacro:macro name="panther_robot"
-               params="use_sim:=false
-                       dual_bat:=false
-                       imu_pos_x:=0.168 
-                       imu_pos_y:=0.028
-                       imu_pos_z:=0.083
-                       imu_rot_r:=3.14 
-                       imu_rot_p:=-1.57
-                       imu_rot_y:=0.0
-                       wheel_config_path:=None
-                       simulation_engine:='gazebo-classic'
-                       use_ros_control:=false">
+  <xacro:macro
+    name="panther_robot"
+    params="use_sim:=false
+            dual_bat:=false
+            imu_pos_x:=0.168
+            imu_pos_y:=0.028
+            imu_pos_z:=0.083
+            imu_rot_r:=3.14
+            imu_rot_p:=-1.57
+            imu_rot_y:=0.0
+            wheel_config_path:=None
+            simulation_engine:='gazebo-classic'
+            use_ros_control:=false">
 
     <xacro:if value="${wheel_config_path == 'None'}">
       <xacro:property name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" />

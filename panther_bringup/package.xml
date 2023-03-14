@@ -24,5 +24,5 @@
   <depend>panther_msgs</depend>
   <depend>panther_power_control</depend>
   <depend>phidgets_spatial</depend>
-  
+
 </package>
