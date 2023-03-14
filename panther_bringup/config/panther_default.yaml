@@ -12,7 +12,7 @@ panther:
     orientation:
       r: 3.14
       p: -1.57
-      y: 0.0 
+      y: 0.0
 
   power_board:
     version: "0.0"

@@ -2,12 +2,14 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- body defining macro -->
-  <xacro:macro name="body" params="
-    wheel_radius simulation_engine
-    imu_pos_x imu_pos_y imu_pos_z
-    imu_rot_r imu_rot_p imu_rot_y" >
+  <xacro:macro
+    name="body"
+    params="wheel_radius
+            simulation_engine
+            imu_pos_x imu_pos_y imu_pos_z
+            imu_rot_r imu_rot_p imu_rot_y">
 
-    <link name="base_link" /> 
+    <link name="base_link" />
 
     <joint name="base_to_body_joint" type="fixed">
       <origin xyz="0.0 0.0 ${wheel_radius}" rpy="0.0 0.0 0.0" />
@@ -17,14 +19,14 @@
 
     <link name="body_link">
       <visual>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
           <mesh filename="file://$(find panther_description)/meshes/body.dae" />
         </geometry>
       </visual>
 
       <collision>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
           <mesh filename="file://$(find panther_description)/meshes/body_collision.stl" />
         </geometry>
@@ -41,41 +43,41 @@
 
     <joint name="body_to_imu_joint" type="fixed">
       <origin xyz="${imu_pos_x} ${imu_pos_y} ${imu_pos_z}"
-              rpy="${imu_rot_r} ${imu_rot_p} ${imu_rot_y}" />
+        rpy="${imu_rot_r} ${imu_rot_p} ${imu_rot_y}" />
       <parent link="body_link" />
       <child link="imu_link" />
     </joint>
 
     <link name="imu_link" />
-    
+
     <joint name="body_to_front_light_joint" type="fixed">
       <origin xyz="0.362 0.0 0.0" rpy="0.0 0.0 0.0" />
       <parent link="body_link" />
       <child link="front_light_link" />
     </joint>
-    
+
     <link name="front_light_link" />
-    
+
     <joint name="body_to_rear_light_joint" type="fixed">
       <origin xyz="-0.362 0.0 0.0" rpy="0.0 0.0 ${pi}" />
       <parent link="body_link" />
       <child link="rear_light_link" />
     </joint>
-    
+
     <link name="rear_light_link" />
-    
+
     <joint name="body_to_cover_joint" type="fixed">
       <origin xyz="0.0 0.0 0.1715" rpy="0.0 0.0 0.0" />
       <parent link="body_link" />
       <child link="cover_link" />
     </joint>
-    
+
     <link name="cover_link" />
-    
+
     <xacro:if value="${simulation_engine == 'gazebo-classic'}">
       <!-- based on PhidgetSpatial datasheet -->
-      <xacro:property name="imu_acc_noise"  value="${280.0*1e-6*9.81}" />
-      <xacro:property name="imu_acc_drift"  value="${40.6*1e-6*9.81}" />
+      <xacro:property name="imu_acc_noise" value="${280.0*1e-6*9.81}" />
+      <xacro:property name="imu_acc_drift" value="${40.6*1e-6*9.81}" />
       <xacro:property name="imu_gyro_noise" value="${0.095*(pi/180.0)}" />
       <xacro:property name="imu_gyro_drift" value="${0.0042*(pi/180.0)}" />
       <gazebo>
@@ -90,7 +92,7 @@
           <rateGaussianNoise>${imu_gyro_noise} ${imu_gyro_noise} ${imu_gyro_noise}</rateGaussianNoise>
         </plugin>
       </gazebo>
-  </xacro:if>
+    </xacro:if>
 
   </xacro:macro>
 
