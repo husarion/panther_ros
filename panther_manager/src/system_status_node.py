@@ -46,8 +46,8 @@ class SystemStatusNode:
         if self._cpu_temp > self._critical_cpu_temp:
             rospy.logerr_throttle(
                 60.0,
-                f'[{rospy.get_name()}] CPU reached critical '
-                f'temperature of {int(round(self._cpu_temp) + 0.1)} deg C!',
+                f'[{rospy.get_name()}] CPU reached critical ',
+                f'temperature of {int(round(self._cpu_temp) + 0.1)} deg C!'
             )
 
     @property
