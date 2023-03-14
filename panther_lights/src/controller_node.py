@@ -19,8 +19,8 @@ from animation import Animation, BASIC_ANIMATIONS
 
 
 class PantherAnimation:
-    ANIMATION_DEFAULT_PRIORITY = 3
-    ANIMATION_DEFAULT_TIMEOUT = 120.0
+    ANIMATION_DEFAULT_PRIORITY: int = 3
+    ANIMATION_DEFAULT_TIMEOUT: float = 120.0
 
     front: Animation
     rear: Animation
@@ -114,7 +114,7 @@ class LightsControllerNode:
             return
 
         self._animations_description = rospy.get_param('~animations')
-        self._controller_frequency = rospy.get_param('~controller_frequency', 46)
+        self._controller_frequency = rospy.get_param('~controller_frequency', 46.0)
         self._num_led = rospy.get_param('~num_led', 46)
         test = rospy.get_param('~test', False)
 
@@ -132,30 +132,30 @@ class LightsControllerNode:
         #   Publishers
         # -------------------------------
 
-        self._front_frame_publisher = rospy.Publisher(
+        self._front_frame_pub = rospy.Publisher(
             'lights/driver/front_panel_frame', Image, queue_size=10
         )
-        self._rear_frame_publisher = rospy.Publisher(
+        self._rear_frame_pub = rospy.Publisher(
             'lights/driver/rear_panel_frame', Image, queue_size=10
         )
-        self._animation_queue_publisher = rospy.Publisher(
+        self._animation_queue_pub = rospy.Publisher(
             'lights/controller/queue', LEDAnimationQueue, queue_size=10
         )
 
         # -------------------------------
-        #   Services
+        #   Service servers
         # -------------------------------
 
-        self._set_animation_service = rospy.Service(
+        self._set_animation_server = rospy.Service(
             'lights/controller/set/animation', SetLEDAnimation, self._set_animation_cb
         )
         if test:
-            self._set_image_animation_service = rospy.Service(
+            self._set_image_animation_server = rospy.Service(
                 'lights/controller/set/image_animation',
                 SetLEDImageAnimation,
                 self._set_image_animation_cb,
             )
-        self._update_animations_service = rospy.Service(
+        self._update_animations_server = rospy.Service(
             'lights/controller/update_animations', Trigger, self._update_animations_cb
         )
 
@@ -219,20 +219,20 @@ class LightsControllerNode:
                 self._current_animation.rear.reset()
                 self._current_animation = None
 
-        self._front_frame_publisher.publish(
+        self._front_frame_pub.publish(
             self._rgb_frame_to_img_msg(frame_front, brightness_front, 'front_light_link')
         )
-        self._rear_frame_publisher.publish(
+        self._rear_frame_pub.publish(
             self._rgb_frame_to_img_msg(frame_rear, brightness_rear, 'rear_light_link')
         )
 
-    def _animation_queue_timer_cb(self, *args):
+    def _animation_queue_timer_cb(self, *args) -> None:
         anim_queue_msg = LEDAnimationQueue()
         if not self._anim_queue.empty():
             anim_queue_msg.queue = [anim.name for anim in self._anim_queue.queue]
         if self._current_animation:
             anim_queue_msg.queue.insert(0, self._current_animation.name)
-        self._animation_queue_publisher.publish(anim_queue_msg)
+        self._animation_queue_pub.publish(anim_queue_msg)
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         if not req.animation.id in self._animations:
@@ -255,7 +255,6 @@ class LightsControllerNode:
     def _set_image_animation_cb(
         self, req: SetLEDImageAnimationRequest
     ) -> SetLEDImageAnimationResponse:
-
         animation = PantherAnimation()
         animation.repeating = req.repeating
 
@@ -329,7 +328,6 @@ class LightsControllerNode:
             self._update_animations_dict(animation)
 
     def _update_user_animations(self) -> None:
-
         user_animations = rospy.get_param('~user_animations', '')
 
         for animation in user_animations:
@@ -371,7 +369,6 @@ class LightsControllerNode:
 
     def _update_animations_dict(self, anim: dict) -> None:
         if 'id' in anim:
-
             if not isinstance(anim['id'], int):
                 raise KeyError('Invalid animation ID')
 

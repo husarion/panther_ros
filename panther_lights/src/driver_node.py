@@ -15,14 +15,14 @@ from panther_msgs.srv import SetLEDBrightness, SetLEDBrightnessRequest, SetLEDBr
 
 @dataclass
 class LEDConstants:
-    LED_SWITCH_FRONT_STATE = GPIO.HIGH
-    LED_SWITCH_REAR_STATE = GPIO.LOW
-    LED_POWER_ON_STATE = GPIO.LOW  # active LED with low state
-    LED_SWITCH_PIN = 20
-    LED_POWER_PIN = 26
-    LED_MAX_BRIGHTNESS = 31
-    PANEL_FRONT = 0
-    PANEL_REAR = 1
+    LED_SWITCH_FRONT_STATE: bool = GPIO.HIGH
+    LED_SWITCH_REAR_STATE: bool = GPIO.LOW
+    LED_POWER_ON_STATE: bool = GPIO.LOW  # active LED with low state
+    LED_SWITCH_PIN: int = 20
+    LED_POWER_PIN: int = 26
+    LED_MAX_BRIGHTNESS: int = 31
+    PANEL_FRONT: int = 0
+    PANEL_REAR: int = 1
 
 
 class LightsDriverNode:
@@ -36,7 +36,7 @@ class LightsDriverNode:
         try:
             apa_driver_brightness = self._percent_to_apa_driver_brightness(global_brightness)
         except ValueError as err:
-            rospy.logwarn(f'[{rospy.get_name()}] Invalid brightness: {err}. Using default')
+            rospy.logwarn(f'[{rospy.get_name()}] Invalid brightness: {err}. Using default.')
             apa_driver_brightness = LEDConstants.LED_MAX_BRIGHTNESS
 
         self._lock = Lock()
@@ -74,10 +74,10 @@ class LightsDriverNode:
         )
 
         # -------------------------------
-        #   Services
+        #   Service servers
         # -------------------------------
 
-        self._set_brightness_service = rospy.Service(
+        self._set_brightness_server = rospy.Service(
             'lights/driver/set/brightness', SetLEDBrightness, self._set_brightness_cb
         )
 

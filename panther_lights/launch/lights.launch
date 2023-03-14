@@ -3,14 +3,18 @@
   <arg name="test" default="false" />
   <arg name="user_animations_file" default="" />
 
-  <node pkg="panther_lights" name="lights_driver_node" type="driver_node.py" output="screen" />
+  <node pkg="panther_lights" type="driver_node.py" name="lights_driver_node"
+    required="true" output="screen" />
 
-  <node pkg="panther_lights" name="lights_controller_node" type="controller_node.py" output="screen">
-    <rosparam command="load" file="$(find panther_lights)/config/panther_lights_animations.yaml" /> 
-    <rosparam command="load" file="$(arg user_animations_file)" unless="$(eval user_animations_file == '')" /> 
+  <node pkg="panther_lights" type="controller_node.py" name="lights_controller_node"
+    required="true" output="screen">
+    <rosparam command="load" file="$(find panther_lights)/config/panther_lights_animations.yaml" />
+    <rosparam command="load" file="$(arg user_animations_file)"
+      unless="$(eval user_animations_file == '')" />
     <param name="test" value="$(arg test)" />
   </node>
 
-  <node pkg="panther_lights" name="lights_scheduler_node" type="scheduler_node.py" output="screen" if="$(arg launch_scheduler)" />
+  <node pkg="panther_lights" name="lights_scheduler_node" type="scheduler_node.py"
+    required="true" output="screen" if="$(arg launch_scheduler)" />
 
 </launch>

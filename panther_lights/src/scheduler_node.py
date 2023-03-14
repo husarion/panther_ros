@@ -38,14 +38,16 @@ class LightsSchedulerNode:
         #   Publishers & Subscribers
         # -------------------------------
 
-        rospy.Subscriber('battery', BatteryState, self._battery_cb, queue_size=1)
-        rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb, queue_size=1)
+        self._battery_sub = rospy.Subscriber(
+            'battery', BatteryState, self._battery_cb, queue_size=1
+        )
+        self._e_stop_sub = rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb, queue_size=1)
 
         # -------------------------------
-        #   Services
+        #   Service clients
         # -------------------------------
 
-        self._set_led_animation = rospy.ServiceProxy(
+        self._set_led_client = rospy.ServiceProxy(
             'lights/controller/set/animation', SetLEDAnimation
         )
 
@@ -67,7 +69,6 @@ class LightsSchedulerNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _scheduler_timer_cb(self, *args) -> None:
-
         # call animation service only when e_stop state changes
         if (
             self._led_e_stop_state != self._e_stop_state
@@ -160,15 +161,15 @@ class LightsSchedulerNode:
 
     def _call_led_animation_srv(self, req: SetLEDAnimationRequest) -> bool:
         try:
-            self._set_led_animation.wait_for_service(5.0)
-            response = self._set_led_animation.call(req)
+            self._set_led_client.wait_for_service(5.0)
+            response = self._set_led_client.call(req)
             rospy.logdebug(
                 f'[{rospy.get_name()}] Setting animation with ID: {req.animation.id}. Response: ({response})'
             )
             return response.success
         except rospy.ServiceException as err:
             rospy.logerr(
-                f'Calling {self._set_led_animation.resolved_name} service for message id {req.animation.id} failed. Error: {err}'
+                f'Calling {self._set_led_client.resolved_name} service for message id {req.animation.id} failed. Error: {err}'
             )
             return False
 

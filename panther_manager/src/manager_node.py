@@ -54,7 +54,7 @@ class ManagerNode:
                 rospy.logerr(
                     f'[{rospy.get_name()}]'
                     f' Can\'t find provided identity file for host {host["ip"]}!'
-                    f' Path \'{host["identity_file"]}\' doesn\'t exist'
+                    f' Path \'{host["identity_file"]}\' doesn\'t exist!'
                 )
                 raise ValueError
 
@@ -115,10 +115,10 @@ class ManagerNode:
         )
 
         # -------------------------------
-        #   Services
+        #   Service servers
         # -------------------------------
 
-        self._overwrite_fan_control_srv = rospy.Service(
+        self._overwrite_fan_control_server = rospy.Service(
             'manager/overwrite_fan_control', SetBool, self._overwrite_fan_control_cb
         )
 
@@ -204,20 +204,20 @@ class ManagerNode:
         self._battery_avg_temp = self._get_mean(self._battery_temp_window)
         if self._battery_avg_temp > self._fatal_bat_temp:
             rospy.logerr_throttle(
-                5.0, f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot'
+                5.0, f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot!'
             )
             self._shutdown()
         elif self._battery_avg_temp > self._high_bat_temp:
             if self._battery_avg_temp > self._critical_bat_temp:
                 rospy.logerr_throttle(
                     5.0,
-                    f'[{rospy.get_name()}] Critical battery temperature, triggering E-STOP and disabling AUX',
+                    f'[{rospy.get_name()}] Critical battery temperature, triggering E-STOP and disabling AUX!',
                 )
                 if self._aux_power_state:
                     self._call_set_bool_service(self._aux_power_enable_client, False)
             else:
                 rospy.logerr_throttle(
-                    5.0, f'[{rospy.get_name()}] High battery temperature, triggering E-STOP'
+                    5.0, f'[{rospy.get_name()}] High battery temperature, triggering E-STOP!'
                 )
             if not self._e_stop_state:
                 self._call_trigger_service(self._e_stop_trigger_client)
@@ -258,7 +258,7 @@ class ManagerNode:
                 policy = paramiko.AutoAddPolicy()
                 client.set_missing_host_key_policy(policy)
                 client.connect(ip, username=username, pkey=pkey, timeout=0.5)
-                rospy.loginfo(f'[{rospy.get_name()}] Shutting down device at {ip}')
+                rospy.loginfo(f'[{rospy.get_name()}] Shutting down device at {ip}.')
                 try:
                     client.exec_command(cmd, timeout=0.5)
                 except socket.timeout:
@@ -349,11 +349,11 @@ class ManagerNode:
             res = service.call()
             if res.success:
                 rospy.loginfo(
-                    f'[{rospy.get_name()}] Successfuly triggered {service.resolved_name} service. Response: {res.message}'
+                    f'[{rospy.get_name()}] Successfuly triggered {service.resolved_name} service. Response: {res.message}.'
                 )
             else:
                 rospy.logerr(
-                    f'[{rospy.get_name()}] Failed to trigger {service.resolved_name} service. Response: {res.message}'
+                    f'[{rospy.get_name()}] Failed to trigger {service.resolved_name} service. Response: {res.message}.'
                 )
         except (rospy.exceptions.ROSException, rospy.service.ServiceException) as err:
             rospy.logerr(f'[{rospy.get_name()}] {err}')
@@ -364,11 +364,11 @@ class ManagerNode:
             res = service.call(SetBoolRequest(state))
             if res.success:
                 rospy.loginfo(
-                    f'[{rospy.get_name()}] Successfuly called {service.resolved_name} service. Response: {res.message}'
+                    f'[{rospy.get_name()}] Successfuly called {service.resolved_name} service. Response: {res.message}.'
                 )
             else:
                 rospy.logerr(
-                    f'[{rospy.get_name()}] Failed to call {service.resolved_name} service. Response: {res.message}'
+                    f'[{rospy.get_name()}] Failed to call {service.resolved_name} service. Response: {res.message}.'
                 )
         except (rospy.exceptions.ROSException, rospy.service.ServiceException) as err:
             rospy.logerr(f'[{rospy.get_name()}] {err}')
