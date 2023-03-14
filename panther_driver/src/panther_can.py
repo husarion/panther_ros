@@ -134,7 +134,7 @@ class PantherCAN:
     def _turn_on_roboteq_emergency_stop(self) -> None:
         with self._lock:
             for motor_controller in self._motor_controllers:
-                motor_controller.can_node.sdo['Cmd_e_stop'].raw = 1
+                motor_controller.can_node.sdo['Cmd_estop'].raw = 1
 
     def _turn_off_roboteq_emergency_stop(self) -> None:
         with self._lock:
