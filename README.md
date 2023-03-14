@@ -9,7 +9,7 @@ API for each node can be found in each package folder.
 </picture>
 
 > **Note**: 
-> Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Build-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#internal-computer-raspberry-pi-4).
+> Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Built-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#built-in-computer).
 >
 > We are making great effort to achieve backward compatibility, but can not test everything. Currently, fully tested images are `v1.0.0` and above. If the command below shows you the tag, you can be assured the newest code will work on your robot.
 > ``` bash
@@ -97,7 +97,7 @@ If you want to use custom wheels, use argument `wheel_config_file` where you pro
 ## Shutting down User Computers
 
 You can shut down any computer within internal Panther's network.
-You can do so by exchanging SSH public keys between the Build-in Computer and the one you want to shutdown. Later you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
+You can do so by exchanging SSH public keys between the Built-in Computer and the one you want to shutdown. Later you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
 ``` yaml
 hosts:
   - ip: 10.15.20.XX
