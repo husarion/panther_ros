@@ -2,11 +2,11 @@
   <arg name="panther_version" />
 
   <group unless="$(eval panther_version >= 1.2)">
-    <node pkg="panther_battery" name="battery_node" type="roboteq_republisher_node.py" output="screen" />
+    <node pkg="panther_battery" type="roboteq_republisher_node.py" name="battery_node" output="screen" />
   </group>
 
   <group if="$(eval panther_version >= 1.2)">
-    <node pkg="panther_battery" name="battery_node" type="adc_node.py" output="screen" />
+    <node pkg="panther_battery" type="adc_node.py" name="battery_node" output="screen" />
   </group>
 
 </launch>

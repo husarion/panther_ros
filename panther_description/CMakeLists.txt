@@ -7,6 +7,7 @@ catkin_package()
 
 install(DIRECTORY
   config
+  launch
   meshes
   rviz
   urdf

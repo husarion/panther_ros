@@ -9,6 +9,6 @@
     <arg name="use_ros_control" value="$(arg use_ros_control)" />
   </include>
 
-  <node if="$(arg use_rviz)" name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(arg rviz_config)" />
+  <node if="$(arg use_rviz)" pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(arg rviz_config)" />
 
 </launch>

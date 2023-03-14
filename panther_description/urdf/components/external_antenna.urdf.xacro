@@ -1,5 +1,5 @@
-<?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
   <xacro:macro
     name="external_antenna"
     params="parent_link xyz rpy
@@ -42,7 +42,9 @@
       <inertial>
         <origin xyz="0.045 0.0 0.0058" rpy="0.0 0.0 0.0" />
         <mass value="0.59" />
-        <inertia ixx="0.003964" ixy="0.0" ixz="0.0" iyy="0.0003964" iyz="0.0" izz="0.0004177" />
+        <inertia ixx="0.003964"  ixy="0.0"       ixz="0.0" 
+                                 iyy="0.0003964" iyz="0.0" 
+                                                 izz="0.0004177" />
       </inertial>
     </link>
 
@@ -57,7 +59,7 @@
     <!-- based on Teltonika RUTX11 datasheet and measuremets-->
     <gazebo>
       <plugin name="gps" filename="libhector_gazebo_ros_gps.so">
-        <updateRate>5</updateRate>
+        <updateRate>5.0</updateRate>
         <robotNamespace>/</robotNamespace>
         <bodyName>${tf_prefix_ext}${frame_id}</bodyName>
         <frameId>${tf_prefix_ext}${frame_id}</frameId>
