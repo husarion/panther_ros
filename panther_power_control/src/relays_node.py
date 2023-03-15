@@ -26,7 +26,7 @@ class RelaysNode:
         self._pins = PatherGPIO()
         self._setup_gpio()
 
-        self._e_stop_state = False
+        self._e_stop_state = not GPIO.input(self._pins.STAGE2_INPUT)
         self._cmd_vel_msg_time = rospy.get_time()
 
         # -------------------------------

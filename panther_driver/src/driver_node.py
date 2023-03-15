@@ -305,10 +305,10 @@ class PantherDriverNode:
 
     def _driver_state_timer_cb(self, *args) -> None:
         [
-            self._driver_state_msg.front.voltage,
             self._driver_state_msg.front.current,
-            self._driver_state_msg.rear.voltage,
+            self._driver_state_msg.front.voltage,
             self._driver_state_msg.rear.current,
+            self._driver_state_msg.rear.voltage,
         ] = self._panther_can.query_battery_data()
 
         [
