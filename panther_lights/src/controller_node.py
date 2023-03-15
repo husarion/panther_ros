@@ -193,10 +193,10 @@ class LightsControllerNode:
 
         if self._current_animation:
             if self._current_animation.priority > self._anim_queue.first_anim_priority:
-                if (
-                    self._current_animation.front.progress < 0.8
-                    and not self._current_animation.repeating
-                ):
+                if self._current_animation.repeating:
+                    self._current_animation.front.reset()
+                    self._current_animation.rear.reset()
+                elif self._current_animation.front.progress < 0.65:
                     self._current_animation.front.reset()
                     self._current_animation.rear.reset()
                     self._anim_queue.put(self._current_animation)
