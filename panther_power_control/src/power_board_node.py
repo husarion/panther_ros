@@ -173,6 +173,8 @@ class PowerBoardNode:
         if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
             self._e_stop_event()
             self._e_stop_interrupt_time = float('inf')
+        elif math.isinf(rospy.get_time()):
+            self._e_stop_event()
 
     def _watchdog_cb(self, *args) -> None:
         self._watchdog()
