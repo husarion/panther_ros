@@ -35,7 +35,7 @@ class LightsSchedulerNode:
         self._update_charging_anim_step = rospy.get_param('~update_charging_anim_step', 0.1)
 
         # -------------------------------
-        #   Publishers & Subscribers
+        #   Publishers
         # -------------------------------
 
         self._battery_sub = rospy.Subscriber(
@@ -50,6 +50,14 @@ class LightsSchedulerNode:
         self._set_led_client = rospy.ServiceProxy(
             'lights/controller/set/animation', SetLEDAnimation
         )
+
+        # Wait for set/animation service
+        while True:
+            try:
+                self._set_led_client.wait_for_service(5.0)
+                break
+            except rospy.ROSException:
+                rospy.loginfo(f'[{rospy.get_name()}] Waiting for lights controller node...')
 
         # -------------------------------
         #   Timers
@@ -167,7 +175,7 @@ class LightsSchedulerNode:
                 f'[{rospy.get_name()}] Setting animation with ID: {req.animation.id}. Response: ({response})'
             )
             return response.success
-        except rospy.ServiceException as err:
+        except (rospy.ServiceException, rospy.ROSException) as err:
             rospy.logerr(
                 f'Calling {self._set_led_client.resolved_name} service for message id {req.animation.id} failed. Error: {err}'
             )
