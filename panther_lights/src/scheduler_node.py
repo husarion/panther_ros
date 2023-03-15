@@ -143,7 +143,10 @@ class LightsSchedulerNode:
             self._call_led_animation_srv(req)
 
     def _battery_state_timer_cb(self, *args) -> None:
-        if not self._battery_status in self._charger_connected_states:
+        if self._battery_status in [
+            BatteryState.POWER_SUPPLY_STATUS_DISCHARGING,
+            BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING,
+        ]:
             req = SetLEDAnimationRequest()
             req.animation.id = LEDAnimation.BATTERY_STATE
             req.animation.param = str(self._battery_percentage)
