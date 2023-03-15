@@ -164,6 +164,8 @@ class PantherDriverNode:
 
         if self._publish_odom:
             self._odom_msg = Odometry()
+            self._odom_msg.pose.covariance = [0.1 if (i % 7) == 0 else 0.0 for i in range(36)]
+            self._odom_msg.twist.covariance = [0.1 if (i % 7) == 0 else 0.0 for i in range(36)]
             self._odom_msg.header.frame_id = self._odom_frame
             self._odom_pub = rospy.Publisher('odom/wheel', Odometry, queue_size=1)
 
