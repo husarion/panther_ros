@@ -42,7 +42,7 @@ class RoboteqRepublisherNode:
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         self._last_battery_info_time = rospy.get_time()
         self._battery_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
-        self._battery_current = (msg.front.current + msg.rear.current) / 2.0
+        self._battery_current = msg.front.current + msg.rear.current
 
     def _battery_pub_timer_cb(self, *args) -> None:
         battery_msg = BatteryState()
