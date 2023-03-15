@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from threading import Lock
+
 import rospy
 
 from sensor_msgs.msg import BatteryState
@@ -15,6 +17,7 @@ class RoboteqRepublisherNode:
         self._battery_current = None
         self._battery_timeout = 1.0
         self._last_battery_info_time = rospy.get_time()
+        self._lock = Lock()
 
         # -------------------------------
         #   Subscribers
@@ -40,34 +43,36 @@ class RoboteqRepublisherNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
-        self._last_battery_info_time = rospy.get_time()
-        self._battery_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
-        self._battery_current = msg.front.current + msg.rear.current
+        with self._lock:
+            self._last_battery_info_time = rospy.get_time()
+            self._battery_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
+            self._battery_current = msg.front.current + msg.rear.current
 
     def _battery_pub_timer_cb(self, *args) -> None:
-        battery_msg = BatteryState()
-        battery_msg.header.stamp = rospy.Time.now()
-        battery_msg.capacity = 20.0
-        battery_msg.design_capacity = 20.0
-        battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
-        if (
-            not self._battery_voltage
-            or not self._battery_current
-            or rospy.get_time() - self._last_battery_info_time > self._battery_timeout
-        ):
-            battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_UNKNOWN
-        else:
-            battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
-            battery_msg.voltage = self._battery_voltage
-            battery_msg.temperature = float('nan')
-            battery_msg.current = self._battery_current
-            battery_msg.percentage = (battery_msg.voltage - 32.0) / 10.0
-            battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
-            battery_msg.present = True
-            # TODO:
-            # battery_msg.power_supply_health
+        with self._lock:
+            battery_msg = BatteryState()
+            battery_msg.header.stamp = rospy.Time.now()
+            battery_msg.capacity = 20.0
+            battery_msg.design_capacity = 20.0
+            battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
+            if (
+                self._battery_voltage == None
+                or self._battery_current == None
+                or rospy.get_time() - self._last_battery_info_time > self._battery_timeout
+            ):
+                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_UNKNOWN
+            else:
+                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+                battery_msg.voltage = self._battery_voltage
+                battery_msg.temperature = float('nan')
+                battery_msg.current = self._battery_current
+                battery_msg.percentage = (battery_msg.voltage - 32.0) / 10.0
+                battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
+                battery_msg.present = True
+                # TODO:
+                # battery_msg.power_supply_health
 
-        self._battery_pub.publish(battery_msg)
+            self._battery_pub.publish(battery_msg)
 
 
 def main():
