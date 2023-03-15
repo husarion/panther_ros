@@ -52,7 +52,7 @@ class LightsSchedulerNode:
         )
 
         # Wait for set/animation service
-        while True:
+        while not rospy.is_shutdown():
             try:
                 self._set_led_client.wait_for_service(5.0)
                 break
