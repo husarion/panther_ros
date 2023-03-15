@@ -111,13 +111,13 @@ class ADCNode:
             V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
             temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
             I_bat_sum = I_bat_1 + I_bat_2
-            I_charge_bat_average = (I_charge_bat_1 + I_charge_bat_2) / 2.0
+            I_charge_bat = I_charge_bat_1 + I_charge_bat_2
 
             self._publish_battery_msg(
                 self._battery_pub,
                 V_bat_avereage,
                 temp_bat_average,
-                -I_bat_sum + I_charge_bat_average,
+                -I_bat_sum + I_charge_bat,
             )
 
         else:
