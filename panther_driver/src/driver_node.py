@@ -169,7 +169,6 @@ class PantherDriverNode:
             self._odom_msg.header.frame_id = self._odom_frame
             self._odom_pub = rospy.Publisher('odom/wheel', Odometry, queue_size=1)
 
-
         self._driver_state_msg = DriverState()
         self._driver_state_msg.front.left_motor.motor_joint_name = self._wheels_joints_names[0]
         self._driver_state_msg.front.right_motor.motor_joint_name = self._wheels_joints_names[1]
@@ -231,11 +230,11 @@ class PantherDriverNode:
             self._reset_roboteq_script_server = rospy.Service(
                 'driver/reset_roboteq_script', Trigger, self._reset_roboteq_script_cb
             )
-            
+
         # -------------------------------
         #   Transforms
         # -------------------------------
-        
+
         if self._publish_tf:
             self._tf_stamped = TransformStamped()
             self._tf_stamped.header.frame_id = self._odom_frame
@@ -269,8 +268,8 @@ class PantherDriverNode:
             self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
 
         wheel_enc_pos = self._panther_can.query_wheels_enc_pose()
-        wheel_enc_vel = list(self._panther_can.query_wheels_enc_velocity())
-        wheel_enc_curr = list(self._panther_can.query_motor_current())
+        wheel_enc_vel = self._panther_can.query_wheels_enc_velocity()
+        wheel_enc_curr = self._panther_can.query_motor_current()
 
         # convert tics to rad
         self._wheels_ang_pos = [
@@ -283,8 +282,7 @@ class PantherDriverNode:
         ]
         # convert A to Nm
         self._motors_effort = [
-            enc_curr * self._motor_torque_constant * math.copysign(1, enc_vel)
-            for enc_vel, enc_curr in zip(wheel_enc_vel, wheel_enc_curr)
+            enc_curr * self._motor_torque_constant for enc_curr in wheel_enc_curr
         ]
 
         try:
@@ -318,10 +316,7 @@ class PantherDriverNode:
             self._driver_state_msg.rear.temperature,
         ] = self._panther_can.query_driver_temperature_data()
 
-        [
-            self._driver_state_msg.front.fault_flag,
-            self._driver_state_msg.rear.fault_flag,
-        ] = [
+        [self._driver_state_msg.front.fault_flag, self._driver_state_msg.rear.fault_flag] = [
             self._driver_flag_loggers['fault_flags'](flag_val)
             for flag_val in self._panther_can.query_fault_flags()
         ]
@@ -331,10 +326,7 @@ class PantherDriverNode:
             self._driver_state_msg.rear.fault_flag.can_net_err,
         ) = self._panther_can.can_connection_error()
 
-        [
-            self._driver_state_msg.front.script_flag,
-            self._driver_state_msg.rear.script_flag,
-        ] = [
+        [self._driver_state_msg.front.script_flag, self._driver_state_msg.rear.script_flag] = [
             self._driver_flag_loggers['script_flags'](flag_val)
             for flag_val in self._panther_can.query_script_flags()
         ]
