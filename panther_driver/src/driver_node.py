@@ -383,7 +383,9 @@ class PantherDriverNode:
 
     def _publish_joint_state_cb(self) -> None:
         self._joint_state_msg.header.stamp = rospy.Time.now()
-        self._joint_state_msg.position = self._wheels_ang_pos
+        self._joint_state_msg.position = [
+            math.atan2(math.sin(pos), math.cos(pos)) for pos in self._wheels_ang_pos
+        ]
         self._joint_state_msg.velocity = self._wheels_ang_vel
         self._joint_state_msg.effort = self._motors_effort
         self._joint_state_pub.publish(self._joint_state_msg)
