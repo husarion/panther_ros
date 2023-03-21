@@ -15,9 +15,9 @@ from panther_msgs.msg import DriverState, IOState
 
 @dataclass
 class PatherGPIO:
-    AUX_PW_EN = 18      # Enable auxiliary power, eg. supply to robotic arms etc. 
-    CHRG_EN = 19        # Enable charger
-    CHRG_SENSE = 7      # Charger sensor (1 - charger plugged in)            
+    AUX_PW_EN = 18      # Enable auxiliary power, eg. supply to robotic arms etc.
+    CHRG_DISABLE = 19   # Disable charger
+    CHRG_SENSE = 7      # Charger sensor (1 - charger plugged in)
     DRIVER_EN = 23      # Enable motor drivers (1 - on)
     E_STOP_RESET = 27   # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
                         # OUT - send 1 to reset estop
@@ -86,7 +86,7 @@ class PowerBoardNode:
         io_state.aux_power = self._read_pin(self._pins.AUX_PW_EN)
         io_state.charger_connected = self._read_pin(self._pins.CHRG_SENSE)
         io_state.fan = self._read_pin(self._pins.FAN_SW)
-        io_state.power_btn = False
+        io_state.power_button = False
         self._io_state_pub.publish(io_state)
 
         # -------------------------------
@@ -118,9 +118,6 @@ class PowerBoardNode:
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
         self._fan_enable_server = rospy.Service('hardware/fan_enable', SetBool, self._fan_enable_cb)
-        self._motors_enable_server = rospy.Service(
-            'hardware/motors_enable', SetBool, self._motors_enable_cb
-        )
 
         # -------------------------------
         #   Timers
@@ -167,7 +164,7 @@ class PowerBoardNode:
         if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
             if self._read_pin(self._pins.SHDN_INIT):
                 rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-                self._publish_io_state('power_btn', True)
+                self._publish_io_state('power_button', True)
             self._chrg_sense_interrupt_time = float('inf')
 
         if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
@@ -184,10 +181,16 @@ class PowerBoardNode:
         return res
 
     def _charger_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        return self._set_bool_srv_handle(req.data, self._pins.CHRG_EN, 'Charger enable')
+        res = self._set_bool_srv_handle(not req.data, self._pins.CHRG_DISABLE, 'Charger enable')
+        if res.success:
+            self._publish_io_state('charger_enabled', req.data)
+        return res
 
     def _digital_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        return self._set_bool_srv_handle(req.data, self._pins.VDIG_OFF, 'Digital power enable')
+        res = self._set_bool_srv_handle(req.data, self._pins.VDIG_OFF, 'Digital power enable')
+        if res.success:
+            self._publish_io_state('digital_power', req.data)
+        return res
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
@@ -223,14 +226,6 @@ class PowerBoardNode:
         if res.success:
             self._publish_io_state('fan', req.data)
         return res
-
-    def _motors_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        resp_1 = self._set_bool_srv_handle(req.data, self._pins.VMOT_ON, 'Motors driver enable')
-        resp_2 = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motors driver enable')
-
-        if resp_1.success and resp_2.success:
-            return SetBoolResponse(True, resp_1.message)
-        return SetBoolResponse(False, resp_1.message)
 
     def _set_bool_srv_handle(self, value: bool, pin: int, name: str) -> SetBoolResponse:
         rospy.logdebug(f'[{rospy.get_name()}] Requested {name} = {value}')
@@ -276,7 +271,7 @@ class PowerBoardNode:
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._pins.AUX_PW_EN, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.CHRG_EN, GPIO.OUT, initial=1)
+        GPIO.setup(self._pins.CHRG_DISABLE, GPIO.OUT, initial=1)
         GPIO.setup(self._pins.CHRG_SENSE, GPIO.IN)
         GPIO.setup(self._pins.DRIVER_EN, GPIO.OUT, initial=0)
         GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)  # USED AS I/O
