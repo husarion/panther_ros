@@ -87,6 +87,8 @@ class PowerBoardNode:
         io_state.charger_connected = self._read_pin(self._pins.CHRG_SENSE)
         io_state.fan = self._read_pin(self._pins.FAN_SW)
         io_state.power_button = False
+        io_state.digital_power = self._read_pin(self._pins.VDIG_OFF)
+        io_state.charger_enabled = not self._read_pin(self._pins.CHRG_DISABLE)
         self._io_state_pub.publish(io_state)
 
         # -------------------------------
@@ -181,7 +183,7 @@ class PowerBoardNode:
         return res
 
     def _charger_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(not req.data, self._pins.CHRG_DISABLE, 'Charger enable')
+        res = self._set_bool_srv_handle(not req.data, self._pins.CHRG_DISABLE, 'Charger disable')
         if res.success:
             self._publish_io_state('charger_enabled', req.data)
         return res
