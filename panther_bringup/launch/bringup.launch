@@ -8,6 +8,7 @@
   <arg name="user_animations_file" default="" />
   <arg name="launch_lights_scheduler" default="true" />
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
+  <arg name="disable_manager" default="false" doc="used for testing purposes" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
   <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml"
@@ -54,7 +55,7 @@
       <arg name="panther_version" value="$(arg panther_version)" />
     </include>
 
-    <include file="$(find panther_manager)/launch/manager.launch">
+    <include file="$(find panther_manager)/launch/manager.launch" unless="$(arg disable_manager)">
       <arg name="panther_version" value="$(arg panther_version)" />
       <arg name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
     </include>
