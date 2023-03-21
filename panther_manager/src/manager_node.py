@@ -172,7 +172,7 @@ class ManagerNode:
     def _io_state_cb(self, io_state: IOState) -> None:
         self._aux_power_state = io_state.aux_power
         self._fan_state = io_state.fan
-        self._power_button_state = io_state.power_btn
+        self._power_button_state = io_state.power_button
 
     def _system_status_cb(self, system_status: SystemStatus) -> None:
         if self._cpu_temp_window is not None:

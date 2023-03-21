@@ -11,7 +11,13 @@ Node responsible for management of the safety board and the power board. Availab
 #### Publishes
 
 - `/panther/hardware/e_stop` [*std_msgs/Bool*, *latched*]: the current state of the emergency stop.
-- `/panther/hardware/io_state` [*panther_msgs/IOState*, *latched*]: publishes state of panther IO pins.
+- `/panther/hardware/io_state` [*panther_msgs/IOState*, *latched*]: publishes state of panther IO pins. Message fields are related to:
+  - `aux_power` is related to service `aux_power_enable`,
+  - `charger_connected` indicates if standard charger is connected,
+  - `charger_enabled` is related to service `charger_enable`,
+  - `digital_power` is related to service `digital_power_enable`,
+  - `fan` is related to service `fan_enable`,
+  - `power_button` indicates if power button is pressed.
 
 #### Subscribes
 
@@ -20,7 +26,7 @@ Node responsible for management of the safety board and the power board. Availab
 #### Services advertised
 
 - `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms.
-- `/panther/hardware/charger_enable` [*std_srvs/SetBool*]: enable or disable charger.
+- `/panther/hardware/charger_enable` [*std_srvs/SetBool*]: if non standard charger is available this service allows to enable and disable it.
 - `/panther/hardware/digital_power_enable` [*std_srvs/SetBool*]: enable or disable the internal digital power used to power on, e.g. NUC, Router, etc.
 - `/panther/hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.

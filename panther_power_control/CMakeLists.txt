@@ -3,6 +3,7 @@ project(panther_power_control)
 
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  panther_msgs
   rospy
   std_msgs
   std_srvs
