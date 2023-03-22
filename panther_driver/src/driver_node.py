@@ -168,7 +168,7 @@ class PantherDriverNode:
             self._odom_msg.twist.covariance = [0.1 if (i % 7) == 0 else 0.0 for i in range(36)]
             self._odom_msg.header.frame_id = self._odom_frame
             self._odom_msg.child_frame_id = self._base_link_frame
-            self._odom_pub = rospy.Publisher('odom/wheel', Odometry, queue_size=1)
+            self._odom_pub = rospy.Publisher('odom/wheels', Odometry, queue_size=1)
 
         self._driver_state_msg = DriverState()
         self._driver_state_msg.front.left_motor.motor_joint_name = self._wheels_joints_names[0]
