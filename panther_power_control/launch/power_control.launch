@@ -2,11 +2,11 @@
   <arg name="panther_version" />
 
   <group unless="$(eval panther_version >= 1.2)">
-    <node pkg="panther_power_control" name="power_control" type="relays_node.py" required="true" output="screen" />
+    <node pkg="panther_power_control" type="relays_node.py" name="power_control" required="true" output="screen" />
   </group>
 
   <group if="$(eval panther_version >= 1.2)">
-    <node pkg="panther_power_control" name="power_control" type="power_board_node.py" required="true" output="screen" />
+    <node pkg="panther_power_control" type="power_board_node.py" name="power_control" required="true" output="screen" />
   </group>
 
 </launch>
