@@ -9,6 +9,8 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
+from panther_msgs.msg import DriverState
+
 
 @dataclass
 class PatherGPIO:
@@ -28,6 +30,7 @@ class RelaysNode:
 
         self._e_stop_state = not GPIO.input(self._pins.STAGE2_INPUT)
         self._cmd_vel_msg_time = rospy.get_time()
+        self._can_net_err = True
 
         # -------------------------------
         #   Publishers
@@ -41,6 +44,9 @@ class RelaysNode:
         # -------------------------------
 
         self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
+        self._motor_controllers_state_sub = rospy.Subscriber(
+            'driver/motor_controllers_state', DriverState, self._motor_controllers_state_cb
+        )
 
         # -------------------------------
         #   Service servers
@@ -69,12 +75,21 @@ class RelaysNode:
     def _cmd_vel_cb(self, *args) -> None:
         self._cmd_vel_msg_time = rospy.get_time()
 
+    def _motor_controllers_state_cb(self, msg: DriverState) -> None:
+        self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
+
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         if rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
             return TriggerResponse(
                 False,
                 'E-STOP reset failed, messages are still published on /cmd_vel topic!',
             )
+        elif self._can_net_err:
+            return TriggerResponse(
+                False,
+                'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
+            )
+        
         self._e_stop_state = False
         self._e_stop_state_pub.publish(self._e_stop_state)
         return TriggerResponse(True, 'E-STOP reset successful')
