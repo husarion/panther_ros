@@ -6,7 +6,7 @@
               simulation_engine:=gazebo-classic
               use_ros_control:=$(arg use_ros_control)" />
 
-  <node name="panther_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+  <node pkg="gazebo_ros" type="spawn_model" name="panther_spawn" output="screen"
     args="-urdf -param robot_description -model panther" />
 
   <group if="$(arg use_ros_control)">

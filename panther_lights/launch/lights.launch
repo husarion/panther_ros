@@ -14,7 +14,7 @@
     <param name="test" value="$(arg test)" />
   </node>
 
-  <node pkg="panther_lights" name="lights_scheduler_node" type="scheduler_node.py"
+  <node pkg="panther_lights" type="scheduler_node.py" name="lights_scheduler_node"
     required="true" output="screen" if="$(arg launch_scheduler)" />
 
 </launch>
