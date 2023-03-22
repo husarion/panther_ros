@@ -22,6 +22,7 @@ from panther_kinematics import PantherDifferential, PantherMecanum
 class DriverFlagLogger:
     MAX_LOG_INTERVAL: float = 2.0
     MsgType = TypeVar('MsgType', FaultFlag, RuntimeError, ScriptFlag)
+    SUPPRESSED_FLAGS = {'safety_stop_active', 'amps_limit_active'}
 
     def __init__(self, flag_list: list, msg_type: MsgType) -> None:
         self._flag_list = flag_list
@@ -52,7 +53,7 @@ class DriverFlagLogger:
             for i, field_name in enumerate(self._flag_list)
             if bool(flag_val & 0b00000001 << i)
         ]
-        faults.remove('safety_stop_active') if 'safety_stop_active' in faults else None
+        faults = list(set(faults) - self.SUPPRESSED_FLAGS)
 
         return faults, msg
 
