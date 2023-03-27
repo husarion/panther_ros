@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Lights">
+    <AlwaysSuccess name="LightsSuccess"
+                   _failureIf="e_stop_state"/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Safety">
+    <AlwaysSuccess name="SafetySuccess"
+                   _failureIf="fan_state"/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Shutdown">
+    <AlwaysSuccess/>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel/>
+
+</root>
