@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>panther_manager_bt</name>
+  <name>panther_manager</name>
   <version>0.0.2</version>
 
   <description>Set of nodes used for high level management of Husarion Panther robot</description>

@@ -1,4 +1,4 @@
-# panther_manager_bt
+# panther_manager
 
 A package containing nodes responsible for high-level control of Husarion Panther robot.
 

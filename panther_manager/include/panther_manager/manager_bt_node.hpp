@@ -1,5 +1,5 @@
-#ifndef PANTHER_MANAGER_BT_MANAGER_NODE_HPP_
-#define PANTHER_MANAGER_BT_MANAGER_NODE_HPP_
+#ifndef PANTHER_MANAGER_MANAGER_NODE_HPP_
+#define PANTHER_MANAGER_MANAGER_NODE_HPP_
 
 #include <behaviortree_cpp/bt_factory.h>
 #include <behaviortree_cpp/loggers/bt_cout_logger.h>
@@ -12,13 +12,13 @@
 
 #include <panther_msgs/IOState.h>
 
-namespace panther_manager_bt
+namespace panther_manager
 {
 
 class ManagerNode
 {
 public:
-  ManagerNode(ros::NodeHandle * nh);
+  ManagerNode(std::shared_ptr<ros::NodeHandle> nh);
   ~ManagerNode() {}
 
 private:
@@ -32,6 +32,7 @@ private:
   ros::Subscriber io_state_sub_;
   ros::Timer lights_tree_timer_;
   ros::Timer safety_tree_timer_;
+  std::shared_ptr<ros::NodeHandle> nh_;
 
   BT::BehaviorTreeFactory factory_;
   BT::NodeConfig lights_config_;
@@ -44,14 +45,13 @@ private:
   BT::Tree safety_tree_;
   BT::Tree shutdown_tree_;
 
-  void setup_behavior_tree(
-    ros::NodeHandle * nh, BT::Tree & tree, BT::NodeConfig & config, const std::string tree_name);
+  void setup_behavior_tree(BT::Tree & tree, BT::NodeConfig & config, const std::string tree_name);
   void e_stop_cb(const std_msgs::Bool::ConstPtr & e_stop);
   void io_state_cb(const panther_msgs::IOState::ConstPtr & io_state);
   void safety_tree_timer_cb();
   void lights_tree_timer_cb();
 };
 
-}  // namespace panther_manager_bt
+}  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_BT_MANAGER_NODE_HPP_
+#endif  // PANTHER_MANAGER_MANAGER_NODE_HPP_
