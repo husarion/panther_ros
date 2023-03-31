@@ -13,7 +13,7 @@ class CallTriggerService : public panther_manager::RosServiceNode<std_srvs::Trig
 public:
   CallTriggerService(const std::string & name, const BT::NodeConfig & conf);
 
-  std::string service_name_;
+  std::string srv_name_;
   std::shared_ptr<ros::NodeHandle> nh_;
 
   void update_request(RequestType & request) override;

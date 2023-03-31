@@ -7,7 +7,7 @@ CallTriggerService::CallTriggerService(const std::string & name, const BT::NodeC
 : RosServiceNode(nh_, name, conf)
 {
   nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
-  getInput("service_name", service_name_);
+  getInput("service_name", srv_name_);
 }
 
 void CallTriggerService::update_request(RequestType & request) {}
@@ -16,12 +16,12 @@ BT::NodeStatus CallTriggerService::on_response(const ResponseType & response)
 {
   if (!response.success) {
     ROS_ERROR(
-      "[%s] Failed to call %s service, message: %s", name().c_str(), service_name_.c_str(),
+      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
       response.message.c_str());
     return BT::NodeStatus::FAILURE;
   }
   ROS_DEBUG(
-    "[%s] Successfuly called %s service, message: %s", name().c_str(), service_name_.c_str(),
+    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
     response.message.c_str());
   return BT::NodeStatus::SUCCESS;
 }

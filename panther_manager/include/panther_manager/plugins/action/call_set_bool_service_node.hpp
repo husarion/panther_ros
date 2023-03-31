@@ -18,7 +18,7 @@ public:
     return {BT::InputPort<bool>("data", "true / false value")};
   }
 
-  std::string service_name_;
+  std::string srv_name_;
   std::shared_ptr<ros::NodeHandle> nh_;
 
   void update_request(RequestType & request) override;

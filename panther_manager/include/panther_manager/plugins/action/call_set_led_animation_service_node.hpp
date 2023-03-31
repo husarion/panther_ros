@@ -23,7 +23,7 @@ public:
   }
 
   unsigned aniamtion_id_;
-  std::string service_name_;
+  std::string srv_name_;
   std::shared_ptr<ros::NodeHandle> nh_;
 
   void update_request(RequestType & request) override;

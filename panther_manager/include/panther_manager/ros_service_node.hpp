@@ -27,6 +27,8 @@ protected:
       throw BT::RuntimeError("[", name, "] Failed to get input [timeout]");
     }
     srv_timeout_ = ros::Duration(static_cast<double>(srv_timeout_ms) * 1e-3);
+
+    node_name_ = ros::this_node::getName();
   }
 
 public:
@@ -46,7 +48,10 @@ public:
   virtual void update_request(RequestType & request) = 0;
   virtual BT::NodeStatus on_response(const ResponseType & response) = 0;
 
+  std::string get_node_name() { return node_name_; }
+
 private:
+  std::string node_name_;
   std::string srv_name_;
 
   ros::Duration srv_timeout_;
@@ -60,7 +65,7 @@ private:
     }
 
     if (!srv_client_.waitForExistence(srv_timeout_)) {
-      ROS_ERROR("[%s] Timeout waiting for service %s", name().c_str(), srv_name_.c_str());
+      ROS_ERROR("[%s] Timeout waiting for service %s", node_name_.c_str(), srv_name_.c_str());
       return BT::NodeStatus::FAILURE;
     }
 
@@ -68,7 +73,7 @@ private:
     ResponseType response;
     update_request(request);
     if (!srv_client_.call(request, response)) {
-      ROS_ERROR("[%s] Failed to call service %s", name().c_str(), srv_name_.c_str());
+      ROS_ERROR("[%s] Failed to call service %s", node_name_.c_str(), srv_name_.c_str());
       return BT::NodeStatus::FAILURE;
     }
     return on_response(response);

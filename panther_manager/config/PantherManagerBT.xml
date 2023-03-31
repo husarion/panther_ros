@@ -2,12 +2,17 @@
 <root BTCPP_format="4">
   <BehaviorTree ID="Lights">
     <Delay delay_msec="5000">
-      <CallSetLedAnimationService id="0"
-                                  param=""
-                                  repeating="false"
-                                  service_name="lights/controller/set/animation"
-                                  timeout="100"
-                                  _skipIf="!e_stop_state"/>
+      <Sequence>
+        <CallTriggerService service_name="hardware/e_stop_trigger"
+                            timeout="100"
+                            _skipIf="e_stop_state"/>
+        <CallSetLedAnimationService id="0"
+                                    param=""
+                                    repeating="false"
+                                    service_name="lights/controller/set/animation"
+                                    timeout="100"
+                                    _skipIf="!e_stop_state"/>
+      </Sequence>
     </Delay>
   </BehaviorTree>
 
@@ -18,9 +23,6 @@
                             service_name="hardware/enable_fan"
                             timeout="100"
                             _skipIf="fan_state"/>
-        <CallTriggerService service_name="hardware/e_stop_trigger"
-                            timeout="100"
-                            _skipIf="e_stop_state"/>
       </Sequence>
     </Delay>
   </BehaviorTree>
