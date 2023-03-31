@@ -1,6 +1,8 @@
 <launch>
   <arg name="panther_version" />
 
+  <rosparam command="load" file="$(find panther_manager)/config/manager_bt_config.yaml" />
+
   <node pkg="panther_manager" type="system_status_node.py" name="system_status_node"
     required="true" output="screen" />
 

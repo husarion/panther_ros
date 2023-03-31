@@ -21,6 +21,7 @@
   <depend>roscpp</depend>
   <depend>roslib</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
 
   <!-- Python dependencies -->
   <depend>python3-psutil</depend>
