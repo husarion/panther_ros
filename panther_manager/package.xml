@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_manager</name>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 
   <description>Set of nodes used for high level management of Husarion Panther robot</description>
   <license>Apache License 2.0</license>
@@ -15,15 +15,14 @@
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
-  <depend>panther_msgs</depend>
-  <depend>rospy</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>std_srvs</depend>
 
-  <depend>iputils-ping</depend>
-  <depend>python3-paramiko</depend>
+  <depend>behaviortree_cpp</depend>
+  <depend>panther_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>std_msgs</depend>
+
+  <!-- Python dependencies -->
   <depend>python3-psutil</depend>
 
 </package>
