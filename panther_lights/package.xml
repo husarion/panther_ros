@@ -22,9 +22,10 @@
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
 
+  <depend>image_transport</depend>
+  <depend>roscpp</depend>
+
   <!-- Python dependencies -->
-  <depend>python-rpi.gpio-pip</depend>
-  <depend>python3-apa102-pi-pip</depend>
   <depend>python3-pil</depend>
 
 </package>
