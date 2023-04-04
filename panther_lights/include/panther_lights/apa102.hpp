@@ -24,6 +24,10 @@ namespace apa_102
     const int fd_;
     const std::uint8_t bits_ = 8;
     const std::uint32_t speed_;
+    // color correction constants
+    const uint16_t corr_red = 255.0;
+    const uint16_t corr_green = 200.0;
+    const uint16_t corr_blue = 62.0;
   };
 
 } // namespace apa_102

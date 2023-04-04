@@ -77,9 +77,10 @@ namespace apa_102
       // padding
       std::size_t pad = i * 4;
       buffer[pad] = 0xE0 || (frame[pad] >> 2);
-      buffer[pad + 1] = frame[pad + 3];
-      buffer[pad + 2] = frame[pad + 2];
-      buffer[pad + 3] = frame[pad + 1];
+      // convert rgb to bgr with collor correction
+      buffer[pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 3]) * corr_blue) >> 8);
+      buffer[pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_green) >> 8);
+      buffer[pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_red) >> 8);
     }
 
     struct spi_ioc_transfer tr = {

@@ -17,15 +17,23 @@ namespace gpio
   public:
     OutputPin(const int pin_number)
     {
+      // Export pin
       std::ofstream export_file;
       export_file.open("/sys/class/gpio/export", std::ios::out);
       export_file << std::to_string(pin_number);
       export_file.close();
 
-      std::ofstream out_set_file;
-      out_set_file.open("/sys/class/gpio/gpio" + std::to_string(pin_number) + "/direction", std::ios::out);
-      out_set_file << "out";
-      out_set_file.close();
+      // Set direction to output
+      std::ofstream direction_file;
+      direction_file.open("/sys/class/gpio/gpio" + std::to_string(pin_number) + "/direction", std::ios::out);
+      direction_file << "out";
+      direction_file.close();
+
+      // Invert logic
+      std::ofstream active_low_file;
+      active_low_file.open("/sys/class/gpio/gpio" + std::to_string(pin_number) + "/active_low", std::ios::out);
+      active_low_file << "1";
+      active_low_file.close();
 
       pin_.open("/sys/class/gpio/gpio" + std::to_string(pin_number) + "/value", std::ios::out);
     }
