@@ -27,7 +27,7 @@ namespace panther_lights_driver
     frame_timeout_ = ph_->param<double>("frame_timeout", 0.1);
     num_led_ = ph_->param<int>("num_led", 46);
 
-    ::gpiod::chip chip("gpiochip0");
+    gpiod::chip chip("gpiochip0");
     power_pin_ = chip.find_line("LED_SBC_SEL");
 
     const gpiod::line_request lr = {
