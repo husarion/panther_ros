@@ -10,6 +10,8 @@ from panther_msgs.msg import DriverState
 
 
 class RoboteqRepublisherNode:
+    V_BAT_FATAL_MIN = 25.0
+
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
@@ -71,6 +73,13 @@ class RoboteqRepublisherNode:
                 battery_msg.present = True
                 # TODO:
                 # battery_msg.power_supply_health
+                            
+                if self._battery_voltage < self.V_BAT_FATAL_MIN:
+                    battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
+                elif battery_msg.percentage > 1.1:
+                    battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
+                else:
+                    battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
             self._battery_pub.publish(battery_msg)
 

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import math
+from threading import Lock
 
 import rospy
 
@@ -11,14 +12,16 @@ from panther_msgs.msg import DriverState, IOState
 
 class ADCNode:
     BAT02_DETECT_THRESH = 3.03
+    V_BAT_FATAL_MIN = 25.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        self._V_driv_front = None
-        self._V_driv_rear = None
-        self._I_driv_front = None
-        self._I_driv_rear = None
+        self._high_bat_temp = rospy.get_param('~high_bat_temp', 55.0)
+
+        self._driver_battery_last_info_time = None
+        self._driver_battery_voltage = None
+        self._driver_battery_current = None
 
         self._A = 298.15
         self._B = 3977.0
@@ -28,6 +31,8 @@ class ADCNode:
 
         self._battery_count = self._check_battery_count()
         self._battery_charging = True  # const for now, later this will be evaluated
+
+        self._lock = Lock()
 
         # -------------------------------
         #   Subscribers
@@ -59,10 +64,12 @@ class ADCNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _motor_controllers_state_cb(self, driver_state: DriverState) -> None:
-        self._V_driv_front = driver_state.front.voltage
-        self._V_driv_rear = driver_state.front.current
-        self._I_driv_front = driver_state.rear.voltage
-        self._I_driv_rear = driver_state.rear.current
+        with self._lock:
+            self._driver_battery_last_info_time = rospy.get_time()
+            self._driver_battery_voltage = (
+                driver_state.front.voltage + driver_state.rear.voltage
+            ) / 2.0
+            self._driver_battery_current = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
         self._charger_connected = io_state.charger_connected
@@ -185,6 +192,21 @@ class ADCNode:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
         else:
             battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+
+        # check battery health
+        with self._lock:            
+            if V_bat < self.V_BAT_FATAL_MIN:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
+            elif battery_msg.percentage > 1.1:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
+            elif temp_bat >= self._high_bat_temp:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
+            elif self._driver_battery_last_info_time is None:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
+            elif rospy.get_time() - self._driver_battery_last_info_time < 0.1 and abs(V_bat - self._driver_battery_voltage) > 1.0:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNSPEC_FAILURE
+            else:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
         bat_pub.publish(battery_msg)
 
