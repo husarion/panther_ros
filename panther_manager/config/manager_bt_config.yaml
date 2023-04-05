@@ -1,0 +1,4 @@
+plugin_libs:
+  - call_set_bool_service_bt_node
+  - call_trigger_service_bt_node
+  - call_set_led_animation_service_bt_node

@@ -1,13 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
   <BehaviorTree ID="Lights">
-    <AlwaysSuccess name="LightsSuccess"
-                   _failureIf="e_stop_state"/>
+    <Delay delay_msec="5000">
+      <Sequence>
+        <CallTriggerService service_name="hardware/e_stop_trigger"
+                            timeout="100"
+                            _skipIf="e_stop_state"/>
+        <CallSetLedAnimationService id="0"
+                                    param=""
+                                    repeating="false"
+                                    service_name="lights/controller/set/animation"
+                                    timeout="100"
+                                    _skipIf="!e_stop_state"/>
+      </Sequence>
+    </Delay>
   </BehaviorTree>
 
   <BehaviorTree ID="Safety">
-    <AlwaysSuccess name="SafetySuccess"
-                   _failureIf="fan_state"/>
+    <Delay delay_msec="5000">
+      <Sequence>
+        <CallSetBoolService data="true"
+                            service_name="hardware/enable_fan"
+                            timeout="100"
+                            _skipIf="fan_state"/>
+      </Sequence>
+    </Delay>
   </BehaviorTree>
 
   <BehaviorTree ID="Shutdown">
@@ -15,6 +32,30 @@
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
-  <TreeNodesModel/>
+  <TreeNodesModel>
+    <Action ID="CallSetBoolService"
+            editable="true">
+      <input_port name="data">true / false value</input_port>
+      <input_port name="service_name">ROS service name</input_port>
+      <input_port name="timeout"
+                  default="100">time in ms to wait for service to be active</input_port>
+    </Action>
+    <Action ID="CallSetLedAnimationService"
+            editable="true">
+      <input_port name="id">animation ID</input_port>
+      <input_port name="param">optional parameter</input_port>
+      <input_port name="repeating"
+                  default="false">indicates if animation should repeat</input_port>
+      <input_port name="service_name">ROS service name</input_port>
+      <input_port name="timeout"
+                  default="100">time in ms to wait for service to be active</input_port>
+    </Action>
+    <Action ID="CallTriggerService"
+            editable="true">
+      <input_port name="service_name">ROS service name</input_port>
+      <input_port name="timeout"
+                  default="100">timeout in ms to wait for service to be active</input_port>
+    </Action>
+  </TreeNodesModel>
 
 </root>

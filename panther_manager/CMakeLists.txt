@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   rospy
   std_msgs
+  std_srvs
 )
 
 catkin_package(
@@ -18,10 +19,26 @@ catkin_package(
   CATKIN_DEPENDS panther_msgs roscpp
 )
 
+# actions
+add_library(call_set_bool_service_bt_node SHARED plugins/action/call_set_bool_service_node.cpp)
+list(APPEND plugin_libs call_set_bool_service_bt_node)
+
+add_library(call_trigger_service_bt_node SHARED plugins/action/call_trigger_service_node.cpp)
+list(APPEND plugin_libs call_trigger_service_bt_node)
+
+add_library(call_set_led_animation_service_bt_node SHARED plugins/action/call_set_led_animation_service_node.cpp)
+list(APPEND plugin_libs call_set_led_animation_service_bt_node)
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+foreach(bt_plugin ${plugin_libs})
+  add_dependencies(${bt_plugin} ${catkin_EXPORTED_TARGETS})
+  target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
+  target_link_libraries(${bt_plugin} ${CMAKE_DL_LIBS} ${catkin_LIBRARIES} ${GCC_COVERAGE_LINK_FLAGS})
+endforeach()
 
 add_executable(manager_bt_node
   src/main.cpp
@@ -31,6 +48,7 @@ add_dependencies(manager_bt_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(manager_bt_node
   ${catkin_LIBRARIES}
   behaviortree_cpp
+  ${plugin_libs}
 )
 
 install(DIRECTORY
