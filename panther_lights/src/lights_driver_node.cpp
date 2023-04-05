@@ -25,7 +25,7 @@ namespace panther_lights_driver
     node_name_ = ros::this_node::getName();
 
     frame_timeout_ = ph_->param<double>("frame_timeout", 0.1);
-    num_led_ = ph_->param<int>("num_led", 47);
+    num_led_ = ph_->param<int>("num_led", 46);
 
     const gpiod::chip chip("gpiochip0");
     power_pin_ = chip.find_line("LED_SBC_SEL");
