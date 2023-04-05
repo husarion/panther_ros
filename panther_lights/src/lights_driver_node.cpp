@@ -25,15 +25,15 @@ namespace panther_lights_driver
     node_name_ = ros::this_node::getName();
 
     frame_timeout_ = ph_->param<double>("frame_timeout", 0.1);
-    num_led_ = ph_->param<int>("num_led", 46);
+    num_led_ = ph_->param<int>("num_led", 47);
 
-    gpiod::chip chip("gpiochip0");
+    const gpiod::chip chip("gpiochip0");
     power_pin_ = chip.find_line("LED_SBC_SEL");
 
     const gpiod::line_request lr = {
       node_name_,
       gpiod::line_request::DIRECTION_OUTPUT,
-      gpiod::line_request::FLAG_ACTIVE_LOW
+      0
     };
     power_pin_.request(lr, 1);
 
@@ -77,31 +77,36 @@ namespace panther_lights_driver
   {
     if ((ros::Time::now() - msg->header.stamp).toSec() > frame_timeout_)
     {
-      ROS_WARN("[%s] Timeout exceeded, ignoring frame on %s panel!",
+      ROS_WARN_THROTTLE_PANELS(panel_name, "front", "rear", 5.0,
+        "[%s] Timeout exceeded, ignoring frame on %s panel!",
         node_name_.c_str(), panel_name.c_str());
       return;
     }
     else if (msg->header.stamp < last_time)
     {
-      ROS_WARN("[%s] Dropping message from past on panel %s panel!",
+      ROS_WARN_THROTTLE_PANELS(panel_name, "front", "rear", 5.0,
+       "[%s] Dropping message from past on panel %s panel!",
         node_name_.c_str(), panel_name.c_str());
       return;
     }
     else if (msg->encoding != sensor_msgs::image_encodings::RGBA8)
     {
-      ROS_WARN("[%s] Incorrect image encoding ('%s') on panel %s panel!",
+      ROS_WARN_THROTTLE_PANELS(panel_name, "front", "rear", 5.0,
+      "[%s] Incorrect image encoding ('%s') on panel %s panel!",
         node_name_.c_str(), msg->encoding.c_str(), panel_name.c_str());
       return;
     }
     else if (msg->height != 1)
     {
-      ROS_WARN("[%s] Incorrect image height '%u' on panel '%s'!, expected '1'",
+      ROS_WARN_THROTTLE_PANELS(panel_name, "front", "rear", 5.0,
+      "[%s] Incorrect image height %u on %s panel!, expected 1",
         node_name_.c_str(), msg->height, panel_name.c_str());
       return;
     }
     else if (msg->width != num_led_)
     {
-      ROS_WARN("[%s] Incorrect image height '%u' on panel '%s'!, expected '%u'",
+      ROS_WARN_THROTTLE_PANELS(panel_name, "front", "rear", 5.0,
+      "[%s] Incorrect image height %u on %s panel!, expected %u",
         node_name_.c_str(), msg->width, panel_name.c_str(), num_led_);
       return;
     }

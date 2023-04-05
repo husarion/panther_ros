@@ -12,6 +12,10 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 
+#define ROS_WARN_THROTTLE_PANELS(panel, p1, p2, ...) \
+if (panel == p1) ROS_WARN_THROTTLE(__VA_ARGS__); \
+else if (panel == p2) ROS_WARN_THROTTLE(__VA_ARGS__)
+
 namespace panther_lights_driver
 {
 

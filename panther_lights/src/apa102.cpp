@@ -65,10 +65,10 @@ namespace apa_102
     std::uint8_t* buffer = new std::uint8_t[buffer_size];
 
     // init start and end frames
-    for (std::size_t i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < 4; i++)
     {
-      buffer[i] = 0xFF;
-      buffer[i + frame.size()] = 0x00;
+      buffer[i] = 0x00;
+      buffer[buffer_size - i - 1] = 0xFF;
     }
 
     // copy frame from vector to sending buffer
@@ -76,11 +76,12 @@ namespace apa_102
     {
       // padding
       std::size_t pad = i * 4;
-      buffer[pad] = 0xE0 || (frame[pad] >> 2);
+      // header with brightness
+      buffer[4 + pad] = 0xE0 | (frame[pad + 3] >> 3);
       // convert rgb to bgr with collor correction
-      buffer[pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 3]) * corr_blue) >> 8);
-      buffer[pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_green) >> 8);
-      buffer[pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_red) >> 8);
+      buffer[4 + pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 3]) * corr_blue) >> 8);
+      buffer[4 + pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_green) >> 8);
+      buffer[4 + pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_red) >> 8);
     }
 
     struct spi_ioc_transfer tr = {
@@ -93,7 +94,7 @@ namespace apa_102
     };
 
     int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
-    delete buffer;
+    delete[] buffer;
 
     if (ret < 1)
     {
