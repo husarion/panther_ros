@@ -22,6 +22,8 @@
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
 
+  <depend>libgpiod-dev</depend>
+
   <depend>image_transport</depend>
   <depend>roscpp</depend>
 

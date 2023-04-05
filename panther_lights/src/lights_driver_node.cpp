@@ -7,6 +7,8 @@
 #include <ros/ros.h>
 #include <memory>
 
+#include <gpiod.hpp>
+
 namespace panther_lights_driver
 {
   LightsDriverNode::LightsDriverNode(
@@ -19,18 +21,27 @@ namespace panther_lights_driver
     , it_(std::move(it))
     , front_panel_("/dev/spidev0.0")
     , rear_panel_("/dev/spidev0.1")
-    , power_pin_(26)
   {
     node_name_ = ros::this_node::getName();
 
     frame_timeout_ = ph_->param<double>("frame_timeout", 0.1);
     num_led_ = ph_->param<int>("num_led", 46);
 
+    ::gpiod::chip chip("gpiochip0");
+    power_pin_ = chip.find_line("LED_SBC_SEL");
+
+    const gpiod::line_request lr = {
+      node_name_,
+      gpiod::line_request::DIRECTION_OUTPUT,
+      gpiod::line_request::FLAG_ACTIVE_LOW
+    };
+    power_pin_.request(lr, 1);
+
     front_panel_ts_ = ros::Time::now();
     rear_panel_ts_ = ros::Time::now();
 
     // take control over LEDs
-    power_pin_.set_val(true);
+    power_pin_.set_value(1);
     // clear LEDs
     front_panel_.set_panel(std::vector<std::uint8_t>(num_led_ * 4, 0));
     rear_panel_.set_panel(std::vector<std::uint8_t>(num_led_ * 4, 0));
@@ -57,7 +68,8 @@ namespace panther_lights_driver
     front_panel_.set_panel(std::vector<std::uint8_t>(num_led_ * 4, 0));
     rear_panel_.set_panel(std::vector<std::uint8_t>(num_led_ * 4, 0));
     // give back control over LEDs
-    power_pin_.set_val(false);
+    power_pin_.set_value(0);
+    power_pin_.release();
   }
 
   void LightsDriverNode::frame_cb(const sensor_msgs::ImageConstPtr& msg,

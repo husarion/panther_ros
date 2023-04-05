@@ -32,6 +32,7 @@ add_executable(driver_node
 
 add_dependencies(driver_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(driver_node
+  gpiodcxx
   ${catkin_LIBRARIES}
 )
 
