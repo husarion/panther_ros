@@ -16,17 +16,17 @@ from panther_msgs.msg import DriverState, IOState
 
 @dataclass
 class PatherGPIO:
-    AUX_PW_EN = 18      # Enable auxiliary power, eg. supply to robotic arms etc.
-    CHRG_DISABLE = 19   # Disable charger
-    CHRG_SENSE = 7      # Charger sensor (1 - charger plugged in)
-    DRIVER_EN = 23      # Enable motor drivers (1 - on)
-    E_STOP_RESET = 27   # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
-                        # OUT - send 1 to reset estop
-    FAN_SW = 15         # Turn on the fan (1 - on)
-    SHDN_INIT = 16      # Shutdown Init managed by systemd service
-    VDIG_OFF = 21       # Turn the digital power off eg. NUC, Router etc. (1 - off)
-    VMOT_ON = 6         # Enable mamin power supply to motors (1 - on)
-    WATCHDOG = 14       # Watchdog pin, if PWM is on this pin Panther will work
+    AUX_PW_EN = 18  # Enable auxiliary power, eg. supply to robotic arms etc.
+    CHRG_DISABLE = 19  # Disable charger
+    CHRG_SENSE = 7  # Charger sensor (1 - charger plugged in)
+    DRIVER_EN = 23  # Enable motor drivers (1 - on)
+    E_STOP_RESET = 27  # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
+    # OUT - send 1 to reset estop
+    FAN_SW = 15  # Turn on the fan (1 - on)
+    SHDN_INIT = 16  # Shutdown Init managed by systemd service
+    VDIG_OFF = 21  # Turn the digital power off eg. NUC, Router etc. (1 - off)
+    VMOT_ON = 6  # Enable mamin power supply to motors (1 - on)
+    WATCHDOG = 14  # Watchdog pin, if PWM is on this pin Panther will work
 
     # define inverse logic pins here to be used by _read_pin() method
     inverse_logic_pins = [VDIG_OFF, E_STOP_RESET, CHRG_SENSE]
@@ -168,7 +168,11 @@ class PowerBoardNode:
 
     def _publish_pin_state_cb(self, *args) -> None:
         charger_pin_state = self._read_pin(self._pins.CHRG_SENSE)
-        is_charger_charging = (charger_pin_state and self._battery_current > 4.0)
+        is_charger_charging = (
+            (charger_pin_state and self._battery_current > 4.0)
+            if self._battery_current is not None
+            else False
+        )
 
         self._publish_io_state('charger_connected', is_charger_charging)
 
