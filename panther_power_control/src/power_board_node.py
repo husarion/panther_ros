@@ -169,7 +169,7 @@ class PowerBoardNode:
     def _publish_pin_state_cb(self, *args) -> None:
         charger_pin_state = self._read_pin(self._pins.CHRG_SENSE)
         is_charger_charging = (
-            (charger_pin_state and self._battery_current > 4.0)
+            (charger_pin_state and self._battery_current > 2.0)
             if self._battery_current is not None
             else False
         )
