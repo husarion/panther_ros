@@ -7,6 +7,7 @@
 #include <ios>
 #include <cstddef>
 #include <fstream>
+#include <cmath>
 
 #include <cstdio>
 #include <fcntl.h>
@@ -54,6 +55,18 @@ namespace apa_102
     close(fd_);
   }
 
+  void APA102::set_global_brightness(const double brightness)
+  {
+    std::uint8_t val = brightness > 0.0f ? ceil(brightness * 31.0f) : 0;
+    set_global_brightness(val);
+  }
+
+  void APA102::set_global_brightness(const std::uint8_t brightness)
+  {
+    // clamp values to be at max 31
+    global_brightness_ = std::uint16_t(brightness) & 0x1F;
+  }
+
   void APA102::set_panel(const std::vector<std::uint8_t>& frame) const
   {
     if (frame.size() % 4 != 0)
@@ -77,17 +90,18 @@ namespace apa_102
       // padding
       std::size_t pad = i * 4;
       // header with brightness
-      buffer[4 + pad] = 0xE0 | (frame[pad + 3] >> 3);
+      std::uint8_t brightness = (std::uint16_t(frame[pad + 3]) * global_brightness_) / 255;
+      buffer[4 + pad] = 0xE0 | brightness;
       // convert rgb to bgr with collor correction
-      buffer[4 + pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 3]) * corr_blue) >> 8);
-      buffer[4 + pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_green) >> 8);
-      buffer[4 + pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_red) >> 8);
+      buffer[4 + pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_blue) / 255);
+      buffer[4 + pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_green) / 255);
+      buffer[4 + pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 0]) * corr_red) / 255);
     }
 
     struct spi_ioc_transfer tr = {
       .tx_buf = (unsigned long long) buffer,
       .rx_buf = 0,
-      .len = (unsigned int) buffer_size,
+      .len = (unsigned int)buffer_size,
       .speed_hz = speed_,
       .delay_usecs = 0,
       .bits_per_word = 8,
