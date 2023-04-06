@@ -6,6 +6,7 @@ import RPi.GPIO as GPIO
 import rospy
 
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import BatteryState
 from std_msgs.msg import Bool
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
@@ -68,6 +69,7 @@ class PowerBoardNode:
         self._gpio_wait = 0.05  # seconds
         self._e_stop_interrupt_time = float('inf')
         self._chrg_sense_interrupt_time = float('inf')
+        self._battery_current = None
 
         self._cmd_vel_msg_time = rospy.get_time()
         self._can_net_err = True
@@ -98,6 +100,9 @@ class PowerBoardNode:
         self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
         self._motor_controllers_state_sub = rospy.Subscriber(
             'driver/motor_controllers_state', DriverState, self._motor_controllers_state_cb
+        )
+        self._battery_state_sub = rospy.Subscriber(
+            'panther/battery', BatteryState, self._battery_state_cb
         )
 
         # -------------------------------
@@ -151,6 +156,9 @@ class PowerBoardNode:
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
 
+    def _battery_state_cb(self, msg: BatteryState) -> None:
+        self._battery_current = msg.current
+
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
             self._chrg_sense_interrupt_time = rospy.get_time()
@@ -159,8 +167,10 @@ class PowerBoardNode:
             self._e_stop_interrupt_time = rospy.get_time()
 
     def _publish_pin_state_cb(self, *args) -> None:
-        charger_state = self._read_pin(self._pins.CHRG_SENSE)
-        self._publish_io_state('charger_connected', charger_state)
+        charger_pin_state = self._read_pin(self._pins.CHRG_SENSE)
+        is_charger_charging = (charger_pin_state and self._battery_current > 4.0)
+
+        self._publish_io_state('charger_connected', is_charger_charging)
 
         # filter short spikes of voltage on GPIO
         if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
