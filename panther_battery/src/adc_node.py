@@ -12,7 +12,7 @@ from panther_msgs.msg import DriverState, IOState
 
 class ADCNode:
     BAT02_DETECT_THRESH = 3.03
-    V_BAT_FATAL_MIN = 25.0
+    V_BAT_FATAL_MIN = 27.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
@@ -194,16 +194,20 @@ class ADCNode:
             battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
         # check battery health
-        with self._lock:            
+        with self._lock:
             if V_bat < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
+                rospy.logerr(f'[{rospy.get_name()}] battery voltage critically low!')
             elif battery_msg.percentage > 1.1:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
             elif temp_bat >= self._high_bat_temp:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
             elif self._driver_battery_last_info_time is None:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
-            elif rospy.get_time() - self._driver_battery_last_info_time < 0.1 and abs(V_bat - self._driver_battery_voltage) > 1.0:
+            elif (
+                rospy.get_time() - self._driver_battery_last_info_time < 0.1
+                and abs(V_bat - self._driver_battery_voltage) > 1.0
+            ):
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNSPEC_FAILURE
             else:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
