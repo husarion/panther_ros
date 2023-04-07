@@ -36,7 +36,7 @@ namespace panther_lights_driver
     const gpiod::line_request lr = {
       node_name_,
       gpiod::line_request::DIRECTION_OUTPUT,
-      0
+      gpiod::line_request::FLAG_ACTIVE_LOW
     };
     power_pin_.request(lr, 0);
 
