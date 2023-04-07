@@ -17,11 +17,14 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>behaviortree_cpp</depend>
+  <depend>libssh-dev</depend>
   <depend>panther_msgs</depend>
   <depend>roscpp</depend>
   <depend>roslib</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>yaml-cpp</depend>
 
   <!-- Python dependencies -->
   <depend>python3-psutil</depend>

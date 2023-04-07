@@ -8,7 +8,7 @@
 namespace panther_manager
 {
 
-class CallSetLedAnimationService : public panther_manager::RosServiceNode<panther_msgs::SetLEDAnimation>
+class CallSetLedAnimationService : public RosServiceNode<panther_msgs::SetLEDAnimation>
 {
 public:
   CallSetLedAnimationService(const std::string & name, const BT::NodeConfig & conf);

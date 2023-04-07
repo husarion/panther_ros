@@ -18,16 +18,6 @@ protected:
     std::shared_ptr<ros::NodeHandle> & nh, const std::string & name, const BT::NodeConfig & conf)
   : BT::SyncActionNode(name, conf), nh_(nh)
   {
-    if (!getInput<std::string>("service_name", srv_name_) || srv_name_ == "") {
-      throw BT::RuntimeError("[", name, "] Failed to get input [service_name]");
-    }
-
-    unsigned srv_timeout_ms;
-    if (!getInput<unsigned>("timeout", srv_timeout_ms)) {
-      throw BT::RuntimeError("[", name, "] Failed to get input [timeout]");
-    }
-    srv_timeout_ = ros::Duration(static_cast<double>(srv_timeout_ms) * 1e-3);
-
     node_name_ = ros::this_node::getName();
   }
 
@@ -60,6 +50,16 @@ private:
 
   BT::NodeStatus tick() override
   {
+    if (!getInput<std::string>("service_name", srv_name_) || srv_name_ == "") {
+      throw BT::RuntimeError("[", name(), "] Failed to get input [service_name]");
+    }
+
+    unsigned srv_timeout_ms;
+    if (!getInput<unsigned>("timeout", srv_timeout_ms)) {
+      throw BT::RuntimeError("[", name(), "] Failed to get input [timeout]");
+    }
+    srv_timeout_ = ros::Duration(static_cast<double>(srv_timeout_ms) * 1e-3);
+
     if (!srv_client_.isValid()) {
       srv_client_ = nh_->serviceClient<ServiceT>(srv_name_);
     }

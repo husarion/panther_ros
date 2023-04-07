@@ -19,5 +19,16 @@
             <input_port name="service_name">ROS service name</input_port>
             <input_port name="timeout" default="100">timeout in ms to wait for service to be active</input_port>
         </Action>
+        <Action ID="ShutdownHostsFromFile" editable="true">
+            <input_port name="shutdown_hosts_file"/>
+        </Action>
+        <Action ID="ShutdownSingleHost" editable="true">
+            <input_port name="command">(optional)</input_port>
+            <input_port name="ip"/>
+            <input_port name="user"/>
+        </Action>
+        <Decorator ID="TickAfterTimeout" editable="true">
+            <input_port name="timeout">time in s to wait before ticking child again</input_port>
+        </Decorator>
     </TreeNodesModel>
 </root>

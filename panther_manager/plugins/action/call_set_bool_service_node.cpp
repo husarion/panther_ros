@@ -4,7 +4,7 @@ namespace panther_manager
 {
 
 CallSetBoolService::CallSetBoolService(const std::string & name, const BT::NodeConfig & conf)
-: panther_manager::RosServiceNode<std_srvs::SetBool>(nh_, name, conf)
+: RosServiceNode<std_srvs::SetBool>(nh_, name, conf)
 {
   nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
   getInput("service_name", srv_name_);

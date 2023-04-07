@@ -1,34 +1,126 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
   <BehaviorTree ID="Lights">
-    <Delay delay_msec="5000">
+    <Sequence>
       <Sequence>
-        <CallTriggerService service_name="hardware/e_stop_trigger"
-                            timeout="100"
-                            _skipIf="e_stop_state"/>
-        <CallSetLedAnimationService id="0"
-                                    param=""
-                                    repeating="false"
-                                    service_name="lights/controller/set/animation"
-                                    timeout="100"
-                                    _skipIf="!e_stop_state"/>
+        <Sequence _skipIf="battery_status != 1 &amp;&amp; battery_status != 4">
+          <Script name="Charging"
+                  code="anim_id := 9; param := battery_percent_round"/>
+          <TickAfterTimeout timeout="20.0"
+                            _skipIf="!e_stop_state">
+            <CallSetLedAnimationService name="SetEStopAnimation"
+                                        id="0"
+                                        param=""
+                                        repeating="false"
+                                        service_name="lights/controller/set/animation"
+                                        timeout="100"/>
+          </TickAfterTimeout>
+        </Sequence>
+        <Sequence name="Discharging"
+                  _skipIf="battery_status != 2  &amp;&amp; battery_status != 3">
+          <Script name="EStopReleased"
+                  code="anim_id := 1; param := &quot;&quot;"
+                  _skipIf="e_stop_state"/>
+          <Script name="EStopTriggered"
+                  code="anim_id := 0; param := &quot;&quot;"
+                  _skipIf="!e_stop_state"/>
+          <Sequence>
+            <TickAfterTimeout timeout="{low_battery_anim_period}"
+                              _skipIf="battery_percent &lt; critical_battery_threshold_percent \
+|| battery_percent &gt;= low_battery_threshold_percent">
+              <CallSetLedAnimationService name="SetLowBatteryAnimation"
+                                          id="6"
+                                          param=""
+                                          repeating="false"
+                                          service_name="lights/controller/set/animation"
+                                          timeout="100"/>
+            </TickAfterTimeout>
+            <TickAfterTimeout timeout="{critical_battery_anim_period}"
+                              _skipIf="battery_percent &gt;= critical_battery_threshold_percent">
+              <CallSetLedAnimationService name="SetCriticalBatteryAnimation"
+                                          id="7"
+                                          param=""
+                                          repeating="false"
+                                          service_name="lights/controller/set/animation"
+                                          timeout="100"/>
+            </TickAfterTimeout>
+            <TickAfterTimeout timeout="{battery_state_anim_period}"
+                              _skipIf="battery_percent &lt; low_battery_threshold_percent">
+              <CallSetLedAnimationService name="SetBatteryStateAnimation"
+                                          id="8"
+                                          param="{battery_percent_round}"
+                                          repeating="false"
+                                          service_name="lights/controller/set/animation"
+                                          timeout="100"/>
+            </TickAfterTimeout>
+          </Sequence>
+        </Sequence>
+        <Script name="Error"
+                code="anim_id := 2; param := &quot;&quot;"
+                _skipIf="battery_status != 0"/>
       </Sequence>
-    </Delay>
+      <CallSetLedAnimationService name="SetRepeatingAnimation"
+                                  id="{anim_id}"
+                                  param="{param}"
+                                  repeating="true"
+                                  service_name="lights/controller/set/animation"
+                                  timeout="100"
+                                  _skipIf="anim_id == current_anim_id \
+&amp;&amp; param == current_param"
+                                  _onSuccess="current_anim_id = anim_id; \
+current_param = param"/>
+    </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Safety">
-    <Delay delay_msec="5000">
-      <Sequence>
-        <CallSetBoolService data="true"
-                            service_name="hardware/enable_fan"
-                            timeout="100"
-                            _skipIf="fan_state"/>
+    <Sequence>
+      <Sequence _skipIf="bat_temp &lt; high_bat_temp">
+        <Script name="SignalShutdown"
+                code="signal_shutdown := &quot;Battery reached fatal temperature&quot;"
+                _skipIf="bat_temp &lt; fatal_bat_temp"/>
+        <Sequence _skipIf="bat_temp &gt;= fatal_bat_temp">
+          <CallTriggerService name="TriggerEStop"
+                              service_name="hardware/e_stop_trigger"
+                              timeout="100"
+                              _skipIf="e_stop_state"/>
+          <CallSetBoolService name="DisableAUX"
+                              data="false"
+                              service_name="hardware/aux_power_enable"
+                              timeout="100"
+                              _skipIf="!aux_state || bat_temp &lt; critical_bat_temp"/>
+          <CallSetBoolService name="EnableFan"
+                              data="true"
+                              service_name="hardware/fan_enable"
+                              timeout="100"
+                              _skipIf="fan_state"/>
+        </Sequence>
       </Sequence>
-    </Delay>
+      <Sequence _skipIf="bat_temp &gt;= high_bat_temp">
+        <CallSetBoolService name="DisableFan"
+                            data="false"
+                            service_name="hardware/fan_enable"
+                            timeout="100"
+                            _skipIf="cpu_temp &gt; cpu_fan_off_temp \
+|| driver_temp &gt; driver_fan_off_temp \
+|| !fan_state"/>
+        <CallSetBoolService name="EnableFan"
+                            data="true"
+                            service_name="hardware/fan_enable"
+                            timeout="100"
+                            _skipIf="(cpu_temp &lt;= cpu_fan_on_temp \
+&amp;&amp; driver_temp &lt;= driver_fan_on_temp) \
+|| fan_state"/>
+      </Sequence>
+    </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Shutdown">
-    <AlwaysSuccess/>
+    <Sequence>
+      <ShutdownHostsFromFile shutdown_hosts_file="{shutdown_hosts_file}"/>
+      <ShutdownSingleHost command=""
+                          ip="localhost"
+                          user="husarion"/>
+    </Sequence>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
@@ -56,6 +148,20 @@
       <input_port name="timeout"
                   default="100">timeout in ms to wait for service to be active</input_port>
     </Action>
+    <Action ID="ShutdownHostsFromFile"
+            editable="true">
+      <input_port name="shutdown_hosts_file"/>
+    </Action>
+    <Action ID="ShutdownSingleHost"
+            editable="true">
+      <input_port name="command">(optional)</input_port>
+      <input_port name="ip"/>
+      <input_port name="user"/>
+    </Action>
+    <Decorator ID="TickAfterTimeout"
+               editable="true">
+      <input_port name="timeout">time in s to wait before ticking child again</input_port>
+    </Decorator>
   </TreeNodesModel>
 
 </root>

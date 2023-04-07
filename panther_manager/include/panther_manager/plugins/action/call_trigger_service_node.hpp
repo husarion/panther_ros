@@ -8,7 +8,7 @@
 namespace panther_manager
 {
 
-class CallTriggerService : public panther_manager::RosServiceNode<std_srvs::Trigger>
+class CallTriggerService : public RosServiceNode<std_srvs::Trigger>
 {
 public:
   CallTriggerService(const std::string & name, const BT::NodeConfig & conf);

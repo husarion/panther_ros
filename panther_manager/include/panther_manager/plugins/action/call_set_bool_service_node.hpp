@@ -8,7 +8,7 @@
 namespace panther_manager
 {
 
-class CallSetBoolService : public panther_manager::RosServiceNode<std_srvs::SetBool>
+class CallSetBoolService : public RosServiceNode<std_srvs::SetBool>
 {
 public:
   CallSetBoolService(const std::string & name, const BT::NodeConfig & conf);
