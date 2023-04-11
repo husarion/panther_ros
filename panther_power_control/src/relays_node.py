@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import RPi.GPIO as GPIO
+from threading import Lock
 
 import rospy
 
@@ -24,6 +25,8 @@ class PatherGPIO:
 class RelaysNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
+
+        self._lock = Lock()
 
         self._pins = PatherGPIO()
         self._setup_gpio()
@@ -73,10 +76,12 @@ class RelaysNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _cmd_vel_cb(self, *args) -> None:
-        self._cmd_vel_msg_time = rospy.get_time()
+        with self._lock:
+            self._cmd_vel_msg_time = rospy.get_time()
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
-        self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
+        with self._lock:
+            self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         if rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
@@ -100,10 +105,11 @@ class RelaysNode:
         return TriggerResponse(True, 'E-SROP triggered successful')
 
     def _set_motor_state_timer_cb(self, *args) -> None:
-        motor_state = GPIO.input(self._pins.STAGE2_INPUT)
-        GPIO.output(self._pins.MOTOR_ON, motor_state)
-        if motor_state != self._motor_on_pub.impl.latch.data:
-            self._motor_on_pub.publish(motor_state)
+        with self._lock:
+            motor_state = GPIO.input(self._pins.STAGE2_INPUT)
+            GPIO.output(self._pins.MOTOR_ON, motor_state)
+            if motor_state != self._motor_on_pub.impl.latch.data:
+                self._motor_on_pub.publish(motor_state)
 
     def _setup_gpio(self) -> None:
         GPIO.setwarnings(False)

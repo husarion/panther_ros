@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from threading import Lock
+
 import math
 
 import rospy
@@ -15,6 +17,8 @@ class ADCNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()
+        
         self._V_driv_front = None
         self._V_driv_rear = None
         self._I_driv_front = None
@@ -59,72 +63,75 @@ class ADCNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _motor_controllers_state_cb(self, driver_state: DriverState) -> None:
-        self._V_driv_front = driver_state.front.voltage
-        self._V_driv_rear = driver_state.front.current
-        self._I_driv_front = driver_state.rear.voltage
-        self._I_driv_rear = driver_state.rear.current
+        with self._lock:
+            self._V_driv_front = driver_state.front.voltage
+            self._V_driv_rear = driver_state.front.current
+            self._I_driv_front = driver_state.rear.voltage
+            self._I_driv_rear = driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
-        self._charger_connected = io_state.charger_connected
+        with self._lock:
+            self._charger_connected = io_state.charger_connected
 
     def _battery_timer_cb(self, *args) -> None:
-        try:
-            V_bat_1 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device1/in_voltage0_raw', LSB=0.02504255, offset=0.0
-            )
-            V_bat_2 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device1/in_voltage3_raw', LSB=0.02504255, offset=0.0
-            )
-            V_temp_bat_1 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device0/in_voltage1_raw', LSB=0.002, offset=0.0
-            )
-            V_temp_bat_2 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device0/in_voltage0_raw', LSB=0.002, offset=0.0
-            )
-            I_charge_bat_1 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device0/in_voltage3_raw', LSB=0.005, offset=0.0
-            )
-            I_charge_bat_2 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device0/in_voltage2_raw', LSB=0.005, offset=0.0
-            )
-            I_bat_1 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device1/in_voltage2_raw', LSB=0.04, offset=625.0
-            )
-            I_bat_2 = self._get_adc_measurement(
-                path='/sys/bus/iio/devices/iio:device1/in_voltage1_raw', LSB=0.04, offset=625.0
-            )
-        except:
-            rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error')
-            return
+        with self._lock:
+            try:
+                V_bat_1 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device1/in_voltage0_raw', LSB=0.02504255, offset=0.0
+                )
+                V_bat_2 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device1/in_voltage3_raw', LSB=0.02504255, offset=0.0
+                )
+                V_temp_bat_1 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device0/in_voltage1_raw', LSB=0.002, offset=0.0
+                )
+                V_temp_bat_2 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device0/in_voltage0_raw', LSB=0.002, offset=0.0
+                )
+                I_charge_bat_1 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device0/in_voltage3_raw', LSB=0.005, offset=0.0
+                )
+                I_charge_bat_2 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device0/in_voltage2_raw', LSB=0.005, offset=0.0
+                )
+                I_bat_1 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device1/in_voltage2_raw', LSB=0.04, offset=625.0
+                )
+                I_bat_2 = self._get_adc_measurement(
+                    path='/sys/bus/iio/devices/iio:device1/in_voltage1_raw', LSB=0.04, offset=625.0
+                )
+            except:
+                rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error')
+                return
 
-        if self._battery_count == 2:
-            temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
-            temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
+            if self._battery_count == 2:
+                temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
+                temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
 
-            self._publish_battery_msg(
-                self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
-            )
-            self._publish_battery_msg(
-                self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
-            )
+                self._publish_battery_msg(
+                    self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
+                )
+                self._publish_battery_msg(
+                    self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
+                )
 
-            V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
-            temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
-            I_bat_sum = I_bat_1 + I_bat_2
-            I_charge_bat = I_charge_bat_1 + I_charge_bat_2
+                V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
+                temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
+                I_bat_sum = I_bat_1 + I_bat_2
+                I_charge_bat = I_charge_bat_1 + I_charge_bat_2
 
-            self._publish_battery_msg(
-                self._battery_pub,
-                V_bat_avereage,
-                temp_bat_average,
-                -I_bat_sum + I_charge_bat,
-            )
+                self._publish_battery_msg(
+                    self._battery_pub,
+                    V_bat_avereage,
+                    temp_bat_average,
+                    -I_bat_sum + I_charge_bat,
+                )
 
-        else:
-            temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
-            self._publish_battery_msg(
-                self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
-            )
+            else:
+                temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
+                self._publish_battery_msg(
+                    self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
+                )
 
     def _check_battery_count(self) -> int:
         trials_num = 10

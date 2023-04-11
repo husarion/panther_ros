@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import RPi.GPIO as GPIO
+from threading import Lock
 
 import rospy
 
@@ -58,6 +59,7 @@ class PowerBoardNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()
         self._clearing_e_stop = False
         self._pins = PatherGPIO()
 
@@ -146,35 +148,40 @@ class PowerBoardNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _cmd_vel_cb(self, *args) -> None:
-        self._cmd_vel_msg_time = rospy.get_time()
+        with self._lock:
+            self._cmd_vel_msg_time = rospy.get_time()
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
-        self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
+        with self._lock:
+            self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
 
     def _gpio_interrupt_cb(self, pin: int) -> None:
-        if pin == self._pins.SHDN_INIT:
-            self._chrg_sense_interrupt_time = rospy.get_time()
+        with self._lock:
+            if pin == self._pins.SHDN_INIT:
+                self._chrg_sense_interrupt_time = rospy.get_time()
 
-        if pin == self._pins.E_STOP_RESET:
-            self._e_stop_interrupt_time = rospy.get_time()
+            if pin == self._pins.E_STOP_RESET:
+                self._e_stop_interrupt_time = rospy.get_time()
 
     def _publish_pin_state_cb(self, *args) -> None:
-        charger_state = self._read_pin(self._pins.CHRG_SENSE)
-        self._publish_io_state('charger_connected', charger_state)
+        with self._lock:
+            charger_state = self._read_pin(self._pins.CHRG_SENSE)
+            self._publish_io_state('charger_connected', charger_state)
 
-        # filter short spikes of voltage on GPIO
-        if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
-            if self._read_pin(self._pins.SHDN_INIT):
-                rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-                self._publish_io_state('power_button', True)
-            self._chrg_sense_interrupt_time = float('inf')
+            # filter short spikes of voltage on GPIO
+            if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
+                if self._read_pin(self._pins.SHDN_INIT):
+                    rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
+                    self._publish_io_state('power_button', True)
+                self._chrg_sense_interrupt_time = float('inf')
 
-        if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
-            self._e_stop_event()
-            self._e_stop_interrupt_time = float('inf')
+            if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
+                self._e_stop_event()
+                self._e_stop_interrupt_time = float('inf')
 
     def _watchdog_cb(self, *args) -> None:
-        self._watchdog()
+        with self._lock:
+            self._watchdog()
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')

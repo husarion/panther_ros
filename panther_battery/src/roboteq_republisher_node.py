@@ -13,11 +13,12 @@ class RoboteqRepublisherNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()  
+        
         self._battery_voltage = None
         self._battery_current = None
         self._battery_timeout = 1.0
         self._last_battery_info_time = rospy.get_time()
-        self._lock = Lock()
 
         # -------------------------------
         #   Subscribers
