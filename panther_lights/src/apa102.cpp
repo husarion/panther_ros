@@ -29,9 +29,9 @@ namespace apa_102
     static std::uint8_t mode = 0x00;
     if (cs_high)
     {
-      mode |= SPI_CS_HIGH;
+      mode |= SPI_CS_HIGH | SPI_MODE_0;
     }
-    if (ioctl(fd_, SPI_IOC_WR_MODE, &mode) == -1)
+    if (ioctl(fd_, SPI_IOC_WR_MODE32, &mode) == -1)
     {
       close(fd_);
       throw std::ios_base::failure(std::string("Failed to set mode for ") + device_);
