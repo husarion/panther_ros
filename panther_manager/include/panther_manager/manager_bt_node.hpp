@@ -30,6 +30,7 @@ public:
 private:
   float battery_percent_;
   float update_charging_anim_step_;
+  float shutdown_timeout_;
   std::string node_name_;
   std::optional<unsigned> battery_status_;
   std::optional<bool> e_stop_state_;

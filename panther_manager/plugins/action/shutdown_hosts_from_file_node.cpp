@@ -32,13 +32,13 @@ BT::NodeStatus ShutdownHostsFromFile::tick()
     }
 
     if (!check_ip(ip)) {
-      ROS_WARN("[%s] Device at %s not availabe, skipping", get_node_name().c_str(), ip.c_str());
+      ROS_WARN("[%s] Device at: %s not availabe, skipping", get_node_name().c_str(), ip.c_str());
       continue;
     }
 
     // execute command
     if (ssh_execute_command(ip.c_str(), user.c_str(), command.c_str()) != 0) {
-      ROS_WARN("[%s] Failed to shutdown device at %s", get_node_name().c_str(), ip.c_str());
+      ROS_WARN("[%s] Failed to shutdown device at: %s", get_node_name().c_str(), ip.c_str());
     }
   }
 

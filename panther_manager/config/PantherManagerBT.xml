@@ -74,11 +74,11 @@ current_param = param"/>
 
   <BehaviorTree ID="Safety">
     <Sequence>
-      <Sequence _skipIf="bat_temp &lt; high_bat_temp">
+      <Sequence _skipIf="bat_temp &lt;= high_bat_temp">
         <Script name="SignalShutdown"
                 code="signal_shutdown := &quot;Battery reached fatal temperature&quot;"
-                _skipIf="bat_temp &lt; fatal_bat_temp"/>
-        <Sequence _skipIf="bat_temp &gt;= fatal_bat_temp">
+                _skipIf="bat_temp &lt;= fatal_bat_temp"/>
+        <Sequence _skipIf="bat_temp &gt; fatal_bat_temp">
           <CallTriggerService name="TriggerEStop"
                               service_name="hardware/e_stop_trigger"
                               timeout="100"
@@ -87,7 +87,7 @@ current_param = param"/>
                               data="false"
                               service_name="hardware/aux_power_enable"
                               timeout="100"
-                              _skipIf="!aux_state || bat_temp &lt; critical_bat_temp"/>
+                              _skipIf="!aux_state || bat_temp &lt;= critical_bat_temp"/>
           <CallSetBoolService name="EnableFan"
                               data="true"
                               service_name="hardware/fan_enable"
@@ -95,7 +95,7 @@ current_param = param"/>
                               _skipIf="fan_state"/>
         </Sequence>
       </Sequence>
-      <Sequence _skipIf="bat_temp &gt;= high_bat_temp">
+      <Sequence _skipIf="bat_temp &gt; high_bat_temp">
         <CallSetBoolService name="DisableFan"
                             data="false"
                             service_name="hardware/fan_enable"
@@ -116,7 +116,9 @@ current_param = param"/>
 
   <BehaviorTree ID="Shutdown">
     <Sequence>
-      <ShutdownHostsFromFile shutdown_hosts_file="{shutdown_hosts_file}"/>
+      <ForceSuccess _while="!shutdown_timeout">
+        <ShutdownHostsFromFile shutdown_hosts_file="{shutdown_hosts_file}"/>
+      </ForceSuccess>
       <ShutdownSingleHost command=""
                           ip="localhost"
                           user="husarion"/>

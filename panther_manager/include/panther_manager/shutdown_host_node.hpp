@@ -26,7 +26,7 @@ public:
 
   int ssh_execute_command(const char * host, const char * user, const char * command)
   {
-    ROS_INFO("[%s] Shutting down device at %s", node_name_.c_str(), host);
+    ROS_INFO("[%s] Shutting down device at: %s", node_name_.c_str(), host);
 
     ssh_session session;
 
@@ -90,7 +90,7 @@ public:
     while ((nbytes = ssh_channel_read(channel, buffer, sizeof(buffer), 0)) > 0) {
       output.append(buffer, nbytes);
     }
-    ROS_INFO("[%s] Device response: %s", node_name_.c_str(), output.c_str());
+    ROS_INFO("[%s] Device response:\n%s", node_name_.c_str(), output.c_str());
 
     // close and disconnect
     ssh_channel_send_eof(channel);

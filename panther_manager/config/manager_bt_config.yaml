@@ -1,6 +1,7 @@
-battery_window_len: 6
-cpu_window_len: 6
-driver_window_len: 6
+battery_temp_window_len: 6
+cpu_temp_window_len: 6
+driver_temp_window_len: 6
+shutdown_timeout: 15.0
 critical_battery_anim_period: 15.0
 critical_battery_threshold_percent: 0.1
 battery_state_anim_period: 120.0

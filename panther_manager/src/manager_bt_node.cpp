@@ -19,6 +19,7 @@ ManagerNode::ManagerNode(
   auto cpu_temp_window_len = pnh_->param<int>("cpu_temp_window_len", 6);
   auto driver_temp_window_len = pnh_->param<int>("driver_temp_window_len", 6);
   auto shutdown_hosts_file = pnh_->param<std::string>("shutdown_hosts_file", "");
+  shutdown_timeout_ = pnh_->param<float>("shutdown_timeout", 15.0);
   // lights tree params
   auto critical_battery_anim_period = pnh_->param<float>("critical_battery_anim_period", 15.0);
   auto critical_battery_threshold_percent =
@@ -219,7 +220,10 @@ void ManagerNode::shutdown_robot(const std::string & message)
   // tick shutdown tree
   BT::StdCoutLogger logger_cout(shutdown_tree_);  // debuging
   shutdown_tree_status_ = BT::NodeStatus::RUNNING;
+  auto start_time = ros::Time::now();
   while (ros::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {
+    auto shutdown_timeout = (ros::Time::now() - start_time) > ros::Duration(shutdown_timeout_);
+    shutdown_config_.blackboard->set<bool>("shutdown_timeout", shutdown_timeout);
     shutdown_tree_status_ = shutdown_tree_.tickOnce();
   }
 }
