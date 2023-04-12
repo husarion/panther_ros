@@ -60,7 +60,7 @@ namespace panther_lights_driver
 
     set_brightness_server_ = nh_->advertiseService("lights/driver/set/brightness", &LightsDriverNode::set_brightness_cb, this);
 
-    ROS_INFO("[%s] Node started spinning.", node_name_.c_str());
+    ROS_INFO("[%s] Node started spinning", node_name_.c_str());
 
     ros::Rate rate(30);
     while (ros::ok() && !panels_initialised_)
@@ -70,7 +70,7 @@ namespace panther_lights_driver
       ROS_INFO_THROTTLE(5.0, "[%s] Waiting for animation to arrive...", node_name_.c_str());
     }
 
-    ROS_INFO("[%s] Lights are now being displayed.", node_name_.c_str());
+    ROS_INFO("[%s] Lights are now being displayed", node_name_.c_str());
   }
 
   LightsDriverNode::~LightsDriverNode()

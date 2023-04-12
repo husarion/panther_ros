@@ -26,10 +26,10 @@ namespace apa_102
       throw std::ios_base::failure(std::string("Failed to open ") + device_);
     }
 
-    static std::uint8_t mode = 0x00;
+    static std::uint8_t mode = SPI_MODE_3;
     if (cs_high)
     {
-      mode |= SPI_CS_HIGH | SPI_MODE_0;
+      mode |= SPI_CS_HIGH;
     }
     if (ioctl(fd_, SPI_IOC_WR_MODE32, &mode) == -1)
     {
