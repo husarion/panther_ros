@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 from animation import Animation
+import cv2
 
 
 class BatteryAnimation(Animation):
@@ -13,9 +14,10 @@ class BatteryAnimation(Animation):
         super().__init__(*args, **kwargs)
 
         self._anim = np.zeros((self._anim_len, self.num_led))
-        self._h_min = 0.0
-        self._h_max = 120.0
+        self._h_min = 0.0       # red color
+        self._h_max = 0.6       # green color
         self._resolution = 100
+        self._start_fade_th = 0.85 * self._resolution
         self._gaussian_blur_radius = 1.5
 
     def _update_frame(self) -> list:
@@ -31,10 +33,6 @@ class BatteryAnimation(Animation):
 
     def _create_anim(self, battery_percent: float) -> None:
         battery_percent = np.clip(battery_percent, 0.0, 1.0)
-        # define basic HSV color
-        h = self._h_min
-        s = 1.0
-        v = 1.0
         frame = np.zeros((self._num_led, 3), dtype=np.uint8)
         anim = np.zeros((self._resolution, self._num_led, 3), dtype=np.uint8)
 
@@ -58,10 +56,8 @@ class BatteryAnimation(Animation):
                     frame.fill(0)
                     ind_1 = int(np.ceil(self._num_led / 2.0 - anim_ind - 1.0))
                     ind_2 = int(np.floor(self._num_led / 2.0 + anim_ind))
-                    h = (self._h_max - self._h_min) * np.sin(
-                        max(0, battery_percent) * np.pi / 2.0
-                    ) * i / (display_iterations / 2.0) + self._h_min
-                    rgb = np.array(hsv_to_rgb(h / 360.0, s, v))
+                    h = (self._h_max - self._h_min) * np.sin(battery_percent * np.pi / 2.0) * i / display_iterations + self._h_min
+                    rgb = np.array(hsv_to_rgb(h, 1.0, 1.0))
                     frame[ind_1] = np.uint8(rgb * 255.0)
                     frame[ind_2] = np.uint8(rgb * 255.0)
                 elif percent_point <= anim_ind < 2 * percent_point:
@@ -74,8 +70,21 @@ class BatteryAnimation(Animation):
 
             anim[i] = frame
 
+            if i > self._start_fade_th:
+                a = 1/(self._start_fade_th - self._resolution)
+                b = -a*self._resolution
+                anim[i] = frame * (a*i + b)
+
         # filter to smooth animation and resize to match duration
         img = Image.fromarray(anim)
         img = img.filter(ImageFilter.GaussianBlur(self._gaussian_blur_radius))
         img = img.resize((self._num_led, self._anim_len))
         self._anim = np.array(img)
+
+        im = cv2.cvtColor(self._anim, cv2.COLOR_BGR2RGB)
+        cv2.imshow("anim", im)
+        cv2.waitKey(0)
+
+an =  {"duration": 5, "repeat": 1}
+anim = BatteryAnimation(an, 48, 48)
+anim._create_anim(1)
