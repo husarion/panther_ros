@@ -15,7 +15,8 @@ class BatteryAnimation(Animation):
         self._h_min = 0.0       # red color
         self._h_max = 0.6       # green color
         self._resolution = 100
-        self._start_fade_th = 0.85 * self._resolution
+        self._start_fade = 0.80 * self._resolution
+        self._end_anim = 0.90 * self._resolution
         self._gaussian_blur_radius = 1.5
 
     def _update_frame(self) -> list:
@@ -40,7 +41,7 @@ class BatteryAnimation(Animation):
             percent_point = int(np.ceil(battery_percent * self._num_led / 2.0))
 
         # 0.9 was added to hold for some time the final frame of the animation when percentage is 1.0
-        display_iterations = battery_percent * self._resolution * 0.9
+        display_iterations = battery_percent * self._end_anim
 
         if percent_point < 1:
             percent_point = 1
@@ -48,7 +49,7 @@ class BatteryAnimation(Animation):
 
         for i in range(self._resolution):
             if i <= display_iterations:
-                anim_ind = round(i / self._resolution * self._num_led / 0.9)
+                anim_ind = round(i * self._num_led / self._end_anim)
 
                 if anim_ind < percent_point:
                     frame.fill(0)
@@ -68,10 +69,11 @@ class BatteryAnimation(Animation):
 
             anim[i] = frame
 
-            if i > self._start_fade_th:
-                a = 1/(self._start_fade_th - self._resolution)
-                b = -a*self._resolution
-                anim[i] = frame * (a*i + b)
+            if i > self._start_fade:
+                a = 1/(self._start_fade - self._end_anim)
+                b = -a*self._end_anim
+                coef = max(0, (a*i + b))
+                anim[i] = frame * coef
 
         # filter to smooth animation and resize to match duration
         img = Image.fromarray(anim)
