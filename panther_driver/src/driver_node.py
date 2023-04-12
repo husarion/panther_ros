@@ -301,13 +301,13 @@ class PantherDriverNode:
             self._robot_orientation_quat = quaternion_from_euler(0.0, 0.0, self._robot_pos[2])
 
             if self._publish_joints:
-                self._publish_joint_state()
+                self._publish_joint_state_cb()
             if self._publish_pose:
-                self._publish_pose()
+                self._publish_pose_cb()
             if self._publish_odom:
-                self._publish_odom()
+                self._publish_odom_cb()
             if self._publish_tf:
-                self._publish_tf()
+                self._publish_tf_cb()
 
     def _driver_state_timer_cb(self, *args) -> None:
         with self._lock:
@@ -391,7 +391,7 @@ class PantherDriverNode:
 
         return TriggerResponse(False, f'Roboteq script reset failed')
 
-    def _publish_joint_state(self) -> None:
+    def _publish_joint_state_cb(self) -> None:
         self._joint_state_msg.header.stamp = rospy.Time.now()
         self._joint_state_msg.position = [
             math.atan2(math.sin(pos), math.cos(pos)) for pos in self._wheels_ang_pos
@@ -400,7 +400,7 @@ class PantherDriverNode:
         self._joint_state_msg.effort = self._motors_effort
         self._joint_state_pub.publish(self._joint_state_msg)
 
-    def _publish_pose(self) -> None:
+    def _publish_pose_cb(self) -> None:
         self._pose_msg.position.x = self._robot_pos[0]
         self._pose_msg.position.y = self._robot_pos[1]
         self._pose_msg.orientation.x = self._robot_orientation_quat[0]
@@ -409,7 +409,7 @@ class PantherDriverNode:
         self._pose_msg.orientation.w = self._robot_orientation_quat[3]
         self._pose_pub.publish(self._pose_msg)
 
-    def _publish_tf(self) -> None:
+    def _publish_tf_cb(self) -> None:
         self._tf_stamped.header.stamp = rospy.Time.now()
         self._tf_stamped.transform.translation.x = self._robot_pos[0]
         self._tf_stamped.transform.translation.y = self._robot_pos[1]
@@ -420,7 +420,7 @@ class PantherDriverNode:
         self._tf_stamped.transform.rotation.w = self._robot_orientation_quat[3]
         self._tf_broadcaster.sendTransform(self._tf_stamped)
 
-    def _publish_odom(self) -> None:
+    def _publish_odom_cb(self) -> None:
         self._odom_msg.header.stamp = rospy.Time.now()
         self._odom_msg.pose.pose.position.x = self._robot_pos[0]
         self._odom_msg.pose.pose.position.y = self._robot_pos[1]
