@@ -102,6 +102,8 @@ class AnimationsQueue:
 
 
 class LightsControllerNode:
+    DIMMER_TRESHOLD: float = 0.8
+
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
@@ -206,10 +208,10 @@ class LightsControllerNode:
 
             if not self._current_animation.front.finished:
                 frame_front = self._current_animation.front()
-                brightness_front = self._current_animation.front.brightness
+                brightness_front = self._adjust_brightness(self._current_animation.front)
             if not self._current_animation.rear.finished:
                 frame_rear = self._current_animation.rear()
-                brightness_rear = self._current_animation.rear.brightness
+                brightness_rear = self._adjust_brightness(self._current_animation.rear)
             self._animation_finished = (
                 self._current_animation.front.finished and self._current_animation.rear.finished
             )
@@ -252,9 +254,7 @@ class LightsControllerNode:
             True, f'Successfully set an animation with id {req.animation.id}'
         )
 
-    def _set_image_animation_cb(
-        self, req: SetLEDImageAnimationRequest
-    ) -> SetLEDImageAnimationResponse:
+    def _set_image_animation_cb(self, req: SetLEDImageAnimationRequest) -> SetLEDImageAnimationResponse:
         animation = PantherAnimation()
         animation.repeating = req.repeating
 
@@ -442,6 +442,14 @@ class LightsControllerNode:
 
         else:
             raise KeyError(f'Missing ID in animation description')
+        
+    def _adjust_brightness(self, animation: Animation) -> int:
+        if animation.progress > self.DIMMER_TRESHOLD:
+            brightness = int((1/(1-self.DIMMER_TRESHOLD))*(1 - animation.progress)*animation.brightness)
+        else:
+            brightness = animation.brightness
+        print(brightness)
+        return brightness
 
 
 def main():
