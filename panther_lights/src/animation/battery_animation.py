@@ -3,8 +3,6 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 from animation import Animation
-import cv2
-
 
 class BatteryAnimation(Animation):
 
@@ -80,11 +78,3 @@ class BatteryAnimation(Animation):
         img = img.filter(ImageFilter.GaussianBlur(self._gaussian_blur_radius))
         img = img.resize((self._num_led, self._anim_len))
         self._anim = np.array(img)
-
-        im = cv2.cvtColor(self._anim, cv2.COLOR_BGR2RGB)
-        cv2.imshow("anim", im)
-        cv2.waitKey(0)
-
-an =  {"duration": 5, "repeat": 1}
-anim = BatteryAnimation(an, 48, 48)
-anim._create_anim(1)
