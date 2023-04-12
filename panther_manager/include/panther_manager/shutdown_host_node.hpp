@@ -10,14 +10,17 @@
 namespace panther_manager
 {
 
-class ShutdownHost : public BT::SyncActionNode
+class ShutdownHost : public BT::StatefulActionNode
 {
 public:
   ShutdownHost(const std::string & name, const BT::NodeConfig & conf)
-  : BT::SyncActionNode(name, conf)
+  : BT::StatefulActionNode(name, conf)
   {
     node_name_ = ros::this_node::getName();
   }
+
+  ssh_session session_;
+  ssh_channel channel_;
 
   bool check_ip(const std::string ip)
   {
@@ -28,78 +31,69 @@ public:
   {
     ROS_INFO("[%s] Shutting down device at: %s", node_name_.c_str(), host);
 
-    ssh_session session;
+    session_ = ssh_new();
+    if (session_ == NULL) return -1;
 
-    session = ssh_new();
-    if (session == NULL) return -1;
+    ssh_options_set(session_, SSH_OPTIONS_HOST, host);
+    ssh_options_set(session_, SSH_OPTIONS_USER, user);
+    ssh_options_set(session_, SSH_OPTIONS_PORT, &port_);
+    ssh_options_set(session_, SSH_OPTIONS_LOG_VERBOSITY, &verbosity_);
 
-    ssh_options_set(session, SSH_OPTIONS_HOST, host);
-    ssh_options_set(session, SSH_OPTIONS_USER, user);
-    ssh_options_set(session, SSH_OPTIONS_PORT, &port_);
-    ssh_options_set(session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity_);
-
-    int rc = ssh_connect(session);
+    int rc = ssh_connect(session_);
     if (rc != SSH_OK) {
-      ROS_ERROR("[%s] Error connecting to host: %s", node_name_.c_str(), ssh_get_error(session));
-      ssh_free(session);
+      ROS_ERROR("[%s] Error connecting to host: %s", node_name_.c_str(), ssh_get_error(session_));
+      ssh_free(session_);
       return -1;
     }
 
-    rc = ssh_userauth_publickey_auto(session, NULL, NULL);
+    rc = ssh_userauth_publickey_auto(session_, NULL, NULL);
     if (rc != SSH_AUTH_SUCCESS) {
       ROS_ERROR(
         "[%s] Error authenticating with public key: %s", node_name_.c_str(),
-        ssh_get_error(session));
-      ssh_disconnect(session);
-      ssh_free(session);
+        ssh_get_error(session_));
+      ssh_disconnect(session_);
+      ssh_free(session_);
       return -1;
     }
 
-    ssh_channel channel = ssh_channel_new(session);
-    if (channel == NULL) {
+    channel_ = ssh_channel_new(session_);
+    if (channel_ == NULL) {
       ROS_ERROR(
-        "[%s] Failed to create ssh channel: %s", node_name_.c_str(), ssh_get_error(session));
-      ssh_disconnect(session);
-      ssh_free(session);
+        "[%s] Failed to create ssh channel: %s", node_name_.c_str(), ssh_get_error(session_));
+      ssh_disconnect(session_);
+      ssh_free(session_);
       return -1;
     }
 
-    rc = ssh_channel_open_session(channel);
+    rc = ssh_channel_open_session(channel_);
     if (rc != SSH_OK) {
-      ROS_ERROR("[%s] Failed to open ssh channel: %s", node_name_.c_str(), ssh_get_error(session));
-      ssh_channel_free(channel);
-      ssh_disconnect(session);
-      ssh_free(session);
+      ROS_ERROR("[%s] Failed to open ssh channel: %s", node_name_.c_str(), ssh_get_error(session_));
+      ssh_channel_free(channel_);
+      ssh_disconnect(session_);
+      ssh_free(session_);
       return -1;
     }
 
-    rc = ssh_channel_request_exec(channel, command);
+    rc = ssh_channel_request_exec(channel_, command);
     if (rc != SSH_OK) {
       ROS_ERROR(
-        "[%s] Failed to execute ssh command: %s", node_name_.c_str(), ssh_get_error(session));
-      ssh_channel_close(channel);
-      ssh_channel_free(channel);
-      ssh_disconnect(session);
-      ssh_free(session);
+        "[%s] Failed to execute ssh command: %s", node_name_.c_str(), ssh_get_error(session_));
+      ssh_channel_close(channel_);
+      ssh_channel_free(channel_);
+      ssh_disconnect(session_);
+      ssh_free(session_);
       return -1;
     }
-
-    char buffer[1024];
-    int nbytes;
-    std::string output;
-    while ((nbytes = ssh_channel_read(channel, buffer, sizeof(buffer), 0)) > 0) {
-      output.append(buffer, nbytes);
-    }
-    ROS_INFO("[%s] Device response:\n%s", node_name_.c_str(), output.c_str());
-
-    // close and disconnect
-    ssh_channel_send_eof(channel);
-    ssh_channel_close(channel);
-    ssh_channel_free(channel);
-    ssh_disconnect(session);
-    ssh_free(session);
 
     return 0;
+  }
+
+  void close_connection(){
+    ssh_channel_send_eof(channel_);
+    ssh_channel_close(channel_);
+    ssh_channel_free(channel_);
+    ssh_disconnect(session_);
+    ssh_free(session_);
   }
 
   std::string get_node_name() { return node_name_; }

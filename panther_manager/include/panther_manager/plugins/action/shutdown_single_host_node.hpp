@@ -24,11 +24,16 @@ public:
   }
 
 private:
+  char buffer_[1024];
+  int nbytes_;
+  std::string output_;
   std::string ip_;
   std::string user_;
   std::string command_;
 
-  BT::NodeStatus tick() override;
+  BT::NodeStatus onStart() override;
+  BT::NodeStatus onRunning() override;
+  void onHalted() {}
 };
 
 }  // namespace panther_manager

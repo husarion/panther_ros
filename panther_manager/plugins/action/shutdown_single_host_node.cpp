@@ -3,7 +3,7 @@
 namespace panther_manager
 {
 
-BT::NodeStatus ShutdownSingleHost::tick()
+BT::NodeStatus ShutdownSingleHost::onStart()
 {
   if (!getInput<std::string>("ip", ip_) || ip_ == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [ip]"));
@@ -27,6 +27,18 @@ BT::NodeStatus ShutdownSingleHost::tick()
     return BT::NodeStatus::FAILURE;
   }
 
+  return BT::NodeStatus::RUNNING;
+}
+
+BT::NodeStatus ShutdownSingleHost::onRunning()
+{
+  if ((nbytes_ = ssh_channel_read_nonblocking(channel_, buffer_, sizeof(buffer_), 0)) >= 0) {
+    output_.append(buffer_, nbytes_);
+    return BT::NodeStatus::RUNNING;
+  }
+
+  ROS_INFO("[%s] Device response:\n%s", get_node_name().c_str(), output_.c_str());
+  close_connection();
   return BT::NodeStatus::SUCCESS;
 }
 

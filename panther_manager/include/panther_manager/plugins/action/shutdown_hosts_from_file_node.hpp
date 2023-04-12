@@ -23,10 +23,16 @@ public:
   }
 
 private:
+  char buffer_[1024];
+  int host_index_ = 0;
+  int nbytes_;
+  std::string output_;
   std::string shutdown_hosts_file_;
   YAML::Node shutdown_hosts_;
 
-  BT::NodeStatus tick() override;
+  BT::NodeStatus onStart() override;
+  BT::NodeStatus onRunning() override;
+  void onHalted() {}
 };
 
 }  // namespace panther_manager
