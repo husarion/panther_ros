@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 from animation import Animation
-
 class BatteryAnimation(Animation):
 
     ANIMATION_NAME = 'battery_animation'
@@ -13,7 +12,7 @@ class BatteryAnimation(Animation):
 
         self._anim = np.zeros((self._anim_len, self.num_led))
         self._h_min = 0.0       # red color
-        self._h_max = 0.6       # green color
+        self._h_max = 0.4       # green color
         self._resolution = 100
         self._start_fade = 0.80 * self._resolution
         self._end_anim = 0.90 * self._resolution
@@ -55,7 +54,7 @@ class BatteryAnimation(Animation):
                     frame.fill(0)
                     ind_1 = int(np.ceil(self._num_led / 2.0 - anim_ind - 1.0))
                     ind_2 = int(np.floor(self._num_led / 2.0 + anim_ind))
-                    h = (self._h_max - self._h_min) * np.sin(battery_percent * np.pi / 2.0) * i / display_iterations + self._h_min
+                    h = (self._h_max - self._h_min) * np.sin(battery_percent * np.pi / 2.0) * i / (display_iterations / 2.0) + self._h_min
                     rgb = np.array(hsv_to_rgb(h, 1.0, 1.0))
                     frame[ind_1] = np.uint8(rgb * 255.0)
                     frame[ind_2] = np.uint8(rgb * 255.0)
