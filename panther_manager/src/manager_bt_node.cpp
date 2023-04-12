@@ -21,21 +21,23 @@ ManagerNode::ManagerNode(
   auto shutdown_hosts_file = pnh_->param<std::string>("shutdown_hosts_file", "");
   shutdown_timeout_ = pnh_->param<float>("shutdown_timeout", 15.0);
   // lights tree params
-  auto critical_battery_anim_period = pnh_->param<float>("critical_battery_anim_period", 15.0);
+  auto critical_battery_anim_period =
+    pnh_->param<float>("lights/critical_battery_anim_period", 15.0);
   auto critical_battery_threshold_percent =
-    pnh_->param<float>("critical_battery_threshold_percent", 0.1);
-  auto battery_state_anim_period = pnh_->param<float>("battery_state_anim_period", 120.0);
-  auto low_battery_anim_period = pnh_->param<float>("low_battery_anim_period", 30.0);
-  auto low_battery_threshold_percent = pnh_->param<float>("low_battery_threshold_percent", 0.4);
-  update_charging_anim_step_ = pnh_->param<float>("update_charging_anim_step", 0.1);
+    pnh_->param<float>("lights/critical_battery_threshold_percent", 0.1);
+  auto battery_state_anim_period = pnh_->param<float>("lights/battery_state_anim_period", 120.0);
+  auto low_battery_anim_period = pnh_->param<float>("lights/low_battery_anim_period", 30.0);
+  auto low_battery_threshold_percent =
+    pnh_->param<float>("lights/low_battery_threshold_percent", 0.4);
+  update_charging_anim_step_ = pnh_->param<float>("lights/update_charging_anim_step", 0.1);
   // safety tree params
-  auto high_bat_temp = pnh_->param<float>("high_bat_temp", 55.0);
-  auto critical_bat_temp = pnh_->param<float>("critical_bat_temp", 59.0);
-  auto fatal_bat_temp = pnh_->param<float>("fatal_bat_temp", 62.0);
-  auto cpu_fan_on_temp = pnh_->param<float>("cpu_fan_on_temp", 70.0);
-  auto cpu_fan_off_temp = pnh_->param<float>("cpu_fan_off_temp", 60.0);
-  auto driver_fan_on_temp = pnh_->param<float>("driver_fan_on_temp", 45.0);
-  auto driver_fan_off_temp = pnh_->param<float>("driver_fan_off_temp", 35.0);
+  auto high_bat_temp = pnh_->param<float>("safety/high_bat_temp", 55.0);
+  auto critical_bat_temp = pnh_->param<float>("safety/critical_bat_temp", 59.0);
+  auto fatal_bat_temp = pnh_->param<float>("safety/fatal_bat_temp", 62.0);
+  auto cpu_fan_on_temp = pnh_->param<float>("safety/cpu_fan_on_temp", 70.0);
+  auto cpu_fan_off_temp = pnh_->param<float>("safety/cpu_fan_off_temp", 60.0);
+  auto driver_fan_on_temp = pnh_->param<float>("safety/driver_fan_on_temp", 45.0);
+  auto driver_fan_off_temp = pnh_->param<float>("safety/driver_fan_off_temp", 35.0);
 
   battery_temp_ma_ = MovingAverage<double>(battery_temp_window_len);
   cpu_temp_ma_ = MovingAverage<double>(cpu_fan_on_temp);

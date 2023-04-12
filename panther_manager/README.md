@@ -33,6 +33,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers e-stop.
 - `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
+
 #### Parameters
 
 - `~battery_state_anim_period` [*float*, default: **120.0**]: time in seconds to wait before repeating animation representing current battery percentage.
