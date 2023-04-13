@@ -184,57 +184,63 @@ class PowerBoardNode:
             self._watchdog()
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
-        if res.success:
-            self._publish_io_state('aux_power', req.data)
-        return res
+        with self._lock:
+            res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
+            if res.success:
+                self._publish_io_state('aux_power', req.data)
+            return res
 
     def _charger_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(not req.data, self._pins.CHRG_DISABLE, 'Charger disable')
-        if res.success:
-            self._publish_io_state('charger_enabled', req.data)
-        return res
+        with self._lock:
+            res = self._set_bool_srv_handle(not req.data, self._pins.CHRG_DISABLE, 'Charger disable')
+            if res.success:
+                self._publish_io_state('charger_enabled', req.data)
+            return res
 
     def _digital_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(req.data, self._pins.VDIG_OFF, 'Digital power enable')
-        if res.success:
-            self._publish_io_state('digital_power', req.data)
-        return res
+        with self._lock:
+            res = self._set_bool_srv_handle(req.data, self._pins.VDIG_OFF, 'Digital power enable')
+            if res.success:
+                self._publish_io_state('digital_power', req.data)
+            return res
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
-            return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
-        elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, messages are still published on /cmd_vel topic!',
-            )
-        elif self._can_net_err:
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
-            )
+        with self._lock:
+            if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
+                return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
+            elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, messages are still published on /cmd_vel topic!',
+                )
+            elif self._can_net_err:
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
+                )
 
-        self._reset_e_stop()
+            self._reset_e_stop()
 
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
-            self._watchdog.turn_off()
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
-            )
+            if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+                self._watchdog.turn_off()
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
+                )
 
-        return TriggerResponse(True, 'E-STOP reset successful')
+            return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
-        self._watchdog.turn_off()
-        return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
+        with self._lock:
+            self._watchdog.turn_off()
+            return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
 
     def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
-        if res.success:
-            self._publish_io_state('fan', req.data)
-        return res
+        with self._lock:
+            res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
+            if res.success:
+                self._publish_io_state('fan', req.data)
+            return res
 
     def _set_bool_srv_handle(self, value: bool, pin: int, name: str) -> SetBoolResponse:
         rospy.logdebug(f'[{rospy.get_name()}] Requested {name} = {value}')

@@ -183,10 +183,11 @@ class ManagerNode:
                 self._cpu_temp_window = [system_status.cpu_temp] * self._cpu_window_len
 
     def _overwrite_fan_control_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        self._overwrite_fan_control = req.data
-        if req.data:
-            self._call_set_bool_service(self._fan_enable_client, req.data)
-        return SetBoolResponse(True, f'Overwrite fan control set to: {req.data}')
+        with self._lock:
+            self._overwrite_fan_control = req.data
+            if req.data:
+                self._call_set_bool_service(self._fan_enable_client, req.data)
+            return SetBoolResponse(True, f'Overwrite fan control set to: {req.data}')
 
     def _manager_timer_cb(self, *args) -> None:
         with self._lock:

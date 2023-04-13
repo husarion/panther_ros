@@ -373,7 +373,6 @@ class PantherDriverNode:
 
     def _cmd_vel_cb(self, data: Twist) -> None:
         with self._lock:
-
             # Block all motors if any Roboteq controller returns a fault flag or runtime error flag
             if not self._stop_cmd_vel_cb:
                 self._panther_kinematics.inverse_kinematics(data)
@@ -383,13 +382,14 @@ class PantherDriverNode:
             self._cmd_vel_command_last_time = rospy.Time.now()
 
     def _reset_roboteq_script_cb(self, req: TriggerRequest) -> TriggerResponse:
-        try:
-            if self._panther_can.restart_roboteq_script():
-                return TriggerResponse(True, 'Roboteq script reset successful.')
-        except Exception as err:
-            return TriggerResponse(False, f'Roboteq script reset failed: \n{err}')
+        with self._lock:
+            try:
+                if self._panther_can.restart_roboteq_script():
+                    return TriggerResponse(True, 'Roboteq script reset successful.')
+            except Exception as err:
+                return TriggerResponse(False, f'Roboteq script reset failed: \n{err}')
 
-        return TriggerResponse(False, f'Roboteq script reset failed')
+            return TriggerResponse(False, f'Roboteq script reset failed')
 
     def _publish_joint_state_cb(self) -> None:
         self._joint_state_msg.header.stamp = rospy.Time.now()

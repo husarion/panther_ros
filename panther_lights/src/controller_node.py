@@ -239,50 +239,53 @@ class LightsControllerNode:
             self._animation_queue_pub.publish(anim_queue_msg)
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
-        if not req.animation.id in self._animations:
-            return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
+        with self._lock:
+            if not req.animation.id in self._animations:
+                return SetLEDAnimationResponse(False, f'No Animation with id: {req.animation.id}')
 
-        try:
-            animation = deepcopy(self._animations[req.animation.id])
-            animation.front.set_param(req.animation.param)
-            animation.rear.set_param(req.animation.param)
-            animation.reset_time()
-            animation.repeating = req.repeating
-            self._add_animation_to_queue(animation)
-        except ValueError as err:
-            return SetLEDAnimationResponse(False, f'Failed to add animation to queue: {err}')
+            try:
+                animation = deepcopy(self._animations[req.animation.id])
+                animation.front.set_param(req.animation.param)
+                animation.rear.set_param(req.animation.param)
+                animation.reset_time()
+                animation.repeating = req.repeating
+                self._add_animation_to_queue(animation)
+            except ValueError as err:
+                return SetLEDAnimationResponse(False, f'Failed to add animation to queue: {err}')
 
-        return SetLEDAnimationResponse(
-            True, f'Successfully set an animation with id {req.animation.id}'
-        )
+            return SetLEDAnimationResponse(
+                True, f'Successfully set an animation with id {req.animation.id}'
+            )
 
     def _set_image_animation_cb(self, req: SetLEDImageAnimationRequest) -> SetLEDImageAnimationResponse:
-        animation = PantherAnimation()
-        animation.repeating = req.repeating
+        with self._lock:
+            animation = PantherAnimation()
+            animation.repeating = req.repeating
 
-        try:
-            animation_description_front = self._get_image_animation_description(req.front)
-            animation_description_rear = self._get_image_animation_description(req.rear)
+            try:
+                animation_description_front = self._get_image_animation_description(req.front)
+                animation_description_rear = self._get_image_animation_description(req.rear)
 
-            animation.front = BASIC_ANIMATIONS['image_animation'](
-                animation_description_front, self._num_led, self._controller_frequency
-            )
-            animation.rear = BASIC_ANIMATIONS['image_animation'](
-                animation_description_rear, self._num_led, self._controller_frequency
-            )
+                animation.front = BASIC_ANIMATIONS['image_animation'](
+                    animation_description_front, self._num_led, self._controller_frequency
+                )
+                animation.rear = BASIC_ANIMATIONS['image_animation'](
+                    animation_description_rear, self._num_led, self._controller_frequency
+                )
 
-            self._add_animation_to_queue(animation)
-        except Exception as err:
-            return SetLEDImageAnimationResponse(False, f'{err}')
+                self._add_animation_to_queue(animation)
+            except Exception as err:
+                return SetLEDImageAnimationResponse(False, f'{err}')
 
-        return SetLEDImageAnimationResponse(True, f'Successfully set custom animation')
+            return SetLEDImageAnimationResponse(True, f'Successfully set custom animation')
 
     def _update_animations_cb(self, req: TriggerRequest) -> TriggerResponse:
-        try:
-            self._update_user_animations()
-        except Exception as err:
-            return TriggerResponse(False, f'Failed to update animations: {err}')
-        return TriggerResponse(True, 'Animations updated successfully')
+        with self._lock:
+            try:
+                self._update_user_animations()
+            except Exception as err:
+                return TriggerResponse(False, f'Failed to update animations: {err}')
+            return TriggerResponse(True, 'Animations updated successfully')
 
     def _rgb_frame_to_img_msg(self, rgb_frame: list, brightness: int, frame_id: str) -> Image:
         img_msg = Image()
