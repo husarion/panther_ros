@@ -86,18 +86,18 @@ class RoboteqRepublisherNode:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
                 # check battery health
-                erro_msg = None
+                error_msg = None
                 if self._battery_voltage < self.V_BAT_FATAL_MIN:
                     battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
-                    erro_msg = 'Battery voltage is critically low!'
+                    error_msg = 'Battery voltage is critically low!'
                 elif self._battery_voltage > self.V_BAT_FATAL_MAX:
                     battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
-                    erro_msg = 'Battery overvoltage!'
+                    error_msg = 'Battery overvoltage!'
                 else:
                     battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
-                if erro_msg is not None:
-                    rospy.logerr_throttle_identical(10.0, f'[{rospy.get_name()}] {erro_msg}')
+                if error_msg is not None:
+                    rospy.logerr_throttle_identical(10.0, f'[{rospy.get_name()}] {error_msg}')
 
             self._battery_pub.publish(battery_msg)
 

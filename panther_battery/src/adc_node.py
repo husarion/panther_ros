@@ -3,7 +3,7 @@
 from collections import defaultdict
 import math
 from threading import Lock
-from typing import Union, Optional
+from typing import Optional, Union
 
 import rospy
 
@@ -76,8 +76,8 @@ class ADCNode:
             self._driver_battery_last_info_time = rospy.get_time()
 
             drver_voltage = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
-            self._V_driv_mean = self._count_volt_mean('V_driv', drver_voltage)
             self._V_driv = drver_voltage
+            self._V_driv_mean = self._count_volt_mean('V_driv', drver_voltage)
 
             self._I_driv = driver_state.front.current + driver_state.rear.current
 
@@ -207,16 +207,16 @@ class ADCNode:
 
         # check battery health
         with self._lock:
-            erro_msg = None
+            error_msg = None
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
-                erro_msg = 'Battery voltage is critically low!'
+                error_msg = 'Battery voltage is critically low!'
             elif V_bat_mean > self.V_BAT_FATAL_MAX:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
-                erro_msg = 'Battery overvoltage!'
+                error_msg = 'Battery overvoltage!'
             elif temp_bat >= self._high_bat_temp:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
-                erro_msg = 'Battery temperature is dangerously high!'
+                error_msg = 'Battery temperature is dangerously high!'
             elif self._driver_battery_last_info_time is None:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
             elif (
@@ -227,8 +227,8 @@ class ADCNode:
             else:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
-        if erro_msg is not None:
-            rospy.logerr_throttle_identical(10.0, f'[{rospy.get_name()}] {erro_msg}')
+        if error_msg is not None:
+            rospy.logerr_throttle_identical(10.0, f'[{rospy.get_name()}] {error_msg}')
 
         bat_pub.publish(battery_msg)
 
