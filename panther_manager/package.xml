@@ -27,6 +27,7 @@
   <depend>yaml-cpp</depend>
 
   <!-- Python dependencies -->
+  <depend>iputils-ping</depend>
   <depend>python3-psutil</depend>
 
 </package>

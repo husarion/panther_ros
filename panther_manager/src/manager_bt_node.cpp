@@ -40,7 +40,7 @@ ManagerNode::ManagerNode(
   auto driver_fan_off_temp = pnh_->param<float>("safety/driver_fan_off_temp", 35.0);
 
   battery_temp_ma_ = MovingAverage<double>(battery_temp_window_len);
-  cpu_temp_ma_ = MovingAverage<double>(cpu_fan_on_temp);
+  cpu_temp_ma_ = MovingAverage<double>(cpu_temp_window_len);
   front_driver_temp_ma_ = MovingAverage<double>(driver_temp_window_len);
   rear_driver_temp_ma_ = MovingAverage<double>(driver_temp_window_len);
 
@@ -171,7 +171,6 @@ void ManagerNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state)
 void ManagerNode::system_status_cb(const panther_msgs::SystemStatus::ConstPtr & system_status)
 {
   cpu_temp_ma_.add_value(system_status->cpu_temp);
-  std::cout << cpu_temp_ma_.get_average() << std::endl;
 }
 
 void ManagerNode::lights_tree_timer_cb()
