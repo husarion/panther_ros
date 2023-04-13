@@ -15,6 +15,7 @@ from panther_msgs.msg import DriverState, IOState
 class ADCNode:
     BAT02_DETECT_THRESH = 3.03
     V_BAT_FATAL_MIN = 27.0
+    V_BAT_FATAL_MAX = 43.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
@@ -210,7 +211,7 @@ class ADCNode:
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
                 erro_msg = 'Battery voltage is critically low!'
-            elif V_bat_mean > 43.0:
+            elif V_bat_mean > self.V_BAT_FATAL_MAX:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
                 erro_msg = 'Battery overvoltage!'
             elif temp_bat >= self._high_bat_temp:
@@ -220,25 +221,25 @@ class ADCNode:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
             elif (
                 rospy.get_time() - self._driver_battery_last_info_time < 0.1
-                and abs(V_bat_mean - self._V_driv_mean) > 4.0
+                and abs(V_bat_mean - self._V_driv_mean) > self.V_BAT_FATAL_MAX * 0.1
             ):
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNSPEC_FAILURE
             else:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
         if erro_msg is not None:
-            rospy.logerr_throttle_identical(5.0, f'[{rospy.get_name()}] {erro_msg}')
+            rospy.logerr_throttle_identical(10.0, f'[{rospy.get_name()}] {erro_msg}')
 
         bat_pub.publish(battery_msg)
 
-    def _count_volt_mean(self, pub: Union[rospy.Publisher, str], new_val: float) -> float:
-        self._V_bat_mean[pub] += (
-            -self._V_bat_hist[pub][0] / self._volt_mean_length + new_val / self._volt_mean_length
+    def _count_volt_mean(self, label: Union[rospy.Publisher, str], new_val: float) -> float:
+        self._V_bat_mean[label] += (
+            -self._V_bat_hist[label][0] / self._volt_mean_length + new_val / self._volt_mean_length
         )
-        self._V_bat_hist[pub].pop(0)
-        self._V_bat_hist[pub].append(new_val)
+        self._V_bat_hist[label].pop(0)
+        self._V_bat_hist[label].append(new_val)
 
-        return self._V_bat_mean[pub]
+        return self._V_bat_mean[label]
 
     @staticmethod
     def _read_file(path: str) -> int:

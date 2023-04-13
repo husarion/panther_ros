@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from threading import Lock
+from typing import Optional
 
 import rospy
 
@@ -10,13 +11,19 @@ from panther_msgs.msg import DriverState
 
 
 class RoboteqRepublisherNode:
-    V_BAT_FATAL_MIN = 25.0
+    V_BAT_FATAL_MIN = 27.0
+    V_BAT_FATAL_MAX = 43.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        self._battery_voltage = None
-        self._battery_current = None
+        self._battery_voltage: Optional[float] = None
+        self._battery_current: Optional[float] = None
+        self._battery_voltage_mean = 37.0
+
+        self._volt_mean_length = 10
+        self._battery_voltage_hist = [37.0] * self._volt_mean_length
+
         self._battery_timeout = 1.0
         self._last_battery_info_time = rospy.get_time()
         self._lock = Lock()
@@ -46,9 +53,12 @@ class RoboteqRepublisherNode:
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         with self._lock:
+            new_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
+
             self._last_battery_info_time = rospy.get_time()
-            self._battery_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
+            self._battery_voltage = new_voltage
             self._battery_current = msg.front.current + msg.rear.current
+            self._update_volt_mean(new_voltage)
 
     def _battery_pub_timer_cb(self, *args) -> None:
         with self._lock:
@@ -57,6 +67,7 @@ class RoboteqRepublisherNode:
             battery_msg.capacity = 20.0
             battery_msg.design_capacity = 20.0
             battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
+
             if (
                 self._battery_voltage == None
                 or self._battery_current == None
@@ -64,24 +75,39 @@ class RoboteqRepublisherNode:
             ):
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_UNKNOWN
             else:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
                 battery_msg.voltage = self._battery_voltage
                 battery_msg.temperature = float('nan')
                 battery_msg.current = self._battery_current
                 battery_msg.percentage = (battery_msg.voltage - 32.0) / 10.0
                 battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
                 battery_msg.present = True
-                # TODO:
-                # battery_msg.power_supply_health
-                            
+
+                # TODO: check battery status
+                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+
+                # check battery health
+                erro_msg = None
                 if self._battery_voltage < self.V_BAT_FATAL_MIN:
                     battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
-                elif battery_msg.percentage > 1.1:
+                    erro_msg = 'Battery voltage is critically low!'
+                elif self._battery_voltage > self.V_BAT_FATAL_MAX:
                     battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
+                    erro_msg = 'Battery overvoltage!'
                 else:
                     battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
+                if erro_msg is not None:
+                    rospy.logerr_throttle_identical(10.0, f'[{rospy.get_name()}] {erro_msg}')
+
             self._battery_pub.publish(battery_msg)
+
+    def _update_volt_mean(self, new_val: float) -> float:
+        self._battery_voltage_mean += (
+            -self._battery_voltage_hist[0] / self._volt_mean_length
+            + new_val / self._volt_mean_length
+        )
+        self._battery_voltage_hist.pop(0)
+        self._battery_voltage_hist.append(new_val)
 
 
 def main():
