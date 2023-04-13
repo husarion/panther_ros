@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
+from collections import defaultdict
 import math
 from threading import Lock
+from typing import Union, Optional
 
 import rospy
 
@@ -19,9 +21,14 @@ class ADCNode:
 
         self._high_bat_temp = rospy.get_param('~high_bat_temp', 55.0)
 
-        self._driver_battery_last_info_time = None
-        self._driver_battery_voltage = None
-        self._driver_battery_current = None
+        self._driver_battery_last_info_time: Optional[float] = None
+        self._I_driv: Optional[float] = None
+        self._V_driv: Optional[float] = None
+
+        self._volt_mean_length = 10
+        self._V_bat_hist = defaultdict(lambda: [37.0] * self._volt_mean_length)
+        self._V_bat_mean = defaultdict(lambda: 37.0)
+        self._V_driv_mean: Optional[float] = None
 
         self._A = 298.15
         self._B = 3977.0
@@ -66,10 +73,12 @@ class ADCNode:
     def _motor_controllers_state_cb(self, driver_state: DriverState) -> None:
         with self._lock:
             self._driver_battery_last_info_time = rospy.get_time()
-            self._driver_battery_voltage = (
-                driver_state.front.voltage + driver_state.rear.voltage
-            ) / 2.0
-            self._driver_battery_current = driver_state.front.current + driver_state.rear.current
+
+            drver_voltage = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
+            self._V_driv_mean = self._count_volt_mean('V_driv', drver_voltage)
+            self._V_driv = drver_voltage
+
+            self._I_driv = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
         self._charger_connected = io_state.charger_connected
@@ -182,6 +191,8 @@ class ADCNode:
         battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
         battery_msg.present = True
 
+        V_bat_mean = self._count_volt_mean(bat_pub, V_bat)
+
         # check battery status
         if self._charger_connected:
             if battery_msg.percentage >= 1.0:
@@ -195,24 +206,39 @@ class ADCNode:
 
         # check battery health
         with self._lock:
-            if V_bat < self.V_BAT_FATAL_MIN:
+            erro_msg = None
+            if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
-                rospy.logerr(f'[{rospy.get_name()}] battery voltage critically low!')
-            elif battery_msg.percentage > 1.1:
+                erro_msg = 'Battery voltage is critically low!'
+            elif V_bat_mean > 43.0:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
+                erro_msg = 'Battery overvoltage!'
             elif temp_bat >= self._high_bat_temp:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
+                erro_msg = 'Battery temperature is dangerously high!'
             elif self._driver_battery_last_info_time is None:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
             elif (
                 rospy.get_time() - self._driver_battery_last_info_time < 0.1
-                and abs(V_bat - self._driver_battery_voltage) > 1.0
+                and abs(V_bat_mean - self._V_driv_mean) > 4.0
             ):
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNSPEC_FAILURE
             else:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
+        if erro_msg is not None:
+            rospy.logerr_throttle_identical(5.0, f'[{rospy.get_name()}] {erro_msg}')
+
         bat_pub.publish(battery_msg)
+
+    def _count_volt_mean(self, pub: Union[rospy.Publisher, str], new_val: float) -> float:
+        self._V_bat_mean[pub] += (
+            -self._V_bat_hist[pub][0] / self._volt_mean_length + new_val / self._volt_mean_length
+        )
+        self._V_bat_hist[pub].pop(0)
+        self._V_bat_hist[pub].append(new_val)
+
+        return self._V_bat_mean[pub]
 
     @staticmethod
     def _read_file(path: str) -> int:
