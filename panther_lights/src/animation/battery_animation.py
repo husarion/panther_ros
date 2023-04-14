@@ -6,6 +6,7 @@ from animation import Animation
 
 
 class BatteryAnimation(Animation):
+    
     ANIMATION_NAME = 'battery_animation'
 
     def __init__(self, *args, **kwargs) -> None:
@@ -13,7 +14,7 @@ class BatteryAnimation(Animation):
 
         self._anim = np.zeros((self._anim_len, self.num_led))
         self._h_min = 0.0  # red color
-        self._h_max = 0.33  # green color
+        self._h_max = 120.0 / 360.0  # green color
         self._resolution = 100
         self._end_anim = 0.75 * self._resolution
         self._start_fade = 0.80 * self._resolution
@@ -54,15 +55,13 @@ class BatteryAnimation(Animation):
             if i > self._start_fade:
                 progress = (i - self._start_fade) / (self._end_fade - self._start_fade)
                 progress = min(1.0, progress)
-                anim[i] = (1-progress)*frame
-                
+                anim[i] = (1 - progress) * frame
 
         # filter to smooth animation and resize to match duration
         img = Image.fromarray(anim)
         img = img.filter(ImageFilter.GaussianBlur(self._gaussian_blur_radius))
         img = img.resize((self._num_led, self._anim_len))
         self._anim = np.array(img)
-
 
     def _color_rising(self, battery_percent: float, progress: float) -> np.array:
         frame = np.zeros((self._num_led, 3), dtype=np.uint8)
@@ -88,7 +87,7 @@ class BatteryAnimation(Animation):
         frame[ind_1] = rgb
         frame[ind_2] = rgb
         return frame
-    
+
     def _calculate_color(self, battery_percent: float, progress: float = 1.0) -> tuple:
         h = (self._h_max - self._h_min) * np.sin(
             battery_percent * np.pi / 2.0
@@ -96,4 +95,3 @@ class BatteryAnimation(Animation):
         rgb = np.array(hsv_to_rgb(h, 1.0, 1.0))
         rgb = np.uint8(rgb * 255.0)
         return rgb
-    
