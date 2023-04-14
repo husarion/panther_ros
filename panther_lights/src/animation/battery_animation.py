@@ -13,10 +13,10 @@ class BatteryAnimation(Animation):
 
         self._anim = np.zeros((self._anim_len, self.num_led))
         self._h_min = 0.0  # red color
-        self._h_max = 0.35  # green color
+        self._h_max = 0.33  # green color
         self._resolution = 100
         self._end_anim = 0.75 * self._resolution
-        self._start_fade = 0.8 * self._resolution
+        self._start_fade = 0.80 * self._resolution
         self._end_fade = 0.95 * self._resolution
         self._gaussian_blur_radius = 1.5
 
@@ -63,9 +63,6 @@ class BatteryAnimation(Animation):
         img = img.resize((self._num_led, self._anim_len))
         self._anim = np.array(img)
 
-        im = cv2.cvtColor(self._anim, cv2.COLOR_BGR2RGB)
-        cv2.imshow("anim", im)
-        cv2.waitKey(100)
 
     def _color_rising(self, battery_percent: float, progress: float) -> np.array:
         frame = np.zeros((self._num_led, 3), dtype=np.uint8)
