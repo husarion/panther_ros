@@ -6,7 +6,7 @@ from animation import Animation
 
 
 class BatteryAnimation(Animation):
-    
+
     ANIMATION_NAME = 'battery_animation'
 
     def __init__(self, *args, **kwargs) -> None:
