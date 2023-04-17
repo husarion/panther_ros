@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_lights</name>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 
   <description>Package containing nodes responsible for displaying and scheduling animations on LED lights on Husarion Panther robot</description>
   <license>Apache License 2.0</license>
