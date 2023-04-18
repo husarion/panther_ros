@@ -1,10 +1,6 @@
 #ifndef PANTHER_LIGHTS_APA_102_HPP_
 #define PANTHER_LIGHTS_APA_102_HPP_
 
-#include <linux/spi/spidev.h>
-#include <sys/ioctl.h>
-
-#include <memory>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -12,28 +8,28 @@
 namespace apa_102
 {
 
-  class APA102
-  {
-  public:
-    APA102(const std::string device, const std::uint32_t speed = 800000, const bool cs_high = false);
-    ~APA102();
-    void set_global_brightness(const std::uint8_t brightness);
-    void set_global_brightness(const double brightness);
-    void set_panel(const std::vector<std::uint8_t>& frame) const;
+class APA102
+{
+public:
+  APA102(const std::string device, const std::uint32_t speed = 800000, const bool cs_high = false);
+  ~APA102();
+  void set_global_brightness(const std::uint8_t brightness);
+  void set_global_brightness(const double brightness);
+  void set_panel(const std::vector<std::uint8_t> & frame) const;
 
-  private:
-    const std::string device_;
-    const int fd_;
-    const std::uint8_t bits_ = 8;
-    const std::uint32_t speed_;
-    std::uint16_t global_brightness_;
-    
-    // color correction constants
-    const std::uint16_t corr_red = 255.0;
-    const std::uint16_t corr_green = 200.0;
-    const std::uint16_t corr_blue = 62.0;
-  };
+private:
+  const int fd_;
+  const std::string device_;
+  const std::uint8_t bits_ = 8;
+  const std::uint32_t speed_;
+  std::uint16_t global_brightness_;
 
-} // namespace apa_102
+  // color correction constants
+  const std::uint16_t corr_red = 255.0;
+  const std::uint16_t corr_green = 200.0;
+  const std::uint16_t corr_blue = 62.0;
+};
 
-#endif // PANTHER_LIGHTS_APA_102_HPP_
+}  // namespace apa_102
+
+#endif  // PANTHER_LIGHTS_APA_102_HPP_
