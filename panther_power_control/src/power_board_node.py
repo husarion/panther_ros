@@ -249,8 +249,10 @@ class PowerBoardNode:
             try:
                 reset_script_res = self._reset_roboteq_script_client.call()
                 if not reset_script_res.success:
+                    self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
                     return reset_script_res
             except rospy.ServiceException as e:
+                self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
                 return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
 
         return res
