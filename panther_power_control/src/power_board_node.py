@@ -120,6 +120,17 @@ class PowerBoardNode:
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
         self._fan_enable_server = rospy.Service('hardware/fan_enable', SetBool, self._fan_enable_cb)
+        self._motor_enable_server = rospy.Service(
+            'hardware/motor_enable', SetBool, self._motor_enable_cb
+        )
+
+        # -------------------------------
+        #   Service clients
+        # -------------------------------
+
+        self._reset_roboteq_script_client = rospy.ServiceProxy(
+            'driver/reset_roboteq_script', Trigger
+        )
 
         # -------------------------------
         #   Timers
@@ -227,6 +238,21 @@ class PowerBoardNode:
         res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
         if res.success:
             self._publish_io_state('fan', req.data)
+        return res
+
+    def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+        res = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motor drivers enable')
+        if res.success:
+            self._publish_io_state('motor_on', req.data)
+
+        if req.data:
+            try:
+                reset_script_res = self._reset_roboteq_script_client.call()
+                if not reset_script_res.success:
+                    return reset_script_res
+            except rospy.ServiceException as e:
+                return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
+
         return res
 
     def _set_bool_srv_handle(self, value: bool, pin: int, name: str) -> SetBoolResponse:
