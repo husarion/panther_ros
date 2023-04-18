@@ -216,7 +216,7 @@ class ADCNode:
                 error_msg = 'Battery overvoltage!'
             elif temp_bat >= self._high_bat_temp:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
-                error_msg = 'Battery temperature is dangerously high!'
+                error_msg = 'Battery is overheating!'
             elif self._driver_battery_last_info_time is None:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
             elif (
