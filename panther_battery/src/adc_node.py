@@ -233,9 +233,10 @@ class ADCNode:
         bat_pub.publish(battery_msg)
 
     def _count_volt_mean(self, label: Union[rospy.Publisher, str], new_val: float) -> float:
-        self._V_bat_mean[label] += (
-            -self._V_bat_hist[label][0] / self._volt_mean_length + new_val / self._volt_mean_length
-        )
+        # Updates the average by adding the newest and removing the oldest component of mean value,
+        # in order to avoid recalculating the entire sum every time.
+        self._V_bat_mean[label] += (new_val - self._V_bat_hist[label][0]) / self._volt_mean_length
+        
         self._V_bat_hist[label].pop(0)
         self._V_bat_hist[label].append(new_val)
 
