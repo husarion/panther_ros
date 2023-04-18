@@ -356,6 +356,7 @@ class PantherDriverNode:
                 self._stop_cmd_vel_cb = True
 
             if not self._motor_on:
+                self._panther_can.reset_can_callback_times()
                 rospy.logwarn_throttle(
                     60.0, f'[{rospy.get_name()}] Motor controllers are not powered on'
                 )

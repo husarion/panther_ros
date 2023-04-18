@@ -82,6 +82,12 @@ class PantherCAN:
                 )
                 yield False
 
+    def reset_can_callback_times(self) -> None:
+        with self._lock:
+            for motor_controller in self._motor_controllers:
+                for name in motor_controller._last_time_callback:
+                    motor_controller._last_time_callback[name] = rospy.Time.now()
+
     def write_wheels_enc_velocity(self, vel: list) -> None:
         with self._lock:
             for motor_controller, enc_vel in zip(self._motor_controllers, [vel[:2], vel[2:]]):
