@@ -2,6 +2,7 @@
 #define PANTHER_MANAGER_SHUTDOWN_HOST_FROM_FILE_NODE_HPP_
 
 #include <panther_manager/shutdown_host_node.hpp>
+
 #include <yaml-cpp/yaml.h>
 
 namespace panther_manager
