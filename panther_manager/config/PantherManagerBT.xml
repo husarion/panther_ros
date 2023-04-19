@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
   <BehaviorTree ID="Lights">
-    <Sequence>
+    <Sequence name="ChargingSequence"
       <Sequence>
         <Sequence _skipIf="battery_status != 1 &amp;&amp; battery_status != 4">
           <Script name="Charging"
