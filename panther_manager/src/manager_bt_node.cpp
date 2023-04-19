@@ -31,6 +31,7 @@ ManagerNode::ManagerNode(
   auto low_battery_threshold_percent =
     pnh_->param<float>("lights/low_battery_threshold_percent", 0.4);
   update_charging_anim_step_ = pnh_->param<float>("lights/update_charging_anim_step", 0.1);
+
   // safety tree params
   auto high_bat_temp = pnh_->param<float>("safety/high_bat_temp", 55.0);
   auto critical_bat_temp = pnh_->param<float>("safety/critical_bat_temp", 59.0);
