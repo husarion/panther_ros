@@ -75,8 +75,8 @@ Publishes stats status of the built-in computer. Stats include CPU utilization a
 - `CallSetBoolService` - allows calling standard **std_srvs/SetBool** ROS service.
 - `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service.
 - `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service.
-- `ShutdownHostsFromFile` - allows to shutdown devices based on YAML file. Returns FAILURE only when YAML file is incorrect or a path to the file does not exists. If it fails to execute command in a remote host node will proceed tothe next device from the list.
-- `ShutdownSingleHost` - allows to shutdown single device. Will return SUCCESS only when device can be reached and the command was executed.
+- `ShutdownHostsFromFile` - allows to shutdown devices based on YAML file. Returns `FAILURE` only when YAML file is incorrect or a path to the file does not exists. If it fails to execute command in a remote host node will proceed tothe next device from the list.
+- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when device can be reached and the command was executed.
 
 #### Decorators
 
