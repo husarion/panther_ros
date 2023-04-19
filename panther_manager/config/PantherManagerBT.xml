@@ -95,7 +95,7 @@ current_param = param"/>
                               _skipIf="fan_state"/>
         </Sequence>
       </Sequence>
-      <Sequence _skipIf="bat_temp &gt; high_bat_temp">
+      <Sequence name="ManagePowerSequence" _skipIf="bat_temp &gt; high_bat_temp">
         <CallSetBoolService name="DisableFan"
                             data="false"
                             service_name="hardware/fan_enable"
