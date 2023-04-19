@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /MeshDisplayCustom1
       Splitter Ratio: 0.5
     Tree Height: 845
   - Class: rviz/Selection
@@ -97,6 +96,10 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        rear_animation_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         rear_light_link:
           Alpha: 1
           Show Axes: false
@@ -117,12 +120,21 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Class: rviz_textured_quads/MeshDisplayCustom
+    - Canvas mesh high: 0.014999999664723873
+      Class: rviz_textured_quads/MeshDisplayCustom
       Enabled: true
       Image Topic: /lights/driver/front_panel_frame
-      Meters per pixel: 0.010999999940395355
+      Meters per pixel: 0.010900000110268593
       Name: MeshDisplayCustom
       Quad Frame: front_animation_link
+      Value: true
+    - Canvas mesh high: 0.014999999664723873
+      Class: rviz_textured_quads/MeshDisplayCustom
+      Enabled: true
+      Image Topic: /lights/driver/rear_panel_frame
+      Meters per pixel: 0.010900000110268593
+      Name: MeshDisplayCustom
+      Quad Frame: rear_animation_link
       Value: true
   Enabled: true
   Global Options:
