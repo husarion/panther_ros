@@ -16,7 +16,7 @@
                                         timeout="100"/>
           </TickAfterTimeout>
         </Sequence>
-        <Sequence name="Discharging"
+        <Sequence name="DischargingSequence"
                   _skipIf="battery_status != 2  &amp;&amp; battery_status != 3">
           <Script name="EStopReleased"
                   code="anim_id := 1; param := &quot;&quot;"
