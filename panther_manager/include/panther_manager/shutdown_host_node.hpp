@@ -99,7 +99,7 @@ public:
   std::string get_node_name() { return node_name_; }
 
 private:
-  int verbosity_ = SSH_LOG_NOLOG;
+  const int verbosity_ = SSH_LOG_NOLOG;
   int port_ = 22;
   std::string node_name_;
 };
