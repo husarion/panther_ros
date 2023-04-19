@@ -3,7 +3,7 @@
 
 #include <std_srvs/SetBool.h>
 
-#include <panther_manager/ros_service_node.hpp>
+#include <panther_manager/plugins/ros_service_node.hpp>
 
 namespace panther_manager
 {

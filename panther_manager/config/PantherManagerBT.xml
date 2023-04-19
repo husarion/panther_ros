@@ -1,80 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
   <BehaviorTree ID="Lights">
-    <Sequence name="ChargingSequence"
-      <Sequence>
-        <Sequence _skipIf="battery_status != 1 &amp;&amp; battery_status != 4">
-          <Script name="Charging"
-                  code="anim_id := 9; param := battery_percent_round"/>
-          <TickAfterTimeout timeout="20.0"
-                            _skipIf="!e_stop_state">
-            <CallSetLedAnimationService name="SetEStopAnimation"
-                                        id="0"
+    <Sequence>
+      <Sequence _skipIf="battery_status != POWER_SUPPLY_STATUS_CHARGING \
+&amp;&amp; battery_status != POWER_SUPPLY_STATUS_FULL">
+        <CallSetLedAnimationService name="SetChargingAnimation"
+                                    id="{CHARGING_BATTERY_ANIM_ID}"
+                                    param="{battery_percent_round}"
+                                    repeating="true"
+                                    service_name="lights/controller/set/animation"
+                                    timeout="100"
+                                    _skipIf="battery_percent_round == charging_anim_percent \
+&amp;&amp; current_anim_id == CHARGING_BATTERY_ANIM_ID"
+                                    _onSuccess="charging_anim_percent = battery_percent_round; \
+current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
+        <TickAfterTimeout timeout="20.0"
+                          _skipIf="!e_stop_state">
+          <CallSetLedAnimationService name="SetEStopAnimation"
+                                      id="{E_STOP_ANIM_ID}"
+                                      param=""
+                                      repeating="false"
+                                      service_name="lights/controller/set/animation"
+                                      timeout="100"/>
+        </TickAfterTimeout>
+      </Sequence>
+      <Sequence name="Discharging"
+                _skipIf="battery_status != POWER_SUPPLY_STATUS_DISCHARGING \
+&amp;&amp; battery_status != POWER_SUPPLY_STATUS_NOT_CHARGING">
+        <CallSetLedAnimationService name="SetReadyAnimation"
+                                    id="{READY_ANIM_ID}"
+                                    param=""
+                                    repeating="true"
+                                    service_name="lights/controller/set/animation"
+                                    timeout="100"
+                                    _skipIf="e_stop_state || current_anim_id == READY_ANIM_ID"
+                                    _onSuccess="current_anim_id = READY_ANIM_ID"/>
+        <CallSetLedAnimationService name="SetEStopAnimation"
+                                    id="{E_STOP_ANIM_ID}"
+                                    param=""
+                                    repeating="true"
+                                    service_name="lights/controller/set/animation"
+                                    timeout="100"
+                                    _skipIf="!e_stop_state || current_anim_id == E_STOP_ANIM_ID"
+                                    _onSuccess="current_anim_id = E_STOP_ANIM_ID"/>
+        <Sequence>
+          <TickAfterTimeout timeout="{low_battery_anim_period}"
+                            _skipIf="battery_percent &lt; critical_battery_threshold_percent \
+|| battery_percent &gt;= low_battery_threshold_percent">
+            <CallSetLedAnimationService name="SetLowBatteryAnimation"
+                                        id="{LOW_BATTERY_ANIM_ID}"
                                         param=""
                                         repeating="false"
                                         service_name="lights/controller/set/animation"
                                         timeout="100"/>
           </TickAfterTimeout>
+          <TickAfterTimeout timeout="{critical_battery_anim_period}"
+                            _skipIf="battery_percent &gt;= critical_battery_threshold_percent">
+            <CallSetLedAnimationService name="SetCriticalBatteryAnimation"
+                                        id="{CRITICAL_BATTERY_ANIM_ID}"
+                                        param=""
+                                        repeating="false"
+                                        service_name="lights/controller/set/animation"
+                                        timeout="100"/>
+          </TickAfterTimeout>
+          <TickAfterTimeout timeout="{battery_state_anim_period}"
+                            _skipIf="battery_percent &lt; low_battery_threshold_percent">
+            <CallSetLedAnimationService name="SetBatteryStateAnimation"
+                                        id="{BATTERY_STATE_ANIM_ID}"
+                                        param="{battery_percent_round}"
+                                        repeating="false"
+                                        service_name="lights/controller/set/animation"
+                                        timeout="100"/>
+          </TickAfterTimeout>
         </Sequence>
-        <Sequence name="DischargingSequence"
-                  _skipIf="battery_status != 2  &amp;&amp; battery_status != 3">
-          <Script name="EStopReleased"
-                  code="anim_id := 1; param := &quot;&quot;"
-                  _skipIf="e_stop_state"/>
-          <Script name="EStopTriggered"
-                  code="anim_id := 0; param := &quot;&quot;"
-                  _skipIf="!e_stop_state"/>
-          <Sequence>
-            <TickAfterTimeout timeout="{low_battery_anim_period}"
-                              _skipIf="battery_percent &lt; critical_battery_threshold_percent \
-|| battery_percent &gt;= low_battery_threshold_percent">
-              <CallSetLedAnimationService name="SetLowBatteryAnimation"
-                                          id="6"
-                                          param=""
-                                          repeating="false"
-                                          service_name="lights/controller/set/animation"
-                                          timeout="100"/>
-            </TickAfterTimeout>
-            <TickAfterTimeout timeout="{critical_battery_anim_period}"
-                              _skipIf="battery_percent &gt;= critical_battery_threshold_percent">
-              <CallSetLedAnimationService name="SetCriticalBatteryAnimation"
-                                          id="7"
-                                          param=""
-                                          repeating="false"
-                                          service_name="lights/controller/set/animation"
-                                          timeout="100"/>
-            </TickAfterTimeout>
-            <TickAfterTimeout timeout="{battery_state_anim_period}"
-                              _skipIf="battery_percent &lt; low_battery_threshold_percent">
-              <CallSetLedAnimationService name="SetBatteryStateAnimation"
-                                          id="8"
-                                          param="{battery_percent_round}"
-                                          repeating="false"
-                                          service_name="lights/controller/set/animation"
-                                          timeout="100"/>
-            </TickAfterTimeout>
-          </Sequence>
-        </Sequence>
-        <Script name="Error"
-                code="anim_id := 2; param := &quot;&quot;"
-                _skipIf="battery_status != 0"/>
       </Sequence>
-      <CallSetLedAnimationService name="SetRepeatingAnimation"
-                                  id="{anim_id}"
-                                  param="{param}"
+      <CallSetLedAnimationService name="SerErrorAnimation"
+                                  id="{ERROR_ANIM_ID}"
+                                  param=""
                                   repeating="true"
                                   service_name="lights/controller/set/animation"
                                   timeout="100"
-                                  _skipIf="anim_id == current_anim_id \
-&amp;&amp; param == current_param"
-                                  _onSuccess="current_anim_id = anim_id; \
-current_param = param"/>
+                                  _skipIf="battery_status != POWER_SUPPLY_STATUS_UNKNOWN \
+|| current_anim_id == ERROR_ANIM_ID"
+                                  _onSuccess="current_anim_id = ERROR_ANIM_ID"/>
     </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Safety">
     <Sequence>
-      <Sequence _skipIf="bat_temp &lt;= high_bat_temp">
+      <Sequence name="ManagePowerSequence"
+                _skipIf="bat_temp &lt;= high_bat_temp">
         <Script name="SignalShutdown"
                 code="signal_shutdown := &quot;Battery reached fatal temperature&quot;"
                 _skipIf="bat_temp &lt;= fatal_bat_temp"/>
@@ -95,7 +110,7 @@ current_param = param"/>
                               _skipIf="fan_state"/>
         </Sequence>
       </Sequence>
-      <Sequence name="ManagePowerSequence" _skipIf="bat_temp &gt; high_bat_temp">
+      <Sequence _skipIf="bat_temp &gt; high_bat_temp">
         <CallSetBoolService name="DisableFan"
                             data="false"
                             service_name="hardware/fan_enable"

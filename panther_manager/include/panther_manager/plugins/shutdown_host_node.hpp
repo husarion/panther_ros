@@ -39,15 +39,13 @@ public:
     ssh_options_set(session_, SSH_OPTIONS_PORT, &port_);
     ssh_options_set(session_, SSH_OPTIONS_LOG_VERBOSITY, &verbosity_);
 
-    int rc = ssh_connect(session_);
-    if (rc != SSH_OK) {
+    if (ssh_connect(session_) != SSH_OK) {
       ROS_ERROR("[%s] Error connecting to host: %s", node_name_.c_str(), ssh_get_error(session_));
       ssh_free(session_);
       return -1;
     }
 
-    rc = ssh_userauth_publickey_auto(session_, NULL, NULL);
-    if (rc != SSH_AUTH_SUCCESS) {
+    if (ssh_userauth_publickey_auto(session_, NULL, NULL) != SSH_AUTH_SUCCESS) {
       ROS_ERROR(
         "[%s] Error authenticating with public key: %s", node_name_.c_str(),
         ssh_get_error(session_));
@@ -65,8 +63,7 @@ public:
       return -1;
     }
 
-    rc = ssh_channel_open_session(channel_);
-    if (rc != SSH_OK) {
+    if (ssh_channel_open_session(channel_) != SSH_OK) {
       ROS_ERROR("[%s] Failed to open ssh channel: %s", node_name_.c_str(), ssh_get_error(session_));
       ssh_channel_free(channel_);
       ssh_disconnect(session_);
@@ -74,8 +71,7 @@ public:
       return -1;
     }
 
-    rc = ssh_channel_request_exec(channel_, command);
-    if (rc != SSH_OK) {
+    if (ssh_channel_request_exec(channel_, command) != SSH_OK) {
       ROS_ERROR(
         "[%s] Failed to execute ssh command: %s", node_name_.c_str(), ssh_get_error(session_));
       ssh_channel_close(channel_);

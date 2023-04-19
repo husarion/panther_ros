@@ -17,6 +17,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>behaviortree_cpp</depend>
+  <depend>iputils-ping</depend>
   <depend>libssh-dev</depend>
   <depend>panther_msgs</depend>
   <depend>roscpp</depend>
@@ -27,7 +28,6 @@
   <depend>yaml-cpp</depend>
 
   <!-- Python dependencies -->
-  <depend>iputils-ping</depend>
   <depend>python3-psutil</depend>
 
 </package>

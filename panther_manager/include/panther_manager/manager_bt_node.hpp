@@ -2,6 +2,7 @@
 #define PANTHER_MANAGER_MANAGER_NODE_HPP_
 
 #include <any>
+
 #include <behaviortree_cpp/bt_factory.h>
 #include <behaviortree_cpp/loggers/bt_cout_logger.h>
 #include <behaviortree_cpp/utils/shared_library.h>
@@ -9,11 +10,12 @@
 #include <ros/package.h>
 #include <ros/ros.h>
 
-#include <std_msgs/Bool.h>
 #include <sensor_msgs/BatteryState.h>
+#include <std_msgs/Bool.h>
 
 #include <panther_msgs/DriverState.h>
 #include <panther_msgs/IOState.h>
+#include <panther_msgs/LEDAnimation.h>
 #include <panther_msgs/SystemStatus.h>
 
 #include <panther_manager/moving_average.hpp>
@@ -24,13 +26,14 @@ namespace panther_manager
 class ManagerNode
 {
 public:
-  ManagerNode(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<ros::NodeHandle> pnh);
+  ManagerNode(const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph);
   ~ManagerNode() {}
 
 private:
   float battery_percent_;
   float update_charging_anim_step_;
   float shutdown_timeout_;
+  std::string debug_tree_;
   std::string node_name_;
   std::optional<unsigned> battery_status_;
   std::optional<bool> e_stop_state_;
@@ -44,7 +47,7 @@ private:
   ros::Timer lights_tree_timer_;
   ros::Timer safety_tree_timer_;
   std::shared_ptr<ros::NodeHandle> nh_;
-  std::shared_ptr<ros::NodeHandle> pnh_;
+  std::shared_ptr<ros::NodeHandle> ph_;
 
   BT::BehaviorTreeFactory factory_;
   BT::NodeConfig lights_config_;

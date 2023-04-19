@@ -4,7 +4,7 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 ## ROS Nodes
 
-### manager_bt_node.cpp
+### manager_bt_node
 
 Node responsible for managing the Husarion Panther robot. Composes control of three behavior trees responsible for handling LED panels, safety features and software shutdown of components.
 
@@ -80,10 +80,10 @@ Publishes stats status of the built-in computer. Stats include CPU utilization a
 
 #### Decorators
 
-- `TickAfterTimeout` - will skip child before specified time has passed. Can be used to control frequency at witch given behavior in the tree is triggered.
+- `TickAfterTimeout` - will skip child until the specified time has passed. It can be used to specify the frequency at which a node or subtree is triggered.
 
 ### Trees
 
-- `Lights` - this tree is responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
-- `Safety` - this tree is responsible for monitoring the Panther robot's state and handling safety measures like cooling the robot in case of high CPU or battery temperature.
-- `Shutdown` - this tree is responsible for gracefull shutdown of robot components and the built-in computer.
+- `Lights` - tree responsible for scheduling animations displayed on LED panels, based on the Husarion Panther robot's system state.
+- `Safety` - tree responsible for monitoring the Panther robot's state and handling safety measures, such as  cooling the robot in case of high CPU or battery temperature.
+- `Shutdown` - tree responsible for gracefull shutdown of robot components and the built-in computer.

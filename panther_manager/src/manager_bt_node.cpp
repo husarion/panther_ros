@@ -4,8 +4,8 @@ namespace panther_manager
 {
 
 ManagerNode::ManagerNode(
-  std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<ros::NodeHandle> private_nh)
-: nh_(std::move(nh)), pnh_(std::move(private_nh))
+  const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph)
+: nh_(std::move(nh)), ph_(std::move(ph))
 {
   node_name_ = ros::this_node::getName();
 
@@ -13,33 +13,34 @@ ManagerNode::ManagerNode(
     ros::package::getPath("panther_manager") + "/config/PantherManagerBT.xml";
   const std::vector<std::string> default_plugin_libs = {};
 
-  auto xml_filename = pnh_->param<std::string>("xml_filename", default_xml);
-  auto plugin_libs = pnh_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
-  auto battery_temp_window_len = pnh_->param<int>("battery_temp_window_len", 6);
-  auto cpu_temp_window_len = pnh_->param<int>("cpu_temp_window_len", 6);
-  auto driver_temp_window_len = pnh_->param<int>("driver_temp_window_len", 6);
-  auto shutdown_hosts_file = pnh_->param<std::string>("shutdown_hosts_file", "");
-  shutdown_timeout_ = pnh_->param<float>("shutdown_timeout", 15.0);
+  auto xml_filename = ph_->param<std::string>("xml_filename", default_xml);
+  auto plugin_libs = ph_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
+  auto battery_temp_window_len = ph_->param<int>("battery_temp_window_len", 6);
+  auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
+  auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
+  auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
+  shutdown_timeout_ = ph_->param<float>("shutdown_timeout", 15.0);
+  debug_tree_ = ph_->param<std::string>("debug_tree", "");
 
   // lights tree params
   auto critical_battery_anim_period =
-    pnh_->param<float>("lights/critical_battery_anim_period", 15.0);
+    ph_->param<float>("lights/critical_battery_anim_period", 15.0);
   auto critical_battery_threshold_percent =
-    pnh_->param<float>("lights/critical_battery_threshold_percent", 0.1);
-  auto battery_state_anim_period = pnh_->param<float>("lights/battery_state_anim_period", 120.0);
-  auto low_battery_anim_period = pnh_->param<float>("lights/low_battery_anim_period", 30.0);
+    ph_->param<float>("lights/critical_battery_threshold_percent", 0.1);
+  auto battery_state_anim_period = ph_->param<float>("lights/battery_state_anim_period", 120.0);
+  auto low_battery_anim_period = ph_->param<float>("lights/low_battery_anim_period", 30.0);
   auto low_battery_threshold_percent =
-    pnh_->param<float>("lights/low_battery_threshold_percent", 0.4);
-  update_charging_anim_step_ = pnh_->param<float>("lights/update_charging_anim_step", 0.1);
+    ph_->param<float>("lights/low_battery_threshold_percent", 0.4);
+  update_charging_anim_step_ = ph_->param<float>("lights/update_charging_anim_step", 0.1);
 
   // safety tree params
-  auto high_bat_temp = pnh_->param<float>("safety/high_bat_temp", 55.0);
-  auto critical_bat_temp = pnh_->param<float>("safety/critical_bat_temp", 59.0);
-  auto fatal_bat_temp = pnh_->param<float>("safety/fatal_bat_temp", 62.0);
-  auto cpu_fan_on_temp = pnh_->param<float>("safety/cpu_fan_on_temp", 70.0);
-  auto cpu_fan_off_temp = pnh_->param<float>("safety/cpu_fan_off_temp", 60.0);
-  auto driver_fan_on_temp = pnh_->param<float>("safety/driver_fan_on_temp", 45.0);
-  auto driver_fan_off_temp = pnh_->param<float>("safety/driver_fan_off_temp", 35.0);
+  auto high_bat_temp = ph_->param<float>("safety/high_bat_temp", 55.0);
+  auto critical_bat_temp = ph_->param<float>("safety/critical_bat_temp", 59.0);
+  auto fatal_bat_temp = ph_->param<float>("safety/fatal_bat_temp", 62.0);
+  auto cpu_fan_on_temp = ph_->param<float>("safety/cpu_fan_on_temp", 70.0);
+  auto cpu_fan_off_temp = ph_->param<float>("safety/cpu_fan_off_temp", 60.0);
+  auto driver_fan_on_temp = ph_->param<float>("safety/driver_fan_on_temp", 45.0);
+  auto driver_fan_off_temp = ph_->param<float>("safety/driver_fan_off_temp", 35.0);
 
   battery_temp_ma_ = MovingAverage<double>(battery_temp_window_len);
   cpu_temp_ma_ = MovingAverage<double>(cpu_temp_window_len);
@@ -62,7 +63,28 @@ ManagerNode::ManagerNode(
     {"low_battery_anim_period", low_battery_anim_period},
     {"low_battery_threshold_percent", low_battery_threshold_percent},
     {"current_anim_id", -1},
-    {"current_param", ""},
+    {"charging_anim_percent", ""},
+    // anim constants
+    {"E_STOP_ANIM_ID", unsigned(panther_msgs::LEDAnimation::E_STOP)},
+    {"READY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::READY)},
+    {"ERROR_ANIM_ID", unsigned(panther_msgs::LEDAnimation::ERROR)},
+    {"MANUAL_ACTION_ANIM_ID", unsigned(panther_msgs::LEDAnimation::MANUAL_ACTION)},
+    {"AUTONOMOUS_ACTION_ANIM_ID", unsigned(panther_msgs::LEDAnimation::AUTONOMOUS_ACTION)},
+    {"GOAL_ACHIEVED_ANIM_ID", unsigned(panther_msgs::LEDAnimation::GOAL_ACHIEVED)},
+    {"LOW_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::LOW_BATTERY)},
+    {"CRITICAL_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CRITICAL_BATTERY)},
+    {"BATTERY_STATE_ANIM_ID", unsigned(panther_msgs::LEDAnimation::BATTERY_STATE)},
+    {"CHARGING_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CHARGING_BATTERY)},
+    // battery constants
+    {"POWER_SUPPLY_STATUS_UNKNOWN",
+     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN)},
+    {"POWER_SUPPLY_STATUS_CHARGING",
+     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_CHARGING)},
+    {"POWER_SUPPLY_STATUS_DISCHARGING",
+     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING)},
+    {"POWER_SUPPLY_STATUS_NOT_CHARGING",
+     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING)},
+    {"POWER_SUPPLY_STATUS_FULL", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL)},
   };
   std::map<std::string, std::any> safety_initial_bb = {
     {"high_bat_temp", high_bat_temp},
@@ -89,20 +111,20 @@ ManagerNode::ManagerNode(
   system_status_sub_ = nh_->subscribe("system_status", 10, &ManagerNode::system_status_cb, this);
 
   while (ros::ok() && !e_stop_state_.has_value()) {
-    ROS_INFO("[%s] Waiting for e_stop message to arrive", node_name_.c_str());
-    ros::Duration(1.0).sleep();
+    ROS_INFO_THROTTLE(5.0, "[%s] Waiting for e_stop message to arrive", node_name_.c_str());
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
   }
 
   while (ros::ok() && !io_state_.has_value()) {
-    ROS_INFO("[%s] Waiting for io_state message to arrive", node_name_.c_str());
-    ros::Duration(1.0).sleep();
+    ROS_INFO_THROTTLE(5.0, "[%s] Waiting for io_state message to arrive", node_name_.c_str());
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
   }
 
   while (ros::ok() && !battery_status_.has_value()) {
-    ROS_INFO("[%s] Waiting for battery message to arrive", node_name_.c_str());
-    ros::Duration(1.0).sleep();
+    ROS_INFO_THROTTLE(5.0, "[%s] Waiting for battery message to arrive", node_name_.c_str());
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
   }
 
@@ -127,6 +149,8 @@ void ManagerNode::setup_behaviortree(
       config.blackboard->set<bool>(item.first, std::any_cast<bool>(item.second));
     } else if (type == typeid(int)) {
       config.blackboard->set<int>(item.first, std::any_cast<int>(item.second));
+    } else if (type == typeid(unsigned)) {
+      config.blackboard->set<unsigned>(item.first, std::any_cast<unsigned>(item.second));
     } else if (type == typeid(float)) {
       config.blackboard->set<float>(item.first, std::any_cast<float>(item.second));
     } else if (type == typeid(double)) {
@@ -135,10 +159,12 @@ void ManagerNode::setup_behaviortree(
       config.blackboard->set<long>(item.first, std::any_cast<long>(item.second));
     } else if (type == typeid(const char *)) {
       config.blackboard->set<std::string>(item.first, std::any_cast<const char *>(item.second));
-    } else {
+    } else if (type == typeid(std::string)) {
+      config.blackboard->set<std::string>(item.first, std::any_cast<std::string>(item.second));
+    }else {
       throw std::invalid_argument(
-        "Invalid type for blackboard entry. Valid types are: bool, int, float, double, long,"
-        " const char*");
+        "Invalid type for blackboard entry. Valid types are: bool, int, unsigned, float, double,"
+        " long, const char*, std::string");
     }
   }
 
@@ -147,15 +173,15 @@ void ManagerNode::setup_behaviortree(
 
 void ManagerNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
 {
-  battery_temp_ma_.add_value(battery->temperature);
+  battery_temp_ma_.roll(battery->temperature);
   battery_status_ = battery->power_supply_status;
   battery_percent_ = battery->percentage;
 }
 
 void ManagerNode::driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state)
 {
-  front_driver_temp_ma_.add_value(driver_state->front.temperature);
-  rear_driver_temp_ma_.add_value(driver_state->rear.temperature);
+  front_driver_temp_ma_.roll(driver_state->front.temperature);
+  rear_driver_temp_ma_.roll(driver_state->rear.temperature);
 }
 
 void ManagerNode::e_stop_cb(const std_msgs::Bool::ConstPtr & e_stop)
@@ -173,7 +199,7 @@ void ManagerNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state)
 
 void ManagerNode::system_status_cb(const panther_msgs::SystemStatus::ConstPtr & system_status)
 {
-  cpu_temp_ma_.add_value(system_status->cpu_temp);
+  cpu_temp_ma_.roll(system_status->cpu_temp);
 }
 
 void ManagerNode::lights_tree_timer_cb()
@@ -187,7 +213,7 @@ void ManagerNode::lights_tree_timer_cb()
     std::to_string(
       round(battery_percent_ / update_charging_anim_step_) * update_charging_anim_step_));
 
-  // BT::StdCoutLogger logger_cout(lights_tree_);  // debuging
+  if (debug_tree_ == "lights") BT::StdCoutLogger logger_cout(lights_tree_);
   lights_tree_status_ = lights_tree_.tickOnce();
 }
 
@@ -204,7 +230,7 @@ void ManagerNode::safety_tree_timer_cb()
     "driver_temp",
     std::max({front_driver_temp_ma_.get_average(), rear_driver_temp_ma_.get_average()}));
 
-  // BT::StdCoutLogger logger_cout(safety_tree_);  // debuging
+  if (debug_tree_ == "safety") BT::StdCoutLogger logger_cout(safety_tree_);
   safety_tree_status_ = safety_tree_.tickOnce();
 
   std::string signal_shutdown;
@@ -222,7 +248,7 @@ void ManagerNode::shutdown_robot(const std::string & message)
   safety_tree_.haltTree();
 
   // tick shutdown tree
-  BT::StdCoutLogger logger_cout(shutdown_tree_);  // debuging
+  if (debug_tree_ == "shutdown") BT::StdCoutLogger logger_cout(shutdown_tree_);
   shutdown_tree_status_ = BT::NodeStatus::RUNNING;
   auto start_time = ros::Time::now();
   while (ros::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {
@@ -230,6 +256,7 @@ void ManagerNode::shutdown_robot(const std::string & message)
     shutdown_config_.blackboard->set<bool>("shutdown_timeout", shutdown_timeout);
     shutdown_tree_status_ = shutdown_tree_.tickOnce();
   }
+  ros::requestShutdown();
 }
 
 }  // namespace panther_manager

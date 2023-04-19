@@ -10,7 +10,7 @@ class MovingAverage
 public:
   MovingAverage(const int window_size = 5) : window_size_(window_size), sum_(T(0)) {}
 
-  void add_value(const T value)
+  void roll(const T value)
   {
     if (values.size() >= window_size_) {
       sum_ -= values.front();

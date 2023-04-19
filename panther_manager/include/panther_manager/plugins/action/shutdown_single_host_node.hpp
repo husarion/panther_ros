@@ -1,7 +1,7 @@
 #ifndef PANTHER_MANAGER_SHUTDOWN_SINGLE_HOST_NODE_HPP_
 #define PANTHER_MANAGER_SHUTDOWN_SINGLE_HOST_NODE_HPP_
 
-#include <panther_manager/shutdown_host_node.hpp>
+#include <panther_manager/plugins/shutdown_host_node.hpp>
 
 namespace panther_manager
 {
