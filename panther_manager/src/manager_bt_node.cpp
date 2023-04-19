@@ -48,6 +48,7 @@ ManagerNode::ManagerNode(
 
   ROS_INFO("[%s] Register BehaviorTree from: %s", node_name_.c_str(), xml_filename.c_str());
 
+  // export plugins for a behaviour tree
   for (const auto & p : plugin_libs) {
     factory_.registerFromPlugin(BT::SharedLibrary::getOSName(p));
   }
