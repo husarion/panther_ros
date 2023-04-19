@@ -102,10 +102,10 @@ class RoboteqRepublisherNode:
             self._battery_pub.publish(battery_msg)
 
     def _update_volt_mean(self, new_val: float) -> float:
-        self._battery_voltage_mean += (
-            -self._battery_voltage_hist[0] / self._volt_mean_length
-            + new_val / self._volt_mean_length
-        )
+        # Updates the average by adding the newest and removing the oldest component of mean value,
+        # in order to avoid recalculating the entire sum every time.
+        self._battery_voltage_mean += (new_val - self._battery_voltage_hist[0]) / self._volt_mean_length
+
         self._battery_voltage_hist.pop(0)
         self._battery_voltage_hist.append(new_val)
 
