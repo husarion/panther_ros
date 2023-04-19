@@ -8,7 +8,7 @@ template <typename T>
 class MovingAverage
 {
 public:
-  MovingAverage(int window_size = 5) : window_size_(window_size), sum_(T(0)) {}
+  MovingAverage(const int window_size = 5) : window_size_(window_size), sum_(T(0)) {}
 
   void add_value(T value)
   {
