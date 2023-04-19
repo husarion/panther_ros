@@ -20,6 +20,7 @@ ManagerNode::ManagerNode(
   auto driver_temp_window_len = pnh_->param<int>("driver_temp_window_len", 6);
   auto shutdown_hosts_file = pnh_->param<std::string>("shutdown_hosts_file", "");
   shutdown_timeout_ = pnh_->param<float>("shutdown_timeout", 15.0);
+
   // lights tree params
   auto critical_battery_anim_period =
     pnh_->param<float>("lights/critical_battery_anim_period", 15.0);
