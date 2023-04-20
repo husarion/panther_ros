@@ -89,6 +89,7 @@ class PowerBoardNode:
         io_state.power_button = False
         io_state.digital_power = self._read_pin(self._pins.VDIG_OFF)
         io_state.charger_enabled = not self._read_pin(self._pins.CHRG_DISABLE)
+        io_state.motor_on = self._read_pin(self._pins.DRIVER_EN)
         self._io_state_pub.publish(io_state)
 
         # -------------------------------
@@ -241,19 +242,29 @@ class PowerBoardNode:
         return res
 
     def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+        if self._io_state_pub.impl.latch.motor_on == req.data:
+            return SetBoolResponse(True, f'Motors state already set to: {req.data}')
+
         res = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motor drivers enable')
-        if res.success:
-            self._publish_io_state('motor_on', req.data)
 
         if req.data:
+            # wait for drivers to power on
+            rospy.sleep(rospy.Duration(1.0))
             try:
                 reset_script_res = self._reset_roboteq_script_client.call()
                 if not reset_script_res.success:
-                    self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
-                    return reset_script_res
+                    res = self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
+                    if res.success:
+                        self._publish_io_state('motor_on', False)
+                    return SetBoolResponse(reset_script_res.success, reset_script_res.message)
             except rospy.ServiceException as e:
-                self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
+                res = self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
+                if res.success:
+                    self._publish_io_state('motor_on', False)
                 return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
+
+        if res.success:
+            self._publish_io_state('motor_on', req.data)
 
         return res
 
