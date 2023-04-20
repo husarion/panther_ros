@@ -22,8 +22,6 @@ Node responsible for management of the safety board and the power board. Availab
 #### Subscribes
 
 - `/cmd_vel` [*geometry_msgs/Twist*]: observes if velocity commands are sent to the robot. Prevents disabling e-stop if published.
-- `battery` [*sensor_msgs/BatteryState*]: battery [sensor_msgs/BatteryState]: observes the battery current. It is taken into account when checking charging status.
-
 
 #### Services advertised
 

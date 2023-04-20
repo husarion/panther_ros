@@ -6,7 +6,6 @@ import RPi.GPIO as GPIO
 import rospy
 
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import BatteryState
 from std_msgs.msg import Bool
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
@@ -16,17 +15,17 @@ from panther_msgs.msg import DriverState, IOState
 
 @dataclass
 class PatherGPIO:
-    AUX_PW_EN = 18  # Enable auxiliary power, eg. supply to robotic arms etc.
-    CHRG_DISABLE = 19  # Disable charger
-    CHRG_SENSE = 7  # Charger sensor (1 - charger plugged in)
-    DRIVER_EN = 23  # Enable motor drivers (1 - on)
-    E_STOP_RESET = 27  # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
-    # OUT - send 1 to reset estop
-    FAN_SW = 15  # Turn on the fan (1 - on)
-    SHDN_INIT = 16  # Shutdown Init managed by systemd service
-    VDIG_OFF = 21  # Turn the digital power off eg. NUC, Router etc. (1 - off)
-    VMOT_ON = 6  # Enable mamin power supply to motors (1 - on)
-    WATCHDOG = 14  # Watchdog pin, if PWM is on this pin Panther will work
+    AUX_PW_EN = 18      # Enable auxiliary power, eg. supply to robotic arms etc.
+    CHRG_DISABLE = 19   # Disable charger
+    CHRG_SENSE = 7      # Charger sensor (1 - charger plugged in)
+    DRIVER_EN = 23      # Enable motor drivers (1 - on)
+    E_STOP_RESET = 27   # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
+                        # OUT - send 1 to reset estop
+    FAN_SW = 15         # Turn on the fan (1 - on)
+    SHDN_INIT = 16      # Shutdown Init managed by systemd service
+    VDIG_OFF = 21       # Turn the digital power off eg. NUC, Router etc. (1 - off)
+    VMOT_ON = 6         # Enable mamin power supply to motors (1 - on)
+    WATCHDOG = 14       # Watchdog pin, if PWM is on this pin Panther will work
 
     # define inverse logic pins here to be used by _read_pin() method
     inverse_logic_pins = [VDIG_OFF, E_STOP_RESET, CHRG_SENSE]
@@ -69,7 +68,6 @@ class PowerBoardNode:
         self._gpio_wait = 0.05  # seconds
         self._e_stop_interrupt_time = float('inf')
         self._chrg_sense_interrupt_time = float('inf')
-        self._battery_current = None
 
         self._cmd_vel_msg_time = rospy.get_time()
         self._can_net_err = True
@@ -100,9 +98,6 @@ class PowerBoardNode:
         self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
         self._motor_controllers_state_sub = rospy.Subscriber(
             'driver/motor_controllers_state', DriverState, self._motor_controllers_state_cb
-        )
-        self._battery_state_sub = rospy.Subscriber(
-            'panther/battery', BatteryState, self._battery_state_cb
         )
 
         # -------------------------------
@@ -156,9 +151,6 @@ class PowerBoardNode:
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
 
-    def _battery_state_cb(self, msg: BatteryState) -> None:
-        self._battery_current = msg.current
-
     def _gpio_interrupt_cb(self, pin: int) -> None:
         if pin == self._pins.SHDN_INIT:
             self._chrg_sense_interrupt_time = rospy.get_time()
@@ -167,14 +159,8 @@ class PowerBoardNode:
             self._e_stop_interrupt_time = rospy.get_time()
 
     def _publish_pin_state_cb(self, *args) -> None:
-        charger_pin_state = self._read_pin(self._pins.CHRG_SENSE)
-        is_charger_charging = (
-            (charger_pin_state and self._battery_current > 2.0)
-            if self._battery_current is not None
-            else False
-        )
-
-        self._publish_io_state('charger_connected', is_charger_charging)
+        charger_state = self._read_pin(self._pins.CHRG_SENSE)
+        self._publish_io_state('charger_connected', charger_state)
 
         # filter short spikes of voltage on GPIO
         if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
