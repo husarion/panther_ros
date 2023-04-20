@@ -75,9 +75,9 @@ class ADCNode:
         with self._lock:
             self._driver_battery_last_info_time = rospy.get_time()
 
-            drver_voltage = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
-            self._V_driv = drver_voltage
-            self._V_driv_mean = self._count_volt_mean('V_driv', drver_voltage)
+            driver_voltage = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
+            self._V_driv = driver_voltage
+            self._V_driv_mean = self._count_volt_mean('V_driv', driver_voltage)
 
             self._I_driv = driver_state.front.current + driver_state.rear.current
 
