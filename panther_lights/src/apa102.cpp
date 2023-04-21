@@ -21,10 +21,7 @@ APA102::APA102(const std::string device, const std::uint32_t speed, const bool c
     throw std::ios_base::failure(std::string("Failed to open ") + device_);
   }
 
-  static std::uint8_t mode = SPI_MODE_3;
-  if (cs_high) {
-    mode |= SPI_CS_HIGH;
-  }
+  static std::uint8_t mode = cs_high ? SPI_MODE_3 : SPI_MODE_3 | SPI_CS_HIGH;
   if (ioctl(fd_, SPI_IOC_WR_MODE32, &mode) == -1) {
     close(fd_);
     throw std::ios_base::failure(std::string("Failed to set mode for ") + device_);
