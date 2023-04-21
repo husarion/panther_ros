@@ -80,7 +80,7 @@ bool LightsDriverNode::set_brightness_cb(
 {
   float brightness = request.data;
   if (brightness < 0.0f || brightness > 1.0f) {
-    response.success = 0;
+    response.success = false;
     response.message = "Brightness out of range <0,1>";
     return true;
   }
