@@ -167,13 +167,13 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
     </Action>
     <Action ID="ShutdownHostsFromFile"
             editable="true">
-      <input_port name="shutdown_hosts_file"/>
+      <input_port name="shutdown_hosts_file">global path to YAML file with hosts to shutdown</input_port>
     </Action>
     <Action ID="ShutdownSingleHost"
             editable="true">
-      <input_port name="command">(optional)</input_port>
-      <input_port name="ip"/>
-      <input_port name="user"/>
+      <input_port name="command">(optional) command to execute on shutdown</input_port>
+      <input_port name="ip">ip of the host to shutdown</input_port>
+      <input_port name="user">user to log into while executing shutdown command</input_port>
     </Action>
     <Decorator ID="TickAfterTimeout"
                editable="true">

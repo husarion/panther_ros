@@ -11,20 +11,21 @@ namespace panther_manager
 class CallSetLedAnimationService : public RosServiceNode<panther_msgs::SetLEDAnimation>
 {
 public:
-  CallSetLedAnimationService(const std::string & name, const BT::NodeConfig & conf);
+  CallSetLedAnimationService(const std::string & name, const BT::NodeConfig & conf)
+  : RosServiceNode(name, conf)
+  {
+  }
 
   static BT::PortsList providedPorts()
   {
-    return {
+    return providedBasicPorts({
       BT::InputPort<unsigned>("id", "animation ID"),
       BT::InputPort<std::string>("param", "optional parameter"),
       BT::InputPort<bool>("repeating", "indicates if animation should repeat"),
-    };
+    });
   }
 
   unsigned aniamtion_id_;
-  std::string srv_name_;
-  std::shared_ptr<ros::NodeHandle> nh_;
 
   void update_request(RequestType & request) override;
   virtual BT::NodeStatus on_response(const ResponseType & response);

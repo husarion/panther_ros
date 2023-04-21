@@ -3,13 +3,6 @@
 namespace panther_manager
 {
 
-CallSetBoolService::CallSetBoolService(const std::string & name, const BT::NodeConfig & conf)
-: RosServiceNode<std_srvs::SetBool>(nh_, name, conf)
-{
-  nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
-  getInput("service_name", srv_name_);
-}
-
 void CallSetBoolService::update_request(RequestType & request)
 {
   bool data;
@@ -23,13 +16,13 @@ BT::NodeStatus CallSetBoolService::on_response(const ResponseType & response)
 {
   if (!response.success) {
     ROS_ERROR(
-      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
-      response.message.c_str());
+      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(),
+      get_srv_name().c_str(), response.message.c_str());
     return BT::NodeStatus::FAILURE;
   }
   ROS_DEBUG(
-    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
-    response.message.c_str());
+    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(),
+    get_srv_name().c_str(), response.message.c_str());
   return BT::NodeStatus::SUCCESS;
 }
 
@@ -38,6 +31,5 @@ BT::NodeStatus CallSetBoolService::on_response(const ResponseType & response)
 #include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  panther_manager::RegisterRosService<panther_manager::CallSetBoolService>(
-    factory, "CallSetBoolService");
+  factory.registerNodeType<panther_manager::CallSetBoolService>("CallSetBoolService");
 }

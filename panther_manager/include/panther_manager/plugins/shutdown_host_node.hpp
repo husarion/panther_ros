@@ -13,11 +13,13 @@ namespace panther_manager
 class ShutdownHost : public BT::StatefulActionNode
 {
 public:
-  ShutdownHost(const std::string & name, const BT::NodeConfig & conf)
+  explicit ShutdownHost(const std::string & name, const BT::NodeConfig & conf)
   : BT::StatefulActionNode(name, conf)
   {
     node_name_ = ros::this_node::getName();
   }
+
+  virtual ~ShutdownHost() = default;
 
   ssh_session session_;
   ssh_channel channel_;

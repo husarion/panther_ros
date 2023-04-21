@@ -3,14 +3,6 @@
 namespace panther_manager
 {
 
-CallSetLedAnimationService::CallSetLedAnimationService(
-  const std::string & name, const BT::NodeConfig & conf)
-: RosServiceNode(nh_, name, conf)
-{
-  nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
-  getInput("service_name", srv_name_);
-}
-
 void CallSetLedAnimationService::update_request(RequestType & request)
 {
   bool repeating;
@@ -36,13 +28,13 @@ BT::NodeStatus CallSetLedAnimationService::on_response(const ResponseType & resp
 {
   if (!response.success) {
     ROS_ERROR(
-      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
-      response.message.c_str());
+      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(),
+      get_srv_name().c_str(), response.message.c_str());
     return BT::NodeStatus::FAILURE;
   }
   ROS_DEBUG(
-    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
-    response.message.c_str());
+    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(),
+    get_srv_name().c_str(), response.message.c_str());
   return BT::NodeStatus::SUCCESS;
 }
 
@@ -51,6 +43,6 @@ BT::NodeStatus CallSetLedAnimationService::on_response(const ResponseType & resp
 #include <behaviortree_cpp/bt_factory.h>
 BT_REGISTER_NODES(factory)
 {
-  panther_manager::RegisterRosService<panther_manager::CallSetLedAnimationService>(
-    factory, "CallSetLedAnimationService");
+  factory.registerNodeType<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 }

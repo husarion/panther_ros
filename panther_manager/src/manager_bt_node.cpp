@@ -99,9 +99,13 @@ ManagerNode::ManagerNode(
     {"shutdown_hosts_file", shutdown_hosts_file.c_str()},
   };
 
-  setup_behaviortree(lights_tree_, lights_config_, "Lights", lights_initial_bb);
-  setup_behaviortree(safety_tree_, safety_config_, "Safety", safety_initial_bb);
-  setup_behaviortree(shutdown_tree_, shutdown_config_, "Shutdown", shutdown_initial_bb);
+  lights_config_ = create_bt_config(lights_initial_bb);
+  safety_config_ = create_bt_config(safety_initial_bb);
+  shutdown_config_ = create_bt_config(shutdown_initial_bb);
+
+  lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
+  safety_tree_ = factory_.createTree("Safety", safety_config_.blackboard);
+  shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
 
   battery_sub_ = nh_->subscribe("battery", 10, &ManagerNode::battery_cb, this);
   driver_state_sub_ =
@@ -136,10 +140,9 @@ ManagerNode::ManagerNode(
   ROS_INFO("[%s] Node started", node_name_.c_str());
 }
 
-void ManagerNode::setup_behaviortree(
-  BT::Tree & tree, BT::NodeConfig & config, const std::string tree_name,
-  std::map<std::string, std::any> bb_values)
+BT::NodeConfig ManagerNode::create_bt_config(const std::map<std::string, std::any> bb_values)
 {
+  BT::NodeConfig config;
   config.blackboard = BT::Blackboard::create();
   // update blackboard
   config.blackboard->set("nh", nh_);
@@ -161,14 +164,14 @@ void ManagerNode::setup_behaviortree(
       config.blackboard->set<std::string>(item.first, std::any_cast<const char *>(item.second));
     } else if (type == typeid(std::string)) {
       config.blackboard->set<std::string>(item.first, std::any_cast<std::string>(item.second));
-    }else {
+    } else {
       throw std::invalid_argument(
         "Invalid type for blackboard entry. Valid types are: bool, int, unsigned, float, double,"
         " long, const char*, std::string");
     }
   }
 
-  tree = factory_.createTree(tree_name, config.blackboard);
+  return config;
 }
 
 void ManagerNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
@@ -213,7 +216,7 @@ void ManagerNode::lights_tree_timer_cb()
     std::to_string(
       round(battery_percent_ / update_charging_anim_step_) * update_charging_anim_step_));
 
-  if (debug_tree_ == "lights") BT::StdCoutLogger logger_cout(lights_tree_);
+  // BT::StdCoutLogger logger_cout(lights_tree_);  // debugging
   lights_tree_status_ = lights_tree_.tickOnce();
 }
 
@@ -230,7 +233,7 @@ void ManagerNode::safety_tree_timer_cb()
     "driver_temp",
     std::max({front_driver_temp_ma_.get_average(), rear_driver_temp_ma_.get_average()}));
 
-  if (debug_tree_ == "safety") BT::StdCoutLogger logger_cout(safety_tree_);
+  // BT::StdCoutLogger logger_cout(safety_tree_);  // debugging
   safety_tree_status_ = safety_tree_.tickOnce();
 
   std::string signal_shutdown;
@@ -248,7 +251,7 @@ void ManagerNode::shutdown_robot(const std::string & message)
   safety_tree_.haltTree();
 
   // tick shutdown tree
-  if (debug_tree_ == "shutdown") BT::StdCoutLogger logger_cout(shutdown_tree_);
+  // BT::StdCoutLogger logger_cout(shutdown_tree_);  // debugging
   shutdown_tree_status_ = BT::NodeStatus::RUNNING;
   auto start_time = ros::Time::now();
   while (ros::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {

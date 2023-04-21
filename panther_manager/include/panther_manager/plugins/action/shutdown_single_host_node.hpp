@@ -17,9 +17,9 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<std::string>("ip"),
-      BT::InputPort<std::string>("user"),
-      BT::InputPort<std::string>("command"),
+      BT::InputPort<std::string>("ip", "ip of the host to shutdown"),
+      BT::InputPort<std::string>("user", "user to log into while executing shutdown command"),
+      BT::InputPort<std::string>("command", "(optional) command to execute on shutdown"),
     };
   }
 

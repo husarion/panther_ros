@@ -11,15 +11,15 @@ namespace panther_manager
 class CallSetBoolService : public RosServiceNode<std_srvs::SetBool>
 {
 public:
-  CallSetBoolService(const std::string & name, const BT::NodeConfig & conf);
+  CallSetBoolService(const std::string & name, const BT::NodeConfig & conf)
+  : RosServiceNode(name, conf)
+  {
+  }
 
   static BT::PortsList providedPorts()
   {
-    return {BT::InputPort<bool>("data", "true / false value")};
+    return providedBasicPorts({BT::InputPort<bool>("data", "true / false value")});
   }
-
-  std::string srv_name_;
-  std::shared_ptr<ros::NodeHandle> nh_;
 
   void update_request(RequestType & request) override;
   virtual BT::NodeStatus on_response(const ResponseType & response);

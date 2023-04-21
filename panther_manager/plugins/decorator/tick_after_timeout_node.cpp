@@ -6,15 +6,17 @@ namespace panther_manager
 TickAfterTimeout::TickAfterTimeout(const std::string & name, const BT::NodeConfig & conf)
 : BT::DecoratorNode(name, conf)
 {
-  float timeout;
-  if (!getInput<float>("timeout", timeout)) {
-    throw("[", name, "] Failed to get input [timeout]");
-  }
-  timeout_ = ros::Duration(timeout);
+  last_success_time_ = ros::Time::now();
 }
 
 BT::NodeStatus TickAfterTimeout::tick()
 {
+  float timeout;
+  if (!getInput<float>("timeout", timeout)) {
+    throw("[", name(), "] Failed to get input [timeout]");
+  }
+  timeout_ = ros::Duration(timeout);
+
   if (ros::Time::now() - last_success_time_ < timeout_) {
     return BT::NodeStatus::SKIPPED;
   }
