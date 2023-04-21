@@ -39,7 +39,7 @@ DriverNode::DriverNode(
   rear_panel_.set_global_brightness(global_brightness);
 
   front_light_sub_ = it_->subscribe(
-    "lights/driver/front_panel_frame", 5, [this](const sensor_msgs::ImageConstPtr & msg) {
+    "lights/driver/front_panel_frame", 5, [&](const sensor_msgs::ImageConstPtr & msg) {
       frame_cb(msg, front_panel_, front_panel_ts_, "front");
       front_panel_ts_ = msg->header.stamp;
     });
@@ -80,7 +80,7 @@ bool DriverNode::set_brightness_cb(
 {
   float brightness = request.data;
   if (brightness < 0.0f || brightness > 1.0f) {
-    response.success = 0;
+    response.success = false;
     response.message = "Brightness out of range <0,1>";
     return true;
   }
