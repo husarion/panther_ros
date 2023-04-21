@@ -48,7 +48,7 @@ class RelaysNode:
         self._io_state.charger_connected = False
         self._io_state.fan = False
         self._io_state.power_button = False
-        self._io_state.digital_power = False
+        self._io_state.digital_power = True
         self._io_state.charger_enabled = False
         self._io_state_pub.publish(self._io_state)
 
