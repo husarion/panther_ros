@@ -220,16 +220,16 @@ class PowerBoardNode:
                     'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
                 )
 
-            self._reset_e_stop()
+        self._reset_e_stop()
 
-            if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
-                self._watchdog.turn_off()
-                return TriggerResponse(
-                    False,
-                    'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
-                )
+        if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+            self._watchdog.turn_off()
+            return TriggerResponse(
+                False,
+                'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
+            )
 
-            return TriggerResponse(True, 'E-STOP reset successful')
+        return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
         self._watchdog.turn_off()
@@ -252,17 +252,18 @@ class PowerBoardNode:
         return SetBoolResponse(success, msg)
 
     def _reset_e_stop(self) -> None:
-        self._clearing_e_stop = True
-        GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
-        self._watchdog.turn_on()
+        with self._pins_lock:
+            self._clearing_e_stop = True
+            GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
+            self._watchdog.turn_on()
 
-        self._write_to_pin(self._pins.E_STOP_RESET, False)
-        rospy.sleep(0.1)
+            self._write_to_pin(self._pins.E_STOP_RESET, False)
+            rospy.sleep(0.1)
 
-        GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
-        rospy.sleep(0.1)
-        self._clearing_e_stop = False
-        self._e_stop_event()
+            GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
+            rospy.sleep(0.1)
+            self._clearing_e_stop = False
+            self._e_stop_event()
 
     def _e_stop_event(self) -> None:
         e_stop_state = self._read_pin(self._pins.E_STOP_RESET)
