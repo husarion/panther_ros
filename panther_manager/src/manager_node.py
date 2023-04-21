@@ -20,6 +20,7 @@ class ManagerNode:
         rospy.init_node(name, anonymous=False)
 
         self._lock = Lock()
+        
         self._aux_power_state = None
         self._e_stop_state = None
         self._fan_state = None
@@ -108,16 +109,22 @@ class ManagerNode:
         # -------------------------------
 
         self._battery_sub = rospy.Subscriber('battery', BatteryState, self._battery_cb)
-        self._driver_state_sub = rospy.Subscriber('driver/motor_controllers_state', DriverState, self._driver_state_cb)
+        self._driver_state_sub = rospy.Subscriber(
+            'driver/motor_controllers_state', DriverState, self._driver_state_cb
+        )
         self._e_stop_sub = rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb)
         self._io_state_sub = rospy.Subscriber('hardware/io_state', IOState, self._io_state_cb)
-        self._system_status_sub = rospy.Subscriber('system_status', SystemStatus, self._system_status_cb)
+        self._system_status_sub = rospy.Subscriber(
+            'system_status', SystemStatus, self._system_status_cb
+        )
 
         # -------------------------------
         #   Service servers
         # -------------------------------
 
-        self._overwrite_fan_control_server = rospy.Service('manager/overwrite_fan_control', SetBool, self._overwrite_fan_control_cb)
+        self._overwrite_fan_control_server = rospy.Service(
+            'manager/overwrite_fan_control', SetBool, self._overwrite_fan_control_cb
+        )
 
         # -------------------------------
         #   Service clients
@@ -150,7 +157,10 @@ class ManagerNode:
 
     def _driver_state_cb(self, driver_state: DriverState) -> None:
         with self._lock:
-            if self._front_driver_temp_window is not None and self._rear_driver_temp_window is not None:
+            if (
+                self._front_driver_temp_window is not None
+                and self._rear_driver_temp_window is not None
+            ):
                 self._front_driver_temp_window = self._move_window(
                     self._front_driver_temp_window, driver_state.front.temperature
                 )
@@ -178,7 +188,9 @@ class ManagerNode:
     def _system_status_cb(self, system_status: SystemStatus) -> None:
         with self._lock:
             if self._cpu_temp_window is not None:
-                self._cpu_temp_window = self._move_window(self._cpu_temp_window, system_status.cpu_temp)
+                self._cpu_temp_window = self._move_window(
+                    self._cpu_temp_window, system_status.cpu_temp
+                )
             else:
                 self._cpu_temp_window = [system_status.cpu_temp] * self._cpu_window_len
 

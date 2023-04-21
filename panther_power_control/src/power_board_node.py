@@ -59,7 +59,9 @@ class PowerBoardNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        self._lock = Lock()
+        self._pins_lock = Lock()
+        self._e_stop_lock = Lock()
+
         self._clearing_e_stop = False
         self._pins = PatherGPIO()
 
@@ -148,15 +150,17 @@ class PowerBoardNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _cmd_vel_cb(self, *args) -> None:
-        with self._lock:
+        with self._e_stop_lock:
             self._cmd_vel_msg_time = rospy.get_time()
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
-        with self._lock:
-            self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
+        with self._e_stop_lock:
+            self._can_net_err = any(
+                {msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err}
+            )
 
     def _gpio_interrupt_cb(self, pin: int) -> None:
-        with self._lock:
+        with self._pins_lock:
             if pin == self._pins.SHDN_INIT:
                 self._chrg_sense_interrupt_time = rospy.get_time()
 
@@ -164,7 +168,7 @@ class PowerBoardNode:
                 self._e_stop_interrupt_time = rospy.get_time()
 
     def _publish_pin_state_cb(self, *args) -> None:
-        with self._lock:
+        with self._pins_lock:
             charger_state = self._read_pin(self._pins.CHRG_SENSE)
             self._publish_io_state('charger_connected', charger_state)
 
@@ -180,7 +184,7 @@ class PowerBoardNode:
                 self._e_stop_interrupt_time = float('inf')
 
     def _watchdog_cb(self, *args) -> None:
-        with self._lock:
+        with self._pins_lock:
             self._watchdog()
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
@@ -202,29 +206,30 @@ class PowerBoardNode:
         return res
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
-            return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
-        elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, messages are still published on /cmd_vel topic!',
-            )
-        elif self._can_net_err:
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
-            )
+        with self._e_stop_lock:
+            if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
+                return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
+            elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, messages are still published on /cmd_vel topic!',
+                )
+            elif self._can_net_err:
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
+                )
 
-        self._reset_e_stop()
+            self._reset_e_stop()
 
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
-            self._watchdog.turn_off()
-            return TriggerResponse(
-                False,
-                'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
-            )
+            if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+                self._watchdog.turn_off()
+                return TriggerResponse(
+                    False,
+                    'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
+                )
 
-        return TriggerResponse(True, 'E-STOP reset successful')
+            return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
         self._watchdog.turn_off()

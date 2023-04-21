@@ -68,7 +68,7 @@ class PantherDriverNode:
         rospy.init_node(name, anonymous=False)
 
         self._lock = Lock()
-        
+
         self._eds_file = rospy.get_param('~eds_file')
         self._use_pdo = rospy.get_param('~use_pdo', False)
         self._can_interface = rospy.get_param('~can_interface', 'panther_can')
@@ -261,135 +261,135 @@ class PantherDriverNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _main_timer_cb(self, *args) -> None:
-        with self._lock:
-            time_now = rospy.Time.now()
-            dt = (time_now - self._time_last).to_sec()
-            self._time_last = time_now
+        time_now = rospy.Time.now()
+        dt = (time_now - self._time_last).to_sec()
+        self._time_last = time_now
 
-            if (time_now - self._cmd_vel_command_last_time) < rospy.Duration(
-                secs=self._cmd_vel_timeout
-            ):
-                self._panther_can.write_wheels_enc_velocity(self._panther_kinematics.wheels_enc_speed)
-            else:
-                self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
+        if (time_now - self._cmd_vel_command_last_time) < rospy.Duration(
+            secs=self._cmd_vel_timeout
+        ):
+            self._panther_can.write_wheels_enc_velocity(
+                self._panther_kinematics.wheels_enc_speed
+            )
+        else:
+            self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
 
-            wheel_enc_pos = self._panther_can.query_wheels_enc_pose()
-            wheel_enc_vel = self._panther_can.query_wheels_enc_velocity()
-            wheel_enc_curr = self._panther_can.query_motor_current()
+        wheel_enc_pos = self._panther_can.query_wheels_enc_pose()
+        wheel_enc_vel = self._panther_can.query_wheels_enc_velocity()
+        wheel_enc_curr = self._panther_can.query_motor_current()
 
-            # convert tics to rad
-            self._wheels_ang_pos = [
-                (2.0 * math.pi) * (pos / (self._encoder_resolution * self._gear_ratio))
-                for pos in wheel_enc_pos
-            ]
-            # convert RPM to rad/s
-            self._wheels_ang_vel = [
-                (2.0 * math.pi / 60.0) * (vel / self._gear_ratio) for vel in wheel_enc_vel
-            ]
-            # convert A to Nm
-            self._motors_effort = [
-                enc_curr * self._motor_torque_constant for enc_curr in wheel_enc_curr
-            ]
+        # convert tics to rad
+        self._wheels_ang_pos = [
+            (2.0 * math.pi) * (pos / (self._encoder_resolution * self._gear_ratio))
+            for pos in wheel_enc_pos
+        ]
+        # convert RPM to rad/s
+        self._wheels_ang_vel = [
+            (2.0 * math.pi / 60.0) * (vel / self._gear_ratio) for vel in wheel_enc_vel
+        ]
+        # convert A to Nm
+        self._motors_effort = [
+            enc_curr * self._motor_torque_constant for enc_curr in wheel_enc_curr
+        ]
 
-            try:
-                self._robot_pos, self._robot_vel = self._panther_kinematics.forward_kinematics(
-                    *self._wheels_ang_vel, dt=dt
-                )
-            except:
-                rospy.logwarn(f'[{rospy.get_name()}] Could not get robot pose')
+        try:
+            self._robot_pos, self._robot_vel = self._panther_kinematics.forward_kinematics(
+                *self._wheels_ang_vel, dt=dt
+            )
+        except:
+            rospy.logwarn(f'[{rospy.get_name()}] Could not get robot pose')
 
-            self._robot_orientation_quat = quaternion_from_euler(0.0, 0.0, self._robot_pos[2])
+        self._robot_orientation_quat = quaternion_from_euler(0.0, 0.0, self._robot_pos[2])
 
-            if self._publish_joints:
-                self._publish_joint_state_cb()
-            if self._publish_pose:
-                self._publish_pose_cb()
-            if self._publish_odom:
-                self._publish_odom_cb()
-            if self._publish_tf:
-                self._publish_tf_cb()
+        if self._publish_joints:
+            self._publish_joint_state_cb()
+        if self._publish_pose:
+            self._publish_pose_cb()
+        if self._publish_odom:
+            self._publish_odom_cb()
+        if self._publish_tf:
+            self._publish_tf_cb()
 
     def _driver_state_timer_cb(self, *args) -> None:
-        with self._lock:
-            [
-                self._driver_state_msg.front.current,
-                self._driver_state_msg.front.voltage,
-                self._driver_state_msg.rear.current,
-                self._driver_state_msg.rear.voltage,
-            ] = self._panther_can.query_battery_data()
+        [
+            self._driver_state_msg.front.current,
+            self._driver_state_msg.front.voltage,
+            self._driver_state_msg.rear.current,
+            self._driver_state_msg.rear.voltage,
+        ] = self._panther_can.query_battery_data()
 
-            [
-                self._driver_state_msg.front.temperature,
-                self._driver_state_msg.rear.temperature,
-            ] = self._panther_can.query_driver_temperature_data()
+        [
+            self._driver_state_msg.front.temperature,
+            self._driver_state_msg.rear.temperature,
+        ] = self._panther_can.query_driver_temperature_data()
 
-            [self._driver_state_msg.front.fault_flag, self._driver_state_msg.rear.fault_flag] = [
-                self._driver_flag_loggers['fault_flags'](flag_val)
-                for flag_val in self._panther_can.query_fault_flags()
-            ]
+        [self._driver_state_msg.front.fault_flag, self._driver_state_msg.rear.fault_flag] = [
+            self._driver_flag_loggers['fault_flags'](flag_val)
+            for flag_val in self._panther_can.query_fault_flags()
+        ]
 
-            (
-                self._driver_state_msg.front.fault_flag.can_net_err,
-                self._driver_state_msg.rear.fault_flag.can_net_err,
-            ) = self._panther_can.can_connection_error()
+        (
+            self._driver_state_msg.front.fault_flag.can_net_err,
+            self._driver_state_msg.rear.fault_flag.can_net_err,
+        ) = self._panther_can.can_connection_error()
 
-            [self._driver_state_msg.front.script_flag, self._driver_state_msg.rear.script_flag] = [
-                self._driver_flag_loggers['script_flags'](flag_val)
-                for flag_val in self._panther_can.query_script_flags()
-            ]
+        [self._driver_state_msg.front.script_flag, self._driver_state_msg.rear.script_flag] = [
+            self._driver_flag_loggers['script_flags'](flag_val)
+            for flag_val in self._panther_can.query_script_flags()
+        ]
 
-            [
-                self._driver_state_msg.front.right_motor.runtime_error,
-                self._driver_state_msg.front.left_motor.runtime_error,
-                self._driver_state_msg.rear.right_motor.runtime_error,
-                self._driver_state_msg.rear.left_motor.runtime_error,
-            ] = [
-                self._driver_flag_loggers['runtime_errors'](flag_val)
-                for flag_val in self._panther_can.query_runtime_stat_flag()
-            ]
+        [
+            self._driver_state_msg.front.right_motor.runtime_error,
+            self._driver_state_msg.front.left_motor.runtime_error,
+            self._driver_state_msg.rear.right_motor.runtime_error,
+            self._driver_state_msg.rear.left_motor.runtime_error,
+        ] = [
+            self._driver_flag_loggers['runtime_errors'](flag_val)
+            for flag_val in self._panther_can.query_runtime_stat_flag()
+        ]
 
-            self._driver_state_pub.publish(self._driver_state_msg)
+        self._driver_state_pub.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
         with self._lock:
-            if any(self._panther_can.can_connection_error()):
-                if not self._e_stop_cliented:
-                    self._trigger_panther_e_stop()
-                    self._stop_cmd_vel_cb = True
+            e_stop_cliented = self._e_stop_cliented
 
-                rospy.logerr_throttle(
-                    10.0,
-                    f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure). '
-                    f'Please ensure that controllers are powered on.',
-                )
-            elif self._e_stop_cliented:
+        if any(self._panther_can.can_connection_error()):
+            if not e_stop_cliented:
+                self._trigger_panther_e_stop()
                 self._stop_cmd_vel_cb = True
-            else:
-                self._stop_cmd_vel_cb = False
+
+            rospy.logerr_throttle(
+                10.0,
+                f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure). '
+                f'Please ensure that controllers are powered on.',
+            )
+        elif e_stop_cliented:
+            self._stop_cmd_vel_cb = True
+        else:
+            self._stop_cmd_vel_cb = False
 
     def _e_stop_cb(self, data: Bool) -> None:
         with self._lock:
             self._e_stop_cliented = data.data
 
     def _cmd_vel_cb(self, data: Twist) -> None:
-        with self._lock:
-            # Block all motors if any Roboteq controller returns a fault flag or runtime error flag
-            if not self._stop_cmd_vel_cb:
-                self._panther_kinematics.inverse_kinematics(data)
-            else:
-                self._panther_kinematics.inverse_kinematics(Twist())
+        # Block all motors if any Roboteq controller returns a fault flag or runtime error flag
+        if not self._stop_cmd_vel_cb:
+            self._panther_kinematics.inverse_kinematics(data)
+        else:
+            self._panther_kinematics.inverse_kinematics(Twist())
 
-            self._cmd_vel_command_last_time = rospy.Time.now()
+        self._cmd_vel_command_last_time = rospy.Time.now()
 
     def _reset_roboteq_script_cb(self, req: TriggerRequest) -> TriggerResponse:
-        with self._lock:
-            try:
-                if self._panther_can.restart_roboteq_script():
-                    return TriggerResponse(True, 'Roboteq script reset successful.')
-            except Exception as err:
-                return TriggerResponse(False, f'Roboteq script reset failed: \n{err}')
+        try:
+            if self._panther_can.restart_roboteq_script():
+                return TriggerResponse(True, 'Roboteq script reset successful.')
+        except Exception as err:
+            return TriggerResponse(False, f'Roboteq script reset failed: \n{err}')
 
-            return TriggerResponse(False, f'Roboteq script reset failed')
+        return TriggerResponse(False, f'Roboteq script reset failed')
 
     def _publish_joint_state_cb(self) -> None:
         self._joint_state_msg.header.stamp = rospy.Time.now()

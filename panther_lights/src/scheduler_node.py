@@ -15,7 +15,7 @@ class LightsSchedulerNode:
         rospy.init_node(name, anonymous=False)
 
         self._lock = Lock()
-        
+
         self._battery_percentage = 1.0
         self._battery_status = None
         self._charging_percentage = -1.0  # -1.0 to trigger animation when charger gets connected
@@ -29,7 +29,9 @@ class LightsSchedulerNode:
         ]
 
         self._critical_battery_anim_period = rospy.get_param('~critical_battery_anim_period', 15.0)
-        self._critical_battery_threshold_percent = rospy.get_param('~critical_battery_threshold_percent', 0.1)
+        self._critical_battery_threshold_percent = rospy.get_param(
+            '~critical_battery_threshold_percent', 0.1
+        )
         self._battery_state_anim_period = rospy.get_param('~battery_state_anim_period', 120.0)
         self._low_battery_anim_period = rospy.get_param('~low_battery_anim_period', 30.0)
         self._low_battery_threshold_percent = rospy.get_param('~low_battery_threshold_percent', 0.4)
@@ -39,7 +41,9 @@ class LightsSchedulerNode:
         #   Subscribers
         # -------------------------------
 
-        self._battery_sub = rospy.Subscriber('battery', BatteryState, self._battery_cb, queue_size=1)
+        self._battery_sub = rospy.Subscriber(
+            'battery', BatteryState, self._battery_cb, queue_size=1
+        )
         self._e_stop_sub = rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb, queue_size=1)
 
         # -------------------------------

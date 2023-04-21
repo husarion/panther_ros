@@ -18,7 +18,7 @@ class ADCNode:
         rospy.init_node(name, anonymous=False)
 
         self._lock = Lock()
-        
+
         self._V_driv_front = None
         self._V_driv_rear = None
         self._I_driv_front = None
@@ -74,64 +74,63 @@ class ADCNode:
             self._charger_connected = io_state.charger_connected
 
     def _battery_timer_cb(self, *args) -> None:
-        with self._lock:
-            try:
-                V_bat_1 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device1/in_voltage0_raw', LSB=0.02504255, offset=0.0
-                )
-                V_bat_2 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device1/in_voltage3_raw', LSB=0.02504255, offset=0.0
-                )
-                V_temp_bat_1 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device0/in_voltage1_raw', LSB=0.002, offset=0.0
-                )
-                V_temp_bat_2 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device0/in_voltage0_raw', LSB=0.002, offset=0.0
-                )
-                I_charge_bat_1 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device0/in_voltage3_raw', LSB=0.005, offset=0.0
-                )
-                I_charge_bat_2 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device0/in_voltage2_raw', LSB=0.005, offset=0.0
-                )
-                I_bat_1 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device1/in_voltage2_raw', LSB=0.04, offset=625.0
-                )
-                I_bat_2 = self._get_adc_measurement(
-                    path='/sys/bus/iio/devices/iio:device1/in_voltage1_raw', LSB=0.04, offset=625.0
-                )
-            except:
-                rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error')
-                return
+        try:
+            V_bat_1 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device1/in_voltage0_raw', LSB=0.02504255, offset=0.0
+            )
+            V_bat_2 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device1/in_voltage3_raw', LSB=0.02504255, offset=0.0
+            )
+            V_temp_bat_1 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device0/in_voltage1_raw', LSB=0.002, offset=0.0
+            )
+            V_temp_bat_2 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device0/in_voltage0_raw', LSB=0.002, offset=0.0
+            )
+            I_charge_bat_1 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device0/in_voltage3_raw', LSB=0.005, offset=0.0
+            )
+            I_charge_bat_2 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device0/in_voltage2_raw', LSB=0.005, offset=0.0
+            )
+            I_bat_1 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device1/in_voltage2_raw', LSB=0.04, offset=625.0
+            )
+            I_bat_2 = self._get_adc_measurement(
+                path='/sys/bus/iio/devices/iio:device1/in_voltage1_raw', LSB=0.04, offset=625.0
+            )
+        except:
+            rospy.logerr(f'[{rospy.get_name()}] Battery ADC measurement error')
+            return
 
-            if self._battery_count == 2:
-                temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
-                temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
+        if self._battery_count == 2:
+            temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
+            temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
 
-                self._publish_battery_msg(
-                    self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
-                )
-                self._publish_battery_msg(
-                    self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
-                )
+            self._publish_battery_msg(
+                self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
+            )
+            self._publish_battery_msg(
+                self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
+            )
 
-                V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
-                temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
-                I_bat_sum = I_bat_1 + I_bat_2
-                I_charge_bat = I_charge_bat_1 + I_charge_bat_2
+            V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
+            temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
+            I_bat_sum = I_bat_1 + I_bat_2
+            I_charge_bat = I_charge_bat_1 + I_charge_bat_2
 
-                self._publish_battery_msg(
-                    self._battery_pub,
-                    V_bat_avereage,
-                    temp_bat_average,
-                    -I_bat_sum + I_charge_bat,
-                )
+            self._publish_battery_msg(
+                self._battery_pub,
+                V_bat_avereage,
+                temp_bat_average,
+                -I_bat_sum + I_charge_bat,
+            )
 
-            else:
-                temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
-                self._publish_battery_msg(
-                    self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
-                )
+        else:
+            temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
+            self._publish_battery_msg(
+                self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
+            )
 
     def _check_battery_count(self) -> int:
         trials_num = 10
@@ -183,15 +182,16 @@ class ADCNode:
         battery_msg.present = True
 
         # check battery status
-        if self._charger_connected:
-            if battery_msg.percentage >= 1.0:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
-            elif self._battery_charging:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+        with self._lock:
+            if self._charger_connected:
+                if battery_msg.percentage >= 1.0:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
+                elif self._battery_charging:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+                else:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
             else:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
-        else:
-            battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
         bat_pub.publish(battery_msg)
 

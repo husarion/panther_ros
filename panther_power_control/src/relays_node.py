@@ -67,7 +67,9 @@ class RelaysNode:
         # -------------------------------
 
         # check motor state at 10 Hz
-        self._set_motor_state_timer = rospy.Timer(rospy.Duration(0.1), self._set_motor_state_timer_cb)
+        self._set_motor_state_timer = rospy.Timer(
+            rospy.Duration(0.1), self._set_motor_state_timer_cb
+        )
 
         # init e-stop state
         self._e_stop_state_pub.publish(self._e_stop_state)
@@ -81,7 +83,9 @@ class RelaysNode:
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         with self._lock:
-            self._can_net_err = any({msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err})
+            self._can_net_err = any(
+                {msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err}
+            )
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         with self._lock:
@@ -95,7 +99,7 @@ class RelaysNode:
                     False,
                     'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
                 )
-            
+
             self._e_stop_state = False
             self._e_stop_state_pub.publish(self._e_stop_state)
             return TriggerResponse(True, 'E-STOP reset successful')
@@ -107,11 +111,10 @@ class RelaysNode:
             return TriggerResponse(True, 'E-SROP triggered successful')
 
     def _set_motor_state_timer_cb(self, *args) -> None:
-        with self._lock:
-            motor_state = GPIO.input(self._pins.STAGE2_INPUT)
-            GPIO.output(self._pins.MOTOR_ON, motor_state)
-            if motor_state != self._motor_on_pub.impl.latch.data:
-                self._motor_on_pub.publish(motor_state)
+        motor_state = GPIO.input(self._pins.STAGE2_INPUT)
+        GPIO.output(self._pins.MOTOR_ON, motor_state)
+        if motor_state != self._motor_on_pub.impl.latch.data:
+            self._motor_on_pub.publish(motor_state)
 
     def _setup_gpio(self) -> None:
         GPIO.setwarnings(False)
