@@ -351,13 +351,12 @@ class PantherDriverNode:
         self._driver_state_pub.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
-        if any(self._panther_can.can_connection_error()) or not self._motor_on:
+        if any(self._panther_can.can_connection_error()):
             if not self._e_stop_cliented:
                 self._trigger_panther_e_stop()
                 self._stop_cmd_vel_cb = True
 
             if not self._motor_on:
-                self._panther_can.reset_can_callback_times()
                 rospy.logwarn_throttle(
                     60.0, f'[{rospy.get_name()}] Motor controllers are not powered on'
                 )
