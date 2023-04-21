@@ -16,16 +16,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>image_transport</depend>
   <depend>panther_msgs</depend>
+  <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
-
-  <depend>libgpiod-dev</depend>
-
-  <depend>image_transport</depend>
-  <depend>roscpp</depend>
 
   <!-- Python dependencies -->
   <depend>python3-pil</depend>

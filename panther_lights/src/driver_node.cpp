@@ -1,4 +1,4 @@
-#include <panther_lights/lights_driver_node.hpp>
+#include <panther_lights/driver_node.hpp>
 
 #include <filesystem>
 #include <memory>
@@ -13,12 +13,12 @@
 
 #include <panther_lights/apa102.hpp>
 
-namespace panther_lights_driver
+namespace panther_lights
 {
-LightsDriverNode::LightsDriverNode(
-  const std::shared_ptr<ros::NodeHandle> private_nh, std::shared_ptr<ros::NodeHandle> nh,
+DriverNode::DriverNode(
+  const std::shared_ptr<ros::NodeHandle> ph, std::shared_ptr<ros::NodeHandle> nh,
   const std::shared_ptr<image_transport::ImageTransport> it)
-: ph_(std::move(private_nh)),
+: ph_(std::move(ph)),
   nh_(std::move(nh)),
   it_(std::move(it)),
   front_panel_("/dev/spidev0.0"),
@@ -51,9 +51,8 @@ LightsDriverNode::LightsDriverNode(
     });
 
   set_brightness_server_ = nh_->advertiseService(
-    "lights/driver/set/brightness", &LightsDriverNode::set_brightness_cb, this);
+    "lights/driver/set/brightness", &DriverNode::set_brightness_cb, this);
 
-  ROS_INFO("[%s] Node started spinning", node_name_.c_str());
 
   while (ros::ok() && !panels_initialised_) {
     ROS_INFO_THROTTLE(5.0, "[%s] Waiting for animation to arrive...", node_name_.c_str());
@@ -61,10 +60,11 @@ LightsDriverNode::LightsDriverNode(
     ros::spinOnce();
   }
 
-  ROS_INFO("[%s] Lights are now being displayed", node_name_.c_str());
+  ROS_INFO("[%s] LED panels initialised", node_name_.c_str());
+  ROS_INFO("[%s] Node started", node_name_.c_str());
 }
 
-LightsDriverNode::~LightsDriverNode()
+DriverNode::~DriverNode()
 {
   // clear LEDs
   front_panel_.set_panel(std::vector<std::uint8_t>(num_led_ * 4, 0));
@@ -74,7 +74,7 @@ LightsDriverNode::~LightsDriverNode()
   set_pin_value(gpiod::line::value::INACTIVE);
 }
 
-bool LightsDriverNode::set_brightness_cb(
+bool DriverNode::set_brightness_cb(
   panther_msgs::SetLEDBrightness::Request & request,
   panther_msgs::SetLEDBrightness::Response & response)
 {
@@ -95,7 +95,7 @@ bool LightsDriverNode::set_brightness_cb(
   return true;
 }
 
-void LightsDriverNode::frame_cb(
+void DriverNode::frame_cb(
   const sensor_msgs::ImageConstPtr & msg, const apa_102::APA102 & panel,
   const ros::Time & last_time, const std::string panel_name)
 {
@@ -131,7 +131,7 @@ void LightsDriverNode::frame_cb(
   }
 }
 
-void LightsDriverNode::set_pin_value(const gpiod::line::value value) const
+void DriverNode::set_pin_value(const gpiod::line::value value) const
 {
   auto chip = gpiod::chip(std::filesystem::path{"/dev/gpiochip0"});
   auto power_pin_offset = gpiod::line::offset(chip.get_line_offset_from_name("LED_SBC_SEL"));
@@ -146,4 +146,4 @@ void LightsDriverNode::set_pin_value(const gpiod::line::value value) const
   rb.add_line_settings(power_pin_offset, settings);
   rb.do_request();
 }
-}  // namespace panther_lights_driver
+}  // namespace panther_lights

@@ -21,13 +21,13 @@ if(NOT LIBGPIOD)
 endif()
 
 find_package(catkin REQUIRED COMPONENTS
-  panther_msgs
-  image_transport
-  roscpp
-  rospy
-  sensor_msgs
-  std_msgs
-  std_srvs
+image_transport
+panther_msgs
+roscpp
+rospy
+sensor_msgs
+std_msgs
+std_srvs
 )
 
 catkin_package(

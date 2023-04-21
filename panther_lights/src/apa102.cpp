@@ -78,9 +78,9 @@ void APA102::set_panel(const std::vector<std::uint8_t> & frame) const
     std::uint8_t brightness = (std::uint16_t(frame[pad + 3]) * global_brightness_) / 255;
     buffer[4 + pad] = 0xE0 | brightness;
     // convert rgb to bgr with collor correction
-    buffer[4 + pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_blue) / 255);
-    buffer[4 + pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_green) / 255);
-    buffer[4 + pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 0]) * corr_red) / 255);
+    buffer[4 + pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 2]) * corr_blue_) / 255);
+    buffer[4 + pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 1]) * corr_green_) / 255);
+    buffer[4 + pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 0]) * corr_red_) / 255);
   }
 
   struct spi_ioc_transfer tr = {

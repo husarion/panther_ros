@@ -1,5 +1,5 @@
-#ifndef PANTHER_LIGHTS_APA_102_HPP_
-#define PANTHER_LIGHTS_APA_102_HPP_
+#ifndef PANTHER_LIGHTS_APA102_HPP_
+#define PANTHER_LIGHTS_APA102_HPP_
 
 #include <cstdint>
 #include <string>
@@ -32,4 +32,4 @@ private:
 
 }  // namespace apa_102
 
-#endif  // PANTHER_LIGHTS_APA_102_HPP_
+#endif  // PANTHER_LIGHTS_APA102_HPP_

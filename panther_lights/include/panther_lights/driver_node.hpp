@@ -14,16 +14,16 @@
 
 #include <panther_msgs/SetLEDBrightness.h>
 
-namespace panther_lights_driver
+namespace panther_lights
 {
 
-class LightsDriverNode
+class DriverNode
 {
 public:
-  LightsDriverNode(
-    const std::shared_ptr<ros::NodeHandle> private_nh, std::shared_ptr<ros::NodeHandle> nh,
+  DriverNode(
+    const std::shared_ptr<ros::NodeHandle> ph, std::shared_ptr<ros::NodeHandle> nh,
     const std::shared_ptr<image_transport::ImageTransport> it);
-  ~LightsDriverNode();
+  ~DriverNode();
 
 private:
   int num_led_;
@@ -52,6 +52,6 @@ private:
     panther_msgs::SetLEDBrightness::Response & response);
 };
 
-}  // namespace panther_lights_driver
+}  // namespace panther_lights
 
 #endif  // PANTHER_LIGHTS_DRIVER_NODE_HPP_

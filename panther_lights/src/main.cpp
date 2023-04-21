@@ -1,4 +1,4 @@
-#include <panther_lights/lights_driver_node.hpp>
+#include <panther_lights/driver_node.hpp>
 
 #include <ros/ros.h>
 
@@ -8,12 +8,12 @@ int main(int argc, char ** argv)
 {
   ros::init(argc, argv, "lights_driver_node");
 
-  auto private_nh = std::make_shared<ros::NodeHandle>("~");
+  auto ph = std::make_shared<ros::NodeHandle>("~");
   auto nh = std::make_shared<ros::NodeHandle>();
   auto it = std::make_shared<image_transport::ImageTransport>(*nh);
 
   try {
-    panther_lights_driver::LightsDriverNode lights_driver_node(private_nh, nh, it);
+    panther_lights::DriverNode driver_node(ph, nh, it);
     ros::spin();
   }
 
