@@ -29,3 +29,7 @@ Node publishing Panther battery state read from motor controllers. Used in Panth
 #### Subscribes
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+
+#### Parameters 
+
+- `~high_bat_temp` [*float*, default: **55.0**]: The temperature of the battery at which the battery health state is incorrect.
