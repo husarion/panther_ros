@@ -362,7 +362,7 @@ class PantherDriverNode:
                 )
                 self._motor_off_last_time = rospy.Time.now()
             else:
-                # wait for motor drivers to power on before lagging an error
+                # wait for motor drivers to power on before logging an error
                 if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.0) :
                     return
                 rospy.logerr_throttle(
