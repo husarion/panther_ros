@@ -13,6 +13,7 @@ class APA102
 public:
   APA102(const std::string device, const std::uint32_t speed = 800000, const bool cs_high = false);
   ~APA102();
+
   void set_global_brightness(const std::uint8_t brightness);
   void set_global_brightness(const double brightness);
   void set_panel(const std::vector<std::uint8_t> & frame) const;
