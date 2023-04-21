@@ -96,6 +96,7 @@ class PantherDriverNode:
         self._driver_state_timer_period = 1.0 / 10.0  # freq. 10 Hz
         self._safety_timer_period = 1.0 / 20.0  # freq. 20 Hz
         self._time_last = rospy.Time.now()
+        self._motor_off_last_time = rospy.Time.now()
         self._cmd_vel_command_last_time = rospy.Time.now()
         self._cmd_vel_timeout = 0.2
 
@@ -360,7 +361,11 @@ class PantherDriverNode:
                 rospy.logwarn_throttle(
                     60.0, f'[{rospy.get_name()}] Motor controllers are not powered on'
                 )
+                self._motor_off_last_time = rospy.Time.now()
             else:
+                # wait for motor drivers to power on before lagging an error
+                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.0) :
+                    return
                 rospy.logerr_throttle(
                     10.0,
                     f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure)',

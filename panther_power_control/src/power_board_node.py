@@ -242,14 +242,18 @@ class PowerBoardNode:
         return res
 
     def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        if self._io_state_pub.impl.latch.motor_on == req.data:
-            return SetBoolResponse(True, f'Motors state already set to: {req.data}')
+        if self._validate_gpio_pin(self._pins.DRIVER_EN, req.data):
+            return SetBoolResponse(True, f'Motor state already set to: {req.data}')
 
         res = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motor drivers enable')
+        if not res.success:
+            return res
+
+        self._publish_io_state('motor_on', req.data)
 
         if req.data:
-            # wait for drivers to power on
-            rospy.sleep(rospy.Duration(1.0))
+            # wait for motor drivers to power on
+            rospy.sleep(rospy.Duration(2.0))
             try:
                 reset_script_res = self._reset_roboteq_script_client.call()
                 if not reset_script_res.success:
@@ -262,9 +266,6 @@ class PowerBoardNode:
                 if res.success:
                     self._publish_io_state('motor_on', False)
                 return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
-
-        if res.success:
-            self._publish_io_state('motor_on', req.data)
 
         return res
 
