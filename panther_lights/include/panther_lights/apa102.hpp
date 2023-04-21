@@ -26,9 +26,9 @@ private:
   std::uint16_t global_brightness_;
 
   // color correction constants
-  const std::uint16_t corr_red = 255.0;
-  const std::uint16_t corr_green = 200.0;
-  const std::uint16_t corr_blue = 62.0;
+  const std::uint16_t corr_red_ = 255.0;
+  const std::uint16_t corr_green_ = 200.0;
+  const std::uint16_t corr_blue_ = 62.0;
 };
 
 }  // namespace apa_102
