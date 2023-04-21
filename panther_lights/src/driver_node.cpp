@@ -39,20 +39,19 @@ DriverNode::DriverNode(
   rear_panel_.set_global_brightness(global_brightness);
 
   front_light_sub_ = it_->subscribe(
-    "lights/driver/front_panel_frame", 5, [&](const sensor_msgs::ImageConstPtr & msg) {
+    "lights/driver/front_panel_frame", 5, [&](const sensor_msgs::Image::ConstPtr & msg) {
       frame_cb(msg, front_panel_, front_panel_ts_, "front");
       front_panel_ts_ = msg->header.stamp;
     });
 
   rear_light_sub_ = it_->subscribe(
-    "lights/driver/rear_panel_frame", 5, [this](const sensor_msgs::ImageConstPtr & msg) {
+    "lights/driver/rear_panel_frame", 5, [this](const sensor_msgs::Image::ConstPtr & msg) {
       frame_cb(msg, rear_panel_, rear_panel_ts_, "rear");
       rear_panel_ts_ = msg->header.stamp;
     });
 
-  set_brightness_server_ = nh_->advertiseService(
-    "lights/driver/set/brightness", &DriverNode::set_brightness_cb, this);
-
+  set_brightness_server_ =
+    nh_->advertiseService("lights/driver/set/brightness", &DriverNode::set_brightness_cb, this);
 
   while (ros::ok() && !panels_initialised_) {
     ROS_INFO_THROTTLE(5.0, "[%s] Waiting for animation to arrive...", node_name_.c_str());
@@ -75,13 +74,12 @@ DriverNode::~DriverNode()
 }
 
 bool DriverNode::set_brightness_cb(
-  panther_msgs::SetLEDBrightness::Request & request,
-  panther_msgs::SetLEDBrightness::Response & response)
+  panther_msgs::SetLEDBrightness::Request & req, panther_msgs::SetLEDBrightness::Response & res)
 {
-  float brightness = request.data;
+  float brightness = req.data;
   if (brightness < 0.0f || brightness > 1.0f) {
-    response.success = false;
-    response.message = "Brightness out of range <0,1>";
+    res.success = false;
+    res.message = "Brightness out of range <0,1>";
     return true;
   }
   front_panel_.set_global_brightness(brightness);
@@ -90,13 +88,13 @@ bool DriverNode::set_brightness_cb(
 
   // round string to two decimal places
   str_bright = str_bright.substr(0, str_bright.find(".") + 3);
-  response.success = 1;
-  response.message = "Changed brightness to " + str_bright;
+  res.success = true;
+  res.message = "Changed brightness to " + str_bright;
   return true;
 }
 
 void DriverNode::frame_cb(
-  const sensor_msgs::ImageConstPtr & msg, const apa_102::APA102 & panel,
+  const sensor_msgs::Image::ConstPtr & msg, const apa_102::APA102 & panel,
   const ros::Time & last_time, const std::string panel_name)
 {
   std::string meessage;

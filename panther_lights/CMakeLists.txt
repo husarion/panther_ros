@@ -43,7 +43,7 @@ include_directories(
 
 add_executable(driver_node
   src/main.cpp
-  src/lights_driver_node.cpp
+  src/driver_node.cpp
   src/apa102.cpp
 )
 

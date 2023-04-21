@@ -44,12 +44,11 @@ private:
   image_transport::Subscriber front_light_sub_;
 
   void frame_cb(
-    const sensor_msgs::ImageConstPtr & msg, const apa_102::APA102 & panel,
+    const sensor_msgs::Image::ConstPtr & msg, const apa_102::APA102 & panel,
     const ros::Time & last_time, const std::string panel_name);
   void set_pin_value(const gpiod::line::value value) const;
   bool set_brightness_cb(
-    panther_msgs::SetLEDBrightness::Request & request,
-    panther_msgs::SetLEDBrightness::Response & response);
+    panther_msgs::SetLEDBrightness::Request & req, panther_msgs::SetLEDBrightness::Response & res);
 };
 
 }  // namespace panther_lights
