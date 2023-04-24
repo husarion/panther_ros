@@ -2,11 +2,15 @@
   <arg name="use_rviz" default="true" />
   <arg name="rviz_config" default="$(find panther_description)/rviz/panther.rviz" />
   <arg name="use_ros_control" default="false" />
+  <arg name="wheel_type" default="WH01" />
+  <arg name="publish_robot_state" default="true" />
 
   <include file="$(find panther_gazebo)/launch/panther_world.launch" />
 
   <include file="$(find panther_gazebo)/launch/panther_spawn.launch">
     <arg name="use_ros_control" value="$(arg use_ros_control)" />
+    <arg name="wheel_type" value="$(arg wheel_type)" />
+    <arg name="publish_robot_state" value="$(arg publish_robot_state)" />
   </include>
 
   <node if="$(arg use_rviz)" pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(arg rviz_config)" />
