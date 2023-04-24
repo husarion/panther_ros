@@ -13,8 +13,7 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
-from panther_msgs.msg import DriverState, FaultFlag, ScriptFlag, RuntimeError, IOState
-
+from panther_msgs.msg import DriverState, FaultFlag, IOState, RuntimeError, ScriptFlag
 from panther_can import PantherCANSDO, PantherCANPDO
 from panther_kinematics import PantherDifferential, PantherMecanum
 
@@ -363,7 +362,7 @@ class PantherDriverNode:
                 self._motor_off_last_time = rospy.Time.now()
             else:
                 # wait for motor drivers to power on before logging an error
-                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.0) :
+                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.0):
                     return
                 rospy.logerr_throttle(
                     10.0,
