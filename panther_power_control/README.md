@@ -36,7 +36,7 @@ Node responsible for management of the safety board and the power board. Availab
 
 #### Service clients
 
-- `/panther/driver/reset_roboteq_script` [*std_srvs/Trigger]: used to reset Roboteq drivers script when enabling motor drivers.
+- `/panther/driver/reset_roboteq_script` [*std_srvs/Trigger*]: used to reset Roboteq drivers script when enabling motor drivers.
 
 ### relays_node.py
 
