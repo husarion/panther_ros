@@ -184,8 +184,7 @@ class PowerBoardNode:
                 self._e_stop_interrupt_time = float('inf')
 
     def _watchdog_cb(self, *args) -> None:
-        with self._pins_lock:
-            self._watchdog()
+        self._watchdog()
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
@@ -252,18 +251,17 @@ class PowerBoardNode:
         return SetBoolResponse(success, msg)
 
     def _reset_e_stop(self) -> None:
-        with self._pins_lock:
-            self._clearing_e_stop = True
-            GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
-            self._watchdog.turn_on()
+        self._clearing_e_stop = True
+        GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
+        self._watchdog.turn_on()
 
-            self._write_to_pin(self._pins.E_STOP_RESET, False)
-            rospy.sleep(0.1)
+        self._write_to_pin(self._pins.E_STOP_RESET, False)
+        rospy.sleep(0.1)
 
-            GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
-            rospy.sleep(0.1)
-            self._clearing_e_stop = False
-            self._e_stop_event()
+        GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
+        rospy.sleep(0.1)
+        self._clearing_e_stop = False
+        self._e_stop_event()
 
     def _e_stop_event(self) -> None:
         e_stop_state = self._read_pin(self._pins.E_STOP_RESET)
