@@ -2,6 +2,9 @@
 Changelog for package panther_power_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.2 (2023-04-24)
 ------------------
 
