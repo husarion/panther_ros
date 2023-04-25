@@ -25,7 +25,6 @@ public:
     });
   }
 
-  unsigned aniamtion_id_;
 
   void update_request(RequestType & request) override;
   virtual BT::NodeStatus on_response(const ResponseType & response);
