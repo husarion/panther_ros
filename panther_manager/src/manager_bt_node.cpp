@@ -86,7 +86,7 @@ ManagerNode::ManagerNode(
      unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING)},
     {"POWER_SUPPLY_STATUS_FULL", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL)},
   };
-  std::map<std::string, std::any> safety_initial_bb = {
+  const std::map<std::string, std::any> safety_initial_bb = {
     {"high_bat_temp", high_bat_temp},
     {"critical_bat_temp", critical_bat_temp},
     {"fatal_bat_temp", fatal_bat_temp},
