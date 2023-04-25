@@ -27,7 +27,7 @@ public:
   using RequestType = typename ServiceT::Request;
   using ResponseType = typename ServiceT::Response;
 
-  static BT::PortsList providedBasicPorts(BT::PortsList addition)
+  static BT::PortsList providedBasicPorts(const BT::PortsList addition)
   {
     BT::PortsList ports = {
       BT::InputPort<std::string>("service_name", "ROS service name"),
