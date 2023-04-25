@@ -13,12 +13,12 @@ ManagerNode::ManagerNode(
     ros::package::getPath("panther_manager") + "/config/PantherManagerBT.xml";
   const std::vector<std::string> default_plugin_libs = {};
 
-  auto xml_filename = ph_->param<std::string>("xml_filename", default_xml);
-  auto plugin_libs = ph_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
-  auto battery_temp_window_len = ph_->param<int>("battery_temp_window_len", 6);
-  auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
-  auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
-  auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
+  const auto xml_filename = ph_->param<std::string>("xml_filename", default_xml);
+  const auto plugin_libs = ph_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
+  const auto battery_temp_window_len = ph_->param<int>("battery_temp_window_len", 6);
+  const auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
+  const auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
+  const auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
   shutdown_timeout_ = ph_->param<float>("shutdown_timeout", 15.0);
   debug_tree_ = ph_->param<std::string>("debug_tree", "");
 
