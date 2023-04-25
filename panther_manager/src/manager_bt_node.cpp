@@ -3,7 +3,7 @@
 namespace panther_manager
 {
 
-ManagerNode::ManagerNode(
+ManagerBTNode::ManagerBTNode(
   const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph)
 : nh_(std::move(nh)), ph_(std::move(ph))
 {
@@ -20,14 +20,14 @@ ManagerNode::ManagerNode(
   const auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
   const auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
   shutdown_timeout_ = ph_->param<float>("shutdown_timeout", 15.0);
-  debug_tree_ = ph_->param<std::string>("debug_tree", "");
 
   // lights tree params
   const auto critical_battery_anim_period =
     ph_->param<float>("lights/critical_battery_anim_period", 15.0);
   const auto critical_battery_threshold_percent =
     ph_->param<float>("lights/critical_battery_threshold_percent", 0.1);
-  const auto battery_state_anim_period = ph_->param<float>("lights/battery_state_anim_period", 120.0);
+  const auto battery_state_anim_period =
+    ph_->param<float>("lights/battery_state_anim_period", 120.0);
   const auto low_battery_anim_period = ph_->param<float>("lights/low_battery_anim_period", 30.0);
   const auto low_battery_threshold_percent =
     ph_->param<float>("lights/low_battery_threshold_percent", 0.4);
@@ -57,11 +57,11 @@ ManagerNode::ManagerNode(
   factory_.registerBehaviorTreeFromFile(xml_filename);
 
   const std::map<std::string, std::any> lights_initial_bb = {
-    {"critical_battery_anim_period", critical_battery_anim_period},
-    {"critical_battery_threshold_percent", critical_battery_threshold_percent},
-    {"battery_state_anim_period", battery_state_anim_period},
-    {"low_battery_anim_period", low_battery_anim_period},
-    {"low_battery_threshold_percent", low_battery_threshold_percent},
+    {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
+    {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
+    {"BATTERY_STATE_ANIM_PERIOD", battery_state_anim_period},
+    {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
+    {"LOW_BATTERY_THRESHOLD_PERCENT", low_battery_threshold_percent},
     {"current_anim_id", -1},
     {"charging_anim_percent", ""},
     // anim constants
@@ -87,16 +87,16 @@ ManagerNode::ManagerNode(
     {"POWER_SUPPLY_STATUS_FULL", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL)},
   };
   const std::map<std::string, std::any> safety_initial_bb = {
-    {"high_bat_temp", high_bat_temp},
-    {"critical_bat_temp", critical_bat_temp},
-    {"fatal_bat_temp", fatal_bat_temp},
-    {"cpu_fan_on_temp", cpu_fan_on_temp},
-    {"cpu_fan_off_temp", cpu_fan_off_temp},
-    {"driver_fan_on_temp", driver_fan_on_temp},
-    {"driver_fan_off_temp", driver_fan_off_temp},
+    {"HIGH_BAT_TEMP", high_bat_temp},
+    {"CRITICAL_BAT_TEMP", critical_bat_temp},
+    {"FATAL_BAT_TEMP", fatal_bat_temp},
+    {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
+    {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
+    {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
+    {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
   };
   const std::map<std::string, std::any> shutdown_initial_bb = {
-    {"shutdown_hosts_file", shutdown_hosts_file.c_str()},
+    {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_file.c_str()},
   };
 
   lights_config_ = create_bt_config(lights_initial_bb);
@@ -107,12 +107,12 @@ ManagerNode::ManagerNode(
   safety_tree_ = factory_.createTree("Safety", safety_config_.blackboard);
   shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
 
-  battery_sub_ = nh_->subscribe("battery", 10, &ManagerNode::battery_cb, this);
+  battery_sub_ = nh_->subscribe("battery", 10, &ManagerBTNode::battery_cb, this);
   driver_state_sub_ =
-    nh_->subscribe("driver/motor_controllers_state", 10, &ManagerNode::driver_state_cb, this);
-  e_stop_sub_ = nh_->subscribe("hardware/e_stop", 2, &ManagerNode::e_stop_cb, this);
-  io_state_sub_ = nh_->subscribe("hardware/io_state", 2, &ManagerNode::io_state_cb, this);
-  system_status_sub_ = nh_->subscribe("system_status", 10, &ManagerNode::system_status_cb, this);
+    nh_->subscribe("driver/motor_controllers_state", 10, &ManagerBTNode::driver_state_cb, this);
+  e_stop_sub_ = nh_->subscribe("hardware/e_stop", 2, &ManagerBTNode::e_stop_cb, this);
+  io_state_sub_ = nh_->subscribe("hardware/io_state", 2, &ManagerBTNode::io_state_cb, this);
+  system_status_sub_ = nh_->subscribe("system_status", 10, &ManagerBTNode::system_status_cb, this);
 
   while (ros::ok() && !e_stop_state_.has_value()) {
     ROS_INFO_THROTTLE(5.0, "[%s] Waiting for e_stop message to arrive", node_name_.c_str());
@@ -133,14 +133,14 @@ ManagerNode::ManagerNode(
   }
 
   lights_tree_timer_ =
-    nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerNode::lights_tree_timer_cb, this));
+    nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerBTNode::lights_tree_timer_cb, this));
   safety_tree_timer_ =
-    nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerNode::safety_tree_timer_cb, this));
+    nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerBTNode::safety_tree_timer_cb, this));
 
   ROS_INFO("[%s] Node started", node_name_.c_str());
 }
 
-BT::NodeConfig ManagerNode::create_bt_config(const std::map<std::string, std::any> bb_values)
+BT::NodeConfig ManagerBTNode::create_bt_config(const std::map<std::string, std::any> bb_values) const
 {
   BT::NodeConfig config;
   config.blackboard = BT::Blackboard::create();
@@ -174,25 +174,25 @@ BT::NodeConfig ManagerNode::create_bt_config(const std::map<std::string, std::an
   return config;
 }
 
-void ManagerNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
+void ManagerBTNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
 {
   battery_temp_ma_.roll(battery->temperature);
   battery_status_ = battery->power_supply_status;
   battery_percent_ = battery->percentage;
 }
 
-void ManagerNode::driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state)
+void ManagerBTNode::driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state)
 {
   front_driver_temp_ma_.roll(driver_state->front.temperature);
   rear_driver_temp_ma_.roll(driver_state->rear.temperature);
 }
 
-void ManagerNode::e_stop_cb(const std_msgs::Bool::ConstPtr & e_stop)
+void ManagerBTNode::e_stop_cb(const std_msgs::Bool::ConstPtr & e_stop)
 {
   e_stop_state_ = e_stop->data;
 }
 
-void ManagerNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state)
+void ManagerBTNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state)
 {
   if (io_state->power_button) {
     shutdown_robot("Power button pressed");
@@ -200,12 +200,12 @@ void ManagerNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state)
   io_state_ = io_state;
 }
 
-void ManagerNode::system_status_cb(const panther_msgs::SystemStatus::ConstPtr & system_status)
+void ManagerBTNode::system_status_cb(const panther_msgs::SystemStatus::ConstPtr & system_status)
 {
   cpu_temp_ma_.roll(system_status->cpu_temp);
 }
 
-void ManagerNode::lights_tree_timer_cb()
+void ManagerBTNode::lights_tree_timer_cb()
 {
   // update blackboard
   lights_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
@@ -220,7 +220,7 @@ void ManagerNode::lights_tree_timer_cb()
   lights_tree_status_ = lights_tree_.tickOnce();
 }
 
-void ManagerNode::safety_tree_timer_cb()
+void ManagerBTNode::safety_tree_timer_cb()
 {
   // update blackboard
   safety_config_.blackboard->set<bool>("aux_state", io_state_.value()->aux_power);
@@ -242,7 +242,7 @@ void ManagerNode::safety_tree_timer_cb()
   }
 }
 
-void ManagerNode::shutdown_robot(const std::string & message)
+void ManagerBTNode::shutdown_robot(const std::string & message)
 {
   ROS_WARN("[%s] %s. Soft shutdown initialized.", node_name_.c_str(), message.c_str());
   lights_tree_timer_.stop();
@@ -254,10 +254,12 @@ void ManagerNode::shutdown_robot(const std::string & message)
   // BT::StdCoutLogger logger_cout(shutdown_tree_);  // debugging
   shutdown_tree_status_ = BT::NodeStatus::RUNNING;
   auto start_time = ros::Time::now();
+  ros::Rate rate(10.0);  // 10 Hz
   while (ros::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {
     auto shutdown_timeout = (ros::Time::now() - start_time) > ros::Duration(shutdown_timeout_);
     shutdown_config_.blackboard->set<bool>("shutdown_timeout", shutdown_timeout);
     shutdown_tree_status_ = shutdown_tree_.tickOnce();
+    rate.sleep();
   }
   ros::requestShutdown();
 }

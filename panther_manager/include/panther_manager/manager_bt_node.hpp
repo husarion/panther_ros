@@ -1,5 +1,5 @@
-#ifndef PANTHER_MANAGER_MANAGER_NODE_HPP_
-#define PANTHER_MANAGER_MANAGER_NODE_HPP_
+#ifndef PANTHER_MANAGER_MANAGER_BT_NODE_HPP_
+#define PANTHER_MANAGER_MANAGER_BT_NODE_HPP_
 
 #include <any>
 
@@ -23,17 +23,16 @@
 namespace panther_manager
 {
 
-class ManagerNode
+class ManagerBTNode
 {
 public:
-  ManagerNode(const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph);
-  ~ManagerNode() {}
+  ManagerBTNode(const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph);
+  ~ManagerBTNode() {}
 
 private:
   float battery_percent_;
   float update_charging_anim_step_;
   float shutdown_timeout_;
-  std::string debug_tree_;
   std::string node_name_;
   std::optional<unsigned> battery_status_;
   std::optional<bool> e_stop_state_;
@@ -73,9 +72,9 @@ private:
   void safety_tree_timer_cb();
   void lights_tree_timer_cb();
   void shutdown_robot(const std::string & message);
-  BT::NodeConfig create_bt_config(const std::map<std::string, std::any> bb_values = {});
+  BT::NodeConfig create_bt_config(const std::map<std::string, std::any> bb_values = {}) const;
 };
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_MANAGER_NODE_HPP_
+#endif  // PANTHER_MANAGER_MANAGER_BT_NODE_HPP_

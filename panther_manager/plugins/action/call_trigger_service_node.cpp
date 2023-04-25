@@ -3,7 +3,6 @@
 namespace panther_manager
 {
 
-
 BT::NodeStatus CallTriggerService::on_response(const ResponseType & response)
 {
   if (!response.success) {

@@ -8,7 +8,7 @@ template <typename T>
 class MovingAverage
 {
 public:
-  MovingAverage(const int window_size = 5) : window_size_(window_size), sum_(T(0)) {}
+  MovingAverage(const unsigned window_size = 5) : window_size_(window_size) {}
 
   void roll(const T value)
   {
@@ -29,7 +29,7 @@ public:
   }
 
 private:
-  int window_size_;
+  unsigned window_size_;
   std::deque<T> values;
   T sum_;
 };

@@ -7,7 +7,7 @@ int main(int argc, char ** argv)
   auto nh = std::make_shared<ros::NodeHandle>();
   auto ph = std::make_shared<ros::NodeHandle>("~");
 
-  panther_manager::ManagerNode manager_bt_node(nh, ph);
+  panther_manager::ManagerBTNode manager_bt_node(nh, ph);
 
   spinner.start();
   ros::waitForShutdown();

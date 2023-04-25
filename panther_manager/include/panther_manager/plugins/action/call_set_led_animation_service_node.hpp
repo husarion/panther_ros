@@ -21,10 +21,9 @@ public:
     return providedBasicPorts({
       BT::InputPort<unsigned>("id", "animation ID"),
       BT::InputPort<std::string>("param", "optional parameter"),
-      BT::InputPort<bool>("repeating", "indicates if animation should repeat"),
+      BT::InputPort<bool>("repeating", false, "indicates if animation should repeat"),
     });
   }
-
 
   void update_request(RequestType & request) override;
   virtual BT::NodeStatus on_response(const ResponseType & response);

@@ -86,4 +86,4 @@ Publishes stats status of the built-in computer. Stats include CPU utilization a
 
 - `Lights` - tree responsible for scheduling animations displayed on LED panels, based on the Husarion Panther robot's system state.
 - `Safety` - tree responsible for monitoring the Panther robot's state and handling safety measures, such as  cooling the robot in case of high CPU or battery temperature.
-- `Shutdown` - tree responsible for gracefull shutdown of robot components and the built-in computer.
+- `Shutdown` - tree responsible for gracefull shutdown of robot components, user computers and the built-in computer.

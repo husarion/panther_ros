@@ -2,7 +2,8 @@
 <root BTCPP_format="4">
   <BehaviorTree ID="Lights">
     <Sequence>
-      <Sequence _skipIf="battery_status != POWER_SUPPLY_STATUS_CHARGING \
+      <Sequence name="ChargingSequence"
+                _skipIf="battery_status != POWER_SUPPLY_STATUS_CHARGING \
 &amp;&amp; battery_status != POWER_SUPPLY_STATUS_FULL">
         <CallSetLedAnimationService name="SetChargingAnimation"
                                     id="{CHARGING_BATTERY_ANIM_ID}"
@@ -24,7 +25,7 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                       timeout="100"/>
         </TickAfterTimeout>
       </Sequence>
-      <Sequence name="Discharging"
+      <Sequence name="DischargingSequence"
                 _skipIf="battery_status != POWER_SUPPLY_STATUS_DISCHARGING \
 &amp;&amp; battery_status != POWER_SUPPLY_STATUS_NOT_CHARGING">
         <CallSetLedAnimationService name="SetReadyAnimation"
@@ -43,10 +44,10 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                     timeout="100"
                                     _skipIf="!e_stop_state || current_anim_id == E_STOP_ANIM_ID"
                                     _onSuccess="current_anim_id = E_STOP_ANIM_ID"/>
-        <Sequence>
-          <TickAfterTimeout timeout="{low_battery_anim_period}"
-                            _skipIf="battery_percent &lt; critical_battery_threshold_percent \
-|| battery_percent &gt;= low_battery_threshold_percent">
+        <Sequence name="DisplayAnimationStatusSequence">
+          <TickAfterTimeout timeout="{LOW_BATTERY_ANIM_PERIOD}"
+                            _skipIf="battery_percent &lt; CRITICAL_BATTERY_THRESHOLD_PERCENT \
+|| battery_percent &gt;= LOW_BATTERY_THRESHOLD_PERCENT">
             <CallSetLedAnimationService name="SetLowBatteryAnimation"
                                         id="{LOW_BATTERY_ANIM_ID}"
                                         param=""
@@ -54,8 +55,8 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                         service_name="lights/controller/set/animation"
                                         timeout="100"/>
           </TickAfterTimeout>
-          <TickAfterTimeout timeout="{critical_battery_anim_period}"
-                            _skipIf="battery_percent &gt;= critical_battery_threshold_percent">
+          <TickAfterTimeout timeout="{CRITICAL_BATTERY_ANIM_PERIOD}"
+                            _skipIf="battery_percent &gt;= CRITICAL_BATTERY_THRESHOLD_PERCENT">
             <CallSetLedAnimationService name="SetCriticalBatteryAnimation"
                                         id="{CRITICAL_BATTERY_ANIM_ID}"
                                         param=""
@@ -63,8 +64,8 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                         service_name="lights/controller/set/animation"
                                         timeout="100"/>
           </TickAfterTimeout>
-          <TickAfterTimeout timeout="{battery_state_anim_period}"
-                            _skipIf="battery_percent &lt; low_battery_threshold_percent">
+          <TickAfterTimeout timeout="{BATTERY_STATE_ANIM_PERIOD}"
+                            _skipIf="battery_percent &lt; LOW_BATTERY_THRESHOLD_PERCENT">
             <CallSetLedAnimationService name="SetBatteryStateAnimation"
                                         id="{BATTERY_STATE_ANIM_ID}"
                                         param="{battery_percent_round}"
@@ -89,11 +90,12 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
   <BehaviorTree ID="Safety">
     <Sequence>
       <Sequence name="ManagePowerSequence"
-                _skipIf="bat_temp &lt;= high_bat_temp">
+                _skipIf="bat_temp &lt;= HIGH_BAT_TEMP">
         <Script name="SignalShutdown"
                 code="signal_shutdown := &quot;Battery reached fatal temperature&quot;"
-                _skipIf="bat_temp &lt;= fatal_bat_temp"/>
-        <Sequence _skipIf="bat_temp &gt; fatal_bat_temp">
+                _skipIf="bat_temp &lt;= FATAL_BAT_TEMP"/>
+        <Sequence name="HighTempSequence"
+                  _skipIf="bat_temp &gt; FATAL_BAT_TEMP">
           <CallTriggerService name="TriggerEStop"
                               service_name="hardware/e_stop_trigger"
                               timeout="100"
@@ -102,7 +104,7 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                               data="false"
                               service_name="hardware/aux_power_enable"
                               timeout="100"
-                              _skipIf="!aux_state || bat_temp &lt;= critical_bat_temp"/>
+                              _skipIf="!aux_state || bat_temp &lt;= CRITICAL_BAT_TEMP"/>
           <CallSetBoolService name="EnableFan"
                               data="true"
                               service_name="hardware/fan_enable"
@@ -110,20 +112,21 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                               _skipIf="fan_state"/>
         </Sequence>
       </Sequence>
-      <Sequence _skipIf="bat_temp &gt; high_bat_temp">
+      <Sequence name="TempControlSequence"
+                _skipIf="bat_temp &gt; HIGH_BAT_TEMP">
         <CallSetBoolService name="DisableFan"
                             data="false"
                             service_name="hardware/fan_enable"
                             timeout="100"
-                            _skipIf="cpu_temp &gt; cpu_fan_off_temp \
-|| driver_temp &gt; driver_fan_off_temp \
+                            _skipIf="cpu_temp &gt; CPU_FAN_OFF_TEMP \
+|| driver_temp &gt; DRIVER_FAN_OFF_TEMP \
 || !fan_state"/>
         <CallSetBoolService name="EnableFan"
                             data="true"
                             service_name="hardware/fan_enable"
                             timeout="100"
-                            _skipIf="(cpu_temp &lt;= cpu_fan_on_temp \
-&amp;&amp; driver_temp &lt;= driver_fan_on_temp) \
+                            _skipIf="(cpu_temp &lt;= CPU_FAN_ON_TEMP \
+&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP) \
 || fan_state"/>
       </Sequence>
     </Sequence>
@@ -132,7 +135,7 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
   <BehaviorTree ID="Shutdown">
     <Sequence>
       <ForceSuccess _while="!shutdown_timeout">
-        <ShutdownHostsFromFile shutdown_hosts_file="{shutdown_hosts_file}"/>
+        <ShutdownHostsFromFile shutdown_hosts_file="{SHUTDOWN_HOSTS_FILE}"/>
       </ForceSuccess>
       <ShutdownSingleHost command=""
                           ip="localhost"
