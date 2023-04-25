@@ -95,7 +95,7 @@ ManagerNode::ManagerNode(
     {"driver_fan_on_temp", driver_fan_on_temp},
     {"driver_fan_off_temp", driver_fan_off_temp},
   };
-  std::map<std::string, std::any> shutdown_initial_bb = {
+  const std::map<std::string, std::any> shutdown_initial_bb = {
     {"shutdown_hosts_file", shutdown_hosts_file.c_str()},
   };
 
