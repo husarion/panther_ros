@@ -18,7 +18,7 @@ public:
 
   static BT::PortsList providedPorts() { return providedBasicPorts({}); }
 
-  void update_request(RequestType & request) override;
+  void update_request(RequestType & request) override {};
   virtual BT::NodeStatus on_response(const ResponseType & response);
 };
 
