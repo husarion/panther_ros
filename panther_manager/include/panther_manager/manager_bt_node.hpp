@@ -30,7 +30,6 @@ public:
   ~ManagerBTNode() {}
 
 private:
-  float battery_percent_;
   float update_charging_anim_step_;
   float shutdown_timeout_;
   std::string node_name_;
@@ -60,6 +59,7 @@ private:
   BT::Tree shutdown_tree_;
 
   MovingAverage<double> battery_temp_ma_;
+  MovingAverage<double> battery_percent_ma_;
   MovingAverage<double> cpu_temp_ma_;
   MovingAverage<double> front_driver_temp_ma_;
   MovingAverage<double> rear_driver_temp_ma_;

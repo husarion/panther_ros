@@ -16,6 +16,7 @@ ManagerBTNode::ManagerBTNode(
   const auto xml_filename = ph_->param<std::string>("xml_filename", default_xml);
   const auto plugin_libs = ph_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
   const auto battery_temp_window_len = ph_->param<int>("battery_temp_window_len", 6);
+  const auto battery_percent_window_len = ph->param<int>("battery_percent_window_len", 6);
   const auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
   const auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
   const auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
@@ -43,6 +44,7 @@ ManagerBTNode::ManagerBTNode(
   const auto driver_fan_off_temp = ph_->param<float>("safety/driver_fan_off_temp", 35.0);
 
   battery_temp_ma_ = MovingAverage<double>(battery_temp_window_len);
+  battery_percent_ma_ = MovingAverage<double>(battery_percent_window_len, 1.0);
   cpu_temp_ma_ = MovingAverage<double>(cpu_temp_window_len);
   front_driver_temp_ma_ = MovingAverage<double>(driver_temp_window_len);
   rear_driver_temp_ma_ = MovingAverage<double>(driver_temp_window_len);
@@ -140,7 +142,8 @@ ManagerBTNode::ManagerBTNode(
   ROS_INFO("[%s] Node started", node_name_.c_str());
 }
 
-BT::NodeConfig ManagerBTNode::create_bt_config(const std::map<std::string, std::any> bb_values) const
+BT::NodeConfig ManagerBTNode::create_bt_config(
+  const std::map<std::string, std::any> bb_values) const
 {
   BT::NodeConfig config;
   config.blackboard = BT::Blackboard::create();
@@ -177,8 +180,8 @@ BT::NodeConfig ManagerBTNode::create_bt_config(const std::map<std::string, std::
 void ManagerBTNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
 {
   battery_temp_ma_.roll(battery->temperature);
+  battery_percent_ma_.roll(battery->percentage);
   battery_status_ = battery->power_supply_status;
-  battery_percent_ = battery->percentage;
 }
 
 void ManagerBTNode::driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state)
@@ -210,11 +213,12 @@ void ManagerBTNode::lights_tree_timer_cb()
   // update blackboard
   lights_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
   lights_config_.blackboard->set<unsigned>("battery_status", battery_status_.value());
-  lights_config_.blackboard->set<float>("battery_percent", battery_percent_);
+  lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_.get_average());
   lights_config_.blackboard->set<std::string>(
     "battery_percent_round",
     std::to_string(
-      round(battery_percent_ / update_charging_anim_step_) * update_charging_anim_step_));
+      round(battery_percent_ma_.get_average() / update_charging_anim_step_) *
+      update_charging_anim_step_));
 
   // BT::StdCoutLogger logger_cout(lights_tree_);  // debugging
   lights_tree_status_ = lights_tree_.tickOnce();
