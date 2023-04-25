@@ -56,7 +56,7 @@ ManagerNode::ManagerNode(
 
   factory_.registerBehaviorTreeFromFile(xml_filename);
 
-  std::map<std::string, std::any> lights_initial_bb = {
+  const std::map<std::string, std::any> lights_initial_bb = {
     {"critical_battery_anim_period", critical_battery_anim_period},
     {"critical_battery_threshold_percent", critical_battery_threshold_percent},
     {"battery_state_anim_period", battery_state_anim_period},
