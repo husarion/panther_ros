@@ -8,7 +8,10 @@ template <typename T>
 class MovingAverage
 {
 public:
-  MovingAverage(const unsigned window_size = 5) : window_size_(window_size) {}
+  MovingAverage(const unsigned window_size = 5, const T initial_value = T(0))
+  : window_size_(window_size), sum_(initial_value)
+  {
+  }
 
   void roll(const T value)
   {
@@ -22,10 +25,7 @@ public:
 
   T get_average() const
   {
-    if (values.size() == 0) {
-      return T(0);
-    }
-    return sum_ / static_cast<T>(values.size());
+    return sum_ / static_cast<T>(window_size_);
   }
 
 private:
