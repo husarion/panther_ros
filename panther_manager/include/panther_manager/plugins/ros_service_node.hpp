@@ -41,8 +41,8 @@ public:
   virtual void update_request(RequestType & request) = 0;
   virtual BT::NodeStatus on_response(const ResponseType & response) = 0;
 
-  std::string get_node_name() { return node_name_; }
-  std::string get_srv_name() { return srv_name_; }
+  std::string get_node_name() const { return node_name_; }
+  std::string get_srv_name() const { return srv_name_; }
 
 private:
   std::string node_name_;
