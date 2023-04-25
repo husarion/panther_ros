@@ -23,13 +23,13 @@ ManagerNode::ManagerNode(
   debug_tree_ = ph_->param<std::string>("debug_tree", "");
 
   // lights tree params
-  auto critical_battery_anim_period =
+  const auto critical_battery_anim_period =
     ph_->param<float>("lights/critical_battery_anim_period", 15.0);
-  auto critical_battery_threshold_percent =
+  const auto critical_battery_threshold_percent =
     ph_->param<float>("lights/critical_battery_threshold_percent", 0.1);
-  auto battery_state_anim_period = ph_->param<float>("lights/battery_state_anim_period", 120.0);
-  auto low_battery_anim_period = ph_->param<float>("lights/low_battery_anim_period", 30.0);
-  auto low_battery_threshold_percent =
+  const auto battery_state_anim_period = ph_->param<float>("lights/battery_state_anim_period", 120.0);
+  const auto low_battery_anim_period = ph_->param<float>("lights/low_battery_anim_period", 30.0);
+  const auto low_battery_threshold_percent =
     ph_->param<float>("lights/low_battery_threshold_percent", 0.4);
   update_charging_anim_step_ = ph_->param<float>("lights/update_charging_anim_step", 0.1);
 
