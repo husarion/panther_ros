@@ -3,7 +3,6 @@
 namespace panther_manager
 {
 
-void CallTriggerService::update_request(RequestType & request) {}
 
 BT::NodeStatus CallTriggerService::on_response(const ResponseType & response)
 {
