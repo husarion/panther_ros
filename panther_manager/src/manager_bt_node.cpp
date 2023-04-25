@@ -34,13 +34,13 @@ ManagerNode::ManagerNode(
   update_charging_anim_step_ = ph_->param<float>("lights/update_charging_anim_step", 0.1);
 
   // safety tree params
-  auto high_bat_temp = ph_->param<float>("safety/high_bat_temp", 55.0);
-  auto critical_bat_temp = ph_->param<float>("safety/critical_bat_temp", 59.0);
-  auto fatal_bat_temp = ph_->param<float>("safety/fatal_bat_temp", 62.0);
-  auto cpu_fan_on_temp = ph_->param<float>("safety/cpu_fan_on_temp", 70.0);
-  auto cpu_fan_off_temp = ph_->param<float>("safety/cpu_fan_off_temp", 60.0);
-  auto driver_fan_on_temp = ph_->param<float>("safety/driver_fan_on_temp", 45.0);
-  auto driver_fan_off_temp = ph_->param<float>("safety/driver_fan_off_temp", 35.0);
+  const auto high_bat_temp = ph_->param<float>("safety/high_bat_temp", 55.0);
+  const auto critical_bat_temp = ph_->param<float>("safety/critical_bat_temp", 59.0);
+  const auto fatal_bat_temp = ph_->param<float>("safety/fatal_bat_temp", 62.0);
+  const auto cpu_fan_on_temp = ph_->param<float>("safety/cpu_fan_on_temp", 70.0);
+  const auto cpu_fan_off_temp = ph_->param<float>("safety/cpu_fan_off_temp", 60.0);
+  const auto driver_fan_on_temp = ph_->param<float>("safety/driver_fan_on_temp", 45.0);
+  const auto driver_fan_off_temp = ph_->param<float>("safety/driver_fan_off_temp", 35.0);
 
   battery_temp_ma_ = MovingAverage<double>(battery_temp_window_len);
   cpu_temp_ma_ = MovingAverage<double>(cpu_temp_window_len);
