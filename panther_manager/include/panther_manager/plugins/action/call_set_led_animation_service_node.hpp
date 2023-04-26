@@ -26,7 +26,7 @@ public:
     return providedBasicPorts({
       BT::InputPort<unsigned>("id", "animation ID"),
       BT::InputPort<std::string>("param", "optional parameter"),
-      BT::InputPort<bool>("repeating", false, "indicates if animation should repeat"),
+      BT::InputPort<bool>("repeating", "indicates if animation should repeat"),
     });
   }
 

@@ -11,7 +11,6 @@ void CallSetLedAnimationService::update_request(RequestType & request)
 {
   bool repeating;
   unsigned animation_id;
-  std::string param;
 
   if (!getInput<unsigned>("id", animation_id)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [id]"));
@@ -19,12 +18,9 @@ void CallSetLedAnimationService::update_request(RequestType & request)
   if (!getInput<bool>("repeating", repeating)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [repeating]"));
   }
-  if (!getInput<std::string>("param", param)) {
-    param = "";
-  }
 
   request.animation.id = animation_id;
-  request.animation.param = param;
+  request.animation.param = getInput<std::string>("param").value();
   request.repeating = repeating;
 }
 

@@ -2,6 +2,7 @@
 #define PANTHER_MANAGER_MOVING_AVERAGE_HPP_
 
 #include <deque>
+#include <memory>
 
 namespace panther_manager
 {
@@ -11,13 +12,13 @@ class MovingAverage
 {
 public:
   MovingAverage(const unsigned window_size = 5, const T initial_value = T(0))
-  : window_size_(window_size), sum_(initial_value)
+  : window_size_(std::make_unique<unsigned>(window_size)), sum_(initial_value)
   {
   }
 
   void roll(const T value)
   {
-    if (values.size() >= window_size_) {
+    if (values.size() >= *window_size_) {
       sum_ -= values.front();
       values.pop_front();
     }
@@ -25,10 +26,10 @@ public:
     sum_ += value;
   }
 
-  T get_average() const { return sum_ / static_cast<T>(window_size_); }
+  T get_average() const { return sum_ / static_cast<T>(*window_size_); }
 
 private:
-  unsigned window_size_;
+  std::unique_ptr<unsigned> window_size_;
   std::deque<T> values;
   T sum_;
 };
