@@ -4,6 +4,9 @@
 
 #include <behaviortree_cpp/basic_types.h>
 #include <behaviortree_cpp/exceptions.h>
+
+#include <ros/console.h>
+
 namespace panther_manager
 {
 
