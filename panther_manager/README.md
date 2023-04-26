@@ -72,18 +72,30 @@ Publishes stats status of the built-in computer. Stats include CPU utilization a
 
 #### Actions
 
-- `CallSetBoolService` - allows calling standard **std_srvs/SetBool** ROS service.
-- `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service.
-- `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service.
-- `ShutdownHostsFromFile` - allows to shutdown devices based on YAML file. Returns `FAILURE` only when YAML file is incorrect or a path to the file does not exists. If it fails to execute command in a remote host node will proceed tothe next device from the list.
-- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when device can be reached and the command was executed.
+- `CallSetBoolService` - allows calling standard **std_srvs/SetBool** ROS service. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `ShutdownHostsFromFile` - allows to shutdown devices based on YAML file. Returns `FAILURE` only when YAML file is incorrect or a path to the file does not exists. If it fails to execute command in a remote host node will proceed tothe next device from the list. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when device can be reached and the command was executed. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
 
 #### Decorators
 
-- `TickAfterTimeout` - will skip child until the specified time has passed. It can be used to specify the frequency at which a node or subtree is triggered.
+- `TickAfterTimeout` - will skip child until the specified time has passed. It can be used to specify the frequency at which a node or subtree is triggered. Provided ports are:
+  - `port_name` [*type*, default: **None**]: description.
 
 ### Trees
 
-- `Lights` - tree responsible for scheduling animations displayed on LED panels, based on the Husarion Panther robot's system state.
-- `Safety` - tree responsible for monitoring the Panther robot's state and handling safety measures, such as  cooling the robot in case of high CPU or battery temperature.
-- `Shutdown` - tree responsible for gracefull shutdown of robot components, user computers and the built-in computer.
+- `Lights` - tree responsible for scheduling animations displayed on LED panels, based on the Husarion Panther robot's system state. Default blackboard entries are:
+  - `key_name` [*type*, default: **None**]: description.
+  - `const_key_name` [*type*, value: **None**]: description.
+- `Safety` - tree responsible for monitoring the Panther robot's state and handling safety measures, such as  cooling the robot in case of high CPU or battery temperature. Default blackboard entries are:
+  - `key_name` [*type*, default: **None**]: description.
+  - `const_key_name` [*type*, value: **None**]: description.
+- `Shutdown` - tree responsible for gracefull shutdown of robot components, user computers and the built-in computer. Default blackboard entries are:
+  - `key_name` [*type*, default: **None**]: description.
+  - `const_key_name` [*type*, value: **None**]: description.

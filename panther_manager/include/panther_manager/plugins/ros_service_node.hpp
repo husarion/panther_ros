@@ -36,7 +36,7 @@ public:
   {
     BT::PortsList ports = {
       BT::InputPort<std::string>("service_name", "ROS service name"),
-      BT::InputPort<float>("timeout", 100, "time in ms to wait for service to be active"),
+      BT::InputPort<unsigned>("timeout", 100, "time in ms to wait for service to be active"),
     };
     ports.insert(addition.begin(), addition.end());
     return ports;
