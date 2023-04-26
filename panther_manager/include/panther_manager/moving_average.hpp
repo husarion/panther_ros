@@ -11,7 +11,7 @@ class MovingAverage
 {
 public:
   MovingAverage(const unsigned window_size = 5, const T initial_value = T(0))
-  : window_size_(window_size), sum_(initial_value)
+  : window_size_(window_size), sum_(initial_value * static_cast<T>(window_size_))
   {
   }
 
