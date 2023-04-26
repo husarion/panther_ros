@@ -26,7 +26,7 @@ namespace panther_manager
 class ManagerBTNode
 {
 public:
-  ManagerBTNode(const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph);
+  ManagerBTNode(const std::shared_ptr<ros::NodeHandle> & nh, const std::shared_ptr<ros::NodeHandle> & ph);
   ~ManagerBTNode() {}
 
 private:
