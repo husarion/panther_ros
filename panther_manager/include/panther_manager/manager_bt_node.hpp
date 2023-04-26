@@ -72,7 +72,7 @@ private:
   void safety_tree_timer_cb();
   void lights_tree_timer_cb();
   void shutdown_robot(const std::string & message);
-  BT::NodeConfig create_bt_config(const std::map<std::string, std::any> bb_values = {}) const;
+  BT::NodeConfig create_bt_config(const std::map<std::string, std::any> & bb_values = {}) const;
 };
 
 }  // namespace panther_manager
