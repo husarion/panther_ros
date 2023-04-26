@@ -1,8 +1,13 @@
 #ifndef PANTHER_MANAGER_ROS_SERVICE_NODE_HPP_
 #define PANTHER_MANAGER_ROS_SERVICE_NODE_HPP_
 
+#include <memory>
+#include <string>
+
 #include <behaviortree_cpp/action_node.h>
-#include <behaviortree_cpp/bt_factory.h>
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/exceptions.h>
+#include <behaviortree_cpp/tree_node.h>
 
 #include <ros/ros.h>
 #include <ros/service_client.h>

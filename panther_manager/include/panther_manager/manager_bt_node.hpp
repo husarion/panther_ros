@@ -2,12 +2,13 @@
 #define PANTHER_MANAGER_MANAGER_BT_NODE_HPP_
 
 #include <any>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
 
 #include <behaviortree_cpp/bt_factory.h>
-#include <behaviortree_cpp/loggers/bt_cout_logger.h>
-#include <behaviortree_cpp/utils/shared_library.h>
 
-#include <ros/package.h>
 #include <ros/ros.h>
 
 #include <sensor_msgs/BatteryState.h>
@@ -15,7 +16,6 @@
 
 #include <panther_msgs/DriverState.h>
 #include <panther_msgs/IOState.h>
-#include <panther_msgs/LEDAnimation.h>
 #include <panther_msgs/SystemStatus.h>
 
 #include <panther_manager/moving_average.hpp>

@@ -1,5 +1,7 @@
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 
+#include <behaviortree_cpp/basic_types.h>
+
 namespace panther_manager
 {
 

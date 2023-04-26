@@ -1,8 +1,11 @@
 #ifndef PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_
 #define PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_
 
-#include <behaviortree_cpp/bt_factory.h>
+#include <string>
+
+#include <behaviortree_cpp/basic_types.h>
 #include <behaviortree_cpp/decorator_node.h>
+#include <behaviortree_cpp/tree_node.h>
 
 #include <ros/ros.h>
 
@@ -26,4 +29,4 @@ private:
 };
 }  // namespace panther_manager
 
-#endif // PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_
+#endif  // PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_

@@ -1,5 +1,9 @@
 #include "panther_manager/manager_bt_node.hpp"
 
+#include <memory>
+
+#include <ros/ros.h>
+
 int main(int argc, char ** argv)
 {
   ros::init(argc, argv, "manager_bt_node");

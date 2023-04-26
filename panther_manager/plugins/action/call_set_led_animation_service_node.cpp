@@ -1,5 +1,9 @@
 #include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
 
+#include <string>
+
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/exceptions.h>
 namespace panther_manager
 {
 

@@ -1,6 +1,11 @@
 #ifndef PANTHER_MANAGER_CALL_SET_BOOL_SERVICE_NODE_HPP_
 #define PANTHER_MANAGER_CALL_SET_BOOL_SERVICE_NODE_HPP_
 
+#include <string>
+
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/tree_node.h>
+
 #include <std_srvs/SetBool.h>
 
 #include <panther_manager/plugins/ros_service_node.hpp>

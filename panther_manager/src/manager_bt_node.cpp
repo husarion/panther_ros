@@ -1,5 +1,32 @@
 #include <panther_manager/manager_bt_node.hpp>
 
+#include <algorithm>
+#include <any>
+#include <functional>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <behaviortree_cpp/bt_factory.h>
+#include <behaviortree_cpp/loggers/bt_cout_logger.h>
+#include <behaviortree_cpp/utils/shared_library.h>
+
+#include <ros/package.h>
+#include <ros/ros.h>
+
+#include <sensor_msgs/BatteryState.h>
+#include <std_msgs/Bool.h>
+
+#include <panther_msgs/DriverState.h>
+#include <panther_msgs/IOState.h>
+#include <panther_msgs/LEDAnimation.h>
+#include <panther_msgs/SystemStatus.h>
+
+#include <panther_manager/moving_average.hpp>
+
 namespace panther_manager
 {
 
@@ -116,21 +143,22 @@ ManagerBTNode::ManagerBTNode(
   io_state_sub_ = nh_->subscribe("hardware/io_state", 2, &ManagerBTNode::io_state_cb, this);
   system_status_sub_ = nh_->subscribe("system_status", 10, &ManagerBTNode::system_status_cb, this);
 
+  ros::Rate rate(10.0);  // 10Hz
   while (ros::ok() && !e_stop_state_.has_value()) {
     ROS_INFO_THROTTLE(5.0, "[%s] Waiting for e_stop message to arrive", node_name_.c_str());
-    ros::Duration(0.1).sleep();
+    rate.sleep();
     ros::spinOnce();
   }
 
   while (ros::ok() && !io_state_.has_value()) {
     ROS_INFO_THROTTLE(5.0, "[%s] Waiting for io_state message to arrive", node_name_.c_str());
-    ros::Duration(0.1).sleep();
+    rate.sleep();
     ros::spinOnce();
   }
 
   while (ros::ok() && !battery_status_.has_value()) {
     ROS_INFO_THROTTLE(5.0, "[%s] Waiting for battery message to arrive", node_name_.c_str());
-    ros::Duration(0.1).sleep();
+    rate.sleep();
     ros::spinOnce();
   }
 

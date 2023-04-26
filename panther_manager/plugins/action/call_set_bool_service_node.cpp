@@ -1,5 +1,8 @@
 #include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
 
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/exceptions.h>
+
 namespace panther_manager
 {
 

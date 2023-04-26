@@ -1,6 +1,8 @@
 #ifndef PANTHER_MANAGER_MOVING_AVERAGE_HPP_
 #define PANTHER_MANAGER_MOVING_AVERAGE_HPP_
 
+#include <deque>
+
 namespace panther_manager
 {
 
@@ -23,10 +25,7 @@ public:
     sum_ += value;
   }
 
-  T get_average() const
-  {
-    return sum_ / static_cast<T>(window_size_);
-  }
+  T get_average() const { return sum_ / static_cast<T>(window_size_); }
 
 private:
   unsigned window_size_;

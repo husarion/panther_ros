@@ -1,5 +1,10 @@
 #include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
 
+#include <string>
+
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/tree_node.h>
+
 namespace panther_manager
 {
 
