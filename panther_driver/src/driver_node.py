@@ -2,6 +2,7 @@
 
 import math
 from typing import List, Tuple, TypeVar
+from threading import Lock
 
 import rospy
 from tf.transformations import quaternion_from_euler
@@ -64,6 +65,8 @@ class DriverFlagLogger:
 class PantherDriverNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
+
+        self._lock = Lock()
 
         self._eds_file = rospy.get_param('~eds_file')
         self._use_pdo = rospy.get_param('~use_pdo', False)
@@ -269,7 +272,9 @@ class PantherDriverNode:
         if (time_now - self._cmd_vel_command_last_time) < rospy.Duration(
             secs=self._cmd_vel_timeout
         ):
-            self._panther_can.write_wheels_enc_velocity(self._panther_kinematics.wheels_enc_speed)
+            self._panther_can.write_wheels_enc_velocity(
+                self._panther_kinematics.wheels_enc_speed
+            )
         else:
             self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
 
@@ -350,8 +355,11 @@ class PantherDriverNode:
         self._driver_state_pub.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
+        with self._lock:
+            e_stop_cliented = self._e_stop_cliented
+
         if any(self._panther_can.can_connection_error()):
-            if not self._e_stop_cliented:
+            if not e_stop_cliented:
                 self._trigger_panther_e_stop()
                 self._stop_cmd_vel_cb = True
 
@@ -374,7 +382,8 @@ class PantherDriverNode:
             self._stop_cmd_vel_cb = False
 
     def _e_stop_cb(self, data: Bool) -> None:
-        self._e_stop_cliented = data.data
+        with self._lock:
+            self._e_stop_cliented = data.data
 
     def _cmd_vel_cb(self, data: Twist) -> None:
         # Block all motors if any Roboteq controller returns a fault flag or runtime error flag

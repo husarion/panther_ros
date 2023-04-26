@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from threading import Lock
+
 import os
 import paramiko
 import socket
@@ -17,6 +19,8 @@ class ManagerNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()
+        
         self._aux_power_state = None
         self._e_stop_state = None
         self._fan_state = None
@@ -142,85 +146,97 @@ class ManagerNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _battery_cb(self, battery_state: BatteryState) -> None:
-        self._battery_status = battery_state.power_supply_status
-        if self._battery_temp_window is not None:
-            self._battery_temp_window = self._move_window(
-                self._battery_temp_window, battery_state.temperature
-            )
-        else:
-            self._battery_temp_window = [battery_state.temperature] * self._battery_window_len
+        with self._lock:
+            self._battery_status = battery_state.power_supply_status
+            if self._battery_temp_window is not None:
+                self._battery_temp_window = self._move_window(
+                    self._battery_temp_window, battery_state.temperature
+                )
+            else:
+                self._battery_temp_window = [battery_state.temperature] * self._battery_window_len
 
     def _driver_state_cb(self, driver_state: DriverState) -> None:
-        if self._front_driver_temp_window is not None and self._rear_driver_temp_window is not None:
-            self._front_driver_temp_window = self._move_window(
-                self._front_driver_temp_window, driver_state.front.temperature
-            )
-            self._rear_driver_temp_window = self._move_window(
-                self._rear_driver_temp_window, driver_state.rear.temperature
-            )
-        else:
-            self._front_driver_temp_window = [
-                driver_state.front.temperature
-            ] * self._driver_window_len
-            self._rear_driver_temp_window = [
-                driver_state.rear.temperature
-            ] * self._driver_window_len
+        with self._lock:
+            if (
+                self._front_driver_temp_window is not None
+                and self._rear_driver_temp_window is not None
+            ):
+                self._front_driver_temp_window = self._move_window(
+                    self._front_driver_temp_window, driver_state.front.temperature
+                )
+                self._rear_driver_temp_window = self._move_window(
+                    self._rear_driver_temp_window, driver_state.rear.temperature
+                )
+            else:
+                self._front_driver_temp_window = [
+                    driver_state.front.temperature
+                ] * self._driver_window_len
+                self._rear_driver_temp_window = [
+                    driver_state.rear.temperature
+                ] * self._driver_window_len
 
     def _e_stop_cb(self, e_stop_state: Bool) -> None:
-        self._e_stop_state = e_stop_state.data
+        with self._lock:
+            self._e_stop_state = e_stop_state.data
 
     def _io_state_cb(self, io_state: IOState) -> None:
-        self._aux_power_state = io_state.aux_power
-        self._fan_state = io_state.fan
-        self._power_button_state = io_state.power_button
+        with self._lock:
+            self._aux_power_state = io_state.aux_power
+            self._fan_state = io_state.fan
+            self._power_button_state = io_state.power_button
 
     def _system_status_cb(self, system_status: SystemStatus) -> None:
-        if self._cpu_temp_window is not None:
-            self._cpu_temp_window = self._move_window(self._cpu_temp_window, system_status.cpu_temp)
-        else:
-            self._cpu_temp_window = [system_status.cpu_temp] * self._cpu_window_len
+        with self._lock:
+            if self._cpu_temp_window is not None:
+                self._cpu_temp_window = self._move_window(
+                    self._cpu_temp_window, system_status.cpu_temp
+                )
+            else:
+                self._cpu_temp_window = [system_status.cpu_temp] * self._cpu_window_len
 
     def _overwrite_fan_control_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        self._overwrite_fan_control = req.data
-        if req.data:
-            self._call_set_bool_service(self._fan_enable_client, req.data)
-        return SetBoolResponse(True, f'Overwrite fan control set to: {req.data}')
+        with self._lock:
+            self._overwrite_fan_control = req.data
+            if req.data:
+                self._call_set_bool_service(self._fan_enable_client, req.data)
+            return SetBoolResponse(True, f'Overwrite fan control set to: {req.data}')
 
     def _manager_timer_cb(self, *args) -> None:
-        if self._power_button_state:
-            rospy.loginfo(f'[{rospy.get_name()}] Power button pressed, shutting down robot')
-            self._shutdown()
-            return
+        with self._lock:
+            if self._power_button_state:
+                rospy.loginfo(f'[{rospy.get_name()}] Power button pressed, shutting down robot')
+                self._shutdown()
+                return
 
-        if self._battery_temp_window is None:
-            rospy.loginfo_throttle(
-                5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.'
-            )
-            return
-
-        if self._battery_status == BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING:
-            rospy.logwarn_throttle(5.0, f'[{rospy.get_name()}] Battery is not charging.')
-
-        self._battery_avg_temp = self._get_mean(self._battery_temp_window)
-        if self._battery_avg_temp > self._fatal_bat_temp:
-            rospy.logerr_throttle(
-                5.0, f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot!'
-            )
-            self._shutdown()
-        elif self._battery_avg_temp > self._high_bat_temp:
-            if self._battery_avg_temp > self._critical_bat_temp:
-                rospy.logerr_throttle(
-                    5.0,
-                    f'[{rospy.get_name()}] Critical battery temperature, triggering E-STOP and disabling AUX!',
+            if self._battery_temp_window is None:
+                rospy.loginfo_throttle(
+                    5.0, f'[{rospy.get_name()}] Waiting for battery message to arrive.'
                 )
-                if self._aux_power_state:
-                    self._call_set_bool_service(self._aux_power_enable_client, False)
-            else:
+                return
+
+            if self._battery_status == BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING:
+                rospy.logwarn_throttle(5.0, f'[{rospy.get_name()}] Battery is not charging.')
+
+            self._battery_avg_temp = self._get_mean(self._battery_temp_window)
+            if self._battery_avg_temp > self._fatal_bat_temp:
                 rospy.logerr_throttle(
-                    5.0, f'[{rospy.get_name()}] High battery temperature, triggering E-STOP!'
+                    5.0, f'[{rospy.get_name()}] Fatal battery temperature, shutting down robot!'
                 )
-            if not self._e_stop_state:
-                self._call_trigger_service(self._e_stop_trigger_client)
+                self._shutdown()
+            elif self._battery_avg_temp > self._high_bat_temp:
+                if self._battery_avg_temp > self._critical_bat_temp:
+                    rospy.logerr_throttle(
+                        5.0,
+                        f'[{rospy.get_name()}] Critical battery temperature, triggering E-STOP and disabling AUX!',
+                    )
+                    if self._aux_power_state:
+                        self._call_set_bool_service(self._aux_power_enable_client, False)
+                else:
+                    rospy.logerr_throttle(
+                        5.0, f'[{rospy.get_name()}] High battery temperature, triggering E-STOP!'
+                    )
+                if not self._e_stop_state:
+                    self._call_trigger_service(self._e_stop_trigger_client)
 
     def _shutdown(self) -> None:
         rospy.logwarn(f'[{rospy.get_name()}] Soft shutdown initialized.')
@@ -278,62 +294,63 @@ class ManagerNode:
         return os.system('ping -c 1 -w 1 ' + host + ' > /dev/null') == 0
 
     def _fan_control_timer_cb(self, *args) -> None:
-        if self._fan_state is None:
-            rospy.loginfo(f'[{rospy.get_name()}] Waiting for fan state message to arrive.')
-            return
+        with self._lock:
+            if self._fan_state is None:
+                rospy.loginfo(f'[{rospy.get_name()}] Waiting for fan state message to arrive.')
+                return
 
-        if self._overwrite_fan_control:
-            return
+            if self._overwrite_fan_control:
+                return
 
-        if self._cpu_temp_window is None:
-            rospy.loginfo(f'[{rospy.get_name()}] Waiting for system_status message to arrive.')
-            return
+            if self._cpu_temp_window is None:
+                rospy.loginfo(f'[{rospy.get_name()}] Waiting for system_status message to arrive.')
+                return
 
-        if self._front_driver_temp_window is None or self._rear_driver_temp_window is None:
-            rospy.loginfo(
-                f'[{rospy.get_name()}] Waiting for motor_controllers_state message to arrive.'
-            )
-            return
+            if self._front_driver_temp_window is None or self._rear_driver_temp_window is None:
+                rospy.loginfo(
+                    f'[{rospy.get_name()}] Waiting for motor_controllers_state message to arrive.'
+                )
+                return
 
-        self._cpu_avg_temp = self._get_mean(self._cpu_temp_window)
-        self._front_driver_avg_temp = self._get_mean(self._front_driver_temp_window)
-        self._rear_driver_avg_temp = self._get_mean(self._rear_driver_temp_window)
+            self._cpu_avg_temp = self._get_mean(self._cpu_temp_window)
+            self._front_driver_avg_temp = self._get_mean(self._front_driver_temp_window)
+            self._rear_driver_avg_temp = self._get_mean(self._rear_driver_temp_window)
 
-        if self._front_driver_avg_temp > self._critical_driver_temp:
-            rospy.logerr_throttle(
-                60,
-                f'[{rospy.get_name()}] Front driver reached critical ',
-                f'temperature of {int(round(self._front_driver_avg_temp) + 0.1)} deg C!',
-            )
-        if self._rear_driver_avg_temp > self._critical_driver_temp:
-            rospy.logerr_throttle(
-                60,
-                f'[{rospy.get_name()}] Rear driver reached critical ',
-                f'temperature of {int(round(self._rear_driver_avg_temp) + 0.1)} deg C!',
-            )
+            if self._front_driver_avg_temp > self._critical_driver_temp:
+                rospy.logerr_throttle(
+                    60,
+                    f'[{rospy.get_name()}] Front driver reached critical ',
+                    f'temperature of {int(round(self._front_driver_avg_temp) + 0.1)} deg C!',
+                )
+            if self._rear_driver_avg_temp > self._critical_driver_temp:
+                rospy.logerr_throttle(
+                    60,
+                    f'[{rospy.get_name()}] Rear driver reached critical ',
+                    f'temperature of {int(round(self._rear_driver_avg_temp) + 0.1)} deg C!',
+                )
 
-        if not self._fan_state and (
-            self._cpu_avg_temp > self._cpu_fan_on_temp
-            or self._front_driver_avg_temp > self._driver_fan_on_temp
-            or self._rear_driver_avg_temp > self._driver_fan_on_temp
-        ):
-            rospy.loginfo(f'[{rospy.get_name()}] Turning on fan. Cooling the robot.')
-            self._turn_on_time = rospy.Time.now()
-            self._call_set_bool_service(self._fan_enable_client, True)
-            return
+            if not self._fan_state and (
+                self._cpu_avg_temp > self._cpu_fan_on_temp
+                or self._front_driver_avg_temp > self._driver_fan_on_temp
+                or self._rear_driver_avg_temp > self._driver_fan_on_temp
+            ):
+                rospy.loginfo(f'[{rospy.get_name()}] Turning on fan. Cooling the robot.')
+                self._turn_on_time = rospy.Time.now()
+                self._call_set_bool_service(self._fan_enable_client, True)
+                return
 
-        if (
-            self._fan_state
-            and (rospy.Time.now() - self._turn_on_time).secs > self._fun_enable_hysteresis
-            and (
-                self._cpu_avg_temp < self._cpu_fan_off_temp
-                and self._front_driver_avg_temp < self._driver_fan_off_temp
-                and self._rear_driver_avg_temp < self._driver_fan_off_temp
-            )
-        ):
-            rospy.loginfo(f'[{rospy.get_name()}] Turning off fan.')
-            self._call_set_bool_service(self._fan_enable_client, False)
-            return
+            if (
+                self._fan_state
+                and (rospy.Time.now() - self._turn_on_time).secs > self._fun_enable_hysteresis
+                and (
+                    self._cpu_avg_temp < self._cpu_fan_off_temp
+                    and self._front_driver_avg_temp < self._driver_fan_off_temp
+                    and self._rear_driver_avg_temp < self._driver_fan_off_temp
+                )
+            ):
+                rospy.loginfo(f'[{rospy.get_name()}] Turning off fan.')
+                self._call_set_bool_service(self._fan_enable_client, False)
+                return
 
     def _move_window(self, window: list, elem: float) -> list:
         window = window[1:]

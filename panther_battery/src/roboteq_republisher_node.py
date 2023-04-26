@@ -17,6 +17,8 @@ class RoboteqRepublisherNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()
+
         self._battery_voltage: Optional[float] = None
         self._battery_current: Optional[float] = None
         self._battery_voltage_mean = 37.0
@@ -26,7 +28,6 @@ class RoboteqRepublisherNode:
 
         self._battery_timeout = 1.0
         self._last_battery_info_time = rospy.get_time()
-        self._lock = Lock()
 
         # -------------------------------
         #   Subscribers

@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from threading import Lock
+
 from collections import defaultdict
 import math
 from threading import Lock
@@ -82,7 +84,8 @@ class ADCNode:
             self._I_driv = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
-        self._charger_connected = io_state.charger_connected
+        with self._lock:
+            self._charger_connected = io_state.charger_connected
 
     def _battery_timer_cb(self, *args) -> None:
         try:
@@ -195,15 +198,16 @@ class ADCNode:
         V_bat_mean = self._count_volt_mean(bat_pub, V_bat)
 
         # check battery status
-        if self._charger_connected:
-            if battery_msg.percentage >= 1.0:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
-            elif self._battery_charging:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+        with self._lock:
+            if self._charger_connected:
+                if battery_msg.percentage >= 1.0:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
+                elif self._battery_charging:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+                else:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
             else:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
-        else:
-            battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
         # check battery health
         with self._lock:
