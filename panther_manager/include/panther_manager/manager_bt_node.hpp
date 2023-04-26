@@ -58,11 +58,11 @@ private:
   BT::Tree safety_tree_;
   BT::Tree shutdown_tree_;
 
-  MovingAverage<double> battery_temp_ma_;
-  MovingAverage<double> battery_percent_ma_;
-  MovingAverage<double> cpu_temp_ma_;
-  MovingAverage<double> front_driver_temp_ma_;
-  MovingAverage<double> rear_driver_temp_ma_;
+  std::unique_ptr<MovingAverage<double>> battery_temp_ma_;
+  std::unique_ptr<MovingAverage<double>> battery_percent_ma_;
+  std::unique_ptr<MovingAverage<double>> cpu_temp_ma_;
+  std::unique_ptr<MovingAverage<double>> front_driver_temp_ma_;
+  std::unique_ptr<MovingAverage<double>> rear_driver_temp_ma_;
 
   void battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery);
   void driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state);

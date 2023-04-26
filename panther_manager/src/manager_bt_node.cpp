@@ -70,11 +70,11 @@ ManagerBTNode::ManagerBTNode(
   const auto driver_fan_on_temp = ph_->param<float>("safety/driver_fan_on_temp", 45.0);
   const auto driver_fan_off_temp = ph_->param<float>("safety/driver_fan_off_temp", 35.0);
 
-  battery_temp_ma_ = MovingAverage<double>(battery_temp_window_len);
-  battery_percent_ma_ = MovingAverage<double>(battery_percent_window_len, 1.0);
-  cpu_temp_ma_ = MovingAverage<double>(cpu_temp_window_len);
-  front_driver_temp_ma_ = MovingAverage<double>(driver_temp_window_len);
-  rear_driver_temp_ma_ = MovingAverage<double>(driver_temp_window_len);
+  battery_temp_ma_ = std::make_unique<MovingAverage<double>>(battery_temp_window_len);
+  battery_percent_ma_ = std::make_unique<MovingAverage<double>>(battery_percent_window_len, 1.0);
+  cpu_temp_ma_ = std::make_unique<MovingAverage<double>>(cpu_temp_window_len);
+  front_driver_temp_ma_ = std::make_unique<MovingAverage<double>>(driver_temp_window_len);
+  rear_driver_temp_ma_ = std::make_unique<MovingAverage<double>>(driver_temp_window_len);
 
   ROS_INFO("[%s] Register BehaviorTree from: %s", node_name_.c_str(), xml_filename.c_str());
 
@@ -207,15 +207,15 @@ BT::NodeConfig ManagerBTNode::create_bt_config(
 
 void ManagerBTNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
 {
-  battery_temp_ma_.roll(battery->temperature);
-  battery_percent_ma_.roll(battery->percentage);
+  battery_temp_ma_->roll(battery->temperature);
+  battery_percent_ma_->roll(battery->percentage);
   battery_status_ = battery->power_supply_status;
 }
 
 void ManagerBTNode::driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state)
 {
-  front_driver_temp_ma_.roll(driver_state->front.temperature);
-  rear_driver_temp_ma_.roll(driver_state->rear.temperature);
+  front_driver_temp_ma_->roll(driver_state->front.temperature);
+  rear_driver_temp_ma_->roll(driver_state->rear.temperature);
 }
 
 void ManagerBTNode::e_stop_cb(const std_msgs::Bool::ConstPtr & e_stop)
@@ -233,7 +233,7 @@ void ManagerBTNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state
 
 void ManagerBTNode::system_status_cb(const panther_msgs::SystemStatus::ConstPtr & system_status)
 {
-  cpu_temp_ma_.roll(system_status->cpu_temp);
+  cpu_temp_ma_->roll(system_status->cpu_temp);
 }
 
 void ManagerBTNode::lights_tree_timer_cb()
@@ -241,11 +241,11 @@ void ManagerBTNode::lights_tree_timer_cb()
   // update blackboard
   lights_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
   lights_config_.blackboard->set<unsigned>("battery_status", battery_status_.value());
-  lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_.get_average());
+  lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_->get_average());
   lights_config_.blackboard->set<std::string>(
     "battery_percent_round",
     std::to_string(
-      round(battery_percent_ma_.get_average() / update_charging_anim_step_) *
+      round(battery_percent_ma_->get_average() / update_charging_anim_step_) *
       update_charging_anim_step_));
 
   // BT::StdCoutLogger logger_cout(lights_tree_);  // debugging
@@ -258,12 +258,12 @@ void ManagerBTNode::safety_tree_timer_cb()
   safety_config_.blackboard->set<bool>("aux_state", io_state_.value()->aux_power);
   safety_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
   safety_config_.blackboard->set<bool>("fan_state", io_state_.value()->fan);
-  safety_config_.blackboard->set<double>("bat_temp", battery_temp_ma_.get_average());
-  safety_config_.blackboard->set<double>("cpu_temp", cpu_temp_ma_.get_average());
+  safety_config_.blackboard->set<double>("bat_temp", battery_temp_ma_->get_average());
+  safety_config_.blackboard->set<double>("cpu_temp", cpu_temp_ma_->get_average());
   // to simplify conditions pass only higher temp of motor drivers
   safety_config_.blackboard->set<double>(
     "driver_temp",
-    std::max({front_driver_temp_ma_.get_average(), rear_driver_temp_ma_.get_average()}));
+    std::max({front_driver_temp_ma_->get_average(), rear_driver_temp_ma_->get_average()}));
 
   // BT::StdCoutLogger logger_cout(safety_tree_);  // debugging
   safety_tree_status_ = safety_tree_.tickOnce();
