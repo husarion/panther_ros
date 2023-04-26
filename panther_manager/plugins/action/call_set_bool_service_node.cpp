@@ -3,10 +3,12 @@
 #include <behaviortree_cpp/basic_types.h>
 #include <behaviortree_cpp/exceptions.h>
 
+#include <ros/console.h>
+
 namespace panther_manager
 {
 
-void CallSetBoolService::update_request(RequestType & request)
+void CallSetBoolService::update_request(std_srvs::SetBool::Request & request)
 {
   bool data;
   if (!getInput<bool>("data", data)) {
@@ -15,7 +17,7 @@ void CallSetBoolService::update_request(RequestType & request)
   request.data = data;
 }
 
-BT::NodeStatus CallSetBoolService::on_response(const ResponseType & response)
+BT::NodeStatus CallSetBoolService::on_response(const std_srvs::SetBool::Response & response)
 {
   if (!response.success) {
     ROS_ERROR(

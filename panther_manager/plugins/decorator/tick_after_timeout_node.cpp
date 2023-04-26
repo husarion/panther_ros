@@ -5,6 +5,9 @@
 #include <behaviortree_cpp/basic_types.h>
 #include <behaviortree_cpp/tree_node.h>
 
+#include <ros/console.h>
+#include <ros/time.h>
+
 namespace panther_manager
 {
 

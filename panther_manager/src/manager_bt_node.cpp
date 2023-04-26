@@ -31,7 +31,7 @@ namespace panther_manager
 {
 
 ManagerBTNode::ManagerBTNode(
-  const std::shared_ptr<ros::NodeHandle> nh, const std::shared_ptr<ros::NodeHandle> ph)
+  const std::shared_ptr<ros::NodeHandle> & nh, const std::shared_ptr<ros::NodeHandle> & ph)
 : nh_(std::move(nh)), ph_(std::move(ph))
 {
   node_name_ = ros::this_node::getName();
@@ -171,7 +171,7 @@ ManagerBTNode::ManagerBTNode(
 }
 
 BT::NodeConfig ManagerBTNode::create_bt_config(
-  const std::map<std::string, std::any> bb_values) const
+  const std::map<std::string, std::any> & bb_values) const
 {
   BT::NodeConfig config;
   config.blackboard = BT::Blackboard::create();

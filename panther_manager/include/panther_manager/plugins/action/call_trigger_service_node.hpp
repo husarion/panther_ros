@@ -23,8 +23,8 @@ public:
 
   static BT::PortsList providedPorts() { return providedBasicPorts({}); }
 
-  void update_request(RequestType & request) {}
-  virtual BT::NodeStatus on_response(const ResponseType & response);
+  void update_request(std_srvs::Trigger::Request & request) {}
+  virtual BT::NodeStatus on_response(const std_srvs::Trigger::Response & response);
 };
 
 }  // namespace panther_manager

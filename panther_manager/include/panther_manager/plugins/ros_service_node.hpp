@@ -22,7 +22,7 @@ public:
   explicit RosServiceNode(const std::string & name, const BT::NodeConfig & conf)
   : BT::SyncActionNode(name, conf)
   {
-    nh_ = std::move(config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh"));
+    nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
     node_name_ = ros::this_node::getName();
   }
 
@@ -32,7 +32,7 @@ public:
   using RequestType = typename ServiceT::Request;
   using ResponseType = typename ServiceT::Response;
 
-  static BT::PortsList providedBasicPorts(const BT::PortsList addition)
+  static BT::PortsList providedBasicPorts(const BT::PortsList & addition)
   {
     BT::PortsList ports = {
       BT::InputPort<std::string>("service_name", "ROS service name"),

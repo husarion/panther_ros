@@ -26,8 +26,8 @@ public:
     return providedBasicPorts({BT::InputPort<bool>("data", "true / false value")});
   }
 
-  void update_request(RequestType & request) override;
-  virtual BT::NodeStatus on_response(const ResponseType & response);
+  void update_request(std_srvs::SetBool::Request & request) override;
+  virtual BT::NodeStatus on_response(const std_srvs::SetBool::Response & response);
 };
 
 }  // namespace panther_manager

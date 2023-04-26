@@ -7,7 +7,7 @@
 #include <behaviortree_cpp/decorator_node.h>
 #include <behaviortree_cpp/tree_node.h>
 
-#include <ros/ros.h>
+#include <ros/time.h>
 
 namespace panther_manager
 {

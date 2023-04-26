@@ -30,8 +30,8 @@ public:
     });
   }
 
-  void update_request(RequestType & request) override;
-  virtual BT::NodeStatus on_response(const ResponseType & response);
+  void update_request(panther_msgs::SetLEDAnimation::Request & request) override;
+  virtual BT::NodeStatus on_response(const panther_msgs::SetLEDAnimation::Response & response);
 };
 
 }  // namespace panther_manager

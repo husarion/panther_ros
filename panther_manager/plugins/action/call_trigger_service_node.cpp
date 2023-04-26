@@ -4,11 +4,10 @@
 
 #include <ros/console.h>
 
-
 namespace panther_manager
 {
 
-BT::NodeStatus CallTriggerService::on_response(const ResponseType & response)
+BT::NodeStatus CallTriggerService::on_response(const std_srvs::Trigger::Response & response)
 {
   if (!response.success) {
     ROS_ERROR(

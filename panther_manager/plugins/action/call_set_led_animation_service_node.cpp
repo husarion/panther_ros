@@ -10,7 +10,7 @@
 namespace panther_manager
 {
 
-void CallSetLedAnimationService::update_request(RequestType & request)
+void CallSetLedAnimationService::update_request(panther_msgs::SetLEDAnimation::Request & request)
 {
   bool repeating;
   unsigned animation_id;
@@ -27,7 +27,7 @@ void CallSetLedAnimationService::update_request(RequestType & request)
   request.repeating = repeating;
 }
 
-BT::NodeStatus CallSetLedAnimationService::on_response(const ResponseType & response)
+BT::NodeStatus CallSetLedAnimationService::on_response(const panther_msgs::SetLEDAnimation::Response & response)
 {
   if (!response.success) {
     ROS_ERROR(
