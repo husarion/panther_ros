@@ -15,6 +15,7 @@
 
 namespace panther_lights
 {
+
 DriverNode::DriverNode(
   const std::shared_ptr<ros::NodeHandle> ph, std::shared_ptr<ros::NodeHandle> nh,
   const std::shared_ptr<image_transport::ImageTransport> it)
