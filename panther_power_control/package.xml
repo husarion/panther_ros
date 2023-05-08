@@ -17,11 +17,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>libtool</build_depend>
-  <build_depend>autoconf</build_depend>
-  <!-- autoconf-archive was not yet added to rosdep  -->
-  <!-- <build_depend>autoconf-archive</build_depend> -->
-
   <depend>geometry_msgs</depend>
   <depend>panther_msgs</depend>
   <depend>rospy</depend>

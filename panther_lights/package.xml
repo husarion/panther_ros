@@ -16,6 +16,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>libtool</build_depend>
+  <build_depend>autoconf</build_depend>
+  <build_depend>autoconf-archive</build_depend>
+
   <depend>image_transport</depend>
   <depend>panther_msgs</depend>
   <depend>roscpp</depend>

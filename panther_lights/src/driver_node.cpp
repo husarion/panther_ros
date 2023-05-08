@@ -94,7 +94,7 @@ bool DriverNode::set_brightness_cb(
 }
 
 void DriverNode::frame_cb(
-  const sensor_msgs::Image::ConstPtr & msg, const apa_102::APA102 & panel,
+  const sensor_msgs::Image::ConstPtr & msg, const APA102 & panel,
   const ros::Time & last_time, const std::string panel_name)
 {
   std::string meessage;

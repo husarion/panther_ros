@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace apa_102
+namespace panther_lights
 {
 
 class APA102
@@ -31,6 +31,6 @@ private:
   const std::uint16_t corr_blue_ = 62.0;
 };
 
-}  // namespace apa_102
+}  // namespace panther_lights
 
 #endif  // PANTHER_LIGHTS_APA102_HPP_
