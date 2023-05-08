@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_library(LIBGPIOD libgpiod)
+
 if(NOT LIBGPIOD)
   message(WARNING "libgpiod not found. Building from source")
   include(ExternalProject)
