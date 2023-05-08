@@ -21,8 +21,8 @@ class DriverNode
 {
 public:
   DriverNode(
-    const std::shared_ptr<ros::NodeHandle> ph, std::shared_ptr<ros::NodeHandle> nh,
-    const std::shared_ptr<image_transport::ImageTransport> it);
+    const std::shared_ptr<ros::NodeHandle> & ph, std::shared_ptr<ros::NodeHandle> & nh,
+    const std::shared_ptr<image_transport::ImageTransport> & it);
   ~DriverNode();
 
 private:
@@ -44,8 +44,8 @@ private:
   image_transport::Subscriber front_light_sub_;
 
   void frame_cb(
-    const sensor_msgs::Image::ConstPtr & msg, const APA102 & panel,
-    const ros::Time & last_time, const std::string panel_name);
+    const sensor_msgs::Image::ConstPtr & msg, const APA102 & panel, const ros::Time & last_time,
+    const std::string & panel_name);
   void set_pin_value(const gpiod::line::value value) const;
   bool set_brightness_cb(
     panther_msgs::SetLEDBrightness::Request & req, panther_msgs::SetLEDBrightness::Response & res);

@@ -17,8 +17,8 @@ namespace panther_lights
 {
 
 DriverNode::DriverNode(
-  const std::shared_ptr<ros::NodeHandle> ph, std::shared_ptr<ros::NodeHandle> nh,
-  const std::shared_ptr<image_transport::ImageTransport> it)
+  const std::shared_ptr<ros::NodeHandle> & ph, std::shared_ptr<ros::NodeHandle> & nh,
+  const std::shared_ptr<image_transport::ImageTransport> & it)
 : ph_(std::move(ph)),
   nh_(std::move(nh)),
   it_(std::move(it)),
@@ -95,8 +95,8 @@ bool DriverNode::set_brightness_cb(
 }
 
 void DriverNode::frame_cb(
-  const sensor_msgs::Image::ConstPtr & msg, const APA102 & panel,
-  const ros::Time & last_time, const std::string panel_name)
+  const sensor_msgs::Image::ConstPtr & msg, const APA102 & panel, const ros::Time & last_time,
+  const std::string & panel_name)
 {
   std::string meessage;
   if ((ros::Time::now() - msg->header.stamp).toSec() > frame_timeout_) {

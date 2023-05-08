@@ -14,8 +14,8 @@
 
 namespace panther_lights
 {
-APA102::APA102(const std::string device, const std::uint32_t speed, const bool cs_high)
-: device_(device), speed_(speed), fd_(open(device_.c_str(), O_RDWR))
+APA102::APA102(const std::string & device, const std::uint32_t speed, const bool cs_high)
+: device_(device), speed_(speed), fd_(open(device.c_str(), O_WRONLY))
 {
   if (fd_ < 0) {
     throw std::ios_base::failure(std::string("Failed to open ") + device_);

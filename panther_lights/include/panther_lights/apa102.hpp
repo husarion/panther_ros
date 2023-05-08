@@ -11,7 +11,8 @@ namespace panther_lights
 class APA102
 {
 public:
-  APA102(const std::string device, const std::uint32_t speed = 800000, const bool cs_high = false);
+  APA102(
+    const std::string & device, const std::uint32_t speed = 800000, const bool cs_high = false);
   ~APA102();
 
   void set_global_brightness(const std::uint8_t brightness);
@@ -26,9 +27,9 @@ private:
   std::uint16_t global_brightness_;
 
   // color correction constants
-  const std::uint16_t corr_red_ = 255.0;
-  const std::uint16_t corr_green_ = 200.0;
-  const std::uint16_t corr_blue_ = 62.0;
+  const std::uint16_t corr_red_ = 255;
+  const std::uint16_t corr_green_ = 200;
+  const std::uint16_t corr_blue_ = 62;
 };
 
 }  // namespace panther_lights
