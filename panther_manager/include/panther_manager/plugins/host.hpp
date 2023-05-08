@@ -21,12 +21,12 @@ public:
 
   bool is_available() { return system(("ping -c 1 -w 1 " + ip_ + " > /dev/null").c_str()) == 0; }
 
-  bool operator==(const Host & other)
+  bool operator==(const Host & other) const
   {
     return (ip_ == other.ip_) && (user_ == other.user_) && (port_ == other.port_);
   }
 
-  bool operator!=(const Host & other)
+  bool operator!=(const Host & other) const
   {
     return (ip_ != other.ip_) || (user_ != other.user_) || (port_ != other.port_);
   }
