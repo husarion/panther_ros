@@ -11,17 +11,17 @@ class MovingAverage
 {
 public:
   MovingAverage(const unsigned window_size = 5, const T initial_value = T(0))
-  : window_size_(window_size), sum_(initial_value * static_cast<T>(window_size_))
+  : window_size_(window_size),
+    sum_(initial_value * static_cast<T>(window_size_)),
+    values_(window_size, initial_value)
   {
   }
 
   void roll(const T value)
   {
-    if (values.size() >= window_size_) {
-      sum_ -= values.front();
-      values.pop_front();
-    }
-    values.push_back(value);
+    sum_ -= values_.front();
+    values_.pop_front();
+    values_.push_back(value);
     sum_ += value;
   }
 
@@ -29,7 +29,7 @@ public:
 
 private:
   const unsigned window_size_;
-  std::deque<T> values;
+  std::deque<T> values_;
   T sum_;
 };
 

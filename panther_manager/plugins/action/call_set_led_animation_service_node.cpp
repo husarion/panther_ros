@@ -14,6 +14,7 @@ void CallSetLedAnimationService::update_request(panther_msgs::SetLEDAnimation::R
 {
   bool repeating;
   unsigned animation_id;
+  std::string param;
 
   if (!getInput<unsigned>("id", animation_id)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [id]"));
@@ -21,9 +22,12 @@ void CallSetLedAnimationService::update_request(panther_msgs::SetLEDAnimation::R
   if (!getInput<bool>("repeating", repeating)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [repeating]"));
   }
+  if (!getInput<std::string>("param", param)) {
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [param]"));
+  }
 
   request.animation.id = animation_id;
-  request.animation.param = getInput<std::string>("param").value();
+  request.animation.param = param;
   request.repeating = repeating;
 }
 
