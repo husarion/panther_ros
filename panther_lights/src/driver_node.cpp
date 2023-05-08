@@ -145,4 +145,5 @@ void DriverNode::set_pin_value(const gpiod::line::value value) const
   rb.add_line_settings(power_pin_offset, settings);
   rb.do_request();
 }
+
 }  // namespace panther_lights
