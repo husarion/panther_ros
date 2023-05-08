@@ -1,9 +1,9 @@
 #include <panther_lights/apa102.hpp>
 
 #include <fcntl.h>
-#include <unistd.h>
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include <cmath>
 #include <cstdint>
