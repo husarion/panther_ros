@@ -1,8 +1,6 @@
 #ifndef PANTHER_LIGHTS_DRIVER_NODE_HPP_
 #define PANTHER_LIGHTS_DRIVER_NODE_HPP_
 
-#include <panther_lights/apa102.hpp>
-
 #include <fstream>
 #include <memory>
 #include <vector>
@@ -13,6 +11,8 @@
 #include <image_transport/image_transport.h>
 
 #include <panther_msgs/SetLEDBrightness.h>
+
+#include <panther_lights/apa102.hpp>
 
 namespace panther_lights
 {
