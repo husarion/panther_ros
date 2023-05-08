@@ -1,17 +1,16 @@
 #include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
 
+#include <string>
+
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/exceptions.h>
+
+#include <ros/console.h>
+
 namespace panther_manager
 {
 
-CallSetLedAnimationService::CallSetLedAnimationService(
-  const std::string & name, const BT::NodeConfig & conf)
-: RosServiceNode(nh_, name, conf)
-{
-  nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
-  getInput("service_name", srv_name_);
-}
-
-void CallSetLedAnimationService::update_request(RequestType & request)
+void CallSetLedAnimationService::update_request(panther_msgs::SetLEDAnimation::Request & request)
 {
   bool repeating;
   unsigned animation_id;
@@ -24,7 +23,7 @@ void CallSetLedAnimationService::update_request(RequestType & request)
     throw(BT::RuntimeError("[", name(), "] Failed to get input [repeating]"));
   }
   if (!getInput<std::string>("param", param)) {
-    param = "";
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [param]"));
   }
 
   request.animation.id = animation_id;
@@ -32,17 +31,17 @@ void CallSetLedAnimationService::update_request(RequestType & request)
   request.repeating = repeating;
 }
 
-BT::NodeStatus CallSetLedAnimationService::on_response(const ResponseType & response)
+BT::NodeStatus CallSetLedAnimationService::on_response(const panther_msgs::SetLEDAnimation::Response & response)
 {
   if (!response.success) {
     ROS_ERROR(
-      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
-      response.message.c_str());
+      "[%s] Failed to call %s service, message: %s", get_node_name().c_str(),
+      get_srv_name().c_str(), response.message.c_str());
     return BT::NodeStatus::FAILURE;
   }
   ROS_DEBUG(
-    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(), srv_name_.c_str(),
-    response.message.c_str());
+    "[%s] Successfuly called %s service, message: %s", get_node_name().c_str(),
+    get_srv_name().c_str(), response.message.c_str());
   return BT::NodeStatus::SUCCESS;
 }
 
@@ -51,6 +50,6 @@ BT::NodeStatus CallSetLedAnimationService::on_response(const ResponseType & resp
 #include <behaviortree_cpp/bt_factory.h>
 BT_REGISTER_NODES(factory)
 {
-  panther_manager::RegisterRosService<panther_manager::CallSetLedAnimationService>(
-    factory, "CallSetLedAnimationService");
+  factory.registerNodeType<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 }

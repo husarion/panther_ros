@@ -1,23 +1,30 @@
 #ifndef PANTHER_MANAGER_CALL_TRIGGER_SERVICE_HPP_
 #define PANTHER_MANAGER_CALL_TRIGGER_SERVICE_HPP_
 
+#include <string>
+
+#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp/tree_node.h>
+
 #include <std_srvs/Trigger.h>
 
-#include <panther_manager/ros_service_node.hpp>
+#include <panther_manager/plugins/ros_service_node.hpp>
 
 namespace panther_manager
 {
 
-class CallTriggerService : public panther_manager::RosServiceNode<std_srvs::Trigger>
+class CallTriggerService : public RosServiceNode<std_srvs::Trigger>
 {
 public:
-  CallTriggerService(const std::string & name, const BT::NodeConfig & conf);
+  CallTriggerService(const std::string & name, const BT::NodeConfig & conf)
+  : RosServiceNode(name, conf)
+  {
+  }
 
-  std::string srv_name_;
-  std::shared_ptr<ros::NodeHandle> nh_;
+  static BT::PortsList providedPorts() { return providedBasicPorts({}); }
 
-  void update_request(RequestType & request) override;
-  virtual BT::NodeStatus on_response(const ResponseType & response);
+  void update_request(std_srvs::Trigger::Request & request) {}
+  virtual BT::NodeStatus on_response(const std_srvs::Trigger::Response & response);
 };
 
 }  // namespace panther_manager

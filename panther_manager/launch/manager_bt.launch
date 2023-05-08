@@ -1,13 +1,14 @@
 <launch>
   <arg name="panther_version" />
-
-  <rosparam command="load" file="$(find panther_manager)/config/manager_bt_config.yaml" />
+  <arg name="shutdown_hosts_config_file" />
 
   <node pkg="panther_manager" type="system_status_node.py" name="system_status_node"
     required="true" output="screen" />
 
   <node pkg="panther_manager" type="manager_bt_node" name="manager_bt_node" required="true"
     output="screen" if="$(eval panther_version >= 1.2)">
+    <rosparam command="load" file="$(find panther_manager)/config/manager_bt_config.yaml" />
+    <param name="shutdown_hosts_file" value="$(arg shutdown_hosts_config_file)" />
   </node>
 
 </launch>

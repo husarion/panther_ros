@@ -4,9 +4,9 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 ## ROS Nodes
 
-### manager_node.py
+### manager_bt_node
 
-Node responsible for managing the Husarion Panther robot. Controls built-in fan and software shutdown of components.
+Node responsible for managing the Husarion Panther robot. Composes control of three behavior trees responsible for handling LED panels, safety features and software shutdown of components.
 
 To set up connection with a new user computer, login to the built-in computer with `ssh husarion@10.15.20.2`.
 Add built-in computer's public key to **known_hosts** of a computer you want to shut down automatically:
@@ -27,45 +27,75 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: state of system including CPU temperature and load.
 
-#### Services
+#### Services subscribed (default trees)
 
-- `/panther/manager/overwrite_fan_control` [*std_srvs/SetBool*]: overwrites fan control, setting it to always on.
-
-#### Service clients
-
-- `hardware/aux_power_enable` [*std_srvs/SetBool*]: enables aux power output.
-- `hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers e-stop.
-- `hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
+- `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables aux power output.
+- `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers e-stop.
+- `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
+- `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
 
 #### Parameters
 
-- `~battery_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of battery.
-- `~cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, above which the fan is turned off.
-- `~cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
-- `~cpu_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
+- `~battery_state_anim_period` [*float*, default: **120.0**]: time in seconds to wait before repeating animation representing current battery percentage.
+- `~battery_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of battery.
+- `~cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, below which the fan is turned off.
+- `~cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **deg C** of CPU, above which the fan is turned on.
+- `~cpu_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
 - `~critical_bat_temp` [*float*, default: **59.0**]: extends `high_bat_temp` by turning off AUX power.
-- `~default_identity_file` [*string*, default: **~/.ssh/id_rsa**]: path to find identity file for SSH to be used as default. 
+- `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
+- `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
 - `~driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
 - `~driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
-- `~driver_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
-- `~fatal_bat_temp` [*float*, default: **62.0**]: temperature of battery above which robot shuts down.
+- `~driver_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
+- `~fatal_bat_temp` [*float*, default: **62.0**]: temperature of battery above which robot is shutdown.
 - `~high_bat_temp` [*float*, default: **55.0**]: temperature of battery above which robots starts displaying warning log and e-stop is triggered.
-- `~hosts` [*list*, default: **None**]: list of hosts to request shutdown.
-  - `cmd` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
-  - `identity_file` [*string*, default: **None**]: SSH identity file global path. If not set, defaults to `~default_identity_file`.
+- `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
+- `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
+- `~shutdown_hosts_file` [*string*, default: **None**]: path to a YAML file containing list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
+  - `command` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
-- `~fun_enable_hysteresis` [*float*, default: **60.0**]: minimum time of fan being turned on.
-- `~overwrite_fan_control` [*bool*, default: **false**]: enable the fan to be always on at start of the node. It can be turned off later by `/panther/manager/overwrite_fan_control` service.
-- `~self_identity_file` [*float*, default: **~/.ssh/id_rsa**]: identity file global path to shutdown device running this node. If not, set defaults to `~default_identity_file`.
-- `~self_ip` [*string*, default: **127.0.0.1**]: IP used to shutdown device running this node.
-- `~self_username` [*string*, default: **husarion**]: username used to shutdown device running this node.
 - `~shutdown_timeout` [*float*, default: **15.0**]: time in seconds to wait for graceful shutdown. After timeout power will be cut from all devices.
+- `~update_charging_anim_step` [*float*, default: **0.1**]: percentage value representing a step for updating the charging battery animation.
 
 ### system_status_node.py
 
-Publishes stats status of the internal computer. Stats include CPU utilization and temperature, as well as disc and RAM usage.
+Publishes stats status of the built-in computer. Stats include CPU utilization and temperature, as well as disc and RAM usage.
 
 #### Publishes
 
-- `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer CPU temperature, utilization and disc and RAM usage.
+- `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer CPU temperature, utilization, disc and RAM usage.
+
+## BehaviorTree 
+
+### Nodes
+
+#### Actions
+
+- `CallSetBoolService` - allows calling standard **std_srvs/SetBool** ROS service. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `ShutdownHostsFromFile` - allows to shutdown devices based on YAML file. Returns `FAILURE` only when YAML file is incorrect or a path to the file does not exists. If it fails to execute command in a remote host node will proceed tothe next device from the list. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when device can be reached and the command was executed. Provided ports are:
+  - `port_name` [*port_type(input/output)*, *type*, default: **None**]: description.
+
+#### Decorators
+
+- `TickAfterTimeout` - will skip child until the specified time has passed. It can be used to specify the frequency at which a node or subtree is triggered. Provided ports are:
+  - `port_name` [*type*, default: **None**]: description.
+
+### Trees
+
+- `Lights` - tree responsible for scheduling animations displayed on LED panels, based on the Husarion Panther robot's system state. Default blackboard entries are:
+  - `key_name` [*type*, default: **None**]: description.
+  - `const_key_name` [*type*, value: **None**]: description.
+- `Safety` - tree responsible for monitoring the Panther robot's state and handling safety measures, such as  cooling the robot in case of high CPU or battery temperature. Default blackboard entries are:
+  - `key_name` [*type*, default: **None**]: description.
+  - `const_key_name` [*type*, value: **None**]: description.
+- `Shutdown` - tree responsible for gracefull shutdown of robot components, user computers and the built-in computer. Default blackboard entries are:
+  - `key_name` [*type*, default: **None**]: description.
+  - `const_key_name` [*type*, value: **None**]: description.
