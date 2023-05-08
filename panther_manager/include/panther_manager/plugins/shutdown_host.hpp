@@ -93,10 +93,10 @@ private:
   bool command_executed_ = false;
   bool response_received_ = false;
   const bool ping_for_success_;
-  const float timeout_;
-  const int verbosity_ = SSH_LOG_NOLOG;
   char buffer_[1024];
+  const int verbosity_ = SSH_LOG_NOLOG;
   int nbytes_;
+  const float timeout_;
   const std::string command_;
   std::string output_;
   ros::Time command_time_;

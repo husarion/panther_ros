@@ -42,7 +42,7 @@ public:
     return BT::NodeStatus::FAILURE;
   }
 
-  std::string get_node_name() { return node_name_; }
+  std::string get_node_name() const { return node_name_; }
   std::vector<std::shared_ptr<ShutdownHost>> const get_failed_hosts() { return failed_hosts_; }
 
 private:

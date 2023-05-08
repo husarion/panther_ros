@@ -31,7 +31,10 @@ public:
     return (ip_ != other.ip_) || (user_ != other.user_) || (port_ != other.port_);
   }
 
-  bool operator<(const Host & other) const { return ip_ < other.ip_; }
+  bool operator<(const Host & other) const
+  {
+    return (ip_ < other.ip_) || (user_ < other.user_) || (port_ < other.port_);
+  }
 
 private:
   const std::string ip_;
