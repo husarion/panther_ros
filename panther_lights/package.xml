@@ -16,9 +16,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>libtool</build_depend>
   <build_depend>autoconf</build_depend>
   <build_depend>autoconf-archive</build_depend>
+  <build_depend>libtool</build_depend>
+  <build_depend>m4</build_depend>
+  <build_depend>pkg-config</build_depend>
 
   <depend>image_transport</depend>
   <depend>panther_msgs</depend>
