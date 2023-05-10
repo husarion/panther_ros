@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from dataclasses import dataclass
-import RPi.GPIO as GPIO
+import gpiod
 from threading import Lock
 
 import rospy
@@ -13,25 +13,21 @@ from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from panther_msgs.msg import DriverState, IOState
 
 
-@dataclass
-class PatherGPIO:
-    MOTOR_ON = 6  # Pin to enable motor controllers
-    STAGE2_INPUT = 22  # Check if power can be forwarded to motor controllers
-
-    def __setattr__(self, name: str, value: int) -> None:
-        raise AttributeError(f'Can\'t reassign constant {name}')
-
-
 class RelaysNode:
     def __init__(self, name: str) -> None:
-        rospy.init_node(name, anonymous=False)
+        self._node_name = name
+        rospy.init_node(self._node_name, anonymous=False)
 
         self._lock = Lock()
 
-        self._pins = PatherGPIO()
-        self._setup_gpio()
+        chip = gpiod.chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
 
-        self._e_stop_state = not GPIO.input(self._pins.STAGE2_INPUT)
+        line_names = ['MOTOR_ON' 'STAGE2_INPUT']
+        self._lines = {name: chip.find_line(name) for name in line_names}
+        self._lines['MOTOR_ON'].request(self._node_name, type=gpiod.LINE_REQ_DIR_OUT)
+        self._lines['STAGE2_INPUT'].request(self._node_name, type=gpiod.LINE_REQ_DIR_IN)
+
+        self._e_stop_state = not self._lines['STAGE2_INPUT'].get_value()
         self._cmd_vel_msg_time = rospy.get_time()
         self._can_net_err = True
 
@@ -46,7 +42,7 @@ class RelaysNode:
         self._e_stop_state_pub.publish(self._e_stop_state)
 
         self._io_state = IOState()
-        self._io_state.motor_on = GPIO.input(self._pins.STAGE2_INPUT)
+        self._io_state.motor_on = self._lines['STAGE2_INPUT'].get_value()
         self._io_state.aux_power = False
         self._io_state.charger_connected = False
         self._io_state.fan = False
@@ -86,6 +82,10 @@ class RelaysNode:
 
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
+    def __del__(self):
+        for line in self._lines.values():
+            line.release()
+
     def _cmd_vel_cb(self, *args) -> None:
         with self._lock:
             self._cmd_vel_msg_time = rospy.get_time()
@@ -120,17 +120,11 @@ class RelaysNode:
             return TriggerResponse(True, 'E-SROP triggered successful')
 
     def _set_motor_state_timer_cb(self, *args) -> None:
-        motor_state = GPIO.input(self._pins.STAGE2_INPUT)
-        GPIO.output(self._pins.MOTOR_ON, motor_state)
+        motor_state = self._lines['STAGE2_INPUT'].get_value()
+        self._lines['MOTOR_ON'].set_value(motor_state)
         if self._io_state.motor_on != motor_state:
             self._io_state.motor_on = motor_state
             self._io_state_pub.publish(self._io_state)
-
-    def _setup_gpio(self) -> None:
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self._pins.MOTOR_ON, GPIO.OUT)
-        GPIO.setup(self._pins.STAGE2_INPUT, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 def main():
@@ -143,5 +137,3 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-    finally:
-        GPIO.cleanup()

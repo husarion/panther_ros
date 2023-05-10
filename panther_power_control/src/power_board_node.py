@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from dataclasses import dataclass
-import RPi.GPIO as GPIO
+import gpiod
 from threading import Lock
 
 import rospy
@@ -14,36 +14,16 @@ from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from panther_msgs.msg import DriverState, IOState
 
 
-@dataclass
-class PatherGPIO:
-    AUX_PW_EN = 18      # Enable auxiliary power, eg. supply to robotic arms etc.
-    CHRG_DISABLE = 19   # Disable charger
-    CHRG_SENSE = 7      # Charger sensor (1 - charger plugged in)
-    DRIVER_EN = 23      # Enable motor drivers (1 - on)
-    E_STOP_RESET = 27   # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
-                        # OUT - send 1 to reset estop
-    FAN_SW = 15         # Turn on the fan (1 - on)
-    SHDN_INIT = 16      # Shutdown Init managed by systemd service
-    VDIG_OFF = 21       # Turn the digital power off eg. NUC, Router etc. (1 - off)
-    VMOT_ON = 6         # Enable mamin power supply to motors (1 - on)
-    WATCHDOG = 14       # Watchdog pin, if PWM is on this pin Panther will work
-
-    # define inverse logic pins here to be used by _read_pin() method
-    inverse_logic_pins = [VDIG_OFF, E_STOP_RESET, CHRG_SENSE]
-
-    def __setattr__(self, name: str, value: int) -> None:
-        raise AttributeError(f'Can\'t reassign constant {name}')
-
-
 class Watchdog:
-    def __init__(self, pin: int) -> None:
-        self._pin = pin
+    def __init__(self, line: gpiod.Line) -> None:
         self._last_state = False
         self._enabled = True
 
+        self._watchdog_pin = line
+
     def __call__(self) -> None:
         if self._enabled:
-            GPIO.output(self._pin, self._last_state)
+            self._watchdog_pin.set_value(self._last_state)
             self._last_state = not self._last_state
 
     def turn_on(self) -> None:
@@ -52,22 +32,48 @@ class Watchdog:
     def turn_off(self) -> None:
         self._enabled = False
         self._last_state = False
-        GPIO.output(self._pin, self._last_state)
+        self._watchdog_pin.set_value(self._last_state)
 
 
 class PowerBoardNode:
     def __init__(self, name: str) -> None:
-        rospy.init_node(name, anonymous=False)
+        self._node_name = name
+        rospy.init_node(self._node_name, anonymous=False)
 
         self._pins_lock = Lock()
         self._e_stop_lock = Lock()
 
         self._clearing_e_stop = False
-        self._pins = PatherGPIO()
 
-        self._setup_gpio()
+        line_names = [
+            'AUX_PW_EN'  # Enable auxiliary power, eg. supply to robotic arms etc.
+            'CHRG_DISABLE'  # Disable charger
+            'CHRG_SENSE'  # Charger sensor (1 - charger plugged in)
+            'DRIVER_EN'  # Enable motor drivers (1 - on)
+            'E_STOP_RESET'  # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
+            # OUT - send 1 to reset estop
+            'FAN_SW'  # Turn on the fan (1 - on)
+            'SHDN_INIT'  # Shutdown Init managed by systemd service
+            'VDIG_OFF'  # Turn the digital power off eg. NUC, Router etc. (1 - off)
+            'VMOT_ON'  # Enable mamin power supply to motors (1 - on)
+            'WATCHDOG'  # Watchdog pin, if PWM is on this pin Panther will work
+        ]
+        inv_lines = ['VDIG_OFF', 'E_STOP_RESET', 'CHRG_SENSE']
+
+        chip = gpiod.chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        self._lines = {name: chip.find_line(name) for name in line_names}
+        for ln in self._lines:
+            self._lines[ln].request(self._node_name, type=gpiod.LINE_REQ_DIR_AS_IS)
+            if ln in inv_lines:
+                self._lines[ln].request(self._node_name, type=gpiod.LINE_REQ_FLAG_ACTIVE_LOW)
+            if self._lines[ln].direction() == gpiod.Line.DIRECTION_OUTPUT:
+                self._lines[ln].set_value(0)
+        self._lines['CHRG_DISABLE'].set_value(1)
+        self._lines['E_STOP_RESET'].request(self._node_name, type=gpiod.LINE_REQ_EV_BOTH_EDGES)
+        self._lines['SHDN_INIT'].request(self._node_name, type=gpiod.LINE_REQ_EV_RISING_EDGE)
+
+        self._watchdog = Watchdog(self._lines['WATCHDOG'])
         self._motor_start_sequence()
-        self._watchdog = Watchdog(self._pins.WATCHDOG)
 
         self._gpio_wait = 0.05  # seconds
         self._e_stop_interrupt_time = float('inf')
@@ -83,17 +89,17 @@ class PowerBoardNode:
         self._e_stop_state_pub = rospy.Publisher('hardware/e_stop', Bool, queue_size=1, latch=True)
         self._io_state_pub = rospy.Publisher('hardware/io_state', IOState, queue_size=1, latch=True)
 
-        msg = Bool(self._read_pin(self._pins.E_STOP_RESET))
+        msg = Bool(self._lines['E_STOP_RESET'].get_value())
         self._e_stop_state_pub.publish(msg)
 
         io_state = IOState()
-        io_state.aux_power = self._read_pin(self._pins.AUX_PW_EN)
-        io_state.charger_connected = self._read_pin(self._pins.CHRG_SENSE)
-        io_state.fan = self._read_pin(self._pins.FAN_SW)
+        io_state.aux_power = self._lines['AUX_PW_EN'].get_value()
+        io_state.charger_connected = self._lines['CHRG_SENSE'].get_value()
+        io_state.fan = self._lines['FAN_SW'].get_value()
         io_state.power_button = False
-        io_state.digital_power = self._read_pin(self._pins.VDIG_OFF)
-        io_state.charger_enabled = not self._read_pin(self._pins.CHRG_DISABLE)
-        io_state.motor_on = self._read_pin(self._pins.DRIVER_EN)
+        io_state.digital_power = self._lines['VDIG_OFF'].get_value()
+        io_state.charger_enabled = not self._lines['CHRG_DISABLE'].get_value()
+        io_state.motor_on = self._lines['DRIVER_EN'].get_value()
         self._io_state_pub.publish(io_state)
 
         # -------------------------------
@@ -146,20 +152,11 @@ class PowerBoardNode:
         # 50 Hz of software PWM. Timer running at 100 Hz for raising and falling edges
         self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
 
-        # -------------------------------
-        #   GPIO callbacks
-        # -------------------------------
-
-        # register e-stop and power button pin change imminently
-        GPIO.add_event_detect(
-            self._pins.E_STOP_RESET, GPIO.BOTH, callback=self._gpio_interrupt_cb, bouncetime=200
-        )
-
-        GPIO.add_event_detect(
-            self._pins.SHDN_INIT, GPIO.RISING, callback=self._gpio_interrupt_cb, bouncetime=200
-        )
-
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
+
+    def __del__(self):
+        for line in self._lines.values():
+            line.release()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._e_stop_lock:
@@ -171,22 +168,22 @@ class PowerBoardNode:
                 {msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err}
             )
 
-    def _gpio_interrupt_cb(self, pin: int) -> None:
-        with self._pins_lock:
-            if pin == self._pins.SHDN_INIT:
-                self._chrg_sense_interrupt_time = rospy.get_time()
-
-            if pin == self._pins.E_STOP_RESET:
-                self._e_stop_interrupt_time = rospy.get_time()
-
     def _publish_pin_state_cb(self, *args) -> None:
         with self._pins_lock:
-            charger_state = self._read_pin(self._pins.CHRG_SENSE)
+            charger_state = self._lines['CHRG_SENSE'].get_value()
             self._publish_io_state('charger_connected', charger_state)
+
+            if self._lines['SHDN_INIT'].event_read() is not None:
+                if self._lines['SHDN_INIT'].get_value() == True:
+                    self._chrg_sense_interrupt_time = rospy.get_time()
+
+            if self._lines['E_STOP_RESET'].event_read() is not None:
+                if self._lines['E_STOP_RESET'].get_value() == True:
+                    self._e_stop_interrupt_time = rospy.get_time()
 
             # filter short spikes of voltage on GPIO
             if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
-                if self._read_pin(self._pins.SHDN_INIT):
+                if self._lines['SHDN_INIT'].get_value():
                     rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
                     self._publish_io_state('power_button', True)
                 self._chrg_sense_interrupt_time = float('inf')
@@ -218,7 +215,7 @@ class PowerBoardNode:
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         with self._e_stop_lock:
-            if self._validate_gpio_pin(self._pins.E_STOP_RESET, False):
+            if self._lines['E_STOP_RESET'].get_value() == False:
                 return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
             elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
                 return TriggerResponse(
@@ -233,7 +230,7 @@ class PowerBoardNode:
 
         self._reset_e_stop()
 
-        if self._validate_gpio_pin(self._pins.E_STOP_RESET, True):
+        if self._lines['E_STOP_RESET'].get_value() == True:
             self._watchdog.turn_off()
             return TriggerResponse(
                 False,
@@ -247,16 +244,16 @@ class PowerBoardNode:
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
 
     def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(req.data, self._pins.FAN_SW, 'Fan enable')
+        res = self._set_bool_srv_handle(req.data, 'FAN_SW', 'Fan enable')
         if res.success:
             self._publish_io_state('fan', req.data)
         return res
 
     def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        if self._validate_gpio_pin(self._pins.DRIVER_EN, req.data):
+        if self._lines['DRIVER_EN'].get_value() == req.data:
             return SetBoolResponse(True, f'Motor state already set to: {req.data}')
 
-        res = self._set_bool_srv_handle(req.data, self._pins.DRIVER_EN, 'Motor drivers enable')
+        res = self._set_bool_srv_handle(req.data, 'DRIVER_EN', 'Motor drivers enable')
         if not res.success:
             return res
 
@@ -268,7 +265,7 @@ class PowerBoardNode:
             try:
                 reset_script_res = self._reset_roboteq_script_client.call()
                 if not reset_script_res.success:
-                    res = self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
+                    res = self._set_bool_srv_handle(False, 'DRIVER_EN', 'Motor drivers enable')
                     if res.success:
                         self._publish_io_state('motor_on', False)
                     return SetBoolResponse(reset_script_res.success, reset_script_res.message)
@@ -280,10 +277,10 @@ class PowerBoardNode:
 
         return res
 
-    def _set_bool_srv_handle(self, value: bool, pin: int, name: str) -> SetBoolResponse:
+    def _set_bool_srv_handle(self, value: bool, pin_name: str, name: str) -> SetBoolResponse:
         rospy.logdebug(f'[{rospy.get_name()}] Requested {name} = {value}')
-        self._write_to_pin(pin, value)
-        success = self._validate_gpio_pin(pin, value)
+        self._lines[pin_name].set_value(value)
+        success = self._lines[pin_name].get_value() == value
         msg = f'{name} write {value} failed'
         if success:
             msg = f'{name} write {value} successful'
@@ -292,19 +289,24 @@ class PowerBoardNode:
 
     def _reset_e_stop(self) -> None:
         self._clearing_e_stop = True
-        GPIO.setup(self._pins.E_STOP_RESET, GPIO.OUT)
+        config = gpiod.line_request()
+        config.consumer = self._node_name
+        config.request_type = gpiod.line_request.DIRECTION_OUTPUT
+        self._lines['E_STOP_RESET'].request(config)
+
         self._watchdog.turn_on()
 
-        self._write_to_pin(self._pins.E_STOP_RESET, False)
+        self._lines['E_STOP_RESET'].set_value(True)
         rospy.sleep(0.1)
 
-        GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)
+        config.request_type = gpiod.line_request.DIRECTION_OUTPUT
+        self._lines['E_STOP_RESET'].request(config)
         rospy.sleep(0.1)
         self._clearing_e_stop = False
         self._e_stop_event()
 
     def _e_stop_event(self) -> None:
-        e_stop_state = self._read_pin(self._pins.E_STOP_RESET)
+        e_stop_state = self._lines['E_STOP_RESET'].get_value()
         if e_stop_state != self._e_stop_state_pub.impl.latch.data and not self._clearing_e_stop:
             self._e_stop_state_pub.publish(e_stop_state)
 
@@ -315,38 +317,10 @@ class PowerBoardNode:
             self._io_state_pub.publish(last_msg)
 
     def _motor_start_sequence(self) -> None:
-        self._write_to_pin(self._pins.VMOT_ON, 1)
+        self._lines['VMOT_ON'].set_value(True)
         rospy.sleep(0.5)
-        self._write_to_pin(self._pins.DRIVER_EN, 1)
+        self._lines['DRIVER_EN'].set_value(True)
         rospy.sleep(0.2)
-
-    def _setup_gpio(self) -> None:
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self._pins.AUX_PW_EN, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.CHRG_DISABLE, GPIO.OUT, initial=1)
-        GPIO.setup(self._pins.CHRG_SENSE, GPIO.IN)
-        GPIO.setup(self._pins.DRIVER_EN, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.E_STOP_RESET, GPIO.IN)  # USED AS I/O
-        GPIO.setup(self._pins.FAN_SW, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.SHDN_INIT, GPIO.IN)
-        GPIO.setup(self._pins.VDIG_OFF, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.VMOT_ON, GPIO.OUT, initial=0)
-        GPIO.setup(self._pins.WATCHDOG, GPIO.OUT, initial=0)
-
-    def _read_pin(self, pin: int) -> bool:
-        if pin in self._pins.inverse_logic_pins:
-            return not GPIO.input(pin)
-        return GPIO.input(pin)
-
-    def _write_to_pin(self, pin: int, value: bool) -> None:
-        if pin in self._pins.inverse_logic_pins:
-            GPIO.output(pin, not value)
-            return
-        GPIO.output(pin, value)
-
-    def _validate_gpio_pin(self, pin: int, value: bool) -> bool:
-        return self._read_pin(pin) == value
 
 
 def main():
@@ -359,5 +333,3 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-    finally:
-        GPIO.cleanup()
