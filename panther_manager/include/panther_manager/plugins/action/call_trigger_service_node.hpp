@@ -6,6 +6,7 @@
 #include <behaviortree_cpp/basic_types.h>
 #include <behaviortree_cpp/tree_node.h>
 
+#include <memory>
 #include <std_srvs/Trigger.h>
 
 #include <panther_manager/plugins/ros_service_node.hpp>
@@ -16,8 +17,10 @@ namespace panther_manager
 class CallTriggerService : public RosServiceNode<std_srvs::Trigger>
 {
 public:
-  CallTriggerService(const std::string & name, const BT::NodeConfig & conf)
-  : RosServiceNode(name, conf)
+  CallTriggerService(
+    const std::string & name, const BT::NodeConfig & conf,
+    const std::shared_ptr<ros::NodeHandle> & nh)
+  : RosServiceNode(name, conf, nh)
   {
   }
 

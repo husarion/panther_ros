@@ -47,9 +47,5 @@ BT::NodeStatus CallSetLedAnimationService::on_response(const panther_msgs::SetLE
 
 }  // namespace panther_manager
 
-#include <behaviortree_cpp/bt_factory.h>
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<panther_manager::CallSetLedAnimationService>(
-    "CallSetLedAnimationService");
-}
+#include <panther_manager/plugins/plugin.hpp>
+CreateRosNodePlugin(panther_manager::CallSetLedAnimationService, "CallSetLedAnimationService");
