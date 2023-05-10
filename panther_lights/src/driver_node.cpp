@@ -31,7 +31,12 @@ DriverNode::DriverNode(
   frame_timeout_ = ph_->param<double>("frame_timeout", 0.1);
   num_led_ = ph_->param<int>("num_led", 46);
 
-  set_pin_value(gpiod::line::value::INACTIVE);
+  const gpiod::chip chip("gpiochip0");
+  power_pin_ = chip.find_line("LED_SBC_SEL");
+
+  const gpiod::line_request lr = {
+    node_name_, gpiod::line_request::DIRECTION_OUTPUT, gpiod::line_request::FLAG_ACTIVE_LOW};
+  power_pin_.request(lr, 0);
 
   front_panel_ts_ = ros::Time::now();
   rear_panel_ts_ = ros::Time::now();
@@ -71,7 +76,8 @@ DriverNode::~DriverNode()
   rear_panel_.set_panel(std::vector<std::uint8_t>(num_led_ * 4, 0));
 
   // give back control over LEDs
-  set_pin_value(gpiod::line::value::INACTIVE);
+  power_pin_.set_value(0);
+  power_pin_.release();
 }
 
 bool DriverNode::set_brightness_cb(
@@ -124,26 +130,10 @@ void DriverNode::frame_cb(
       panels_initialised_ = true;
 
       // take control over LEDs
-      set_pin_value(gpiod::line::value::ACTIVE);
+      power_pin_.set_value(1);
     }
     panel.set_panel(msg->data);
   }
-}
-
-void DriverNode::set_pin_value(const gpiod::line::value value) const
-{
-  auto chip = gpiod::chip(std::filesystem::path{"/dev/gpiochip0"});
-  auto power_pin_offset = gpiod::line::offset(chip.get_line_offset_from_name("LED_SBC_SEL"));
-
-  auto settings = gpiod::line_settings();
-  settings.set_direction(gpiod::line::direction::OUTPUT);
-  settings.set_active_low(true);
-  settings.set_output_value(value);
-
-  auto rb = chip.prepare_request();
-  rb.set_consumer(node_name_);
-  rb.add_line_settings(power_pin_offset, settings);
-  rb.do_request();
 }
 
 }  // namespace panther_lights

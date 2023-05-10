@@ -29,6 +29,7 @@ private:
   int num_led_;
   double frame_timeout_;
   bool panels_initialised_ = false;
+  gpiod::line power_pin_;
   std::string node_name_;
 
   APA102 front_panel_;
@@ -46,7 +47,6 @@ private:
   void frame_cb(
     const sensor_msgs::Image::ConstPtr & msg, const APA102 & panel, const ros::Time & last_time,
     const std::string & panel_name);
-  void set_pin_value(const gpiod::line::value value) const;
   bool set_brightness_cb(
     panther_msgs::SetLEDBrightness::Request & req, panther_msgs::SetLEDBrightness::Response & res);
 };
