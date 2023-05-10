@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import gpiod
+import math
 from threading import Lock
 
 import rospy
@@ -78,6 +79,7 @@ class PowerBoardNode:
         self._motor_start_sequence()
 
         self._gpio_wait = 0.05  # seconds
+        self._last_e_stop_state = self._lines['E_STOP_RESET'].get_value()
         self._e_stop_interrupt_time = float('inf')
         self._chrg_sense_interrupt_time = float('inf')
 
@@ -183,14 +185,14 @@ class PowerBoardNode:
                         rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
                         self._publish_io_state('power_button', True)
                     self._chrg_sense_interrupt_time = float('inf')
-                else:
+                elif math.isinf(self._chrg_sense_interrupt_time):
                     self._chrg_sense_interrupt_time = rospy.get_time()
 
-            if self._lines['E_STOP_RESET'].get_value():
+            if self._lines['E_STOP_RESET'].get_value() != self._last_e_stop_state:
                 if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
                     self._e_stop_event()
                     self._e_stop_interrupt_time = float('inf')
-                else:
+                elif math.isinf(self._e_stop_interrupt_time):
                     self._e_stop_interrupt_time = rospy.get_time()
 
     def _watchdog_cb(self, *args) -> None:
@@ -310,7 +312,8 @@ class PowerBoardNode:
 
     def _e_stop_event(self) -> None:
         e_stop_state = self._lines['E_STOP_RESET'].get_value()
-        if e_stop_state != self._e_stop_state_pub.impl.latch.data and not self._clearing_e_stop:
+        if e_stop_state != self._last_e_stop_state and not self._clearing_e_stop:
+            self._last_e_stop_state = e_stop_state
             self._e_stop_state_pub.publish(e_stop_state)
 
     def _publish_io_state(self, attribute: str, val: bool) -> None:
