@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_lights</name>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
 
   <description>Package containing nodes responsible for displaying and scheduling animations on LED lights on Husarion Panther robot</description>
   <license>Apache License 2.0</license>
@@ -16,15 +16,16 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>image_transport</depend>
+  <depend>libgpiod-dev</depend>
   <depend>panther_msgs</depend>
+  <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
 
   <!-- Python dependencies -->
-  <depend>python-rpi.gpio-pip</depend>
-  <depend>python3-apa102-pi-pip</depend>
   <depend>python3-pil</depend>
 
 </package>
