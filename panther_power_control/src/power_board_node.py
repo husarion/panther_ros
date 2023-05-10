@@ -149,8 +149,8 @@ class PowerBoardNode:
         #   Timers
         # -------------------------------
 
-        # 5 Hz publish non asynch pin state
-        self._publish_pin_state_timer = rospy.Timer(rospy.Duration(0.2), self._publish_pin_state_cb)
+        # 20 Hz publish non asynch pin state
+        self._publish_pin_state_timer = rospy.Timer(rospy.Duration(0.05), self._publish_pin_state_cb)
         # 50 Hz of software PWM. Timer running at 100 Hz for raising and falling edges
         self._watchdog_timer = rospy.Timer(rospy.Duration(0.01), self._watchdog_cb)
 
