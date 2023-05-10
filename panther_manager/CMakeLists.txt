@@ -43,6 +43,9 @@ add_library(shutdown_hosts_from_file_bt_node SHARED plugins/action/shutdown_host
 list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
 target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
 
+add_library(signal_shutdown_bt_node SHARED plugins/action/signal_shutdown_node.cpp)
+list(APPEND plugin_libs signal_shutdown_bt_node)
+
 # decorators
 add_library(tick_after_timeout_bt_node SHARED plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)
