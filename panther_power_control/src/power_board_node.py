@@ -45,32 +45,34 @@ class PowerBoardNode:
 
         self._clearing_e_stop = False
 
-        line_names = [
-            'AUX_PW_EN'  # Enable auxiliary power, eg. supply to robotic arms etc.
-            'CHRG_DISABLE'  # Disable charger
-            'CHRG_SENSE'  # Charger sensor (1 - charger plugged in)
-            'DRIVER_EN'  # Enable motor drivers (1 - on)
-            'E_STOP_RESET'  # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
+        out_line_names = [
+            'AUX_PW_EN',  # Enable auxiliary power, eg. supply to robotic arms etc.
+            'CHRG_DISABLE',  # Disable charger
+            'DRIVER_EN',  # Enable motor drivers (1 - on)
             # OUT - send 1 to reset estop
-            'FAN_SW'  # Turn on the fan (1 - on)
-            'SHDN_INIT'  # Shutdown Init managed by systemd service
-            'VDIG_OFF'  # Turn the digital power off eg. NUC, Router etc. (1 - off)
-            'VMOT_ON'  # Enable mamin power supply to motors (1 - on)
-            'WATCHDOG'  # Watchdog pin, if PWM is on this pin Panther will work
+            'FAN_SW',  # Turn on the fan (1 - on)
+            'VDIG_OFF',  # Turn the digital power off eg. NUC, Router etc. (1 - off)
+            'VMOT_ON',  # Enable mamin power supply to motors (1 - on)
+            'WATCHDOG',  # Watchdog pin, if PWM is on this pin Panther will work
+        ]
+        in_line_names = [
+            'CHRG_SENSE',  # Charger sensor (1 - charger plugged in)
+            'E_STOP_RESET',  # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
+            'SHDN_INIT',  # Shutdown Init managed by systemd service
         ]
         inv_lines = ['VDIG_OFF', 'E_STOP_RESET', 'CHRG_SENSE']
 
-        chip = gpiod.chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
-        self._lines = {name: chip.find_line(name) for name in line_names}
-        for ln in self._lines:
-            self._lines[ln].request(self._node_name, type=gpiod.LINE_REQ_DIR_AS_IS)
-            if ln in inv_lines:
-                self._lines[ln].request(self._node_name, type=gpiod.LINE_REQ_FLAG_ACTIVE_LOW)
-            if self._lines[ln].direction() == gpiod.Line.DIRECTION_OUTPUT:
-                self._lines[ln].set_value(0)
-        self._lines['CHRG_DISABLE'].set_value(1)
-        self._lines['E_STOP_RESET'].request(self._node_name, type=gpiod.LINE_REQ_EV_BOTH_EDGES)
-        self._lines['SHDN_INIT'].request(self._node_name, type=gpiod.LINE_REQ_EV_RISING_EDGE)
+        self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        self._lines = {name: self._chip.find_line(name) for name in out_line_names + in_line_names}
+        for name, line in self._lines.items():
+            req_type = gpiod.LINE_REQ_DIR_OUT if name in out_line_names else gpiod.LINE_REQ_DIR_IN
+            req_flag = gpiod.LINE_REQ_FLAG_ACTIVE_LOW if name in inv_lines else 0
+            line.request(self._node_name, type=req_type, flags=req_flag)
+
+        self._lines['CHRG_DISABLE'].set_value(True)
+        self._lines['AUX_PW_EN'].set_value(False)
+        self._lines['FAN_SW'].set_value(False)
+        self._lines['VDIG_OFF'].set_value(True)
 
         self._watchdog = Watchdog(self._lines['WATCHDOG'])
         self._motor_start_sequence()
@@ -157,6 +159,7 @@ class PowerBoardNode:
     def __del__(self):
         for line in self._lines.values():
             line.release()
+        self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._e_stop_lock:
@@ -173,42 +176,40 @@ class PowerBoardNode:
             charger_state = self._lines['CHRG_SENSE'].get_value()
             self._publish_io_state('charger_connected', charger_state)
 
-            if self._lines['SHDN_INIT'].event_read() is not None:
-                if self._lines['SHDN_INIT'].get_value() == True:
+            # filter short spikes of voltage on GPIO
+            if self._lines['SHDN_INIT'].get_value():
+                if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
+                    if self._lines['SHDN_INIT'].get_value():
+                        rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
+                        self._publish_io_state('power_button', True)
+                    self._chrg_sense_interrupt_time = float('inf')
+                else:
                     self._chrg_sense_interrupt_time = rospy.get_time()
 
-            if self._lines['E_STOP_RESET'].event_read() is not None:
-                if self._lines['E_STOP_RESET'].get_value() == True:
+            if self._lines['E_STOP_RESET'].get_value():
+                if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
+                    self._e_stop_event()
+                    self._e_stop_interrupt_time = float('inf')
+                else:
                     self._e_stop_interrupt_time = rospy.get_time()
-
-            # filter short spikes of voltage on GPIO
-            if rospy.get_time() - self._chrg_sense_interrupt_time > self._gpio_wait:
-                if self._lines['SHDN_INIT'].get_value():
-                    rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-                    self._publish_io_state('power_button', True)
-                self._chrg_sense_interrupt_time = float('inf')
-
-            if rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
-                self._e_stop_event()
-                self._e_stop_interrupt_time = float('inf')
 
     def _watchdog_cb(self, *args) -> None:
         self._watchdog()
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(req.data, self._pins.AUX_PW_EN, 'Aux power enable')
+        res = self._set_bool_srv_handle(req.data, 'AUX_PW_EN', 'Aux power enable')
         if res.success:
             self._publish_io_state('aux_power', req.data)
         return res
 
     def _charger_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(not req.data, self._pins.CHRG_DISABLE, 'Charger disable')
+        res = self._set_bool_srv_handle(not req.data, 'CHRG_DISABLE', 'Charger disable')
         if res.success:
             self._publish_io_state('charger_enabled', req.data)
         return res
 
     def _digital_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        res = self._set_bool_srv_handle(req.data, self._pins.VDIG_OFF, 'Digital power enable')
+        res = self._set_bool_srv_handle(req.data, 'VDIG_OFF', 'Digital power enable')
         if res.success:
             self._publish_io_state('digital_power', req.data)
         return res
@@ -289,18 +290,20 @@ class PowerBoardNode:
 
     def _reset_e_stop(self) -> None:
         self._clearing_e_stop = True
-        config = gpiod.line_request()
-        config.consumer = self._node_name
-        config.request_type = gpiod.line_request.DIRECTION_OUTPUT
-        self._lines['E_STOP_RESET'].request(config)
+
+        req_type = gpiod.LINE_REQ_DIR_OUT
+        req_flag = gpiod.LINE_REQ_FLAG_ACTIVE_LOW
+        self._lines['E_STOP_RESET'].release()
+        self._lines['E_STOP_RESET'].request(self._node_name, type=req_type, flags=req_flag)
 
         self._watchdog.turn_on()
 
-        self._lines['E_STOP_RESET'].set_value(True)
+        self._lines['E_STOP_RESET'].set_value(False)
         rospy.sleep(0.1)
 
-        config.request_type = gpiod.line_request.DIRECTION_OUTPUT
-        self._lines['E_STOP_RESET'].request(config)
+        req_type = gpiod.LINE_REQ_DIR_IN
+        self._lines['E_STOP_RESET'].release()
+        self._lines['E_STOP_RESET'].request(self._node_name, type=req_type, flags=req_flag)
         rospy.sleep(0.1)
         self._clearing_e_stop = False
         self._e_stop_event()

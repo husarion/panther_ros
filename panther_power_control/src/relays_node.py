@@ -20,10 +20,10 @@ class RelaysNode:
 
         self._lock = Lock()
 
-        chip = gpiod.chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
 
-        line_names = ['MOTOR_ON' 'STAGE2_INPUT']
-        self._lines = {name: chip.find_line(name) for name in line_names}
+        line_names = {'MOTOR_ON': 6, 'STAGE2_INPUT': 22}
+        self._lines = {name: chip.get_line(line_names[name]) for name in line_names}
         self._lines['MOTOR_ON'].request(self._node_name, type=gpiod.LINE_REQ_DIR_OUT)
         self._lines['STAGE2_INPUT'].request(self._node_name, type=gpiod.LINE_REQ_DIR_IN)
 
