@@ -58,7 +58,7 @@ class PowerBoardNode:
         ]
         in_line_names = [
             'CHRG_SENSE',  # Charger sensor (1 - charger plugged in)
-            'E_STOP_RESET',  # Works as IN/OUT, IN - gives info if E-stop in on (1 - off),
+            'E_STOP_RESET',  # Works as IN/OUT, IN - gives info if E-stop is on (1 - off),
             'SHDN_INIT',  # Shutdown Init managed by systemd service
         ]
         inv_lines = ['VDIG_OFF', 'E_STOP_RESET', 'CHRG_SENSE']
