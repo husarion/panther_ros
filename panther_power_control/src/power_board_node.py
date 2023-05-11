@@ -218,7 +218,7 @@ class PowerBoardNode:
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         with self._e_stop_lock:
-            if self._lines['E_STOP_RESET'].get_value() == False:
+            if not self._lines['E_STOP_RESET'].get_value():
                 return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
             elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
                 return TriggerResponse(
