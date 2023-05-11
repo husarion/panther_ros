@@ -233,7 +233,7 @@ class PowerBoardNode:
 
         self._reset_e_stop()
 
-        if self._lines['E_STOP_RESET'].get_value() == True:
+        if self._lines['E_STOP_RESET'].get_value():
             self._watchdog.turn_off()
             return TriggerResponse(
                 False,
