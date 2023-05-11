@@ -38,10 +38,13 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 
 - `~bt_project_file` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: path to a BehaviorTree project.
 - `~plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in BT project.
-- `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in BT project.  
+- `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project. 
+- `~launch_safety_tree` [*bool*, default: **true**]: launch behavior tree responsible for managing Panther safety measures.
+- `~launch_lights_tree` [*bool*, default: **true**]: launch behavior tree responsible for scheduling animations on Panther LED panels.
+- `~launch_shutdown_tree` [*bool*, default: **true**]: launch behavior tree responsible for the gentle shutdown of robot components.
 
 
-- `~battery_percent_window_len` [*int*, default: **6**]: <int>("battery_percent_window_len", 6
+- `~battery_percent_window_len` [*int*, default: **6**]: moving average window length used to smooth out battery percentage readings.
 - `~battery_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of battery.
 - `~cpu_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
 - `~driver_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
@@ -61,6 +64,9 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~shutdown_hosts_file` [*string*, default: **None**]: path to a YAML file containing list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
+  - `ping_for_success` [*bool*, default: **true**]: ping host until it is not available or timeout is reached.
+  - `port` [*string*, default: **22**]: SSH communication port.
+  - `timeout` [*string*, default: **5.0**]: time in seconds to wait for the host to shutdown.
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
 
 ### system_status_node.py
@@ -82,24 +88,24 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 - `CallSetBoolService` - allows calling standard **std_srvs/SetBool** ROS service. Provided ports are:
   - `data` [*input*, *bool*, default: **None**]: service data - true / false value.
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-  - `timeout` [*input*, *unsigned*, default: **100**]: time in s to wait for service to become available.
+  - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
 - `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service. Provided ports are:
   - `id` [*input*, *unsigned*, default: **None**]: animation ID.
   - `param` [*input*, *string*, default: **None**]: optional parameter.
   - `repeating` [*input*, *bool*, default: **false**]: indicates if animation should repeat.
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-  - `timeout` [*input*, *unsigned*, default: **100**]: time in s to wait for service to become available.
+  - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
 - `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service. Provided ports are:
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-  - `timeout` [*input*, *unsigned*, default: **100**]: time in s to wait for service to become available.
-- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `FAILURE` only when a YAML file is incorrect or a path to the file does not exist. If it fails to execute a command in a remote host, node will proceed to the next device from the list. Provided ports are:
+  - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
+- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and shutdown of all defined host was successful.Provided ports are:
   - `shutdown_host_file` [*input*, *string*, default: **None**]: global path to YAML file with hosts to shutdown.
-- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when the device can be reached and the command was executed. Provided ports are:
+- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when the device was successfuly shutdown. Provided ports are:
   - `command` [*input*, *string*, default: **sudo shutdown now**]: command to execute on shutdown.
   - `ip` [*input*, *string*, default: **None**]: IP of the host to shutdown.
   - `ping_for_success` [*input*, *bool*, default: **true**]: ping host until it is not available or timeout is reached.
   - `port` [*input*, *string*, default: **22**]: SSH communication port.
-  - `timeout` [*input*, *string*, default: **5.0**]: time in s to wait for the host to shutdown.
+  - `timeout` [*input*, *string*, default: **5.0**]: time in seconds to wait for the host to shutdown.
   - `user` [*input*, *string*, default: **None**]: user to log into while executing shutdown command.
 - `SignalShutdown` - signals shutdown of the robot. Provided ports are:
   - `message` [*input*, *string*, default: **None**]: message with reason for robot to shutdown.
@@ -107,7 +113,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 #### Decorators
 
 - `TickAfterTimeout` - will skip a child until the specified time has passed. It can be used to specify the frequency at which a node or subtree is triggered. Provided ports are:
-  - `timeout` [*input*, *unsigned*, default: **None**]: time in s to wait before ticking child again.
+  - `timeout` [*input*, *unsigned*, default: **None**]: time in seconds to wait before ticking child again.
 
 ### Trees
 
@@ -156,13 +162,7 @@ Tree responsible for monitoring the Panther robot's state and handling safety me
 Default tree for Panther version 1.2 and later:
 
 <p align="center">
-  <img align="center" src="./docs/safety_tree_pth_1_2.png">
-</p>
-
-Default tree for Panther version 1.06 and ealier:
-
-<p align="center">
-  <img align="center" src="./docs/safety_tree_pth_1_06.png">
+  <img align="center" src="./docs/safety_tree.png">
 </p>
 
 Default blackboard entries:
