@@ -130,6 +130,9 @@ ManagerBTNode::ManagerBTNode(
 
   lights_config_ = create_bt_config(lights_initial_bb);
   safety_config_ = create_bt_config(safety_initial_bb);
+  // add bb port with non standard type
+  safety_config_.blackboard->set<std::pair<bool, std::string>>(
+    "signal_shutdown", std::pair<bool, std::string>(false, ""));
   shutdown_config_ = create_bt_config(shutdown_initial_bb);
 
   lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
@@ -275,9 +278,9 @@ void ManagerBTNode::safety_tree_timer_cb()
   }
 }
 
-void ManagerBTNode::shutdown_robot(const std::string & message)
+void ManagerBTNode::shutdown_robot(const std::string & reason)
 {
-  ROS_WARN("[%s] Soft shutdown initialized. %s", node_name_.c_str(), message.c_str());
+  ROS_WARN("[%s] Soft shutdown initialized. %s", node_name_.c_str(), reason.c_str());
   lights_tree_timer_.stop();
   lights_tree_.haltTree();
   safety_tree_timer_.stop();

@@ -71,7 +71,7 @@ private:
   void system_status_cb(const panther_msgs::SystemStatus::ConstPtr & system_status);
   void safety_tree_timer_cb();
   void lights_tree_timer_cb();
-  void shutdown_robot(const std::string & message);
+  void shutdown_robot(const std::string & reason);
   BT::NodeConfig create_bt_config(const std::map<std::string, std::any> & bb_values = {}) const;
 };
 

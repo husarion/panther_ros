@@ -11,12 +11,12 @@ namespace panther_manager
 
 BT::NodeStatus SignalShutdown::tick()
 {
-  auto message = getInput<std::string>("message").value();
+  auto reason = getInput<std::string>("reason").value();
 
   std::pair<bool, std::string> signal_shutdown;
   signal_shutdown.first = true;
-  signal_shutdown.second = message;
-  config().blackboard->set<std::pair<bool, std::string>>("signal_shutdown", signal_shutdown);
+  signal_shutdown.second = reason;
+  setOutput<std::pair<bool, std::string>>("signal_shutdown", signal_shutdown);
 
   return BT::NodeStatus::SUCCESS;
 }

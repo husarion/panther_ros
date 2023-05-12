@@ -28,7 +28,8 @@
             <input_port name="user">user to log into while executing shutdown command</input_port>
         </Action>
         <Action ID="SignalShutdown" editable="true">
-            <input_port name="message">reason to shutdown robot</input_port>
+            <input_port name="reason">reason to shutdown robot</input_port>
+            <output_port name="signal_shutdown">signal robot shutdown request</output_port>
         </Action>
         <Decorator ID="TickAfterTimeout" editable="true">
             <input_port name="timeout">time in s to wait before ticking child again</input_port>
