@@ -26,6 +26,7 @@
 #include <panther_msgs/SystemStatus.h>
 
 #include <panther_manager/moving_average.hpp>
+#include <panther_manager/plugins/plugin.hpp>
 
 namespace panther_manager
 {
@@ -42,6 +43,8 @@ ManagerBTNode::ManagerBTNode(
 
   const auto xml_filename = ph_->param<std::string>("xml_filename", default_xml);
   const auto plugin_libs = ph_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
+  const auto ros_plugin_libs =
+    ph_->param<std::vector<std::string>>("ros_plugin_libs", default_plugin_libs);
   const auto battery_temp_window_len = ph_->param<int>("battery_temp_window_len", 6);
   const auto battery_percent_window_len = ph->param<int>("battery_percent_window_len", 6);
   const auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
@@ -81,6 +84,10 @@ ManagerBTNode::ManagerBTNode(
   // export plugins for a behaviour tree
   for (const auto & p : plugin_libs) {
     factory_.registerFromPlugin(BT::SharedLibrary::getOSName(p));
+  }
+
+  for (const auto & p : ros_plugin_libs) {
+    RegisterRosNode(factory_, BT::SharedLibrary::getOSName(p), nh_);
   }
 
   factory_.registerBehaviorTreeFromFile(xml_filename);

@@ -1,6 +1,7 @@
 #ifndef PANTHER_MANAGER_CALL_SET_LED_ANIMATION_SERVICE_NODE_HPP_
 #define PANTHER_MANAGER_CALL_SET_LED_ANIMATION_SERVICE_NODE_HPP_
 
+#include <memory>
 #include <string>
 
 #include <behaviortree_cpp/basic_types.h>
@@ -16,8 +17,10 @@ namespace panther_manager
 class CallSetLedAnimationService : public RosServiceNode<panther_msgs::SetLEDAnimation>
 {
 public:
-  CallSetLedAnimationService(const std::string & name, const BT::NodeConfig & conf)
-  : RosServiceNode(name, conf)
+  CallSetLedAnimationService(
+    const std::string & name, const BT::NodeConfig & conf,
+    const std::shared_ptr<ros::NodeHandle> & nh)
+  : RosServiceNode(name, conf, nh)
   {
   }
 

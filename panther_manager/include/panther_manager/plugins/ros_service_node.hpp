@@ -19,10 +19,9 @@ template <class ServiceT>
 class RosServiceNode : public BT::SyncActionNode
 {
 public:
-  explicit RosServiceNode(const std::string & name, const BT::NodeConfig & conf)
-  : BT::SyncActionNode(name, conf)
+  explicit RosServiceNode(const std::string & name, const BT::NodeConfig & conf, const std::shared_ptr<ros::NodeHandle> & nh)
+  : BT::SyncActionNode(name, conf), nh_(nh)
   {
-    nh_ = config().blackboard->get<std::shared_ptr<ros::NodeHandle>>("nh");
     node_name_ = ros::this_node::getName();
   }
 

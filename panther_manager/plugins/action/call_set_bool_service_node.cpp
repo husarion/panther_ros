@@ -33,8 +33,5 @@ BT::NodeStatus CallSetBoolService::on_response(const std_srvs::SetBool::Response
 
 }  // namespace panther_manager
 
-#include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<panther_manager::CallSetBoolService>("CallSetBoolService");
-}
+#include <panther_manager/plugins/plugin.hpp>
+CreateRosNodePlugin(panther_manager::CallSetBoolService, "CallSetBoolService");

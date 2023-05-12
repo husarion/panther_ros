@@ -23,8 +23,5 @@ BT::NodeStatus CallTriggerService::on_response(const std_srvs::Trigger::Response
 
 }  // namespace panther_manager
 
-#include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<panther_manager::CallTriggerService>("CallTriggerService");
-}
+#include <panther_manager/plugins/plugin.hpp>
+CreateRosNodePlugin(panther_manager::CallTriggerService, "CallTriggerService");
