@@ -26,7 +26,6 @@
 #include <panther_msgs/SystemStatus.h>
 
 #include <panther_manager/moving_average.hpp>
-
 #include <panther_manager/plugins/plugin.hpp>
 
 namespace panther_manager

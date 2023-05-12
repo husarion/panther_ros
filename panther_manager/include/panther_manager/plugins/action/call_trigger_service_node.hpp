@@ -1,12 +1,12 @@
 #ifndef PANTHER_MANAGER_CALL_TRIGGER_SERVICE_HPP_
 #define PANTHER_MANAGER_CALL_TRIGGER_SERVICE_HPP_
 
+#include <memory>
 #include <string>
 
 #include <behaviortree_cpp/basic_types.h>
 #include <behaviortree_cpp/tree_node.h>
 
-#include <memory>
 #include <std_srvs/Trigger.h>
 
 #include <panther_manager/plugins/ros_service_node.hpp>
