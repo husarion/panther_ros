@@ -91,9 +91,8 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
     <Sequence>
       <Sequence name="ManagePowerSequence"
                 _skipIf="bat_temp &lt;= HIGH_BAT_TEMP">
-        <Script name="SignalShutdown"
-                code="signal_shutdown := &quot;Battery reached fatal temperature&quot;"
-                _skipIf="bat_temp &lt;= FATAL_BAT_TEMP"/>
+        <SignalShutdown reason="Battery reached fatal temperature"
+                        _skipIf="bat_temp &lt;= FATAL_BAT_TEMP"/>
         <Sequence name="HighTempSequence"
                   _skipIf="bat_temp &gt; FATAL_BAT_TEMP">
           <CallTriggerService name="TriggerEStop"
@@ -177,6 +176,10 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
       <input_port name="command">(optional) command to execute on shutdown</input_port>
       <input_port name="ip">ip of the host to shutdown</input_port>
       <input_port name="user">user to log into while executing shutdown command</input_port>
+    </Action>
+    <Action ID="SignalShutdown"
+            editable="true">
+      <input_port name="reason">reason to shutdown robot</input_port>
     </Action>
     <Decorator ID="TickAfterTimeout"
                editable="true">

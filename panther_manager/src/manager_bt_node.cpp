@@ -275,15 +275,16 @@ void ManagerBTNode::safety_tree_timer_cb()
   // BT::StdCoutLogger logger_cout(safety_tree_);  // debugging
   safety_tree_status_ = safety_tree_.tickOnce();
 
-  std::string signal_shutdown;
-  if (safety_config_.blackboard->get<std::string>("signal_shutdown", signal_shutdown)) {
-    shutdown_robot(signal_shutdown);
+  std::pair<bool, std::string> signal_shutdown;
+  if (safety_config_.blackboard->get<std::pair<bool, std::string>>(
+        "signal_shutdown", signal_shutdown)) {
+    if (signal_shutdown.first) shutdown_robot(signal_shutdown.second);
   }
 }
 
-void ManagerBTNode::shutdown_robot(const std::string & message)
+void ManagerBTNode::shutdown_robot(const std::string & reason)
 {
-  ROS_WARN("[%s] %s. Soft shutdown initialized.", node_name_.c_str(), message.c_str());
+  ROS_WARN("[%s] Soft shutdown initialized. %s", node_name_.c_str(), reason.c_str());
   lights_tree_timer_.stop();
   lights_tree_.haltTree();
   safety_tree_timer_.stop();
