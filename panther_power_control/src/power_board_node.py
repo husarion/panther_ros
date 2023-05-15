@@ -56,7 +56,7 @@ class PowerBoardNode:
             'WATCHDOG',  # Watchdog pin, if PWM is on this pin Panther will work
         ]
         in_line_names = [
-            'CHRG_SENSE',  # Charger sensor (1 - charger plugged in)
+            'CHRG_SENSE',  # Charger sensor (0 - charger connected, 1 - not connected)
             'E_STOP_RESET',  # Works as IN/OUT,
             # IN - gives info if E-stop is on (1 - off), OUT - send 1 to reset estop
             'SHDN_INIT',  # Shutdown Init managed by systemd service
@@ -73,7 +73,6 @@ class PowerBoardNode:
         self._lines['CHRG_DISABLE'].set_value(True)
         self._lines['AUX_PW_EN'].set_value(False)
         self._lines['FAN_SW'].set_value(False)
-        # This pin is inverted so default has to be high
         self._lines['VDIG_OFF'].set_value(False)
 
         self._watchdog = Watchdog(self._lines['WATCHDOG'])
@@ -81,7 +80,7 @@ class PowerBoardNode:
 
         self._gpio_wait = 0.05  # seconds
         self._last_e_stop_state = not self._lines['E_STOP_RESET'].get_value()
-        self._e_stop_interrupt_time = float('inf')
+        self._e_stop_pressed_time = float('inf')
         self._chrg_sense_pressed_time = float('inf')
 
         self._cmd_vel_msg_time = rospy.get_time()
@@ -192,13 +191,13 @@ class PowerBoardNode:
                 self._chrg_sense_pressed_time = float('inf')
 
             if (
-                math.isinf(self._e_stop_interrupt_time)
+                math.isinf(self._e_stop_pressed_time)
                 and self._lines['E_STOP_RESET'].get_value() != self._last_e_stop_state
             ):
-                self._e_stop_interrupt_time = rospy.get_time()
-            elif rospy.get_time() - self._e_stop_interrupt_time > self._gpio_wait:
+                self._e_stop_pressed_time = rospy.get_time()
+            elif rospy.get_time() - self._e_stop_pressed_time > self._gpio_wait:
                 self._e_stop_event()
-                self._e_stop_interrupt_time = float('inf')
+                self._e_stop_pressed_time = float('inf')
 
     def _watchdog_cb(self, *args) -> None:
         self._watchdog()
@@ -233,7 +232,8 @@ class PowerBoardNode:
             elif self._can_net_err:
                 return TriggerResponse(
                     False,
-                    'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
+                    'E-STOP reset failed, unable to communicate with motor controllers! '
+                    'Please check connection with motor controllers.',
                 )
 
         self._reset_e_stop()
