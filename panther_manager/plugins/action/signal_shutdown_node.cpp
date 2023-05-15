@@ -16,7 +16,7 @@ BT::NodeStatus SignalShutdown::tick()
   std::pair<bool, std::string> signal_shutdown;
   signal_shutdown.first = true;
   signal_shutdown.second = reason;
-  setOutput<std::pair<bool, std::string>>("signal_shutdown", signal_shutdown);
+  config().blackboard->set<std::pair<bool, std::string>>("signal_shutdown", signal_shutdown);
 
   return BT::NodeStatus::SUCCESS;
 }

@@ -29,7 +29,6 @@
         </Action>
         <Action ID="SignalShutdown" editable="true">
             <input_port name="reason">reason to shutdown robot</input_port>
-            <output_port name="signal_shutdown">signal robot shutdown request</output_port>
         </Action>
         <Decorator ID="TickAfterTimeout" editable="true">
             <input_port name="timeout">time in s to wait before ticking child again</input_port>

@@ -1,7 +1,6 @@
 #ifndef PANTHER_MANAGER_SIGNAL_SHUTDOWN_NODE_HPP_
 #define PANTHER_MANAGER_SIGNAL_SHUTDOWN_NODE_HPP_
 
-#include <utility>
 #include <string>
 
 #include <behaviortree_cpp/action_node.h>
@@ -23,8 +22,6 @@ public:
   {
     return {
       BT::InputPort<std::string>("reason", "", "reason to shutdown robot"),
-      BT::OutputPort<std::pair<bool, std::string>>(
-        "signal_shutdown", "signal robot shutdown request"),
     };
   }
 

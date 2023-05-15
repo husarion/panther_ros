@@ -137,9 +137,6 @@ ManagerBTNode::ManagerBTNode(
 
   lights_config_ = create_bt_config(lights_initial_bb);
   safety_config_ = create_bt_config(safety_initial_bb);
-  // add bb port with non standard type
-  safety_config_.blackboard->set<std::pair<bool, std::string>>(
-    "signal_shutdown", std::pair<bool, std::string>(false, ""));
   shutdown_config_ = create_bt_config(shutdown_initial_bb);
 
   lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);

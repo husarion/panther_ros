@@ -92,7 +92,6 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
       <Sequence name="ManagePowerSequence"
                 _skipIf="bat_temp &lt;= HIGH_BAT_TEMP">
         <SignalShutdown reason="Battery reached fatal temperature"
-                        signal_shutdown="{signal_shutdown}"
                         _skipIf="bat_temp &lt;= FATAL_BAT_TEMP"/>
         <Sequence name="HighTempSequence"
                   _skipIf="bat_temp &gt; FATAL_BAT_TEMP">
@@ -181,7 +180,6 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
     <Action ID="SignalShutdown"
             editable="true">
       <input_port name="reason">reason to shutdown robot</input_port>
-      <output_port name="signal_shutdown">signal robot shutdown request</output_port>
     </Action>
     <Decorator ID="TickAfterTimeout"
                editable="true">
