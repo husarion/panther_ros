@@ -58,7 +58,7 @@ private:
     update_hosts(hosts_);
     remove_duplicate_hosts(hosts_);
     if (hosts_.size() <= 0) {
-      ROS_ERROR("[%s] Hosts list not initialized correctly", node_name_.c_str());
+      ROS_ERROR("[%s] Hosts list is empty! Check configuration!", node_name_.c_str());
       return BT::NodeStatus::FAILURE;
     }
     return BT::NodeStatus::RUNNING;
@@ -98,13 +98,8 @@ private:
       return BT::NodeStatus::RUNNING;
     }
 
-    bool new_host_requested = true;
-    if (current_host_) {
-      new_host_requested = *current_host_ != hosts_.at(host_index_);
-    }
-
     try {
-      if (new_host_requested) {
+      if (current_host_ ? *current_host_ != hosts_.at(host_index_) : true) {
         current_host_ = std::make_shared<ShutdownHost>(hosts_.at(host_index_));
 
         if (!current_host_->is_available()) {
