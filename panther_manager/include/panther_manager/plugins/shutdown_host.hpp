@@ -15,6 +15,16 @@
 namespace panther_manager
 {
 
+enum class ShutdownHostState {
+  IDLE,
+  COMMAND_EXECUTED,
+  RESPONSE_RECEIVED,
+  PINGING,
+  SKIPPED,
+  SUCCESS,
+  FAILURE,
+};
+
 class Host
 {
 public:
@@ -57,17 +67,96 @@ public:
     const std::string ip, const std::string user, const int port = 22,
     const std::string command = "sudo shutdown now", const float timeout = 5.0,
     const bool ping_for_success = true)
-  : Host(ip, user, port), command_(command), timeout_(timeout), ping_for_success_(ping_for_success)
+  : Host(ip, user, port),
+    command_(command),
+    timeout_(timeout),
+    ping_for_success_(ping_for_success),
+    state_(ShutdownHostState::IDLE)
   {
   }
 
   ~ShutdownHost() {}
 
+  std::string get_error() const { return failure_reason_; }
+  std::string get_response() const { return output_; }
+  ShutdownHostState get_state() const { return state_; }
+
+  void call()
+  {
+    switch (state_) {
+      case ShutdownHostState::IDLE:
+        if (!is_available()) {
+          state_ = ShutdownHostState::SKIPPED;
+          break;
+        }
+
+        try {
+          request_shutdown();
+        } catch (std::runtime_error err) {
+          state_ = ShutdownHostState::FAILURE;
+          failure_reason_ = err.what();
+          break;
+        }
+        state_ = ShutdownHostState::COMMAND_EXECUTED;
+        break;
+
+      case ShutdownHostState::COMMAND_EXECUTED:
+        try {
+          if (update_response()) break;
+        } catch (std::runtime_error err) {
+          state_ = ShutdownHostState::FAILURE;
+          failure_reason_ = err.what();
+          break;
+        }
+        state_ = ShutdownHostState::RESPONSE_RECEIVED;
+        break;
+
+      case ShutdownHostState::RESPONSE_RECEIVED:
+        state_ = ShutdownHostState::PINGING;
+        break;
+      case ShutdownHostState::PINGING:
+        if (ping_for_success_ ? !is_available() : true) {
+          state_ = ShutdownHostState::SUCCESS;
+          break;
+        }
+        if (timeout_exceeded()) {
+          state_ = ShutdownHostState::FAILURE;
+          failure_reason_ = "Timeout exceeded";
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  void close_connection()
+  {
+    if (ssh_channel_is_closed(channel_)) return;
+
+    ssh_channel_send_eof(channel_);
+    ssh_channel_close(channel_);
+    ssh_channel_free(channel_);
+    ssh_disconnect(session_);
+    ssh_free(session_);
+  }
+
+private:
+  const bool ping_for_success_;
+  char buffer_[1024];
+  const int verbosity_ = SSH_LOG_NOLOG;
+  int nbytes_;
+  const float timeout_;
+  const std::string command_;
+  std::string output_;
+  std::string failure_reason_;
+  ros::Time command_time_;
+  ShutdownHostState state_;
+
   void request_shutdown()
   {
     ssh_execute_command(get_ip().c_str(), get_user().c_str(), get_command().c_str(), get_port());
     command_time_ = ros::Time::now();
-    command_executed_ = true;
   }
 
   bool update_response()
@@ -91,48 +180,15 @@ public:
       return true;
     }
     close_connection();
-    response_received_ = true;
     return false;
   }
 
-  void close_connection()
-  {
-    if (ssh_channel_is_closed(channel_)) return;
-
-    ssh_channel_send_eof(channel_);
-    ssh_channel_close(channel_);
-    ssh_channel_free(channel_);
-    ssh_disconnect(session_);
-    ssh_free(session_);
-  }
-
   std::string get_command() const { return command_; }
-  std::string get_response() const { return output_; }
-  bool command_executed() const { return command_executed_; }
-  bool response_received() const { return response_received_; }
 
   bool timeout_exceeded()
   {
     return (ros::Time::now() - command_time_) > ros::Duration(timeout_) && is_available();
   }
-
-  bool success()
-  {
-    if (ping_for_success_) return command_executed_ && response_received_ && !is_available();
-    return command_executed_ && response_received_;
-  }
-
-private:
-  bool command_executed_ = false;
-  bool response_received_ = false;
-  const bool ping_for_success_;
-  char buffer_[1024];
-  const int verbosity_ = SSH_LOG_NOLOG;
-  int nbytes_;
-  const float timeout_;
-  const std::string command_;
-  std::string output_;
-  ros::Time command_time_;
 
   ssh_session session_;
   ssh_channel channel_;

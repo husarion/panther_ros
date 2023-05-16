@@ -48,7 +48,6 @@ public:
 private:
   int host_index_ = 0;
   std::string node_name_;
-  std::shared_ptr<ShutdownHost> current_host_;
   std::vector<ShutdownHost> hosts_;
   std::vector<std::shared_ptr<ShutdownHost>> hosts_to_check_;
   std::vector<std::shared_ptr<ShutdownHost>> failed_hosts_;
@@ -61,77 +60,55 @@ private:
       ROS_ERROR("[%s] Hosts list is empty! Check configuration!", node_name_.c_str());
       return BT::NodeStatus::FAILURE;
     }
+    for (auto & host : hosts_) {
+      hosts_to_check_.push_back(std::make_shared<ShutdownHost>(host));
+    }
     return BT::NodeStatus::RUNNING;
   }
 
   BT::NodeStatus onRunning()
   {
-    if (host_index_ >= hosts_.size()) {
-      // remove hosts that succeded
-      hosts_to_check_.erase(
-        std::find_if(
-          hosts_to_check_.begin(), hosts_to_check_.end(),
-          [&](const std::shared_ptr<ShutdownHost> host) { return host->success(); }),
-        hosts_to_check_.end());
+    if (hosts_to_check_.size() <= 0) return on_end();
 
-      if (hosts_to_check_.size() <= 0) return on_end();
+    if (host_index_ >= hosts_to_check_.size()) host_index_ = 0;
 
-      // remove hosts that failed and add them to failed hosts
-      hosts_to_check_.erase(
-        std::find_if(
-          hosts_to_check_.begin(), hosts_to_check_.end(),
-          [&](const std::shared_ptr<ShutdownHost> host) {
-            if (host->timeout_exceeded()) {
-              ROS_WARN(
-                "[%s] Failed to shutdown device at: %s\nTimeout reached waiting for host to "
-                "shutdown",
-                get_node_name().c_str(), host->get_ip().c_str());
-              failed_hosts_.push_back(host);
-              return true;
-            }
-            return false;
-          }),
-        hosts_to_check_.end());
+    auto host = hosts_to_check_.at(host_index_);
+    host->call();
 
-      if (hosts_to_check_.size() <= 0) return on_end();
+    switch (host->get_state()) {
+      case ShutdownHostState::RESPONSE_RECEIVED:
 
-      return BT::NodeStatus::RUNNING;
+        ROS_INFO(
+          "[%s] Device at: %s response:\n%s", node_name_.c_str(), host->get_ip().c_str(),
+          host->get_response().c_str());
+        host_index_++;
+        break;
+
+      case ShutdownHostState::SUCCESS:
+        ROS_INFO(
+          "[%s] Successfuly shutdown device at: %s", node_name_.c_str(), host->get_ip().c_str());
+        hosts_to_check_.erase(hosts_to_check_.begin() + host_index_);
+        break;
+
+      case ShutdownHostState::FAILURE:
+        ROS_WARN(
+          "[%s] Failed to shutdown device at: %s\n%s", node_name_.c_str(), host->get_ip().c_str(),
+          host->get_error().c_str());
+        failed_hosts_.push_back(host);
+        hosts_to_check_.erase(hosts_to_check_.begin() + host_index_);
+        break;
+
+      case ShutdownHostState::SKIPPED:
+        ROS_WARN(
+          "[%s] Davice at: %s not available, skipping", node_name_.c_str(), host->get_ip().c_str());
+        hosts_to_check_.erase(hosts_to_check_.begin() + host_index_);
+        break;
+
+      default:
+        host_index_++;
+        break;
     }
 
-    try {
-      if (current_host_ ? *current_host_ != hosts_.at(host_index_) : true) {
-        current_host_ = std::make_shared<ShutdownHost>(hosts_.at(host_index_));
-
-        if (!current_host_->is_available()) {
-          ROS_WARN(
-            "[%s] Davice at: %s not available, skipping", get_node_name().c_str(),
-            current_host_->get_ip().c_str());
-          host_index_++;
-          return BT::NodeStatus::RUNNING;
-        }
-
-        ROS_INFO("Shutting down device at: %s", current_host_->get_ip().c_str());
-        current_host_->request_shutdown();
-      }
-
-      if (current_host_->update_response()) {
-        return BT::NodeStatus::RUNNING;
-      }
-
-    } catch (std::runtime_error err) {
-      ROS_WARN(
-        "[%s] Failed to shutdown device at: %s\n%s", get_node_name().c_str(),
-        current_host_->get_ip().c_str(), err.what());
-      failed_hosts_.push_back(current_host_);
-      host_index_++;
-      return BT::NodeStatus::RUNNING;
-    }
-
-    ROS_INFO(
-      "[%s] Device response:\n%s", get_node_name().c_str(), current_host_->get_response().c_str());
-
-    hosts_to_check_.push_back(current_host_);
-    host_index_++;
     return BT::NodeStatus::RUNNING;
   }
 
