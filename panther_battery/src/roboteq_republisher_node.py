@@ -13,9 +13,13 @@ from panther_msgs.msg import DriverState
 class RoboteqRepublisherNode:
     V_BAT_FATAL_MIN = 27.0
     V_BAT_FATAL_MAX = 43.0
-
+    V_BAT_FULL = 41.4
+    V_BAT_MIN = 32.0
+    
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
+
+        self._lock = Lock()
 
         self._battery_voltage: Optional[float] = None
         self._battery_current: Optional[float] = None
@@ -26,7 +30,6 @@ class RoboteqRepublisherNode:
 
         self._battery_timeout = 1.0
         self._last_battery_info_time = rospy.get_time()
-        self._lock = Lock()
 
         # -------------------------------
         #   Subscribers
@@ -78,7 +81,9 @@ class RoboteqRepublisherNode:
                 battery_msg.voltage = self._battery_voltage
                 battery_msg.temperature = float('nan')
                 battery_msg.current = self._battery_current
-                battery_msg.percentage = (battery_msg.voltage - 32.0) / 10.0
+                battery_msg.percentage = (battery_msg.voltage - self.V_BAT_MIN) / (
+                    self.V_BAT_FULL - self.V_BAT_MIN
+                )
                 battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
                 battery_msg.present = True
 
@@ -104,7 +109,9 @@ class RoboteqRepublisherNode:
     def _update_volt_mean(self, new_val: float) -> float:
         # Updates the average by adding the newest and removing the oldest component of mean value,
         # in order to avoid recalculating the entire sum every time.
-        self._battery_voltage_mean += (new_val - self._battery_voltage_hist[0]) / self._volt_mean_length
+        self._battery_voltage_mean += (
+            new_val - self._battery_voltage_hist[0]
+        ) / self._volt_mean_length
 
         self._battery_voltage_hist.pop(0)
         self._battery_voltage_hist.append(new_val)
