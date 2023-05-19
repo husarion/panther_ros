@@ -3,7 +3,7 @@
   <arg name="test" default="false" />
   <arg name="user_animations_file" default="" />
 
-  <node pkg="panther_lights" type="driver_node.py" name="lights_driver_node"
+  <node pkg="panther_lights" type="driver_node" name="lights_driver_node"
     required="true" output="screen" />
 
   <node pkg="panther_lights" type="controller_node.py" name="lights_controller_node"

@@ -99,7 +99,8 @@ class ADCNode:
             self._I_driv = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
-        self._charger_connected = io_state.charger_connected
+        with self._lock:
+            self._charger_connected = io_state.charger_connected
 
     def _battery_timer_cb(self, *args) -> None:
         try:
@@ -209,21 +210,20 @@ class ADCNode:
 
         V_bat_mean = self._count_volt_mean(bat_pub, V_bat)
         I_bat_mean = self._count_curr_mean(bat_pub, I_charge)
-        rospy.loginfo(f"{I_bat_mean}")
 
-        # check battery status
-        if self._charger_connected:
-            if battery_msg.percentage >= 1.0:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
-            elif I_bat_mean > self._I_bat_charging_thresh[bat_pub]:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
-            else:
-                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
-        else:
-            battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
-
-        # check battery health
         with self._lock:
+            # check battery status
+            if self._charger_connected:
+                if battery_msg.percentage >= 1.0:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
+                elif I_bat_mean > self._I_bat_charging_thresh[bat_pub]:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+                else:
+                    battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
+            else:
+                battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+
+            # check battery health
             error_msg = None
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD

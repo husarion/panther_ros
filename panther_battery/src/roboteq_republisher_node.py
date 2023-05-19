@@ -15,7 +15,7 @@ class RoboteqRepublisherNode:
     V_BAT_FATAL_MAX = 43.0
     V_BAT_FULL = 41.4
     V_BAT_MIN = 32.0
-    
+
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
