@@ -119,19 +119,22 @@ private:
   void remove_duplicate_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
   {
     std::set<ShutdownHost> seen;
-    std::vector<std::shared_ptr<ShutdownHost>> result;
 
-    for (const auto & host : hosts) {
-      if (!seen.count(*host)) {
-        seen.insert(*host);
-        result.push_back(host);
-      } else {
-        ROS_WARN(
-          "Found duplicate host: %s\nProcessing only the first occurence.", host->get_ip().c_str());
-      }
-    }
-
-    hosts = std::move(result);
+    hosts.erase(
+      std::remove_if(
+        hosts.begin(), hosts.end(),
+        [&](const std::shared_ptr<ShutdownHost> & host) {
+          if (!seen.count(*host)) {
+            seen.insert(*host);
+            return false;
+          } else {
+            ROS_WARN(
+              "Found duplicate host: %s\nProcessing only the first occurence.",
+              host->get_ip().c_str());
+            return true;
+          }
+        }),
+      hosts.end());
   }
 
   void onHalted()
