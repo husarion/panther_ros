@@ -102,7 +102,9 @@ public:
 
       case ShutdownHostState::COMMAND_EXECUTED:
         try {
-          if (update_response()) break;
+          if (update_response()) {
+              break;
+          }
         } catch (std::runtime_error err) {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = err.what();
