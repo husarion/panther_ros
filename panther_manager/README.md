@@ -27,7 +27,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: state of system including CPU temperature and load.
 
-#### Services subscribed (default trees)
+#### Services subscribed (for default trees)
 
 - `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables aux power output.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers e-stop.
@@ -39,8 +39,8 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~bt_project_file` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: path to a BehaviorTree project.
 - `~plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in BT project.
 - `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project. 
-- `~launch_safety_tree` [*bool*, default: **true**]: launch behavior tree responsible for managing Panther safety measures.
 - `~launch_lights_tree` [*bool*, default: **true**]: launch behavior tree responsible for scheduling animations on Panther LED panels.
+- `~launch_safety_tree` [*bool*, default: **true**]: launch behavior tree responsible for managing Panther safety measures.
 - `~launch_shutdown_tree` [*bool*, default: **true**]: launch behavior tree responsible for the gentle shutdown of robot components.
 
 
@@ -193,3 +193,18 @@ Tree responsible for graceful shutdown of robot components, user computers, and 
 Default constant blackboard entries:
   - `SHUTDOWN_HOSTS_FILE` [*string*, default: **None**]: refers to `shutdown_hosts_file` ROS parameter.
 
+### Modyfying behavior trees
+
+Each behavior tree can be easily customized to enhance its functions and capabilities. To achieve this, we recommend using Groot2, a powerful tool for developing and modifying behavior trees. To install Groot2 and learn how to use it, please refer to the official guidelines provided [here](https://www.behaviortree.dev/groot).
+
+When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees. Remember to use the files from the existing project in a way that avoids conflicts, such as by saving them under new names to ensure they don't overwrite any existing files.
+
+When modifying behavior trees, you have the flexibility to use standard BehaviorTree.CPP nodes or leverage nodes created specifically for Panther. Additionally, if you have more specific requirements, you can even create your own custom Behavior Tree nodes. However, this will involve modifying the package and rebuilding the project accordingly.
+
+To use your customized project, you need to provide the `bt_project_file` launch argument when running `panther_bringup.launch` file. Here's an example of how to launch the project with the specified BehaviorTree project file:
+
+```
+roslaunch --wait panther_bringup bringup.launch bt_project_file:=/path/to/bt/project/file
+```
+
+By following these steps, you can effectively modify and utilize behavior trees tailored to your specific needs within the Panther framework.
