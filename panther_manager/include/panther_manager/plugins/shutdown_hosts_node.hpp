@@ -70,9 +70,13 @@ private:
 
   BT::NodeStatus onRunning()
   {
-    if (hosts_to_check_.size() <= 0) return post_process();
+    if (hosts_to_check_.size() <= 0) {
+      return post_process();
+    }
 
-    if (check_host_index_ >= hosts_to_check_.size()) check_host_index_ = 0;
+    if (check_host_index_ >= hosts_to_check_.size()) {
+      check_host_index_ = 0;
+    }
 
     auto host_index = hosts_to_check_.at(check_host_index_);
     auto host = hosts_[host_index];
