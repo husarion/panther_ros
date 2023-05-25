@@ -167,7 +167,7 @@ private:
 
   void request_shutdown()
   {
-    ssh_execute_command(ip_.c_str(), user_.c_str(), command_.c_str(), port_);
+    ssh_execute_command(command_);
     command_time_ = ros::Time::now();
   }
 
@@ -200,17 +200,16 @@ private:
     return (ros::Time::now() - command_time_) > ros::Duration(timeout_) && is_available();
   }
 
-  void ssh_execute_command(
-    const char * host, const char * user, const char * command, const int port)
+  void ssh_execute_command(std::string command)
   {
     session_ = ssh_new();
     if (session_ == NULL) {
       throw std::runtime_error("Failed to open session");
     };
 
-    ssh_options_set(session_, SSH_OPTIONS_HOST, host);
-    ssh_options_set(session_, SSH_OPTIONS_USER, user);
-    ssh_options_set(session_, SSH_OPTIONS_PORT, &port);
+    ssh_options_set(session_, SSH_OPTIONS_HOST, ip_.c_str());
+    ssh_options_set(session_, SSH_OPTIONS_USER, user_.c_str());
+    ssh_options_set(session_, SSH_OPTIONS_PORT, &port_);
     ssh_options_set(session_, SSH_OPTIONS_LOG_VERBOSITY, &verbosity_);
 
     if (ssh_connect(session_) != SSH_OK) {
@@ -242,7 +241,7 @@ private:
       throw std::runtime_error("Failed to open ssh channel: " + err);
     }
 
-    if (ssh_channel_request_exec(channel_, command) != SSH_OK) {
+    if (ssh_channel_request_exec(channel_, command.c_str()) != SSH_OK) {
       std::string err = ssh_get_error(session_);
       ssh_channel_close(channel_);
       ssh_channel_free(channel_);
