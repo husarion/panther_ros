@@ -200,7 +200,7 @@ private:
     return (ros::Time::now() - command_time_) > ros::Duration(timeout_) && is_available();
   }
 
-  void ssh_execute_command(std::string command)
+  void ssh_execute_command(const std::string & command)
   {
     session_ = ssh_new();
     if (session_ == NULL) {
