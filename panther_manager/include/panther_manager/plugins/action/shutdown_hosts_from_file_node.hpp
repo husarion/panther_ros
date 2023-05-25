@@ -1,18 +1,24 @@
 #ifndef PANTHER_MANAGER_SHUTDOWN_HOST_FROM_FILE_NODE_HPP_
 #define PANTHER_MANAGER_SHUTDOWN_HOST_FROM_FILE_NODE_HPP_
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <behaviortree_cpp/basic_types.h>
 #include <yaml-cpp/yaml.h>
 
-#include <panther_manager/plugins/shutdown_host_node.hpp>
+#include <panther_manager/plugins/shutdown_host.hpp>
+#include <panther_manager/plugins/shutdown_hosts_node.hpp>
 
 namespace panther_manager
 {
 
-class ShutdownHostsFromFile : public ShutdownHost
+class ShutdownHostsFromFile : public ShutdownHosts
 {
 public:
   ShutdownHostsFromFile(const std::string & name, const BT::NodeConfig & conf)
-  : ShutdownHost(name, conf)
+  : ShutdownHosts(name, conf)
   {
   }
 
@@ -25,16 +31,10 @@ public:
   }
 
 private:
-  char buffer_[1024];
-  int host_index_ = 0;
-  int nbytes_;
-  std::string output_;
   std::string shutdown_hosts_file_;
   YAML::Node shutdown_hosts_;
 
-  BT::NodeStatus onStart() override;
-  BT::NodeStatus onRunning() override;
-  void onHalted() {}
+  void update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) override;
 };
 
 }  // namespace panther_manager
