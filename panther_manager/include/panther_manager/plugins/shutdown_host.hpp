@@ -25,61 +25,36 @@ enum class ShutdownHostState {
   FAILURE,
 };
 
-class Host
-{
-public:
-  Host(const std::string ip, const std::string user, const int port = 22)
-  : ip_(ip),
-    user_(user),
-    port_(port),
-    hash_(std::hash<std::string>{}(ip + user + std::to_string(port)))
-  {
-  }
-
-  std::string get_ip() const { return ip_; }
-  std::string get_user() const { return user_; }
-  int get_port() const { return port_; }
-
-  bool is_available() const
-  {
-    return system(("ping -c 1 -w 1 " + ip_ + " > /dev/null").c_str()) == 0;
-  }
-
-  bool operator==(const Host & other) const { return hash_ == other.hash_; }
-
-  bool operator!=(const Host & other) const { return hash_ != other.hash_; }
-
-  bool operator<(const Host & other) const { return hash_ < other.hash_; }
-
-private:
-  const std::string ip_;
-  const std::string user_;
-  const std::size_t hash_;
-  const int port_;
-};
-
-class ShutdownHost : public Host
+class ShutdownHost
 {
 public:
   // default constructor
-  ShutdownHost() : Host("", ""), command_(""), timeout_(5.0), ping_for_success_(true) {}
+  ShutdownHost()
+  : ip_(""),
+    user_(""),
+    port_(22),
+    command_(""),
+    timeout_(5.0),
+    ping_for_success_(true),
+    hash_(std::hash<std::string>{}(""))
+  {
+  }
   ShutdownHost(
     const std::string ip, const std::string user, const int port = 22,
     const std::string command = "sudo shutdown now", const float timeout = 5.0,
     const bool ping_for_success = true)
-  : Host(ip, user, port),
+  : ip_(ip),
+    user_(user),
+    port_(port),
     command_(command),
     timeout_(timeout),
     ping_for_success_(ping_for_success),
+    hash_(std::hash<std::string>{}(ip + user + std::to_string(port))),
     state_(ShutdownHostState::IDLE)
   {
   }
 
   ~ShutdownHost() {}
-
-  std::string get_error() const { return failure_reason_; }
-  std::string get_response() const { return output_; }
-  ShutdownHostState get_state() const { return state_; }
 
   void call()
   {
@@ -103,7 +78,7 @@ public:
       case ShutdownHostState::COMMAND_EXECUTED:
         try {
           if (update_response()) {
-              break;
+            break;
           }
         } catch (std::runtime_error err) {
           state_ = ShutdownHostState::FAILURE;
@@ -132,9 +107,16 @@ public:
     }
   }
 
+  bool is_available() const
+  {
+    return system(("ping -c 1 -w 1 " + ip_ + " > /dev/null").c_str()) == 0;
+  }
+
   void close_connection()
   {
-    if (ssh_channel_is_closed(channel_)) return;
+    if (ssh_channel_is_closed(channel_)) {
+      return;
+    }
 
     ssh_channel_send_eof(channel_);
     ssh_channel_close(channel_);
@@ -143,21 +125,49 @@ public:
     ssh_free(session_);
   }
 
+  int get_port() const { return port_; }
+
+  std::string get_ip() const { return ip_; }
+
+  std::string get_user() const { return user_; }
+
+  std::string get_command() const { return command_; }
+
+  std::string get_error() const { return failure_reason_; }
+
+  std::string get_response() const { return output_; }
+
+  ShutdownHostState get_state() const { return state_; }
+
+  bool operator==(const ShutdownHost & other) const { return hash_ == other.hash_; }
+
+  bool operator!=(const ShutdownHost & other) const { return hash_ != other.hash_; }
+
+  bool operator<(const ShutdownHost & other) const { return hash_ < other.hash_; }
+
 private:
+  const std::string ip_;
+  const std::string user_;
+  const std::string command_;
+  const std::size_t hash_;
+  const int port_;
   const bool ping_for_success_;
+  const float timeout_;
+
   char buffer_[1024];
   const int verbosity_ = SSH_LOG_NOLOG;
   int nbytes_;
-  const float timeout_;
-  const std::string command_;
   std::string output_;
   std::string failure_reason_;
   ros::Time command_time_;
   ShutdownHostState state_;
 
+  ssh_session session_;
+  ssh_channel channel_;
+
   void request_shutdown()
   {
-    ssh_execute_command(get_ip().c_str(), get_user().c_str(), get_command().c_str(), get_port());
+    ssh_execute_command(ip_.c_str(), user_.c_str(), command_.c_str(), port_);
     command_time_ = ros::Time::now();
   }
 
@@ -185,15 +195,10 @@ private:
     return false;
   }
 
-  std::string get_command() const { return command_; }
-
   bool timeout_exceeded()
   {
     return (ros::Time::now() - command_time_) > ros::Duration(timeout_) && is_available();
   }
-
-  ssh_session session_;
-  ssh_channel channel_;
 
   void ssh_execute_command(
     const char * host, const char * user, const char * command, const int port)

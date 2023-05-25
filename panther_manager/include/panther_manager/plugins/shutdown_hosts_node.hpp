@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <numeric>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -38,7 +39,9 @@ public:
   virtual BT::NodeStatus post_process()
   {
     // return success only when all hosts succeded
-    if (failed_hosts_.size() == 0) return BT::NodeStatus::SUCCESS;
+    if (failed_hosts_.size() == 0) {
+      return BT::NodeStatus::SUCCESS;
+    }
     return BT::NodeStatus::FAILURE;
   }
 
@@ -62,9 +65,8 @@ private:
       ROS_ERROR("[%s] Hosts list is empty! Check configuration!", node_name_.c_str());
       return BT::NodeStatus::FAILURE;
     }
-    for (std::size_t i = 0; i < hosts_.size(); i++) {
-      hosts_to_check_.push_back(i);
-    }
+    hosts_to_check_.resize(hosts_.size());
+    std::iota(hosts_to_check_.begin(), hosts_to_check_.end(), 0);
     return BT::NodeStatus::RUNNING;
   }
 
@@ -78,7 +80,7 @@ private:
       check_host_index_ = 0;
     }
 
-    auto host_index = hosts_to_check_.at(check_host_index_);
+    auto host_index = hosts_to_check_[check_host_index_];
     auto host = hosts_[host_index];
     host->call();
 

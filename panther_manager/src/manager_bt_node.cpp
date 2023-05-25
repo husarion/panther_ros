@@ -286,7 +286,7 @@ void ManagerBTNode::shutdown_robot(const std::string & message)
   // BT::StdCoutLogger logger_cout(shutdown_tree_);  // debugging
   shutdown_tree_status_ = BT::NodeStatus::RUNNING;
   auto start_time = ros::Time::now();
-  ros::Rate rate(10.0);  // 10 Hz
+  ros::Rate rate(30.0);  // 30 Hz
   while (ros::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {
     shutdown_tree_status_ = shutdown_tree_.tickOnce();
     rate.sleep();
