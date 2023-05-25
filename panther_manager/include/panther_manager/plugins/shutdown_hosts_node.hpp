@@ -99,7 +99,7 @@ private:
 
       case ShutdownHostState::FAILURE:
         ROS_WARN(
-          "[%s] Failed to shutdown device at: %s\n%s", node_name_.c_str(), host->get_ip().c_str(),
+          "[%s] Failed to shutdown device at: %s. Error: %s", node_name_.c_str(), host->get_ip().c_str(),
           host->get_error().c_str());
         failed_hosts_.push_back(host_index);
         hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
