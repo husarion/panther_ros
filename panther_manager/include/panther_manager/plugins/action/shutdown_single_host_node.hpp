@@ -35,13 +35,6 @@ public:
   }
 
 private:
-  bool ping_for_success_;
-  unsigned port_;
-  float timeout_;
-  std::string ip_;
-  std::string user_;
-  std::string command_;
-
   void update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) override;
 };
 

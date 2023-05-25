@@ -31,9 +31,6 @@ public:
   }
 
 private:
-  std::string shutdown_hosts_file_;
-  YAML::Node shutdown_hosts_;
-
   void update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) override;
 };
 

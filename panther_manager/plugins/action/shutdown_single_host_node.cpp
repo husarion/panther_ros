@@ -14,32 +14,39 @@ namespace panther_manager
 
 void ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
-  if (!getInput<std::string>("ip", ip_) || ip_ == "") {
+  bool ping_for_success;
+  unsigned port;
+  float timeout;
+  std::string ip;
+  std::string user;
+  std::string command;
+
+  if (!getInput<std::string>("ip", ip) || ip == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [ip]"));
   }
 
-  if (!getInput<std::string>("user", user_) || user_ == "") {
+  if (!getInput<std::string>("user", user) || user == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [user]"));
   }
 
-  if (!getInput<unsigned>("port", port_)) {
+  if (!getInput<unsigned>("port", port)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [port]"));
   }
 
-  if (!getInput<std::string>("command", command_) || command_ == "") {
+  if (!getInput<std::string>("command", command) || command == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [command]"));
   }
 
-  if (!getInput<float>("timeout", timeout_)) {
+  if (!getInput<float>("timeout", timeout)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [timeout]"));
   }
 
-  if (!getInput<bool>("ping_for_success", ping_for_success_)) {
+  if (!getInput<bool>("ping_for_success", ping_for_success)) {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [ping_for_success]"));
   }
 
   hosts.push_back(
-    std::make_shared<ShutdownHost>(ip_, user_, port_, command_, timeout_, ping_for_success_));
+    std::make_shared<ShutdownHost>(ip, user, port, command, timeout, ping_for_success));
 }
 
 }  // namespace panther_manager
