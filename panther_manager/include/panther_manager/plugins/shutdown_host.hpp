@@ -16,7 +16,7 @@ namespace panther_manager
 {
 
 enum class ShutdownHostState {
-  IDLE,
+  IDLE = 0,
   COMMAND_EXECUTED,
   RESPONSE_RECEIVED,
   PINGING,
