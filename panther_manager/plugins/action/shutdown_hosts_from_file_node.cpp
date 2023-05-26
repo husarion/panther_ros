@@ -16,14 +16,13 @@ namespace panther_manager
 void ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
   std::string shutdown_hosts_file;
-  YAML::Node shutdown_hosts;
-
   if (
     !getInput<std::string>("shutdown_hosts_file", shutdown_hosts_file) ||
     shutdown_hosts_file == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [shutdown_hosts_file]"));
   }
 
+  YAML::Node shutdown_hosts;
   try {
     shutdown_hosts = YAML::LoadFile(shutdown_hosts_file);
   } catch (const YAML::Exception & e) {
