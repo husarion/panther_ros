@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4" project_name="PantherBT">
-    <include path="PantherManagerBT.xml"/>
+<root BTCPP_format="4" project_name="Panther12BT">
+    <include path="lights.xml"/>
+    <include path="safety.xml"/>
+    <include path="shutdown.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Action ID="CallSetBoolService" editable="true">

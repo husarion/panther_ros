@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Safety">
+    <Sequence>
+      <Sequence name="ManagePowerSequence"
+                _skipIf="bat_temp &lt;= HIGH_BAT_TEMP">
+        <SignalShutdown reason="Battery reached fatal temperature"
+                        _skipIf="bat_temp &lt;= FATAL_BAT_TEMP"/>
+        <Sequence name="HighTempSequence"
+                  _skipIf="bat_temp &gt; FATAL_BAT_TEMP">
+          <CallTriggerService name="TriggerEStop"
+                              service_name="hardware/e_stop_trigger"
+                              timeout="100"
+                              _skipIf="e_stop_state"/>
+          <CallSetBoolService name="DisableAUX"
+                              data="false"
+                              service_name="hardware/aux_power_enable"
+                              timeout="100"
+                              _skipIf="!aux_state || bat_temp &lt;= CRITICAL_BAT_TEMP"/>
+          <CallSetBoolService name="EnableFan"
+                              data="true"
+                              service_name="hardware/fan_enable"
+                              timeout="100"
+                              _skipIf="fan_state"/>
+        </Sequence>
+      </Sequence>
+      <Sequence name="TempControlSequence"
+                _skipIf="bat_temp &gt; HIGH_BAT_TEMP">
+        <CallSetBoolService name="DisableFan"
+                            data="false"
+                            service_name="hardware/fan_enable"
+                            timeout="100"
+                            _skipIf="cpu_temp &gt; CPU_FAN_OFF_TEMP \
+|| driver_temp &gt; DRIVER_FAN_OFF_TEMP \
+|| !fan_state"/>
+        <CallSetBoolService name="EnableFan"
+                            data="true"
+                            service_name="hardware/fan_enable"
+                            timeout="100"
+                            _skipIf="(cpu_temp &lt;= CPU_FAN_ON_TEMP \
+&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP) \
+|| fan_state"/>
+      </Sequence>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="CallSetBoolService"
+            editable="true">
+      <input_port name="data">true / false value</input_port>
+      <input_port name="service_name">ROS service name</input_port>
+      <input_port name="timeout"
+                  default="100">time in ms to wait for service to be active</input_port>
+    </Action>
+    <Action ID="CallTriggerService"
+            editable="true">
+      <input_port name="service_name">ROS service name</input_port>
+      <input_port name="timeout"
+                  default="100">timeout in ms to wait for service to be active</input_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>

@@ -7,6 +7,8 @@
   <arg name="test_animations" default="false" />
   <arg name="user_animations_file" default="" />
   <arg name="launch_lights_scheduler" default="true" />
+  <arg name="bt_project_file" default="$(find panther_manager)/config/Panther12BT.btproj" if="$(eval panther_version >= 1.2)" />
+  <arg name="bt_project_file" default="$(find panther_manager)/config/Panther106BT.btproj" unless="$(eval panther_version >= 1.2)" />
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
   <arg name="disable_manager" default="false" doc="used for testing purposes" />
 
@@ -20,7 +22,7 @@
 
   <arg name="robot_description" if="$(arg publish_robot_state)"
     default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
-              wheel_config_path:=$(find panther_description)/config/$(arg wheel_type).yaml
+              wheel_config_path:=$(arg wheel_config_file)
               imu_pos_x:=$(optenv PANTHER_IMU_LOCALIZATION_X 0.168)
               imu_pos_y:=$(optenv PANTHER_IMU_LOCALIZATION_Y 0.028)
               imu_pos_z:=$(optenv PANTHER_IMU_LOCALIZATION_Z 0.083)
@@ -57,6 +59,7 @@
 
     <include file="$(find panther_manager)/launch/manager_bt.launch" unless="$(arg disable_manager)">
       <arg name="panther_version" value="$(arg panther_version)" />
+      <arg name="bt_project_file" value="$(arg bt_project_file)" />
       <arg name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
     </include>
 
