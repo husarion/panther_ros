@@ -133,11 +133,14 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
 
   <BehaviorTree ID="Shutdown">
     <Sequence>
-      <ForceSuccess _while="!shutdown_timeout">
+      <ForceSuccess>
         <ShutdownHostsFromFile shutdown_hosts_file="{SHUTDOWN_HOSTS_FILE}"/>
       </ForceSuccess>
-      <ShutdownSingleHost command=""
+      <ShutdownSingleHost command="sudo shutdown now"
                           ip="localhost"
+                          ping_for_success="false"
+                          port="22"
+                          timeout="5.0"
                           user="husarion"/>
     </Sequence>
   </BehaviorTree>
@@ -173,8 +176,15 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
     </Action>
     <Action ID="ShutdownSingleHost"
             editable="true">
-      <input_port name="command">(optional) command to execute on shutdown</input_port>
+      <input_port name="command"
+                  default="sudo shutdown now">command to execute on shutdown</input_port>
       <input_port name="ip">ip of the host to shutdown</input_port>
+      <input_port name="ping_for_success"
+                  default="true">ping host unitl it is not available or timeout is reached</input_port>
+      <input_port name="port"
+                  default="22">SSH communication port</input_port>
+      <input_port name="timeout"
+                  default="5.0">time in seconds to wait for host to shutdown</input_port>
       <input_port name="user">user to log into while executing shutdown command</input_port>
     </Action>
     <Action ID="SignalShutdown"

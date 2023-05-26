@@ -1,16 +1,23 @@
 #ifndef PANTHER_MANAGER_SHUTDOWN_SINGLE_HOST_NODE_HPP_
 #define PANTHER_MANAGER_SHUTDOWN_SINGLE_HOST_NODE_HPP_
 
-#include <panther_manager/plugins/shutdown_host_node.hpp>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <behaviortree_cpp/basic_types.h>
+
+#include <panther_manager/plugins/shutdown_host.hpp>
+#include <panther_manager/plugins/shutdown_hosts_node.hpp>
 
 namespace panther_manager
 {
 
-class ShutdownSingleHost : public ShutdownHost
+class ShutdownSingleHost : public ShutdownHosts
 {
 public:
   ShutdownSingleHost(const std::string & name, const BT::NodeConfig & conf)
-  : ShutdownHost(name, conf)
+  : ShutdownHosts(name, conf)
   {
   }
 
@@ -19,21 +26,16 @@ public:
     return {
       BT::InputPort<std::string>("ip", "ip of the host to shutdown"),
       BT::InputPort<std::string>("user", "user to log into while executing shutdown command"),
-      BT::InputPort<std::string>("command", "(optional) command to execute on shutdown"),
+      BT::InputPort<unsigned>("port", "SSH communication port"),
+      BT::InputPort<std::string>("command", "command to execute on shutdown"),
+      BT::InputPort<float>("timeout", "time in seconds to wait for host to shutdown"),
+      BT::InputPort<bool>(
+        "ping_for_success", "ping host unitl it is not available or timeout is reached"),
     };
   }
 
 private:
-  char buffer_[1024];
-  int nbytes_;
-  std::string output_;
-  std::string ip_;
-  std::string user_;
-  std::string command_;
-
-  BT::NodeStatus onStart() override;
-  BT::NodeStatus onRunning() override;
-  void onHalted() {}
+  void update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) override;
 };
 
 }  // namespace panther_manager

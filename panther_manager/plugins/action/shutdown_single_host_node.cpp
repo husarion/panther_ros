@@ -1,45 +1,51 @@
 #include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <behaviortree_cpp/exceptions.h>
+#include <behaviortree_cpp/tree_node.h>
+
+#include <panther_manager/plugins/shutdown_host.hpp>
+
 namespace panther_manager
 {
 
-BT::NodeStatus ShutdownSingleHost::onStart()
+void ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
-  if (!getInput<std::string>("ip", ip_) || ip_ == "") {
+  std::string ip;
+  if (!getInput<std::string>("ip", ip) || ip == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [ip]"));
   }
 
-  if (!getInput<std::string>("user", user_) || user_ == "") {
+  std::string user;
+  if (!getInput<std::string>("user", user) || user == "") {
     throw(BT::RuntimeError("[", name(), "] Failed to get input [user]"));
   }
 
-  if (!getInput<std::string>("command", command_) || command_ == "") {
-    command_ = "sudo shutdown now";
+  unsigned port;
+  if (!getInput<unsigned>("port", port)) {
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [port]"));
   }
 
-  if (!check_ip(ip_)) {
-    ROS_WARN("[%s] Device at: %s not availabe", get_node_name().c_str(), ip_.c_str());
-    return BT::NodeStatus::FAILURE;
+  std::string command;
+  if (!getInput<std::string>("command", command) || command == "") {
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [command]"));
   }
 
-  if (ssh_execute_command(ip_.c_str(), user_.c_str(), command_.c_str()) != 0) {
-    ROS_WARN("[%s] Failed to shutdown device at: %s", get_node_name().c_str(), ip_.c_str());
-    return BT::NodeStatus::FAILURE;
+  float timeout;
+  if (!getInput<float>("timeout", timeout)) {
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [timeout]"));
   }
 
-  return BT::NodeStatus::RUNNING;
-}
-
-BT::NodeStatus ShutdownSingleHost::onRunning()
-{
-  if ((nbytes_ = ssh_channel_read_nonblocking(channel_, buffer_, sizeof(buffer_), 0)) >= 0) {
-    output_.append(buffer_, nbytes_);
-    return BT::NodeStatus::RUNNING;
+  bool ping_for_success;
+  if (!getInput<bool>("ping_for_success", ping_for_success)) {
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [ping_for_success]"));
   }
 
-  ROS_INFO("[%s] Device response:\n%s", get_node_name().c_str(), output_.c_str());
-  close_connection();
-  return BT::NodeStatus::SUCCESS;
+  hosts.push_back(
+    std::make_shared<ShutdownHost>(ip, user, port, command, timeout, ping_for_success));
 }
 
 }  // namespace panther_manager
