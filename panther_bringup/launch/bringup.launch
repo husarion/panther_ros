@@ -6,7 +6,6 @@
   <arg name="panther_common_config_file" default="$(find panther_bringup)/config/panther_common.yaml" />
   <arg name="test_animations" default="false" />
   <arg name="user_animations_file" default="" />
-  <arg name="launch_lights_scheduler" default="true" />
   <arg name="bt_project_file" default="$(find panther_manager)/config/Panther12BT.btproj" if="$(eval panther_version >= 1.2)" />
   <arg name="bt_project_file" default="$(find panther_manager)/config/Panther106BT.btproj" unless="$(eval panther_version >= 1.2)" />
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
@@ -44,7 +43,6 @@
     </include>
 
     <include file="$(find panther_lights)/launch/lights.launch">
-      <arg name="launch_scheduler" value="$(arg launch_lights_scheduler)" />
       <arg name="test" value="$(arg test_animations)" />
       <arg name="user_animations_file" value="$(arg user_animations_file)" />
     </include>
