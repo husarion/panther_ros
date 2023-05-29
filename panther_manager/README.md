@@ -36,24 +36,22 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 
 #### Parameters
 
+- `~battery_percent_window_len` [*int*, default: **6**]: moving average window length used to smooth out battery percentage readings.
+- `~battery_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of battery.
 - `~bt_project_file` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: path to a BehaviorTree project.
-- `~plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in BT project.
-- `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project. 
+- `~cpu_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
+- `~driver_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
 - `~launch_lights_tree` [*bool*, default: **true**]: launch behavior tree responsible for scheduling animations on Panther LED panels.
 - `~launch_safety_tree` [*bool*, default: **true**]: launch behavior tree responsible for managing Panther safety measures.
 - `~launch_shutdown_tree` [*bool*, default: **true**]: launch behavior tree responsible for the gentle shutdown of robot components.
-
-
-- `~battery_percent_window_len` [*int*, default: **6**]: moving average window length used to smooth out battery percentage readings.
-- `~battery_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of battery.
-- `~cpu_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of CPU.
-- `~driver_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of each driver.
 - `~lights/battery_state_anim_period` [*float*, default: **120.0**]: time in seconds to wait before repeating animation representing current battery percentage.
 - `~lights/critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
 - `~lights/critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
 - `~lights/low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
 - `~lights/low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
 - `~lights/update_charging_anim_step` [*float*, default: **0.1**]: percentage value representing a step for updating the charging battery animation.
+- `~plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in BT project.
+- `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project. 
 - `~safety/cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, below which the fan is turned off.
 - `~safety/cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **deg C** of CPU, above which the fan is turned on.
 - `~safety/critical_bat_temp` [*float*, default: **59.0**]: extends `high_bat_temp` by turning off AUX power.
@@ -79,7 +77,7 @@ Publishes stats status of the built-in computer. Stats include CPU utilization a
 
 ## BehaviorTree
 
-For a BehaviorTree project to work correctly, it must contain three trees with names as described below. Files with trees XML descriptions can be shared between projects. Each tree is provided with a set of default blackboard entries (described below) which can be used to specify the behavior of a given tree.
+For a BehaviorTree project to work correctly, it must contain three trees with names as described below. However, if any of the parameters (`~launch_lights_tree`, `~launch_safety_tree`, `~launch_shutdown_tree`) is set to false, the corresponding tree becomes unnecessary and can be omitted from the project. Files with trees XML descriptions can be shared between projects. Each tree is provided with a set of default blackboard entries (described below) which can be used to specify the behavior of a given tree.
 
 ### Nodes
 
@@ -98,7 +96,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 - `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service. Provided ports are:
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
   - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
-- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and shutdown of all defined host was successful.Provided ports are:
+- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and shutdown of all defined host was successful. Provided ports are:
   - `shutdown_host_file` [*input*, *string*, default: **None**]: global path to YAML file with hosts to shutdown.
 - `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when the device was successfuly shutdown. Provided ports are:
   - `command` [*input*, *string*, default: **sudo shutdown now**]: command to execute on shutdown.
@@ -127,7 +125,7 @@ Tree responsible for scheduling animations displayed on LED panels, based on the
 
 Default blackboard entries:
 - `battery_percent` [*float*, defautl: **None**]: moving average of battery percentage.
-- `battery_percent_round` [*string*, default: **None**] battery percentage raunded to a value specified with `~lights/update_charging_anim_step` and casted to string.
+- `battery_percent_round` [*string*, default: **None**] battery percentage raunded to a value specified with `~lights/update_charging_anim_step` parameter and casted to string.
 - `battery_status` [*unsigned*, defautl: **None**]: current battery status.
 - `charging_anim_percent` [*string*, default: **None**]: value of charging animation battery percentage casted to string.
 - `current_anim_id` [*int*, default: **-1**]: ID of currently displayed animation.
@@ -159,19 +157,17 @@ Default constant blackboard entries:
  
 Tree responsible for monitoring the Panther robot's state and handling safety measures, such as cooling the robot in case of high CPU or battery temperature.
 
-Default tree for Panther version 1.2 and later:
-
 <p align="center">
   <img align="center" src="./docs/safety_tree.png">
 </p>
 
 Default blackboard entries:
 - `aux_state` [*bool*, default: **None**]: state of AUX power.
-- `e_stop_state` [*bool*, default: **None**]: state of emergency stop.
-- `fan_state` [*bool*, default: **None**]: state of fan.
 - `bat_temp` [*double*, default: **None**]: moving average of battery temperature.
 - `cpu_temp` [*double*, default: **None**]: moving average of cpu temperature
 - `driver_temp` [*double*, default: **None**]: moving average of driver temperature, for condition simplification only motor driver with higher temperature is considered.
+- `e_stop_state` [*bool*, default: **None**]: state of emergency stop.
+- `fan_state` [*bool*, default: **None**]: state of fan.
 
 Default constant blackboard entries:
 - `CPU_FAN_OFF_TEMP` [*float*, default: **60.0**]: refers to `cpu_fan_off_temp` ROS parameter.
@@ -197,14 +193,17 @@ Default constant blackboard entries:
 
 Each behavior tree can be easily customized to enhance its functions and capabilities. To achieve this, we recommend using Groot2, a powerful tool for developing and modifying behavior trees. To install Groot2 and learn how to use it, please refer to the official guidelines provided [here](https://www.behaviortree.dev/groot).
 
-When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees. Remember to use the files from the existing project in a way that avoids conflicts, such as by saving them under new names to ensure they don't overwrite any existing files.
+When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees.
 
-When modifying behavior trees, you have the flexibility to use standard BehaviorTree.CPP nodes or leverage nodes created specifically for Panther. Additionally, if you have more specific requirements, you can even create your own custom Behavior Tree nodes. However, this will involve modifying the package and rebuilding the project accordingly.
+> **Note**: 
+> It is essential to exercise caution when modifying the trees responsible for safety or shutdown and ensure that default behaviors are not removed.
+> 
+> Remember to use the files from the existing project in a way that avoids conflicts, such as by saving them under new names to ensure they don't overwrite any existing files.
+
+When modifying behavior trees, you have the flexibility to use standard BehaviorTree.CPP nodes or leverage nodes created specifically for Panther, as detailed in the [Nodes](#nodes) section. Additionally, if you have more specific requirements, you can even create your own custom Behavior Tree nodes. However, this will involve modifying the package and rebuilding the project accordingly.
 
 To use your customized project, you need to provide the `bt_project_file` launch argument when running `panther_bringup.launch` file. Here's an example of how to launch the project with the specified BehaviorTree project file:
 
 ```
 roslaunch --wait panther_bringup bringup.launch bt_project_file:=/path/to/bt/project/file
 ```
-
-By following these steps, you can effectively modify and utilize behavior trees tailored to your specific needs within the Panther framework.
