@@ -53,7 +53,6 @@ ManagerBTNode::ManagerBTNode(
   const auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
   const auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
   const auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
-  shutdown_timeout_ = ph_->param<float>("shutdown_timeout", 15.0);
 
   // lights tree params
   const auto critical_battery_anim_period =
