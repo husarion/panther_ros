@@ -33,7 +33,7 @@ This node is responsible for processing animations and publishing frames to be d
 - `~test` [*bool*, default: **false**]: enables testing mode, enabling extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
-### driver_node.py
+### driver_node
 
 This node is responsible for displaying frames on the Husarion Panther robot LED panels.
 

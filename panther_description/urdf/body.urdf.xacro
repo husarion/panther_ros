@@ -57,6 +57,14 @@
     </joint>
 
     <link name="front_light_link" />
+    
+    <joint name="front_light_to_front_animation_joint" type="fixed">
+      <origin xyz="0.0 0.0 0.0185" rpy="${pi/2} 0.0 ${pi/2}" />
+      <parent link="front_light_link" />
+      <child link="front_animation_link" />
+    </joint>
+    
+    <link name="front_animation_link" />
 
     <joint name="body_to_rear_light_joint" type="fixed">
       <origin xyz="-0.362 0.0 0.0" rpy="0.0 0.0 ${pi}" />
@@ -65,6 +73,14 @@
     </joint>
 
     <link name="rear_light_link" />
+
+    <joint name="rear_light_to_rear_animation_joint" type="fixed">
+      <origin xyz="0.0 0.0 0.0185" rpy="${pi/2} 0.0 ${pi/2}" />
+      <parent link="rear_light_link" />
+      <child link="rear_animation_link" />
+    </joint>
+    
+    <link name="rear_animation_link" />
 
     <joint name="body_to_cover_joint" type="fixed">
       <origin xyz="0.0 0.0 0.1715" rpy="0.0 0.0 0.0" />
