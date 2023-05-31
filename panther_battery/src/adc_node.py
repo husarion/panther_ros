@@ -200,7 +200,9 @@ class ADCNode:
         battery_msg.temperature = temp_bat
         battery_msg.current = I_bat
         battery_msg.percentage = self._clamp(
-            (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN)
+            (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN),
+            0.0,
+            1.0,
         )
         battery_msg.capacity = 20.0
         battery_msg.design_capacity = 20.0

@@ -82,7 +82,9 @@ class RoboteqRepublisherNode:
                 battery_msg.temperature = float('nan')
                 battery_msg.current = self._battery_current
                 battery_msg.percentage = self._clamp(
-                    (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN)
+                    (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN),
+                    0.0,
+                    1.0,
                 )
                 battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
                 battery_msg.present = True
