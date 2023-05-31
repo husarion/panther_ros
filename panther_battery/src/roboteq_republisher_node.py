@@ -81,13 +81,12 @@ class RoboteqRepublisherNode:
                 battery_msg.voltage = self._battery_voltage
                 battery_msg.temperature = float('nan')
                 battery_msg.current = self._battery_current
-                battery_msg.percentage = (battery_msg.voltage - self.V_BAT_MIN) / (
-                    self.V_BAT_FULL - self.V_BAT_MIN
+                battery_msg.percentage = self._clamp(
+                    (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN)
                 )
                 battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
                 battery_msg.present = True
 
-                # TODO: check battery status
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
                 # check battery health
@@ -115,6 +114,9 @@ class RoboteqRepublisherNode:
 
         self._battery_voltage_hist.pop(0)
         self._battery_voltage_hist.append(new_val)
+
+    def _clamp(value, max_value, min_value):
+        return max(min(value, max_value), min_value)
 
 
 def main():

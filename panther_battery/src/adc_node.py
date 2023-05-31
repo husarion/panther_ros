@@ -13,7 +13,7 @@ from panther_msgs.msg import DriverState, IOState
 
 
 class ADCNode:
-    BAT01_CHARGING_CURR_THRESH = 0.1
+    BAT_CHARGING_CURR_THRESH = 0.1
     BAT02_DETECT_THRESH = 3.03
     V_BAT_FATAL_MIN = 27.0
     V_BAT_FATAL_MAX = 43.0
@@ -70,13 +70,13 @@ class ADCNode:
 
             self._I_bat_charging_thresh.update(
                 {
-                    self._battery_pub: 2 * self.BAT01_CHARGING_CURR_THRESH,
-                    self._battery_1_pub: self.BAT01_CHARGING_CURR_THRESH,
-                    self._battery_2_pub: self.BAT01_CHARGING_CURR_THRESH,
+                    self._battery_pub: 2 * self.BAT_CHARGING_CURR_THRESH,
+                    self._battery_1_pub: self.BAT_CHARGING_CURR_THRESH,
+                    self._battery_2_pub: self.BAT_CHARGING_CURR_THRESH,
                 }
             )
         else:
-            self._I_bat_charging_thresh.update({self._battery_pub: self.BAT01_CHARGING_CURR_THRESH})
+            self._I_bat_charging_thresh.update({self._battery_pub: self.BAT_CHARGING_CURR_THRESH})
 
         # -------------------------------
         #   Timers
@@ -199,8 +199,8 @@ class ADCNode:
         battery_msg.voltage = V_bat
         battery_msg.temperature = temp_bat
         battery_msg.current = I_bat
-        battery_msg.percentage = (battery_msg.voltage - self.V_BAT_MIN) / (
-            self.V_BAT_FULL - self.V_BAT_MIN
+        battery_msg.percentage = self._clamp(
+            (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN)
         )
         battery_msg.capacity = 20.0
         battery_msg.design_capacity = 20.0
@@ -214,7 +214,7 @@ class ADCNode:
         with self._lock:
             # check battery status
             if self._charger_connected:
-                if battery_msg.percentage >= 1.0:
+                if battery_msg.percentage == 1.0:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
                 elif I_bat_mean > self._I_bat_charging_thresh[bat_pub]:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
@@ -272,6 +272,9 @@ class ADCNode:
             data = file.read().rstrip()
 
         return int(data)
+
+    def _clamp(value, max_value, min_value):
+        return max(min(value, max_value), min_value)
 
 
 def main():
