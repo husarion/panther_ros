@@ -275,7 +275,7 @@ class ADCNode:
 
         return int(data)
 
-    def _clamp(value, max_value, min_value):
+    def _clamp(value, min_value, max_value):
         return max(min(value, max_value), min_value)
 
 

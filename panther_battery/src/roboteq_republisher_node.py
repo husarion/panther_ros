@@ -117,7 +117,7 @@ class RoboteqRepublisherNode:
         self._battery_voltage_hist.pop(0)
         self._battery_voltage_hist.append(new_val)
 
-    def _clamp(value, max_value, min_value):
+    def _clamp(value, min_value, max_value):
         return max(min(value, max_value), min_value)
 
 
