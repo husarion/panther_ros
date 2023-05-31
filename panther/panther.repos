@@ -1,0 +1,9 @@
+repositories:
+  panther_msgs:
+    type: git
+    url: https://github.com/husarion/panther_msgs.git
+    version: ros2
+  ros_components_description:
+    type: git
+    url: https://github.com/husarion/ros_components_description.git
+    version: ros2
