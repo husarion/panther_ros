@@ -41,7 +41,9 @@ class ADCNode:
 
         self._battery_count = self._check_battery_count()
         self._battery_charging = True  # const for now, later this will be evaluated
-
+        
+        self._charger_connected = False
+        
         self._lock = Lock()
 
         # -------------------------------
