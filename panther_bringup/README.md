@@ -10,7 +10,7 @@ The package containing default configuration and launch files necessary to start
 - `lights_controller_node` - node responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot LED panels. For more information refer to: [panther_lights](../panther_lights/README.md).
 - `manager_bt_node` - node responsible for managing the Husarion Panther robot. Designs a system handling LED panels, safety features and software shutdown of components. For more information refer to: [panther_manager](../panther_manager/README.md).
 - `panther_driver` - node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot. For more information refer to: [panther_driver](../panther_driver/README.md).
-- `power_control`  - node responsible for power management of the Husarion Panther robot. For more information refer to: [panther_power_control](../panther_power_control/README.md).
+- `power_control` - node responsible for power management of the Husarion Panther robot. For more information refer to: [panther_power_control](../panther_power_control/README.md).
 - `robot_state_publisher` - node publishing description of the Husarion Panther robot. For more information refer to: [panther_description](../panther_description/README.md).
 
 ## Launch arguments
