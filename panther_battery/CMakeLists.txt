@@ -5,9 +5,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(panther_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 include_directories(
   include
@@ -22,6 +23,8 @@ ament_target_dependencies(battery_node
   ament_cmake
   ament_index_cpp
   rclcpp
+  panther_msgs
+  sensor_msgs
 )
 
 install(TARGETS battery_node
