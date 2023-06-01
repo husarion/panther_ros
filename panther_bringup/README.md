@@ -21,7 +21,7 @@ The package containing default configuration and launch files necessary to start
 - `panther_common_config_file` [*string*, default=**$(find panther_bringup)/config/panther_common.yaml**]: path to yaml file with standard parameters used by the `driver_node`.
 - `panther_version` [*float*, default=**1.0**]: robot version parsed using `PANTHER_ROBOT_VERSION` enironmental variable.
 - `publish_robot_state` [*bool*, default=**true**]: whether to publish default Panther robot description.
-- `robot_description` [*string*]: robot description in URDF format, by default parsed from **$(find panther_description)/urdf/panther.urdf.xacro**, with `wheel_config_path` specified by `wheel_config_file` launch argument and imu position parsed using `PANTHER_IMU_LOCALIZATION_X/Y/Z` and `PANTHER_IMU_ORIENTATION_R/P/Y` evironmental variables.
+- `robot_description` [*string*]: robot description in URDF format, parsed by default from **$(find panther_description)/urdf/panther.urdf.xacro**. URDF itself contains its own arguments that are responsible for wheel selection and imu position.
 - `shutdown_hosts_config_file` [*string*, default=**$(find panther_bringup)/config/shutdown_hosts.yaml**]: path to YAML file with description of hosts to shutdown.
 - `test_animations` [*bool*, default=**false**]: enables service `/panther/lights/controller/set/image_animation` allowing to test animations based on provided images.
 - `user_animations_file` [*string*, default=**None**]: optional parameter with path to yaml file with user defined animations. 
