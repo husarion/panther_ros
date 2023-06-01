@@ -23,7 +23,7 @@ The package containing default configuration and launch files necessary to start
 - `publish_robot_state` [*bool*, default=**true**]: whether to publish default Panther robot description.
 - `robot_description` [*string*]: robot description in URDF format, by default parsed from **$(find panther_description)/urdf/panther.urdf.xacro**, with `wheel_config_path` specified by `wheel_config_file` launch argument and imu position parsed using `PANTHER_IMU_LOCALIZATION_X/Y/Z` and `PANTHER_IMU_ORIENTATION_R/P/Y` evironmental variables.
 - `shutdown_hosts_config_file` [*string*, default=**$(find panther_bringup)/config/shutdown_hosts.yaml**]: path to YAML file with description of hosts to shutdown.
-- `test_animations` [*bool*, default=**false**]: if true then something but i forgot what at this point
+- `test_animations` [*bool*, default=**false**]: enables service `/panther/lights/controller/set/image_animation` allowing to test animations based on provided images.
 - `user_animations_file` [*string*, default=**None**]: optional parameter with path to yaml file with user defined animations. 
 - `wheel_config_file` [*string*, default=**$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specyfication. value of this argument depends on `wheel_type` launch argument.
 - `wheel_type` [*string*, default=**WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, **custom** - custom wheel type (requires setting `wheel_config_file` argument accordingly).

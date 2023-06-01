@@ -84,7 +84,7 @@ Parameters stored in [**panther_default.yaml**](./panther_bringup/config/panther
 
 ### Changing wheels type
 
-In order to change wheels used with your robot, add `wheel_type:=WH0X` to launch command as follows:
+Changing the wheels requires changing the `wheel_type` parameter. To do this, you can use the following command by modifying the value of the wheel_type:=WH0X parameter:
 ``` bash
 roslaunch panther_bringup bringup.launch wheel_type:=WH02
 ```
