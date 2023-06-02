@@ -16,6 +16,8 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
+  <depend>panther_msgs</depend>
+  <depend>panther_utils</depend>
   <depend>sensor_msgs</depend>
 
   <export>

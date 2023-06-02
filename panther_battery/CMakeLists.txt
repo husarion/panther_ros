@@ -8,10 +8,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(panther_msgs REQUIRED)
+find_package(panther_utils REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 include_directories(
   include
+  ${panther_utils_INCLUDE_DIRS}
 )
 
 add_executable(battery_node
@@ -24,11 +26,19 @@ ament_target_dependencies(battery_node
   ament_index_cpp
   rclcpp
   panther_msgs
+  panther_utils
   sensor_msgs
 )
 
+target_link_libraries(battery_node ${panther_utils_LIBRARIES})
+
 install(TARGETS battery_node
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 # install(DIRECTORY
