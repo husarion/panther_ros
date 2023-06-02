@@ -9,6 +9,13 @@ find_package(ament_cmake REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+ament_export_include_directories(include)
+
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(${PROJECT_NAME}_test_moving_average test/test_moving_average.cpp)
