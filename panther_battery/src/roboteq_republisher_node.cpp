@@ -23,7 +23,7 @@ RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_nod
   battery_pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(100), std::bind(&RoboteqRepublisherNode::BatteryPubTimerCB, this));
 
-  RCLCPP_INFO(get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
 void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg & msg)
@@ -32,25 +32,25 @@ void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg & m
     return;
   }
 
-  last_battery_info_time_ = get_clock()->now();
+  last_battery_info_time_ = this->get_clock()->now();
   battery_voltage_ = (msg.front.voltage + msg.rear.voltage) / 2.0;
   battery_current_ = msg.front.current + msg.rear.current;
 
   // TODO: add Moving average method to calculate battery mean
-  // RCLCPP_INFO(get_logger(), "msg: %f", battery_voltage_);
+  // RCLCPP_INFO(this->get_logger(), "msg: %f", battery_voltage_);
 }
 
 void RoboteqRepublisherNode::BatteryPubTimerCB()
 {
   auto battery_msg = BatteryStateMsg();
-  battery_msg.header.stamp = get_clock()->now();
+  battery_msg.header.stamp = this->get_clock()->now();
   battery_msg.capacity = 20.0;
   battery_msg.design_capacity = 20.0;
   battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO;
 
   if (
     battery_voltage_ == 0.0 || battery_current_ == 0.0 ||
-    (get_clock()->now() - last_battery_info_time_) >
+    (this->get_clock()->now() - last_battery_info_time_) >
       rclcpp::Duration::from_seconds(battery_timeout_)) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
   } else {
@@ -68,10 +68,11 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
   // check battery health
   if (battery_voltage_ < V_BAT_FATAL_MIN) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-    RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 10000, "Battery voltage is critically low!");
+    RCLCPP_ERROR_THROTTLE(
+      this->get_logger(), *this->get_clock(), 10000, "Battery voltage is critically low!");
   } else if (battery_voltage_ > V_BAT_FATAL_MAX) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-    RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 10000, "Battery overvoltage!");
+    RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 10000, "Battery overvoltage!");
   } else {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
   }
