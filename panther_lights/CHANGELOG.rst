@@ -2,6 +2,9 @@
 Changelog for package panther_lights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.8 (2023-06-01)
 ------------------
 
