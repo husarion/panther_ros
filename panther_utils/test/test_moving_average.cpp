@@ -4,67 +4,84 @@
 
 TEST(TestMovingAverage, TestOutputValues)
 {
-  std::unique_ptr<panther_utils::MovingAverage<double>> ma;
-  ma = std::make_unique<panther_utils::MovingAverage<double>>(4);
-  EXPECT_EQ(0.0, ma->GetAverage());
+  panther_utils::MovingAverage<double> ma(4);
+  EXPECT_EQ(0.0, ma.GetAverage());
 
-  ma->Roll(1.0);
-  EXPECT_EQ(1.0, ma->GetAverage());
+  ma.Roll(1.0);
+  EXPECT_EQ(1.0, ma.GetAverage());
 
-  ma->Roll(2.0);
-  EXPECT_EQ(1.5, ma->GetAverage());
+  ma.Roll(2.0);
+  EXPECT_EQ(1.5, ma.GetAverage());
 
-  ma->Roll(3.0);
-  ma->Roll(4.0);
-  EXPECT_EQ(2.5, ma->GetAverage());
+  ma.Roll(3.0);
+  ma.Roll(4.0);
+  EXPECT_EQ(2.5, ma.GetAverage());
 
-  ma->Roll(5.0);
-  ma->Roll(5.0);
-  ma->Roll(5.0);
-  ma->Roll(5.0);
-  EXPECT_EQ(5.0, ma->GetAverage());
+  ma.Roll(5.0);
+  ma.Roll(5.0);
+  ma.Roll(5.0);
+  ma.Roll(5.0);
+  EXPECT_EQ(5.0, ma.GetAverage());
+}
+
+TEST(TestMovingAverage, TestHighOverload)
+{
+  panther_utils::MovingAverage<double> ma(1000);
+
+  double sum;
+  for (int i = 1; i <= 10000; i++) {
+    sum += double(i);
+    ma.Roll(double(i));
+
+    // test every 1000 rolls expected average
+    if (i % 1000 == 0) {
+      EXPECT_EQ(sum / 1000, ma.GetAverage());
+      sum = 0.0;
+    }
+  }
 }
 
 TEST(TestMovingAverage, TestIntialValue)
 {
-  std::unique_ptr<panther_utils::MovingAverage<float>> ma;
-  ma = std::make_unique<panther_utils::MovingAverage<float>>(4, 1.0);
-  EXPECT_EQ(1.0, ma->GetAverage());
+  panther_utils::MovingAverage<float> ma(4, 1.0);
+  EXPECT_EQ(1.0, ma.GetAverage());
 
-  std::unique_ptr<panther_utils::MovingAverage<double>> ma_1;
-  ma_1 = std::make_unique<panther_utils::MovingAverage<double>>(10, 3.7);
-  EXPECT_EQ(3.7, ma_1->GetAverage());
+  panther_utils::MovingAverage<double> ma_1(10, 3.7);
+  EXPECT_EQ(3.7, ma_1.GetAverage());
 
-  std::unique_ptr<panther_utils::MovingAverage<int>> ma_2;
-  ma_2 = std::make_unique<panther_utils::MovingAverage<int>>(3, 4);
-  EXPECT_EQ(4, ma_2->GetAverage());
+  panther_utils::MovingAverage<int> ma_2(3, 4);
+  EXPECT_EQ(4, ma_2.GetAverage());
 }
 
 TEST(TestMovingAverage, TestIntType)
 {
-  std::unique_ptr<panther_utils::MovingAverage<int>> ma;
-  ma = std::make_unique<panther_utils::MovingAverage<int>>();
-  ma->Roll(1);
-  ma->Roll(2);
-  EXPECT_EQ(1, ma->GetAverage());
+  panther_utils::MovingAverage<int> ma;
+  ma.Roll(1);
+  ma.Roll(2);
+  EXPECT_EQ(1, ma.GetAverage());
 }
 
 TEST(TestMovingAverage, TestReset)
 {
-  std::unique_ptr<panther_utils::MovingAverage<double>> ma;
-  ma = std::make_unique<panther_utils::MovingAverage<double>>(4);
-  ma->Roll(1.0);
-  ma->Roll(2.0);
-  ma->Roll(1.0);
-  ma->Roll(2.0);
-  EXPECT_EQ(1.5, ma->GetAverage());
+  panther_utils::MovingAverage<double> ma(4);
+  ma.Roll(1.0);
+  ma.Roll(2.0);
+  ma.Roll(1.0);
+  ma.Roll(2.0);
+  EXPECT_EQ(1.5, ma.GetAverage());
 
-  ma->Reset();
-  EXPECT_EQ(0.0, ma->GetAverage());
+  ma.Reset();
+  EXPECT_EQ(0.0, ma.GetAverage());
 
-  ma->Roll(2.0);
-  ma->Roll(4.0);
-  EXPECT_EQ(3.0, ma->GetAverage());
+  ma.Roll(2.0);
+  ma.Roll(4.0);
+  EXPECT_EQ(3.0, ma.GetAverage());
+
+  panther_utils::MovingAverage<double> ma_1(4, 7.0);
+  ma_1.Roll(1.0);
+  ma_1.Roll(2.0);
+  ma_1.Reset();
+  EXPECT_EQ(7.0, ma_1.GetAverage());
 }
 
 int main(int argc, char ** argv)
