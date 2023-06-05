@@ -30,6 +30,14 @@ TEST(TestMovingAverage, TestIntialValue)
   std::unique_ptr<panther_utils::MovingAverage<float>> ma;
   ma = std::make_unique<panther_utils::MovingAverage<float>>(4, 1.0);
   EXPECT_EQ(1.0, ma->GetAverage());
+
+  std::unique_ptr<panther_utils::MovingAverage<double>> ma_1;
+  ma_1 = std::make_unique<panther_utils::MovingAverage<double>>(10, 3.7);
+  EXPECT_EQ(3.7, ma_1->GetAverage());
+
+  std::unique_ptr<panther_utils::MovingAverage<int>> ma_2;
+  ma_2 = std::make_unique<panther_utils::MovingAverage<int>>(3, 4);
+  EXPECT_EQ(4, ma_2->GetAverage());
 }
 
 TEST(TestMovingAverage, TestIntType)
@@ -39,6 +47,24 @@ TEST(TestMovingAverage, TestIntType)
   ma->Roll(1);
   ma->Roll(2);
   EXPECT_EQ(1, ma->GetAverage());
+}
+
+TEST(TestMovingAverage, TestReset)
+{
+  std::unique_ptr<panther_utils::MovingAverage<double>> ma;
+  ma = std::make_unique<panther_utils::MovingAverage<double>>(4);
+  ma->Roll(1.0);
+  ma->Roll(2.0);
+  ma->Roll(1.0);
+  ma->Roll(2.0);
+  EXPECT_EQ(1.5, ma->GetAverage());
+
+  ma->Reset();
+  EXPECT_EQ(0.0, ma->GetAverage());
+
+  ma->Roll(2.0);
+  ma->Roll(4.0);
+  EXPECT_EQ(3.0, ma->GetAverage());
 }
 
 int main(int argc, char ** argv)

@@ -11,7 +11,7 @@ class MovingAverage
 {
 public:
   MovingAverage(const unsigned window_size = 5, const T initial_value = T(0))
-  : window_size_(window_size), initial_value_(initial_value)
+  : window_size_(window_size), initial_value_(initial_value), sum_(T(0))
   {
   }
 
@@ -24,6 +24,11 @@ public:
       sum_ -= values_.front();
       values_.pop_front();
     }
+  }
+
+  void Reset() {
+    values_.erase(values_.begin(), values_.end());
+    sum_ = T(0);
   }
 
   T GetAverage() const
