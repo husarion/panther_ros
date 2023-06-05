@@ -18,9 +18,9 @@ using std::placeholders::_1;
 RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_node")
 {
   battery_timeout_ = 1.0;
-  battery_voltage_ma_ = std::make_shared<panther_utils::MovingAverage<double>>(
+  battery_voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     10, std::numeric_limits<double>::quiet_NaN());
-  battery_current_ma_ = std::make_shared<panther_utils::MovingAverage<double>>(
+  battery_current_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     10, std::numeric_limits<double>::quiet_NaN());
 
   motor_controllers_state_sub_ = this->create_subscription<DriverStateMsg>(

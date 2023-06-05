@@ -14,7 +14,9 @@ def generate_launch_description():
         name='battery_node',
     )
 
-    actions = [declare_panther_version_arg, battery_node]
+    actions = [
+        declare_panther_version_arg,
+        battery_node,
+    ]
 
-    print(panther_version)
     return LaunchDescription(actions)

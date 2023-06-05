@@ -30,8 +30,8 @@ private:
   float battery_timeout_;
   rclcpp::Time last_battery_info_time_;
 
-  std::shared_ptr<panther_utils::MovingAverage<double>> battery_voltage_ma_;
-  std::shared_ptr<panther_utils::MovingAverage<double>> battery_current_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<double>> battery_voltage_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<double>> battery_current_ma_;
 
   rclcpp::Subscription<DriverStateMsg>::SharedPtr motor_controllers_state_sub_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
