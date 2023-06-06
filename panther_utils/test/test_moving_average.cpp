@@ -78,6 +78,7 @@ TEST(TestMovingAverage, TestReset)
   ma.Roll(4.0);
   EXPECT_EQ(3.0, ma.GetAverage());
 
+  // check if average resets to initial value
   panther_utils::MovingAverage<double> ma_1(4, 7.0);
   ma_1.Roll(1.0);
   ma_1.Roll(2.0);
