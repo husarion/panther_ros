@@ -2,26 +2,42 @@
 
 #include <panther_utils/moving_average.hpp>
 
-TEST(TestMovingAverage, TestOutputValues)
+TEST(TestMovingAverage, TestDefaultInitialValue)
 {
   panther_utils::MovingAverage<double> ma(4);
   EXPECT_EQ(0.0, ma.GetAverage());
+}
 
-  ma.Roll(1.0);
+TEST(TestMovingAverage, TestIntialValue)
+{
+  panther_utils::MovingAverage<float> ma(4, 1.0);
   EXPECT_EQ(1.0, ma.GetAverage());
 
+  panther_utils::MovingAverage<double> ma_1(10, 3.7);
+  EXPECT_EQ(3.7, ma_1.GetAverage());
+
+  panther_utils::MovingAverage<int> ma_2(3, 4);
+  EXPECT_EQ(4, ma_2.GetAverage());
+}
+
+TEST(TestMovingAverage, TestOutputValues)
+{
+  panther_utils::MovingAverage<double> ma(4);
+  ma.Roll(1.0);
+  ASSERT_EQ(1.0, ma.GetAverage());
+
   ma.Roll(2.0);
-  EXPECT_EQ(1.5, ma.GetAverage());
+  ASSERT_EQ(1.5, ma.GetAverage());
 
   ma.Roll(3.0);
   ma.Roll(4.0);
-  EXPECT_EQ(2.5, ma.GetAverage());
+  ASSERT_EQ(2.5, ma.GetAverage());
 
   ma.Roll(5.0);
   ma.Roll(5.0);
   ma.Roll(5.0);
   ma.Roll(5.0);
-  EXPECT_EQ(5.0, ma.GetAverage());
+  ASSERT_EQ(5.0, ma.GetAverage());
 }
 
 TEST(TestMovingAverage, TestHighOverload)
@@ -42,19 +58,7 @@ TEST(TestMovingAverage, TestHighOverload)
   }
 }
 
-TEST(TestMovingAverage, TestIntialValue)
-{
-  panther_utils::MovingAverage<float> ma(4, 1.0);
-  EXPECT_EQ(1.0, ma.GetAverage());
-
-  panther_utils::MovingAverage<double> ma_1(10, 3.7);
-  EXPECT_EQ(3.7, ma_1.GetAverage());
-
-  panther_utils::MovingAverage<int> ma_2(3, 4);
-  EXPECT_EQ(4, ma_2.GetAverage());
-}
-
-TEST(TestMovingAverage, TestIntType)
+TEST(TestMovingAverage, TestIntFloorRound)
 {
   panther_utils::MovingAverage<int> ma;
   ma.Roll(1);
@@ -77,13 +81,16 @@ TEST(TestMovingAverage, TestReset)
   ma.Roll(2.0);
   ma.Roll(4.0);
   EXPECT_EQ(3.0, ma.GetAverage());
+}
 
-  // check if average resets to initial value
-  panther_utils::MovingAverage<double> ma_1(4, 7.0);
-  ma_1.Roll(1.0);
-  ma_1.Roll(2.0);
-  ma_1.Reset();
-  EXPECT_EQ(7.0, ma_1.GetAverage());
+TEST(TestMovingAverage, TestResetToInitialValue)
+{
+  panther_utils::MovingAverage<double> ma(4, 7.0);
+  ma.Roll(1.0);
+  ma.Roll(2.0);
+  EXPECT_EQ(1.5, ma.GetAverage());
+  ma.Reset();
+  EXPECT_EQ(7.0, ma.GetAverage());
 }
 
 int main(int argc, char ** argv)
