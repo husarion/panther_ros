@@ -1,2 +1,2 @@
 # panther_ros
-ROS package for Panther autonomous mobile robot
+ROS 2 packages for Panther autonomous mobile robot
