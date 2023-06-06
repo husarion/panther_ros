@@ -26,16 +26,17 @@ TEST(TestMovingAverage, TestOutputValues)
 
 TEST(TestMovingAverage, TestHighOverload)
 {
-  panther_utils::MovingAverage<double> ma(1000);
+  const std::size_t window_len = 1000;
+  panther_utils::MovingAverage<double> ma(window_len);
 
   double sum;
-  for (std::size_t i = 1; i <= 10000; i++) {
+  for (std::size_t i = 1; i <= window_len * 10; i++) {
     sum += double(i);
     ma.Roll(double(i));
 
     // test every 1000 rolls expected average
-    if (i % 1000 == 0) {
-      EXPECT_EQ(sum / 1000, ma.GetAverage());
+    if (i % window_len == 0) {
+      EXPECT_EQ(sum / double(window_len), ma.GetAverage());
       sum = 0.0;
     }
   }

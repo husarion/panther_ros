@@ -40,7 +40,7 @@ public:
   }
 
 private:
-  const unsigned window_size_;
+  const std::size_t window_size_;
   std::deque<T> values_;
   const T initial_value_;
   T sum_;
