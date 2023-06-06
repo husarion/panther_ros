@@ -10,7 +10,7 @@ template <typename T>
 class MovingAverage
 {
 public:
-  MovingAverage(const unsigned window_size = 5, const T initial_value = T(0))
+  MovingAverage(const std::size_t window_size = 5, const T initial_value = T(0))
   : window_size_(window_size), initial_value_(initial_value), sum_(T(0))
   {
   }
