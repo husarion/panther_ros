@@ -29,7 +29,7 @@ TEST(TestMovingAverage, TestHighOverload)
   panther_utils::MovingAverage<double> ma(1000);
 
   double sum;
-  for (int i = 1; i <= 10000; i++) {
+  for (std::size_t i = 1; i <= 10000; i++) {
     sum += double(i);
     ma.Roll(double(i));
 
