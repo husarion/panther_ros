@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import numpy as np
 import math
 from typing import List, Tuple, TypeVar
 from threading import Lock
@@ -170,7 +171,7 @@ class PantherDriverNode:
         if self._publish_odom:
             self._odom_msg = Odometry()
             self._odom_msg.pose.covariance = [0.1 if (i % 7) == 0 else 0.0 for i in range(36)]
-            self._odom_msg.twist.covariance = [0.1 if (i % 7) == 0 else 0.0 for i in range(36)]
+            self._odom_msg.twist.covariance = np.diag([1e-5, 1e-5, np.inf, np.inf, np.inf, 1e-4])
             self._odom_msg.header.frame_id = self._odom_frame
             self._odom_msg.child_frame_id = self._base_link_frame
             self._odom_pub = rospy.Publisher('odom/wheels', Odometry, queue_size=1)
