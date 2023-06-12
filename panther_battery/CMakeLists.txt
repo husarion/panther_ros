@@ -16,12 +16,12 @@ include_directories(
   ${panther_utils_INCLUDE_DIRS}
 )
 
-add_executable(battery_node
+add_executable(roboteq_republisher_node
   src/main.cpp
   src/roboteq_republisher_node.cpp
 )
 
-ament_target_dependencies(battery_node
+ament_target_dependencies(roboteq_republisher_node
   ament_cmake
   ament_index_cpp
   rclcpp
@@ -30,9 +30,9 @@ ament_target_dependencies(battery_node
   sensor_msgs
 )
 
-target_link_libraries(battery_node ${panther_utils_LIBRARIES})
+target_link_libraries(roboteq_republisher_node ${panther_utils_LIBRARIES})
 
-install(TARGETS battery_node
+install(TARGETS roboteq_republisher_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -41,11 +41,10 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
-# install(DIRECTORY
-#   launch
-#   config
-#   DESTINATION share/${PROJECT_NAME}/
-# )
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

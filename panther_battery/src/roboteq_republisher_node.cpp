@@ -11,6 +11,8 @@
 
 #include <panther_msgs/msg/driver_state.hpp>
 
+#include <panther_utils/moving_average.hpp>
+
 namespace panther_battery
 {
 using std::placeholders::_1;
@@ -63,6 +65,8 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
     std::isnan(battery_voltage) || std::isnan(battery_current) ||
     (this->get_clock()->now() - last_battery_info_time_) >
       rclcpp::Duration::from_seconds(battery_timeout_)) {
+    battery_voltage_ma_->Reset();
+    battery_current_ma_->Reset();
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   } else {
