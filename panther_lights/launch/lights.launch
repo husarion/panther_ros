@@ -1,9 +1,8 @@
 <launch>
-  <arg name="launch_scheduler" default="true" />
   <arg name="test" default="false" />
   <arg name="user_animations_file" default="" />
 
-  <node pkg="panther_lights" type="driver_node.py" name="lights_driver_node"
+  <node pkg="panther_lights" type="driver_node" name="lights_driver_node"
     required="true" output="screen" />
 
   <node pkg="panther_lights" type="controller_node.py" name="lights_controller_node"
@@ -13,8 +12,5 @@
       unless="$(eval user_animations_file == '')" />
     <param name="test" value="$(arg test)" />
   </node>
-
-  <node pkg="panther_lights" type="scheduler_node.py" name="lights_scheduler_node"
-    required="true" output="screen" if="$(arg launch_scheduler)" />
 
 </launch>

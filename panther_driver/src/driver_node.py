@@ -2,6 +2,7 @@
 
 import math
 from typing import List, Tuple, TypeVar
+from threading import Lock
 
 import rospy
 from tf.transformations import quaternion_from_euler
@@ -13,8 +14,7 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
-from panther_msgs.msg import DriverState, FaultFlag, ScriptFlag, RuntimeError
-
+from panther_msgs.msg import DriverState, FaultFlag, IOState, RuntimeError, ScriptFlag
 from panther_can import PantherCANSDO, PantherCANPDO
 from panther_kinematics import PantherDifferential, PantherMecanum
 
@@ -66,6 +66,8 @@ class PantherDriverNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()
+
         self._eds_file = rospy.get_param('~eds_file')
         self._use_pdo = rospy.get_param('~use_pdo', False)
         self._can_interface = rospy.get_param('~can_interface', 'panther_can')
@@ -96,6 +98,7 @@ class PantherDriverNode:
         self._driver_state_timer_period = 1.0 / 10.0  # freq. 10 Hz
         self._safety_timer_period = 1.0 / 20.0  # freq. 20 Hz
         self._time_last = rospy.Time.now()
+        self._motor_off_last_time = rospy.Time.now()
         self._cmd_vel_command_last_time = rospy.Time.now()
         self._cmd_vel_timeout = 0.2
 
@@ -107,6 +110,7 @@ class PantherDriverNode:
         self._motors_effort = [0.0, 0.0, 0.0, 0.0]
 
         self._e_stop_cliented = False
+        self._motor_on = False
         self._stop_cmd_vel_cb = True
 
         # -------------------------------
@@ -217,6 +221,9 @@ class PantherDriverNode:
 
         self._cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self._cmd_vel_cb, queue_size=1)
         self._e_stop_sub = rospy.Subscriber('hardware/e_stop', Bool, self._e_stop_cb, queue_size=1)
+        self._io_state_sub = rospy.Subscriber(
+            'hardware/io_state', IOState, self._io_state_cb, queue_size=1
+        )
 
         # -------------------------------
         #   Service clients
@@ -265,7 +272,9 @@ class PantherDriverNode:
         if (time_now - self._cmd_vel_command_last_time) < rospy.Duration(
             secs=self._cmd_vel_timeout
         ):
-            self._panther_can.write_wheels_enc_velocity(self._panther_kinematics.wheels_enc_speed)
+            self._panther_can.write_wheels_enc_velocity(
+                self._panther_kinematics.wheels_enc_speed
+            )
         else:
             self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
 
@@ -346,23 +355,35 @@ class PantherDriverNode:
         self._driver_state_pub.publish(self._driver_state_msg)
 
     def _safety_timer_cb(self, *args) -> None:
+        with self._lock:
+            e_stop_cliented = self._e_stop_cliented
+
         if any(self._panther_can.can_connection_error()):
-            if not self._e_stop_cliented:
+            if not e_stop_cliented:
                 self._trigger_panther_e_stop()
                 self._stop_cmd_vel_cb = True
 
-            rospy.logerr_throttle(
-                10.0,
-                f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure). '
-                f'Please ensure that controllers are powered on.',
-            )
+            if not self._motor_on:
+                rospy.logwarn_throttle(
+                    60.0, f'[{rospy.get_name()}] Motor controllers are not powered on'
+                )
+                self._motor_off_last_time = rospy.Time.now()
+            else:
+                # wait for motor drivers to power on before logging an error
+                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.0):
+                    return
+                rospy.logerr_throttle(
+                    10.0,
+                    f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure)',
+                )
         elif self._e_stop_cliented:
             self._stop_cmd_vel_cb = True
         else:
             self._stop_cmd_vel_cb = False
 
     def _e_stop_cb(self, data: Bool) -> None:
-        self._e_stop_cliented = data.data
+        with self._lock:
+            self._e_stop_cliented = data.data
 
     def _cmd_vel_cb(self, data: Twist) -> None:
         # Block all motors if any Roboteq controller returns a fault flag or runtime error flag
@@ -372,6 +393,9 @@ class PantherDriverNode:
             self._panther_kinematics.inverse_kinematics(Twist())
 
         self._cmd_vel_command_last_time = rospy.Time.now()
+
+    def _io_state_cb(self, io_state: IOState) -> None:
+        self._motor_on = io_state.motor_on
 
     def _reset_roboteq_script_cb(self, req: TriggerRequest) -> TriggerResponse:
         try:

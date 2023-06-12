@@ -37,11 +37,14 @@ ManagerBTNode::ManagerBTNode(
 {
   node_name_ = ros::this_node::getName();
 
-  const std::string default_xml =
-    ros::package::getPath("panther_manager") + "/config/PantherManagerBT.xml";
+  const std::string default_bt_project_file =
+    ros::package::getPath("panther_manager") + "/config/Panther12BT.btproj";
   const std::vector<std::string> default_plugin_libs = {};
 
-  const auto xml_filename = ph_->param<std::string>("xml_filename", default_xml);
+  const auto launch_lights_tree = ph_->param<bool>("launch_lights_tree", true);
+  const auto launch_safety_tree = ph_->param<bool>("launch_safety_tree", true);
+  launch_shutdown_tree_ = ph_->param<bool>("launch_shutdown_tree", true);
+  const auto bt_project_file = ph_->param<std::string>("bt_project_file", default_bt_project_file);
   const auto plugin_libs = ph_->param<std::vector<std::string>>("plugin_libs", default_plugin_libs);
   const auto ros_plugin_libs =
     ph_->param<std::vector<std::string>>("ros_plugin_libs", default_plugin_libs);
@@ -50,7 +53,6 @@ ManagerBTNode::ManagerBTNode(
   const auto cpu_temp_window_len = ph_->param<int>("cpu_temp_window_len", 6);
   const auto driver_temp_window_len = ph_->param<int>("driver_temp_window_len", 6);
   const auto shutdown_hosts_file = ph_->param<std::string>("shutdown_hosts_file", "");
-  shutdown_timeout_ = ph_->param<float>("shutdown_timeout", 15.0);
 
   // lights tree params
   const auto critical_battery_anim_period =
@@ -79,7 +81,7 @@ ManagerBTNode::ManagerBTNode(
   front_driver_temp_ma_ = std::make_unique<MovingAverage<double>>(driver_temp_window_len);
   rear_driver_temp_ma_ = std::make_unique<MovingAverage<double>>(driver_temp_window_len);
 
-  ROS_INFO("[%s] Register BehaviorTree from: %s", node_name_.c_str(), xml_filename.c_str());
+  ROS_INFO("[%s] Register BehaviorTree from: %s", node_name_.c_str(), bt_project_file.c_str());
 
   // export plugins for a behaviour tree
   for (const auto & p : plugin_libs) {
@@ -90,58 +92,73 @@ ManagerBTNode::ManagerBTNode(
     RegisterRosNode(factory_, BT::SharedLibrary::getOSName(p), nh_);
   }
 
-  factory_.registerBehaviorTreeFromFile(xml_filename);
+  factory_.registerBehaviorTreeFromFile(bt_project_file);
 
-  const std::map<std::string, std::any> lights_initial_bb = {
-    {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
-    {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
-    {"BATTERY_STATE_ANIM_PERIOD", battery_state_anim_period},
-    {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
-    {"LOW_BATTERY_THRESHOLD_PERCENT", low_battery_threshold_percent},
-    {"current_anim_id", -1},
-    {"charging_anim_percent", ""},
-    // anim constants
-    {"E_STOP_ANIM_ID", unsigned(panther_msgs::LEDAnimation::E_STOP)},
-    {"READY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::READY)},
-    {"ERROR_ANIM_ID", unsigned(panther_msgs::LEDAnimation::ERROR)},
-    {"MANUAL_ACTION_ANIM_ID", unsigned(panther_msgs::LEDAnimation::MANUAL_ACTION)},
-    {"AUTONOMOUS_ACTION_ANIM_ID", unsigned(panther_msgs::LEDAnimation::AUTONOMOUS_ACTION)},
-    {"GOAL_ACHIEVED_ANIM_ID", unsigned(panther_msgs::LEDAnimation::GOAL_ACHIEVED)},
-    {"LOW_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::LOW_BATTERY)},
-    {"CRITICAL_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CRITICAL_BATTERY)},
-    {"BATTERY_STATE_ANIM_ID", unsigned(panther_msgs::LEDAnimation::BATTERY_STATE)},
-    {"CHARGING_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CHARGING_BATTERY)},
-    // battery constants
-    {"POWER_SUPPLY_STATUS_UNKNOWN",
-     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN)},
-    {"POWER_SUPPLY_STATUS_CHARGING",
-     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_CHARGING)},
-    {"POWER_SUPPLY_STATUS_DISCHARGING",
-     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING)},
-    {"POWER_SUPPLY_STATUS_NOT_CHARGING",
-     unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING)},
-    {"POWER_SUPPLY_STATUS_FULL", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL)},
-  };
-  const std::map<std::string, std::any> safety_initial_bb = {
-    {"HIGH_BAT_TEMP", high_bat_temp},
-    {"CRITICAL_BAT_TEMP", critical_bat_temp},
-    {"FATAL_BAT_TEMP", fatal_bat_temp},
-    {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
-    {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
-    {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
-    {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
-  };
-  const std::map<std::string, std::any> shutdown_initial_bb = {
-    {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_file.c_str()},
-  };
+  if (launch_safety_tree && !launch_shutdown_tree_) {
+    ROS_ERROR(
+      "[%s] Can't launch safety tree without shutdown tree. Killing node.", node_name_.c_str());
+    ros::requestShutdown();
+  }
 
-  lights_config_ = create_bt_config(lights_initial_bb);
-  safety_config_ = create_bt_config(safety_initial_bb);
-  shutdown_config_ = create_bt_config(shutdown_initial_bb);
+  if (launch_lights_tree) {
+    const std::map<std::string, std::any> lights_initial_bb = {
+      {"charging_anim_percent", ""},
+      {"current_anim_id", -1},
+      {"BATTERY_STATE_ANIM_PERIOD", battery_state_anim_period},
+      {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
+      {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
+      {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
+      {"LOW_BATTERY_THRESHOLD_PERCENT", low_battery_threshold_percent},
+      // anim constants
+      {"E_STOP_ANIM_ID", unsigned(panther_msgs::LEDAnimation::E_STOP)},
+      {"READY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::READY)},
+      {"ERROR_ANIM_ID", unsigned(panther_msgs::LEDAnimation::ERROR)},
+      {"MANUAL_ACTION_ANIM_ID", unsigned(panther_msgs::LEDAnimation::MANUAL_ACTION)},
+      {"AUTONOMOUS_ACTION_ANIM_ID", unsigned(panther_msgs::LEDAnimation::AUTONOMOUS_ACTION)},
+      {"GOAL_ACHIEVED_ANIM_ID", unsigned(panther_msgs::LEDAnimation::GOAL_ACHIEVED)},
+      {"LOW_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::LOW_BATTERY)},
+      {"CRITICAL_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CRITICAL_BATTERY)},
+      {"BATTERY_STATE_ANIM_ID", unsigned(panther_msgs::LEDAnimation::BATTERY_STATE)},
+      {"CHARGING_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CHARGING_BATTERY)},
+      // battery constants
+      {"POWER_SUPPLY_STATUS_UNKNOWN",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN)},
+      {"POWER_SUPPLY_STATUS_CHARGING",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_CHARGING)},
+      {"POWER_SUPPLY_STATUS_DISCHARGING",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING)},
+      {"POWER_SUPPLY_STATUS_NOT_CHARGING",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING)},
+      {"POWER_SUPPLY_STATUS_FULL", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL)},
+    };
 
-  lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
-  safety_tree_ = factory_.createTree("Safety", safety_config_.blackboard);
-  shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
+    lights_config_ = create_bt_config(lights_initial_bb);
+    lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
+  }
+
+  if (launch_safety_tree) {
+    const std::map<std::string, std::any> safety_initial_bb = {
+      {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
+      {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
+      {"CRITICAL_BAT_TEMP", critical_bat_temp},
+      {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
+      {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
+      {"FATAL_BAT_TEMP", fatal_bat_temp},
+      {"HIGH_BAT_TEMP", high_bat_temp},
+    };
+
+    safety_config_ = create_bt_config(safety_initial_bb);
+    safety_tree_ = factory_.createTree("Safety", safety_config_.blackboard);
+  }
+
+  if (launch_shutdown_tree_) {
+    const std::map<std::string, std::any> shutdown_initial_bb = {
+      {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_file.c_str()},
+    };
+
+    shutdown_config_ = create_bt_config(shutdown_initial_bb);
+    shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
+  }
 
   battery_sub_ = nh_->subscribe("battery", 10, &ManagerBTNode::battery_cb, this);
   driver_state_sub_ =
@@ -169,10 +186,14 @@ ManagerBTNode::ManagerBTNode(
     ros::spinOnce();
   }
 
-  lights_tree_timer_ =
-    nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerBTNode::lights_tree_timer_cb, this));
-  safety_tree_timer_ =
-    nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerBTNode::safety_tree_timer_cb, this));
+  if (launch_lights_tree) {
+    lights_tree_timer_ =
+      nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerBTNode::lights_tree_timer_cb, this));
+  }
+  if (launch_safety_tree) {
+    safety_tree_timer_ =
+      nh_->createTimer(ros::Duration(0.1), std::bind(&ManagerBTNode::safety_tree_timer_cb, this));
+  }
 
   ROS_INFO("[%s] Node started", node_name_.c_str());
 }
@@ -214,9 +235,14 @@ BT::NodeConfig ManagerBTNode::create_bt_config(
 
 void ManagerBTNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
 {
+  battery_status_ = battery->power_supply_status;
+  // don't update battery data if unknown status
+  if (battery_status_ == sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN) {
+    return;
+  }
+
   battery_temp_ma_->roll(battery->temperature);
   battery_percent_ma_->roll(battery->percentage);
-  battery_status_ = battery->power_supply_status;
 }
 
 void ManagerBTNode::driver_state_cb(const panther_msgs::DriverState::ConstPtr & driver_state)
@@ -232,7 +258,7 @@ void ManagerBTNode::e_stop_cb(const std_msgs::Bool::ConstPtr & e_stop)
 
 void ManagerBTNode::io_state_cb(const panther_msgs::IOState::ConstPtr & io_state)
 {
-  if (io_state->power_button) {
+  if (io_state->power_button && launch_shutdown_tree_) {
     shutdown_robot("Power button pressed");
   }
   io_state_ = io_state;

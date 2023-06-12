@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from copy import deepcopy
+from threading import Lock
 
 import rospy
 
@@ -105,6 +106,8 @@ class LightsControllerNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
+        self._lock = Lock()
+
         # check for required ROS parameters
         if not rospy.has_param('~animations'):
             rospy.logerr(
@@ -174,65 +177,67 @@ class LightsControllerNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def _controller_timer_cb(self, *args) -> None:
-        brightness_front = 255
-        brightness_rear = 255
-        frame_front = self._empty_frame
-        frame_rear = self._empty_frame
-
-        if self._animation_finished:
-            self._anim_queue.validate_queue()
-
-            if self._default_animation and not self._anim_queue.has_animation(
-                self._default_animation
-            ):
-                self._default_animation.reset_time()
-                self._anim_queue.put(self._default_animation)
-
-            if not self._anim_queue.empty():
-                self._current_animation = self._anim_queue.get()
-
-        if self._current_animation:
-            if self._current_animation.priority > self._anim_queue.first_anim_priority:
-                if self._current_animation.repeating:
-                    self._current_animation.front.reset()
-                    self._current_animation.rear.reset()
-                elif self._current_animation.front.progress < 0.65:
-                    self._current_animation.front.reset()
-                    self._current_animation.rear.reset()
-                    self._anim_queue.put(self._current_animation)
-                self._animation_finished = True
-                self._current_animation = None
-                return
-
-            if not self._current_animation.front.finished:
-                frame_front = self._current_animation.front()
-                brightness_front = self._current_animation.front.brightness
-            if not self._current_animation.rear.finished:
-                frame_rear = self._current_animation.rear()
-                brightness_rear = self._current_animation.rear.brightness
-            self._animation_finished = (
-                self._current_animation.front.finished and self._current_animation.rear.finished
-            )
+        with self._lock:
+            brightness_front = 255
+            brightness_rear = 255
+            frame_front = self._empty_frame
+            frame_rear = self._empty_frame
 
             if self._animation_finished:
-                self._current_animation.front.reset()
-                self._current_animation.rear.reset()
-                self._current_animation = None
+                self._anim_queue.validate_queue()
 
-        self._front_frame_pub.publish(
-            self._rgb_frame_to_img_msg(frame_front, brightness_front, 'front_light_link')
-        )
-        self._rear_frame_pub.publish(
-            self._rgb_frame_to_img_msg(frame_rear, brightness_rear, 'rear_light_link')
-        )
+                if self._default_animation and not self._anim_queue.has_animation(
+                    self._default_animation
+                ):
+                    self._default_animation.reset_time()
+                    self._anim_queue.put(self._default_animation)
+
+                if not self._anim_queue.empty():
+                    self._current_animation = self._anim_queue.get()
+
+            if self._current_animation:
+                if self._current_animation.priority > self._anim_queue.first_anim_priority:
+                    if self._current_animation.repeating:
+                        self._current_animation.front.reset()
+                        self._current_animation.rear.reset()
+                    elif self._current_animation.front.progress < 0.65:
+                        self._current_animation.front.reset()
+                        self._current_animation.rear.reset()
+                        self._anim_queue.put(self._current_animation)
+                    self._animation_finished = True
+                    self._current_animation = None
+                    return
+
+                if not self._current_animation.front.finished:
+                    frame_front = self._current_animation.front()
+                    brightness_front = self._current_animation.front.brightness
+                if not self._current_animation.rear.finished:
+                    frame_rear = self._current_animation.rear()
+                    brightness_rear = self._current_animation.rear.brightness
+                self._animation_finished = (
+                    self._current_animation.front.finished and self._current_animation.rear.finished
+                )
+
+                if self._animation_finished:
+                    self._current_animation.front.reset()
+                    self._current_animation.rear.reset()
+                    self._current_animation = None
+
+            self._front_frame_pub.publish(
+                self._rgb_frame_to_img_msg(frame_front, brightness_front, 'front_light_link')
+            )
+            self._rear_frame_pub.publish(
+                self._rgb_frame_to_img_msg(frame_rear, brightness_rear, 'rear_light_link')
+            )
 
     def _animation_queue_timer_cb(self, *args) -> None:
-        anim_queue_msg = LEDAnimationQueue()
-        if not self._anim_queue.empty():
-            anim_queue_msg.queue = [anim.name for anim in self._anim_queue.queue]
-        if self._current_animation:
-            anim_queue_msg.queue.insert(0, self._current_animation.name)
-        self._animation_queue_pub.publish(anim_queue_msg)
+        with self._lock:
+            anim_queue_msg = LEDAnimationQueue()
+            if not self._anim_queue.empty():
+                anim_queue_msg.queue = [anim.name for anim in self._anim_queue.queue]
+            if self._current_animation:
+                anim_queue_msg.queue.insert(0, self._current_animation.name)
+            self._animation_queue_pub.publish(anim_queue_msg)
 
     def _set_animation_cb(self, req: SetLEDAnimationRequest) -> SetLEDAnimationResponse:
         if not req.animation.id in self._animations:
@@ -299,7 +304,7 @@ class LightsControllerNode:
     def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
         if animation.repeating:
             interupting_animation = deepcopy(animation)
-            interupting_animation.init_time = float('inf')
+            interupting_animation.init_time -= 0.0001
             if interupting_animation.priority > 2:
                 interupting_animation.priority = 2
             self._anim_queue.put(interupting_animation)

@@ -33,7 +33,7 @@ This node is responsible for processing animations and publishing frames to be d
 - `~test` [*bool*, default: **false**]: enables testing mode, enabling extra functionalities.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
-### driver_node.py
+### driver_node
 
 This node is responsible for displaying frames on the Husarion Panther robot LED panels.
 
@@ -51,29 +51,6 @@ This node is responsible for displaying frames on the Husarion Panther robot LED
 - `~frame_timeout` [*float*, default: **0.1**]: time in seconds, after which an incoming frame will be ignored if not processed.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
-
-### scheduler_node.py
-
-This node is responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
-
-#### Subscribes
-
-- `/panther/battery` [*sensor_msgs/BatteryState*]: robot battery state.
-- `/panther/hardware/e_stop` [*std_msgs/Bool*]: informs if robot is in emergency stop state.
-
-#### Services subscribed
-
-- `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on LED panel based on animation ID.
-
-#### Parameters
-
-- `~battery_state_anim_period` [*float*, default: **120.0**]: time in seconds to wait before repeating animation representing current battery percentage.
-- `~charging_battery_anim_period` [*float*, default: **20.0**]: time in seconds to wait before updating the charging battery animation if the battery percentage has changed by the value specified in the `update_charging_anim_step` param.
-- `~critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
-- `~critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, animation indicating a critical battery state will start being displayed.
-- `~low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating animation indicating a low battery state.
-- `~low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, animation indicating a low battery state will start being displayed.
-- `~update_charging_anim_step` [*float*, default: **0.1**]: percentage value representing a step for updating the charging battery animation.
 
 ## Animations
 
