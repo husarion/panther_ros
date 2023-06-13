@@ -47,8 +47,17 @@ install(DIRECTORY
 )
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(${PROJECT_NAME}_test_roboteq_republisher_node test/test_roboteq_republisher_node.cpp src/roboteq_republisher_node.cpp)
+  target_include_directories(${PROJECT_NAME}_test_roboteq_republisher_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
+    rclcpp
+    panther_msgs
+    sensor_msgs
+  )
 endif()
 
 ament_package()
