@@ -22,16 +22,18 @@ public:
 
 protected:
   bool WaitForBatteryStateMsg(const std::chrono::milliseconds & timeout);
-  void CheckBatteryStateMsgValues(
+  void CheckBatteryStateMsg(
     const float & expected_voltage, const float & expected_current,
     const uint8_t & power_supply_status, const uint8_t & power_supply_health);
 
   BatteryStateMsg::SharedPtr battery_state_;
-  rclcpp::executors::SingleThreadedExecutor executor_;
   rclcpp::Node::SharedPtr test_node_;
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_pub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_state_sub_;
   panther_battery::RoboteqRepublisherNode::SharedPtr roboteq_republisher_node_;
+
+  rclcpp::Executor::SharedPtr executor_;
+  std::thread executor_thread_;
 };
 
 TestRoboteqRepublisherNode::TestRoboteqRepublisherNode()
@@ -44,12 +46,17 @@ TestRoboteqRepublisherNode::TestRoboteqRepublisherNode()
   battery_state_sub_ = test_node_->create_subscription<BatteryStateMsg>(
     "battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
 
-  executor_.add_node(test_node_);
-  executor_.add_node(roboteq_republisher_node_);
+  executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  executor_->add_node(test_node_);
+  executor_->add_node(roboteq_republisher_node_);
+  executor_thread_ = std::thread([&]() { this->executor_->spin(); });
 }
 
 TestRoboteqRepublisherNode::~TestRoboteqRepublisherNode()
 {
+  executor_->cancel();
+  executor_thread_.join();
+
   test_node_.reset();
   roboteq_republisher_node_.reset();
   driver_state_pub_.reset();
@@ -59,20 +66,18 @@ TestRoboteqRepublisherNode::~TestRoboteqRepublisherNode()
 bool TestRoboteqRepublisherNode::WaitForBatteryStateMsg(const std::chrono::milliseconds & timeout)
 {
   battery_state_ = nullptr;
-  auto start_time = roboteq_republisher_node_->now();
+  auto start_time = test_node_->now();
 
-  while (rclcpp::ok() &&
-         (roboteq_republisher_node_->now() - start_time) < rclcpp::Duration(timeout)) {
+  while (rclcpp::ok() && (test_node_->now() - start_time) < rclcpp::Duration(timeout)) {
     if (battery_state_) {
       return true;
     }
-    executor_.spin_some();
     std::this_thread::sleep_for(10ms);
   }
   return false;
 }
 
-void TestRoboteqRepublisherNode::CheckBatteryStateMsgValues(
+void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   const float & expected_voltage, const float & expected_current,
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
@@ -98,23 +103,18 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsgValues(
   EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
 }
 
-TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgDefaultValues)
+TEST_F(TestRoboteqRepublisherNode, BatteryMsgDefaultValues)
 {
-  DriverStateMsg driver_state_msg;
-  driver_state_msg.rear.fault_flag.can_net_err = true;
-
-  driver_state_pub_->publish(driver_state_msg);
   ASSERT_TRUE(WaitForBatteryStateMsg(std::chrono::milliseconds(1000)));
 
-  CheckBatteryStateMsgValues(
+  CheckBatteryStateMsg(
     0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
-TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgValues)
+TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
 {
   DriverStateMsg driver_state_msg;
-  driver_state_msg.rear.fault_flag.can_net_err = false;
   driver_state_msg.front.voltage = 37.0;
   driver_state_msg.rear.voltage = 39.0;
   driver_state_msg.front.current = 0.1;
@@ -125,15 +125,14 @@ TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgValues)
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
-  CheckBatteryStateMsgValues(
+  CheckBatteryStateMsg(
     expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 }
 
-TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgBatteryDead)
+TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
 {
   DriverStateMsg driver_state_msg;
-  driver_state_msg.rear.fault_flag.can_net_err = false;
   driver_state_msg.front.voltage = V_BAT_FATAL_MIN - 1.0;
   driver_state_msg.rear.voltage = V_BAT_FATAL_MIN - 1.0;
   driver_state_msg.front.current = 0.1;
@@ -144,15 +143,14 @@ TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgBatteryDead)
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
-  CheckBatteryStateMsgValues(
+  CheckBatteryStateMsg(
     expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD);
 }
 
-TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgBatteryOvervoltage)
+TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
 {
   DriverStateMsg driver_state_msg;
-  driver_state_msg.rear.fault_flag.can_net_err = false;
   driver_state_msg.front.voltage = V_BAT_FATAL_MAX + 1.0;
   driver_state_msg.rear.voltage = V_BAT_FATAL_MAX + 1.0;
   driver_state_msg.front.current = 0.1;
@@ -163,15 +161,14 @@ TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgBatteryOvervoltage)
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
-  CheckBatteryStateMsgValues(
+  CheckBatteryStateMsg(
     expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE);
 }
 
-TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgTimoeut)
+TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
 {
   DriverStateMsg driver_state_msg;
-  driver_state_msg.rear.fault_flag.can_net_err = false;
   driver_state_msg.front.voltage = 37.0;
   driver_state_msg.rear.voltage = 37.0;
   driver_state_msg.front.current = 0.1;
@@ -183,17 +180,50 @@ TEST_F(TestRoboteqRepublisherNode, TestBatteryMsgTimoeut)
   // check if message was send correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
-  CheckBatteryStateMsgValues(
+  CheckBatteryStateMsg(
     expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
-  // sleep and check
+  // sleep and check timeout
   std::this_thread::sleep_for(2000ms);
   ASSERT_TRUE(WaitForBatteryStateMsg(std::chrono::milliseconds(1000)));
 
-  CheckBatteryStateMsgValues(
+  CheckBatteryStateMsg(
     0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
+}
+
+TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
+{
+  DriverStateMsg driver_state_msg;
+  driver_state_msg.front.voltage = 37.0;
+  driver_state_msg.rear.voltage = 37.0;
+  driver_state_msg.front.current = 0.1;
+  driver_state_msg.rear.current = 0.1;
+
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(WaitForBatteryStateMsg(std::chrono::milliseconds(1000)));
+
+  // check if message was send correctly
+  auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2;
+  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  CheckBatteryStateMsg(
+    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+
+  // change values and set CAN network error true
+  driver_state_msg.front.fault_flag.can_net_err = true;
+  driver_state_msg.front.voltage = 39.0;
+  driver_state_msg.rear.voltage = 39.0;
+  driver_state_msg.front.current = 0.2;
+  driver_state_msg.rear.current = 0.2;
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(WaitForBatteryStateMsg(std::chrono::milliseconds(1000)));
+
+  // voltage and current values should not be updated
+  CheckBatteryStateMsg(
+    37.0, 0.2, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 }
 
 int main(int argc, char ** argv)
