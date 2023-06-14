@@ -18,8 +18,8 @@ PhidgetsSpatialNodelet:
   # serial: 123456  # optional param serial, default is -1
   # hub_port: 0 # optional param hub_port, used if connected to a VINT hub
   # frame_id: imu_link  # optional param frame_id, default is "imu_link"
-  linear_acceleration_stdev: 1.2e-1  # optional param linear_acceleration_stdev, default is 280ug
-  angular_velocity_stdev: 9.5e-3  # optional param angular_velocity_stdev, default is 0.095 deg/s
+  linear_acceleration_stdev: 5.0e-1  # optional param linear_acceleration_stdev, default is 280ug
+  angular_velocity_stdev: 6.0e-2  # optional param angular_velocity_stdev, default is 0.095 deg/s
   # magnetic_field_stdev: 1.1e-7  # optional param magnetic_field_stdev, default is 1.1 milligauss
 
   # compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)

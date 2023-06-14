@@ -29,7 +29,7 @@ imu0: imu/data
 imu0_config: [false, false, false,
               false, false, false,
               false, false, false,
-              false, false, false,
+              false, false, true,
               true, true, false]
 imu0_nodelay: false
 imu0_differential: false
