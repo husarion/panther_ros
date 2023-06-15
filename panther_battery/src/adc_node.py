@@ -3,7 +3,7 @@
 from collections import defaultdict
 import math
 from threading import Lock
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 import rospy
 
@@ -29,13 +29,10 @@ class ADCNode:
         self._I_driv: Optional[float] = None
         self._V_driv: Optional[float] = None
 
-        self._volt_mean_length = 10
-        self._V_bat_hist = defaultdict(lambda: [37.0] * self._volt_mean_length)
+        self._mean_length = 10
+        self._V_bat_hist = defaultdict(lambda: [37.0] * self._mean_length)
         self._V_bat_mean = defaultdict(lambda: 37.0)
-        self._V_driv_mean: Optional[float] = None
-
-        self._curr_mean_length = 10
-        self._I_bat_charge_hist = defaultdict(lambda: [0.0] * self._curr_mean_length)
+        self._I_bat_charge_hist = defaultdict(lambda: [0.0] * self._mean_length)
         self._I_bat_charge_mean = defaultdict(lambda: 0.0)
 
         self._A = 298.15
@@ -92,10 +89,7 @@ class ADCNode:
         with self._lock:
             self._driver_battery_last_info_time = rospy.get_time()
 
-            driver_voltage = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
-            self._V_driv = driver_voltage
-            self._V_driv_mean = self._count_volt_mean('V_driv', driver_voltage)
-
+            self._V_driv = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
             self._I_driv = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
@@ -210,8 +204,10 @@ class ADCNode:
         battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
         battery_msg.present = True
 
-        V_bat_mean = self._count_volt_mean(bat_pub, V_bat)
-        I_bat_mean = self._count_curr_mean(bat_pub, I_charge)
+        V_bat_mean = self._count_mean(bat_pub, V_bat, self._V_bat_mean, self._V_bat_hist)
+        I_bat_mean = self._count_mean(
+            bat_pub, I_charge, self._I_bat_charge_mean, self._I_bat_charge_hist
+        )
 
         with self._lock:
             # check battery status
@@ -246,27 +242,21 @@ class ADCNode:
 
         bat_pub.publish(battery_msg)
 
-    def _count_volt_mean(self, label: Union[rospy.Publisher, str], new_val: float) -> float:
+    def _count_mean(
+        self,
+        label: Union[rospy.Publisher, str],
+        new_val: float,
+        mean_dict: dict,
+        hist_dict: Dict[Union[rospy.Publisher, str], list],
+    ) -> float:
         # Updates the average by adding the newest and removing the oldest component of mean value,
         # in order to avoid recalculating the entire sum every time.
-        self._V_bat_mean[label] += (new_val - self._V_bat_hist[label][0]) / self._volt_mean_length
+        mean_dict[label] += (new_val - hist_dict[label][0]) / self._mean_length
 
-        self._V_bat_hist[label].pop(0)
-        self._V_bat_hist[label].append(new_val)
+        hist_dict[label].pop(0)
+        hist_dict[label].append(new_val)
 
-        return self._V_bat_mean[label]
-
-    def _count_curr_mean(self, label: rospy.Publisher, new_val: float) -> float:
-        # Updates the average by adding the newest and removing the oldest component of mean value,
-        # in order to avoid recalculating the entire sum every time.
-        self._I_bat_charge_mean[label] += (
-            new_val - self._I_bat_charge_hist[label][0]
-        ) / self._curr_mean_length
-
-        self._I_bat_charge_hist[label].pop(0)
-        self._I_bat_charge_hist[label].append(new_val)
-
-        return self._I_bat_charge_mean[label]
+        return mean_dict[label]
 
     @staticmethod
     def _read_file(path: str) -> int:
