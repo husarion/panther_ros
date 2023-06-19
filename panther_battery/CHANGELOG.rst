@@ -2,6 +2,9 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.9 (2023-06-02)
 ------------------
 * Merge pull request `#124 <https://github.com/husarion/panther_ros/issues/124>`_ from husarion/pkowalsk1-patch-1
