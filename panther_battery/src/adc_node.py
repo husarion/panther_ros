@@ -42,8 +42,10 @@ class ADCNode:
         self._u_supply = 3.28
 
         self._battery_count = self._check_battery_count()
+        
         self._I_bat_charging_thresh = {}
-
+        self._charger_connected = False
+        
         self._lock = Lock()
 
         # -------------------------------

@@ -56,6 +56,10 @@ class RoboteqRepublisherNode:
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
         with self._lock:
+            # don't update battery data if can communication error occurred
+            if msg.front.fault_flag.can_net_err or msg.rear.fault_flag.can_net_err:
+                return
+
             new_voltage = (msg.front.voltage + msg.rear.voltage) / 2.0
 
             self._last_battery_info_time = rospy.get_time()

@@ -55,4 +55,4 @@ For a `/joint_states` message is carrying given data:
 
 #### Kinematics type - explanation
 
-The Panther robot can be configured with different wheels to match your needs, we provide 2 different kinematics types `differential`/`mecanum`. You can change the wheel type by providing an appropriate launch parameter with a path to the wheel configuration file - `wheel_config_file`. Basic wheel configuration files (*WH01.yaml, WH04.yaml*): are located in `panther_description` package.
+The Panther robot can be configured with different wheels to match your needs, we provide 2 different kinematics types `differential`/`mecanum`. You can change the wheel type by providing an appropriate launch parameter with a path to the wheel configuration file - `wheel_config_file`. Basic wheel configuration files (*WH01.yaml, WH02.yaml, WH04.yaml*): are located in `panther_description` package.
