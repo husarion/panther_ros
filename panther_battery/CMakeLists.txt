@@ -41,11 +41,6 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(${PROJECT_NAME}_test_roboteq_republisher_node test/test_roboteq_republisher_node.cpp src/roboteq_republisher_node.cpp)
@@ -56,6 +51,7 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
     rclcpp
     panther_msgs
+    panther_utils
     sensor_msgs
   )
 endif()
