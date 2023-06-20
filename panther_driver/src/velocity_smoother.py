@@ -96,4 +96,7 @@ class VelocitySmoother:
 
     @staticmethod
     def _velocity_limiter(cmd_vel: float, max_vel) -> float:
-        return min(cmd_vel, max_vel)
+        if cmd_vel >= 0:
+            return min(cmd_vel, max_vel)
+        else:
+            return max(cmd_vel, -max_vel)
