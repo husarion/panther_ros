@@ -36,12 +36,24 @@ For a `/joint_states` message is carrying given data:
 
 #### Parameters
 
+- `~acc_lim_x` [*float*, default: **1.0**]: maximum linear acceleration in **X** direction.
+- `~acc_lim_y` [*float*, default: **1.0**]: maximum linear acceleration in **Y** direction.
+- `~acc_lim_theta` [*float*, default: **1.57**]: maximum angular acceleration.
 - `~base_link_frame` [*string*, default: **base_link**]: the name of the base link frame.
 - `~can_interface` [*string*, default: **panther_can**]: the name of the socket CAN interface.
+- `~decel_lim_x` [*float*, default: **1.5**]: maximum linear decelaration in **X** direction.
+- `~decel_lim_y` [*float*, default: **1.5**]: maximum linear decelaration in **Y** direction.
+- `~decel_lim_theta` [*float*, default: **2.3**]: maximum angular deceleration.
 - `~eds_file` [*string*, default: **None**]: required path to eds file containing CANopen configuration for Roboteq motor controllers.
+- `~emergency_decel_lim_x` [*float*, default: **2.0**]: maximum linear decelaration in **X** direction when a timeout is reached for velocity commands.
+- `~emergency_decel_lim_y` [*float*, default: **2.0**]: maximum linear decelaration in **Y** direction when a timeout is reached for velocity commands.
+- `~emergency_decel_lim_theta` [*float*, default: **5.74**]: maximum angular deceleration when a timeout is reached for velocity commands.
 - `~encoder_resolution` [*int*, default: **1600**]: resolution of motor encoder in **[PPR]**.
 - `~gear_ratio` [*float*, default: **30.08**]: wheel gear ratio.
 - `~kinematics` [*string*, default: **differential**]: kinematics type, possible are: differential, mecanum.
+- `~max_vel_x` [*float*, default: **2.0**]: maximum linear vlelocity in **X** direction. 
+- `~max_vel_y` [*float*, default: **2.0**]: maximum linear vlelocity in **Y** direction.
+- `~max_vel_theta` [*float*, default: **3.3**]: maximum angular velocity.
 - `~motor_torque_constant` [*float*, default: **2.6149**]: constant used to estimate torque.
 - `~odom_frame` [*string*, default: **odom**]: the name of the odom frame.
 - `~publish_joints` [*bool*, default: **true**]: whether to publish robot joints states.
