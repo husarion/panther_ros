@@ -186,8 +186,6 @@ class PantherDriverNode:
         #   Publishers
         # -------------------------------
 
-        self._smooth = rospy.Publisher('/cmd_vel_smooth', Twist, queue_size=1)  # testing
-
         if self._publish_joints:
             self._joint_state_msg = JointState()
             self._joint_state_msg.header.frame_id = self._base_link_frame
@@ -311,7 +309,6 @@ class PantherDriverNode:
                 self._cmd_vel, self._main_timer_period, emergency_breaking
             )
             self._panther_kinematics.inverse_kinematics(cmd_vel)
-            self._smooth.publish(cmd_vel)  # testing
             self._panther_can.write_wheels_enc_velocity(self._panther_kinematics.wheels_enc_speed)
         else:
             self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
