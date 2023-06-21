@@ -90,16 +90,16 @@ class PantherDriverNode:
 
         max_vel_x = rospy.get_param('~max_vel_x', 2.0)
         max_vel_y = rospy.get_param('~max_vel_y', 2.0)
-        max_vel_theta = rospy.get_param('~max_vel_theta', 3.3)
+        max_vel_theta = rospy.get_param('~max_vel_theta', 4.0)
         acc_lim_x = rospy.get_param('~acc_lim_x', 1.0)
         acc_lim_y = rospy.get_param('~acc_lim_y', 1.0)
         acc_lim_theta = rospy.get_param('~acc_lim_theta', 1.57)
-        decel_lim_x = rospy.get_param('~decel_lim_x', 4.0)
-        decel_lim_y = rospy.get_param('~decel_lim_y', 4.0)
-        decel_lim_theta = rospy.get_param('~decel_lim_theta', 3.14)
-        emergency_decel_lim_x = rospy.get_param('~emergency_decel_lim_x', 8.0)
-        emergency_decel_lim_y = rospy.get_param('~emergency_decel_lim_y', 8.0)
-        emergency_decel_lim_theta = rospy.get_param('~emergency_decel_lim_theta', 6.24)
+        decel_lim_x = rospy.get_param('~decel_lim_x', 1.5)
+        decel_lim_y = rospy.get_param('~decel_lim_y', 1.5)
+        decel_lim_theta = rospy.get_param('~decel_lim_theta', 2.3)
+        emergency_decel_lim_x = rospy.get_param('~emergency_decel_lim_x', 2.7)
+        emergency_decel_lim_y = rospy.get_param('~emergency_decel_lim_y', 2.7)
+        emergency_decel_lim_theta = rospy.get_param('~emergency_decel_lim_theta', 5.74)
 
         self._wheels_joints_names = [
             'fl_wheel_joint',
