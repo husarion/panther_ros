@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-from dataclasses import dataclass
 import gpiod
 from threading import Lock
 
