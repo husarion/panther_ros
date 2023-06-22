@@ -85,6 +85,7 @@ class RelaysNode:
     def __del__(self):
         for line in self._lines.values():
             line.release()
+        self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._lock:
@@ -106,7 +107,8 @@ class RelaysNode:
             elif self._can_net_err:
                 return TriggerResponse(
                     False,
-                    'E-STOP reset failed, unable to communicate with motor controllers! Please check connection with motor controllers.',
+                    'E-STOP reset failed, unable to communicate with motor controllers! '
+                    'Please check connection with motor controllers.',
                 )
 
             self._e_stop_state = False
