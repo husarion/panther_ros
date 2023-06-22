@@ -158,11 +158,11 @@ class RelaysNode:
                     reset_script_res = self._reset_roboteq_script_client.call()
                     if not reset_script_res.success:
                         self._lines['MOTOR_ON'].set_value(False)
-                        self._publish_io_state('motor_on', False)
+                        self._publish_motor_state(False)
                         return SetBoolResponse(reset_script_res.success, reset_script_res.message)
                 except rospy.ServiceException as e:
                     self._lines['MOTOR_ON'].set_value(False)
-                    self._publish_io_state('motor_on', False)
+                    self._publish_motor_state(False)
                     return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
 
             return SetBoolResponse(True, f'Motors {"enabled" if req.data else "disabled"}')
@@ -172,12 +172,12 @@ class RelaysNode:
             motor_state = self._lines['STAGE2_INPUT'].get_value()
             should_enable_motors = motor_state and self._motor_enabled
             self._lines['MOTOR_ON'].set_value(should_enable_motors)
-            self._publish_io_state('motor_on', should_enable_motors)
+            self._publish_motor_state(should_enable_motors)
 
-    def _publish_io_state(self, attribute: str, val: bool) -> None:
+    def _publish_motor_state(self, val: bool) -> None:
         last_msg = self._io_state_pub.impl.latch
-        if getattr(last_msg, attribute) != val:
-            setattr(last_msg, attribute, val)
+        if last_msg.motor_on != val:
+            last_msg.motor_on = val
             self._io_state_pub.publish(last_msg)
 
 
