@@ -137,7 +137,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
   ASSERT_TRUE(
     WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2;
+  auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
   CheckBatteryStateMsg(
     expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
