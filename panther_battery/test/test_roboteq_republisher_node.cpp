@@ -23,7 +23,10 @@ public:
 protected:
   void CheckBatteryStateMsg(
     const float & expected_voltage, const float & expected_current,
-    const uint8_t & power_supply_status, const uint8_t & power_supply_health);
+    const float & expected_percentage, const uint8_t & power_supply_status,
+    const uint8_t & power_supply_health);
+
+  bool CheckNaNVector(const std::vector<float> & vector);
 
   BatteryStateMsg::SharedPtr battery_state_;
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_pub_;
@@ -49,15 +52,15 @@ TestRoboteqRepublisherNode::~TestRoboteqRepublisherNode()
 }
 
 void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
-  const float & expected_voltage, const float & expected_current,
+  const float & expected_voltage, const float & expected_current, const float & expected_percentage,
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
-  auto expected_percentage = std::clamp((expected_voltage - 32.0) / (41.4 - 32.0), 0.0, 1.0);
-
   // const values
   EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
   EXPECT_TRUE(std::isnan(battery_state_->temperature));
+  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
+  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
 
   // variable values
@@ -73,13 +76,19 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
 }
 
+bool TestRoboteqRepublisherNode::CheckNaNVector(const std::vector<float> & vector)
+{
+  return std::all_of(
+    vector.begin(), vector.end(), [](const float value) { return std::isnan(value); });
+}
+
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgDefaultValues)
 {
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   CheckBatteryStateMsg(
-    0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
+    0.0, 0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
@@ -97,9 +106,26 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   CheckBatteryStateMsg(
-    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+
+  driver_state_msg.front.voltage = 33.0;
+  driver_state_msg.rear.voltage = 35.0;
+  driver_state_msg.front.current = -0.2;
+  driver_state_msg.rear.current = -0.2;
+
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  expected_voltage = 36.0;
+  expected_current = -0.1;
+  expected_percentage = 0.425531915;
+  CheckBatteryStateMsg(
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 }
 
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
@@ -116,9 +142,10 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_percentage = 0.0;
   CheckBatteryStateMsg(
-    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD);
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD);
 }
 
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
@@ -135,8 +162,10 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_percentage = 1.0;
   CheckBatteryStateMsg(
-    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE);
 }
 
@@ -155,9 +184,10 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
   // check if message was sent correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   CheckBatteryStateMsg(
-    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // sleep and check timeout
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -165,7 +195,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   CheckBatteryStateMsg(
-    0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
+    0.0, 0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
@@ -184,9 +214,10 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   // check if message was sent correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   CheckBatteryStateMsg(
-    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // change values and set CAN network error true
   driver_state_msg.front.fault_flag.can_net_err = true;
@@ -200,8 +231,91 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
 
   // voltage and current values should not be updated
   CheckBatteryStateMsg(
-    expected_voltage, expected_current, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+}
+
+TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
+{
+  DriverStateMsg driver_state_msg;
+  driver_state_msg.front.voltage = 43.0;
+  driver_state_msg.rear.voltage = 43.0;
+  driver_state_msg.front.current = 0.1;
+  driver_state_msg.rear.current = 0.1;
+
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
+  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_percentage = 1.0;
+  CheckBatteryStateMsg(
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+
+  // sleep to reset moving average
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  driver_state_msg.front.voltage = 27.0;
+  driver_state_msg.rear.voltage = 27.0;
+  driver_state_msg.front.current = 0.1;
+  driver_state_msg.rear.current = 0.1;
+
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
+  expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  expected_percentage = 0.0;
+  CheckBatteryStateMsg(
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+
+  // sleep to reset moving average
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  driver_state_msg.front.voltage = 41.4;
+  driver_state_msg.rear.voltage = 41.4;
+  driver_state_msg.front.current = 0.1;
+  driver_state_msg.rear.current = 0.1;
+
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
+  expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  expected_percentage = 1.0;
+  CheckBatteryStateMsg(
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+
+  // sleep to reset moving average
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  driver_state_msg.front.voltage = 32.0;
+  driver_state_msg.rear.voltage = 32.0;
+  driver_state_msg.front.current = 0.1;
+  driver_state_msg.rear.current = 0.1;
+
+  driver_state_pub_->publish(driver_state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
+  expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  expected_percentage = 0.0;
+  CheckBatteryStateMsg(
+    expected_voltage, expected_current, expected_percentage,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 }
 
 int main(int argc, char ** argv)
