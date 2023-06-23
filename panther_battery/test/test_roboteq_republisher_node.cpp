@@ -233,6 +233,20 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   CheckBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
+
+  // publish driver state until timeout is reached
+  rclcpp::Time start_time = roboteq_republisher_node_->now();
+  while (rclcpp::ok() &&
+         roboteq_republisher_node_->now() - start_time < std::chrono::milliseconds(2000)) {
+    driver_state_pub_->publish(driver_state_msg);
+    panther_utils::test_utils::WaitForMsg(
+      roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000));
+  }
+
+  // check if timeout was reached and values have reset
+  CheckBatteryStateMsg(
+    0.0, 0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
+    BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
