@@ -189,7 +189,7 @@ Tree responsible for graceful shutdown of robot components, user computers, and 
 Default constant blackboard entries:
   - `SHUTDOWN_HOSTS_FILE` [*string*, default: **None**]: refers to `shutdown_hosts_file` ROS parameter.
 
-### Modyfying behavior trees
+### Modifying behavior trees
 
 Each behavior tree can be easily customized to enhance its functions and capabilities. To achieve this, we recommend using Groot2, a powerful tool for developing and modifying behavior trees. To install Groot2 and learn how to use it, please refer to the official guidelines provided [here](https://www.behaviortree.dev/groot).
 
