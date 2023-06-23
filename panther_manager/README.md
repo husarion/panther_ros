@@ -98,7 +98,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
   - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
 - `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and shutdown of all defined host was successful. Provided ports are:
   - `shutdown_host_file` [*input*, *string*, default: **None**]: global path to YAML file with hosts to shutdown.
-- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when the device was successfuly shutdown. Provided ports are:
+- `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when the device was successfully shutdown. Provided ports are:
   - `command` [*input*, *string*, default: **sudo shutdown now**]: command to execute on shutdown.
   - `ip` [*input*, *string*, default: **None**]: IP of the host to shutdown.
   - `ping_for_success` [*input*, *bool*, default: **true**]: ping host until it is not available or timeout is reached.
