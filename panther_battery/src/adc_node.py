@@ -171,6 +171,7 @@ class ADCNode:
                 f'[{rospy.get_name()}] Battery ADC measurement error excep. '
                 f'The number of batteries cannot be determined. The single battery was adopted.'
             )
+            return 1
 
         return 1 if V_temp_bat_2 > ADCNode.BAT02_DETECT_THRESH else 2
 
