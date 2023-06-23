@@ -84,7 +84,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 #### Actions
 
 - `CallSetBoolService` - allows calling standard **std_srvs/SetBool** ROS service. Provided ports are:
-  - `data` [*input*, *bool*, default: **None**]: service data - true / false value.
+  - `data` [*input*, *bool*, default: **None**]: service data - `true` or `false` value.
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
   - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
 - `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service. Provided ports are:
