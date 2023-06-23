@@ -25,7 +25,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `/panther/driver/motor_controllers_state` [*panther_msgsDriverState*]: state of motor controllers.
 - `/panther/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
-- `/panther/system_status` [*panther_msgs/SystemStatus*]: state of system including CPU temperature and load.
+- `/panther/system_status` [*panther_msgs/SystemStatus*]: state of the system including CPU temperature and load.
 
 #### Services subscribed (for default trees)
 
