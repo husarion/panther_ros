@@ -80,9 +80,11 @@ This will launch Gazebo and Rviz.
 
 ## Robot configuration
 
-Parameters stored in [**panther_default.yaml**](./panther_bringup/config/panther_default.yaml) are generic and are overwritten with your specific panther configuration on start.
+Parameters stored in [**panther_default.yaml**](./panther_bringup/config/panther_default.yaml) are generic and are overwritten with your specific Panther configuration on start.
 
-In order to change wheels used with your robot, add `wheel_type:=WH0X` to launch command as follows:
+### Changing wheels type
+
+Changing the wheels requires changing the `wheel_type` parameter. To do this, you can use the following command by modifying the value of the wheel_type:=WH0X parameter:
 ``` bash
 roslaunch panther_bringup bringup.launch wheel_type:=WH02
 ```
@@ -91,8 +93,29 @@ Possible wheels names:
 - `WH01`: default offroad wheels.
 - `WH02`: mecanum.
 - `WH04`: small pneumatic wheels.
+- `custom`: custom wheels type.
 
 If you want to use custom wheels, use argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as default panther wheel configurations found in [**WH01.yaml**](./panther_description/config/WH01.yaml).
+
+### Providing custom robot description
+
+By default Panther will launch the default robot description - raw robot without any sensors. There are two ways of providing custom robot description, which are described below.
+
+**a) Disabling the default robot state publisher**
+
+If you want to use a custom robot description from a different location within your project, you can disable the default `robot_state_publisher` and run it separately. To do this, use the `publish_robot_state` launch argument with a value of **false**:
+
+```bash
+roslaunch panther_bringup bringup.launch publish_robot_state:=false
+```
+
+**b) Providing custom robot description**
+
+Alternatively, you can provide a custom robot description directly using the `robot_description` launch argument. For example:
+
+```bash
+roslaunch panther_bringup bringup.launch robot_description:="xacro $(rospack find my_awesome_package)/urdf/panther.urdf.xacro"
+```
 
 ## Shutting down User Computers
 

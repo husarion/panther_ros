@@ -2,6 +2,30 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.11 (2023-06-21)
+-------------------
+* Merge pull request `#130 <https://github.com/husarion/panther_ros/issues/130>`_ from husarion/fix-bat-pub
+  Update adc_node.py
+* Contributors: Dawid Kmak
+
+1.0.10 (2023-06-19)
+-------------------
+
+1.0.9 (2023-06-02)
+------------------
+* Merge pull request `#124 <https://github.com/husarion/panther_ros/issues/124>`_ from husarion/pkowalsk1-patch-1
+  fix adc_node.py
+* Contributors: Dawid Kmak
+
+1.0.8 (2023-06-01)
+------------------
+
+1.0.7 (2023-05-23)
+------------------
+
+1.0.6 (2023-05-18)
+------------------
+
 1.0.5 (2023-05-10)
 ------------------
 
