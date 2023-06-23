@@ -73,7 +73,7 @@ Publishes stats status of the built-in computer. Stats include CPU utilization a
 
 #### Publishes
 
-- `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer CPU temperature, utilization, disc and RAM usage.
+- `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer CPU temperature, utilization, disc, and RAM usage.
 
 ## BehaviorTree
 
