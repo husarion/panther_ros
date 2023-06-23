@@ -9,12 +9,12 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 Node responsible for managing the Husarion Panther robot. Composes control of three behavior trees responsible for handling LED panels, safety features and software shutdown of components.
 
 To set up connection with a new user computer, login to the built-in computer with `ssh husarion@10.15.20.2`.
-Add built-in computer's public key to **known_hosts** of a computer you want to shut down automatically:
+Add built-in computer's public key to **known_hosts** of a computer you want to shutdown automatically:
 ``` bash
 ssh-copy-id username@10.15.20.XX
 ```
 
-To allow your computer to be shut down without sudo password, ssh into it and execute:
+To allow your computer to be shutdown without sudo password, ssh into it and execute:
 ``` bash
 echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
 ```
@@ -22,7 +22,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 #### Subscribes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: state of internal battery.
-- `/panther/driver/motor_controllers_state` [*panther_msgsDriverState*]: state of motor controllers.
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: state of motor controllers.
 - `/panther/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: state of the system including CPU temperature and load.
@@ -57,8 +57,8 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~safety/critical_bat_temp` [*float*, default: **59.0**]: extends `high_bat_temp` by turning off AUX power.
 - `~safety/driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
 - `~safety/driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
-- `~safety/fatal_bat_temp` [*float*, default: **62.0**]: temperature of battery above which robot is shutdown.
-- `~safety/high_bat_temp` [*float*, default: **55.0**]: temperature of battery above which robots starts displaying warning log and e-stop is triggered.
+- `~safety/fatal_bat_temp` [*float*, default: **62.0**]: battery temperature above which the robot is shutdown.
+- `~safety/high_bat_temp` [*float*, default: **55.0**]: battery temperature above which the robot starts displaying warning log and e-stop is triggered.
 - `~shutdown_hosts_file` [*string*, default: **None**]: path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
@@ -96,7 +96,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 - `CallTriggerService` - allows calling standard **std_srvs/Trigger** ROS service. Provided ports are:
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
   - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
-- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and shutdown of all defined host was successful. Provided ports are:
+- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and the shutdown of all defined hosts was successful. Provided ports are:
   - `shutdown_host_file` [*input*, *string*, default: **None**]: global path to YAML file with hosts to shutdown.
 - `ShutdownSingleHost` - allows to shutdown single device. Will return `SUCCESS` only when the device was successfully shutdown. Provided ports are:
   - `command` [*input*, *string*, default: **sudo shutdown now**]: command to execute on shutdown.
@@ -127,7 +127,7 @@ Default blackboard entries:
 - `battery_percent` [*float*, defautl: **None**]: moving average of battery percentage.
 - `battery_percent_round` [*string*, default: **None**] battery percentage raunded to a value specified with `~lights/update_charging_anim_step` parameter and casted to string.
 - `battery_status` [*unsigned*, defautl: **None**]: current battery status.
-- `charging_anim_percent` [*string*, default: **None**]: value of charging animation battery percentage casted to string.
+- `charging_anim_percent` [*string*, default: **None**]: the charging animation battery percentage value, casted to a string.
 - `current_anim_id` [*int*, default: **-1**]: ID of currently displayed animation.
 - `e_stop_state` [*bool*, defautl: **None**]: state of emergency stop.
 
