@@ -6,14 +6,12 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-using namespace std::chrono_literals;
-
 namespace panther_utils::test_utils
 {
 
 template <typename NodeT, typename MsgT>
 bool WaitForMsg(
-  const std::shared_ptr<NodeT> node, std::shared_ptr<MsgT> & msg,
+  const std::shared_ptr<NodeT> & node, std::shared_ptr<MsgT> & msg,
   const std::chrono::nanoseconds & timeout)
 {
   msg = nullptr;
@@ -24,7 +22,7 @@ bool WaitForMsg(
       return true;
     }
     rclcpp::spin_some(node->get_node_base_interface());
-    std::this_thread::sleep_for(10ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   return false;
 }

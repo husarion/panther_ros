@@ -11,11 +11,6 @@
 
 #include <panther_utils/moving_average.hpp>
 
-#define V_BAT_FATAL_MIN 27.0
-#define V_BAT_FATAL_MAX 43.0
-#define V_BAT_FULL 41.4
-#define V_BAT_MIN 32.0
-
 namespace panther_battery
 {
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
@@ -27,6 +22,13 @@ public:
   RoboteqRepublisherNode();
 
 private:
+  static constexpr float bat_capacity_ = 20.0f;
+  static constexpr float bat_designed_capacity_ = 20.0f;
+  static constexpr float V_bat_fatal_min_ = 27.0f;
+  static constexpr float V_bat_fatal_max_ = 43.0f;
+  static constexpr float V_bat_full_ = 41.4f;
+  static constexpr float V_bat_min_ = 32.0f;
+
   float battery_timeout_;
   rclcpp::Time last_battery_info_time_;
 

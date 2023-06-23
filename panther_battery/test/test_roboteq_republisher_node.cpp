@@ -11,9 +11,6 @@
 #include <panther_battery/roboteq_republisher_node.hpp>
 #include <panther_utils/test/test_utils.hpp>
 
-using namespace std::chrono_literals;
-using namespace panther_utils::test_utils;
-
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using DriverStateMsg = panther_msgs::msg::DriverState;
 
@@ -38,8 +35,8 @@ TestRoboteqRepublisherNode::TestRoboteqRepublisherNode()
 {
   roboteq_republisher_node_ = std::make_shared<panther_battery::RoboteqRepublisherNode>();
 
-  driver_state_pub_ =
-    roboteq_republisher_node_->create_publisher<DriverStateMsg>("driver/motor_controllers_state", 1);
+  driver_state_pub_ = roboteq_republisher_node_->create_publisher<DriverStateMsg>(
+    "driver/motor_controllers_state", 1);
   battery_state_sub_ = roboteq_republisher_node_->create_subscription<BatteryStateMsg>(
     "battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
 }
@@ -55,8 +52,7 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   const float & expected_voltage, const float & expected_current,
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
-  auto expected_percentage =
-    std::clamp((expected_voltage - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN), 0.0, 1.0);
+  auto expected_percentage = std::clamp((expected_voltage - 32.0) / (41.4 - 32.0), 0.0, 1.0);
 
   // const values
   EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
@@ -79,8 +75,8 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
 
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgDefaultValues)
 {
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   CheckBatteryStateMsg(
     0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
@@ -96,8 +92,8 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
   driver_state_msg.rear.current = 0.1;
 
   driver_state_pub_->publish(driver_state_msg);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
@@ -109,14 +105,14 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
 {
   DriverStateMsg driver_state_msg;
-  driver_state_msg.front.voltage = V_BAT_FATAL_MIN - 1.0;
-  driver_state_msg.rear.voltage = V_BAT_FATAL_MIN - 1.0;
+  driver_state_msg.front.voltage = 26.0;
+  driver_state_msg.rear.voltage = 26.0;
   driver_state_msg.front.current = 0.1;
   driver_state_msg.rear.current = 0.1;
 
   driver_state_pub_->publish(driver_state_msg);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
@@ -128,14 +124,14 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
 {
   DriverStateMsg driver_state_msg;
-  driver_state_msg.front.voltage = V_BAT_FATAL_MAX + 1.0;
-  driver_state_msg.rear.voltage = V_BAT_FATAL_MAX + 1.0;
+  driver_state_msg.front.voltage = 44.0;
+  driver_state_msg.rear.voltage = 44.0;
   driver_state_msg.front.current = 0.1;
   driver_state_msg.rear.current = 0.1;
 
   driver_state_pub_->publish(driver_state_msg);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
@@ -153,8 +149,8 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
   driver_state_msg.rear.current = 0.1;
 
   driver_state_pub_->publish(driver_state_msg);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // check if message was sent correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
@@ -164,9 +160,9 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
     BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // sleep and check timeout
-  std::this_thread::sleep_for(2000ms);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   CheckBatteryStateMsg(
     0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
@@ -182,8 +178,8 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   driver_state_msg.rear.current = 0.1;
 
   driver_state_pub_->publish(driver_state_msg);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // check if message was sent correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
@@ -199,8 +195,8 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   driver_state_msg.front.current = 0.2;
   driver_state_msg.rear.current = 0.2;
   driver_state_pub_->publish(driver_state_msg);
-  ASSERT_TRUE(
-    WaitForMsg(roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // voltage and current values should not be updated
   CheckBatteryStateMsg(

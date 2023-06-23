@@ -17,20 +17,16 @@ include_directories(
 )
 
 add_executable(roboteq_republisher_node
-  src/main.cpp
+  src/roboteq_republisher_node_main.cpp
   src/roboteq_republisher_node.cpp
 )
 
 ament_target_dependencies(roboteq_republisher_node
-  ament_cmake
-  ament_index_cpp
   rclcpp
   panther_msgs
   panther_utils
   sensor_msgs
 )
-
-target_link_libraries(roboteq_republisher_node ${panther_utils_LIBRARIES})
 
 install(TARGETS roboteq_republisher_node
   DESTINATION lib/${PROJECT_NAME}

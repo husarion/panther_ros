@@ -19,11 +19,18 @@ using std::placeholders::_1;
 
 RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_node")
 {
-  battery_timeout_ = 1.0;
+  declare_parameter("battery_timeout", 1.0f);
+  declare_parameter("batery_voltage_window_len", 10);
+  declare_parameter("batery_current_window_len", 10);
+
+  get_parameter("battery_timeout", battery_timeout_);
+  const auto batery_voltage_window_len = get_parameter("batery_voltage_window_len").as_int();
+  const auto batery_current_window_len = get_parameter("batery_current_window_len").as_int();
+
   battery_voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    10, std::numeric_limits<double>::quiet_NaN());
+    batery_voltage_window_len, std::numeric_limits<double>::quiet_NaN());
   battery_current_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    10, std::numeric_limits<double>::quiet_NaN());
+    batery_current_window_len, std::numeric_limits<double>::quiet_NaN());
 
   motor_controllers_state_sub_ = this->create_subscription<DriverStateMsg>(
     "driver/motor_controllers_state", 10,
@@ -53,18 +60,22 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
 {
   auto battery_msg = BatteryStateMsg();
   battery_msg.header.stamp = this->get_clock()->now();
-  battery_msg.capacity = 20.0;
-  battery_msg.design_capacity = 20.0;
+  battery_msg.capacity = bat_capacity_;
+  battery_msg.design_capacity = bat_designed_capacity_;
   battery_msg.temperature = std::numeric_limits<float>::quiet_NaN();
+  battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO;
 
   auto battery_voltage = battery_voltage_ma_->GetAverage();
   auto battery_current = battery_current_ma_->GetAverage();
 
-  if (
-    std::isnan(battery_voltage) || std::isnan(battery_current) ||
+  if (std::isnan(battery_voltage) || std::isnan(battery_current)) {
+    battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+  } else if (
     (this->get_clock()->now() - last_battery_info_time_) >
-      rclcpp::Duration::from_seconds(battery_timeout_)) {
+    rclcpp::Duration::from_seconds(battery_timeout_)) {
     battery_voltage_ma_->Reset();
     battery_current_ma_->Reset();
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
@@ -73,17 +84,17 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
     battery_msg.voltage = battery_voltage;
     battery_msg.current = battery_current;
     battery_msg.percentage =
-      std::clamp((battery_voltage - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN), 0.0, 1.0);
+      std::clamp((battery_voltage - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0, 1.0);
     battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity;
     battery_msg.present = true;
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
 
     // check battery health
-    if (battery_voltage < V_BAT_FATAL_MIN) {
+    if (battery_voltage < V_bat_fatal_min_) {
       battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
       RCLCPP_ERROR_THROTTLE(
         this->get_logger(), *this->get_clock(), 10000, "Battery voltage is critically low!");
-    } else if (battery_voltage > V_BAT_FATAL_MAX) {
+    } else if (battery_voltage > V_bat_fatal_max_) {
       battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
       RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 10000, "Battery overvoltage!");
     } else {
