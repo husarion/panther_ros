@@ -33,7 +33,9 @@ class VelocitySmoother:
         self._emergency_decel_lim_y = emergency_decel_lim_y
         self._emergency_decel_lim_theta = emergency_decel_lim_theta
 
-        self._robot_velocity = [0.0, 0.0, 0.0]  # vel_x, vel_y, vel_theta
+        self._robot_vel_x = 0.0
+        self._robot_vel_y = 0.0
+        self._robot_vel_theta = 0.0
 
     def get_smooth_velocity(
         self, cmd_vel: Twist, period: float, emergency_breaking: bool = False
@@ -51,52 +53,41 @@ class VelocitySmoother:
             decel_theta_factor = self._emergency_decel_lim_theta * period
 
         output_vel = Twist()
-        output_vel.linear.x = self._velocity_limiter(
-            self._accel_limiter(
-                cmd_vel.linear.x, self._robot_velocity[0], acc_x_factor, decel_x_factor
-            ),
+        output_vel.linear.x = self._clamp(
+            self._accel_limiter(cmd_vel.linear.x, self._robot_vel_x, acc_x_factor, decel_x_factor),
+            -self._max_vel_x,
             self._max_vel_x,
         )
-        output_vel.linear.y = self._velocity_limiter(
-            self._accel_limiter(
-                cmd_vel.linear.y, self._robot_velocity[1], acc_y_factor, decel_y_factor
-            ),
+        output_vel.linear.y = self._clamp(
+            self._accel_limiter(cmd_vel.linear.y, self._robot_vel_y, acc_y_factor, decel_y_factor),
+            -self._max_vel_y,
             self._max_vel_y,
         )
-        output_vel.angular.z = self._velocity_limiter(
+        output_vel.angular.z = self._clamp(
             self._accel_limiter(
                 cmd_vel.angular.z,
-                self._robot_velocity[2],
+                self._robot_vel_theta,
                 acc_theta_factor,
                 decel_theta_factor,
             ),
+            -self._max_vel_theta,
             self._max_vel_theta,
         )
 
-        self._robot_velocity[0] = output_vel.linear.x
-        self._robot_velocity[1] = output_vel.linear.y
-        self._robot_velocity[2] = output_vel.angular.z
+        self._robot_vel_x = output_vel.linear.x
+        self._robot_vel_y = output_vel.linear.y
+        self._robot_vel_theta = output_vel.angular.z
 
         return output_vel
 
-    @staticmethod
-    def _accel_limiter(cmd_vel: float, robot_vel: float, acc_factor: float, decel_factor) -> float:
-        if cmd_vel > robot_vel:
-            if robot_vel >= 0.0:
-                return min(cmd_vel, robot_vel + acc_factor)
-            else:
-                return min(cmd_vel, robot_vel + decel_factor)
-        elif cmd_vel < robot_vel:
-            if robot_vel <= 0.0:
-                return max(cmd_vel, robot_vel - acc_factor)
-            else:
-                return max(cmd_vel, robot_vel - decel_factor)
+    def _accel_limiter(
+        self, cmd_vel: float, robot_vel: float, acc_factor: float, decel_factor
+    ) -> float:
+        if robot_vel >= 0.0:
+            return robot_vel + self._clamp(cmd_vel - robot_vel, -decel_factor, acc_factor)
         else:
-            return cmd_vel
+            return robot_vel + self._clamp(cmd_vel - robot_vel, -acc_factor, decel_factor)
 
     @staticmethod
-    def _velocity_limiter(cmd_vel: float, max_vel) -> float:
-        if cmd_vel >= 0:
-            return min(cmd_vel, max_vel)
-        else:
-            return max(cmd_vel, -max_vel)
+    def _clamp(value, min_value, max_value):
+        return max(min(value, max_value), min_value)
