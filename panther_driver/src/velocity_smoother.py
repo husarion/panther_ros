@@ -83,6 +83,9 @@ class VelocitySmoother:
     def _accel_limiter(
         self, cmd_vel: float, robot_vel: float, acc_factor: float, decel_factor
     ) -> float:
+        # When changing the sign of the command velocity, the robot should stop 
+        # (approach a velocity of 0.0) by applying a deceleration factor. 
+        # Then, it should use acceleration factor to reach the desired velocity value.
         if robot_vel >= 0.0:
             return robot_vel + self._clamp(cmd_vel - robot_vel, -decel_factor, acc_factor)
         else:
