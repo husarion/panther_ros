@@ -19,12 +19,16 @@ class RelaysNode:
 
         self._lock = Lock()
 
-        chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
 
         line_names = {'MOTOR_ON': 6, 'STAGE2_INPUT': 22}
-        self._lines = {name: chip.get_line(line_names[name]) for name in line_names}
-        self._lines['MOTOR_ON'].request(self._node_name, type=gpiod.LINE_REQ_DIR_OUT)
-        self._lines['STAGE2_INPUT'].request(self._node_name, type=gpiod.LINE_REQ_DIR_IN)
+        self._lines = {name: self._chip.get_line(line_names[name]) for name in line_names}
+        self._lines['MOTOR_ON'].request(
+            self._node_name, type=gpiod.LINE_REQ_DIR_OUT, default_val=False
+        )
+        self._lines['STAGE2_INPUT'].request(
+            self._node_name, type=gpiod.LINE_REQ_DIR_IN, default_val=False
+        )
 
         self._e_stop_state = not self._lines['STAGE2_INPUT'].get_value()
         self._cmd_vel_msg_time = rospy.get_time()
