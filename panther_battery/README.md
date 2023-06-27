@@ -18,6 +18,6 @@ Node publishing Panther battery state read from motor controllers. Used in Panth
 
 #### Parameters
 
-- `~high_bat_temp` [*float*, default: **55.0**]: The temperature of the battery at which the battery health state is incorrect.
+- `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If no new battery messages are received within this duration, the node will publish an unknown battery state.
 - `~batery_voltage_window_len` [*int*, default: **10**]: moving average window length used to smooth out battery voltage readings.
 - `~batery_current_window_len` [*int*, default: **10**]: moving average window length used to smooth out battery current readings.

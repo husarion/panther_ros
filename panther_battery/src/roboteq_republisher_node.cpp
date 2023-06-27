@@ -19,11 +19,11 @@ using std::placeholders::_1;
 
 RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_node")
 {
-  this->declare_parameter("battery_timeout", 1.0);
-  this->declare_parameter("batery_voltage_window_len", 10);
-  this->declare_parameter("batery_current_window_len", 10);
+  this->declare_parameter<float>("battery_timeout", 1.0);
+  this->declare_parameter<int>("batery_voltage_window_len", 10);
+  this->declare_parameter<int>("batery_current_window_len", 10);
 
-  this->get_parameter("battery_timeout", battery_timeout_);
+  battery_timeout_ = this->get_parameter("battery_timeout").as_double();
   const auto batery_voltage_window_len = this->get_parameter("batery_voltage_window_len").as_int();
   const auto batery_current_window_len = this->get_parameter("batery_current_window_len").as_int();
 
