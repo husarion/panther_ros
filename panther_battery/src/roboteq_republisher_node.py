@@ -64,7 +64,7 @@ class RoboteqRepublisherNode:
 
             self._last_battery_info_time = rospy.get_time()
             self._battery_voltage = new_voltage
-            self._battery_current = msg.front.current + msg.rear.current
+            self._battery_current = -(msg.front.current + msg.rear.current)
             self._update_volt_mean(new_voltage)
 
     def _battery_pub_timer_cb(self, *args) -> None:
