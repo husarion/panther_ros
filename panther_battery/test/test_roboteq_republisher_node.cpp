@@ -22,6 +22,8 @@ public:
 
 protected:
   void CheckBatteryStateMsg(
+    const uint8_t & power_supply_status, const uint8_t & power_supply_health);
+  void CheckBatteryStateMsg(
     const float & expected_voltage, const float & expected_current,
     const float & expected_percentage, const uint8_t & power_supply_status,
     const uint8_t & power_supply_health);
@@ -52,16 +54,41 @@ TestRoboteqRepublisherNode::~TestRoboteqRepublisherNode()
 }
 
 void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
+  const uint8_t & power_supply_status, const uint8_t & power_supply_health)
+{
+  // const values
+  EXPECT_TRUE(std::isnan(battery_state_->temperature));
+  EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
+  EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
+  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
+  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
+  EXPECT_TRUE(battery_state_->present);
+  EXPECT_EQ("user_compartment", battery_state_->location);
+
+  // variable values
+  EXPECT_TRUE(std::isnan(battery_state_->voltage));
+  EXPECT_TRUE(std::isnan(battery_state_->current));
+  EXPECT_TRUE(std::isnan(battery_state_->percentage));
+  EXPECT_TRUE(std::isnan(battery_state_->charge));
+
+  EXPECT_EQ(power_supply_status, battery_state_->power_supply_status);
+  EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
+}
+
+void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   const float & expected_voltage, const float & expected_current, const float & expected_percentage,
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
   // const values
+  EXPECT_TRUE(std::isnan(battery_state_->temperature));
   EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
-  EXPECT_TRUE(std::isnan(battery_state_->temperature));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
   EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
   EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
+  EXPECT_TRUE(battery_state_->present);
+  EXPECT_EQ("user_compartment", battery_state_->location);
 
   // variable values
   EXPECT_FLOAT_EQ(expected_voltage, battery_state_->voltage);
@@ -69,9 +96,6 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   EXPECT_FLOAT_EQ(expected_percentage, battery_state_->percentage);
   EXPECT_FLOAT_EQ(expected_percentage * 20.0, battery_state_->charge);
 
-  if (power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING) {
-    EXPECT_TRUE(battery_state_->present);
-  }
   EXPECT_EQ(power_supply_status, battery_state_->power_supply_status);
   EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
 }
@@ -88,8 +112,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgDefaultValues)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   CheckBatteryStateMsg(
-    0.0, 0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
@@ -195,8 +218,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   CheckBatteryStateMsg(
-    0.0, 0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
@@ -237,7 +259,7 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   // publish driver state until timeout is reached
   rclcpp::Time start_time = roboteq_republisher_node_->now();
   while (rclcpp::ok() &&
-         roboteq_republisher_node_->now() - start_time < std::chrono::milliseconds(2000)) {
+         roboteq_republisher_node_->now() - start_time < std::chrono::milliseconds(2500)) {
     driver_state_pub_->publish(driver_state_msg);
     panther_utils::test_utils::WaitForMsg(
       roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000));
@@ -245,8 +267,7 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
 
   // check if timeout was reached and values have reset
   CheckBatteryStateMsg(
-    0.0, 0.0, 0.0, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
