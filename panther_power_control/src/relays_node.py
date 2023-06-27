@@ -21,7 +21,10 @@ class RelaysNode:
 
         self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
 
-        line_names = {'MOTOR_ON': 6, 'STAGE2_INPUT': 22}
+        line_names = {
+            'MOTOR_ON': 6,
+            'STAGE2_INPUT': 22,
+        }
         self._lines = {name: self._chip.get_line(line_names[name]) for name in line_names}
         self._lines['MOTOR_ON'].request(
             self._node_name, type=gpiod.LINE_REQ_DIR_OUT, default_val=False
