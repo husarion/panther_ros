@@ -83,4 +83,9 @@ ament_export_dependencies(
   std_msgs
 )
 
+install(DIRECTORY
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_package()
