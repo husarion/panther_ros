@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:macro
+    name="panther_robot"
+    params="use_sim:=false
+            dual_bat:=false
+            imu_pos_x:=0.168
+            imu_pos_y:=0.028
+            imu_pos_z:=0.083
+            imu_rot_r:=3.14
+            imu_rot_p:=-1.57
+            imu_rot_y:=0.0
+            wheel_config_path:=None
+            simulation_engine:='ignition-gazebo'">
+
+    <xacro:if value="${wheel_config_path == 'None'}">
+      <xacro:property name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml" />
+    </xacro:if>
+    <xacro:unless value="${wheel_config_path == 'None'}">
+      <xacro:property name="wheel_config_file" value="$(arg wheel_config_path)" />
+    </xacro:unless>
+
+
+    <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
+
+    <!-- INCLUDE ROBOT PARTS DEFINITIONS -->
+    <xacro:include filename="$(find panther_description)/urdf/body.urdf.xacro" ns="body" />
+    <xacro:include filename="$(find panther_description)/urdf/wheel.urdf.xacro" ns="wheel" />
+
+    <!-- BODY DECLARATION -->
+    <xacro:body.body
+      wheel_radius="${wheel_config['wheel_radius']}"
+      imu_pos_x="${imu_pos_x}"
+      imu_pos_y="${imu_pos_y}"
+      imu_pos_z="${imu_pos_z}"
+      imu_rot_r="${imu_rot_r}"
+      imu_rot_p="${imu_rot_p}"
+      imu_rot_y="${imu_rot_y}"
+      simulation_engine="${simulation_engine}" />
+
+    <xacro:property name="wheel_separation_x" value="0.44" />
+
+    <!-- WHEEL DECLARATION -->
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="fl" />
+
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="fr" />
+
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="rl" />
+
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="rr" />
+
+    <ros2_control name="wheels" type="system">
+      <hardware>
+        <plugin>panther_hardware_interfaces/PantherSystem</plugin>
+
+        <param name="encoder_resolution">1600</param>
+
+        <param name="gear_ratio">30.08</param>
+        <param name="gearbox_efficiency">0.75</param>
+
+        <!-- Same as set in the Roboteq driver (TNM parameter) -->
+        <param name="motor_torque_constant">0.11</param>
+
+        <!-- Max RPM speed set in the Roboteq driver (MXRPM parameter) -->
+        <param name="max_rpm_motor_speed">3600.0</param>
+
+        <!-- current amps limit set in the Roboteq driver (ALIM parameter) -->
+        <param name="max_amps_motor_current">20.0</param>
+
+        <param name="master_can_id">3</param>
+        <param name="front_driver_can_id">1</param>
+        <param name="rear_driver_can_id">2</param>
+      </hardware>
+
+      <joint name="fl_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+      <joint name="fr_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+      <joint name="rl_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+      <joint name="rr_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>
