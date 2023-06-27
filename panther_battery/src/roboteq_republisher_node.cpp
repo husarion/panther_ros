@@ -53,7 +53,7 @@ void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg & m
 
   last_battery_info_time_ = this->get_clock()->now();
   battery_voltage_ma_->Roll((msg.front.voltage + msg.rear.voltage) / 2.0);
-  battery_current_ma_->Roll(msg.front.current + msg.rear.current);
+  battery_current_ma_->Roll(-(msg.front.current + msg.rear.current));
 }
 
 void RoboteqRepublisherNode::BatteryPubTimerCB()
