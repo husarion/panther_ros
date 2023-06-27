@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_gazebo</name>
-  <version>1.0.12</version>
+  <version>1.0.13</version>
 
   <description>Gazebo simulation configuration for Husarion Panther robot</description>
   <license>Apache License 2.0</license>

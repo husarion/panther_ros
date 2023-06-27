@@ -2,8 +2,8 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.13 (2023-06-27)
+-------------------
 * Merge pull request `#132 <https://github.com/husarion/panther_ros/issues/132>`_ from husarion/ros1-fix-1.06-bat-current
   FIx battery current in older panthers
 * Contributors: Dawid Kmak
