@@ -28,7 +28,21 @@ ament_target_dependencies(roboteq_republisher_node
   sensor_msgs
 )
 
-install(TARGETS roboteq_republisher_node
+add_executable(adc_node
+  src/adc_node_main.cpp
+  src/adc_node.cpp
+)
+
+ament_target_dependencies(adc_node
+  rclcpp
+  panther_msgs
+  panther_utils
+  sensor_msgs
+)
+
+install(TARGETS 
+  roboteq_republisher_node 
+  adc_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -47,6 +61,23 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
     rclcpp
     panther_msgs
+    panther_utils
+    sensor_msgs
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_adc_data_reader test/test_adc_data_reader.cpp)
+  target_include_directories(${PROJECT_NAME}_test_adc_data_reader PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_battery_publisher test/test_battery_publisher.cpp)
+  target_include_directories(${PROJECT_NAME}_test_battery_publisher PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_battery_publisher
+    rclcpp
     panther_utils
     sensor_msgs
   )

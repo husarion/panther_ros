@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <stdexcept>
+#include <string>
 
 namespace panther_battery
 {
