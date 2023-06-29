@@ -1,5 +1,6 @@
 #include <panther_hardware_interfaces/roboteq_controller.hpp>
 
+#include <cmath>
 #include <filesystem>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>

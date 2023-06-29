@@ -98,10 +98,10 @@ void RoboteqDriver::ChangeMode(RoboteqMode mode)
 
 int32_t RoboteqDriver::LimitCmd(int32_t cmd)
 {
-  return std::clamp(cmd, -MAX_ROBOTEQ_CMD_VALUE_, MAX_ROBOTEQ_CMD_VALUE_);
+  return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
 }
 
-void RoboteqDriver::OnBoot(lely::canopen::NmtState /*st*/, char es, const std::string & what)
+void RoboteqDriver::OnBoot(lely::canopen::NmtState /*st*/, char es, const std::string & what) noexcept
 {
   // TODO add handling error
   // if (!es || es == 'L') {

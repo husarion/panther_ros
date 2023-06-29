@@ -22,7 +22,7 @@ public:
   void ChangeMode(RoboteqMode mode);
 
 private:
-  static const int32_t MAX_ROBOTEQ_CMD_VALUE_ = 1000;
+  static constexpr int32_t max_roboteq_cmd_value_ = 1000;
   int32_t LimitCmd(int32_t cmd);
 
   void OnBoot(lely::canopen::NmtState /*st*/, char es, const std::string & what) noexcept override;
