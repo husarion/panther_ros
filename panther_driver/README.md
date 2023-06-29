@@ -53,6 +53,21 @@ For a `/joint_states` message is carrying given data:
 - `~wheel_radius` [*float*, default: **0.1825**]: wheel radius in **[m]**.
 - `~wheel_separation` [*float*, default: **0.697**]: separation of wheels alongside y axis in **[m]**.
 
+#### Velocity smoother parameters
+
+- `~max_vel_x` [*float*, default: **2.0**]: maximum linear vlelocity in **X** direction. 
+- `~max_vel_y` [*float*, default: **2.0**]: maximum linear vlelocity in **Y** direction.
+- `~max_vel_theta` [*float*, default: **4.0**]: maximum angular velocity.
+- `~acc_lim_x` [*float*, default: **1.0**]: maximum linear acceleration in **X** direction.
+- `~acc_lim_y` [*float*, default: **1.0**]: maximum linear acceleration in **Y** direction.
+- `~acc_lim_theta` [*float*, default: **1.57**]: maximum angular acceleration.
+- `~decel_lim_x` [*float*, default: **1.5**]: maximum linear decelaration in **X** direction.
+- `~decel_lim_y` [*float*, default: **1.5**]: maximum linear decelaration in **Y** direction.
+- `~decel_lim_theta` [*float*, default: **2.3**]: maximum angular deceleration.
+- `~emergency_decel_lim_x` [*float*, default: **2.7**]: maximum linear decelaration in **X** direction when a timeout is reached for velocity commands.
+- `~emergency_decel_lim_y` [*float*, default: **2.7**]: maximum linear decelaration in **Y** direction when a timeout is reached for velocity commands.
+- `~emergency_decel_lim_theta` [*float*, default: **5.74**]: maximum angular deceleration when a timeout is reached for velocity commands.
+
 #### Kinematics type - explanation
 
 The Panther robot can be configured with different wheels to match your needs, we provide 2 different kinematics types `differential`/`mecanum`. You can change the wheel type by providing an appropriate launch parameter with a path to the wheel configuration file - `wheel_config_file`. Basic wheel configuration files (*WH01.yaml, WH02.yaml, WH04.yaml*): are located in `panther_description` package.
