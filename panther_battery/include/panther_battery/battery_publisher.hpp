@@ -25,10 +25,11 @@ public:
     rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub, const float & high_bat_temp,
     const float & battery_charging_current_tresh, const int & batery_voltage_window_len,
     const int & batery_temp_window_len, const int & batery_current_window_len,
-    const int & batery_charge_window_len, const float & battery_capacity,
-    const float & battery_designed_capacity);
+    const int & batery_charge_window_len, const float & battery_designed_capacity);
 
   ~BatteryPublisher();
+
+  void PublishUnknown(rclcpp::Time header_stamp);
 
   void Publish(
     rclcpp::Time header_stamp, const float & V_bat, const float & temp_bat, const float & I_bat,
@@ -42,11 +43,11 @@ private:
   static constexpr double V_bat_fatal_max_ = 43.0;
   static constexpr double V_bat_full_ = 41.4;
   static constexpr double V_bat_min_ = 32.0;
+  static constexpr std::string_view location_ = "user_compartment";
 
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
   const float high_bat_temp_;
   const float battery_charging_current_tresh_;
-  const float battery_capacity_;
   const float battery_designed_capacity_;
   std::string error_msg_;
 
@@ -60,12 +61,10 @@ inline BatteryPublisher::BatteryPublisher(
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub, const float & high_bat_temp,
   const float & battery_charging_current_tresh, const int & batery_voltage_window_len,
   const int & batery_temp_window_len, const int & batery_current_window_len,
-  const int & batery_charge_window_len, const float & battery_capacity,
-  const float & battery_designed_capacity)
+  const int & batery_charge_window_len, const float & battery_designed_capacity)
 : battery_pub_(std::move(battery_pub)),
   high_bat_temp_(high_bat_temp),
   battery_charging_current_tresh_(battery_charging_current_tresh),
-  battery_capacity_(battery_capacity),
   battery_designed_capacity_(battery_designed_capacity)
 {
   battery_voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
@@ -79,6 +78,33 @@ inline BatteryPublisher::BatteryPublisher(
 }
 
 inline BatteryPublisher::~BatteryPublisher() { battery_pub_.reset(); }
+
+inline void BatteryPublisher::PublishUnknown(rclcpp::Time header_stamp)
+{
+  battery_voltage_ma_->Reset();
+  battery_temp_ma_->Reset();
+  battery_current_ma_->Reset();
+  battery_charge_ma_->Reset();
+
+  auto battery_msg = BatteryStateMsg();
+  battery_msg.header.stamp = header_stamp;
+  battery_msg.voltage = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.temperature = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.current = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.percentage = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.design_capacity = battery_designed_capacity_;
+  battery_msg.charge = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
+  battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+  battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO;
+  battery_msg.present = true;
+  battery_msg.location = location_;
+
+  battery_pub_->publish(battery_msg);
+}
 
 inline void BatteryPublisher::Publish(
   rclcpp::Time header_stamp, const float & V_bat, const float & temp_bat, const float & I_bat,
@@ -101,13 +127,14 @@ inline void BatteryPublisher::Publish(
   battery_msg.current = I_bat_mean;
   battery_msg.percentage =
     std::clamp((V_bat_mean - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0, 1.0);
-  battery_msg.capacity = battery_capacity_;
+  battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
   battery_msg.design_capacity = battery_designed_capacity_;
   battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity;
   battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO;
   battery_msg.present = true;
+  battery_msg.location = location_;
 
   // check battery status
   if (charger_connected) {

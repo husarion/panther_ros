@@ -26,6 +26,7 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 {
   this->declare_parameter<std::string>("adc0_device", "/sys/bus/iio/devices/iio:device0");
   this->declare_parameter<std::string>("adc1_device", "/sys/bus/iio/devices/iio:device1");
+  this->declare_parameter<float>("battery_timeout", 1.0);
   this->declare_parameter<float>("high_bat_temp", 55.0);
   this->declare_parameter<int>("batery_voltage_window_len", 10);
   this->declare_parameter<int>("batery_temp_window_len", 10);
@@ -34,6 +35,7 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 
   adc0_device_ = this->get_parameter("adc0_device").as_string();
   adc1_device_ = this->get_parameter("adc1_device").as_string();
+  battery_timeout_ = this->get_parameter("battery_timeout").as_double();
   high_bat_temp_ = this->get_parameter("high_bat_temp").as_double();
   const auto battery_voltage_window_len = this->get_parameter("batery_voltage_window_len").as_int();
   const auto battery_temp_window_len = this->get_parameter("batery_temp_window_len").as_int();
@@ -42,6 +44,7 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 
   adc0_reader_ = std::make_unique<ADCDataReader>(adc0_device_);
   adc1_reader_ = std::make_unique<ADCDataReader>(adc1_device_);
+  last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
   battery_count_ = CheckBatteryCount();
 
@@ -50,21 +53,20 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
     battery_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery", 10), high_bat_temp_,
       2 * bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, 2 * bat_capacity_,
-      2 * bat_designed_capacity_);
+      battery_current_window_len, battery_charge_window_len, 2 * bat_designed_capacity_);
     battery_1_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery_1", 10), high_bat_temp_,
       bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, bat_capacity_, bat_designed_capacity_);
+      battery_current_window_len, battery_charge_window_len, bat_designed_capacity_);
     battery_2_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery_2", 10), high_bat_temp_,
       bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, bat_capacity_, bat_designed_capacity_);
+      battery_current_window_len, battery_charge_window_len, bat_designed_capacity_);
   } else {
     battery_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery", 10), high_bat_temp_,
       bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, bat_capacity_, bat_designed_capacity_);
+      battery_current_window_len, battery_charge_window_len, bat_designed_capacity_);
   }
 
   io_state_sub_ = this->create_subscription<IOStateMsg>(
@@ -108,44 +110,60 @@ void ADCNode::IOStateCB(const IOStateMsg & msg) { charger_connected_ = msg.charg
 
 void ADCNode::BatteryPubTimerCB()
 {
-  float V_bat_1;
-  float V_bat_2;
-  float V_temp_bat_1;
-  float V_temp_bat_2;
-  float I_charge_bat_1;
-  float I_charge_bat_2;
-  float I_bat_1;
-  float I_bat_2;
-
   try {
-    V_bat_1 = adc1_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.02504255);
-    V_bat_2 = adc1_reader_->GetADCMeasurement("in_voltage3_raw", 0.0, 0.02504255);
-    I_bat_1 = adc1_reader_->GetADCMeasurement("in_voltage2_raw", 625.0, 0.04);
-    I_bat_2 = adc1_reader_->GetADCMeasurement("in_voltage1_raw", 625.0, 0.04);
-    V_temp_bat_1 = adc0_reader_->GetADCMeasurement("in_voltage1_raw", 0.0, 0.002);
-    V_temp_bat_2 = adc0_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.002);
-    I_charge_bat_1 = adc0_reader_->GetADCMeasurement("in_voltage3_raw", 0.0, 0.005);
-    I_charge_bat_2 = adc0_reader_->GetADCMeasurement("in_voltage2_raw", 0.0, 0.005);
+    V_bat_1_ = adc1_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.02504255);
+    V_bat_2_ = adc1_reader_->GetADCMeasurement("in_voltage3_raw", 0.0, 0.02504255);
+    I_bat_1_ = adc1_reader_->GetADCMeasurement("in_voltage2_raw", 625.0, 0.04);
+    I_bat_2_ = adc1_reader_->GetADCMeasurement("in_voltage1_raw", 625.0, 0.04);
+    V_temp_bat_1_ = adc0_reader_->GetADCMeasurement("in_voltage1_raw", 0.0, 0.002);
+    V_temp_bat_2_ = adc0_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.002);
+    I_charge_bat_1_ = adc0_reader_->GetADCMeasurement("in_voltage3_raw", 0.0, 0.005);
+    I_charge_bat_2_ = adc0_reader_->GetADCMeasurement("in_voltage2_raw", 0.0, 0.005);
+    last_battery_info_time_ = this->get_clock()->now();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR(this->get_logger(), "Error reading ADC data: %s. ", e.what());
   }
 
-  auto temp_bat_1 = VoltageTempToDeg(V_temp_bat_1);
-  auto temp_bat_2 = VoltageTempToDeg(V_temp_bat_2);
   auto header_stamp = this->get_clock()->now();
 
-  if (battery_count_ == 2) {
-    battery_pub_->Publish(
-      header_stamp, (V_bat_1 + V_bat_2) / 2.0, (temp_bat_1 + temp_bat_2) / 2.0,
-      -(I_bat_1 + I_bat_2) + I_charge_bat_1 + I_charge_bat_2, I_charge_bat_1 + I_charge_bat_2,
-      charger_connected_);
-    battery_1_pub_->Publish(
-      header_stamp, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1, I_charge_bat_1,
-      charger_connected_);
-    battery_2_pub_->Publish(
-      header_stamp, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2, I_charge_bat_2,
-      charger_connected_);
+  if (
+    (this->get_clock()->now() - last_battery_info_time_) >
+    rclcpp::Duration::from_seconds(battery_timeout_)) {
+    battery_pub_->PublishUnknown(header_stamp);
+    if (battery_count_ == 2) {
+      battery_1_pub_->PublishUnknown(header_stamp);
+      battery_2_pub_->PublishUnknown(header_stamp);
+    }
+  } else {
+    auto temp_bat_1 = VoltageTempToDeg(V_temp_bat_1_);
+    auto temp_bat_2 = VoltageTempToDeg(V_temp_bat_2_);
 
+    if (battery_count_ == 2) {
+      battery_pub_->Publish(
+        header_stamp, (V_bat_1_ + V_bat_2_) / 2.0, (temp_bat_1 + temp_bat_2) / 2.0,
+        -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_ + I_charge_bat_2_,
+        I_charge_bat_1_ + I_charge_bat_2_, charger_connected_);
+      battery_1_pub_->Publish(
+        header_stamp, V_bat_1_, temp_bat_1, -I_bat_1_ + I_charge_bat_1_, I_charge_bat_1_,
+        charger_connected_);
+      battery_2_pub_->Publish(
+        header_stamp, V_bat_2_, temp_bat_2, -I_bat_2_ + I_charge_bat_2_, I_charge_bat_2_,
+        charger_connected_);
+    } else {
+      battery_pub_->Publish(
+        header_stamp, V_bat_1_, temp_bat_1, -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_,
+        I_charge_bat_1_, charger_connected_);
+    }
+  }
+
+  // print error messages
+  if (battery_pub_->HasErrorMsg()) {
+    RCLCPP_ERROR_THROTTLE(
+      this->get_logger(), *this->get_clock(), 10000, "Battery error: %s",
+      battery_pub_->GetErrorMsg().c_str());
+  }
+
+  if (battery_count_ == 2) {
     // print error messages for each battery
     if (battery_1_pub_->HasErrorMsg()) {
       RCLCPP_ERROR_THROTTLE(
@@ -157,17 +175,6 @@ void ADCNode::BatteryPubTimerCB()
         this->get_logger(), *this->get_clock(), 10000, "Battery nr 2 error: %s",
         battery_pub_->GetErrorMsg().c_str());
     }
-  } else {
-    battery_pub_->Publish(
-      header_stamp, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1, I_charge_bat_1,
-      charger_connected_);
-  }
-
-  // print error messages
-  if (battery_pub_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      this->get_logger(), *this->get_clock(), 10000, "Battery error: %s",
-      battery_pub_->GetErrorMsg().c_str());
   }
 }
 

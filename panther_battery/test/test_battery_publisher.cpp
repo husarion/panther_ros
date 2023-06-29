@@ -36,8 +36,7 @@ TestBatteryPublisher::TestBatteryPublisher()
   test_node_ = std::make_shared<rclcpp::Node>("test_node");
 
   battery_publisher_ = std::make_unique<panther_battery::BatteryPublisher>(
-    test_node_->create_publisher<BatteryStateMsg>("battery", 10), 55.0, 0.1, 10, 10, 10, 10, 20.0,
-    20.0);
+    test_node_->create_publisher<BatteryStateMsg>("battery", 10), 55.0, 0.1, 10, 10, 10, 10, 20.0);
 
   battery_state_sub_ = test_node_->create_subscription<BatteryStateMsg>(
     "battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
@@ -55,12 +54,13 @@ void TestBatteryPublisher::CheckBatteryStateMsg(
   const uint8_t & power_supply_health)
 {
   // const values
-  EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
+  EXPECT_TRUE(std::isnan(battery_state_->capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
   EXPECT_FLOAT_EQ(expected_temp, battery_state_->temperature);
   EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
   EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
+  EXPECT_EQ("user_compartment", battery_state_->location);
 
   // variable values
   EXPECT_FLOAT_EQ(expected_voltage, battery_state_->voltage);
