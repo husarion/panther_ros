@@ -22,7 +22,12 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class ADCNode : public rclcpp::Node
 {
 public:
-  ADCNode();
+  ADCNode(
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+
+protected:
+  int CheckBatteryCount();
+  float VoltageTempToDeg(const float & V_temp);
 
 private:
   static constexpr float bat_charging_curr_thresh_ = 0.1;
@@ -50,8 +55,6 @@ private:
   std::unique_ptr<BatteryPublisher> battery_1_pub_;
   std::unique_ptr<BatteryPublisher> battery_2_pub_;
 
-  int CheckBatteryCount();
-  float VoltageTempToDeg(const float & V_temp);
   void IOStateCB(const IOStateMsg & msg);
   void BatteryPubTimerCB();
 };

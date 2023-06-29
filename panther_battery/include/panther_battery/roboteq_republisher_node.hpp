@@ -19,7 +19,8 @@ using DriverStateMsg = panther_msgs::msg::DriverState;
 class RoboteqRepublisherNode : public rclcpp::Node
 {
 public:
-  RoboteqRepublisherNode();
+  RoboteqRepublisherNode(
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
   static constexpr float bat_capacity_ = 20.0;

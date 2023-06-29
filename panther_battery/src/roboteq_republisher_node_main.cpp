@@ -8,7 +8,8 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto roboteq_republisher_node = std::make_shared<panther_battery::RoboteqRepublisherNode>();
+  auto roboteq_republisher_node =
+    std::make_shared<panther_battery::RoboteqRepublisherNode>("roboteq_republisher_node");
 
   try {
     rclcpp::spin(roboteq_republisher_node);

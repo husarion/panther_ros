@@ -38,7 +38,8 @@ protected:
 
 TestRoboteqRepublisherNode::TestRoboteqRepublisherNode()
 {
-  roboteq_republisher_node_ = std::make_shared<panther_battery::RoboteqRepublisherNode>();
+  roboteq_republisher_node_ =
+    std::make_shared<panther_battery::RoboteqRepublisherNode>("roboteq_republisher_node");
 
   driver_state_pub_ = roboteq_republisher_node_->create_publisher<DriverStateMsg>(
     "driver/motor_controllers_state", 1);

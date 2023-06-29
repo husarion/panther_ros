@@ -81,6 +81,18 @@ if(BUILD_TESTING)
     panther_utils
     sensor_msgs
   )
+
+  ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp)
+  target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_adc_node
+    rclcpp
+    panther_utils
+    panther_msgs
+    sensor_msgs
+  )
 endif()
 
 ament_package()

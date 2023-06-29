@@ -21,7 +21,8 @@ namespace panther_battery
 {
 using std::placeholders::_1;
 
-ADCNode::ADCNode() : Node("adc_node")
+ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & options)
+: Node(node_name, options)
 {
   this->declare_parameter<std::string>("adc0_device", "/sys/bus/iio/devices/iio:device0");
   this->declare_parameter<std::string>("adc1_device", "/sys/bus/iio/devices/iio:device1");
@@ -49,7 +50,8 @@ ADCNode::ADCNode() : Node("adc_node")
     battery_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery", 10), high_bat_temp_,
       2 * bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, 2 * bat_capacity_, 2 * bat_designed_capacity_);
+      battery_current_window_len, battery_charge_window_len, 2 * bat_capacity_,
+      2 * bat_designed_capacity_);
     battery_1_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery_1", 10), high_bat_temp_,
       bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,

@@ -8,7 +8,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto adc_node = std::make_shared<panther_battery::ADCNode>();
+  auto adc_node = std::make_shared<panther_battery::ADCNode>("adc_node");
 
   try {
     rclcpp::spin(adc_node);

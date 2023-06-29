@@ -17,7 +17,9 @@ namespace panther_battery
 {
 using std::placeholders::_1;
 
-RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_node")
+RoboteqRepublisherNode::RoboteqRepublisherNode(
+  const std::string & node_name, const rclcpp::NodeOptions & options)
+: Node(node_name, options)
 {
   this->declare_parameter<float>("battery_timeout", 1.0);
   this->declare_parameter<int>("batery_voltage_window_len", 10);
