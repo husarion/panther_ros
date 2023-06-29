@@ -19,6 +19,9 @@ public:
 
 protected:
   void CheckBatteryStateMsg(
+    const uint8_t & power_supply_status, const uint8_t & power_supply_health);
+
+  void CheckBatteryStateMsg(
     const float & expected_voltage, const float & expected_current, const float & expected_temp,
     const float & expected_percentage, const uint8_t & power_supply_status,
     const uint8_t & power_supply_health);
@@ -46,6 +49,29 @@ TestBatteryPublisher::~TestBatteryPublisher()
 {
   test_node_.reset();
   battery_state_sub_.reset();
+}
+
+void TestBatteryPublisher::CheckBatteryStateMsg(
+  const uint8_t & power_supply_status, const uint8_t & power_supply_health)
+{
+  // const values
+  EXPECT_TRUE(std::isnan(battery_state_->temperature));
+  EXPECT_TRUE(std::isnan(battery_state_->capacity));
+  EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
+  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
+  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
+  EXPECT_TRUE(battery_state_->present);
+  EXPECT_EQ("user_compartment", battery_state_->location);
+
+  // variable values
+  EXPECT_TRUE(std::isnan(battery_state_->voltage));
+  EXPECT_TRUE(std::isnan(battery_state_->current));
+  EXPECT_TRUE(std::isnan(battery_state_->percentage));
+  EXPECT_TRUE(std::isnan(battery_state_->charge));
+
+  EXPECT_EQ(power_supply_status, battery_state_->power_supply_status);
+  EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
 }
 
 void TestBatteryPublisher::CheckBatteryStateMsg(
@@ -77,6 +103,17 @@ bool TestBatteryPublisher::CheckNaNVector(const std::vector<float> & vector)
 {
   return std::all_of(
     vector.begin(), vector.end(), [](const float value) { return std::isnan(value); });
+}
+
+TEST_F(TestBatteryPublisher, BatteryMsgUnknown)
+{
+  auto stamp = test_node_->get_clock()->now();
+  battery_publisher_->PublishUnknown(stamp);
+  panther_utils::test_utils::WaitForMsg(
+    test_node_, battery_state_, std::chrono::milliseconds(1000));
+
+  CheckBatteryStateMsg(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 TEST_F(TestBatteryPublisher, BatteryMsgValues)
