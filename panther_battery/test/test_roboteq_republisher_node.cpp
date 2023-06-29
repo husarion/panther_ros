@@ -58,7 +58,7 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
 {
   // const values
   EXPECT_TRUE(std::isnan(battery_state_->temperature));
-  EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
+  EXPECT_TRUE(std::isnan(battery_state_->capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
   EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
@@ -82,7 +82,7 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
 {
   // const values
   EXPECT_TRUE(std::isnan(battery_state_->temperature));
-  EXPECT_FLOAT_EQ(20.0, battery_state_->capacity);
+  EXPECT_TRUE(std::isnan(battery_state_->capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
   EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
