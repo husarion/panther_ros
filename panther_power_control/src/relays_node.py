@@ -20,8 +20,8 @@ class RelaysNode:
         self._lock = Lock()
 
         line_names = {
-            'MOTOR_ON': False, # Used to enable motors
-            'STAGE2_INPUT': False, # Input from 2nd stage of rotary power switch
+            'MOTOR_ON': False,  # Used to enable motors
+            'STAGE2_INPUT': False,  # Input from 2nd stage of rotary power switch
         }
 
         self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
@@ -32,7 +32,7 @@ class RelaysNode:
                 rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
             rospy.signal_shutdown('Failed to find GPIO lines')
             return
-        
+
         self._lines['MOTOR_ON'].request(
             self._node_name, type=gpiod.LINE_REQ_DIR_OUT, default_val=line_names['MOTOR_ON']
         )
@@ -97,8 +97,10 @@ class RelaysNode:
 
     def __del__(self):
         for line in self._lines.values():
-            if line: line.release()
-        if self._chip: self._chip.close()
+            if line:
+                line.release()
+        if self._chip:
+            self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._lock:

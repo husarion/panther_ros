@@ -173,8 +173,10 @@ class PowerBoardNode:
     def __del__(self):
         with self._pins_lock:
             for line in self._lines.values():
-                if line: line.release()
-            if self._chip: self._chip.close()
+                if line:
+                    line.release()
+            if self._chip:
+                self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._e_stop_lock:
