@@ -204,7 +204,7 @@ class ADCNode:
         battery_msg.capacity = 20.0
         battery_msg.design_capacity = 20.0
         battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
-        battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
+        battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LION
         battery_msg.present = True
 
         V_bat_mean = self._count_mean(bat_pub, V_bat, self._V_bat_mean, self._V_bat_hist)
