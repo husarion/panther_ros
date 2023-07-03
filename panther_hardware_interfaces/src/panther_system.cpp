@@ -75,19 +75,27 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     // effort_commands_[j.name] = 0.0;
   }
 
-  RoboteqSettings settings;
+  DrivetrainSettings drivetrain_settings;
 
-  settings.motor_torque_constant = std::stof(info_.hardware_parameters["motor_torque_constant"]);
-  settings.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
-  settings.gearbox_efficiency = std::stof(info_.hardware_parameters["gearbox_efficiency"]);
-  settings.encoder_resolution = std::stof(info_.hardware_parameters["encoder_resolution"]);
-  settings.max_rpm_motor_speed = std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
-  settings.max_amps_motor_current = std::stof(info_.hardware_parameters["max_amps_motor_current"]);
-  settings.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-  settings.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-  settings.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+  drivetrain_settings.motor_torque_constant =
+    std::stof(info_.hardware_parameters["motor_torque_constant"]);
+  drivetrain_settings.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
+  drivetrain_settings.gearbox_efficiency =
+    std::stof(info_.hardware_parameters["gearbox_efficiency"]);
+  drivetrain_settings.encoder_resolution =
+    std::stof(info_.hardware_parameters["encoder_resolution"]);
+  drivetrain_settings.max_rpm_motor_speed =
+    std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
+  drivetrain_settings.max_amps_motor_current =
+    std::stof(info_.hardware_parameters["max_amps_motor_current"]);
 
-  roboteq_controller_ = std::make_unique<RoboteqController>(settings);
+  CanSettings can_settings;
+  can_settings.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
+  can_settings.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
+  can_settings.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+
+  roboteq_controller_ =
+    std::make_unique<PantherWheelsController>(can_settings, drivetrain_settings);
 
   hardware_interface_type_ = hardware_interface::HW_IF_VELOCITY;
 
@@ -98,6 +106,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
+  // TODO comment
   // gpio_controller_ = std::make_unique<GPIOController>();
 
   return CallbackReturn::SUCCESS;

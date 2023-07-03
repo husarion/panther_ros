@@ -31,8 +31,8 @@ add_library(
   ${PROJECT_NAME}
   SHARED
   src/panther_system.cpp
-  src/roboteq_can_driver.cpp
-  src/roboteq_controller.cpp
+  src/panther_wheels_controller.cpp
+  src/roboteq_driver.cpp
 )
 target_include_directories(
   ${PROJECT_NAME}

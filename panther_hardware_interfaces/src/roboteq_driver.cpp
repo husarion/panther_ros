@@ -1,4 +1,4 @@
-#include <panther_hardware_interfaces/roboteq_can_driver.hpp>
+#include <panther_hardware_interfaces/roboteq_driver.hpp>
 
 #include <thread>
 

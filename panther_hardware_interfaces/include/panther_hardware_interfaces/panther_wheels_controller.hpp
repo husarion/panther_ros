@@ -1,5 +1,5 @@
-#ifndef PANTHER_HARDWARE_INTERFACES__ROBOTEQ_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES__ROBOTEQ_CONTROLLER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_
+#define PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_
 
 #include <thread>
 
@@ -12,7 +12,7 @@
 #include <lely/coapp/fiber_driver.hpp>
 #include <lely/coapp/master.hpp>
 
-#include <panther_hardware_interfaces/roboteq_can_driver.hpp>
+#include <panther_hardware_interfaces/roboteq_driver.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -24,12 +24,15 @@ struct RoboteqFeedback
   double torque_fr, torque_fl, torque_rr, torque_rl;
 };
 
-struct RoboteqSettings
+struct CanSettings
 {
   uint8_t master_can_id;
   uint8_t front_driver_can_id;
   uint8_t rear_driver_can_id;
+};
 
+struct DrivetrainSettings
+{
   float motor_torque_constant;
   float gear_ratio;
   float gearbox_efficiency;
@@ -38,10 +41,10 @@ struct RoboteqSettings
   float max_amps_motor_current;
 };
 
-class RoboteqController
+class PantherWheelsController
 {
 public:
-  RoboteqController(RoboteqSettings settings);
+  PantherWheelsController(CanSettings can_settings, DrivetrainSettings drivetrain_settings);
 
   void Activate();
   void Deactivate();
@@ -69,16 +72,7 @@ private:
   std::unique_ptr<lely::io::CanController> ctrl_;
   std::unique_ptr<lely::io::CanChannel> chan_;
 
-  uint8_t master_can_id_;
-  uint8_t front_driver_can_id_;
-  uint8_t rear_driver_can_id_;
-
-  float motor_torque_constant_;
-  float gear_ratio_;
-  float gearbox_efficiency_;
-  float encoder_resolution_;
-  float max_rpm_motor_speed_;
-  float max_amps_motor_current_;
+  CanSettings can_settings_;
 
   float radians_per_second_to_roboteq_cmd_;
   float newton_meter_to_roboteq_cmd_;
@@ -90,4 +84,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES__ROBOTEQ_CONTROLLER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_

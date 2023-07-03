@@ -17,7 +17,7 @@
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
 #include <panther_hardware_interfaces/gpio_driver.hpp>
-#include <panther_hardware_interfaces/roboteq_controller.hpp>
+#include <panther_hardware_interfaces/panther_wheels_controller.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -89,7 +89,7 @@ protected:
   std::map<std::string, double> effort_state_;
 
   std::unique_ptr<GPIOController> gpio_controller_;
-  std::unique_ptr<RoboteqController> roboteq_controller_;
+  std::unique_ptr<PantherWheelsController> roboteq_controller_;
 
   std::string hardware_interface_type_;
 };
