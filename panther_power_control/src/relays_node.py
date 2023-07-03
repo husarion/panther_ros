@@ -20,7 +20,7 @@ class RelaysNode:
         self._lock = Lock()
 
         line_names = {
-            'MOTOR_ON': False, # Used to enable SSR2
+            'MOTOR_ON': False, # Used to enable motors
             'STAGE2_INPUT': False, # Input from 2nd stage of rotary power switch
         }
 
