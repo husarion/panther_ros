@@ -19,18 +19,25 @@ class RelaysNode:
 
         self._lock = Lock()
 
-        self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
-
         line_names = {
-            'MOTOR_ON': 6,
-            'STAGE2_INPUT': 22,
+            'MOTOR_ON': False, # Used to enable SSR2
+            'STAGE2_INPUT': False, # Input from 2nd stage of rotary power switch
         }
-        self._lines = {name: self._chip.get_line(line_names[name]) for name in line_names}
+
+        self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        self._lines = {name: self._chip.find_line(name) for name in list(line_names.keys())}
+        not_matched_pins = [name for name, line in self._lines.items() if line is None]
+        if len(not_matched_pins):
+            for pin in not_matched_pins:
+                rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
+            rospy.signal_shutdown('Failed to find GPIO lines')
+            return
+        
         self._lines['MOTOR_ON'].request(
-            self._node_name, type=gpiod.LINE_REQ_DIR_OUT, default_val=False
+            self._node_name, type=gpiod.LINE_REQ_DIR_OUT, default_val=line_names['MOTOR_ON']
         )
         self._lines['STAGE2_INPUT'].request(
-            self._node_name, type=gpiod.LINE_REQ_DIR_IN, default_val=False
+            self._node_name, type=gpiod.LINE_REQ_DIR_IN, default_val=line_names['STAGE2_INPUT']
         )
 
         self._e_stop_state = not self._lines['STAGE2_INPUT'].get_value()
@@ -90,8 +97,8 @@ class RelaysNode:
 
     def __del__(self):
         for line in self._lines.values():
-            line.release()
-        self._chip.close()
+            if line: line.release()
+        if self._chip: self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._lock:

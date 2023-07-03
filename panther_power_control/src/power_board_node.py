@@ -68,6 +68,13 @@ class PowerBoardNode:
             name: self._chip.find_line(name)
             for name in list(out_line_names.keys()) + list(in_line_names.keys())
         }
+        not_matched_pins = [name for name, line in self._lines.items() if line is None]
+        if len(not_matched_pins):
+            for pin in not_matched_pins:
+                rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
+            rospy.signal_shutdown('Failed to find GPIO lines')
+            return
+
         for name, line in self._lines.items():
             line.request(
                 self._node_name,
@@ -166,8 +173,8 @@ class PowerBoardNode:
     def __del__(self):
         with self._pins_lock:
             for line in self._lines.values():
-                line.release()
-            self._chip.close()
+                if line: line.release()
+            if self._chip: self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._e_stop_lock:
