@@ -27,7 +27,7 @@ class RelaysNode:
         self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
         self._lines = {name: self._chip.find_line(name) for name in list(line_names.keys())}
         not_matched_pins = [name for name, line in self._lines.items() if line is None]
-        if len(not_matched_pins):
+        if not_matched_pins:
             for pin in not_matched_pins:
                 rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
             rospy.signal_shutdown('Failed to find GPIO lines')

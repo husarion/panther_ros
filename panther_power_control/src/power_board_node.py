@@ -69,7 +69,7 @@ class PowerBoardNode:
             for name in list(out_line_names.keys()) + list(in_line_names.keys())
         }
         not_matched_pins = [name for name, line in self._lines.items() if line is None]
-        if len(not_matched_pins):
+        if not_matched_pins:
             for pin in not_matched_pins:
                 rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
             rospy.signal_shutdown('Failed to find GPIO lines')
