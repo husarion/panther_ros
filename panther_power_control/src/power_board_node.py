@@ -53,7 +53,7 @@ class PowerBoardNode:
             'DRIVER_EN': False,  # Enable motor drivers (1 - on)
             'FAN_SW': False,  # Turn on the fan (1 - on)
             'VDIG_OFF': False,  # Turn the digital power off eg. NUC, Router etc. (1 - off)
-            'VMOT_ON': False,  # Enable mamin power supply to motors (1 - on)
+            'VMOT_ON': False,  # Enable main power supply to motors (1 - on)
             'WATCHDOG': False,  # Watchdog pin, if PWM is on this pin Panther will work
         }
         in_line_names = {
