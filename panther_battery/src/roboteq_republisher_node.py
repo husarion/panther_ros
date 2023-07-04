@@ -73,7 +73,7 @@ class RoboteqRepublisherNode:
             battery_msg.header.stamp = rospy.Time.now()
             battery_msg.capacity = 20.0
             battery_msg.design_capacity = 20.0
-            battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
+            battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LION
 
             if (
                 self._battery_voltage == None
