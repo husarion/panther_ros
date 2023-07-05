@@ -52,4 +52,4 @@ This node is responsible for power management using relays. Available in Panther
 
 - `/panther/hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.
-
+- `/panther/hardware/motor_enable` [*std_srvs/SetBool*]: enable or disable motor drivers. Acts in conjunction with the three-position Main switch. Motors can not be enabled if switch is in Stage 1. In case of switch transitioning from Stage 1 to Stage 2, state set by service will be overwritten and motors will be enabled.
