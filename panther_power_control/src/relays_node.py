@@ -160,15 +160,14 @@ class RelaysNode:
     def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         with self._motors_lock:
             if not self._lines['STAGE2_INPUT'].get_value():
-                self._motor_enabled = req.data
+                self._motor_enabled = False
                 return SetBoolResponse(
                     not req.data,
-                    f'Three-position Main switch is in Stage 1. '
-                    f'Motors are {"already " if not req.data else ""}disabled',
+                    f'Motors are {"already " if not req.data else ""}disabled. ',
+                    f'(Main switch set to Stage 1)',
                 )
 
-            # if both values are equal
-            if not (self._motor_enabled ^ req.data):
+            if self._motor_enabled == req.data:
                 return SetBoolResponse(
                     True, f'Motors are already {"enabled" if self._motor_enabled else "disabled"}'
                 )
