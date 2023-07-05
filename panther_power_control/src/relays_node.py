@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-from dataclasses import dataclass
 import gpiod
 from threading import Lock
 
@@ -22,12 +21,26 @@ class RelaysNode:
         self._motors_lock = Lock()
         self._e_stop_lock = Lock()
 
-        chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        line_names = {
+            'MOTOR_ON': False,  # Used to enable motors
+            'STAGE2_INPUT': False,  # Input from 2nd stage of rotary power switch
+        }
 
-        line_names = {'MOTOR_ON': 6, 'STAGE2_INPUT': 22}
-        self._lines = {name: chip.get_line(line_names[name]) for name in line_names}
-        self._lines['MOTOR_ON'].request(self._node_name, type=gpiod.LINE_REQ_DIR_OUT)
-        self._lines['STAGE2_INPUT'].request(self._node_name, type=gpiod.LINE_REQ_DIR_IN)
+        self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
+        self._lines = {name: self._chip.find_line(name) for name in list(line_names.keys())}
+        not_matched_pins = [name for name, line in self._lines.items() if line is None]
+        if not_matched_pins:
+            for pin in not_matched_pins:
+                rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
+            rospy.signal_shutdown('Failed to find GPIO lines')
+            return
+
+        self._lines['MOTOR_ON'].request(
+            self._node_name, type=gpiod.LINE_REQ_DIR_OUT, default_val=line_names['MOTOR_ON']
+        )
+        self._lines['STAGE2_INPUT'].request(
+            self._node_name, type=gpiod.LINE_REQ_DIR_IN, default_val=line_names['STAGE2_INPUT']
+        )
 
         self._e_stop_state = not self._lines['STAGE2_INPUT'].get_value()
         self._cmd_vel_msg_time = rospy.get_time()
@@ -98,10 +111,13 @@ class RelaysNode:
 
     def __del__(self):
         for line in self._lines.values():
-            line.release()
+            if line:
+                line.release()
+        if self._chip:
+            self._chip.close()
 
-    def _cmd_vel_cb(self, msg: Twist) -> None:
-        with self._e_stop_lock:
+    def _cmd_vel_cb(self, *args) -> None:
+        with self._lock:
             self._cmd_vel_msg_time = rospy.get_time()
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
@@ -111,7 +127,10 @@ class RelaysNode:
             )
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        with self._e_stop_lock:
+        with self._lock:
+            if not self._e_stop_state:
+                return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
+        
             if rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
                 return TriggerResponse(
                     False,
@@ -129,7 +148,10 @@ class RelaysNode:
             return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
-        with self._e_stop_lock:
+        with self._lock:
+            if self._e_stop_state:
+                return TriggerResponse(True, 'E-SROP already triggered')
+            
             self._e_stop_state = True
             self._e_stop_state_pub.publish(self._e_stop_state)
             return TriggerResponse(True, 'E-SROP triggered successful')
@@ -168,17 +190,11 @@ class RelaysNode:
             return SetBoolResponse(True, f'Motors {"enabled" if req.data else "disabled"}')
 
     def _set_motor_state_timer_cb(self, *args) -> None:
-        with self._motors_lock:
-            motor_state = self._lines['STAGE2_INPUT'].get_value()
-            should_enable_motors = motor_state and self._motor_enabled
-            self._lines['MOTOR_ON'].set_value(should_enable_motors)
-            self._publish_motor_state(should_enable_motors)
-
-    def _publish_motor_state(self, val: bool) -> None:
-        last_msg = self._io_state_pub.impl.latch
-        if last_msg.motor_on != val:
-            last_msg.motor_on = val
-            self._io_state_pub.publish(last_msg)
+        motor_state = self._lines['STAGE2_INPUT'].get_value()
+        self._lines['MOTOR_ON'].set_value(motor_state)
+        if self._io_state.motor_on != motor_state:
+            self._io_state.motor_on = motor_state
+            self._io_state_pub.publish(self._io_state)
 
 
 def main():

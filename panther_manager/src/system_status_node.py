@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import psutil
 
 import rospy
@@ -60,7 +61,7 @@ class SystemStatusNode:
 
     @property
     def _avg_load_percent(self) -> float:
-        return psutil.getloadavg()[2] / 100.0
+        return os.getloadavg()[2]
 
     @property
     def _ram_usage_percent(self) -> float:

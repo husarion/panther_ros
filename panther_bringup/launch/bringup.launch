@@ -31,7 +31,7 @@
   <!-- load default params -->
   <rosparam command="load" file="$(find panther_bringup)/config/panther_default.yaml" />
   <!-- override default params -->
-  <rosparam command="load" file="/tmp/panther_config.yaml" if="$(optenv PANTHER_HAS_CONFIG false)" />
+  <rosparam command="load" file="/run/husarion/panther_config.yaml" if="$(optenv PANTHER_HAS_CONFIG false)" />
 
   <group ns="$(arg namespace)">
 

@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 
-from threading import Lock
-
 from collections import defaultdict
 import math
 from threading import Lock
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 import rospy
 
@@ -15,9 +13,12 @@ from panther_msgs.msg import DriverState, IOState
 
 
 class ADCNode:
+    BAT_CHARGING_CURR_THRESH = 0.1
     BAT02_DETECT_THRESH = 3.03
     V_BAT_FATAL_MIN = 27.0
     V_BAT_FATAL_MAX = 43.0
+    V_BAT_FULL = 41.4
+    V_BAT_MIN = 32.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
@@ -28,10 +29,11 @@ class ADCNode:
         self._I_driv: Optional[float] = None
         self._V_driv: Optional[float] = None
 
-        self._volt_mean_length = 10
-        self._V_bat_hist = defaultdict(lambda: [37.0] * self._volt_mean_length)
+        self._mean_length = 10
+        self._V_bat_hist = defaultdict(lambda: [37.0] * self._mean_length)
         self._V_bat_mean = defaultdict(lambda: 37.0)
-        self._V_driv_mean: Optional[float] = None
+        self._I_bat_charge_hist = defaultdict(lambda: [0.0] * self._mean_length)
+        self._I_bat_charge_mean = defaultdict(lambda: 0.0)
 
         self._A = 298.15
         self._B = 3977.0
@@ -40,8 +42,10 @@ class ADCNode:
         self._u_supply = 3.28
 
         self._battery_count = self._check_battery_count()
-        self._battery_charging = True  # const for now, later this will be evaluated
-
+        
+        self._I_bat_charging_thresh = {}
+        self._charger_connected = False
+        
         self._lock = Lock()
 
         # -------------------------------
@@ -63,6 +67,16 @@ class ADCNode:
             self._battery_1_pub = rospy.Publisher('battery_1', BatteryState, queue_size=1)
             self._battery_2_pub = rospy.Publisher('battery_2', BatteryState, queue_size=1)
 
+            self._I_bat_charging_thresh.update(
+                {
+                    self._battery_pub: 2 * self.BAT_CHARGING_CURR_THRESH,
+                    self._battery_1_pub: self.BAT_CHARGING_CURR_THRESH,
+                    self._battery_2_pub: self.BAT_CHARGING_CURR_THRESH,
+                }
+            )
+        else:
+            self._I_bat_charging_thresh.update({self._battery_pub: self.BAT_CHARGING_CURR_THRESH})
+
         # -------------------------------
         #   Timers
         # -------------------------------
@@ -77,10 +91,7 @@ class ADCNode:
         with self._lock:
             self._driver_battery_last_info_time = rospy.get_time()
 
-            driver_voltage = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
-            self._V_driv = driver_voltage
-            self._V_driv_mean = self._count_volt_mean('V_driv', driver_voltage)
-
+            self._V_driv = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
             self._I_driv = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
@@ -122,28 +133,24 @@ class ADCNode:
             temp_bat_2 = self._voltage_to_deg(V_temp_bat_2)
 
             self._publish_battery_msg(
-                self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1
+                self._battery_1_pub, V_bat_1, temp_bat_1, -I_bat_1 + I_charge_bat_1, I_charge_bat_1
             )
             self._publish_battery_msg(
-                self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2
+                self._battery_2_pub, V_bat_2, temp_bat_2, -I_bat_2 + I_charge_bat_2, I_charge_bat_2
             )
-
-            V_bat_avereage = (V_bat_1 + V_bat_2) / 2.0
-            temp_bat_average = (temp_bat_1 + temp_bat_2) / 2.0
-            I_bat_sum = I_bat_1 + I_bat_2
-            I_charge_bat = I_charge_bat_1 + I_charge_bat_2
 
             self._publish_battery_msg(
                 self._battery_pub,
-                V_bat_avereage,
-                temp_bat_average,
-                -I_bat_sum + I_charge_bat,
+                (V_bat_1 + V_bat_2) / 2.0,
+                (temp_bat_1 + temp_bat_2) / 2.0,
+                -(I_bat_1 + I_bat_2) + I_charge_bat_1 + I_charge_bat_2,
+                I_charge_bat_1 + I_charge_bat_2,
             )
 
         else:
             temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
             self._publish_battery_msg(
-                self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1
+                self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1, I_charge_bat_1
             )
 
     def _check_battery_count(self) -> int:
@@ -164,6 +171,7 @@ class ADCNode:
                 f'[{rospy.get_name()}] Battery ADC measurement error excep. '
                 f'The number of batteries cannot be determined. The single battery was adopted.'
             )
+            return 1
 
         return 1 if V_temp_bat_2 > ADCNode.BAT02_DETECT_THRESH else 2
 
@@ -181,36 +189,42 @@ class ADCNode:
         return (self._A * self._B / (self._A * math.log(R_therm / self._R0) + self._B)) - 273.15
 
     def _publish_battery_msg(
-        self, bat_pub: rospy.Publisher, V_bat: float, temp_bat: float, I_bat: float
+        self, bat_pub: rospy.Publisher, V_bat: float, temp_bat: float, I_bat: float, I_charge: float
     ) -> None:
         battery_msg = BatteryState()
         battery_msg.header.stamp = rospy.Time.now()
         battery_msg.voltage = V_bat
         battery_msg.temperature = temp_bat
         battery_msg.current = I_bat
-        battery_msg.percentage = (battery_msg.voltage - 32.0) / 10.0
+        battery_msg.percentage = self._clamp(
+            (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN),
+            0.0,
+            1.0,
+        )
         battery_msg.capacity = 20.0
         battery_msg.design_capacity = 20.0
         battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
-        battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
+        battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LION
         battery_msg.present = True
 
-        V_bat_mean = self._count_volt_mean(bat_pub, V_bat)
+        V_bat_mean = self._count_mean(bat_pub, V_bat, self._V_bat_mean, self._V_bat_hist)
+        I_bat_mean = self._count_mean(
+            bat_pub, I_charge, self._I_bat_charge_mean, self._I_bat_charge_hist
+        )
 
-        # check battery status
         with self._lock:
+            # check battery status
             if self._charger_connected:
-                if battery_msg.percentage >= 1.0:
+                if battery_msg.percentage == 1.0:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
-                elif self._battery_charging:
+                elif I_bat_mean > self._I_bat_charging_thresh[bat_pub]:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
                 else:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
             else:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
-        # check battery health
-        with self._lock:
+            # check battery health
             error_msg = None
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
@@ -223,11 +237,6 @@ class ADCNode:
                 error_msg = 'Battery is overheating!'
             elif self._driver_battery_last_info_time is None:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
-            elif (
-                rospy.get_time() - self._driver_battery_last_info_time < 0.1
-                and abs(V_bat_mean - self._V_driv_mean) > self.V_BAT_FATAL_MAX * 0.1
-            ):
-                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNSPEC_FAILURE
             else:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
 
@@ -236,15 +245,21 @@ class ADCNode:
 
         bat_pub.publish(battery_msg)
 
-    def _count_volt_mean(self, label: Union[rospy.Publisher, str], new_val: float) -> float:
+    def _count_mean(
+        self,
+        label: Union[rospy.Publisher, str],
+        new_val: float,
+        mean_dict: dict,
+        hist_dict: Dict[Union[rospy.Publisher, str], list],
+    ) -> float:
         # Updates the average by adding the newest and removing the oldest component of mean value,
         # in order to avoid recalculating the entire sum every time.
-        self._V_bat_mean[label] += (new_val - self._V_bat_hist[label][0]) / self._volt_mean_length
-        
-        self._V_bat_hist[label].pop(0)
-        self._V_bat_hist[label].append(new_val)
+        mean_dict[label] += (new_val - hist_dict[label][0]) / self._mean_length
 
-        return self._V_bat_mean[label]
+        hist_dict[label].pop(0)
+        hist_dict[label].append(new_val)
+
+        return mean_dict[label]
 
     @staticmethod
     def _read_file(path: str) -> int:
@@ -252,6 +267,10 @@ class ADCNode:
             data = file.read().rstrip()
 
         return int(data)
+
+    @staticmethod
+    def _clamp(value, min_value, max_value):
+        return max(min(value, max_value), min_value)
 
 
 def main():

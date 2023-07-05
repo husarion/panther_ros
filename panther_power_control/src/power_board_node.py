@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-from dataclasses import dataclass
 import gpiod
 import math
 from threading import Lock
@@ -43,45 +42,56 @@ class PowerBoardNode:
 
         self._pins_lock = Lock()
         self._e_stop_lock = Lock()
+        self._watchdog_lock = Lock()
+        self._io_state_lock = Lock()
 
         self._clearing_e_stop = False
 
-        out_line_names = [
-            'AUX_PW_EN',  # Enable auxiliary power, eg. supply to robotic arms etc.
-            'CHRG_DISABLE',  # Disable charger
-            'DRIVER_EN',  # Enable motor drivers (1 - on)
-            'FAN_SW',  # Turn on the fan (1 - on)
-            'VDIG_OFF',  # Turn the digital power off eg. NUC, Router etc. (1 - off)
-            'VMOT_ON',  # Enable mamin power supply to motors (1 - on)
-            'WATCHDOG',  # Watchdog pin, if PWM is on this pin Panther will work
-        ]
-        in_line_names = [
-            'CHRG_SENSE',  # Charger sensor (0 - charger connected, 1 - not connected)
-            'E_STOP_RESET',  # Works as IN/OUT,
+        out_line_names = {
+            'AUX_PW_EN': False,  # Enable auxiliary power, eg. supply to robotic arms etc.
+            'CHRG_DISABLE': True,  # Disable charger
+            'DRIVER_EN': False,  # Enable motor drivers (1 - on)
+            'FAN_SW': False,  # Turn on the fan (1 - on)
+            'VDIG_OFF': False,  # Turn the digital power off eg. NUC, Router etc. (1 - off)
+            'VMOT_ON': False,  # Enable main power supply to motors (1 - on)
+            'WATCHDOG': False,  # Watchdog pin, if PWM is on this pin Panther will work
+        }
+        in_line_names = {
+            'CHRG_SENSE': True,  # Charger sensor (0 - charger connected, 1 - not connected)
+            'E_STOP_RESET': False,  # Works as IN/OUT,
             # IN - gives info if E-stop is on (1 - off), OUT - send 1 to reset estop
-            'SHDN_INIT',  # Shutdown Init managed by systemd service
-        ]
+            'SHDN_INIT': False,  # Shutdown Init managed by systemd service
+        }
 
         self._chip = gpiod.Chip('gpiochip0', gpiod.Chip.OPEN_BY_NAME)
-        self._lines = {name: self._chip.find_line(name) for name in out_line_names + in_line_names}
+        self._lines = {
+            name: self._chip.find_line(name)
+            for name in list(out_line_names.keys()) + list(in_line_names.keys())
+        }
+        not_matched_pins = [name for name, line in self._lines.items() if line is None]
+        if not_matched_pins:
+            for pin in not_matched_pins:
+                rospy.logerr(f'[{rospy.get_name()}] Failed to find pin: \'{pin}\'')
+            rospy.signal_shutdown('Failed to find GPIO lines')
+            return
+
         for name, line in self._lines.items():
             line.request(
                 self._node_name,
-                gpiod.LINE_REQ_DIR_OUT if name in out_line_names else gpiod.LINE_REQ_DIR_IN,
+                gpiod.LINE_REQ_DIR_OUT if name in out_line_names.keys() else gpiod.LINE_REQ_DIR_IN,
+                default_val=out_line_names[name]
+                if name in out_line_names.keys()
+                else in_line_names[name],
             )
-
-        self._lines['CHRG_DISABLE'].set_value(True)
-        self._lines['AUX_PW_EN'].set_value(False)
-        self._lines['FAN_SW'].set_value(False)
-        self._lines['VDIG_OFF'].set_value(False)
 
         self._watchdog = Watchdog(self._lines['WATCHDOG'])
         self._motor_start_sequence()
 
         self._gpio_wait = 0.05  # seconds
         self._last_e_stop_state = not self._lines['E_STOP_RESET'].get_value()
+        self._last_shdn_init_state = self._lines['SHDN_INIT'].get_value()
         self._e_stop_pressed_time = float('inf')
-        self._chrg_sense_pressed_time = float('inf')
+        self._shdn_init_detect_time = float('inf')
 
         self._cmd_vel_msg_time = rospy.get_time()
         self._can_net_err = True
@@ -161,9 +171,12 @@ class PowerBoardNode:
         rospy.loginfo(f'[{rospy.get_name()}] Node started')
 
     def __del__(self):
-        for line in self._lines.values():
-            line.release()
-        self._chip.close()
+        with self._pins_lock:
+            for line in self._lines.values():
+                if line:
+                    line.release()
+            if self._chip:
+                self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
         with self._e_stop_lock:
@@ -176,31 +189,36 @@ class PowerBoardNode:
             )
 
     def _publish_pin_state_cb(self, *args) -> None:
+        pin_state_time = rospy.get_time()
         with self._pins_lock:
             charger_state = not self._lines['CHRG_SENSE'].get_value()
-            self._publish_io_state('charger_connected', charger_state)
-
-            # filter short spikes of voltage on GPIO
             shdn_init_val = self._lines['SHDN_INIT'].get_value()
-            if shdn_init_val and math.isinf(self._chrg_sense_pressed_time):
-                self._chrg_sense_pressed_time = rospy.get_time()
-            elif rospy.get_time() - self._chrg_sense_pressed_time > self._gpio_wait:
-                if shdn_init_val:
-                    rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
-                    self._publish_io_state('power_button', True)
-                self._chrg_sense_pressed_time = float('inf')
+            estop_state = not self._lines['E_STOP_RESET'].get_value()
 
-            if (
-                math.isinf(self._e_stop_pressed_time)
-                and self._lines['E_STOP_RESET'].get_value() != self._last_e_stop_state
-            ):
-                self._e_stop_pressed_time = rospy.get_time()
-            elif rospy.get_time() - self._e_stop_pressed_time > self._gpio_wait:
-                self._e_stop_event()
-                self._e_stop_pressed_time = float('inf')
+        self._publish_io_state('charger_connected', charger_state)
+
+        # filter short spikes of voltage on GPIO
+        if math.isinf(self._shdn_init_detect_time) and shdn_init_val:
+            self._shdn_init_detect_time = pin_state_time
+        elif pin_state_time - self._shdn_init_detect_time > self._gpio_wait:
+            if shdn_init_val and not self._last_shdn_init_state:
+                self._last_shdn_init_state = shdn_init_val
+                rospy.loginfo(f'[{rospy.get_name()}] Shutdown button pressed.')
+                self._publish_io_state('power_button', True)
+            self._shdn_init_detect_time = float('inf')
+
+        with self._e_stop_lock:
+            last_e_stop_state = self._last_e_stop_state
+
+        if math.isinf(self._e_stop_pressed_time) and estop_state != last_e_stop_state:
+            self._e_stop_pressed_time = pin_state_time
+        elif pin_state_time - self._e_stop_pressed_time > self._gpio_wait:
+            self._e_stop_event()
+            self._e_stop_pressed_time = float('inf')
 
     def _watchdog_cb(self, *args) -> None:
-        self._watchdog()
+        with self._watchdog_lock:
+            self._watchdog()
 
     def _aux_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         res = self._set_bool_srv_handle(req.data, 'AUX_PW_EN', 'Aux power enable')
@@ -221,8 +239,11 @@ class PowerBoardNode:
         return res
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
+        with self._pins_lock:
+            estop_state = not self._lines['E_STOP_RESET'].get_value()
+
         with self._e_stop_lock:
-            if self._lines['E_STOP_RESET'].get_value():
+            if not estop_state:
                 return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
             elif rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
                 return TriggerResponse(
@@ -238,8 +259,12 @@ class PowerBoardNode:
 
         self._reset_e_stop()
 
-        if not self._lines['E_STOP_RESET'].get_value():
-            self._watchdog.turn_off()
+        with self._pins_lock:
+            estop_state = not self._lines['E_STOP_RESET'].get_value()
+
+        if estop_state:
+            with self._watchdog_lock:
+                self._watchdog.turn_off()
             return TriggerResponse(
                 False,
                 'E-STOP reset failed, check for pressed E-STOP buttons or other triggers',
@@ -248,7 +273,8 @@ class PowerBoardNode:
         return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
-        self._watchdog.turn_off()
+        with self._watchdog_lock:
+            self._watchdog.turn_off()
         return TriggerResponse(True, f'E-STOP triggered, watchdog turned off')
 
     def _fan_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
@@ -258,8 +284,9 @@ class PowerBoardNode:
         return res
 
     def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
-        if self._lines['DRIVER_EN'].get_value() == req.data:
-            return SetBoolResponse(True, f'Motor state already set to: {req.data}')
+        with self._pins_lock:
+            if self._lines['DRIVER_EN'].get_value() == req.data:
+                return SetBoolResponse(True, f'Motor state already set to: {req.data}')
 
         res = self._set_bool_srv_handle(req.data, 'DRIVER_EN', 'Motor drivers enable')
         if not res.success:
@@ -278,7 +305,7 @@ class PowerBoardNode:
                         self._publish_io_state('motor_on', False)
                     return SetBoolResponse(reset_script_res.success, reset_script_res.message)
             except rospy.ServiceException as e:
-                res = self._set_bool_srv_handle(False, self._pins.DRIVER_EN, 'Motor drivers enable')
+                res = self._set_bool_srv_handle(False, 'DRIVER_EN', 'Motor drivers enable')
                 if res.success:
                     self._publish_io_state('motor_on', False)
                 return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
@@ -287,8 +314,9 @@ class PowerBoardNode:
 
     def _set_bool_srv_handle(self, value: bool, pin_name: str, name: str) -> SetBoolResponse:
         rospy.logdebug(f'[{rospy.get_name()}] Requested {name} = {value}')
-        self._lines[pin_name].set_value(value)
-        success = self._lines[pin_name].get_value() == value
+        with self._pins_lock:
+            self._lines[pin_name].set_value(value)
+            success = self._lines[pin_name].get_value() == value
         msg = f'{name} write {value} failed'
         if success:
             msg = f'{name} write {value} successful'
@@ -296,35 +324,46 @@ class PowerBoardNode:
         return SetBoolResponse(success, msg)
 
     def _reset_e_stop(self) -> None:
-        self._clearing_e_stop = True
+        with self._e_stop_lock:
+            self._clearing_e_stop = True
 
-        req_type = gpiod.LINE_REQ_DIR_OUT
-        self._lines['E_STOP_RESET'].release()
-        self._lines['E_STOP_RESET'].request(self._node_name, type=req_type)
+        with self._pins_lock:
+            req_type = gpiod.LINE_REQ_DIR_OUT
+            self._lines['E_STOP_RESET'].release()
+            self._lines['E_STOP_RESET'].request(self._node_name, type=req_type)
 
-        self._watchdog.turn_on()
+        with self._watchdog_lock:
+            self._watchdog.turn_on()
 
-        self._lines['E_STOP_RESET'].set_value(True)
+        with self._pins_lock:
+            self._lines['E_STOP_RESET'].set_value(True)
         rospy.sleep(0.1)
 
-        req_type = gpiod.LINE_REQ_DIR_IN
-        self._lines['E_STOP_RESET'].release()
-        self._lines['E_STOP_RESET'].request(self._node_name, type=req_type)
+        with self._pins_lock:
+            req_type = gpiod.LINE_REQ_DIR_IN
+            self._lines['E_STOP_RESET'].release()
+            self._lines['E_STOP_RESET'].request(self._node_name, type=req_type)
         rospy.sleep(0.1)
-        self._clearing_e_stop = False
+
+        with self._e_stop_lock:
+            self._clearing_e_stop = False
         self._e_stop_event()
 
     def _e_stop_event(self) -> None:
-        e_stop_state = not self._lines['E_STOP_RESET'].get_value()
-        if e_stop_state != self._last_e_stop_state and not self._clearing_e_stop:
-            self._last_e_stop_state = e_stop_state
-            self._e_stop_state_pub.publish(e_stop_state)
+        with self._pins_lock:
+            e_stop_state = not self._lines['E_STOP_RESET'].get_value()
+
+        with self._e_stop_lock:
+            if e_stop_state != self._last_e_stop_state and not self._clearing_e_stop:
+                self._last_e_stop_state = e_stop_state
+                self._e_stop_state_pub.publish(e_stop_state)
 
     def _publish_io_state(self, attribute: str, val: bool) -> None:
-        last_msg = self._io_state_pub.impl.latch
-        if getattr(last_msg, attribute) != val:
-            setattr(last_msg, attribute, val)
-            self._io_state_pub.publish(last_msg)
+        with self._io_state_lock:
+            last_msg = self._io_state_pub.impl.latch
+            if getattr(last_msg, attribute) != val:
+                setattr(last_msg, attribute, val)
+                self._io_state_pub.publish(last_msg)
 
     def _motor_start_sequence(self) -> None:
         self._lines['VMOT_ON'].set_value(True)
