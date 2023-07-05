@@ -163,8 +163,8 @@ class RelaysNode:
                 self._motor_enabled = False
                 return SetBoolResponse(
                     not req.data,
-                    f'Motors are {"already " if not req.data else ""}disabled. ',
-                    f'(Main switch set to Stage 1)',
+                    f'Motors are {"already " if not req.data else ""}disabled. '
+                    + '(Main switch set to Stage 1)',
                 )
 
             if self._motor_enabled == req.data:
