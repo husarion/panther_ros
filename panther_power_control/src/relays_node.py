@@ -114,6 +114,9 @@ class RelaysNode:
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
         with self._lock:
+            if not self._e_stop_state:
+                return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
+        
             if rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
                 return TriggerResponse(
                     False,
@@ -132,6 +135,9 @@ class RelaysNode:
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
         with self._lock:
+            if self._e_stop_state:
+                return TriggerResponse(True, 'E-SROP already triggered')
+            
             self._e_stop_state = True
             self._e_stop_state_pub.publish(self._e_stop_state)
             return TriggerResponse(True, 'E-SROP triggered successful')
