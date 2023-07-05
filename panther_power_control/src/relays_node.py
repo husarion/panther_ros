@@ -172,26 +172,10 @@ class RelaysNode:
                     True, f'Motors are already {"enabled" if self._motor_enabled else "disabled"}'
                 )
 
-            self._lines['MOTOR_ON'].set_value(req.data)
-
-            # if motors not enabled and requested to power on
-            if req.data:
-                # wait for motor drivers to power on
-                rospy.sleep(rospy.Duration(2.0))
-                try:
-                    reset_script_res = self._reset_roboteq_script_client.call()
-                    if not reset_script_res.success:
-                        self._lines['MOTOR_ON'].set_value(False)
-                        return SetBoolResponse(reset_script_res.success, reset_script_res.message)
-                except rospy.ServiceException as e:
-                    self._lines['MOTOR_ON'].set_value(False)
-                    return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
-
             self._motor_enabled = req.data
+            self._lines['MOTOR_ON'].set_value(req.data)
             self._publish_motor_state(req.data)
-            return SetBoolResponse(
-                True, f'Motors {"enabled" if self._motor_enabled else "disabled"}'
-            )
+            return SetBoolResponse(True, f'Motors {"enabled" if req.data else "disabled"}')
 
     def _set_motor_state_timer_cb(self, *args) -> None:
         with self._motors_lock:
