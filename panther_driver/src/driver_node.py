@@ -75,10 +75,9 @@ class PantherDriverNode:
         self._motor_torque_constant = rospy.get_param('~motor_torque_constant', 2.6149)
         self._gear_ratio = rospy.get_param('~gear_ratio', 30.08)
         self._encoder_resolution = rospy.get_param('~encoder_resolution', 400 * 4)
-        self._v_x_std = float(rospy.get_param('~velocity_x_stderr', 3.2e-3))**2
-        self._v_y_std = float(rospy.get_param('~velocity_y_stderr', 3.2e-3))**2
-        self._v_yaw_std = float(rospy.get_param('~velocity_yaw_stderr', 8.5e-3))**2
-        print(self._v_x_std)
+        self._v_x_var = float(rospy.get_param('~velocity_x_stderr', 3.2e-3))**2
+        self._v_y_var = float(rospy.get_param('~velocity_y_stderr', 3.2e-3))**2
+        self._v_yaw_var = float(rospy.get_param('~velocity_yaw_stderr', 8.5e-3))**2
 
         self._publish_tf = rospy.get_param('~publish_tf', True)
         self._publish_odom = rospy.get_param('~publish_odometry', True)
@@ -176,12 +175,9 @@ class PantherDriverNode:
             self._odom_msg.pose.covariance = [0.1 if (i % 7) == 0 else 0.0 for i in range(36)]
 
             twist_cov = [0.0] * 36
-            twist_cov[0] = self._v_x_std
-            twist_cov[7] = self._v_y_std
-            twist_cov[14] = 1e6
-            twist_cov[21] = 1e6
-            twist_cov[28] = 1e6            
-            twist_cov[35] = self._v_yaw_std
+            cov_value = [self._v_x_var, self._v_y_var, 1e6, 1e6, 1e6, self._v_yaw_var]
+            for i in range (len(cov_value)):
+                twist_cov[7*i] = cov_value[i]
                 
             self._odom_msg.twist.covariance = twist_cov
             self._odom_msg.header.frame_id = self._odom_frame
