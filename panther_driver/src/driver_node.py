@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import numpy as np
 import math
 from typing import List, Tuple, TypeVar
 from threading import Lock
