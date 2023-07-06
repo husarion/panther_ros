@@ -7,6 +7,7 @@ import rospy
 
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
+from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
 from panther_msgs.msg import DriverState, IOState
@@ -17,7 +18,8 @@ class RelaysNode:
         self._node_name = name
         rospy.init_node(self._node_name, anonymous=False)
 
-        self._lock = Lock()
+        self._e_stop_lock = Lock()
+        self._motors_lock = Lock()
 
         line_names = {
             'MOTOR_ON': False,  # Used to enable motors
@@ -41,8 +43,10 @@ class RelaysNode:
         )
 
         self._e_stop_state = not self._lines['STAGE2_INPUT'].get_value()
+        self._last_motor_state = self._lines['STAGE2_INPUT'].get_value()
         self._cmd_vel_msg_time = rospy.get_time()
         self._can_net_err = True
+        self._motor_enabled = True
 
         # -------------------------------
         #   Publishers
@@ -55,7 +59,7 @@ class RelaysNode:
         self._e_stop_state_pub.publish(self._e_stop_state)
 
         self._io_state = IOState()
-        self._io_state.motor_on = self._lines['STAGE2_INPUT'].get_value()
+        self._io_state.motor_on = self._last_motor_state
         self._io_state.aux_power = False
         self._io_state.charger_connected = False
         self._io_state.fan = False
@@ -83,6 +87,17 @@ class RelaysNode:
         self._e_stop_trigger_server = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
+        self._motor_enable_server = rospy.Service(
+            'hardware/motor_enable', SetBool, self._motor_enable_cb
+        )
+
+        # -------------------------------
+        #   Service clients
+        # -------------------------------
+
+        self._reset_roboteq_script_client = rospy.ServiceProxy(
+            'driver/reset_roboteq_script', Trigger
+        )
 
         # -------------------------------
         #   Timers
@@ -103,20 +118,20 @@ class RelaysNode:
             self._chip.close()
 
     def _cmd_vel_cb(self, *args) -> None:
-        with self._lock:
+        with self._e_stop_lock:
             self._cmd_vel_msg_time = rospy.get_time()
 
     def _motor_controllers_state_cb(self, msg: DriverState) -> None:
-        with self._lock:
+        with self._e_stop_lock:
             self._can_net_err = any(
                 {msg.rear.fault_flag.can_net_err, msg.front.fault_flag.can_net_err}
             )
 
     def _e_stop_reset_cb(self, req: TriggerRequest) -> TriggerResponse:
-        with self._lock:
+        with self._e_stop_lock:
             if not self._e_stop_state:
                 return TriggerResponse(True, 'E-STOP is not active, reset is not needed')
-        
+
             if rospy.get_time() - self._cmd_vel_msg_time <= 2.0:
                 return TriggerResponse(
                     False,
@@ -134,19 +149,50 @@ class RelaysNode:
             return TriggerResponse(True, 'E-STOP reset successful')
 
     def _e_stop_trigger_cb(self, req: TriggerRequest) -> TriggerResponse:
-        with self._lock:
+        with self._e_stop_lock:
             if self._e_stop_state:
                 return TriggerResponse(True, 'E-SROP already triggered')
-            
+
             self._e_stop_state = True
             self._e_stop_state_pub.publish(self._e_stop_state)
             return TriggerResponse(True, 'E-SROP triggered successful')
 
+    def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+        with self._motors_lock:
+            if not self._lines['STAGE2_INPUT'].get_value():
+                self._motor_enabled = False
+                return SetBoolResponse(
+                    not req.data,
+                    f'Motors are {"already " if not req.data else ""}disabled. '
+                    + '(Main switch set to Stage 1)',
+                )
+
+            if self._motor_enabled == req.data:
+                return SetBoolResponse(
+                    True, f'Motors are already {"enabled" if self._motor_enabled else "disabled"}'
+                )
+
+            self._motor_enabled = req.data
+            self._lines['MOTOR_ON'].set_value(req.data)
+            self._publish_motor_state(req.data)
+            return SetBoolResponse(True, f'Motors {"enabled" if req.data else "disabled"}')
+
     def _set_motor_state_timer_cb(self, *args) -> None:
-        motor_state = self._lines['STAGE2_INPUT'].get_value()
-        self._lines['MOTOR_ON'].set_value(motor_state)
-        if self._io_state.motor_on != motor_state:
-            self._io_state.motor_on = motor_state
+        with self._motors_lock:
+            motor_state = self._lines['STAGE2_INPUT'].get_value()
+            # if switch changes from off to on overwrite service value
+            if not self._last_motor_state and motor_state:
+                self._motor_enabled = True
+
+            self._last_motor_state = motor_state
+
+            state_to_set = motor_state and self._motor_enabled
+            self._lines['MOTOR_ON'].set_value(state_to_set)
+            self._publish_motor_state(state_to_set)
+
+    def _publish_motor_state(self, desired_state: bool) -> None:
+        if self._io_state.motor_on != desired_state:
+            self._io_state.motor_on = desired_state
             self._io_state_pub.publish(self._io_state)
 
 
