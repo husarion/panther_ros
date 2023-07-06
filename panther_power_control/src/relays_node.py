@@ -190,9 +190,9 @@ class RelaysNode:
             self._lines['MOTOR_ON'].set_value(state_to_set)
             self._publish_motor_state(state_to_set)
 
-    def _publish_motor_state(self, val: bool) -> None:
-        if self._io_state.motor_on != val:
-            self._io_state.motor_on = val
+    def _publish_motor_state(self, desired_state: bool) -> None:
+        if self._io_state.motor_on != desired_state:
+            self._io_state.motor_on = desired_state
             self._io_state_pub.publish(self._io_state)
 
 
