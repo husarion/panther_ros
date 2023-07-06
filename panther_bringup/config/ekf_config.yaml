@@ -1,6 +1,6 @@
 # Ref: http://docs.ros.org/en/noetic/api/robot_localization/html/state_estimation_nodes.html
 
-frequency: 15
+frequency: 20
 sensor_timeout: 0.2
 two_d_mode: true
 
@@ -34,29 +34,30 @@ imu0_config: [false, false, false,
 imu0_nodelay: false
 imu0_differential: false
 imu0_relative: true
-imu0_queue_size: 10
+imu0_queue_size: 5
 
 imu0_remove_gravitational_acceleration: true
 
 reset_on_time_jump: false
+predict_to_current_time: false
 print_diagnostics: false
 debug: false
 debug_out_file: /path/to/debug/file.txt
 
 # Selected values ​​experimentally so as to ensure relatively fast convergence (values ​​should be about 10x higher than the sensor variacne values)
 dynamic_process_noise_covariance: true
-process_noise_covariance: [2e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    2e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    2e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    5e-3, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    5e-3, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    5e-3, 0,    0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    5e-4, 0,    0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    5e-4, 0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    5e-4, 0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-4, 0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-4, 0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-4, 0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-1, 0,    0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-1, 0,
-                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-1]
+process_noise_covariance: [1e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    1e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    1e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    3e-3, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    3e-3, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    3e-3, 0,    0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    2e-5, 0,    0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    2e-5, 0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    2e-5, 0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-5, 0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-5, 0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-5, 0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-5, 0,    0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-5, 0,
+                           0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    5e-5]
