@@ -7,6 +7,6 @@ mesh_package: panther_description
 folder_path: meshes/WH01
 kinematics: differential
 
-velocity_x_stderr: 3.2e-3
-velocity_y_stderr: 1.4e-3
-velocity_yaw_stderr: 8.5e-3
+velocity_x_stderr: 3.2e-3    # Value measured (using Husarion research toolkit)
+velocity_y_stderr: 1.4e-3    # Value measured (using Husarion research toolkit)
+velocity_yaw_stderr: 8.5e-3  # Value measured (using Husarion research toolkit)
