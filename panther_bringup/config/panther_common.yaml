@@ -1,7 +1,7 @@
 can_interface: panther_can
 odom_frame: odom
 base_link_frame: base_link
-publish_tf: true
+publish_tf: false
 publish_odom: true
 publish_pose: false
 publish_joints: true
