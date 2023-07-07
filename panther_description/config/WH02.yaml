@@ -7,6 +7,7 @@ mesh_package: panther_description
 folder_path: meshes/WH02
 kinematics: mecanum
 
-velocity_x_stderr: 3.2e-3     # Selected intuitively based on WH01 results
-velocity_y_stderr: 3.2e-3     # Selected intuitively based on WH01 results
-velocity_yaw_stderr: 8.5e-3   # Selected intuitively based on WH01 results
+# Selected intuitively based on WH01 results
+velocity_x_stderr: 3.2e-3
+velocity_y_stderr: 3.2e-3
+velocity_yaw_stderr: 8.5e-3
