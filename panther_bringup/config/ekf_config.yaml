@@ -44,7 +44,7 @@ print_diagnostics: false
 debug: false
 debug_out_file: /path/to/debug/file.txt
 
-# Selected values ​​experimentally so as to ensure relatively fast convergence (values ​​should be about 10x higher than the sensor variacne values)
+# Selected values ​​experimentally so as to ensure relatively fast convergence (values ​​should be about 10x higher than the sensor variance values)
 dynamic_process_noise_covariance: true
 process_noise_covariance: [1e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
                            0,    1e-4, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
