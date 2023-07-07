@@ -7,7 +7,7 @@ ImuFilterNodelet:
   orientation_stddev: 1e-2
   publish_tf: false
   use_mag: false
-  use_magnetic_field_msg: true # If set to true, subscribe to the /imu/mag topic as a sensor_msgs/MagneticField; if set to false (deprecated), use geometry_msgs/Vector3Stamped. 
+  use_magnetic_field_msg: true # If set to true, subscribe to the /imu/mag topic as a sensor_msgs/MagneticField; if set to false (deprecated), use geometry_msgs/Vector3Stamped. Only changes type of the message, whether mag data is used is controlled by the use_mag parameter
   fixed_frame: imu_link
   stateless: false
   remove_gravity_vector: false
