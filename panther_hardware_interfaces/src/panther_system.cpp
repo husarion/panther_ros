@@ -143,7 +143,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Deactivating");
 
-  roboteq_controller_->Deactivate();
+  // roboteq_controller_->Deactivate();
   return CallbackReturn::SUCCESS;
 }
 

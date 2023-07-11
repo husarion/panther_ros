@@ -13,6 +13,8 @@ PantherWheelsController::PantherWheelsController(
 {
   can_settings_ = can_settings;
 
+  // TODO Move this to roboteq driver
+
   // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
   // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)
   // 2. Convert motor rad/s speed to motor rotation per second speed (multiplication by 1.0/(2.0*pi))
@@ -57,8 +59,9 @@ PantherWheelsController::PantherWheelsController(
     drivetrain_settings.gearbox_efficiency;
 }
 
-void PantherWheelsController::Activate()
+void PantherWheelsController::Initialize()
 {
+  // TODO: does it have to be a thread
   executor_thread_ = std::thread([this]() {
     io_guard_ = std::make_unique<lely::io::IoGuard>();
     ctx_ = std::make_unique<lely::io::Context>();
@@ -84,8 +87,6 @@ void PantherWheelsController::Activate()
     master_ = std::make_unique<lely::canopen::AsyncMaster>(
       *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
-    // front_driver_ = std::make_unique<RoboteqDriver>(*master_, FRONT_DRIVER_CAN_ID);
-    // rear_driver_ = std::make_unique<RoboteqDriver>(*master_, REAR_DRIVER_CAN_ID);
     front_driver_ =
       std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.front_driver_can_id);
     rear_driver_ =
@@ -98,6 +99,12 @@ void PantherWheelsController::Activate()
     loop_->run();
   });
 
+  front_driver_->wait_for_boot();
+  rear_driver_->wait_for_boot();
+}
+
+void PantherWheelsController::Activate()
+{
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   front_driver_->ResetRoboteqScript();
@@ -110,7 +117,7 @@ void PantherWheelsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-void PantherWheelsController::Deactivate()
+void PantherWheelsController::Deinitialize()
 {
   master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
 }
@@ -124,22 +131,30 @@ void PantherWheelsController::ChangeMode(RoboteqMode mode)
 RoboteqFeedback PantherWheelsController::Read()
 {
   RoboteqFeedback feedback;
-  std::vector<int> front_driver_feedback = front_driver_->ReadPDOs();
-  std::vector<int> rear_driver_feedback = rear_driver_->ReadPDOs();
+  RoboteqMotorsFeedback front_driver_feedback = front_driver_->ReadPDOs();
+  RoboteqMotorsFeedback rear_driver_feedback = rear_driver_->ReadPDOs();
 
-  feedback.pos_fr = front_driver_feedback[0] * roboteq_pos_feedback_to_radians_;
-  feedback.pos_fl = front_driver_feedback[1] * roboteq_pos_feedback_to_radians_;
-  feedback.vel_fr = front_driver_feedback[2] * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.vel_fl = front_driver_feedback[3] * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.torque_fr = front_driver_feedback[4] * roboteq_current_feedback_to_newton_meters_;
-  feedback.torque_fl = front_driver_feedback[5] * roboteq_current_feedback_to_newton_meters_;
+  feedback.pos_fr = front_driver_feedback.motor_1.pos * roboteq_pos_feedback_to_radians_;
+  feedback.vel_fr = front_driver_feedback.motor_1.vel * roboteq_vel_feedback_to_radians_per_second_;
+  feedback.torque_fr =
+    front_driver_feedback.motor_1.current * roboteq_current_feedback_to_newton_meters_;
 
-  feedback.pos_rr = rear_driver_feedback[0] * roboteq_pos_feedback_to_radians_;
-  feedback.pos_rl = rear_driver_feedback[1] * roboteq_pos_feedback_to_radians_;
-  feedback.vel_rr = rear_driver_feedback[2] * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.vel_rl = rear_driver_feedback[3] * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.torque_rr = rear_driver_feedback[4] * roboteq_current_feedback_to_newton_meters_;
-  feedback.torque_rl = rear_driver_feedback[5] * roboteq_current_feedback_to_newton_meters_;
+  feedback.pos_fl = front_driver_feedback.motor_2.pos * roboteq_pos_feedback_to_radians_;
+  feedback.vel_fl = front_driver_feedback.motor_2.vel * roboteq_vel_feedback_to_radians_per_second_;
+  feedback.torque_fl =
+    front_driver_feedback.motor_2.current * roboteq_current_feedback_to_newton_meters_;
+
+  feedback.pos_rr = rear_driver_feedback.motor_1.pos * roboteq_pos_feedback_to_radians_;
+  feedback.vel_rr = rear_driver_feedback.motor_1.vel * roboteq_vel_feedback_to_radians_per_second_;
+  feedback.torque_rr =
+    rear_driver_feedback.motor_1.current * roboteq_current_feedback_to_newton_meters_;
+
+  feedback.pos_rl = rear_driver_feedback.motor_2.pos * roboteq_pos_feedback_to_radians_;
+  feedback.vel_rl = rear_driver_feedback.motor_2.vel * roboteq_vel_feedback_to_radians_per_second_;
+  feedback.torque_rl =
+    rear_driver_feedback.motor_2.current * roboteq_current_feedback_to_newton_meters_;
+
+  // TODO error flags
 
   return feedback;
 }

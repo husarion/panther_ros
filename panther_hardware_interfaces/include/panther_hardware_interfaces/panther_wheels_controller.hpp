@@ -47,7 +47,8 @@ public:
   PantherWheelsController(CanSettings can_settings, DrivetrainSettings drivetrain_settings);
 
   void Activate();
-  void Deactivate();
+  void Initialize();
+  void Deinitialize();
 
   void ChangeMode(RoboteqMode mode);
 
