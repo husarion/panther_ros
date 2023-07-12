@@ -57,7 +57,6 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~safety/critical_bat_temp` [*float*, default: **59.0**]: extends `high_bat_temp` by turning off AUX power.
 - `~safety/driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
 - `~safety/driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
-- `~safety/fatal_bat_temp` [*float*, default: **62.0**]: battery temperature above which the robot is shutdown.
 - `~safety/high_bat_temp` [*float*, default: **55.0**]: battery temperature above which the robot starts displaying warning log and e-stop is triggered.
 - `~shutdown_hosts_file` [*string*, default: **None**]: path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
@@ -172,9 +171,9 @@ Default blackboard entries:
 Default constant blackboard entries:
 - `CPU_FAN_OFF_TEMP` [*float*, default: **60.0**]: refers to `cpu_fan_off_temp` ROS parameter.
 - `CPU_FAN_ON_TEMP` [*float*, default: **70.0**]: refers to `cpu_fan_on_temp` ROS parameter.
+- `CRITICAL_BAT_TEMP` [*float*, default: **59.0**]: refers to `critical_bat_temp` ROS parameter.
 - `DRIVER_FAN_OFF_TEMP` [*float*, default: **35.0**]: refers to `driver_fan_off_temp` ROS parameter.
 - `DRIVER_FAN_ON_TEMP` [*float*, default: **45.0**]: refers to `driver_fan_on_temp` ROS parameter.
-- `FATAL_BAT_TEMP` [*float*, default: **62.0**]: refers to `fatal_bat_temp` ROS parameter.
 - `HIGH_BAT_TEMP` [*float*, default: **55.0**]: refers to `high_bat_temp` ROS parameter.
 
 #### Shutdown 
