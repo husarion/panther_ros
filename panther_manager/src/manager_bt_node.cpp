@@ -68,7 +68,6 @@ ManagerBTNode::ManagerBTNode(
 
   // safety tree params
   const auto high_bat_temp = ph_->param<float>("safety/high_bat_temp", 55.0);
-  const auto critical_bat_temp = ph_->param<float>("safety/critical_bat_temp", 59.0);
   const auto fatal_bat_temp = ph_->param<float>("safety/fatal_bat_temp", 62.0);
   const auto cpu_fan_on_temp = ph_->param<float>("safety/cpu_fan_on_temp", 70.0);
   const auto cpu_fan_off_temp = ph_->param<float>("safety/cpu_fan_off_temp", 60.0);
@@ -120,7 +119,7 @@ ManagerBTNode::ManagerBTNode(
       {"CRITICAL_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CRITICAL_BATTERY)},
       {"BATTERY_STATE_ANIM_ID", unsigned(panther_msgs::LEDAnimation::BATTERY_STATE)},
       {"CHARGING_BATTERY_ANIM_ID", unsigned(panther_msgs::LEDAnimation::CHARGING_BATTERY)},
-      // battery constants
+      // battery status constants
       {"POWER_SUPPLY_STATUS_UNKNOWN",
        unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN)},
       {"POWER_SUPPLY_STATUS_CHARGING",
@@ -140,11 +139,26 @@ ManagerBTNode::ManagerBTNode(
     const std::map<std::string, std::any> safety_initial_bb = {
       {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
       {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
-      {"CRITICAL_BAT_TEMP", critical_bat_temp},
       {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
       {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
       {"FATAL_BAT_TEMP", fatal_bat_temp},
       {"HIGH_BAT_TEMP", high_bat_temp},
+      // battery health constants
+      {"POWER_SUPPLY_HEALTH_UNKNOWN",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNKNOWN)},
+      {"POWER_SUPPLY_HEALTH_GOOD", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_GOOD)},
+      {"POWER_SUPPLY_HEALTH_OVERHEAT",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERHEAT)},
+      {"POWER_SUPPLY_HEALTH_DEAD", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_DEAD)},
+      {"POWER_SUPPLY_HEALTH_OVERVOLTAGE",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERVOLTAGE)},
+      {"POWER_SUPPLY_HEALTH_UNSPEC_FAILURE",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNSPEC_FAILURE)},
+      {"POWER_SUPPLY_HEALTH_COLD", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_COLD)},
+      {"POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE)},
+      {"POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE)},
     };
 
     safety_config_ = create_bt_config(safety_initial_bb);
@@ -236,8 +250,12 @@ BT::NodeConfig ManagerBTNode::create_bt_config(
 void ManagerBTNode::battery_cb(const sensor_msgs::BatteryState::ConstPtr & battery)
 {
   battery_status_ = battery->power_supply_status;
+  battery_health_ = battery->power_supply_health;
   // don't update battery data if unknown status
   if (battery_status_ == sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN) {
+    return;
+  }
+  if (battery_health_ == sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNKNOWN) {
     return;
   }
 
@@ -291,6 +309,7 @@ void ManagerBTNode::safety_tree_timer_cb()
   safety_config_.blackboard->set<bool>("aux_state", io_state_.value()->aux_power);
   safety_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
   safety_config_.blackboard->set<bool>("fan_state", io_state_.value()->fan);
+  safety_config_.blackboard->set<unsigned>("battery_health", battery_health_.value());
   safety_config_.blackboard->set<double>("bat_temp", battery_temp_ma_->get_average());
   safety_config_.blackboard->set<double>("cpu_temp", cpu_temp_ma_->get_average());
   // to simplify conditions pass only higher temp of motor drivers

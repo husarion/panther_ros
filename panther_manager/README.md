@@ -172,7 +172,6 @@ Default blackboard entries:
 Default constant blackboard entries:
 - `CPU_FAN_OFF_TEMP` [*float*, default: **60.0**]: refers to `cpu_fan_off_temp` ROS parameter.
 - `CPU_FAN_ON_TEMP` [*float*, default: **70.0**]: refers to `cpu_fan_on_temp` ROS parameter.
-- `CRITICAL_BAT_TEMP` [*float*, default: **59.0**]: refers to `critical_bat_temp` ROS parameter.
 - `DRIVER_FAN_OFF_TEMP` [*float*, default: **35.0**]: refers to `driver_fan_off_temp` ROS parameter.
 - `DRIVER_FAN_ON_TEMP` [*float*, default: **45.0**]: refers to `driver_fan_on_temp` ROS parameter.
 - `FATAL_BAT_TEMP` [*float*, default: **62.0**]: refers to `fatal_bat_temp` ROS parameter.
