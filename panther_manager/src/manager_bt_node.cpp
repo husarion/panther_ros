@@ -68,7 +68,7 @@ ManagerBTNode::ManagerBTNode(
 
   // safety tree params
   const auto high_bat_temp = ph_->param<float>("safety/high_bat_temp", 55.0);
-  const auto fatal_bat_temp = ph_->param<float>("safety/fatal_bat_temp", 62.0);
+  const auto critical_bat_temp = ph_->param<float>("safety/critical_bat_temp", 59.0);
   const auto cpu_fan_on_temp = ph_->param<float>("safety/cpu_fan_on_temp", 70.0);
   const auto cpu_fan_off_temp = ph_->param<float>("safety/cpu_fan_off_temp", 60.0);
   const auto driver_fan_on_temp = ph_->param<float>("safety/driver_fan_on_temp", 45.0);
@@ -139,9 +139,9 @@ ManagerBTNode::ManagerBTNode(
     const std::map<std::string, std::any> safety_initial_bb = {
       {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
       {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
+      {"CRITICAL_BAT_TEMP", critical_bat_temp},
       {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
       {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
-      {"FATAL_BAT_TEMP", fatal_bat_temp},
       {"HIGH_BAT_TEMP", high_bat_temp},
       // battery health constants
       {"POWER_SUPPLY_HEALTH_UNKNOWN",
