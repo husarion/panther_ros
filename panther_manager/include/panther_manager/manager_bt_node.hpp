@@ -35,6 +35,7 @@ private:
   float update_charging_anim_step_;
   std::string node_name_;
   std::optional<unsigned> battery_status_;
+  std::optional<unsigned> battery_health_;
   std::optional<bool> e_stop_state_;
   std::optional<panther_msgs::IOState::ConstPtr> io_state_;
 
