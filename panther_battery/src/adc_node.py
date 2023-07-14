@@ -22,7 +22,7 @@ class ADCNode:
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        self._high_bat_temp = rospy.get_param('~high_bat_temp', 55.0)
+        self._high_bat_temp = rospy.get_param('~fatal_bat_temp', 62.0)
 
         self._driver_battery_last_info_time: Optional[float] = None
         self._I_driv: Optional[float] = None

@@ -13,7 +13,6 @@ lights:
 safety:
   high_bat_temp: 55.0
   critical_bat_temp: 59.0
-  fatal_bat_temp: 62.0
   cpu_fan_on_temp: 70.0
   cpu_fan_off_temp: 60.0
   driver_fan_on_temp: 45.0

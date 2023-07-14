@@ -32,4 +32,4 @@ Node publishing Panther battery state read from motor controllers. Used in Panth
 
 #### Parameters 
 
-- `~high_bat_temp` [*float*, default: **55.0**]: The temperature of the battery at which the battery health state is incorrect.
+- `~fatal_bat_temp` [*float*, default: **62.0**]: The temperature of the battery at which the battery health state is incorrect.
