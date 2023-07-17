@@ -48,8 +48,6 @@ class ADCNode:
         
         self._lock = Lock()
 
-        self._lock = Lock()
-
         # -------------------------------
         #   Subscribers
         # -------------------------------

@@ -45,9 +45,6 @@ class PowerBoardNode:
         self._watchdog_lock = Lock()
         self._io_state_lock = Lock()
 
-        self._pins_lock = Lock()
-        self._e_stop_lock = Lock()
-
         self._clearing_e_stop = False
 
         out_line_names = {
