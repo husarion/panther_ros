@@ -13,6 +13,8 @@ from panther_msgs.msg import DriverState
 class RoboteqRepublisherNode:
     V_BAT_FATAL_MIN = 27.0
     V_BAT_FATAL_MAX = 43.0
+    V_BAT_FULL = 41.4
+    V_BAT_MIN = 32.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
@@ -62,7 +64,7 @@ class RoboteqRepublisherNode:
 
             self._last_battery_info_time = rospy.get_time()
             self._battery_voltage = new_voltage
-            self._battery_current = msg.front.current + msg.rear.current
+            self._battery_current = -(msg.front.current + msg.rear.current)
             self._update_volt_mean(new_voltage)
 
     def _battery_pub_timer_cb(self, *args) -> None:
@@ -71,7 +73,7 @@ class RoboteqRepublisherNode:
             battery_msg.header.stamp = rospy.Time.now()
             battery_msg.capacity = 20.0
             battery_msg.design_capacity = 20.0
-            battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIPO
+            battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LION
 
             if (
                 self._battery_voltage == None
@@ -83,11 +85,14 @@ class RoboteqRepublisherNode:
                 battery_msg.voltage = self._battery_voltage
                 battery_msg.temperature = float('nan')
                 battery_msg.current = self._battery_current
-                battery_msg.percentage = (battery_msg.voltage - 32.0) / 10.0
+                battery_msg.percentage = self._clamp(
+                    (battery_msg.voltage - self.V_BAT_MIN) / (self.V_BAT_FULL - self.V_BAT_MIN),
+                    0.0,
+                    1.0,
+                )
                 battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity
                 battery_msg.present = True
 
-                # TODO: check battery status
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
                 # check battery health
@@ -109,10 +114,16 @@ class RoboteqRepublisherNode:
     def _update_volt_mean(self, new_val: float) -> float:
         # Updates the average by adding the newest and removing the oldest component of mean value,
         # in order to avoid recalculating the entire sum every time.
-        self._battery_voltage_mean += (new_val - self._battery_voltage_hist[0]) / self._volt_mean_length
+        self._battery_voltage_mean += (
+            new_val - self._battery_voltage_hist[0]
+        ) / self._volt_mean_length
 
         self._battery_voltage_hist.pop(0)
         self._battery_voltage_hist.append(new_val)
+
+    @staticmethod
+    def _clamp(value, min_value, max_value):
+        return max(min(value, max_value), min_value)
 
 
 def main():

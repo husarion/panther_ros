@@ -1,7 +1,7 @@
 can_interface: panther_can
 odom_frame: odom
 base_link_frame: base_link
-publish_tf: true
+publish_tf: false
 publish_odom: true
 publish_pose: false
 publish_joints: true
@@ -9,3 +9,17 @@ motor_torque_constant: 2.6149
 gear_ratio: 30.08
 encoder_resolution: 1600 # 400 * 4
 robot_length: 0.44
+
+# velocity smoother params
+max_vel_x: 2.0
+max_vel_y: 2.0
+max_vel_theta: 4.0
+acc_lim_x: 2.7
+acc_lim_y: 2.7
+acc_lim_theta: 5.74
+decel_lim_x: 2.7
+decel_lim_y: 2.7
+decel_lim_theta: 5.74
+emergency_decel_lim_x: 2.7
+emergency_decel_lim_y: 2.7
+emergency_decel_lim_theta: 5.74
