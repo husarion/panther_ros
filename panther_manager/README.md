@@ -119,7 +119,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 Tree responsible for scheduling animations displayed on LED panels, based on the Husarion Panther robot's system state.
 
 <p align="center">
-  <img align="center" src="./docs/lights_tree.png">
+  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/lights_tree.png">
 </p>
 
 Default blackboard entries:
@@ -157,7 +157,7 @@ Default constant blackboard entries:
 Tree responsible for monitoring the Panther robot's state and handling safety measures, such as cooling the robot in case of high CPU or battery temperature.
 
 <p align="center">
-  <img align="center" src="./docs/safety_tree.png">
+  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/safety_tree.png">
 </p>
 
 Default blackboard entries:
@@ -181,7 +181,7 @@ Default constant blackboard entries:
 Tree responsible for graceful shutdown of robot components, user computers, and the built-in computer. By default, it will proceed to shutdown all computers defined in a YAML file with a path defined by the `~shutdown_host_file` ROS parameter.
 
 <p align="center">
-  <img src="./docs/shutdown_tree.png">
+  <img src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/shutdown_tree.png">
 </p>
 
 Default constant blackboard entries:
