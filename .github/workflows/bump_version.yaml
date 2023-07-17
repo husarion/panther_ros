@@ -57,4 +57,4 @@ jobs:
           -H "Accept: application/vnd.github+json"
           -H "Authorization: Bearer ${{ secrets.GH_PAT }}"
           https://api.github.com/repos/husarion/panther-docker/dispatches
-          -d '{"event_type":"ros-package-update","client_payload":{"image_version":"${{ needs.catkin-release.outputs.new_version }}"}}'
+          -d '{"event_type":"ros-package-update","client_payload":{}}'
