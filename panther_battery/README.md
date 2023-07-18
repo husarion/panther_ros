@@ -45,4 +45,4 @@ Node publishing Panther battery state read from motor controllers. Used in Panth
 
 - `~battery_current_window_len` [*int*, default: **10**]: window length of a moving average, used to smooth out battery current readings.
 - `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If no new battery messages are received within this duration, the node will publish an unknown battery state.
-- `~batery_voltage_window_len` [*int*, default: **10**]: moving average window length used to smooth out battery voltage readings.
+- `~batery_voltage_window_len` [*int*, default: **10**]: window length of a moving average, used to smooth out battery voltage readings.
