@@ -1,6 +1,7 @@
 #include <panther_battery/adc_node.hpp>
 
 #include <chrono>
+#include <cmath>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -33,22 +34,21 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   this->declare_parameter<int>("batery_current_window_len", 10);
   this->declare_parameter<int>("batery_charge_window_len", 10);
 
-  adc0_device_ = this->get_parameter("adc0_device").as_string();
-  adc1_device_ = this->get_parameter("adc1_device").as_string();
   battery_timeout_ = this->get_parameter("battery_timeout").as_double();
   high_bat_temp_ = this->get_parameter("high_bat_temp").as_double();
+  const auto adc0_device = this->get_parameter("adc0_device").as_string();
+  const auto adc1_device = this->get_parameter("adc1_device").as_string();
   const auto battery_voltage_window_len = this->get_parameter("batery_voltage_window_len").as_int();
   const auto battery_temp_window_len = this->get_parameter("batery_temp_window_len").as_int();
   const auto battery_current_window_len = this->get_parameter("batery_current_window_len").as_int();
   const auto battery_charge_window_len = this->get_parameter("batery_charge_window_len").as_int();
 
-  adc0_reader_ = std::make_unique<ADCDataReader>(adc0_device_);
-  adc1_reader_ = std::make_unique<ADCDataReader>(adc1_device_);
+  adc0_reader_ = std::make_unique<ADCDataReader>(adc0_device);
+  adc1_reader_ = std::make_unique<ADCDataReader>(adc1_device);
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
-  battery_count_ = CheckBatteryCount();
-
   // create battery publisher based on battery count
+  battery_count_ = CheckBatteryCount();
   if (battery_count_ == 2) {
     battery_pub_ = std::make_unique<BatteryPublisher>(
       this->create_publisher<BatteryStateMsg>("battery", 10), high_bat_temp_,
@@ -82,18 +82,14 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 
 int ADCNode::CheckBatteryCount()
 {
-  auto trials_num = 10;
-  auto V_temp_sum = 0.0;
-  auto V_temp_bat_2 = 0.0;
+  const auto get_temp_attempts = 10;
+  auto V_temp_sum = 0.0f;
 
   try {
-    for (int i = 0; i < trials_num; i++) {
+    for (int i = 0; i < get_temp_attempts; i++) {
       V_temp_sum += adc0_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.002);
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
-
-    V_temp_bat_2 = V_temp_sum / trials_num;
-
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR(
       this->get_logger(),
@@ -102,6 +98,8 @@ int ADCNode::CheckBatteryCount()
       e.what());
     return 1;
   }
+
+  const auto V_temp_bat_2 = V_temp_sum / get_temp_attempts;
 
   return V_temp_bat_2 > bat02_detect_thresh_ ? 1 : 2;
 }
@@ -121,7 +119,7 @@ void ADCNode::BatteryPubTimerCB()
     I_charge_bat_2_ = adc0_reader_->GetADCMeasurement("in_voltage2_raw", 0.0, 0.005);
     last_battery_info_time_ = this->get_clock()->now();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR(this->get_logger(), "Error reading ADC data: %s. ", e.what());
+    RCLCPP_ERROR(this->get_logger(), "Error reading battery data: %s. ", e.what());
   }
 
   auto header_stamp = this->get_clock()->now();
@@ -157,7 +155,7 @@ void ADCNode::BatteryPubTimerCB()
   }
 
   // print error messages
-  if (battery_pub_->HasErrorMsg()) {
+  if (battery_count_ == 1 && battery_pub_->HasErrorMsg()) {
     RCLCPP_ERROR_THROTTLE(
       this->get_logger(), *this->get_clock(), 10000, "Battery error: %s",
       battery_pub_->GetErrorMsg().c_str());
@@ -180,12 +178,15 @@ void ADCNode::BatteryPubTimerCB()
 
 float ADCNode::VoltageTempToDeg(const float & V_temp)
 {
-  if (V_temp == 0 || V_temp >= u_supply_) {
+  if (V_temp == 0 || V_temp >= resistor_devider_u_supply_) {
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  auto R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
-  return (A_ * B_ / (A_ * log(R_therm / R0_) + B_)) - 273.15;
+  auto R_therm = (V_temp * resistor_devider_R1_) / (resistor_devider_u_supply_ - V_temp);
+  return (thermistor_temp_coeff_A_ * thermistor_temp_coeff_B_ /
+          (thermistor_temp_coeff_A_ * log(R_therm / thermistor_R0_) +
+           thermistor_temp_coeff_B_)) -
+         kelvin_to_celcius_offset;
 }
 
 }  // namespace panther_battery

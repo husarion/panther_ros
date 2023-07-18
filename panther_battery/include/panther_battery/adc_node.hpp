@@ -33,11 +33,12 @@ private:
   static constexpr float bat_charging_curr_thresh_ = 0.1;
   static constexpr float bat02_detect_thresh_ = 3.03;
   static constexpr float bat_designed_capacity_ = 20.0;
-  static constexpr float A_ = 298.15;
-  static constexpr float B_ = 3977.0;
-  static constexpr float R1_ = 10000.0;
-  static constexpr float R0_ = 10000.0;
-  static constexpr float u_supply_ = 3.28;
+  static constexpr double thermistor_temp_coeff_A_ = 298.15;
+  static constexpr double thermistor_temp_coeff_B_ = 3977.0;
+  static constexpr double resistor_devider_R1_ = 10000.0;
+  static constexpr double thermistor_R0_ = 10000.0;
+  static constexpr double resistor_devider_u_supply_ = 3.28;
+  static constexpr double kelvin_to_celcius_offset = 273.15;
 
   bool charger_connected_;
   int battery_count_;
@@ -51,8 +52,6 @@ private:
   float I_charge_bat_2_;
   float I_bat_1_;
   float I_bat_2_;
-  std::string adc0_device_;
-  std::string adc1_device_;
   rclcpp::Time last_battery_info_time_;
 
   std::unique_ptr<ADCDataReader> adc0_reader_;

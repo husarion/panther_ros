@@ -10,7 +10,7 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2.
 
 #### Publishes
 
-- `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one.
+- `/panther/battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
 - `/panther/battery_1` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
 - `/panther/battery_2` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
 
@@ -27,7 +27,7 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2.
 - `~battery_temp_window_len` [*int*, default: **10**]: window length of a moving average, used to smooth out battery temperature readings.
 - `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If node fails to read ADC battery data exceeding this duration, the node will publish an unknown battery state.
 - `~battery_voltage_window_len` [*int*, default: **10**]: window length of a moving average, used to smooth out battery voltage readings.
-- `~high_bat_temp` [*float*, default: **55.0**]: The temperature of the battery at which the battery health state is incorrect.
+- `~high_bat_temp` [*float*, default: **55.0**]: the temperature of the battery at which is is considered to overheat.
 
 ### roboteq_republisher_node
 
