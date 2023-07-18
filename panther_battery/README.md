@@ -23,7 +23,7 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2.
 - `~adc0_device` [*string*, default: **/sys/bus/iio/devices/iio:device0**]: ADC nr 0 device IIO path.
 - `~adc1_device` [*string*, default: **/sys/bus/iio/devices/iio:device0**]: ADC nr 0 device IIO path.
 - `~battery_charge_window_len` [*int*, default: **10**]: window length of a moving average, used to smooth out battery charge readings.
-- `~battery_current_window_len` [*int*, default: **10**]: moving average window length used to smooth out battery current readings.
+- `~battery_current_window_len` [*int*, default: **10**]: window length of a moving average, used to smooth out battery current readings.
 - `~battery_temp_window_len` [*int*, default: **10**]: moving average window length used to smooth out battery temperature readings.
 - `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If node fails to read ADC battery data exceeding this duration, the node will publish an unknown battery state.
 - `~battery_voltage_window_len` [*int*, default: **10**]: moving average window length used to smooth out battery voltage readings.
