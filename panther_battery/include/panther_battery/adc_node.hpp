@@ -11,6 +11,7 @@
 #include <panther_msgs/msg/io_state.hpp>
 
 #include <panther_battery/adc_data_reader.hpp>
+#include <panther_battery/adc_to_battery_converter.hpp>
 #include <panther_battery/battery_publisher.hpp>
 #include <panther_utils/moving_average.hpp>
 
@@ -27,18 +28,11 @@ public:
 
 protected:
   int CheckBatteryCount();
-  float VoltageTempToDeg(const float & V_temp);
 
 private:
   static constexpr float bat_charging_curr_thresh_ = 0.1;
   static constexpr float bat02_detect_thresh_ = 3.03;
   static constexpr float bat_designed_capacity_ = 20.0;
-  static constexpr double thermistor_temp_coeff_A_ = 298.15;
-  static constexpr double thermistor_temp_coeff_B_ = 3977.0;
-  static constexpr double resistor_devider_R1_ = 10000.0;
-  static constexpr double thermistor_R0_ = 10000.0;
-  static constexpr double resistor_devider_u_supply_ = 3.28;
-  static constexpr double kelvin_to_celcius_offset = 273.15;
 
   bool charger_connected_;
   int battery_count_;
@@ -46,8 +40,8 @@ private:
   float high_bat_temp_;
   float V_bat_1_;
   float V_bat_2_;
-  float V_temp_bat_1_;
-  float V_temp_bat_2_;
+  float temp_bat_1_;
+  float temp_bat_2_;
   float I_charge_bat_1_;
   float I_charge_bat_2_;
   float I_bat_1_;
@@ -62,8 +56,8 @@ private:
   std::unique_ptr<BatteryPublisher> battery_pub_;
   std::unique_ptr<BatteryPublisher> battery_1_pub_;
   std::unique_ptr<BatteryPublisher> battery_2_pub_;
+  std::unique_ptr<ADCToBatteryConverter> adc_to_battery_converter_;
 
-  void IOStateCB(const IOStateMsg & msg);
   void BatteryPubTimerCB();
 };
 

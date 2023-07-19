@@ -15,6 +15,7 @@
 #include <panther_msgs/msg/io_state.hpp>
 
 #include <panther_battery/adc_data_reader.hpp>
+#include <panther_battery/adc_to_battery_converter.hpp>
 #include <panther_battery/battery_publisher.hpp>
 #include <panther_utils/moving_average.hpp>
 
@@ -45,6 +46,7 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 
   adc0_reader_ = std::make_unique<ADCDataReader>(adc0_device);
   adc1_reader_ = std::make_unique<ADCDataReader>(adc1_device);
+  adc_to_battery_converter_ = std::make_unique<ADCToBatteryConverter>();
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
   // create battery publisher based on battery count
@@ -70,7 +72,8 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   }
 
   io_state_sub_ = this->create_subscription<IOStateMsg>(
-    "hardware/io_state", 10, std::bind(&ADCNode::IOStateCB, this, _1));
+    "hardware/io_state", 10,
+    [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
 
   // running at 10 Hz
   battery_pub_timer_ = this->create_wall_timer(
@@ -87,7 +90,8 @@ int ADCNode::CheckBatteryCount()
 
   try {
     for (int i = 0; i < get_temp_attempts; i++) {
-      V_temp_sum += adc0_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.002);
+      V_temp_sum +=
+        adc_to_battery_converter_->ADCToBatteryVoltageTemp(adc0_reader_->GetADCMeasurement(0));
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
   } catch (const std::runtime_error & e) {
@@ -104,19 +108,19 @@ int ADCNode::CheckBatteryCount()
   return V_temp_bat_2 > bat02_detect_thresh_ ? 1 : 2;
 }
 
-void ADCNode::IOStateCB(const IOStateMsg & msg) { charger_connected_ = msg.charger_connected; }
-
 void ADCNode::BatteryPubTimerCB()
 {
   try {
-    V_bat_1_ = adc1_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.02504255);
-    V_bat_2_ = adc1_reader_->GetADCMeasurement("in_voltage3_raw", 0.0, 0.02504255);
-    I_bat_1_ = adc1_reader_->GetADCMeasurement("in_voltage2_raw", 625.0, 0.04);
-    I_bat_2_ = adc1_reader_->GetADCMeasurement("in_voltage1_raw", 625.0, 0.04);
-    V_temp_bat_1_ = adc0_reader_->GetADCMeasurement("in_voltage1_raw", 0.0, 0.002);
-    V_temp_bat_2_ = adc0_reader_->GetADCMeasurement("in_voltage0_raw", 0.0, 0.002);
-    I_charge_bat_1_ = adc0_reader_->GetADCMeasurement("in_voltage3_raw", 0.0, 0.005);
-    I_charge_bat_2_ = adc0_reader_->GetADCMeasurement("in_voltage2_raw", 0.0, 0.005);
+    V_bat_1_ = adc_to_battery_converter_->ADCToBatteryVoltage(adc1_reader_->GetADCMeasurement(0));
+    V_bat_2_ = adc_to_battery_converter_->ADCToBatteryVoltage(adc1_reader_->GetADCMeasurement(3));
+    I_bat_1_ = adc_to_battery_converter_->ADCToBatteryCurrent(adc1_reader_->GetADCMeasurement(2));
+    I_bat_2_ = adc_to_battery_converter_->ADCToBatteryCurrent(adc1_reader_->GetADCMeasurement(1));
+    temp_bat_1_ = adc_to_battery_converter_->ADCToBatteryTemp(adc0_reader_->GetADCMeasurement(1));
+    temp_bat_2_ = adc_to_battery_converter_->ADCToBatteryTemp(adc0_reader_->GetADCMeasurement(0));
+    I_charge_bat_1_ =
+      adc_to_battery_converter_->ADCToBatteryCharge(adc0_reader_->GetADCMeasurement(3));
+    I_charge_bat_2_ =
+      adc_to_battery_converter_->ADCToBatteryCharge(adc0_reader_->GetADCMeasurement(2));
     last_battery_info_time_ = this->get_clock()->now();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR(this->get_logger(), "Error reading battery data: %s. ", e.what());
@@ -133,23 +137,20 @@ void ADCNode::BatteryPubTimerCB()
       battery_2_pub_->PublishUnknown(header_stamp);
     }
   } else {
-    auto temp_bat_1 = VoltageTempToDeg(V_temp_bat_1_);
-    auto temp_bat_2 = VoltageTempToDeg(V_temp_bat_2_);
-
     if (battery_count_ == 2) {
       battery_pub_->Publish(
-        header_stamp, (V_bat_1_ + V_bat_2_) / 2.0, (temp_bat_1 + temp_bat_2) / 2.0,
+        header_stamp, (V_bat_1_ + V_bat_2_) / 2.0, (temp_bat_1_ + temp_bat_2_) / 2.0,
         -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_ + I_charge_bat_2_,
         I_charge_bat_1_ + I_charge_bat_2_, charger_connected_);
       battery_1_pub_->Publish(
-        header_stamp, V_bat_1_, temp_bat_1, -I_bat_1_ + I_charge_bat_1_, I_charge_bat_1_,
+        header_stamp, V_bat_1_, temp_bat_1_, -I_bat_1_ + I_charge_bat_1_, I_charge_bat_1_,
         charger_connected_);
       battery_2_pub_->Publish(
-        header_stamp, V_bat_2_, temp_bat_2, -I_bat_2_ + I_charge_bat_2_, I_charge_bat_2_,
+        header_stamp, V_bat_2_, temp_bat_2_, -I_bat_2_ + I_charge_bat_2_, I_charge_bat_2_,
         charger_connected_);
     } else {
       battery_pub_->Publish(
-        header_stamp, V_bat_1_, temp_bat_1, -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_,
+        header_stamp, V_bat_1_, temp_bat_1_, -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_,
         I_charge_bat_1_, charger_connected_);
     }
   }
@@ -174,19 +175,6 @@ void ADCNode::BatteryPubTimerCB()
         battery_pub_->GetErrorMsg().c_str());
     }
   }
-}
-
-float ADCNode::VoltageTempToDeg(const float & V_temp)
-{
-  if (V_temp == 0 || V_temp >= resistor_devider_u_supply_) {
-    return std::numeric_limits<float>::quiet_NaN();
-  }
-
-  auto R_therm = (V_temp * resistor_devider_R1_) / (resistor_devider_u_supply_ - V_temp);
-  return (thermistor_temp_coeff_A_ * thermistor_temp_coeff_B_ /
-          (thermistor_temp_coeff_A_ * log(R_therm / thermistor_R0_) +
-           thermistor_temp_coeff_B_)) -
-         kelvin_to_celcius_offset;
 }
 
 }  // namespace panther_battery

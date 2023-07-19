@@ -20,7 +20,6 @@ public:
   {
   }
 
-  float VoltageTempToDeg(const float & v_temp) { return ADCNode::VoltageTempToDeg(v_temp); }
   int CheckBatteryCount() { return ADCNode::CheckBatteryCount(); }
 };
 
@@ -31,7 +30,8 @@ public:
   ~TestADCNode();
 
 protected:
-  void WriteNumberToFile(const std::string & file_path, const int & number);
+  template <typename T>
+  void WriteNumberToFile(const T number, const std::string file_path);
 
   std::filesystem::path current_path_;
   std::filesystem::path file_path_;
@@ -67,7 +67,8 @@ TestADCNode::~TestADCNode()
   adc_node_.reset();
 }
 
-void TestADCNode::WriteNumberToFile(const std::string & file_path, const int & number)
+template <typename T>
+void TestADCNode::WriteNumberToFile(const T number, const std::string file_path)
 {
   std::ofstream file(file_path);
   if (file.is_open()) {
@@ -93,10 +94,14 @@ TEST_F(TestADCNode, BatteryTimeout)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 
   // create and write some values
-  WriteNumberToFile(std::filesystem::path(current_path_ / "in_voltage0_raw"), 800);
-  WriteNumberToFile(std::filesystem::path(current_path_ / "in_voltage1_raw"), 800);
-  WriteNumberToFile(std::filesystem::path(current_path_ / "in_voltage2_raw"), 800);
-  WriteNumberToFile(std::filesystem::path(current_path_ / "in_voltage3_raw"), 800);
+  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage1_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage2_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage3_raw"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage0_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage1_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage2_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage3_scale"));
 
   panther_utils::test_utils::WaitForMsg(adc_node_, battery_state_, std::chrono::milliseconds(1000));
 
@@ -122,27 +127,15 @@ TEST_F(TestADCNode, BatteryTimeout)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 }
 
-TEST_F(TestADCNode, VoltageTempToDeg)
-{
-  auto result = adc_node_->VoltageTempToDeg(1.0);
-  EXPECT_NEAR(result, 44.6351, 10e-5);
-
-  result = adc_node_->VoltageTempToDeg(2.0);
-  EXPECT_NEAR(result, 15.3476, 10e-5);
-
-  result = adc_node_->VoltageTempToDeg(4.0);
-  EXPECT_TRUE(std::isnan(result));
-}
-
 TEST_F(TestADCNode, CheckBatteryCount)
 {
-  auto file_path = current_path_ / "in_voltage0_raw";
-  WriteNumberToFile(file_path, 800);
+  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage0_scale"));
 
   auto bat_count = adc_node_->CheckBatteryCount();
   EXPECT_EQ(2, bat_count);
 
-  WriteNumberToFile(file_path, 1800);
+  WriteNumberToFile<int>(3600, std::filesystem::path(current_path_ / "in_voltage0_raw"));
 
   bat_count = adc_node_->CheckBatteryCount();
   EXPECT_EQ(1, bat_count);
