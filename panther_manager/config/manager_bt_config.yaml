@@ -15,8 +15,8 @@ safety:
   critical_bat_temp: 59.0
   cpu_fan_on_temp: 70.0
   cpu_fan_off_temp: 60.0
-  driver_fan_on_temp: 45.0
-  driver_fan_off_temp: 35.0
+  driver_fan_on_temp: 50.0
+  driver_fan_off_temp: 45.0
 plugin_libs:
   - tick_after_timeout_bt_node
   - shutdown_single_host_bt_node
