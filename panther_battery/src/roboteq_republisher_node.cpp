@@ -62,10 +62,10 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
 {
   auto battery_msg = BatteryStateMsg();
   battery_msg.header.stamp = this->get_clock()->now();
-  battery_msg.capacity = bat_capacity_;
+  battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
   battery_msg.design_capacity = bat_designed_capacity_;
   battery_msg.temperature = std::numeric_limits<float>::quiet_NaN();
-  battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO;
+  battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_msg.present = true;
   battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());

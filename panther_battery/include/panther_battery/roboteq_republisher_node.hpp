@@ -23,7 +23,6 @@ public:
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
-  static constexpr float bat_capacity_ = 20.0;
   static constexpr float bat_designed_capacity_ = 20.0;
   static constexpr float v_bat_fatal_min_ = 27.0;
   static constexpr float v_bat_fatal_max_ = 43.0;
