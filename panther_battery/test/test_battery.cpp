@@ -34,7 +34,8 @@ protected:
 
 TestBatteryPublisher::TestBatteryPublisher()
 {
-  battery_ = std::make_unique<panther_battery::Battery>(55.0, 0.1, 10, 10, 10, 10, 20.0);
+  panther_battery::BatteryParams params = {55.0, 0.1, 20.0, 10, 10, 10, 10};
+  battery_ = std::make_unique<panther_battery::Battery>(params);
 }
 
 void TestBatteryPublisher::CheckBatteryStateMsg(

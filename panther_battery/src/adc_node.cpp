@@ -49,31 +49,38 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   adc_to_battery_converter_ = std::make_unique<ADCToBatteryConverter>();
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
-  // create battery publisher based on battery count
+  BatteryParams default_battery_params = {
+    high_bat_temp_,
+    bat_charging_curr_thresh_,
+    bat_designed_capacity_,
+    battery_voltage_window_len,
+    battery_temp_window_len,
+    battery_current_window_len,
+    battery_charge_window_len,
+  };
+  BatteryParams double_battery_params = {
+    high_bat_temp_,
+    2 * bat_charging_curr_thresh_,
+    2 * bat_designed_capacity_,
+    battery_voltage_window_len,
+    battery_temp_window_len,
+    battery_current_window_len,
+    battery_charge_window_len,
+  };
+
+  // create battery instances based on battery count
   battery_count_ = CheckBatteryCount();
   if (battery_count_ == 2) {
-    battery_ = std::make_unique<Battery>(
-      high_bat_temp_, 2 * bat_charging_curr_thresh_, battery_voltage_window_len,
-      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
-      2 * bat_designed_capacity_);
-    battery_1_ = std::make_unique<Battery>(
-      high_bat_temp_, bat_charging_curr_thresh_, battery_voltage_window_len,
-      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
-      bat_designed_capacity_);
-    battery_2_ = std::make_unique<Battery>(
-      high_bat_temp_, bat_charging_curr_thresh_, battery_voltage_window_len,
-      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
-      bat_designed_capacity_);
+    battery_ = std::make_unique<Battery>(double_battery_params);
+    battery_1_ = std::make_unique<Battery>(default_battery_params);
+    battery_2_ = std::make_unique<Battery>(default_battery_params);
+    battery_1_pub_ = this->create_publisher<BatteryStateMsg>("battery_1", 10);
+    battery_2_pub_ = this->create_publisher<BatteryStateMsg>("battery_2", 10);
   } else {
-    battery_ = std::make_unique<Battery>(
-      high_bat_temp_, bat_charging_curr_thresh_, battery_voltage_window_len,
-      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
-      bat_designed_capacity_);
+    battery_ = std::make_unique<Battery>(default_battery_params);
   }
 
   battery_pub_ = this->create_publisher<BatteryStateMsg>("battery", 10);
-  battery_1_pub_ = this->create_publisher<BatteryStateMsg>("battery_1", 10);
-  battery_2_pub_ = this->create_publisher<BatteryStateMsg>("battery_2", 10);
 
   io_state_sub_ = this->create_subscription<IOStateMsg>(
     "hardware/io_state", 10,

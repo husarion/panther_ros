@@ -20,14 +20,21 @@ namespace panther_battery
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
+struct BatteryParams
+{
+  const float high_bat_temp;
+  const float charging_current_tresh;
+  const float designed_capacity;
+  const int64_t voltage_window_len;
+  const int64_t temp_window_len;
+  const int64_t current_window_len;
+  const int64_t charge_window_len;
+};
+
 class Battery
 {
 public:
-  Battery(
-    const float high_bat_temp, const float battery_charging_current_tresh,
-    const int batery_voltage_window_len, const int batery_temp_window_len,
-    const int batery_current_window_len, const int batery_charge_window_len,
-    const float battery_designed_capacity);
+  Battery(const BatteryParams & params);
 
   BatteryStateMsg UpdateBatteryMsg(rclcpp::Time header_stamp);
 
@@ -46,41 +53,37 @@ private:
   static constexpr std::string_view location_ = "user_compartment";
 
   const float high_bat_temp_;
-  const float battery_charging_current_tresh_;
-  const float battery_designed_capacity_;
+  const float charging_current_tresh_;
+  const float designed_capacity_;
   std::string error_msg_;
 
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_voltage_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_current_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_charge_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<double>> voltage_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<double>> temp_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<double>> current_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<double>> charge_ma_;
 };
 
-inline Battery::Battery(
-  const float high_bat_temp, const float battery_charging_current_tresh,
-  const int batery_voltage_window_len, const int batery_temp_window_len,
-  const int batery_current_window_len, const int batery_charge_window_len,
-  const float battery_designed_capacity)
-: high_bat_temp_(high_bat_temp),
-  battery_charging_current_tresh_(battery_charging_current_tresh),
-  battery_designed_capacity_(battery_designed_capacity)
+inline Battery::Battery(const BatteryParams & params)
+: high_bat_temp_(params.high_bat_temp),
+  charging_current_tresh_(params.charging_current_tresh),
+  designed_capacity_(params.designed_capacity)
 {
-  battery_voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    batery_voltage_window_len, std::numeric_limits<double>::quiet_NaN());
-  battery_temp_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    batery_temp_window_len, std::numeric_limits<double>::quiet_NaN());
-  battery_current_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    batery_current_window_len, std::numeric_limits<double>::quiet_NaN());
-  battery_charge_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    batery_charge_window_len, std::numeric_limits<double>::quiet_NaN());
+  voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
+    params.voltage_window_len, std::numeric_limits<double>::quiet_NaN());
+  temp_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
+    params.temp_window_len, std::numeric_limits<double>::quiet_NaN());
+  current_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
+    params.current_window_len, std::numeric_limits<double>::quiet_NaN());
+  charge_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
+    params.charge_window_len, std::numeric_limits<double>::quiet_NaN());
 }
 
 inline BatteryStateMsg Battery::UpdateBatteryMsg(rclcpp::Time header_stamp)
 {
-  battery_voltage_ma_->Reset();
-  battery_temp_ma_->Reset();
-  battery_current_ma_->Reset();
-  battery_charge_ma_->Reset();
+  voltage_ma_->Reset();
+  temp_ma_->Reset();
+  current_ma_->Reset();
+  charge_ma_->Reset();
 
   auto battery_msg = BatteryStateMsg();
   battery_msg.header.stamp = header_stamp;
@@ -89,7 +92,7 @@ inline BatteryStateMsg Battery::UpdateBatteryMsg(rclcpp::Time header_stamp)
   battery_msg.current = std::numeric_limits<double>::quiet_NaN();
   battery_msg.percentage = std::numeric_limits<double>::quiet_NaN();
   battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
-  battery_msg.design_capacity = battery_designed_capacity_;
+  battery_msg.design_capacity = designed_capacity_;
   battery_msg.charge = std::numeric_limits<double>::quiet_NaN();
   battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
@@ -106,15 +109,15 @@ inline BatteryStateMsg Battery::UpdateBatteryMsg(
   rclcpp::Time & header_stamp, const float V_bat, const float temp_bat, const float I_bat,
   const float I_charge, const bool charger_connected)
 {
-  battery_voltage_ma_->Roll(V_bat);
-  battery_temp_ma_->Roll(temp_bat);
-  battery_current_ma_->Roll(I_bat);
-  battery_charge_ma_->Roll(I_charge);
+  voltage_ma_->Roll(V_bat);
+  temp_ma_->Roll(temp_bat);
+  current_ma_->Roll(I_bat);
+  charge_ma_->Roll(I_charge);
 
-  auto V_bat_mean = battery_voltage_ma_->GetAverage();
-  auto temp_bat_mean = battery_temp_ma_->GetAverage();
-  auto I_bat_mean = battery_current_ma_->GetAverage();
-  auto I_charge_mean = battery_charge_ma_->GetAverage();
+  auto V_bat_mean = voltage_ma_->GetAverage();
+  auto temp_bat_mean = temp_ma_->GetAverage();
+  auto I_bat_mean = current_ma_->GetAverage();
+  auto I_charge_mean = charge_ma_->GetAverage();
 
   auto battery_msg = BatteryStateMsg();
   battery_msg.header.stamp = header_stamp;
@@ -124,7 +127,7 @@ inline BatteryStateMsg Battery::UpdateBatteryMsg(
   battery_msg.percentage =
     std::clamp((V_bat_mean - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0, 1.0);
   battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
-  battery_msg.design_capacity = battery_designed_capacity_;
+  battery_msg.design_capacity = designed_capacity_;
   battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity;
   battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
@@ -136,7 +139,7 @@ inline BatteryStateMsg Battery::UpdateBatteryMsg(
   if (charger_connected) {
     if (fabs(battery_msg.percentage - 1.0f) < std::numeric_limits<float>::epsilon()) {
       battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
-    } else if (I_charge_mean > battery_charging_current_tresh_) {
+    } else if (I_charge_mean > charging_current_tresh_) {
       battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
     } else {
       battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
