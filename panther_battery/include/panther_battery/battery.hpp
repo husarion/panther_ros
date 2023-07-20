@@ -1,11 +1,12 @@
-#ifndef PANTHER_BATTERY_BATTERY_PUBLISHER_HPP_
-#define PANTHER_BATTERY_BATTERY_PUBLISHER_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_HPP_
+#define PANTHER_BATTERY_BATTERY_HPP_
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <memory>
 #include <string>
-#include <utility>
+#include <string_view>
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
@@ -19,20 +20,18 @@ namespace panther_battery
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
-class BatteryPublisher
+class Battery
 {
 public:
-  BatteryPublisher(
-    rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub, const float high_bat_temp,
-    const float battery_charging_current_tresh, const int batery_voltage_window_len,
-    const int batery_temp_window_len, const int batery_current_window_len,
-    const int batery_charge_window_len, const float battery_designed_capacity);
+  Battery(
+    const float high_bat_temp, const float battery_charging_current_tresh,
+    const int batery_voltage_window_len, const int batery_temp_window_len,
+    const int batery_current_window_len, const int batery_charge_window_len,
+    const float battery_designed_capacity);
 
-  ~BatteryPublisher();
+  BatteryStateMsg UpdateBatteryMsg(rclcpp::Time header_stamp);
 
-  void PublishUnknown(rclcpp::Time header_stamp);
-
-  void Publish(
+  BatteryStateMsg UpdateBatteryMsg(
     rclcpp::Time & header_stamp, const float V_bat, const float temp_bat, const float I_bat,
     const float I_charge, const bool charger_connected);
 
@@ -46,7 +45,6 @@ private:
   static constexpr double V_bat_min_ = 32.0;
   static constexpr std::string_view location_ = "user_compartment";
 
-  rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
   const float high_bat_temp_;
   const float battery_charging_current_tresh_;
   const float battery_designed_capacity_;
@@ -58,13 +56,12 @@ private:
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_charge_ma_;
 };
 
-inline BatteryPublisher::BatteryPublisher(
-  rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub, const float high_bat_temp,
-  const float battery_charging_current_tresh, const int batery_voltage_window_len,
-  const int batery_temp_window_len, const int batery_current_window_len,
-  const int batery_charge_window_len, const float battery_designed_capacity)
-: battery_pub_(std::move(battery_pub)),
-  high_bat_temp_(high_bat_temp),
+inline Battery::Battery(
+  const float high_bat_temp, const float battery_charging_current_tresh,
+  const int batery_voltage_window_len, const int batery_temp_window_len,
+  const int batery_current_window_len, const int batery_charge_window_len,
+  const float battery_designed_capacity)
+: high_bat_temp_(high_bat_temp),
   battery_charging_current_tresh_(battery_charging_current_tresh),
   battery_designed_capacity_(battery_designed_capacity)
 {
@@ -78,9 +75,7 @@ inline BatteryPublisher::BatteryPublisher(
     batery_charge_window_len, std::numeric_limits<double>::quiet_NaN());
 }
 
-inline BatteryPublisher::~BatteryPublisher() { battery_pub_.reset(); }
-
-inline void BatteryPublisher::PublishUnknown(rclcpp::Time header_stamp)
+inline BatteryStateMsg Battery::UpdateBatteryMsg(rclcpp::Time header_stamp)
 {
   battery_voltage_ma_->Reset();
   battery_temp_ma_->Reset();
@@ -104,10 +99,10 @@ inline void BatteryPublisher::PublishUnknown(rclcpp::Time header_stamp)
   battery_msg.present = true;
   battery_msg.location = location_;
 
-  battery_pub_->publish(battery_msg);
+  return battery_msg;
 }
 
-inline void BatteryPublisher::Publish(
+inline BatteryStateMsg Battery::UpdateBatteryMsg(
   rclcpp::Time & header_stamp, const float V_bat, const float temp_bat, const float I_bat,
   const float I_charge, const bool charger_connected)
 {
@@ -165,10 +160,10 @@ inline void BatteryPublisher::Publish(
     error_msg_ = "";
   }
 
-  battery_pub_->publish(battery_msg);
+  return battery_msg;
 }
 
-inline bool BatteryPublisher::HasErrorMsg() const
+inline bool Battery::HasErrorMsg() const
 {
   if (error_msg_.empty()) {
     return false;
@@ -176,8 +171,8 @@ inline bool BatteryPublisher::HasErrorMsg() const
   return true;
 }
 
-inline std::string BatteryPublisher::GetErrorMsg() const { return error_msg_; }
+inline std::string Battery::GetErrorMsg() const { return error_msg_; }
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_BATTERY_PUBLISHER_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_HPP_

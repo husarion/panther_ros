@@ -16,7 +16,7 @@
 
 #include <panther_battery/adc_data_reader.hpp>
 #include <panther_battery/adc_to_battery_converter.hpp>
-#include <panther_battery/battery_publisher.hpp>
+#include <panther_battery/battery.hpp>
 #include <panther_utils/moving_average.hpp>
 
 namespace panther_battery
@@ -52,24 +52,28 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   // create battery publisher based on battery count
   battery_count_ = CheckBatteryCount();
   if (battery_count_ == 2) {
-    battery_pub_ = std::make_unique<BatteryPublisher>(
-      this->create_publisher<BatteryStateMsg>("battery", 10), high_bat_temp_,
-      2 * bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, 2 * bat_designed_capacity_);
-    battery_1_pub_ = std::make_unique<BatteryPublisher>(
-      this->create_publisher<BatteryStateMsg>("battery_1", 10), high_bat_temp_,
-      bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, bat_designed_capacity_);
-    battery_2_pub_ = std::make_unique<BatteryPublisher>(
-      this->create_publisher<BatteryStateMsg>("battery_2", 10), high_bat_temp_,
-      bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, bat_designed_capacity_);
+    battery_ = std::make_unique<Battery>(
+      high_bat_temp_, 2 * bat_charging_curr_thresh_, battery_voltage_window_len,
+      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
+      2 * bat_designed_capacity_);
+    battery_1_ = std::make_unique<Battery>(
+      high_bat_temp_, bat_charging_curr_thresh_, battery_voltage_window_len,
+      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
+      bat_designed_capacity_);
+    battery_2_ = std::make_unique<Battery>(
+      high_bat_temp_, bat_charging_curr_thresh_, battery_voltage_window_len,
+      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
+      bat_designed_capacity_);
   } else {
-    battery_pub_ = std::make_unique<BatteryPublisher>(
-      this->create_publisher<BatteryStateMsg>("battery", 10), high_bat_temp_,
-      bat_charging_curr_thresh_, battery_voltage_window_len, battery_temp_window_len,
-      battery_current_window_len, battery_charge_window_len, bat_designed_capacity_);
+    battery_ = std::make_unique<Battery>(
+      high_bat_temp_, bat_charging_curr_thresh_, battery_voltage_window_len,
+      battery_temp_window_len, battery_current_window_len, battery_charge_window_len,
+      bat_designed_capacity_);
   }
+
+  battery_pub_ = this->create_publisher<BatteryStateMsg>("battery", 10);
+  battery_1_pub_ = this->create_publisher<BatteryStateMsg>("battery_1", 10);
+  battery_2_pub_ = this->create_publisher<BatteryStateMsg>("battery_2", 10);
 
   io_state_sub_ = this->create_subscription<IOStateMsg>(
     "hardware/io_state", 10,
@@ -131,48 +135,48 @@ void ADCNode::BatteryPubTimerCB()
   if (
     (this->get_clock()->now() - last_battery_info_time_) >
     rclcpp::Duration::from_seconds(battery_timeout_)) {
-    battery_pub_->PublishUnknown(header_stamp);
+    battery_pub_->publish(battery_->UpdateBatteryMsg(header_stamp));
     if (battery_count_ == 2) {
-      battery_1_pub_->PublishUnknown(header_stamp);
-      battery_2_pub_->PublishUnknown(header_stamp);
+      battery_1_pub_->publish(battery_1_->UpdateBatteryMsg(header_stamp));
+      battery_2_pub_->publish(battery_2_->UpdateBatteryMsg(header_stamp));
     }
   } else {
     if (battery_count_ == 2) {
-      battery_pub_->Publish(
+      battery_pub_->publish(battery_->UpdateBatteryMsg(
         header_stamp, (V_bat_1_ + V_bat_2_) / 2.0, (temp_bat_1_ + temp_bat_2_) / 2.0,
         -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_ + I_charge_bat_2_,
-        I_charge_bat_1_ + I_charge_bat_2_, charger_connected_);
-      battery_1_pub_->Publish(
+        I_charge_bat_1_ + I_charge_bat_2_, charger_connected_));
+      battery_1_pub_->publish(battery_1_->UpdateBatteryMsg(
         header_stamp, V_bat_1_, temp_bat_1_, -I_bat_1_ + I_charge_bat_1_, I_charge_bat_1_,
-        charger_connected_);
-      battery_2_pub_->Publish(
+        charger_connected_));
+      battery_2_pub_->publish(battery_2_->UpdateBatteryMsg(
         header_stamp, V_bat_2_, temp_bat_2_, -I_bat_2_ + I_charge_bat_2_, I_charge_bat_2_,
-        charger_connected_);
+        charger_connected_));
     } else {
-      battery_pub_->Publish(
+      battery_pub_->publish(battery_->UpdateBatteryMsg(
         header_stamp, V_bat_1_, temp_bat_1_, -(I_bat_1_ + I_bat_2_) + I_charge_bat_1_,
-        I_charge_bat_1_, charger_connected_);
+        I_charge_bat_1_, charger_connected_));
     }
   }
 
   // print error messages
-  if (battery_count_ == 1 && battery_pub_->HasErrorMsg()) {
+  if (battery_count_ == 1 && battery_->HasErrorMsg()) {
     RCLCPP_ERROR_THROTTLE(
       this->get_logger(), *this->get_clock(), 10000, "Battery error: %s",
-      battery_pub_->GetErrorMsg().c_str());
+      battery_->GetErrorMsg().c_str());
   }
 
   if (battery_count_ == 2) {
     // print error messages for each battery
-    if (battery_1_pub_->HasErrorMsg()) {
+    if (battery_1_->HasErrorMsg()) {
       RCLCPP_ERROR_THROTTLE(
         this->get_logger(), *this->get_clock(), 10000, "Battery nr 1 error: %s",
-        battery_pub_->GetErrorMsg().c_str());
+        battery_->GetErrorMsg().c_str());
     }
-    if (battery_2_pub_->HasErrorMsg()) {
+    if (battery_2_->HasErrorMsg()) {
       RCLCPP_ERROR_THROTTLE(
         this->get_logger(), *this->get_clock(), 10000, "Battery nr 2 error: %s",
-        battery_pub_->GetErrorMsg().c_str());
+        battery_->GetErrorMsg().c_str());
     }
   }
 }
