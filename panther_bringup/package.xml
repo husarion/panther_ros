@@ -26,4 +26,7 @@
   <depend>phidgets_spatial</depend>
   <depend>robot_localization</depend>
 
+  <!-- Python dependencies -->
+  <depend>python3-click</depend>
+
 </package>
