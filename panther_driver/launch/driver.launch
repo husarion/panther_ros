@@ -3,7 +3,7 @@
   <arg name="panther_common_config_file" />
   <arg name="wheel_config_file" />
 
-  <node pkg="panther_driver" type="driver_node.py" name="panther_driver" output="screen" required="true">
+  <node pkg="panther_driver" type="driver_node.py" name="driver_node" output="screen" required="true">
     <rosparam command="load" file="$(arg panther_common_config_file)" />
     <rosparam command="load" file="$(arg wheel_config_file)" />
     <param name="use_pdo" value="false" unless="$(eval panther_version >= 1.2)" />
