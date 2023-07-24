@@ -2,6 +2,12 @@
 Changelog for package panther_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#149 <https://github.com/husarion/panther_ros/issues/149>`_ from husarion/ros1-clear-acceleration-on-e-stop
+  Clear acceleration on e-stop
+* Contributors: Dawid Kmak
+
 1.0.25 (2023-07-24)
 -------------------
 
