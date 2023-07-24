@@ -9,7 +9,7 @@
   <arg name="launch_lights_scheduler" default="true" />
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
   <arg name="disable_manager" default="false" doc="used for testing purposes" />
-  <arg name="kill_on_wrong_hw" default="true" doc="kill ROS when incorrect hardware detected" />
+  <arg name="exit_on_wrong_hw" default="true" doc="kill ROS when incorrect hardware detected" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
   <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml"
@@ -24,7 +24,7 @@
   <!-- override default params -->
   <rosparam command="load" file="/run/husarion/panther_config.yaml" if="$(optenv PANTHER_HAS_CONFIG false)" />
   <node pkg="panther_bringup" type="welcome_msg_node.py" name="welcome_msg_node" output="screen" required="true">
-    <param name="exit_on_wrong_hw" value="$(arg kill_on_wrong_hw)" />
+    <param name="exit_on_wrong_hw" value="$(arg exit_on_wrong_hw)" />
   </node>
 
   <!-- Do not start ROS packages if hardware is detected to be incorrect -->
