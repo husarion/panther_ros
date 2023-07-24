@@ -9,6 +9,7 @@
   <arg name="launch_lights_scheduler" default="true" />
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
   <arg name="disable_manager" default="false" doc="used for testing purposes" />
+  <arg name="exit_on_wrong_hw" default="true" doc="kill ROS when incorrect hardware detected" />
   <arg name="use_ekf" default="true" doc="enable or disable EKF" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
@@ -19,56 +20,64 @@
   <arg name="wheel_config_file" value="$(find panther_description)/config/WH04.yaml"
     if="$(eval wheel_type == 'WH04')" />
 
-  <arg name="robot_description" if="$(arg publish_robot_state)"
-    default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
-              wheel_config_path:=$(find panther_description)/config/$(arg wheel_type).yaml
-              imu_pos_x:=$(optenv PANTHER_IMU_LOCALIZATION_X 0.168)
-              imu_pos_y:=$(optenv PANTHER_IMU_LOCALIZATION_Y 0.028)
-              imu_pos_z:=$(optenv PANTHER_IMU_LOCALIZATION_Z 0.083)
-              imu_rot_r:=$(optenv PANTHER_IMU_ORIENTATION_R 3.14)
-              imu_rot_p:=$(optenv PANTHER_IMU_ORIENTATION_P -1.57)
-              imu_rot_y:=$(optenv PANTHER_IMU_ORIENTATION_Y 0.0)" />
-
   <!-- load default params -->
   <rosparam command="load" file="$(find panther_bringup)/config/panther_default.yaml" />
   <!-- override default params -->
   <rosparam command="load" file="/run/husarion/panther_config.yaml" if="$(optenv PANTHER_HAS_CONFIG false)" />
+  <node pkg="panther_bringup" type="welcome_msg_node.py" name="welcome_msg_node" output="screen" required="true">
+    <param name="exit_on_wrong_hw" value="$(arg exit_on_wrong_hw)" />
+  </node>
 
-  <group ns="$(arg namespace)">
+  <!-- Do not start ROS packages if hardware is detected to be incorrect -->
+  <group if="$(optenv PANTHER_HW_CONFIG_CORRECT false)">
+    
+    <arg name="robot_description" if="$(arg publish_robot_state)"
+      default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
+                wheel_config_path:=$(find panther_description)/config/$(arg wheel_type).yaml
+                imu_pos_x:=$(optenv PANTHER_IMU_LOCALIZATION_X 0.168)
+                imu_pos_y:=$(optenv PANTHER_IMU_LOCALIZATION_Y 0.028)
+                imu_pos_z:=$(optenv PANTHER_IMU_LOCALIZATION_Z 0.083)
+                imu_rot_r:=$(optenv PANTHER_IMU_ORIENTATION_R 3.14)
+                imu_rot_p:=$(optenv PANTHER_IMU_ORIENTATION_P -1.57)
+                imu_rot_y:=$(optenv PANTHER_IMU_ORIENTATION_Y 0.0)" />
 
-    <include file="$(find panther_driver)/launch/driver.launch">
-      <arg name="panther_version" value="$(arg panther_version)" />
-      <arg name="wheel_config_file" value="$(arg wheel_config_file)" />
-      <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
+    <group ns="$(arg namespace)">
+
+      <include file="$(find panther_driver)/launch/driver.launch">
+        <arg name="panther_version" value="$(arg panther_version)" />
+        <arg name="wheel_config_file" value="$(arg wheel_config_file)" />
+        <arg name="panther_common_config_file" value="$(arg panther_common_config_file)" />
+      </include>
+
+      <include file="$(find panther_lights)/launch/lights.launch">
+        <arg name="launch_scheduler" value="$(arg launch_lights_scheduler)" />
+        <arg name="test" value="$(arg test_animations)" />
+        <arg name="user_animations_file" value="$(arg user_animations_file)" />
+      </include>
+
+      <include file="$(find panther_battery)/launch/battery.launch">
+        <arg name="panther_version" value="$(arg panther_version)" />
+      </include>
+
+      <include file="$(find panther_power_control)/launch/power_control.launch">
+        <arg name="panther_version" value="$(arg panther_version)" />
+      </include>
+
+      <include file="$(find panther_manager)/launch/manager.launch" unless="$(arg disable_manager)">
+        <arg name="panther_version" value="$(arg panther_version)" />
+        <arg name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
+      </include>
+
+      <include file="$(find panther_bringup)/launch/imu.launch" />
+      
+      <include file="$(find panther_bringup)/launch/ekf.launch" if="$(arg use_ekf)" />
+
+    </group>
+
+    <include file="$(find panther_description)/launch/panther_state_publisher.launch" if="$(arg publish_robot_state)">
+      <arg name="robot_description" value="$(arg robot_description)" />
     </include>
-
-    <include file="$(find panther_lights)/launch/lights.launch">
-      <arg name="launch_scheduler" value="$(arg launch_lights_scheduler)" />
-      <arg name="test" value="$(arg test_animations)" />
-      <arg name="user_animations_file" value="$(arg user_animations_file)" />
-    </include>
-
-    <include file="$(find panther_battery)/launch/battery.launch">
-      <arg name="panther_version" value="$(arg panther_version)" />
-    </include>
-
-    <include file="$(find panther_power_control)/launch/power_control.launch">
-      <arg name="panther_version" value="$(arg panther_version)" />
-    </include>
-
-    <include file="$(find panther_manager)/launch/manager.launch" unless="$(arg disable_manager)">
-      <arg name="panther_version" value="$(arg panther_version)" />
-      <arg name="shutdown_hosts_config_file" value="$(arg shutdown_hosts_config_file)" />
-    </include>
-
-    <include file="$(find panther_bringup)/launch/imu.launch" />
-
-    <include file="$(find panther_bringup)/launch/ekf.launch" if="$(arg use_ekf)" />
 
   </group>
-
-  <include file="$(find panther_description)/launch/panther_state_publisher.launch" if="$(arg publish_robot_state)">
-    <arg name="robot_description" value="$(arg robot_description)" />
-  </include>
 
 </launch>
