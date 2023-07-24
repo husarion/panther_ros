@@ -68,7 +68,6 @@ add_executable(manager_bt_node
 add_dependencies(manager_bt_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(manager_bt_node
   ${catkin_LIBRARIES}
-  behaviortree_cpp
   ${plugin_libs}
 )
 
