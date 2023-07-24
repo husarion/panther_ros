@@ -2,8 +2,8 @@
 Changelog for package panther_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.24 (2023-07-24)
+-------------------
 * Merge pull request `#151 <https://github.com/husarion/panther_ros/issues/151>`_ from husarion/ros1-rename-light-link-to-bumper-link
   Rename light_link to bumper_link
 * Contributors: Dawid Kmak

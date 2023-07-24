@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_driver</name>
-  <version>1.0.23</version>
+  <version>1.0.24</version>
 
   <description>Software for controlling Panther robot motors via CAN interface.</description>
   <license>Apache License 2.0</license>
