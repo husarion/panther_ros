@@ -16,7 +16,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>behaviortree_cpp</depend>
+  <depend>behaviortree_cpp_v4</depend>
   <depend>iputils-ping</depend>
   <depend>libssh-dev</depend>
   <depend>panther_msgs</depend>
