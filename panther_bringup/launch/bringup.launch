@@ -10,6 +10,7 @@
   <arg name="shutdown_hosts_config_file" default="$(find panther_bringup)/config/shutdown_hosts.yaml" />
   <arg name="disable_manager" default="false" doc="used for testing purposes" />
   <arg name="exit_on_wrong_hw" default="true" doc="kill ROS when incorrect hardware detected" />
+  <arg name="use_ekf" default="true" doc="enable or disable EKF" />
 
   <arg name="wheel_config_file" if="$(eval wheel_type == 'custom')" />
   <arg name="wheel_config_file" value="$(find panther_description)/config/WH01.yaml"
@@ -68,8 +69,8 @@
       </include>
 
       <include file="$(find panther_bringup)/launch/imu.launch" />
-
-      <include file="$(find panther_bringup)/launch/ekf.launch" />
+      
+      <include file="$(find panther_bringup)/launch/ekf.launch" if="$(arg use_ekf)" />
 
     </group>
 
