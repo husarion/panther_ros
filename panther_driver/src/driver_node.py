@@ -428,6 +428,8 @@ class PantherDriverNode:
 
     def _e_stop_cb(self, data: Bool) -> None:
         with self._lock:
+            if data.data:
+                self._velocity_smoother.reset()
             self._e_stop_cliented = data.data
 
     def _cmd_vel_cb(self, data: Twist) -> None:
