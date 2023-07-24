@@ -27,4 +27,4 @@ The package containing default configuration and launch files necessary to start
 - `user_animations_file` [*string*, default=**None**]: optional parameter with path to yaml file with user defined animations. 
 - `wheel_config_file` [*string*, default=**$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specyfication. value of this argument depends on `wheel_type` launch argument.
 - `wheel_type` [*string*, default=**WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, **custom** - custom wheel type (requires setting `wheel_config_file` argument accordingly).
-
+- `use_ekf` [*bool*, default=**true**]: enable or disable Extended Kalman Filter. Keep in mind parameters in [panther_common.yaml](./config/panther_common.yaml) and in [ekf_config.yaml](./config/ekf_config.yaml) are separate and are not affected by this parameter. Especially parameters such as `publish_tf` and TF frames are separate for both nodes and have to be changed independently.
