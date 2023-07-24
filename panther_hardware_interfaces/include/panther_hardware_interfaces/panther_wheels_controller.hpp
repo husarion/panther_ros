@@ -50,8 +50,6 @@ public:
   void Initialize();
   void Deinitialize();
 
-  void ChangeMode(RoboteqMode mode);
-
   RoboteqFeedback Read();
 
   void WriteSpeed(double speed_fl, double speed_fr, double speed_rl, double speed_rr);
@@ -81,6 +79,43 @@ private:
   float roboteq_pos_feedback_to_radians_;
   float roboteq_vel_feedback_to_radians_per_second_;
   float roboteq_current_feedback_to_newton_meters_;
+
+  std::chrono::nanoseconds pdo_timeout_;
+
+  std::vector<std::string> driver_fault_flags_ = {
+    "overheat",       "overvoltage",
+    "undervoltage",   "short_circuit",
+    "emergency_stop", "motor_or_sensor_setup_fault",
+    "mosfet_failure", "default_config_loaded_at_startup",
+  };
+
+  std::vector<std::string> CheckFlags(uint8_t flags, std::vector<std::string> errors)
+  {
+    uint8_t i = 0;
+    std::vector<std::string> errors_detected;
+    for (auto x : errors) {
+      if (flags & (0b00000001 << i)) {
+        errors_detected.push_back(x);
+      }
+    }
+    return errors_detected;
+  }
+
+  std::vector<std::string> driver_runtime_errors_ = {
+    "amps_limit_active",
+    "motor_stall",
+    "loop_error",
+    "safety_stop_active",
+    "forward_limit_triggered",
+    "reverse_limit_triggered",
+    "amps_trigger_activated",
+  };
+
+  std::vector<std::string> driver_script_flags_ = {
+    "loop_error",
+    "encoder_disconected",
+    "amp_limiter",
+  };
 };
 
 }  // namespace panther_hardware_interfaces

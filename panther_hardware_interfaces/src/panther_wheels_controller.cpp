@@ -105,8 +105,6 @@ void PantherWheelsController::Initialize()
 
 void PantherWheelsController::Activate()
 {
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
   front_driver_->ResetRoboteqScript();
   rear_driver_->ResetRoboteqScript();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -122,17 +120,24 @@ void PantherWheelsController::Deinitialize()
   master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
 }
 
-void PantherWheelsController::ChangeMode(RoboteqMode mode)
-{
-  front_driver_->ChangeMode(mode);
-  rear_driver_->ChangeMode(mode);
-}
-
 RoboteqFeedback PantherWheelsController::Read()
 {
   RoboteqFeedback feedback;
-  RoboteqMotorsFeedback front_driver_feedback = front_driver_->ReadPDOs();
-  RoboteqMotorsFeedback rear_driver_feedback = rear_driver_->ReadPDOs();
+  RoboteqMotorsFeedback front_driver_feedback = front_driver_->ReadRoboteqMotorsFeedback();
+  RoboteqMotorsFeedback rear_driver_feedback = rear_driver_->ReadRoboteqMotorsFeedback();
+
+  timespec front_driver_ts = front_driver_feedback.timestamp;
+  timespec rear_driver_ts = rear_driver_feedback.timestamp;
+  timespec current_time;
+  clock_gettime(CLOCK_MONOTONIC, &current_time);
+
+  if (
+    (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
+     pdo_timeout_) ||
+    (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
+     pdo_timeout_)) {
+    throw std::runtime_error("Timeout - old data");
+  }
 
   feedback.pos_fr = front_driver_feedback.motor_1.pos * roboteq_pos_feedback_to_radians_;
   feedback.vel_fr = front_driver_feedback.motor_1.vel * roboteq_vel_feedback_to_radians_per_second_;
@@ -154,7 +159,32 @@ RoboteqFeedback PantherWheelsController::Read()
   feedback.torque_rl =
     rear_driver_feedback.motor_2.current * roboteq_current_feedback_to_newton_meters_;
 
-  // TODO error flags
+  if (
+    front_driver_feedback.fault_flags != 0 || front_driver_feedback.script_flags != 0 ||
+    front_driver_feedback.motor_1.runtime_stat_flag != 0 ||
+    front_driver_feedback.motor_2.runtime_stat_flag != 0 || rear_driver_feedback.fault_flags != 0 ||
+    rear_driver_feedback.script_flags != 0 || rear_driver_feedback.motor_1.runtime_stat_flag != 0 ||
+    rear_driver_feedback.motor_2.runtime_stat_flag != 0) {
+    auto errors_fault_front = CheckFlags(front_driver_feedback.fault_flags, driver_fault_flags_);
+    auto errors_script_front = CheckFlags(front_driver_feedback.script_flags, driver_script_flags_);
+    auto errors_runtime_mot1_front =
+      CheckFlags(front_driver_feedback.motor_1.runtime_stat_flag, driver_runtime_errors_);
+    auto errors_runtime_mot2_front =
+      CheckFlags(front_driver_feedback.motor_2.runtime_stat_flag, driver_runtime_errors_);
+
+    auto errors_fault_rear = CheckFlags(rear_driver_feedback.fault_flags, driver_fault_flags_);
+    auto errors_script_rear = CheckFlags(rear_driver_feedback.script_flags, driver_script_flags_);
+    auto errors_runtime_mot1_rear =
+      CheckFlags(rear_driver_feedback.motor_1.runtime_stat_flag, driver_runtime_errors_);
+    auto errors_runtime_mot2_rear =
+      CheckFlags(rear_driver_feedback.motor_2.runtime_stat_flag, driver_runtime_errors_);
+
+    throw std::runtime_error("error");
+  }
+
+  if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
+    throw std::runtime_error("can_error");
+  }
 
   return feedback;
 }
@@ -168,6 +198,12 @@ void PantherWheelsController::WriteSpeed(
   int32_t motor_command_rr = speed_rr * radians_per_second_to_roboteq_cmd_;
   front_driver_->SendRoboteqCmd(motor_command_fl, motor_command_fr);
   rear_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
+
+  // TODO tpdo timeout
+
+  if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
+    throw std::runtime_error("can_error");
+  }
 }
 
 // void PantherWheelsController::WriteTorque(
