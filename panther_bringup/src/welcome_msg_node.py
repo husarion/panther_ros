@@ -19,7 +19,7 @@ class WelcomMsgNode:
     '''
     ERROR_MESSAGE = '''
     OS detected incorrect hardware. ROS nodes are prevented from starting!
-    Refer to infstructions in manual or those shown on terminal login.
+    Refer to instructions in manual or those shown on terminal login.
     '''
 
     def __init__(self, name: str) -> None:
