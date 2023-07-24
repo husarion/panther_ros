@@ -59,8 +59,8 @@ Evaluating [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) following
 
 There are also links created for user to attach own sensors and components. The purpose of those links is to simplify localization of mounting points. Those are mentioned links:
 - `cover_link` at the level of the top surface of rails, located in the center of the robot. Positive `x` axis pointing in front of the robot, positive `z` axis pointing up from the robot, and positive `y` pointing to the left of a robot.
-- `front_light_link` in front of the robot, at the height of v-slot of front lights. Exact height is in the middle of the v-slot. Position in `x` axis is the front surface of the v-slot, while in `y` axis it is the center of the robot. Rotation is same as `cover_link`.
-- `rear_light_link` analogous to `front_light_link`, but mounted to the back of the robot. This reference frame has positive `x` facing to the back of a robot. Positive `z` is facing up and positive and `y` is facing to the right of a robot. 
+- `front_bumper_link` in front of the robot, at the height of v-slot of front bumpers. Exact height is in the middle of the v-slot. Position in `x` axis is the front surface of the v-slot, while in `y` axis it is the center of the robot. Rotation is same as `cover_link`.
+- `rear_bumper_link` analogous to `front_bumper_link`, but mounted to the back of the robot. This reference frame has positive `x` facing to the back of a robot. Positive `z` is facing up and positive and `y` is facing to the right of a robot. 
 
 ## Panther specific components configuration
 

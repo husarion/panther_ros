@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_bringup</name>
-  <version>1.0.21</version>
+  <version>1.0.27</version>
 
   <description>Default launch files and configuration used to start Husarion Panther robot</description>
   <license>Apache License 2.0</license>
@@ -25,5 +25,8 @@
   <depend>panther_power_control</depend>
   <depend>phidgets_spatial</depend>
   <depend>robot_localization</depend>
+
+  <!-- Python dependencies -->
+  <depend>python3-click</depend>
 
 </package>

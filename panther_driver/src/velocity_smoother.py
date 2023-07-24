@@ -79,6 +79,11 @@ class VelocitySmoother:
         self._robot_vel_theta = output_vel.angular.z
 
         return output_vel
+    
+    def reset(self) -> None:
+        self._robot_vel_x = 0.0
+        self._robot_vel_y = 0.0
+        self._robot_vel_theta = 0.0
 
     def _accel_limiter(
         self, cmd_vel: float, robot_vel: float, acc_factor: float, decel_factor
