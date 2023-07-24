@@ -67,7 +67,7 @@ class BatteryAnimation(Animation):
         frame = np.zeros((self._num_led, 3), dtype=np.uint8)
         led_to_disp = battery_percent * self._num_led
 
-        middle_led = (self._num_led - 1) / 2
+        middle_led = (self._num_led - 1) / 2.0
         ind_1 = int(np.ceil(middle_led - progress * led_to_disp / 2.0))
         ind_2 = int(np.floor(middle_led + progress * led_to_disp / 2.0))
 
@@ -79,9 +79,9 @@ class BatteryAnimation(Animation):
     def _fill_frame(self, frame: np.array, battery_percent: float, progress: float) -> np.array:
         led_to_disp = battery_percent * self._num_led
 
-        middle_led = (self._num_led - 1) / 2
-        ind_1 = int(np.ceil(middle_led - (1 - progress) * led_to_disp / 2.0))
-        ind_2 = int(np.floor(middle_led + (1 - progress) * led_to_disp / 2.0))
+        middle_led = (self._num_led - 1) / 2.0
+        ind_1 = int(np.ceil(middle_led - (1.0 - progress) * led_to_disp / 2.0))
+        ind_2 = int(np.floor(middle_led + (1.0 - progress) * led_to_disp / 2.0))
 
         rgb = self._calculate_color(battery_percent)
         frame[ind_1] = rgb
