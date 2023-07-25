@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_power_control</name>
-  <version>1.0.27</version>
+  <version>1.0.28</version>
 
   <description>Nodes responsible for controling power section of Husarion Panther robot</description>
   <license>Apache License 2.0</license>
