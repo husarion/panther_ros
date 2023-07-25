@@ -15,15 +15,19 @@
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
+  <depend>behaviortree_cpp</depend>
+  <depend>iputils-ping</depend>
+  <depend>libssh-dev</depend>
   <depend>panther_msgs</depend>
-  <depend>rospy</depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>yaml-cpp</depend>
 
-  <depend>iputils-ping</depend>
-  <depend>python3-paramiko</depend>
+  <!-- Python dependencies -->
   <depend>python3-psutil</depend>
 
 </package>

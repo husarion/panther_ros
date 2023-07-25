@@ -1,0 +1,18 @@
+<launch>
+  <arg name="panther_version" />
+  <arg name="bt_project_file" />
+  <arg name="manager_bt_config_file" value="$(find panther_manager)/config/manager_bt_config.yaml" if="$(eval panther_version >= 1.2)" />
+  <arg name="manager_bt_config_file" value="$(find panther_manager)/config/manager_bt_config_106.yaml" unless="$(eval panther_version >= 1.2)" />
+  <arg name="shutdown_hosts_config_file" />
+
+  <node pkg="panther_manager" type="system_status_node.py" name="system_status_node"
+    required="true" output="screen" />
+
+  <node pkg="panther_manager" type="manager_bt_node" name="manager_bt_node" required="true"
+    output="screen">
+    <rosparam command="load" file="$(arg manager_bt_config_file)" />
+    <param name="bt_project_file" value="$(arg bt_project_file)" />
+    <param name="shutdown_hosts_file" value="$(arg shutdown_hosts_config_file)" if="$(eval panther_version >= 1.2)" />
+  </node>
+
+</launch>
