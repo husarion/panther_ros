@@ -2,6 +2,9 @@
 Changelog for package panther_lights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.27 (2023-07-24)
 -------------------
 * Merge pull request `#152 <https://github.com/husarion/panther_ros/issues/152>`_ from husarion/ros1-fix-coding-style-lights
