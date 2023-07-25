@@ -26,8 +26,6 @@ class ADCNode:
         self._high_bat_temp = rospy.get_param('~fatal_bat_temp', 62.0)
 
         self._driver_battery_last_info_time: Optional[float] = None
-        self._I_driv: Optional[float] = None
-        self._V_driv: Optional[float] = None
 
         self._mean_length = 10
         self._V_bat_hist = defaultdict(lambda: [37.0] * self._mean_length)
@@ -90,9 +88,6 @@ class ADCNode:
     def _motor_controllers_state_cb(self, driver_state: DriverState) -> None:
         with self._lock:
             self._driver_battery_last_info_time = rospy.get_time()
-
-            self._V_driv = (driver_state.front.voltage + driver_state.rear.voltage) / 2.0
-            self._I_driv = driver_state.front.current + driver_state.rear.current
 
     def _io_state_cb(self, io_state: IOState) -> None:
         with self._lock:
