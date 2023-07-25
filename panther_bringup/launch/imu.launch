@@ -7,7 +7,7 @@
   <rosparam command="load" file="$(arg imu_config_file)" />
 
   <!-- Nodelet manager -->
-  <node pkg="nodelet" type="nodelet" name="imu_manager" output="screen" args="manager" launch-prefix="bash -c 'sleep 5; $0 $@' " />
+  <node pkg="nodelet" type="nodelet" name="imu_manager" output="screen" args="manager" launch-prefix="bash -c 'sleep 10; $0 $@' " />
 
   <!-- Spatial Driver -->
   <node pkg="nodelet" type="nodelet" name="PhidgetsSpatialNodelet" output="screen"
