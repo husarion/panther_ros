@@ -2,6 +2,12 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#153 <https://github.com/husarion/panther_ros/issues/153>`_ from husarion/ros1-fix-bringup
+  Remove redundant robot_dscription node from bringup
+* Contributors: Dawid Kmak
+
 1.0.28 (2023-07-25)
 -------------------
 
