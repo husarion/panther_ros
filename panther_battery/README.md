@@ -6,8 +6,8 @@ Package containing nodes monitoring and publishing internal battery state of the
 
 ### adc_node.py
 
-Publishes battery state read from ADC unit. Available from Panther version 1.2.
-
+Publishes battery state read from ADC unit. Available from Panther version 1.2. Voltage, current and temperature are smoothed out by moving average.
+3
 #### Publishes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one.
@@ -18,18 +18,21 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2.
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 
+- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with charging current.
+
+#### Parameters 
+
+- `~fatal_bat_temp` [*float*, default: **62.0**]: The temperature of the battery at which the battery health state is set to `POWER_SUPPLY_HEALTH_OVERHEAT`.
+
+
 ### roboteq_republisher_node.py
 
-Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below.
+Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurement are smoothed with moveing average. Current accounts only for motor controllers.
 
 #### Publishes
 
-- `/panther/battery` [*sensor_msgs/BatteryState*]: battery state.
+- `/panther/battery` [*sensor_msgs/BatteryState*]: battery state estimated from motor controllers.
 
 #### Subscribes
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
-
-#### Parameters 
-
-- `~fatal_bat_temp` [*float*, default: **62.0**]: The temperature of the battery at which the battery health state is incorrect.
