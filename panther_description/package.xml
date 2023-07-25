@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_description</name>
-  <version>1.0.28</version>
+  <version>1.0.29</version>
 
   <description>Semantic description of Huasrion Panther robot</description>
   <license>Apache License 2.0</license>
