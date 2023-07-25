@@ -24,6 +24,8 @@ Node responsible for management of the safety board and the power board. Availab
 
 - `/cmd_vel` [*geometry_msgs/Twist*]: observes if velocity commands are sent to the robot. Prevents disabling e-stop if published.
 
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: checks for errors on motor controllers.
+
 #### Services advertised
 
 - `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enable or disable auxiliary power output, e.g. supply to robotic arms.
@@ -47,6 +49,12 @@ This node is responsible for power management using relays. Available in Panther
 - `/panther/hardware/e_stop` [*std_msgs/Bool*, *latched*]: the current state of the emulated emergency stop.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*, *latched*]: publishes state of panther IO pins. Used for driver compatybility with Panther version 1.06 and below. Message fields with real hardware representation are:
   - `motor_on` indicates if motor drivers are powered on.
+
+#### Subscribes
+
+- `/cmd_vel` [*geometry_msgs/Twist*]: observes if velocity commands are sent to the robot. Prevents disabling e-stop if published.
+
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: checks for errors on motor controllers.
 
 #### Services advertised
 
