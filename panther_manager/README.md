@@ -123,12 +123,12 @@ Tree responsible for scheduling animations displayed on LED panels, based on the
 </p>
 
 Default blackboard entries:
-- `battery_percent` [*float*, defautl: **None**]: moving average of battery percentage.
+- `battery_percent` [*float*, defautl: **NaN**]: moving average of battery percentage.
 - `battery_percent_round` [*string*, default: **None**] battery percentage raunded to a value specified with `~lights/update_charging_anim_step` parameter and casted to string.
-- `battery_status` [*unsigned*, defautl: **None**]: current battery status.
+- `battery_status` [*unsigned*, defautl: **sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN**]: current battery status.
 - `charging_anim_percent` [*string*, default: **None**]: the charging animation battery percentage value, casted to a string.
 - `current_anim_id` [*int*, default: **-1**]: ID of currently displayed animation.
-- `e_stop_state` [*bool*, defautl: **None**]: state of emergency stop.
+- `e_stop_state` [*bool*, defautl: **true**]: state of emergency stop.
 
 Default constant blackboard entries:
 - `BATTERY_STATE_ANIM_PERIOD` [*float*, default: **120.0**]: refers to `battery_state_anim_period` ROS parameter.
@@ -161,12 +161,12 @@ Tree responsible for monitoring the Panther robot's state and handling safety me
 </p>
 
 Default blackboard entries:
-- `aux_state` [*bool*, default: **None**]: state of AUX power.
-- `bat_temp` [*double*, default: **None**]: moving average of battery temperature.
-- `cpu_temp` [*double*, default: **None**]: moving average of cpu temperature
-- `driver_temp` [*double*, default: **None**]: moving average of driver temperature, for condition simplification only motor driver with higher temperature is considered.
-- `e_stop_state` [*bool*, default: **None**]: state of emergency stop.
-- `fan_state` [*bool*, default: **None**]: state of fan.
+- `aux_state` [*bool*, default: **false**]: state of AUX power.
+- `bat_temp` [*double*, default: **NaN**]: moving average of battery temperature.
+- `cpu_temp` [*double*, default: **NaN**]: moving average of cpu temperature
+- `driver_temp` [*double*, default: **NaN**]: moving average of driver temperature, for condition simplification only motor driver with higher temperature is considered.
+- `e_stop_state` [*bool*, default: **true**]: state of emergency stop.
+- `fan_state` [*bool*, default: **true**]: state of fan.
 
 Default constant blackboard entries:
 - `CPU_FAN_OFF_TEMP` [*float*, default: **60.0**]: refers to `cpu_fan_off_temp` ROS parameter.
@@ -175,9 +175,18 @@ Default constant blackboard entries:
 - `DRIVER_FAN_OFF_TEMP` [*float*, default: **35.0**]: refers to `driver_fan_off_temp` ROS parameter.
 - `DRIVER_FAN_ON_TEMP` [*float*, default: **45.0**]: refers to `driver_fan_on_temp` ROS parameter.
 - `HIGH_BAT_TEMP` [*float*, default: **55.0**]: refers to `high_bat_temp` ROS parameter.
+- `POWER_SUPPLY_HEALTH_UNKNOWN` [*unsigned*, value: **0**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNKNOWN`.
+- `POWER_SUPPLY_HEALTH_GOOD` [*unsigned*, value: **1**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_GOOD`.
+- `POWER_SUPPLY_HEALTH_OVERHEAT` [*unsigned*, value: **2**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERHEAT`.
+- `POWER_SUPPLY_HEALTH_DEAD` [*unsigned*, value: **3**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_DEAD`.
+- `POWER_SUPPLY_HEALTH_OVERVOLTAGE` [*unsigned*, value: **4**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERVOLTAGE`.
+- `POWER_SUPPLY_HEALTH_UNSPEC_FAILURE` [*unsigned*, value: **5**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNSPEC_FAILURE`.
+- `POWER_SUPPLY_HEALTH_COLD` [*unsigned*, value: **6**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_COLD`.
+- `POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE` [*unsigned*, value: **7**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE`.
+- `POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE` [*unsigned*, value: **8**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE`.
 
-#### Shutdown 
-
+### Shutdown 
+ 
 Tree responsible for graceful shutdown of robot components, user computers, and the built-in computer. By default, it will proceed to shutdown all computers defined in a YAML file with a path defined by the `~shutdown_host_file` ROS parameter.
 
 <p align="center">
@@ -186,6 +195,9 @@ Tree responsible for graceful shutdown of robot components, user computers, and 
 
 Default constant blackboard entries:
   - `SHUTDOWN_HOSTS_FILE` [*string*, default: **None**]: refers to `shutdown_hosts_file` ROS parameter.
+
+Expected blackboard entries:
+  - `signal_shutdown` [*pair(bool, string)*, default: **(false, '')**]: flag to shutdown robot with information to display while shutting down.
 
 ### Modifying behavior trees
 
