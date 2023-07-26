@@ -20,7 +20,7 @@ BT::NodeStatus TickAfterTimeout::tick()
 {
   float timeout;
   if (!getInput<float>("timeout", timeout)) {
-    throw("[", name(), "] Failed to get input [timeout]");
+    throw(BT::RuntimeError("[", name(), "] Failed to get input [timeout]"));
   }
   timeout_ = ros::Duration(timeout);
 
