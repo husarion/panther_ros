@@ -2,6 +2,9 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.29 (2023-07-25)
 -------------------
 * Merge pull request `#153 <https://github.com/husarion/panther_ros/issues/153>`_ from husarion/ros1-fix-bringup
