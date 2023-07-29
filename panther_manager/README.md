@@ -44,12 +44,12 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~launch_lights_tree` [*bool*, default: **true**]: launch behavior tree responsible for scheduling animations on Panther LED panels.
 - `~launch_safety_tree` [*bool*, default: **true**]: launch behavior tree responsible for managing Panther safety measures.
 - `~launch_shutdown_tree` [*bool*, default: **true**]: launch behavior tree responsible for the gentle shutdown of robot components.
-- `~lights/battery_state_anim_period` [*float*, default: **120.0**]: time in seconds to wait before repeating animation representing current battery percentage.
-- `~lights/critical_battery_anim_period` [*float*, default: **15.0**]: time in seconds to wait before repeating animation indicating a critical battery state.
+- `~lights/battery_state_anim_period` [*float*, default: **120.0**]: time in **seconds** to wait before repeating animation representing current battery percentage.
+- `~lights/critical_battery_anim_period` [*float*, default: **15.0**]: time in **seconds** to wait before repeating animation indicating a critical battery state.
 - `~lights/critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, an animation indicating a critical battery state will start being displayed.
-- `~lights/low_battery_anim_period` [*float*, default: **30.0**]: time in seconds to wait before repeating the animation, indicating a low battery state.
+- `~lights/low_battery_anim_period` [*float*, default: **30.0**]: time in **seconds** to wait before repeating the animation, indicating a low battery state.
 - `~lights/low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, the animation indicating a low battery state will start being displayed.
-- `~lights/update_charging_anim_step` [*float*, default: **0.1**]: percentage value representing a step for updating the charging battery animation.
+- `~lights/update_charging_anim_step` [*float*, default: **0.1**]: percentage representing how discretised should be the battery state animation.
 - `~plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in BT project.
 - `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project. 
 - `~safety/cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, below which the fan is turned off.
@@ -63,14 +63,14 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `ping_for_success` [*bool*, default: **true**]: ping host until it is not available or timeout is reached.
   - `port` [*string*, default: **22**]: SSH communication port.
-  - `timeout` [*string*, default: **5.0**]: time in seconds to wait for the host to shutdown. The built-in computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
+  - `timeout` [*string*, default: **5.0**]: time in **seconds** to wait for the host to shutdown. The built-in computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
 
-For more information refer to `ShutdownSingleHost` BT node in the [Actions](#actions) section. Example of shutdown hosts YAML file can be found below.
+For more information regarding shutdown behaviour refer to `ShutdownSingleHost` BT node in the [Actions](#actions) section. Example of shutdown hosts YAML file can be found below.
 ``` yaml
 # My shutdown_hosts.yaml
 hosts:
-  # Intel NUC user computer
+  # Intel NUC, user computer
   - ip: 10.15.20.3
     username: husarion
   # Universal robots UR5
@@ -102,16 +102,16 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 - `CallSetBoolService` - allows calling the standard **std_srvs/SetBool** ROS service. Provided ports are:
   - `data` [*input*, *bool*, default: **None**]: service data - `true` or `false` value.
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-  - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
+  - `timeout` [*input*, *unsigned*, default: **100**]: time in **seconds** to wait for service to become available.
 - `CallSetLedAnimationService` - allows calling custom type **panther_msgs/SetLEDAnimation** ROS service. The provided ports are:
   - `id` [*input*, *unsigned*, default: **None**]: animation ID.
   - `param` [*input*, *string*, default: **None**]: optional parameter passed to animation.
   - `repeating` [*input*, *bool*, default: **false**]: indicates if the animation should repeat.
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-  - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
+  - `timeout` [*input*, *unsigned*, default: **100**]: time in **seconds** to wait for service to become available.
 - `CallTriggerService` - allows calling the standard **std_srvs/Trigger** ROS service. The provided ports are:
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-  - `timeout` [*input*, *unsigned*, default: **100**]: time in seconds to wait for service to become available.
+  - `timeout` [*input*, *unsigned*, default: **100**]: time in **seconds** to wait for service to become available.
 - `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and the shutdown of all defined hosts was successful. Nodes are processed in a semi-parallel fashion. Every tick of the tree updates the state of a host. This allows some hosts to wait for a SSH response, while others are already pinged and awaiting a full shutdown. If a host is shutdown it is no longer processed. In the case of a long timeout is used for a given host, other hosts will be processed simultaneously. The provided ports are:
   - `shutdown_host_file` [*input*, *string*, default: **None**]: global path to YAML file with hosts to shutdown.
 - `ShutdownSingleHost` - allows to shutdown a single device. Will return `SUCCESS` only when the device has been successfully shutdown. The provided ports are:
@@ -119,7 +119,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
   - `ip` [*input*, *string*, default: **None**]: IP of the host to shutdown.
   - `ping_for_success` [*input*, *bool*, default: **true**]: ping host until it is not available or timeout is reached.
   - `port` [*input*, *string*, default: **22**]: SSH communication port.
-  - `timeout` [*input*, *string*, default: **5.0**]: time in seconds to wait for the host to shutdown. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
+  - `timeout` [*input*, *string*, default: **5.0**]: time in **seconds** to wait for the host to shutdown. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
   - `user` [*input*, *string*, default: **None**]: user to log into while executing the shutdown command.
 - `SignalShutdown` - signals shutdown of the robot. The provided ports are:
   - `message` [*input*, *string*, default: **None**]: message with reason for robot to shutdown.
@@ -127,7 +127,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 #### Decorators
 
 - `TickAfterTimeout` - will skip a child until the specified time has passed. It can be used to specify the frequency at which a node or subtree is triggered. The provided ports are:
-  - `timeout` [*input*, *unsigned*, default: **None**]: time in seconds to wait before ticking child again.
+  - `timeout` [*input*, *unsigned*, default: **None**]: time in **seconds** to wait before ticking child again.
 
 ### Trees
 
@@ -143,7 +143,7 @@ Default blackboard entries:
 - `battery_percent` [*float*, default: **NaN**]: moving average of battery percentage.
 - `battery_percent_round` [*string*, default: **None**] battery percentage rounded to a value specified with `~lights/update_charging_anim_step` parameter and casted to string.
 - `battery_status` [*unsigned*, default: **sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN**]: current battery status.
-- `charging_anim_percent` [*string*, default: **None**]: the charging animation battery percentage value, casted to a string.
+- `charging_anim_percent` [*string*, default: **None**]: the charging  animation battery percentage value, casted to a string.
 - `current_anim_id` [*int*, default: **-1**]: ID of currently displayed animation.
 - `e_stop_state` [*bool*, default: **true**]: state of emergency stop.
 
@@ -153,21 +153,21 @@ Default constant blackboard entries:
 - `CRITICAL_BATTERY_THRESHOLD_PERCENT` [*float*, default: **0.1**]: refers to `critical_battery_threshold_percent` ROS parameter.
 - `LOW_BATTERY_ANIM_PERIOD` [*float*, default: **30.0**]: refers to `low_battery_anim_period` ROS parameter.
 - `LOW_BATTERY_THRESHOLD_PERCENT` [*float*, default: **0.4**]: refers to `low_battery_threshold_percent` ROS parameter.
-- `E_STOP_ANIM_ID` [*unsigned*, value: **0**]: animation ID constant parsed from `panther_msgs::LEDAnimation::E_STOP`.
-- `READY_ANIM_ID` [*unsigned*, value: **1**]: animation ID constant parsed from `panther_msgs::LEDAnimation::READY`.
-- `ERROR_ANIM_ID` [*unsigned*, value: **2**]: animation ID constant parsed from `panther_msgs::LEDAnimation::ERROR`.
-- `MANUAL_ACTION_ANIM_ID` [*unsigned*, value: **3**]: animation ID constant parsed from `panther_msgs::LEDAnimation::MANUAL_ACTION`.
-- `AUTONOMOUS_ACTION_ANIM_ID` [*unsigned*, value: **4**]: animation ID constant parsed from `panther_msgs::LEDAnimation::AUTONOMOUS_ACTION`.
-- `GOAL_ACHIEVED_ANIM_ID` [*unsigned*, value: **5**]: animation ID constant parsed from `panther_msgs::LEDAnimation::GOAL_ACHIEVED`.
-- `LOW_BATTERY_ANIM_ID` [*unsigned*, value: **6**]: animation ID constant parsed from `panther_msgs::LEDAnimation::LOW_BATTERY`.
-- `CRITICAL_BATTERY_ANIM_ID` [*unsigned*, value: **7**]: animation ID constant parsed from `panther_msgs::LEDAnimation::CRITICAL_BATTERY`.
-- `BATTERY_STATE_ANIM_ID` [*unsigned*, value: **8**]: animation ID constant parsed from `panther_msgs::LEDAnimation::BATTERY_STATE`.
-- `CHARGING_BATTERY_ANIM_ID` [*unsigned*, value: **9**]: animation ID constant parsed from `panther_msgs::LEDAnimation::CHARGING_BATTERY`.
-- `POWER_SUPPLY_STATUS_UNKNOWN` [*unsigned*, value: **0**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN`.
-- `POWER_SUPPLY_STATUS_CHARGING` [*unsigned*, value: **1**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_CHARGING`.
-- `POWER_SUPPLY_STATUS_DISCHARGING` [*unsigned*, value: **2**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING`.
-- `POWER_SUPPLY_STATUS_NOT_CHARGING` [*unsigned*, value: **3**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING`.
-- `POWER_SUPPLY_STATUS_FULL` [*unsigned*, value: **4**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL`.
+- `E_STOP_ANIM_ID` [*unsigned*, value: **0**]: animation ID constant obtained from `panther_msgs::LEDAnimation::E_STOP`.
+- `READY_ANIM_ID` [*unsigned*, value: **1**]: animation ID constant obtained from `panther_msgs::LEDAnimation::READY`.
+- `ERROR_ANIM_ID` [*unsigned*, value: **2**]: animation ID constant obtained from `panther_msgs::LEDAnimation::ERROR`.
+- `MANUAL_ACTION_ANIM_ID` [*unsigned*, value: **3**]: animation ID constant obtained from `panther_msgs::LEDAnimation::MANUAL_ACTION`.
+- `AUTONOMOUS_ACTION_ANIM_ID` [*unsigned*, value: **4**]: animation ID constant obtained from `panther_msgs::LEDAnimation::AUTONOMOUS_ACTION`.
+- `GOAL_ACHIEVED_ANIM_ID` [*unsigned*, value: **5**]: animation ID constant obtained from `panther_msgs::LEDAnimation::GOAL_ACHIEVED`.
+- `LOW_BATTERY_ANIM_ID` [*unsigned*, value: **6**]: animation ID constant obtained from `panther_msgs::LEDAnimation::LOW_BATTERY`.
+- `CRITICAL_BATTERY_ANIM_ID` [*unsigned*, value: **7**]: animation ID constant obtained from `panther_msgs::LEDAnimation::CRITICAL_BATTERY`.
+- `BATTERY_STATE_ANIM_ID` [*unsigned*, value: **8**]: animation ID constant obtained from `panther_msgs::LEDAnimation::BATTERY_STATE`.
+- `CHARGING_BATTERY_ANIM_ID` [*unsigned*, value: **9**]: animation ID constant obtained from `panther_msgs::LEDAnimation::CHARGING_BATTERY`.
+- `POWER_SUPPLY_STATUS_UNKNOWN` [*unsigned*, value: **0**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN`.
+- `POWER_SUPPLY_STATUS_CHARGING` [*unsigned*, value: **1**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_CHARGING`.
+- `POWER_SUPPLY_STATUS_DISCHARGING` [*unsigned*, value: **2**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING`.
+- `POWER_SUPPLY_STATUS_NOT_CHARGING` [*unsigned*, value: **3**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING`.
+- `POWER_SUPPLY_STATUS_FULL` [*unsigned*, value: **4**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL`.
 
 ### Safety 
  
@@ -192,15 +192,15 @@ Default constant blackboard entries:
 - `DRIVER_FAN_OFF_TEMP` [*float*, default: **35.0**]: refers to `driver_fan_off_temp` ROS parameter.
 - `DRIVER_FAN_ON_TEMP` [*float*, default: **45.0**]: refers to `driver_fan_on_temp` ROS parameter.
 - `HIGH_BAT_TEMP` [*float*, default: **55.0**]: refers to `high_bat_temp` ROS parameter.
-- `POWER_SUPPLY_HEALTH_UNKNOWN` [*unsigned*, value: **0**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNKNOWN`.
-- `POWER_SUPPLY_HEALTH_GOOD` [*unsigned*, value: **1**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_GOOD`.
-- `POWER_SUPPLY_HEALTH_OVERHEAT` [*unsigned*, value: **2**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERHEAT`.
-- `POWER_SUPPLY_HEALTH_DEAD` [*unsigned*, value: **3**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_DEAD`.
-- `POWER_SUPPLY_HEALTH_OVERVOLTAGE` [*unsigned*, value: **4**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERVOLTAGE`.
-- `POWER_SUPPLY_HEALTH_UNSPEC_FAILURE` [*unsigned*, value: **5**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNSPEC_FAILURE`.
-- `POWER_SUPPLY_HEALTH_COLD` [*unsigned*, value: **6**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_COLD`.
-- `POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE` [*unsigned*, value: **7**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE`.
-- `POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE` [*unsigned*, value: **8**]: power supply status constant parsed from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE`.
+- `POWER_SUPPLY_HEALTH_UNKNOWN` [*unsigned*, value: **0**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNKNOWN`.
+- `POWER_SUPPLY_HEALTH_GOOD` [*unsigned*, value: **1**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_GOOD`.
+- `POWER_SUPPLY_HEALTH_OVERHEAT` [*unsigned*, value: **2**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERHEAT`.
+- `POWER_SUPPLY_HEALTH_DEAD` [*unsigned*, value: **3**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_DEAD`.
+- `POWER_SUPPLY_HEALTH_OVERVOLTAGE` [*unsigned*, value: **4**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERVOLTAGE`.
+- `POWER_SUPPLY_HEALTH_UNSPEC_FAILURE` [*unsigned*, value: **5**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNSPEC_FAILURE`.
+- `POWER_SUPPLY_HEALTH_COLD` [*unsigned*, value: **6**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_COLD`.
+- `POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE` [*unsigned*, value: **7**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE`.
+- `POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE` [*unsigned*, value: **8**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE`.
 
 ### Shutdown 
  
@@ -218,7 +218,7 @@ Expected blackboard entries:
 
 ### Modifying behavior trees
 
-Each behavior tree can be easily customized to enhance its functions and capabilities. To achieve this, we recommend using Groot2, a powerful tool for developing and modifying behavior trees. To install Groot2 and learn how to use it, please refer to the official guidelines provided [here](https://www.behaviortree.dev/groot).
+Each behavior tree can be easily customized to enhance its functions and capabilities. To achieve this, we recommend using Groot2, a powerful tool for developing and modifying behavior trees. To install Groot2 and learn how to use it, please refer to the [official guidelines](https://www.behaviortree.dev/groot).
 
 When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees.
 
