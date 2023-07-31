@@ -17,7 +17,6 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2. 
 #### Subscribes
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
-
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with charging current.
 
 #### Parameters 
