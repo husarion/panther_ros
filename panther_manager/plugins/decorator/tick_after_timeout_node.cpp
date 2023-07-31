@@ -18,7 +18,7 @@ TickAfterTimeout::TickAfterTimeout(const std::string & name, const BT::NodeConfi
 
 BT::NodeStatus TickAfterTimeout::tick()
 {
-  float timeout;
+  float timeout;last_success_time_
   if (!getInput<float>("timeout", timeout)) {
     throw("[", name(), "] Failed to get input [timeout]");
   }
