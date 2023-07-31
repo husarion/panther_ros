@@ -29,8 +29,8 @@ This node is responsible for processing animations and publishing frames to be d
 
 - `~animations` [*list*, default: **None**]:  required list of defined animations.
 - `~controller_frequency` [*float*, default: **46.0**]: frequency at which the lights controller node will process animations.
-- `~num_led` [*int*, default: **46**]: number of LEDs in a single panel. Must match driver `num_led`.
-- `~test` [*bool*, default: **false**]: enables testing mode, enabling extra functionalities.
+- `~num_led` [*int*, default: **46**]: number of LEDs in a single panel. Must match driver `num_led` in *driver_node*.
+- `~test` [*bool*, default: **false**]: enables `/panther/lights/controller/set/image_animation` service.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
 ### driver_node
@@ -48,7 +48,7 @@ This node is responsible for displaying frames on the Husarion Panther robot LED
 
 #### Parameters
 
-- `~frame_timeout` [*float*, default: **0.1**]: time in seconds, after which an incoming frame will be ignored if not processed.
+- `~frame_timeout` [*float*, default: **0.1**]: time in seconds after which an incoming frame will be considered too old.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
 
