@@ -30,7 +30,7 @@
       </Sequence>
       <Sequence name="BatteryDeadSequence"
                 _skipIf="battery_health != POWER_SUPPLY_HEALTH_DEAD">
-        <SignalShutdown reason="Battery status unhealthy"/>
+        <SignalShutdown reason="Battery dead"/>
       </Sequence>
       <Sequence name="BatteryOvervoltageSequence"
                 _skipIf="battery_health != POWER_SUPPLY_HEALTH_OVERVOLTAGE">
