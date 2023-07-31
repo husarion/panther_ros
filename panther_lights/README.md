@@ -48,7 +48,7 @@ This node is responsible for displaying frames on the Husarion Panther robot LED
 
 #### Parameters
 
-- `~frame_timeout` [*float*, default: **0.1**]: time in seconds, after which an incoming frame will considered too old.
+- `~frame_timeout` [*float*, default: **0.1**]: time in seconds after which an incoming frame will be considered too old.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
 
