@@ -3,20 +3,24 @@
 Packages composing basic functionalities of the Husarion Panther robot.
 API for each node can be found in each package folder.
 
+> **Warning**
+> Software stack for ROS 1 will no longer receive major features. Bugs will still be fixed.
+> Main developement will now be targeted towards ROS 2.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/day_with_lights.png">
   <img alt="Panther preview" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/day_no_lights.png">
 </picture>
 
 > **Note**: 
-> Building the latest version of this code might not always work with OS image you already have installed on your robot. Make sure you are running the newest OS image for Built-in Computer. You can find it in the downloads section at [husarion.com](https://husarion.com/downloads/#built-in-computer).
+> Building the latest version of this code will likely not work with your current OS. Make sure you are running the newest OS image for Built-in Computer. You can find link to download it and instruction on updating at [husarion.com](https://husarion.com/manuals/panther/operating-system-reinstallation/#built-in-computer-system-reinstallation).
 >
-> We are making great effort to achieve backward compatibility, but can not test everything. Currently, fully tested images are `v1.0.0` and above. If the command below shows you the tag, you can be assured the newest code will work on your robot.
+> Current software stack uses some of the features in kernel and underlying OS that were not introduces in older versions. You need system verstion `v1.1.0` or newer. You can check currently installed OS verstion by examining this environment variable:
 > ``` bash
 > echo $SYSTEM_BUILD_VERSION
 > ```
 >
-> If you are running an older OS image, the software should run within docker. We did our best to achieve backward compatibility, yet we do not advise using the newest software stack with older OS images.
+> Some of the safety features broke compatibility for older system image, hence full system update is required.
 
 ## Docker image
 
@@ -26,11 +30,11 @@ In order to download it, run:
 docker pull husarion/panther
 ```
 
-Example **compose.yaml** can be found on [husarion/panther-docker](https://github.com/husarion/panther-docker/) in **demo** section.
+Example **compose.yaml** can be found on [husarion/panther-docker](https://github.com/husarion/panther-docker/tree/ros1) in **demo** section.
 
 ## Build and run on hardware
 
-To build hardware interface packages running on the Panther robot's internal computer, use the following commands:
+To build hardware interface packages running on the Panther robot's Built-in Computer, use the following commands:
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
@@ -49,7 +53,7 @@ After successful build run:
 roslaunch panther_bringup bringup.launch
 ```
 
-This will launch all nodes related to Panther robot, selecting them to match your specific hardware revision. Please keep in mind, this packages require environment variables that are set during boot procedure of Panther.
+This will launch all nodes related to Panther robot, selecting them to match your specific hardware revision. Please keep in mind, those packages require environment variables that are set during boot procedure of Panther.
 
 ## Build and run simulation
 
