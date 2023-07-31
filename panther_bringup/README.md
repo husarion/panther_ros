@@ -89,7 +89,7 @@ Website: https://husarion.com
 Support: https://community.husarion.com/
 Bugtracker: https://github.com/husarion/panther_ros/issues
 ```
-The serial number and robot version are changed according to the parameters of your real robot. In the case `PANTHER_HW_CONFIG_CORRECT` is not set to **"true"** or does not exist, it displays an error about incorrect hardware ofter the welcome message.
+The serial number and robot version are changed according to the parameters of your real robot. If the `PANTHER_HW_CONFIG_CORRECT` is not set to **"true"** or does not exist, an error indicating incorrect hardware will be displayed after the welcome message.
 
 #### Parameters
 
