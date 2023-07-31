@@ -6,7 +6,7 @@
                 _skipIf="battery_health != POWER_SUPPLY_HEALTH_OVERHEAT">
         <Sequence name="FatalBatTempSequence"
                   _skipIf="bat_temp &lt;= FATAL_BAT_TEMP">
-          <SignalShutdown reason="Battery status unhealthy"/>
+          <SignalShutdown reason="Fatal battery temperature"/>
         </Sequence>
         <Sequence name="CriticalBatTempSequence"
                   _skipIf="bat_temp &lt;= CRITICAL_BAT_TEMP">
