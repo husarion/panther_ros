@@ -52,7 +52,6 @@ This node is responsible for power management using relays. Available in Panther
 #### Subscribes
 
 - `/cmd_vel` [*geometry_msgs/Twist*]: observes if velocity commands are sent to the robot. Prevents disabling e-stop if published.
-
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: checks for errors on motor controllers.
 
 #### Services advertised
