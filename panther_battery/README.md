@@ -25,7 +25,7 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2. 
 
 ### roboteq_republisher_node.py
 
-Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurement are smoothed with moveing average. Current accounts only for motor controllers.
+Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurement are smoothed out using a moving average. Current accounts only for motor controllers.
 
 #### Publishes
 
