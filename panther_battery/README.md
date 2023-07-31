@@ -6,8 +6,8 @@ Package containing nodes monitoring and publishing internal battery state of the
 
 ### adc_node.py
 
-Publishes battery state read from ADC unit. Available from Panther version 1.2. Voltage, current and temperature are smoothed out by moving average.
-3
+Publishes battery state read from ADC unit. Available from Panther version 1.2. Voltage, current and temperature are smoothed out using a moving average.
+
 #### Publishes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one.
