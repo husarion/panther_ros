@@ -18,7 +18,7 @@
                               data="false"
                               service_name="hardware/aux_power_enable"
                               timeout="100"
-                              _skipIf="!aux_state || bat_temp &lt;= CRITICAL_BAT_TEMP"/>
+                              _skipIf="!aux_state"/>
         </Sequence>
         <Sequence name="HighBatTempSequence"
                   _skipIf="fan_state">
