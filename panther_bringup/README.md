@@ -18,8 +18,6 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 - `system_status_node` [*panther_manager/system_status_node.py*]: publishes information about the status of a Build-in Computer.
 - `welcome_msg_node` [*panther_bringup/welcome_msg_node.py*]: user-friendly welcome message with basic information about the given robot.
 
-
-
 ## Bringup launch arguments
 
 - `bt_project_file` [*string*, default=**$(find panther_manager)/config/Panther106BT.btproj**]: path to BehaviorTree project used by `panther_manager`. The default value of this parameter depends on `panther_version` argument. For version 1.2 and above, it is: **(find panther_manager)/config/Panther12BT.btproj**. Otherwise: **(find panther_manager)/config/Panther106BT.btproj**
