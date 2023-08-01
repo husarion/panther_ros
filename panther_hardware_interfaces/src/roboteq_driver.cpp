@@ -20,7 +20,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 
   while (true) {
     if (
-      temp_future.is_ready() || voltage_future.is_ready() || bat_amps_1_future.is_ready() ||
+      temp_future.is_ready() && voltage_future.is_ready() && bat_amps_1_future.is_ready() &&
       bat_amps_2_future.is_ready()) {
       break;
     }
@@ -81,10 +81,28 @@ RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
 void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd)
 {
   // TODO: fix timeouts
-  AsyncWrite<int32_t>(
+  auto channel_1_cmd_future = AsyncWrite<int32_t>(
     0x2000, 1, std::forward<int32_t>(LimitCmd(channel_1_cmd)), std::chrono::milliseconds(10));
-  AsyncWrite<int32_t>(
+  auto channel_2_cmd_future = AsyncWrite<int32_t>(
     0x2000, 2, std::forward<int32_t>(LimitCmd(channel_2_cmd)), std::chrono::milliseconds(10));
+
+  while (true) {
+    if (channel_1_cmd_future.is_ready() && channel_2_cmd_future.is_ready()) {
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  auto result_channel_1 = channel_1_cmd_future.get();
+  auto result_channel_2 = channel_2_cmd_future.get();
+
+  if (result_channel_1.has_error()) {
+    throw result_channel_1.error();
+  }
+
+  if (result_channel_2.has_error()) {
+    throw result_channel_2.error();
+  }
 
   // TODO check what happens what publishing is stopped
   // uint32_t

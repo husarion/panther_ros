@@ -99,6 +99,7 @@ void PantherWheelsController::Initialize()
     loop_->run();
   });
 
+  // TODO try
   // front_driver_->wait_for_boot();
   // rear_driver_->wait_for_boot();
 }
@@ -107,13 +108,34 @@ void PantherWheelsController::Activate()
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  front_driver_->ResetRoboteqScript();
-  rear_driver_->ResetRoboteqScript();
+  try {
+    front_driver_->ResetRoboteqScript();
+  } catch (std::exception & err) {
+    throw std::runtime_error(
+      "Front driver reset roboteq script exception: " + std::string(err.what()));
+  }
+
+  try {
+    rear_driver_->ResetRoboteqScript();
+  } catch (std::exception & err) {
+    throw std::runtime_error(
+      "Rear driver reset roboteq script exception: " + std::string(err.what()));
+  }
+
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   // TODO: comment
-  front_driver_->SendRoboteqCmd(0, 0);
-  rear_driver_->SendRoboteqCmd(0, 0);
+
+  try {
+    front_driver_->SendRoboteqCmd(0, 0);
+  } catch (std::exception & err) {
+    throw std::runtime_error("Front driver send 0 command exception: " + std::string(err.what()));
+  }
+  try {
+    rear_driver_->SendRoboteqCmd(0, 0);
+  } catch (std::exception & err) {
+    throw std::runtime_error("Rear driver send 0 command exception: " + std::string(err.what()));
+  }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
@@ -198,10 +220,17 @@ void PantherWheelsController::WriteSpeed(
   int32_t motor_command_fr = speed_fr * radians_per_second_to_roboteq_cmd_;
   int32_t motor_command_rl = speed_rl * radians_per_second_to_roboteq_cmd_;
   int32_t motor_command_rr = speed_rr * radians_per_second_to_roboteq_cmd_;
-  front_driver_->SendRoboteqCmd(motor_command_fl, motor_command_fr);
-  rear_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
 
-  // TODO tpdo timeout
+  try {
+    front_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
+  } catch (std::exception & err) {
+    throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
+  }
+  try {
+    rear_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
+  } catch (std::exception & err) {
+    throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
+  }
 
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
     throw std::runtime_error("can_error");

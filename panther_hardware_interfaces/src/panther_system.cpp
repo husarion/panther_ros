@@ -108,14 +108,20 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   // TODO comment
   // gpio_controller_ = std::make_unique<GPIOController>();
-  roboteq_controller_->Initialize();
-
+  try {
+    roboteq_controller_->Initialize();
+  } catch (std::runtime_error & err) {
+    RCLCPP_FATAL(rclcpp::get_logger("PantherSystem"), "Initialization failed");
+    return CallbackReturn::FAILURE;
+  }
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Cleaning up");
+  // TODO maybe send 0 command first
+  roboteq_controller_->Deinitialize();
   return CallbackReturn::SUCCESS;
 }
 
@@ -134,7 +140,13 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   // gpio_controller_->start();
-  roboteq_controller_->Activate();
+
+  try {
+    roboteq_controller_->Activate();
+  } catch (std::runtime_error & err) {
+    RCLCPP_FATAL(rclcpp::get_logger("PantherSystem"), "Activation failed");
+    return CallbackReturn::FAILURE;
+  }
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
   return CallbackReturn::SUCCESS;
@@ -151,12 +163,16 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
+  // TODO
+  // roboteq_controller_->Deinitialize();
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
+  // TODO
+  // roboteq_controller_->Deinitialize();
   return CallbackReturn::SUCCESS;
 }
 
@@ -234,20 +250,26 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
 
 return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  RoboteqFeedback feedback = roboteq_controller_->Read();
+  try {
+    RoboteqFeedback feedback = roboteq_controller_->Read();
 
-  pos_state_["fr_wheel_joint"] = feedback.pos_fr;
-  pos_state_["fl_wheel_joint"] = feedback.pos_fl;
-  vel_state_["fr_wheel_joint"] = feedback.vel_fr;
-  vel_state_["fl_wheel_joint"] = feedback.vel_fl;
-  effort_state_["fr_wheel_joint"] = feedback.torque_fr;
-  effort_state_["fl_wheel_joint"] = feedback.torque_fl;
-  pos_state_["rr_wheel_joint"] = feedback.pos_rr;
-  pos_state_["rl_wheel_joint"] = feedback.pos_rl;
-  vel_state_["rr_wheel_joint"] = feedback.vel_rr;
-  vel_state_["rl_wheel_joint"] = feedback.vel_rl;
-  effort_state_["rr_wheel_joint"] = feedback.torque_rr;
-  effort_state_["rl_wheel_joint"] = feedback.torque_rl;
+    pos_state_["fr_wheel_joint"] = feedback.pos_fr;
+    pos_state_["fl_wheel_joint"] = feedback.pos_fl;
+    vel_state_["fr_wheel_joint"] = feedback.vel_fr;
+    vel_state_["fl_wheel_joint"] = feedback.vel_fl;
+    effort_state_["fr_wheel_joint"] = feedback.torque_fr;
+    effort_state_["fl_wheel_joint"] = feedback.torque_fl;
+    pos_state_["rr_wheel_joint"] = feedback.pos_rr;
+    pos_state_["rl_wheel_joint"] = feedback.pos_rl;
+    vel_state_["rr_wheel_joint"] = feedback.vel_rr;
+    vel_state_["rl_wheel_joint"] = feedback.vel_rl;
+    effort_state_["rr_wheel_joint"] = feedback.torque_rr;
+    effort_state_["rl_wheel_joint"] = feedback.torque_rl;
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR_STREAM(
+      rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
+    return return_type::ERROR;
+  }
 
   // TODO error flags
 
@@ -257,9 +279,15 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   if (hardware_interface_type_ == hardware_interface::HW_IF_VELOCITY) {
-    roboteq_controller_->WriteSpeed(
-      vel_commands_["fl_wheel_joint"], vel_commands_["fr_wheel_joint"],
-      vel_commands_["rl_wheel_joint"], vel_commands_["rr_wheel_joint"]);
+    try {
+      roboteq_controller_->WriteSpeed(
+        vel_commands_["fl_wheel_joint"], vel_commands_["fr_wheel_joint"],
+        vel_commands_["rl_wheel_joint"], vel_commands_["rr_wheel_joint"]);
+    } catch (std::runtime_error & err) {
+      RCLCPP_ERROR_STREAM(
+        rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
+      return return_type::ERROR;
+    }
   }
 
   // if (hardware_interface_type_ == hardware_interface::HW_IF_POSITION) {
