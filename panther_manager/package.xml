@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_manager</name>
-  <version>1.0.30</version>
+  <version>1.0.31</version>
 
   <description>Set of nodes used for high level management of Husarion Panther robot</description>
   <license>Apache License 2.0</license>
