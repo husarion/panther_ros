@@ -61,6 +61,8 @@ PantherWheelsController::PantherWheelsController(
 
 void PantherWheelsController::Initialize()
 {
+  can_communication_started_.store(false);
+
   // TODO: does it have to be a thread
   executor_thread_ = std::thread([this]() {
     io_guard_ = std::make_unique<lely::io::IoGuard>();
@@ -96,30 +98,51 @@ void PantherWheelsController::Initialize()
     // node' command.
     master_->Reset();
 
+    {
+      std::lock_guard lk(can_communication_started_mtx_);
+      can_communication_started_.store(true);
+    }
+    can_communication_started_cond_.notify_all();
+
     loop_->run();
   });
 
-  // TODO try
-  // front_driver_->wait_for_boot();
-  // rear_driver_->wait_for_boot();
+  if (!can_communication_started_.load()) {
+    std::unique_lock lck(can_communication_started_mtx_);
+    can_communication_started_cond_.wait(lck);
+  }
+
+  if (!can_communication_started_.load()) {
+    throw std::runtime_error("CAN communication not initialized");
+  }
+
+  front_driver_->Boot();
+  rear_driver_->Boot();
+
+  try {
+    front_driver_->wait_for_boot();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error("Front driver boot failed");
+  }
+  try {
+    rear_driver_->wait_for_boot();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error("Rear driver boot failed");
+  }
 }
 
 void PantherWheelsController::Activate()
 {
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
   try {
     front_driver_->ResetRoboteqScript();
-  } catch (std::exception & err) {
-    throw std::runtime_error(
-      "Front driver reset roboteq script exception: " + std::string(err.what()));
+  } catch (...) {
+    throw std::runtime_error("Front driver reset roboteq script exception");
   }
 
   try {
     rear_driver_->ResetRoboteqScript();
-  } catch (std::exception & err) {
-    throw std::runtime_error(
-      "Rear driver reset roboteq script exception: " + std::string(err.what()));
+  } catch (...) {
+    throw std::runtime_error("Rear driver reset roboteq script exception");
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -128,19 +151,20 @@ void PantherWheelsController::Activate()
 
   try {
     front_driver_->SendRoboteqCmd(0, 0);
-  } catch (std::exception & err) {
-    throw std::runtime_error("Front driver send 0 command exception: " + std::string(err.what()));
+  } catch (...) {
+    throw std::runtime_error("Front driver send 0 command exception");
   }
   try {
     rear_driver_->SendRoboteqCmd(0, 0);
-  } catch (std::exception & err) {
-    throw std::runtime_error("Rear driver send 0 command exception: " + std::string(err.what()));
+  } catch (...) {
+    throw std::runtime_error("Rear driver send 0 command exception");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
 void PantherWheelsController::Deinitialize()
 {
+  can_communication_started_.store(false);
   master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
 }
 
@@ -222,14 +246,14 @@ void PantherWheelsController::WriteSpeed(
   int32_t motor_command_rr = speed_rr * radians_per_second_to_roboteq_cmd_;
 
   try {
-    front_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
-  } catch (std::exception & err) {
-    throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
+    front_driver_->SendRoboteqCmd(motor_command_fl, motor_command_fr);
+  } catch (...) {
+    throw std::runtime_error("Front driver send roboteq cmd failed");
   }
   try {
     rear_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
-  } catch (std::exception & err) {
-    throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
+  } catch (...) {
+    throw std::runtime_error("Rear driver send roboteq cmd failed");
   }
 
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {

@@ -90,6 +90,10 @@ public:
   // void WriteTorque(double torque_fl, double torque_fr, double torque_rl, double torque_rr);
 
 private:
+  std::atomic<bool> can_communication_started_ = false;
+  std::condition_variable can_communication_started_cond_;
+  std::mutex can_communication_started_mtx_;
+
   std::unique_ptr<RoboteqDriver> front_driver_;
   std::unique_ptr<RoboteqDriver> rear_driver_;
   std::unique_ptr<lely::canopen::AsyncMaster> master_;
