@@ -113,7 +113,7 @@ private:
   int32_t LimitCmd(int32_t cmd);
   uint8_t GetByte(uint32_t data, uint8_t byte_no);
 
-  std::atomic<bool> booted;
+  std::atomic<bool> booted = false;
   std::condition_variable boot_cond;
   std::mutex boot_mtx;
   std::string boot_what;
