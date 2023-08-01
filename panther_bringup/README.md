@@ -35,7 +35,6 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 - `wheel_config_file` [*string*, default=**$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
 - `wheel_type` [*string*, default=**WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_file` argument accordingly).
 
-
 ## Expected launch behavior
 
 If the environment variable `PANTHER_HW_CONFIG_CORRECT` is set to `true` robot will normally start. If it is set to `false` all ROS nodes will be prevented from starting. In such case a welcome message will be displayed, followed by a warning:
