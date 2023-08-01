@@ -46,12 +46,45 @@ class PantherWheelsController
 public:
   PantherWheelsController(CanSettings can_settings, DrivetrainSettings drivetrain_settings);
 
+  /**
+   * @brief Activate procedure for roboteq drivers - reset scripts and send 0 command on both channels
+   * Blocking function, takes around 2 seconds to finish
+   *
+   * @exception std::runtime_error if any procedure step fails
+   */
   void Activate();
+
+  /**
+   * @brief Start can communication and waits for boot to finish
+   *
+   * @exception std::runtime_error if boot fails
+   */
   void Initialize();
+
+  /**
+   * @brief Deinitializes can communication
+   */
   void Deinitialize();
 
+  /**
+   * @brief Reads current roboteq feedback
+   *
+   * @exception std::runtime_error if current data is too old or any error flag on roboteq 
+   * driver was set or can error was detected
+   * @return roboteq feedback
+   */
   RoboteqFeedback Read();
 
+  /**
+   * @brief Write speed commands to motors
+   *
+   * @param speed_fl front left motor speed in rad/s
+   * @param speed_fr front right motor speed in rad/s
+   * @param speed_rl rear left motor speed in rad/s
+   * @param speed_rr rear right motor speed in rad/s
+   * @exception std::runtime_error if send command fails or can error was detected
+   * @return roboteq feedback
+   */
   void WriteSpeed(double speed_fl, double speed_fr, double speed_rl, double speed_rr);
 
   // void WriteTorque(double torque_fl, double torque_fr, double torque_rl, double torque_rr);

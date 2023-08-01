@@ -59,14 +59,51 @@ public:
 
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
   RoboteqMotorsFeedback ReadRoboteqMotorsFeedback();
+
+  /**
+   * @brief Sends commands to Roboteq drivers
+   *
+   * @param channel_1_cmd command value for first channel scaled to [-1000; 1000] range as specified in the Roboteq documentation
+   * @param channel_2_cmd command value for second channel scaled to [-1000; 1000] range as specified in the Roboteq documentation 
+   * @exception std::exception if any operation returns error
+   */
   void SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd);
 
+  /**
+   * @brief Sends commands to reset script on the Roboteq drivers
+   *
+   * @exception std::exception if operation returns error
+   */
   void ResetRoboteqScript();
+
+  /**
+   * @brief Changes roboteq mode to velocity
+   *
+   * @exception std::exception if operation returns error
+   */
   void SetVelocityMode();
+
+  /**
+   * @brief Turns on Roboteq estop
+   *
+   * @exception std::exception if operation returns error
+   */
   void TurnOnEstop();
+
+  /**
+   * @brief Turns off Roboteq estop
+   * 
+   * @exception std::exception if operation returns error
+   */
   void TurnOffEstop();
 
+  /**
+   * @brief Waits until booting procedure finishes
+   *
+   * @exception std::runtime_error if boot fails
+   */
   bool wait_for_boot();
+
   bool is_booted() { return booted.load(); }
   bool get_can_error() { return can_error.load(); }
   bool Boot();
