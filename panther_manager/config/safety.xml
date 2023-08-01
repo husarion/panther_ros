@@ -20,13 +20,11 @@
                               timeout="100"
                               _skipIf="!aux_state"/>
         </Sequence>
-        <Sequence name="HighBatTempSequence">
-          <CallSetBoolService name="EnableFanIfHighBatTemp"
-                              data="true"
-                              service_name="hardware/fan_enable"
-                              timeout="100"
-                              _skipIf="fan_state"/>
-        </Sequence>
+        <CallSetBoolService name="EnableFanIfHighBatTemp"
+                            data="true"
+                            service_name="hardware/fan_enable"
+                            timeout="100"
+                            _skipIf="fan_state"/>
       </Sequence>
       <Sequence name="BatteryDeadSequence"
                 _skipIf="battery_health != POWER_SUPPLY_HEALTH_DEAD">
