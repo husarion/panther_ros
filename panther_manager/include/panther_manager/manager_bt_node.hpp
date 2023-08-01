@@ -31,6 +31,9 @@ public:
   ~ManagerBTNode() {}
 
 private:
+  static constexpr float critical_bat_temp_ = 55.0;
+  static constexpr float fatal_bat_temp_ = 62.0;
+
   bool launch_shutdown_tree_;
   float update_charging_anim_step_;
   std::string node_name_;
