@@ -92,14 +92,6 @@ class RelaysNode:
         )
 
         # -------------------------------
-        #   Service clients
-        # -------------------------------
-
-        self._reset_roboteq_script_client = rospy.ServiceProxy(
-            'driver/reset_roboteq_script', Trigger
-        )
-
-        # -------------------------------
         #   Timers
         # -------------------------------
 
