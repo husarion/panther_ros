@@ -5,17 +5,6 @@
 namespace panther_hardware_interfaces
 {
 
-void RoboteqDriver::ResetRoboteqScript()
-{
-  auto reset_script_future = AsyncWrite<uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(100));
-  Wait(reset_script_future);
-  auto result = reset_script_future.get();
-
-  if (result.has_error()) {
-    throw result.error();
-  }
-}
-
 RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
   auto temp_future = AsyncRead<int8_t>(0x210F, 1);
@@ -23,10 +12,20 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   auto bat_amps_1_future = AsyncRead<int16_t>(0x210C, 1);
   auto bat_amps_2_future = AsyncRead<int16_t>(0x210C, 2);
 
-  Wait(temp_future);
-  Wait(voltage_future);
-  Wait(bat_amps_1_future);
-  Wait(bat_amps_2_future);
+  // Wait doesn't work
+  // Wait(temp_future);
+  // Wait(voltage_future);
+  // Wait(bat_amps_1_future);
+  // Wait(bat_amps_2_future);
+
+  while (true) {
+    if (
+      temp_future.is_ready() || voltage_future.is_ready() || bat_amps_1_future.is_ready() ||
+      bat_amps_2_future.is_ready()) {
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
 
   RoboteqDriverFeedback feedback;
   feedback.temp_error = temp_future.get().has_error();
@@ -93,6 +92,20 @@ void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd)
   // tpdo_mapped[0x2005][10] = LimitCmd(channel_2_cmd);
 }
 
+void RoboteqDriver::ResetRoboteqScript()
+{
+  auto reset_script_future = AsyncWrite<uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(100));
+  // Wait(reset_script_future);
+  while (!reset_script_future.is_ready()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  auto result = reset_script_future.get();
+
+  if (result.has_error()) {
+    throw result.error();
+  }
+}
+
 // TODO consider adding position and torque mode after updating roboteq firmware to 2.1a
 // In 2.1 both position and torque mode aren't really stable and safe
 // in torque mode sometimes after killing software motor moves and it generally isn't well tuned
@@ -101,7 +114,10 @@ void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd)
 void RoboteqDriver::SetVelocityMode()
 {
   auto change_mode_future = AsyncWrite<int32_t>(0x2005, 9, 1, std::chrono::milliseconds(100));
-  Wait(change_mode_future);
+  // Wait(change_mode_future);
+  while (!change_mode_future.is_ready()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
   auto result = change_mode_future.get();
 
   if (result.has_error()) {
@@ -114,7 +130,10 @@ void RoboteqDriver::TurnOnEstop()
   // Cmd_ESTOP
 
   auto future = AsyncWrite<uint8_t>(0x200C, 0, 1, std::chrono::milliseconds(100));
-  Wait(future);
+  // Wait(future);
+  while (!future.is_ready()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
   auto result = future.get();
 
   if (result.has_error()) {
@@ -127,56 +146,15 @@ void RoboteqDriver::TurnOffEstop()
   // Cmd_MGO
 
   auto future = AsyncWrite<uint8_t>(0x200D, 0, 1, std::chrono::milliseconds(100));
-  Wait(future);
+  // Wait(future);
+  while (!future.is_ready()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
   auto result = future.get();
 
   if (result.has_error()) {
     throw result.error();
   }
-}
-
-int32_t RoboteqDriver::LimitCmd(int32_t cmd)
-{
-  return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
-}
-
-uint8_t RoboteqDriver::GetByte(uint32_t data, uint8_t byte_no)
-{
-  return (data >> (byte_no * 8)) & 0xFF;
-}
-
-void RoboteqDriver::OnCanError(lely::io::CanError error) noexcept
-{
-  std::unique_lock<std::mutex> lck(can_error_mtx);
-  can_error.store(true);
-  can_error_code = error;
-}
-
-void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
-{
-  if (idx == 0x2106 && subidx == 1) {
-    std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
-    clock_gettime(CLOCK_MONOTONIC, &last_rpdo_write_timestamp_);
-  }
-}
-void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept
-{
-  FiberDriver::OnBoot(st, es, what);
-
-  // TODO add handling error
-  if (!es || es == 'L') {
-    booted.store(true);
-  }
-
-  std::unique_lock<std::mutex> lck(boot_mtx);
-  this->boot_what = what;
-  boot_cond.notify_all();
-}
-
-bool RoboteqDriver::Boot()
-{
-  booted.store(false);
-  return FiberDriver::Boot();
 }
 
 bool RoboteqDriver::wait_for_boot()
@@ -191,6 +169,51 @@ bool RoboteqDriver::wait_for_boot()
   } else {
     throw std::runtime_error(boot_what);
   }
+}
+
+bool RoboteqDriver::Boot()
+{
+  booted.store(false);
+  return FiberDriver::Boot();
+}
+
+int32_t RoboteqDriver::LimitCmd(int32_t cmd)
+{
+  return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
+}
+
+uint8_t RoboteqDriver::GetByte(uint32_t data, uint8_t byte_no)
+{
+  return (data >> (byte_no * 8)) & 0xFF;
+}
+
+void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept
+{
+  FiberDriver::OnBoot(st, es, what);
+
+  // TODO add handling error
+  if (!es || es == 'L') {
+    booted.store(true);
+  }
+
+  std::unique_lock<std::mutex> lck(boot_mtx);
+  this->boot_what = what;
+  boot_cond.notify_all();
+}
+
+void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
+{
+  if (idx == 0x2106 && subidx == 1) {
+    std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_rpdo_write_timestamp_);
+  }
+}
+
+void RoboteqDriver::OnCanError(lely::io::CanError error) noexcept
+{
+  std::unique_lock<std::mutex> lck(can_error_mtx);
+  can_error.store(true);
+  can_error_code = error;
 }
 
 }  // namespace panther_hardware_interfaces

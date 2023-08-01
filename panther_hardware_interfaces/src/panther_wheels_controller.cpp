@@ -99,12 +99,14 @@ void PantherWheelsController::Initialize()
     loop_->run();
   });
 
-  front_driver_->wait_for_boot();
-  rear_driver_->wait_for_boot();
+  // front_driver_->wait_for_boot();
+  // rear_driver_->wait_for_boot();
 }
 
 void PantherWheelsController::Activate()
 {
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
   front_driver_->ResetRoboteqScript();
   rear_driver_->ResetRoboteqScript();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -179,7 +181,7 @@ RoboteqFeedback PantherWheelsController::Read()
     auto errors_runtime_mot2_rear =
       CheckFlags(rear_driver_feedback.motor_2.runtime_stat_flag, driver_runtime_errors_);
 
-    throw std::runtime_error("error");
+    // throw std::runtime_error("flags error");
   }
 
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {

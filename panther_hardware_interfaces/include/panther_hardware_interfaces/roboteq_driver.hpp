@@ -88,7 +88,7 @@ private:
   std::mutex rpdo_timestamp_mtx_;
 
   // TODO
-  void OnState(lely::canopen::NmtState state) noexcept override;
+  // void OnState(lely::canopen::NmtState state) noexcept override;
 
   void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
 

@@ -108,6 +108,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   // TODO comment
   // gpio_controller_ = std::make_unique<GPIOController>();
+  roboteq_controller_->Initialize();
 
   return CallbackReturn::SUCCESS;
 }
