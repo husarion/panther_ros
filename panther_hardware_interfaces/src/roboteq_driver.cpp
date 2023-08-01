@@ -1,9 +1,59 @@
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
 #include <thread>
+#include <cmath>
 
 namespace panther_hardware_interfaces
 {
+
+RoboteqDriver::RoboteqDriver(
+  DrivetrainSettings drivetrain_settings, ev_exec_t * exec, lely::canopen::AsyncMaster & master,
+  uint8_t id)
+: lely::canopen::FiberDriver(exec, master, id)
+{
+  // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
+  // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)
+  // 2. Convert motor rad/s speed to motor rotation per second speed (multiplication by 1.0/(2.0*pi))
+  // 3. Convert motor rotation per second speed to motor rotation per minute speed (multiplication by 60.0)
+  // 4. Convert motor rotation per minute speed to Roboteq GO command - permille of the max rotation per minute
+  //    speed set in the Roboteq driver (MXRPM parameter) - multiplication by 1000.0/max_rpm_motor_speed
+  radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0 / (2.0 * M_PI)) *
+                                       60.0 * (1000.0 / drivetrain_settings.max_rpm_motor_speed);
+
+  // Converts desired wheel torque in Nm to Roboteq motor command. Steps:
+  // 1. Convert desired wheel Nm torque to motor Nm ideal torque (multiplication by (1.0/gear_ratio))
+  // 2. Convert motor Nm ideal torque to motor Nm real torque (multiplication by (1.0/gearbox_efficiency))
+  // 3. Convert motor Nm real torque to motor A current (multiplication by (1.0/motor_torque_constant))
+  // 4. Convert motor A current to Roboteq GO command - permille of the Amps limit current
+  //    set in the roboteq driver (ALIM parameter) - multiplication by 1000.0/max_amps_motor_current
+  newton_meter_to_roboteq_cmd_ = (1.0 / drivetrain_settings.gear_ratio) *
+                                 (1.0 / drivetrain_settings.gearbox_efficiency) *
+                                 (1.0 / drivetrain_settings.motor_torque_constant) *
+                                 (1000.0 / drivetrain_settings.max_amps_motor_current);
+
+  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in radians. Steps:
+  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by (1.0/encoder_resolution))
+  // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
+  // 3. Convert wheel rotation to wheel position in radians (multiplication by 2.0*pi)
+  roboteq_pos_feedback_to_radians_ = (1. / drivetrain_settings.encoder_resolution) *
+                                     (1.0 / drivetrain_settings.gear_ratio) * (2.0 * M_PI);
+
+  // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
+  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed (multiplication by (1.0/gear_ratio))
+  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication by (1.0/60.0))
+  // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
+  roboteq_vel_feedback_to_radians_per_second_ =
+    (1. / drivetrain_settings.gear_ratio) * (1. / 60.) * (2.0 * M_PI);
+
+  // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
+  // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
+  // 2. Convert motor A current to motor Nm torque (multiplication by motor_torque_constant)
+  // 3. Convert motor Nm torque to wheel ideal Nm torque (multiplication by gear_ratio)
+  // 4. Convert wheel ideal Nm torque to wheel real Nm torque (multiplication by gearbox_efficiency)
+  roboteq_current_feedback_to_newton_meters_ =
+    (1. / 10.) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
+    drivetrain_settings.gearbox_efficiency;
+}
 
 RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
@@ -57,12 +107,16 @@ RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
 
   // uint32_t
   // already does locking when accessing rpdo
-  feedback.motor_1.pos = rpdo_mapped[0x2106][1];
-  feedback.motor_2.pos = rpdo_mapped[0x2106][2];
-  feedback.motor_1.vel = rpdo_mapped[0x2106][3];
-  feedback.motor_2.vel = rpdo_mapped[0x2106][4];
-  feedback.motor_1.current = rpdo_mapped[0x2106][5];
-  feedback.motor_2.current = rpdo_mapped[0x2106][6];
+  feedback.motor_1.pos = int32_t(rpdo_mapped[0x2106][1]) * roboteq_pos_feedback_to_radians_;
+  feedback.motor_2.pos = int32_t(rpdo_mapped[0x2106][2]) * roboteq_pos_feedback_to_radians_;
+  feedback.motor_1.vel =
+    int32_t(rpdo_mapped[0x2106][3]) * roboteq_vel_feedback_to_radians_per_second_;
+  feedback.motor_2.vel =
+    int32_t(rpdo_mapped[0x2106][4]) * roboteq_vel_feedback_to_radians_per_second_;
+  feedback.motor_1.current =
+    int32_t(rpdo_mapped[0x2106][5]) * roboteq_current_feedback_to_newton_meters_;
+  feedback.motor_2.current =
+    int32_t(rpdo_mapped[0x2106][6]) * roboteq_current_feedback_to_newton_meters_;
 
   // TODO endians
   feedback.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
@@ -77,9 +131,11 @@ RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
   return feedback;
 }
 
-// Uses tpdo, which is read in roboteq script instead of Cmd_CANGO SDO command
-void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd)
+void RoboteqDriver::SendRoboteqCmd(double channel_1_speed, double channel_2_speed)
 {
+  int32_t channel_1_cmd = channel_1_speed * radians_per_second_to_roboteq_cmd_;
+  int32_t channel_2_cmd = channel_2_speed * radians_per_second_to_roboteq_cmd_;
+
   // TODO: fix timeouts
   auto channel_1_cmd_future = AsyncWrite<int32_t>(
     0x2000, 1, std::forward<int32_t>(LimitCmd(channel_1_cmd)), std::chrono::milliseconds(10));
@@ -105,6 +161,7 @@ void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd)
   }
 
   // TODO check what happens what publishing is stopped
+  // Uses tpdo, which is read in roboteq script instead of Cmd_CANGO SDO command
   // uint32_t
   // tpdo_mapped[0x2005][9] = LimitCmd(channel_1_cmd);
   // tpdo_mapped[0x2005][10] = LimitCmd(channel_2_cmd);

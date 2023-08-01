@@ -12,51 +12,7 @@ PantherWheelsController::PantherWheelsController(
   CanSettings can_settings, DrivetrainSettings drivetrain_settings)
 {
   can_settings_ = can_settings;
-
-  // TODO Move this to roboteq driver
-
-  // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
-  // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)
-  // 2. Convert motor rad/s speed to motor rotation per second speed (multiplication by 1.0/(2.0*pi))
-  // 3. Convert motor rotation per second speed to motor rotation per minute speed (multiplication by 60.0)
-  // 4. Convert motor rotation per minute speed to Roboteq GO command - permille of the max rotation per minute
-  //    speed set in the Roboteq driver (MXRPM parameter) - multiplication by 1000.0/max_rpm_motor_speed
-  radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0 / (2.0 * M_PI)) *
-                                       60.0 * (1000.0 / drivetrain_settings.max_rpm_motor_speed);
-
-  // Converts desired wheel torque in Nm to Roboteq motor command. Steps:
-  // 1. Convert desired wheel Nm torque to motor Nm ideal torque (multiplication by (1.0/gear_ratio))
-  // 2. Convert motor Nm ideal torque to motor Nm real torque (multiplication by (1.0/gearbox_efficiency))
-  // 3. Convert motor Nm real torque to motor A current (multiplication by (1.0/motor_torque_constant))
-  // 4. Convert motor A current to Roboteq GO command - permille of the Amps limit current
-  //    set in the roboteq driver (ALIM parameter) - multiplication by 1000.0/max_amps_motor_current
-  newton_meter_to_roboteq_cmd_ = (1.0 / drivetrain_settings.gear_ratio) *
-                                 (1.0 / drivetrain_settings.gearbox_efficiency) *
-                                 (1.0 / drivetrain_settings.motor_torque_constant) *
-                                 (1000.0 / drivetrain_settings.max_amps_motor_current);
-
-  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in radians. Steps:
-  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by (1.0/encoder_resolution))
-  // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
-  // 3. Convert wheel rotation to wheel position in radians (multiplication by 2.0*pi)
-  roboteq_pos_feedback_to_radians_ = (1. / drivetrain_settings.encoder_resolution) *
-                                     (1.0 / drivetrain_settings.gear_ratio) * (2.0 * M_PI);
-
-  // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
-  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed (multiplication by (1.0/gear_ratio))
-  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication by (1.0/60.0))
-  // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
-  roboteq_vel_feedback_to_radians_per_second_ =
-    (1. / drivetrain_settings.gear_ratio) * (1. / 60.) * (2.0 * M_PI);
-
-  // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
-  // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
-  // 2. Convert motor A current to motor Nm torque (multiplication by motor_torque_constant)
-  // 3. Convert motor Nm torque to wheel ideal Nm torque (multiplication by gear_ratio)
-  // 4. Convert wheel ideal Nm torque to wheel real Nm torque (multiplication by gearbox_efficiency)
-  roboteq_current_feedback_to_newton_meters_ =
-    (1. / 10.) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
-    drivetrain_settings.gearbox_efficiency;
+  drivetrain_settings_ = drivetrain_settings;
 }
 
 void PantherWheelsController::Initialize()
@@ -89,10 +45,10 @@ void PantherWheelsController::Initialize()
     master_ = std::make_unique<lely::canopen::AsyncMaster>(
       *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
-    front_driver_ =
-      std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.front_driver_can_id);
-    rear_driver_ =
-      std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.rear_driver_can_id);
+    front_driver_ = std::make_unique<RoboteqDriver>(
+      drivetrain_settings_, *exec_, *master_, can_settings_.front_driver_can_id);
+    rear_driver_ = std::make_unique<RoboteqDriver>(
+      drivetrain_settings_, *exec_, *master_, can_settings_.rear_driver_can_id);
 
     // Start the NMT service of the master by pretending to receive a 'reset
     // node' command.
@@ -187,25 +143,21 @@ RoboteqFeedback PantherWheelsController::Read()
     throw std::runtime_error("Timeout - old data");
   }
 
-  feedback.pos_fr = front_driver_feedback.motor_1.pos * roboteq_pos_feedback_to_radians_;
-  feedback.vel_fr = front_driver_feedback.motor_1.vel * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.torque_fr =
-    front_driver_feedback.motor_1.current * roboteq_current_feedback_to_newton_meters_;
+  feedback.pos_fr = front_driver_feedback.motor_1.pos;
+  feedback.vel_fr = front_driver_feedback.motor_1.vel;
+  feedback.torque_fr = front_driver_feedback.motor_1.current;
 
-  feedback.pos_fl = front_driver_feedback.motor_2.pos * roboteq_pos_feedback_to_radians_;
-  feedback.vel_fl = front_driver_feedback.motor_2.vel * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.torque_fl =
-    front_driver_feedback.motor_2.current * roboteq_current_feedback_to_newton_meters_;
+  feedback.pos_fl = front_driver_feedback.motor_2.pos;
+  feedback.vel_fl = front_driver_feedback.motor_2.vel;
+  feedback.torque_fl = front_driver_feedback.motor_2.current;
 
-  feedback.pos_rr = rear_driver_feedback.motor_1.pos * roboteq_pos_feedback_to_radians_;
-  feedback.vel_rr = rear_driver_feedback.motor_1.vel * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.torque_rr =
-    rear_driver_feedback.motor_1.current * roboteq_current_feedback_to_newton_meters_;
+  feedback.pos_rr = rear_driver_feedback.motor_1.pos;
+  feedback.vel_rr = rear_driver_feedback.motor_1.vel;
+  feedback.torque_rr = rear_driver_feedback.motor_1.current;
 
-  feedback.pos_rl = rear_driver_feedback.motor_2.pos * roboteq_pos_feedback_to_radians_;
-  feedback.vel_rl = rear_driver_feedback.motor_2.vel * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.torque_rl =
-    rear_driver_feedback.motor_2.current * roboteq_current_feedback_to_newton_meters_;
+  feedback.pos_rl = rear_driver_feedback.motor_2.pos;
+  feedback.vel_rl = rear_driver_feedback.motor_2.vel;
+  feedback.torque_rl = rear_driver_feedback.motor_2.current;
 
   if (
     front_driver_feedback.fault_flags != 0 || front_driver_feedback.script_flags != 0 ||
@@ -240,18 +192,13 @@ RoboteqFeedback PantherWheelsController::Read()
 void PantherWheelsController::WriteSpeed(
   double speed_fl, double speed_fr, double speed_rl, double speed_rr)
 {
-  int32_t motor_command_fl = speed_fl * radians_per_second_to_roboteq_cmd_;
-  int32_t motor_command_fr = speed_fr * radians_per_second_to_roboteq_cmd_;
-  int32_t motor_command_rl = speed_rl * radians_per_second_to_roboteq_cmd_;
-  int32_t motor_command_rr = speed_rr * radians_per_second_to_roboteq_cmd_;
-
   try {
-    front_driver_->SendRoboteqCmd(motor_command_fl, motor_command_fr);
+    front_driver_->SendRoboteqCmd(speed_fl, speed_fr);
   } catch (...) {
     throw std::runtime_error("Front driver send roboteq cmd failed");
   }
   try {
-    rear_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
+    rear_driver_->SendRoboteqCmd(speed_rl, speed_rr);
   } catch (...) {
     throw std::runtime_error("Rear driver send roboteq cmd failed");
   }

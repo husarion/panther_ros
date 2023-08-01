@@ -31,16 +31,6 @@ struct CanSettings
   uint8_t rear_driver_can_id;
 };
 
-struct DrivetrainSettings
-{
-  float motor_torque_constant;
-  float gear_ratio;
-  float gearbox_efficiency;
-  float encoder_resolution;
-  float max_rpm_motor_speed;
-  float max_amps_motor_current;
-};
-
 class PantherWheelsController
 {
 public:
@@ -109,13 +99,7 @@ private:
   std::unique_ptr<lely::io::CanChannel> chan_;
 
   CanSettings can_settings_;
-
-  float radians_per_second_to_roboteq_cmd_;
-  float newton_meter_to_roboteq_cmd_;
-
-  float roboteq_pos_feedback_to_radians_;
-  float roboteq_vel_feedback_to_radians_per_second_;
-  float roboteq_current_feedback_to_newton_meters_;
+  DrivetrainSettings drivetrain_settings_;
 
   std::chrono::nanoseconds pdo_timeout_;
 

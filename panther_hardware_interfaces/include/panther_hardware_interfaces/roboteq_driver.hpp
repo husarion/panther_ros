@@ -13,9 +13,9 @@ namespace panther_hardware_interfaces
 enum class RoboteqMode { POSITION = 0, VELOCITY = 1, TORQUE = 2 };
 struct RoboteqChannelFeedback
 {
-  int pos;
-  int vel;
-  int current;
+  float pos;
+  float vel;
+  float current;
   uint8_t runtime_stat_flag;
 };
 
@@ -43,6 +43,16 @@ struct RoboteqDriverFeedback
   bool bat_amps_2_error;
 };
 
+struct DrivetrainSettings
+{
+  float motor_torque_constant;
+  float gear_ratio;
+  float gearbox_efficiency;
+  float encoder_resolution;
+  float max_rpm_motor_speed;
+  float max_amps_motor_current;
+};
+
 // All ids and sub ids were read directly from eds file
 // lely canopen doesn't have option to parse them based on the ParameterName
 // additionally between version v60 and v80 ParameterName changed:
@@ -57,17 +67,21 @@ class RoboteqDriver : public lely::canopen::FiberDriver
 public:
   using FiberDriver::FiberDriver;
 
+  RoboteqDriver(
+    DrivetrainSettings drivetrain_settings, ev_exec_t * exec, lely::canopen::AsyncMaster & master,
+    uint8_t id);
+
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
   RoboteqMotorsFeedback ReadRoboteqMotorsFeedback();
 
   /**
    * @brief Sends commands to Roboteq drivers
    *
-   * @param channel_1_cmd command value for first channel scaled to [-1000; 1000] range as specified in the Roboteq documentation
-   * @param channel_2_cmd command value for second channel scaled to [-1000; 1000] range as specified in the Roboteq documentation 
+   * @param channel_1_cmd command value for first channel in rad/s
+   * @param channel_2_cmd command value for second channel in rad/s
    * @exception std::exception if any operation returns error
    */
-  void SendRoboteqCmd(int32_t channel_1_cmd, int32_t channel_2_cmd);
+  void SendRoboteqCmd(double channel_1_speed, double channel_2_speed);
 
   /**
    * @brief Sends commands to reset script on the Roboteq drivers
@@ -123,6 +137,13 @@ private:
   lely::io::CanError can_error_code;
 
   std::mutex rpdo_timestamp_mtx_;
+
+  float radians_per_second_to_roboteq_cmd_;
+  float newton_meter_to_roboteq_cmd_;
+
+  float roboteq_pos_feedback_to_radians_;
+  float roboteq_vel_feedback_to_radians_per_second_;
+  float roboteq_current_feedback_to_newton_meters_;
 
   // TODO
   // void OnState(lely::canopen::NmtState state) noexcept override;
