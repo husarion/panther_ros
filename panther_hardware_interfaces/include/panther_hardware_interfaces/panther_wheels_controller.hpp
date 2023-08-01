@@ -118,9 +118,15 @@ private:
       if (flags & (0b00000001 << i)) {
         errors_detected.push_back(x);
       }
+      ++i;
     }
     return errors_detected;
   }
+
+  // Suppress flags:
+  // safety_stop_active
+  // amps_limit_active
+  uint8_t suppressed_driver_flags_ = 0b11110110;
 
   std::vector<std::string> driver_runtime_errors_ = {
     "amps_limit_active",

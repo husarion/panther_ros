@@ -159,27 +159,53 @@ RoboteqFeedback PantherWheelsController::Read()
   feedback.vel_rl = rear_driver_feedback.motor_2.vel;
   feedback.torque_rl = rear_driver_feedback.motor_2.current;
 
+  front_driver_feedback.motor_1.runtime_stat_flag &= suppressed_driver_flags_;
+  front_driver_feedback.motor_2.runtime_stat_flag &= suppressed_driver_flags_;
+  rear_driver_feedback.motor_1.runtime_stat_flag &= suppressed_driver_flags_;
+  rear_driver_feedback.motor_2.runtime_stat_flag &= suppressed_driver_flags_;
+
   if (
     front_driver_feedback.fault_flags != 0 || front_driver_feedback.script_flags != 0 ||
     front_driver_feedback.motor_1.runtime_stat_flag != 0 ||
     front_driver_feedback.motor_2.runtime_stat_flag != 0 || rear_driver_feedback.fault_flags != 0 ||
     rear_driver_feedback.script_flags != 0 || rear_driver_feedback.motor_1.runtime_stat_flag != 0 ||
     rear_driver_feedback.motor_2.runtime_stat_flag != 0) {
+    std::vector<std::string> errors;
+
     auto errors_fault_front = CheckFlags(front_driver_feedback.fault_flags, driver_fault_flags_);
+    errors.insert(errors.end(), errors_fault_front.begin(), errors_fault_front.end());
+
     auto errors_script_front = CheckFlags(front_driver_feedback.script_flags, driver_script_flags_);
+    errors.insert(errors.end(), errors_script_front.begin(), errors_script_front.end());
+
     auto errors_runtime_mot1_front =
       CheckFlags(front_driver_feedback.motor_1.runtime_stat_flag, driver_runtime_errors_);
+    errors.insert(errors.end(), errors_runtime_mot1_front.begin(), errors_runtime_mot1_front.end());
+
     auto errors_runtime_mot2_front =
       CheckFlags(front_driver_feedback.motor_2.runtime_stat_flag, driver_runtime_errors_);
+    errors.insert(errors.end(), errors_runtime_mot2_front.begin(), errors_runtime_mot2_front.end());
 
     auto errors_fault_rear = CheckFlags(rear_driver_feedback.fault_flags, driver_fault_flags_);
+    errors.insert(errors.end(), errors_fault_rear.begin(), errors_fault_rear.end());
+
     auto errors_script_rear = CheckFlags(rear_driver_feedback.script_flags, driver_script_flags_);
+    errors.insert(errors.end(), errors_script_rear.begin(), errors_script_rear.end());
+
     auto errors_runtime_mot1_rear =
       CheckFlags(rear_driver_feedback.motor_1.runtime_stat_flag, driver_runtime_errors_);
+    errors.insert(errors.end(), errors_runtime_mot1_rear.begin(), errors_runtime_mot1_rear.end());
+
     auto errors_runtime_mot2_rear =
       CheckFlags(rear_driver_feedback.motor_2.runtime_stat_flag, driver_runtime_errors_);
+    errors.insert(errors.end(), errors_runtime_mot2_rear.begin(), errors_runtime_mot2_rear.end());
 
-    // throw std::runtime_error("flags error");
+    std::stringstream detected_errors;
+    for (const auto & e : errors) {
+      detected_errors << e << "\n";
+    }
+
+    throw std::runtime_error("flags error: " + detected_errors.str());
   }
 
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
