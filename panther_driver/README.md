@@ -25,7 +25,7 @@ For a `/joint_states` message is carrying given data:
 
 - `/cmd_vel` [*geometry_msgs/Twist*]: robot desired control velocity.
 - `/panther/hardware/e_stop` [*std_msgs/Bool*]: robot emergency stop state.
-- `/panther/hardware/io_state` [*std_msgs/IOState*]: checks wether robots are powered on.
+- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks whether robots GPIO pins are powered on.
 
 #### Services subscribed
 
