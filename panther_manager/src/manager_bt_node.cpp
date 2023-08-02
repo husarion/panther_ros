@@ -99,12 +99,8 @@ ManagerBTNode::ManagerBTNode(
 
   if (launch_lights_tree) {
     const std::map<std::string, std::any> lights_initial_bb = {
-      {"battery_percent", std::numeric_limits<float>::quiet_NaN()},
-      {"battery_percent_round", ""},
-      {"battery_status", sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN},
       {"charging_anim_percent", ""},
       {"current_anim_id", -1},
-      {"e_stop_state", true},
       {"BATTERY_STATE_ANIM_PERIOD", battery_state_anim_period},
       {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
       {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
@@ -142,12 +138,6 @@ ManagerBTNode::ManagerBTNode(
 
   if (launch_safety_tree) {
     const std::map<std::string, std::any> safety_initial_bb = {
-      {"aux_state", false},
-      {"bat_temp", std::numeric_limits<float>::quiet_NaN()},
-      {"cpu_temp", std::numeric_limits<float>::quiet_NaN()},
-      {"driver_temp", std::numeric_limits<float>::quiet_NaN()},
-      {"e_stop_state", true},
-      {"fan_state", true},
       {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
       {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
       {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
