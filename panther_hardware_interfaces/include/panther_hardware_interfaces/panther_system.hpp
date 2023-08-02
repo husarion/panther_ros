@@ -65,17 +65,25 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 protected:
+  // TODO: naming
+  static constexpr size_t JOINTS_SIZE_ = 4;
+
   // consider adding position and torque mode after updating roboteq firmware to 2.1a
   // In 2.1 both position and torque mode aren't really stable and safe
   // in torque mode sometimes after killing software motor moves and it generally isn't well tuned
   // position mode also isn't really stable (reacts abruptly to spikes, which we hope will be fixed
   // in the new firmware)
-  // TODO: check if RT safe
-  std::map<std::string, double> vel_commands_;
 
-  std::map<std::string, double> pos_state_;
-  std::map<std::string, double> vel_state_;
-  std::map<std::string, double> effort_state_;
+  double hw_commands_velocities_[JOINTS_SIZE_];
+
+  double hw_states_positions_[JOINTS_SIZE_];
+  double hw_states_velocities_[JOINTS_SIZE_];
+  double hw_states_efforts_[JOINTS_SIZE_];
+
+  // Define expected joint order, so that it doesn't mattter order defined in the panther_macro
+  // it is expected that joint name should contain these specifiers
+  std::string joint_order_[JOINTS_SIZE_] = {"fl", "fr", "rl", "rr"};
+  std::string joints_names_sorted_[JOINTS_SIZE_];
 
   std::unique_ptr<GPIOController> gpio_controller_;
   std::unique_ptr<PantherWheelsController> roboteq_controller_;

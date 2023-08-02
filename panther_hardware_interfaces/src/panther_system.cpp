@@ -14,6 +14,40 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     return CallbackReturn::ERROR;
   }
 
+  if (info_.joints.size() != JOINTS_SIZE_) {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("PantherSystem"), "Wrong number of joints defined: %zu, %zu expected.",
+      info_.joints.size(), JOINTS_SIZE_);
+    return CallbackReturn::ERROR;
+  }
+
+  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+    for (std::size_t j = 0; j < JOINTS_SIZE_; j++) {
+      if (info_.joints[j].name.find(joint_order_[i]) != std::string::npos) {
+        joints_names_sorted_[i] = info_.joints[j].name;
+      }
+    }
+  }
+
+  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+    if (joints_names_sorted_[i] == "") {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("PantherSystem"),
+        "%s joint not defined (exactly one joint containing this string is required)",
+        joint_order_[i].c_str());
+      return CallbackReturn::ERROR;
+    }
+  }
+
+  // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it shouldn't)
+  // In case of velocity, I think that setting initial value to 0.0 is the best option
+  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+    hw_commands_velocities_[i] = 0.0;
+    hw_states_positions_[i] = std::numeric_limits<double>::quiet_NaN();
+    hw_states_velocities_[i] = std::numeric_limits<double>::quiet_NaN();
+    hw_states_efforts_[i] = std::numeric_limits<double>::quiet_NaN();
+  }
+
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     // Commands
     if (joint.command_interfaces.size() != 1) {
@@ -63,16 +97,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
         joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_EFFORT);
       return CallbackReturn::ERROR;
     }
-  }
-
-  for (auto & j : info_.joints) {
-    RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Joint '%s' found", j.name.c_str());
-
-    pos_state_[j.name] = 0.0;
-    vel_state_[j.name] = 0.0;
-    effort_state_[j.name] = 0.0;
-
-    vel_commands_[j.name] = 0.0;
   }
 
   // TODO add checking if parameters were defined
@@ -125,12 +149,11 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating");
 
-  for (const auto & x : pos_state_) {
-    pos_state_[x.first] = 0.0;
-    vel_state_[x.first] = 0.0;
-    effort_state_[x.first] = 0.0;
-
-    vel_commands_[x.first] = 0.0;
+  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+    hw_commands_velocities_[i] = 0.0;
+    hw_states_positions_[i] = 0.0;
+    hw_states_velocities_[i] = 0.0;
+    hw_states_efforts_[i] = 0.0;
   }
 
   // gpio_controller_->start();
@@ -176,15 +199,15 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
 std::vector<StateInterface> PantherSystem::export_state_interfaces()
 {
+  // TODO: check order
   std::vector<StateInterface> state_interfaces;
-  for (auto i = 0u; i < info_.joints.size(); i++) {
+  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
     state_interfaces.emplace_back(StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &pos_state_[info_.joints[i].name]));
+      joints_names_sorted_[i], hardware_interface::HW_IF_POSITION, &hw_states_positions_[i]));
     state_interfaces.emplace_back(StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &vel_state_[info_.joints[i].name]));
+      joints_names_sorted_[i], hardware_interface::HW_IF_VELOCITY, &hw_states_velocities_[i]));
     state_interfaces.emplace_back(StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_EFFORT,
-      &effort_state_[info_.joints[i].name]));
+      joints_names_sorted_[i], hardware_interface::HW_IF_EFFORT, &hw_states_efforts_[i]));
   }
 
   return state_interfaces;
@@ -193,10 +216,9 @@ std::vector<StateInterface> PantherSystem::export_state_interfaces()
 std::vector<CommandInterface> PantherSystem::export_command_interfaces()
 {
   std::vector<CommandInterface> command_interfaces;
-  for (auto i = 0u; i < info_.joints.size(); i++) {
+  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY,
-      &vel_commands_[info_.joints[i].name]));
+      joints_names_sorted_[i], hardware_interface::HW_IF_VELOCITY, &hw_commands_velocities_[i]));
   }
 
   return command_interfaces;
@@ -204,30 +226,32 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
 
 return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // TODO add reading other stuff
+  // TODO!!!! add reading other stuff
 
   try {
     RoboteqFeedback feedback = roboteq_controller_->Read();
 
-    pos_state_["fr_wheel_joint"] = feedback.pos_fr;
-    pos_state_["fl_wheel_joint"] = feedback.pos_fl;
-    vel_state_["fr_wheel_joint"] = feedback.vel_fr;
-    vel_state_["fl_wheel_joint"] = feedback.vel_fl;
-    effort_state_["fr_wheel_joint"] = feedback.torque_fr;
-    effort_state_["fl_wheel_joint"] = feedback.torque_fl;
-    pos_state_["rr_wheel_joint"] = feedback.pos_rr;
-    pos_state_["rl_wheel_joint"] = feedback.pos_rl;
-    vel_state_["rr_wheel_joint"] = feedback.vel_rr;
-    vel_state_["rl_wheel_joint"] = feedback.vel_rl;
-    effort_state_["rr_wheel_joint"] = feedback.torque_rr;
-    effort_state_["rl_wheel_joint"] = feedback.torque_rl;
+    hw_states_positions_[0] = feedback.pos_fl;
+    hw_states_positions_[1] = feedback.pos_fr;
+    hw_states_positions_[2] = feedback.pos_rl;
+    hw_states_positions_[3] = feedback.pos_rr;
+
+    hw_states_velocities_[0] = feedback.vel_fl;
+    hw_states_velocities_[1] = feedback.vel_fr;
+    hw_states_velocities_[2] = feedback.vel_rl;
+    hw_states_velocities_[3] = feedback.vel_rr;
+
+    hw_states_efforts_[0] = feedback.torque_fl;
+    hw_states_efforts_[1] = feedback.torque_fr;
+    hw_states_efforts_[2] = feedback.torque_rl;
+    hw_states_efforts_[3] = feedback.torque_rr;
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
     return return_type::ERROR;
   }
 
-  // TODO error flags
+  // TODO!!!!! error flags
 
   return return_type::OK;
 }
@@ -236,8 +260,8 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   try {
     roboteq_controller_->WriteSpeed(
-      vel_commands_["fl_wheel_joint"], vel_commands_["fr_wheel_joint"],
-      vel_commands_["rl_wheel_joint"], vel_commands_["rr_wheel_joint"]);
+      hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
+      hw_commands_velocities_[3]);
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
