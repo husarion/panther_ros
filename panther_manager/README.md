@@ -57,7 +57,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~safety/critical_bat_temp` [*float*, default: **59.0**]: extends `safety/high_bat_temp` by turning off AUX power.
 - `~safety/driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **deg C** of any drivers below which the fan is turned off.
 - `~safety/driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **deg C** of any drivers above which the fan is turned on.
-- `~safety/high_bat_temp` [*float*, default: **55.0**]: battery temperature in **deg C** above which the robot starts displaying warning log and e-stop is triggered.
+- `~safety/high_bat_temp` [*float*, default: **55.0**]: battery temperature in **deg C** above which the robot starts displaying a warning log and e-stop is triggered.
 - `~shutdown_hosts_file` [*string*, default: **None**]: path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
