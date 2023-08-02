@@ -6,7 +6,7 @@ Software for controlling the Husarion Panther robot motors via CAN interface.
 
 ### driver_node.py
 
-Node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot. Commanded velocities are smoothed with acceleration constrains.
+Node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot. Commanded velocities are smoothed with acceleration constraints.
 
 #### Publishes
 
