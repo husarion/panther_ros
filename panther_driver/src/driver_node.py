@@ -76,9 +76,9 @@ class PantherDriverNode:
         self._motor_torque_constant = rospy.get_param('~motor_torque_constant', 2.6149)
         self._gear_ratio = rospy.get_param('~gear_ratio', 30.08)
         self._encoder_resolution = rospy.get_param('~encoder_resolution', 400 * 4)
-        self._v_x_var = float(rospy.get_param('~velocity_x_stderr', 3.2e-3))**2
-        self._v_y_var = float(rospy.get_param('~velocity_y_stderr', 3.2e-3))**2
-        self._v_yaw_var = float(rospy.get_param('~velocity_yaw_stderr', 8.5e-3))**2
+        self._v_x_var = float(rospy.get_param('~odom_stderr/vel_x', 3.2e-3))**2
+        self._v_y_var = float(rospy.get_param('~odom_stderr/vel_y', 3.2e-3))**2
+        self._v_yaw_var = float(rospy.get_param('~odom_stderr/vel_yaw', 8.5e-3))**2
 
         self._publish_tf = rospy.get_param('~publish_tf', True)
         self._publish_odom = rospy.get_param('~publish_odometry', True)
