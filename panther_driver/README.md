@@ -6,7 +6,7 @@ Software for controlling the Husarion Panther robot motors via CAN interface.
 
 ### driver_node.py
 
-Node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot.
+Node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot. Commanded velocities are smoothed with acceleration constraints.
 
 #### Publishes
 
@@ -25,6 +25,7 @@ For a `/joint_states` message is carrying given data:
 
 - `/cmd_vel` [*geometry_msgs/Twist*]: robot desired control velocity.
 - `/panther/hardware/e_stop` [*std_msgs/Bool*]: robot emergency stop state.
+- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks whether robots GPIO pins are powered on.
 
 #### Services subscribed
 
@@ -32,7 +33,7 @@ For a `/joint_states` message is carrying given data:
 
 #### Services advertised
 
-- `/panther/driver/reset_roboteq_script` [*std_srvs/Trigger*]: allows rest script running on motor drivers. Available since Panther version 1.2.
+- `/panther/driver/reset_roboteq_script` [*std_srvs/Trigger*]: resets the script running on motor drivers. Available since Panther version 1.2.
 
 #### Parameters
 
@@ -52,6 +53,9 @@ For a `/joint_states` message is carrying given data:
 - `~use_pdo` [*bool*, default: **false**]: whether to use Process Data Object protocol to acquire motors drivers data via CAN interface. Available since Panther version 1.2.
 - `~wheel_radius` [*float*, default: **0.1825**]: wheel radius in **[m]**.
 - `~wheel_separation` [*float*, default: **0.697**]: separation of wheels alongside y axis in **[m]**.
+- `velocity_x_stderr` [*float*, default: **3.2e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
+- `velocity_y_stderr` [*float*, default: **3.2e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
+- `velocity_yaw_stderr` [*float*, default: **8.5e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
 
 #### Velocity smoother parameters
 
