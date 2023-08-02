@@ -15,6 +15,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   }
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
+    // Commands
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(
         rclcpp::get_logger("PantherSystem"),
@@ -31,6 +32,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
       return CallbackReturn::ERROR;
     }
 
+    // States
     if (joint.state_interfaces.size() != 3) {
       RCLCPP_FATAL(
         rclcpp::get_logger("PantherSystem"), "Joint '%s' has %zu state interface. 3 expected.",
@@ -75,8 +77,8 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     // effort_commands_[j.name] = 0.0;
   }
 
+  // TODO add checking if parameters were defined
   DrivetrainSettings drivetrain_settings;
-
   drivetrain_settings.motor_torque_constant =
     std::stof(info_.hardware_parameters["motor_torque_constant"]);
   drivetrain_settings.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
@@ -96,6 +98,8 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
   roboteq_controller_ =
     std::make_unique<PantherWheelsController>(can_settings, drivetrain_settings);
+  // TODO comment
+  // gpio_controller_ = std::make_unique<GPIOController>();
 
   hardware_interface_type_ = hardware_interface::HW_IF_VELOCITY;
 
@@ -106,8 +110,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
-  // TODO comment
-  // gpio_controller_ = std::make_unique<GPIOController>();
   try {
     roboteq_controller_->Initialize();
   } catch (std::runtime_error & err) {
@@ -173,6 +175,10 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
   // TODO
   // roboteq_controller_->Deinitialize();
+
+  // TODO
+  // Called when error is return from read or write
+  // Maybe trigger estop?
   return CallbackReturn::SUCCESS;
 }
 
@@ -250,6 +256,8 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
 
 return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  // TODO add reading other stuff
+
   try {
     RoboteqFeedback feedback = roboteq_controller_->Read();
 

@@ -82,6 +82,7 @@ protected:
   // std::map<std::string, double> pos_commands_;
   // std::map<std::string, double> effort_commands_;
 
+  // TODO: check if RT safe
   std::map<std::string, double> vel_commands_;
 
   std::map<std::string, double> pos_state_;

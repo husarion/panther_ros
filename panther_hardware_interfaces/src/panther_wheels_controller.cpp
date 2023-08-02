@@ -20,6 +20,7 @@ void PantherWheelsController::Initialize()
   can_communication_started_.store(false);
 
   // TODO: does it have to be a thread
+  // TODO: configure SCHED_FIFO priority
   executor_thread_ = std::thread([this]() {
     io_guard_ = std::make_unique<lely::io::IoGuard>();
     ctx_ = std::make_unique<lely::io::Context>();
