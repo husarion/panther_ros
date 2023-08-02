@@ -5,7 +5,7 @@ API for each node can be found in each package folder.
 
 > **Warning**
 > Software stack for ROS 1 will no longer receive major features. Bugs will still be fixed.
-> Main developement will now be targeted towards ROS 2.
+> Main development will now be targeted towards ROS 2.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/day_with_lights.png">
@@ -13,14 +13,14 @@ API for each node can be found in each package folder.
 </picture>
 
 > **Note**: 
-> Building the latest version of this code will likely not work with your current OS. Make sure you are running the newest OS image for Built-in Computer. You can find link to download it and instruction on updating at [husarion.com](https://husarion.com/manuals/panther/operating-system-reinstallation/#built-in-computer-system-reinstallation).
+> Building the latest version of this code will likely not work with your current OS. Make sure you are running the newest OS image for Built-in Computer. You can find the link to download it and instruction on updating at [husarion.com](https://husarion.com/manuals/panther/operating-system-reinstallation/#built-in-computer-system-reinstallation).
 >
 > Current software stack uses some of the features in kernel and underlying OS that were not introduces in older versions. You need system verstion `v1.1.0` or newer. You can check currently installed OS verstion by examining this environment variable:
 > ``` bash
 > echo $SYSTEM_BUILD_VERSION
 > ```
 >
-> Some of the safety features broke compatibility for older system image, hence full system update is required.
+> Some of the safety features broke compatibility for older system images, hence full system update is required.
 
 ## Docker image
 
@@ -53,7 +53,7 @@ After successful build run:
 roslaunch panther_bringup bringup.launch
 ```
 
-This will launch all nodes related to Panther robot, selecting them to match your specific hardware revision. Please keep in mind, those packages require environment variables that are set during boot procedure of Panther.
+This will launch all nodes related to the Panther robot, selecting them to match your specific hardware revision. Please keep in mind, those packages require environment variables that are set during the boot procedure of Panther.
 
 ## Build and run simulation
 
