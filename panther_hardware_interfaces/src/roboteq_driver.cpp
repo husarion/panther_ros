@@ -20,17 +20,6 @@ RoboteqDriver::RoboteqDriver(
   radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0 / (2.0 * M_PI)) *
                                        60.0 * (1000.0 / drivetrain_settings.max_rpm_motor_speed);
 
-  // Converts desired wheel torque in Nm to Roboteq motor command. Steps:
-  // 1. Convert desired wheel Nm torque to motor Nm ideal torque (multiplication by (1.0/gear_ratio))
-  // 2. Convert motor Nm ideal torque to motor Nm real torque (multiplication by (1.0/gearbox_efficiency))
-  // 3. Convert motor Nm real torque to motor A current (multiplication by (1.0/motor_torque_constant))
-  // 4. Convert motor A current to Roboteq GO command - permille of the Amps limit current
-  //    set in the roboteq driver (ALIM parameter) - multiplication by 1000.0/max_amps_motor_current
-  newton_meter_to_roboteq_cmd_ = (1.0 / drivetrain_settings.gear_ratio) *
-                                 (1.0 / drivetrain_settings.gearbox_efficiency) *
-                                 (1.0 / drivetrain_settings.motor_torque_constant) *
-                                 (1000.0 / drivetrain_settings.max_amps_motor_current);
-
   // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in radians. Steps:
   // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by (1.0/encoder_resolution))
   // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
@@ -175,25 +164,6 @@ void RoboteqDriver::ResetRoboteqScript()
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   auto result = reset_script_future.get();
-
-  if (result.has_error()) {
-    throw result.error();
-  }
-}
-
-// TODO consider adding position and torque mode after updating roboteq firmware to 2.1a
-// In 2.1 both position and torque mode aren't really stable and safe
-// in torque mode sometimes after killing software motor moves and it generally isn't well tuned
-// position mode also isn't really stable (reacts abruptly to spikes, which we hope will be fixed
-// in the new firmware)
-void RoboteqDriver::SetVelocityMode()
-{
-  auto change_mode_future = AsyncWrite<int32_t>(0x2005, 9, 1, std::chrono::milliseconds(100));
-  // Wait(change_mode_future);
-  while (!change_mode_future.is_ready()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-  auto result = change_mode_future.get();
 
   if (result.has_error()) {
     throw result.error();

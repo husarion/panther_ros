@@ -58,19 +58,6 @@ public:
   PANTHER_HARDWARE_INTERFACES_PUBLIC
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  // Mode switch currently disabled - torque and position mode in Roboteq isn't working well
-  // enough, so only velocity mode will be supported. New firmware (2.1a) may fix some bugs,
-  // then we will reconsider enabling it
-
-  // PANTHER_HARDWARE_INTERFACES_PUBLIC
-  // return_type prepare_command_mode_switch(
-  //   const std::vector<std::string> & start_interfaces,
-  //   const std::vector<std::string> & stop_interfaces) override;
-
-  // PANTHER_HARDWARE_INTERFACES_PUBLIC
-  // return_type perform_command_mode_switch(
-  //   const std::vector<std::string> &, const std::vector<std::string> &) override;
-
   PANTHER_HARDWARE_INTERFACES_PUBLIC
   return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
@@ -78,10 +65,11 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 protected:
-  // As described above prepare_command_mode_switch
-  // std::map<std::string, double> pos_commands_;
-  // std::map<std::string, double> effort_commands_;
-
+  // consider adding position and torque mode after updating roboteq firmware to 2.1a
+  // In 2.1 both position and torque mode aren't really stable and safe
+  // in torque mode sometimes after killing software motor moves and it generally isn't well tuned
+  // position mode also isn't really stable (reacts abruptly to spikes, which we hope will be fixed
+  // in the new firmware)
   // TODO: check if RT safe
   std::map<std::string, double> vel_commands_;
 
@@ -91,8 +79,6 @@ protected:
 
   std::unique_ptr<GPIOController> gpio_controller_;
   std::unique_ptr<PantherWheelsController> roboteq_controller_;
-
-  std::string hardware_interface_type_;
 };
 
 }  // namespace panther_hardware_interfaces

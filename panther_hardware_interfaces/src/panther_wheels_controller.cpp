@@ -235,15 +235,4 @@ void PantherWheelsController::WriteSpeed(
   }
 }
 
-// void PantherWheelsController::WriteTorque(
-//   double torque_fl, double torque_fr, double torque_rl, double torque_rr)
-// {
-//   int32_t motor_command_fl = torque_fl * newton_meter_to_roboteq_cmd_;
-//   int32_t motor_command_fr = torque_fr * newton_meter_to_roboteq_cmd_;
-//   int32_t motor_command_rl = torque_rl * newton_meter_to_roboteq_cmd_;
-//   int32_t motor_command_rr = torque_rr * newton_meter_to_roboteq_cmd_;
-//   front_driver_->SendRoboteqCmd(motor_command_fl, motor_command_fr);
-//   rear_driver_->SendRoboteqCmd(motor_command_rl, motor_command_rr);
-// }
-
 }  // namespace panther_hardware_interfaces

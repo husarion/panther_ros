@@ -73,8 +73,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     effort_state_[j.name] = 0.0;
 
     vel_commands_[j.name] = 0.0;
-    // pos_commands_[j.name] = 0.0;
-    // effort_commands_[j.name] = 0.0;
   }
 
   // TODO add checking if parameters were defined
@@ -88,8 +86,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     std::stof(info_.hardware_parameters["encoder_resolution"]);
   drivetrain_settings.max_rpm_motor_speed =
     std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
-  drivetrain_settings.max_amps_motor_current =
-    std::stof(info_.hardware_parameters["max_amps_motor_current"]);
 
   CanSettings can_settings;
   can_settings.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
@@ -100,8 +96,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     std::make_unique<PantherWheelsController>(can_settings, drivetrain_settings);
   // TODO comment
   // gpio_controller_ = std::make_unique<GPIOController>();
-
-  hardware_interface_type_ = hardware_interface::HW_IF_VELOCITY;
 
   return CallbackReturn::SUCCESS;
 }
@@ -137,8 +131,6 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     effort_state_[x.first] = 0.0;
 
     vel_commands_[x.first] = 0.0;
-    // pos_commands_[x.first] = 0.0;
-    // effort_commands_[x.first] = 0.0;
   }
 
   // gpio_controller_->start();
@@ -205,54 +197,10 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       info_.joints[i].name, hardware_interface::HW_IF_VELOCITY,
       &vel_commands_[info_.joints[i].name]));
-
-    // command_interfaces.emplace_back(hardware_interface::CommandInterface(
-    //   info_.joints[i].name, hardware_interface::HW_IF_POSITION,
-    //   &pos_commands_[info_.joints[i].name]));
-    // command_interfaces.emplace_back(hardware_interface::CommandInterface(
-    //   info_.joints[i].name, hardware_interface::HW_IF_EFFORT,
-    //   &effort_commands_[info_.joints[i].name]));
   }
 
   return command_interfaces;
 }
-
-// Disabled, please check explaination above prepare_command_mode_switch declaration
-// return_type PantherSystem::prepare_command_mode_switch(
-//   const std::vector<std::string> & start_interfaces,
-//   const std::vector<std::string> & stop_interfaces)
-// {
-//   RCLCPP_INFO_STREAM(
-//     rclcpp::get_logger("PantherSystem"), "Preparing mode change to " << hardware_interface_type_);
-//   if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
-//     hardware_interface_type_ = hardware_interface::HW_IF_EFFORT;
-//   } else if (
-//     start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
-//     hardware_interface_type_ = hardware_interface::HW_IF_VELOCITY;
-//   } else if (
-//     start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_POSITION) {
-//     hardware_interface_type_ = hardware_interface::HW_IF_POSITION;
-//   }
-
-//   return return_type::OK;
-// }
-
-// return_type PantherSystem::perform_command_mode_switch(
-//   const std::vector<std::string> &, const std::vector<std::string> &)
-// {
-//   RCLCPP_INFO_STREAM(
-//     rclcpp::get_logger("PantherSystem"), "Performing mode change to " << hardware_interface_type_);
-
-//   if (hardware_interface_type_ == hardware_interface::HW_IF_POSITION) {
-//     roboteq_controller_->ChangeMode(RoboteqMode::POSITION);
-//   } else if (hardware_interface_type_ == hardware_interface::HW_IF_VELOCITY) {
-//     roboteq_controller_->ChangeMode(RoboteqMode::VELOCITY);
-//   } else if (hardware_interface_type_ == hardware_interface::HW_IF_EFFORT) {
-//     roboteq_controller_->ChangeMode(RoboteqMode::TORQUE);
-//   }
-
-//   return return_type::OK;
-// }
 
 return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
@@ -286,25 +234,15 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (hardware_interface_type_ == hardware_interface::HW_IF_VELOCITY) {
-    try {
-      roboteq_controller_->WriteSpeed(
-        vel_commands_["fl_wheel_joint"], vel_commands_["fr_wheel_joint"],
-        vel_commands_["rl_wheel_joint"], vel_commands_["rr_wheel_joint"]);
-    } catch (std::runtime_error & err) {
-      RCLCPP_ERROR_STREAM(
-        rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
-      return return_type::ERROR;
-    }
+  try {
+    roboteq_controller_->WriteSpeed(
+      vel_commands_["fl_wheel_joint"], vel_commands_["fr_wheel_joint"],
+      vel_commands_["rl_wheel_joint"], vel_commands_["rr_wheel_joint"]);
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR_STREAM(
+      rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
+    return return_type::ERROR;
   }
-
-  // if (hardware_interface_type_ == hardware_interface::HW_IF_POSITION) {
-  // }
-  // if (hardware_interface_type_ == hardware_interface::HW_IF_EFFORT) {
-  //   roboteq_controller_->WriteTorque(
-  //     effort_commands_["fl_wheel_joint"], effort_commands_["fr_wheel_joint"],
-  //     effort_commands_["rl_wheel_joint"], effort_commands_["rr_wheel_joint"]);
-  // }
 
   return return_type::OK;
 }

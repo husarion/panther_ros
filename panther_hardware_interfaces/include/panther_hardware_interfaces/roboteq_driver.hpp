@@ -50,7 +50,6 @@ struct DrivetrainSettings
   float gearbox_efficiency;
   float encoder_resolution;
   float max_rpm_motor_speed;
-  float max_amps_motor_current;
 };
 
 // All ids and sub ids were read directly from eds file
@@ -89,13 +88,6 @@ public:
    * @exception std::exception if operation returns error
    */
   void ResetRoboteqScript();
-
-  /**
-   * @brief Changes roboteq mode to velocity
-   *
-   * @exception std::exception if operation returns error
-   */
-  void SetVelocityMode();
 
   /**
    * @brief Turns on Roboteq estop
@@ -139,7 +131,6 @@ private:
   std::mutex rpdo_timestamp_mtx_;
 
   float radians_per_second_to_roboteq_cmd_;
-  float newton_meter_to_roboteq_cmd_;
 
   float roboteq_pos_feedback_to_radians_;
   float roboteq_vel_feedback_to_radians_per_second_;

@@ -77,9 +77,6 @@
         <!-- Max RPM speed set in the Roboteq driver (MXRPM parameter) -->
         <param name="max_rpm_motor_speed">3600.0</param>
 
-        <!-- current amps limit set in the Roboteq driver (ALIM parameter) -->
-        <param name="max_amps_motor_current">20.0</param>
-
         <param name="master_can_id">3</param>
         <param name="front_driver_can_id">1</param>
         <param name="rear_driver_can_id">2</param>
