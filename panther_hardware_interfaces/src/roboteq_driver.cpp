@@ -51,7 +51,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   auto bat_amps_1_future = AsyncRead<int16_t>(0x210C, 1);
   auto bat_amps_2_future = AsyncRead<int16_t>(0x210C, 2);
 
-  // Wait doesn't work
+  // TODO!!!!! Wait doesn't work
   // Wait(temp_future);
   // Wait(voltage_future);
   // Wait(bat_amps_1_future);
@@ -125,7 +125,7 @@ void RoboteqDriver::SendRoboteqCmd(double channel_1_speed, double channel_2_spee
   int32_t channel_1_cmd = channel_1_speed * radians_per_second_to_roboteq_cmd_;
   int32_t channel_2_cmd = channel_2_speed * radians_per_second_to_roboteq_cmd_;
 
-  // TODO: fix timeouts
+  // TODO!!!!: fix timeouts
   auto channel_1_cmd_future = AsyncWrite<int32_t>(
     0x2000, 1, std::forward<int32_t>(LimitCmd(channel_1_cmd)), std::chrono::milliseconds(10));
   auto channel_2_cmd_future = AsyncWrite<int32_t>(

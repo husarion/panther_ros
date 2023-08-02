@@ -165,6 +165,7 @@ RoboteqFeedback PantherWheelsController::Read()
   rear_driver_feedback.motor_1.runtime_stat_flag &= suppressed_driver_flags_;
   rear_driver_feedback.motor_2.runtime_stat_flag &= suppressed_driver_flags_;
 
+  // TODO: refactor
   if (
     front_driver_feedback.fault_flags != 0 || front_driver_feedback.script_flags != 0 ||
     front_driver_feedback.motor_1.runtime_stat_flag != 0 ||
