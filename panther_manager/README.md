@@ -49,7 +49,7 @@ echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 - `~lights/critical_battery_threshold_percent` [*float*, default: **0.1**]: if battery percentage drops below this value, an animation indicating a critical battery state will start being displayed.
 - `~lights/low_battery_anim_period` [*float*, default: **30.0**]: time in **seconds** to wait before repeating the animation, indicating a low battery state.
 - `~lights/low_battery_threshold_percent` [*float*, default: **0.4**]: if the battery percentage drops below this value, the animation indicating a low battery state will start being displayed.
-- `~lights/update_charging_anim_step` [*float*, default: **0.1**]: percentage representing how discretised should be the battery state animation.
+- `~lights/update_charging_anim_step` [*float*, default: **0.1**]: percentage representing how discretized the battery state animation should be.
 - `~plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in BT project.
 - `~ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project. 
 - `~safety/cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **deg C** of CPU, below which the fan is turned off.
