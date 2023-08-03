@@ -128,6 +128,8 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   executor_thread_ = std::make_unique<std::thread>(
     std::bind(&rclcpp::executors::MultiThreadedExecutor::spin, &executor_));
 
+  next_roboteq_state_update_ = node_->get_clock()->now();
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -254,18 +256,17 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
     try {
       DriversFeedback feedback = roboteq_controller_->ReadDriverFeedback();
 
-      if (realtime_driver_state_publisher_->trylock()) {
-        auto & driver_state = realtime_driver_state_publisher_->msg_;
-        driver_state.front.voltage = feedback.front.voltage;
-        driver_state.front.current = feedback.front.bat_amps_1 + feedback.front.bat_amps_2;
-        driver_state.front.temperature = feedback.front.temp;
+      // TODO: locking???
+      auto & driver_state = realtime_driver_state_publisher_->msg_;
+      driver_state.front.voltage = feedback.front.voltage;
+      driver_state.front.current = feedback.front.bat_amps_1 + feedback.front.bat_amps_2;
+      driver_state.front.temperature = feedback.front.temp;
 
-        driver_state.rear.voltage = feedback.rear.voltage;
-        driver_state.rear.current = feedback.rear.bat_amps_1 + feedback.front.bat_amps_2;
-        driver_state.rear.temperature = feedback.rear.temp;
+      driver_state.rear.voltage = feedback.rear.voltage;
+      driver_state.rear.current = feedback.rear.bat_amps_1 + feedback.front.bat_amps_2;
+      driver_state.rear.temperature = feedback.rear.temp;
 
-        next_roboteq_state_update_ = time + rclcpp::Duration::from_seconds(roboteq_state_period_);
-      }
+      next_roboteq_state_update_ = time + rclcpp::Duration::from_seconds(roboteq_state_period_);
     } catch (std::runtime_error & err) {
       RCLCPP_ERROR_STREAM(
         rclcpp::get_logger("PantherSystem"),

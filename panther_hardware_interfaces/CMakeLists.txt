@@ -20,6 +20,7 @@ set(PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
   PkgConfig
   panther_msgs
+  realtime_tools
 )
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
@@ -48,6 +49,7 @@ ament_target_dependencies(
   rclcpp
   pluginlib
   panther_msgs
+  realtime_tools
 )
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP gpiodcxx)
 

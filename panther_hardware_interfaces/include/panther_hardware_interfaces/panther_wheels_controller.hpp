@@ -112,7 +112,8 @@ private:
   CanSettings can_settings_;
   DrivetrainSettings drivetrain_settings_;
 
-  std::chrono::nanoseconds pdo_timeout_;
+  // TODO
+  std::chrono::milliseconds pdo_timeout_ = std::chrono::milliseconds(1000);
 
   std::vector<std::string> driver_fault_flags_ = {
     "overheat",       "overvoltage",
