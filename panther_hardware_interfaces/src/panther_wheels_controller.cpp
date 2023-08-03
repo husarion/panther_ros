@@ -102,6 +102,25 @@ void PantherWheelsController::Initialize()
   }
 }
 
+void PantherWheelsController::TurnOnEstop()
+{
+  try {
+    front_driver_->TurnOnEstop();
+    rear_driver_->TurnOnEstop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error("Exception when trying to turn on estop: " + std::string(err.what()));
+  }
+}
+void PantherWheelsController::TurnOffEstop()
+{
+  try {
+    front_driver_->TurnOffEstop();
+    rear_driver_->TurnOffEstop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error("Exception when trying to turn off estop: " + std::string(err.what()));
+  }
+}
+
 void PantherWheelsController::Activate()
 {
   try {

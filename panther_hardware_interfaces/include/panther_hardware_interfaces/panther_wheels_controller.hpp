@@ -88,7 +88,19 @@ public:
    */
   void WriteSpeed(double speed_fl, double speed_fr, double speed_rl, double speed_rr);
 
-  // void WriteTorque(double torque_fl, double torque_fr, double torque_rl, double torque_rr);
+  /**
+   * @brief Turns on Roboteq estop
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  void TurnOnEstop();
+
+  /**
+   * @brief Turns off Roboteq estop
+   * 
+   * @exception std::runtime_error if any operation returns error
+   */
+  void TurnOffEstop();
 
 private:
   std::atomic<bool> can_communication_started_ = false;

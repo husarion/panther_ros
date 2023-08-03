@@ -211,12 +211,19 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
-  // TODO
-  // roboteq_controller_->Deinitialize();
 
   // TODO
   // Called when error is return from read or write
   // Maybe trigger estop?
+  try {
+    roboteq_controller_->TurnOnEstop();
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
+    return CallbackReturn::FAILURE;
+  }
+  // TODO
+  // roboteq_controller_->Deinitialize();
+
   cleanup_node();
   return CallbackReturn::SUCCESS;
 }
