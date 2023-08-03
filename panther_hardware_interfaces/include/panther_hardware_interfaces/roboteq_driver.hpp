@@ -15,32 +15,28 @@ struct RoboteqChannelFeedback
 {
   float pos;
   float vel;
-  float current;
-  uint8_t runtime_stat_flag;
+  float torque;
 };
 
 struct RoboteqMotorsFeedback
 {
   RoboteqChannelFeedback motor_1;
   RoboteqChannelFeedback motor_2;
+
   uint8_t fault_flags;
   uint8_t script_flags;
+  uint8_t runtime_stat_flag_motor_1;
+  uint8_t runtime_stat_flag_motor_2;
+
   timespec timestamp;
 };
 
 struct RoboteqDriverFeedback
 {
   float temp;
-  bool temp_error;
-
   float voltage;
-  bool voltage_error;
-
   float bat_amps_1;
-  bool bat_amps_1_error;
-
   float bat_amps_2;
-  bool bat_amps_2_error;
 };
 
 struct DrivetrainSettings

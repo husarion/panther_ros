@@ -157,17 +157,17 @@ RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
     int32_t(rpdo_mapped[0x2106][3]) * roboteq_vel_feedback_to_radians_per_second_;
   feedback.motor_2.vel =
     int32_t(rpdo_mapped[0x2106][4]) * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.motor_1.current =
+  feedback.motor_1.torque =
     int32_t(rpdo_mapped[0x2106][5]) * roboteq_current_feedback_to_newton_meters_;
-  feedback.motor_2.current =
+  feedback.motor_2.torque =
     int32_t(rpdo_mapped[0x2106][6]) * roboteq_current_feedback_to_newton_meters_;
 
   // TODO endians
   feedback.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
   feedback.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
 
-  feedback.motor_1.runtime_stat_flag = GetByte(rpdo_mapped[0x2106][8], 0);
-  feedback.motor_2.runtime_stat_flag = GetByte(rpdo_mapped[0x2106][8], 1);
+  feedback.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
+  feedback.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
 
   std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
   feedback.timestamp = last_rpdo_write_timestamp_;

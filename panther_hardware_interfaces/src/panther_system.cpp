@@ -231,20 +231,20 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   try {
     RoboteqFeedback feedback = roboteq_controller_->Read();
 
-    hw_states_positions_[0] = feedback.pos_fl;
-    hw_states_positions_[1] = feedback.pos_fr;
-    hw_states_positions_[2] = feedback.pos_rl;
-    hw_states_positions_[3] = feedback.pos_rr;
+    hw_states_positions_[0] = feedback.fl.pos;
+    hw_states_positions_[1] = feedback.fr.pos;
+    hw_states_positions_[2] = feedback.rl.pos;
+    hw_states_positions_[3] = feedback.rr.pos;
 
-    hw_states_velocities_[0] = feedback.vel_fl;
-    hw_states_velocities_[1] = feedback.vel_fr;
-    hw_states_velocities_[2] = feedback.vel_rl;
-    hw_states_velocities_[3] = feedback.vel_rr;
+    hw_states_velocities_[0] = feedback.fl.vel;
+    hw_states_velocities_[1] = feedback.fr.vel;
+    hw_states_velocities_[2] = feedback.rl.vel;
+    hw_states_velocities_[3] = feedback.rr.vel;
 
-    hw_states_efforts_[0] = feedback.torque_fl;
-    hw_states_efforts_[1] = feedback.torque_fr;
-    hw_states_efforts_[2] = feedback.torque_rl;
-    hw_states_efforts_[3] = feedback.torque_rr;
+    hw_states_efforts_[0] = feedback.fl.torque;
+    hw_states_efforts_[1] = feedback.fr.torque;
+    hw_states_efforts_[2] = feedback.rl.torque;
+    hw_states_efforts_[3] = feedback.rr.torque;
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());

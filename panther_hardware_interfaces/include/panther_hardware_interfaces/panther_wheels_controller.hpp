@@ -19,9 +19,7 @@ namespace panther_hardware_interfaces
 
 struct RoboteqFeedback
 {
-  double pos_fr, pos_fl, pos_rr, pos_rl;
-  double vel_fr, vel_fl, vel_rr, vel_rl;
-  double torque_fr, torque_fl, torque_rr, torque_rl;
+  RoboteqChannelFeedback fr, fl, rr, rl;
 };
 
 struct CanSettings
@@ -64,6 +62,8 @@ public:
    * @return roboteq feedback
    */
   RoboteqFeedback Read();
+
+  void ReadDriverFeedback();
 
   /**
    * @brief Write speed commands to motors
