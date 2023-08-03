@@ -163,11 +163,11 @@ RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
     int32_t(rpdo_mapped[0x2106][6]) * roboteq_current_feedback_to_newton_meters_;
 
   // TODO endians
-  feedback.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
-  feedback.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
+  feedback.flags.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
+  feedback.flags.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
 
-  feedback.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
-  feedback.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
+  feedback.flags.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
+  feedback.flags.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
 
   std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
   feedback.timestamp = last_rpdo_write_timestamp_;

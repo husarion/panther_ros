@@ -18,15 +18,20 @@ struct RoboteqChannelFeedback
   float torque;
 };
 
+struct RoboteqFlags
+{
+  uint8_t fault_flags;
+  uint8_t script_flags;
+  uint8_t runtime_stat_flag_motor_1;
+  uint8_t runtime_stat_flag_motor_2;
+};
+
 struct RoboteqMotorsFeedback
 {
   RoboteqChannelFeedback motor_1;
   RoboteqChannelFeedback motor_2;
 
-  uint8_t fault_flags;
-  uint8_t script_flags;
-  uint8_t runtime_stat_flag_motor_1;
-  uint8_t runtime_stat_flag_motor_2;
+  RoboteqFlags flags;
 
   timespec timestamp;
 };

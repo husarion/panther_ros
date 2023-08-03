@@ -22,6 +22,11 @@ struct RoboteqFeedback
   RoboteqChannelFeedback fr, fl, rr, rl;
 };
 
+struct DriversFeedback
+{
+  RoboteqDriverFeedback front, rear;
+};
+
 struct CanSettings
 {
   uint8_t master_can_id;
@@ -63,7 +68,13 @@ public:
    */
   RoboteqFeedback Read();
 
-  void ReadDriverFeedback();
+  /**
+   * @brief Reads current roboteq driver feedback
+   *
+   * @exception std::runtime_error if there was error
+   * @return roboteq driver feedback
+   */
+  DriversFeedback ReadDriverFeedback();
 
   /**
    * @brief Write speed commands to motors
@@ -143,6 +154,8 @@ private:
     "encoder_disconected",
     "amp_limiter",
   };
+
+  void CheckErrors(RoboteqFlags flags);
 };
 
 }  // namespace panther_hardware_interfaces
