@@ -19,6 +19,7 @@ set(PACKAGE_INCLUDE_DEPENDS
   rclcpp
   rclcpp_lifecycle
   PkgConfig
+  panther_msgs
 )
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
@@ -43,11 +44,10 @@ target_include_directories(
 ament_target_dependencies(
   ${PROJECT_NAME}
   hardware_interface
-  controller_interface
   rclcpp_lifecycle
   rclcpp
   pluginlib
-  std_msgs
+  panther_msgs
 )
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP gpiodcxx)
 
@@ -68,6 +68,11 @@ install(
   LIBRARY DESTINATION lib
 )
 
+install(DIRECTORY
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_export_include_directories(
   include
 )
@@ -83,11 +88,6 @@ ament_export_dependencies(
   rclcpp_lifecycle
   rclcpp
   std_msgs
-)
-
-install(DIRECTORY
-  config
-  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()

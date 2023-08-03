@@ -116,10 +116,17 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   can_settings.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
   can_settings.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
 
+  roboteq_state_period_ = std::stof(info_.hardware_parameters["roboteq_state_period"]);
+
   roboteq_controller_ =
     std::make_unique<PantherWheelsController>(can_settings, drivetrain_settings);
   // TODO comment
   // gpio_controller_ = std::make_unique<GPIOController>();
+
+  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
+  executor_.add_node(node_);
+  executor_thread_ = std::make_unique<std::thread>(
+    std::bind(&rclcpp::executors::MultiThreadedExecutor::spin, &executor_));
 
   return CallbackReturn::SUCCESS;
 }
@@ -165,8 +172,20 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
+  driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
+    "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
+  realtime_driver_state_publisher_ =
+    std::make_shared<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
+      driver_state_publisher_);
+
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
   return CallbackReturn::SUCCESS;
+}
+
+void PantherSystem::cleanup_node()
+{
+  realtime_driver_state_publisher_.reset();
+  driver_state_publisher_.reset();
 }
 
 CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
@@ -174,6 +193,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Deactivating");
 
   // roboteq_controller_->Deactivate();
+  cleanup_node();
   return CallbackReturn::SUCCESS;
 }
 
@@ -182,6 +202,7 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
   // TODO
   // roboteq_controller_->Deinitialize();
+  cleanup_node();
   return CallbackReturn::SUCCESS;
 }
 
@@ -194,6 +215,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   // TODO
   // Called when error is return from read or write
   // Maybe trigger estop?
+  cleanup_node();
   return CallbackReturn::SUCCESS;
 }
 
@@ -224,9 +246,33 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
   return command_interfaces;
 }
 
-return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
+return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration &)
 {
   // TODO!!!! add reading other stuff
+
+  if (time > next_roboteq_state_update_) {
+    try {
+      DriversFeedback feedback = roboteq_controller_->ReadDriverFeedback();
+
+      if (realtime_driver_state_publisher_->trylock()) {
+        auto & driver_state = realtime_driver_state_publisher_->msg_;
+        driver_state.front.voltage = feedback.front.voltage;
+        driver_state.front.current = feedback.front.bat_amps_1 + feedback.front.bat_amps_2;
+        driver_state.front.temperature = feedback.front.temp;
+
+        driver_state.rear.voltage = feedback.rear.voltage;
+        driver_state.rear.current = feedback.rear.bat_amps_1 + feedback.front.bat_amps_2;
+        driver_state.rear.temperature = feedback.rear.temp;
+
+        next_roboteq_state_update_ = time + rclcpp::Duration::from_seconds(roboteq_state_period_);
+      }
+    } catch (std::runtime_error & err) {
+      RCLCPP_ERROR_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "Error when trying to read drivers feedback: " << err.what());
+      return return_type::ERROR;
+    }
+  }
 
   try {
     RoboteqFeedback feedback = roboteq_controller_->Read();
@@ -245,13 +291,17 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     hw_states_efforts_[1] = feedback.fr.torque;
     hw_states_efforts_[2] = feedback.rl.torque;
     hw_states_efforts_[3] = feedback.rr.torque;
+
+    // TODO: driver state flags
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
     return return_type::ERROR;
   }
 
-  // TODO!!!!! error flags
+  if (realtime_driver_state_publisher_->trylock()) {
+    realtime_driver_state_publisher_->unlockAndPublish();
+  }
 
   return return_type::OK;
 }

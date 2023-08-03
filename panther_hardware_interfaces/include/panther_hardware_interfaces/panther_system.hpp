@@ -16,6 +16,10 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
+#include <realtime_tools/realtime_publisher.h>
+
+#include <panther_msgs/msg/driver_state.hpp>
+
 #include <panther_hardware_interfaces/gpio_driver.hpp>
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
 
@@ -87,6 +91,20 @@ protected:
 
   std::unique_ptr<GPIOController> gpio_controller_;
   std::unique_ptr<PantherWheelsController> roboteq_controller_;
+
+  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::executors::MultiThreadedExecutor executor_;
+  std::unique_ptr<std::thread> executor_thread_;
+
+  std::shared_ptr<rclcpp::Publisher<panther_msgs::msg::DriverState>> driver_state_publisher_ =
+    nullptr;
+  std::shared_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
+    realtime_driver_state_publisher_ = nullptr;
+
+  double roboteq_state_period_ = 0.0;
+  rclcpp::Time next_roboteq_state_update_;
+
+  void cleanup_node();
 };
 
 }  // namespace panther_hardware_interfaces
