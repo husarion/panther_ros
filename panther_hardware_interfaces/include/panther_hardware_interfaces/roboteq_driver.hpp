@@ -144,6 +144,7 @@ private:
   float roboteq_current_feedback_to_newton_meters_;
 
   std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(10);
+  std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(15);
 
   template <class type>
   type SyncSdoRead(uint16_t index, uint8_t subindex);

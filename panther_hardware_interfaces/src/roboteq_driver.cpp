@@ -74,7 +74,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   }
 
   std::unique_lock lk(mtx);
-  if (cv.wait_for(lk, sdo_operation_timeout_) == std::cv_status::timeout) {
+  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     // TODO abort??
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
   }
@@ -112,7 +112,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 
   std::unique_lock lk(mtx);
 
-  if (cv.wait_for(lk, sdo_operation_timeout_) == std::cv_status::timeout) {
+  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     // TODO abort??
     throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
   }
