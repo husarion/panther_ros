@@ -70,7 +70,13 @@ public:
     DrivetrainSettings drivetrain_settings, ev_exec_t * exec, lely::canopen::AsyncMaster & master,
     uint8_t id);
 
+  /**
+   * @brief ReadRoboteqDriverFeedback
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
+
   RoboteqMotorsFeedback ReadRoboteqMotorsFeedback();
 
   /**
@@ -78,28 +84,28 @@ public:
    *
    * @param channel_1_cmd command value for first channel in rad/s
    * @param channel_2_cmd command value for second channel in rad/s
-   * @exception std::exception if any operation returns error
+   * @exception std::runtime_error if any operation returns error
    */
   void SendRoboteqCmd(double channel_1_speed, double channel_2_speed);
 
   /**
    * @brief Sends commands to reset script on the Roboteq drivers
    *
-   * @exception std::exception if operation returns error
+   * @exception std::runtime_error if any operation returns error
    */
   void ResetRoboteqScript();
 
   /**
    * @brief Turns on Roboteq estop
    *
-   * @exception std::exception if operation returns error
+   * @exception std::runtime_error if any operation returns error
    */
   void TurnOnEstop();
 
   /**
    * @brief Turns off Roboteq estop
    * 
-   * @exception std::exception if operation returns error
+   * @exception std::runtime_error if any operation returns error
    */
   void TurnOffEstop();
 
@@ -135,6 +141,14 @@ private:
   float roboteq_pos_feedback_to_radians_;
   float roboteq_vel_feedback_to_radians_per_second_;
   float roboteq_current_feedback_to_newton_meters_;
+
+  std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(10);
+
+  template <class type>
+  type SyncSdoRead(uint16_t index, uint8_t subindex);
+
+  template <class type>
+  void SyncSdoWrite(uint16_t index, uint8_t subindex, type data);
 
   // TODO
   // void OnState(lely::canopen::NmtState state) noexcept override;

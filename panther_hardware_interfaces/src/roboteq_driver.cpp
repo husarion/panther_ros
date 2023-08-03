@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <cmath>
+#include <future>
 
 namespace panther_hardware_interfaces
 {
@@ -44,50 +45,104 @@ RoboteqDriver::RoboteqDriver(
     drivetrain_settings.gearbox_efficiency;
 }
 
+template <class type>
+type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
+{
+  std::mutex mtx;
+  std::condition_variable cv;
+  type data;
+  std::error_code err_code;
+
+  try {
+    this->SubmitRead<type>(
+      index, subindex,
+      [&mtx, &cv, &err_code, &data](
+        uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
+        {
+          std::lock_guard lck(mtx);
+          if (ec) {
+            err_code = ec;
+          } else {
+            data = value;
+          }
+        }
+        cv.notify_one();
+      },
+      sdo_operation_timeout_);
+  } catch (lely::canopen::SdoError & e) {
+    throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
+  }
+
+  std::unique_lock lk(mtx);
+  if (cv.wait_for(lk, sdo_operation_timeout_) == std::cv_status::timeout) {
+    // TODO abort??
+    throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
+  }
+
+  if (err_code) {
+    throw std::runtime_error("Error msg: " + err_code.message());
+  }
+
+  return data;
+}
+
+template <class type>
+void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
+{
+  std::mutex mtx;
+  std::condition_variable cv;
+  std::error_code err_code;
+
+  // TODO: what happens on read/write timeout
+
+  try {
+    this->SubmitWrite(
+      index, subindex, data,
+      [&mtx, &cv, &err_code](uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
+        std::lock_guard lck(mtx);
+        if (ec) {
+          err_code = ec;
+        }
+        cv.notify_one();
+      },
+      sdo_operation_timeout_);
+  } catch (lely::canopen::SdoError & e) {
+    throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
+  }
+
+  std::unique_lock lk(mtx);
+
+  if (cv.wait_for(lk, sdo_operation_timeout_) == std::cv_status::timeout) {
+    // TODO abort??
+    throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
+  }
+
+  if (err_code) {
+    throw std::runtime_error("Error msg: " + err_code.message());
+  }
+}
+
 RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
-  auto temp_future = AsyncRead<int8_t>(0x210F, 1);
-  auto voltage_future = AsyncRead<uint16_t>(0x210D, 2);
-  auto bat_amps_1_future = AsyncRead<int16_t>(0x210C, 1);
-  auto bat_amps_2_future = AsyncRead<int16_t>(0x210C, 2);
-
   // TODO!!!!! Wait doesn't work
-  // Wait(temp_future);
-  // Wait(voltage_future);
-  // Wait(bat_amps_1_future);
-  // Wait(bat_amps_2_future);
 
-  while (true) {
-    if (
-      temp_future.is_ready() && voltage_future.is_ready() && bat_amps_1_future.is_ready() &&
-      bat_amps_2_future.is_ready()) {
-      break;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  try {
+    auto temp = SyncSdoRead<int8_t>(0x210F, 1);
+    auto voltage = SyncSdoRead<uint16_t>(0x210D, 2);
+    auto bat_amps_1 = SyncSdoRead<int16_t>(0x210C, 1);
+    auto bat_amps_2 = SyncSdoRead<int16_t>(0x210C, 2);
+
+    RoboteqDriverFeedback feedback;
+    feedback.temp = temp;
+    feedback.voltage = voltage / 10.0;
+    feedback.bat_amps_1 = bat_amps_1 / 10.0;
+    feedback.bat_amps_2 = bat_amps_2 / 10.0;
+
+    return feedback;
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error(
+      "Error when trying to read roboteq driver feedback: " + std::string(e.what()));
   }
-
-  RoboteqDriverFeedback feedback;
-  feedback.temp_error = temp_future.get().has_error();
-  if (!feedback.temp_error) {
-    feedback.temp = temp_future.get().value();
-  }
-
-  feedback.voltage_error = voltage_future.get().has_error();
-  if (!feedback.voltage_error) {
-    feedback.voltage = voltage_future.get().value() / 10.0;
-  }
-
-  feedback.bat_amps_1_error = bat_amps_1_future.get().has_error();
-  if (!feedback.bat_amps_1_error) {
-    feedback.bat_amps_1 = bat_amps_1_future.get().value() / 10.0;
-  }
-
-  feedback.bat_amps_2_error = bat_amps_2_future.get().has_error();
-  if (!feedback.bat_amps_2) {
-    feedback.bat_amps_2 = bat_amps_2_future.get().value() / 10.0;
-  }
-
-  return feedback;
 }
 
 RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
@@ -126,27 +181,12 @@ void RoboteqDriver::SendRoboteqCmd(double channel_1_speed, double channel_2_spee
   int32_t channel_2_cmd = channel_2_speed * radians_per_second_to_roboteq_cmd_;
 
   // TODO!!!!: fix timeouts
-  auto channel_1_cmd_future = AsyncWrite<int32_t>(
-    0x2000, 1, std::forward<int32_t>(LimitCmd(channel_1_cmd)), std::chrono::milliseconds(10));
-  auto channel_2_cmd_future = AsyncWrite<int32_t>(
-    0x2000, 2, std::forward<int32_t>(LimitCmd(channel_2_cmd)), std::chrono::milliseconds(10));
 
-  while (true) {
-    if (channel_1_cmd_future.is_ready() && channel_2_cmd_future.is_ready()) {
-      break;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-
-  auto result_channel_1 = channel_1_cmd_future.get();
-  auto result_channel_2 = channel_2_cmd_future.get();
-
-  if (result_channel_1.has_error()) {
-    throw result_channel_1.error();
-  }
-
-  if (result_channel_2.has_error()) {
-    throw result_channel_2.error();
+  try {
+    SyncSdoWrite<int32_t>(0x2000, 1, LimitCmd(channel_1_cmd));
+    SyncSdoWrite<int32_t>(0x2000, 2, LimitCmd(channel_2_cmd));
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error("Error when trying to send roboteq command: " + std::string(e.what()));
   }
 
   // TODO check what happens what publishing is stopped
@@ -156,49 +196,25 @@ void RoboteqDriver::SendRoboteqCmd(double channel_1_speed, double channel_2_spee
   // tpdo_mapped[0x2005][10] = LimitCmd(channel_2_cmd);
 }
 
-void RoboteqDriver::ResetRoboteqScript()
-{
-  auto reset_script_future = AsyncWrite<uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(100));
-  // Wait(reset_script_future);
-  while (!reset_script_future.is_ready()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-  auto result = reset_script_future.get();
-
-  if (result.has_error()) {
-    throw result.error();
-  }
-}
+void RoboteqDriver::ResetRoboteqScript() { SyncSdoWrite<uint8_t>(0x2018, 0, 2); }
 
 void RoboteqDriver::TurnOnEstop()
 {
   // Cmd_ESTOP
-
-  auto future = AsyncWrite<uint8_t>(0x200C, 0, 1, std::chrono::milliseconds(100));
-  // Wait(future);
-  while (!future.is_ready()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-  auto result = future.get();
-
-  if (result.has_error()) {
-    throw result.error();
+  try {
+    SyncSdoWrite<uint8_t>(0x200C, 0, 1);
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
   }
 }
 
 void RoboteqDriver::TurnOffEstop()
 {
   // Cmd_MGO
-
-  auto future = AsyncWrite<uint8_t>(0x200D, 0, 1, std::chrono::milliseconds(100));
-  // Wait(future);
-  while (!future.is_ready()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-  auto result = future.get();
-
-  if (result.has_error()) {
-    throw result.error();
+  try {
+    SyncSdoWrite<uint8_t>(0x200D, 0, 1);
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
   }
 }
 
