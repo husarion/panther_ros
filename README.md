@@ -22,15 +22,12 @@ API for each node can be found in each package folder.
 >
 > Some of the safety features broke compatibility for older system images, hence full system update is required.
 
-## Docker image
+## Docker images
 
-There is already prebuild and tested docker image for Panther robot. This is the docker image robots are shipped with.
-In order to download it, run:
-``` bash
-docker pull husarion/panther
-```
+> **Note**:
+>  Docker is the recommended approach for utilizing this software stack. Source building is only advisable for development purposes.
 
-Example **compose.yaml** can be found on [husarion/panther-docker](https://github.com/husarion/panther-docker/tree/ros1) in **demo** section.
+There are already prebuilt and tested docker images dedicated to Panther robot software and simulation. For more information about the latest stable versions, guidance on updating your software, or running the simulation, please refer to [panther-docker](https://github.com/husarion/panther-docker/tree/ros1) repository documentation.
 
 ## Build and run on hardware
 
