@@ -2,11 +2,16 @@
 
 #include <cmath>
 #include <filesystem>
+#include <iostream>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
+#include <realtime_tools/thread_priority.hpp>
+
 namespace panther_hardware_interfaces
 {
+
+int const kSchedPriority = 50;
 
 PantherWheelsController::PantherWheelsController(
   CanSettings can_settings, DrivetrainSettings drivetrain_settings)
@@ -21,7 +26,16 @@ void PantherWheelsController::Initialize()
 
   // TODO: does it have to be a thread
   // TODO!!!!!: configure SCHED_FIFO priority
+
   executor_thread_ = std::thread([this]() {
+    if (realtime_tools::has_realtime_kernel()) {
+      if (!realtime_tools::configure_sched_fifo(kSchedPriority)) {
+        std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
+      }
+    } else {
+      std::cerr << "RT kernel is recommended for better performance (CAN thread)" << std::endl;
+    }
+
     io_guard_ = std::make_unique<lely::io::IoGuard>();
     ctx_ = std::make_unique<lely::io::Context>();
     poll_ = std::make_unique<lely::io::Poll>(*ctx_);
