@@ -173,9 +173,9 @@ RoboteqFeedback PantherWheelsController::Read()
 
   if (
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
-     pdo_timeout_) ||
+     motors_feedback_timeout_) ||
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
-     pdo_timeout_)) {
+     motors_feedback_timeout_)) {
     throw std::runtime_error("Data too old detected, when trying to read roboteq feedback");
   }
 

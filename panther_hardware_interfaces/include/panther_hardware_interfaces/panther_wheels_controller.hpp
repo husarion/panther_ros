@@ -124,8 +124,8 @@ private:
   CanSettings can_settings_;
   DrivetrainSettings drivetrain_settings_;
 
-  // TODO
-  std::chrono::milliseconds pdo_timeout_ = std::chrono::milliseconds(1000);
+  // TODO: currently drivers set to 10Hz, change it after setting 100Hz
+  std::chrono::milliseconds motors_feedback_timeout_ = std::chrono::milliseconds(150);
 
   std::vector<std::string> driver_fault_flags_ = {
     "overheat",       "overvoltage",
