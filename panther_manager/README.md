@@ -77,9 +77,9 @@ Add built-in computer's public key to **known_hosts** of a computer you want to 
 ssh-copy-id username@10.15.20.XX
 ```
 
-To allow your computer to be shutdown without the sudo password, ssh into it and execute:
+To allow your computer to be shutdown without the sudo password, ssh into it and execute (replace username with name od the user you want to allow shutting down without sudo):
 ``` bash
-echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
+echo username 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
 ```
 
 ### system_status_node.py
