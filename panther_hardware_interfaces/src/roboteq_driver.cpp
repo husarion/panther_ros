@@ -215,6 +215,18 @@ void RoboteqDriver::TurnOnEstop()
   }
 }
 
+void RoboteqDriver::TurnOnSafetyStop()
+{
+  // Cmd_SFT Safety Stop
+  // TODO use it instead of estop
+  try {
+    SyncSdoWrite<uint8_t>(0x202C, 0, 1);
+
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error("Error when trying to turn on safety stop: " + std::string(e.what()));
+  }
+}
+
 void RoboteqDriver::TurnOffEstop()
 {
   // Cmd_MGO

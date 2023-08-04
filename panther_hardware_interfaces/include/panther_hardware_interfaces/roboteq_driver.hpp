@@ -110,6 +110,8 @@ public:
    */
   void TurnOffEstop();
 
+  void TurnOnSafetyStop();
+
   /**
    * @brief Waits until booting procedure finishes
    *

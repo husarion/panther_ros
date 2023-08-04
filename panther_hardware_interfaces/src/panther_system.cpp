@@ -4,6 +4,9 @@
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
+// TODO use safety stop instead of estop
+// TODO: add user variable to script that will trigger DOUT4 instead of safety stop
+
 namespace panther_hardware_interfaces
 {
 CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
