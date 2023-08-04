@@ -8,6 +8,9 @@ Basic Panther configuration can be found in file [panther.urdf.xacro](./urdf/pan
 
 ## Parameters
 
+> **Note**
+> Default location of the IMU sensor in the URDF is the same as in Panther 1.0. On real robot the location is set by [panther_bringup/bringup.launch](../panther_bringup/launch/bringup.launch) from environment variables. Environment variables store IMU location of the given robot and are set on boot time.
+
 Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the same as parameters of [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro). Thus, this section covers both of them.
 
 - `dual_bat` [*bool*, default: **false**]: Changes inertia and mass for robot body to match 2 batteries setup. Not implemented yet.
