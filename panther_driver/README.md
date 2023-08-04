@@ -55,17 +55,17 @@ For a `/joint_states` message is carrying given data:
 
 #### Velocity smoother parameters
 
-- `~max_vel_x` [*float*, default: **2.0**]: maximum linear vlelocity in **X** direction. 
-- `~max_vel_y` [*float*, default: **2.0**]: maximum linear vlelocity in **Y** direction.
+- `~max_vel_x` [*float*, default: **2.0**]: maximum linear vlelocity in **x** direction. 
+- `~max_vel_y` [*float*, default: **2.0**]: maximum linear vlelocity in **y** direction.
 - `~max_vel_theta` [*float*, default: **4.0**]: maximum angular velocity.
-- `~acc_lim_x` [*float*, default: **1.0**]: maximum linear acceleration in **X** direction.
-- `~acc_lim_y` [*float*, default: **1.0**]: maximum linear acceleration in **Y** direction.
+- `~acc_lim_x` [*float*, default: **1.0**]: maximum linear acceleration in **x** direction.
+- `~acc_lim_y` [*float*, default: **1.0**]: maximum linear acceleration in **y** direction.
 - `~acc_lim_theta` [*float*, default: **1.57**]: maximum angular acceleration.
-- `~decel_lim_x` [*float*, default: **1.5**]: maximum linear decelaration in **X** direction.
-- `~decel_lim_y` [*float*, default: **1.5**]: maximum linear decelaration in **Y** direction.
+- `~decel_lim_x` [*float*, default: **1.5**]: maximum linear decelaration in **x** direction.
+- `~decel_lim_y` [*float*, default: **1.5**]: maximum linear decelaration in **y** direction.
 - `~decel_lim_theta` [*float*, default: **2.3**]: maximum angular deceleration.
-- `~emergency_decel_lim_x` [*float*, default: **2.7**]: maximum linear decelaration in **X** direction when a timeout is reached for velocity commands.
-- `~emergency_decel_lim_y` [*float*, default: **2.7**]: maximum linear decelaration in **Y** direction when a timeout is reached for velocity commands.
+- `~emergency_decel_lim_x` [*float*, default: **2.7**]: maximum linear decelaration in **x** direction when a timeout is reached for velocity commands.
+- `~emergency_decel_lim_y` [*float*, default: **2.7**]: maximum linear decelaration in **y** direction when a timeout is reached for velocity commands.
 - `~emergency_decel_lim_theta` [*float*, default: **5.74**]: maximum angular deceleration when a timeout is reached for velocity commands.
 
 #### Kinematics type - explanation
