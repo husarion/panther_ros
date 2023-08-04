@@ -41,9 +41,10 @@ Parameter `wheel_config_path` allows using non-standard wheels with Panther robo
 - `mesh_package` - ROS package name to search for custom meshes. Used in evaluation **$(find my_amazing_package)/**.
 - `folder_path` - path used to search for mesh files within the ROS package.
 - `kinematics` - kinematics type. Possible options: `differential`, `mecanum`.
-- `velocity_x_stderr` - standard error published by driver node in covariance matrix.
-- `velocity_y_stderr` - standard error published by driver node in covariance matrix.
-- `velocity_yaw_stderr` - standard error published by driver node in covariance matrix.
+- `odom_stderr` - standard deviation used to populated odometry message:
+  - `vel_x` - standard deviation for linear velocity in **x** direction.
+  - `vel_y` - standard deviation for linear velocity in **y** direction.
+  - `vel_yaw` - standard deviation for angular velocity alongside **z** axis.
 
 Wheels have to be named as follows:
 - `wheel_collision.stl` - wheel collision mesh.

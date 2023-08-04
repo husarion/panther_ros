@@ -45,6 +45,9 @@ For a `/joint_states` message is carrying given data:
 - `~kinematics` [*string*, default: **differential**]: kinematics type, possible are: differential, mecanum.
 - `~motor_torque_constant` [*float*, default: **2.6149**]: constant used to estimate torque.
 - `~odom_frame` [*string*, default: **odom**]: the name of the odom frame.
+- `~odom_stderr/vel_x` [*float*, default: **3.2e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
+- `~odom_stderr/vel_y` [*float*, default: **3.2e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
+- `~odom_stderr/vel_yaw` [*float*, default: **8.5e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
 - `~publish_joints` [*bool*, default: **true**]: whether to publish robot joints states.
 - `~publish_odometry` [*bool*, default: **true**]: whether to publish robot odometry.
 - `~publish_pose` [*bool*, default: **true**]: whether to publish robot pose.

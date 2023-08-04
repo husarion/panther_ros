@@ -7,6 +7,5 @@ mesh_package: panther_description
 folder_path: meshes/WH04
 kinematics: differential
 
-velocity_x_stderr: 1.6e-3
-velocity_y_stderr: 7.3e-4
-velocity_yaw_stderr: 4.3e-3
+# Selected intuitively based on WH01 results
+odom_stderr: { vel_x: 1.6e-3, vel_y: 7.3e-4, vel_yaw: 4.3e-3 }

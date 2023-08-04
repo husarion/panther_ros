@@ -19,15 +19,15 @@ class ADCNode:
     V_BAT_FATAL_MAX = 43.0
     V_BAT_FULL = 41.4
     V_BAT_MIN = 32.0
+    LOW_BAT_TEMP = -10.0
+    OVERHEAT_BAT_TEMP = 45.0
 
     def __init__(self, name: str) -> None:
         rospy.init_node(name, anonymous=False)
 
-        self._high_bat_temp = rospy.get_param('~fatal_bat_temp', 62.0)
-
         self._driver_battery_last_info_time: Optional[float] = None
 
-        self._mean_length = 10
+        self._mean_length = 20
         self._V_bat_hist = defaultdict(lambda: [37.0] * self._mean_length)
         self._V_bat_mean = defaultdict(lambda: 37.0)
         self._I_bat_charge_hist = defaultdict(lambda: [0.0] * self._mean_length)
@@ -40,10 +40,10 @@ class ADCNode:
         self._u_supply = 3.28
 
         self._battery_count = self._check_battery_count()
-        
+
         self._I_bat_charging_thresh = {}
         self._charger_connected = False
-        
+
         self._lock = Lock()
 
         # -------------------------------
@@ -145,7 +145,11 @@ class ADCNode:
         else:
             temp_bat_1 = self._voltage_to_deg(V_temp_bat_1)
             self._publish_battery_msg(
-                self._battery_pub, V_bat_1, temp_bat_1, -(I_bat_1 + I_bat_2) + I_charge_bat_1, I_charge_bat_1
+                self._battery_pub,
+                V_bat_1,
+                temp_bat_1,
+                -(I_bat_1 + I_bat_2) + I_charge_bat_1,
+                I_charge_bat_1,
             )
 
     def _check_battery_count(self) -> int:
@@ -223,13 +227,16 @@ class ADCNode:
             error_msg = None
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
-                error_msg = 'Battery voltage is critically low!'
+                error_msg = 'The battery voltage is critically low!'
             elif V_bat_mean > self.V_BAT_FATAL_MAX:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
-                error_msg = 'Battery overvoltage!'
-            elif temp_bat >= self._high_bat_temp:
+                error_msg = 'The battery overvoltage!'
+            elif temp_bat >= self.OVERHEAT_BAT_TEMP:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
-                error_msg = 'Battery is overheating!'
+                error_msg = 'The battery is overheating!'
+            elif temp_bat <= self.LOW_BAT_TEMP:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_COLD
+                error_msg = 'The battery is too cold! It may result in reduced effectiveness.'
             elif self._driver_battery_last_info_time is None:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
             else:

@@ -67,8 +67,6 @@ ManagerBTNode::ManagerBTNode(
   update_charging_anim_step_ = ph_->param<float>("lights/update_charging_anim_step", 0.1);
 
   // safety tree params
-  const auto high_bat_temp = ph_->param<float>("safety/high_bat_temp", 55.0);
-  const auto critical_bat_temp = ph_->param<float>("safety/critical_bat_temp", 59.0);
   const auto cpu_fan_on_temp = ph_->param<float>("safety/cpu_fan_on_temp", 70.0);
   const auto cpu_fan_off_temp = ph_->param<float>("safety/cpu_fan_off_temp", 60.0);
   const auto driver_fan_on_temp = ph_->param<float>("safety/driver_fan_on_temp", 45.0);
@@ -129,6 +127,9 @@ ManagerBTNode::ManagerBTNode(
       {"POWER_SUPPLY_STATUS_NOT_CHARGING",
        unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING)},
       {"POWER_SUPPLY_STATUS_FULL", unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL)},
+      // battery health constants
+      {"POWER_SUPPLY_HEALTH_OVERHEAT",
+       unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_OVERHEAT)},
     };
 
     lights_config_ = create_bt_config(lights_initial_bb);
@@ -139,10 +140,10 @@ ManagerBTNode::ManagerBTNode(
     const std::map<std::string, std::any> safety_initial_bb = {
       {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
       {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
-      {"CRITICAL_BAT_TEMP", critical_bat_temp},
       {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
       {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
-      {"HIGH_BAT_TEMP", high_bat_temp},
+      {"CRITICAL_BAT_TEMP", critical_bat_temp_},
+      {"FATAL_BAT_TEMP", fatal_bat_temp_},
       // battery health constants
       {"POWER_SUPPLY_HEALTH_UNKNOWN",
        unsigned(sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_UNKNOWN)},
@@ -292,6 +293,7 @@ void ManagerBTNode::lights_tree_timer_cb()
   // update blackboard
   lights_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
   lights_config_.blackboard->set<unsigned>("battery_status", battery_status_.value());
+  lights_config_.blackboard->set<unsigned>("battery_health", battery_health_.value());
   lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_->get_average());
   lights_config_.blackboard->set<std::string>(
     "battery_percent_round",
@@ -309,6 +311,7 @@ void ManagerBTNode::safety_tree_timer_cb()
   safety_config_.blackboard->set<bool>("aux_state", io_state_.value()->aux_power);
   safety_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
   safety_config_.blackboard->set<bool>("fan_state", io_state_.value()->fan);
+  safety_config_.blackboard->set<unsigned>("battery_status", battery_status_.value());
   safety_config_.blackboard->set<unsigned>("battery_health", battery_health_.value());
   safety_config_.blackboard->set<double>("bat_temp", battery_temp_ma_->get_average());
   safety_config_.blackboard->set<double>("cpu_temp", cpu_temp_ma_->get_average());
