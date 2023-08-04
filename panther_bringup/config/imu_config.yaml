@@ -1,4 +1,4 @@
-ImuFilterNodelet:
+imu_filter_node:
   gain: 0.1
   zeta: 0.0
   mag_bias_x: 0.0
@@ -12,7 +12,7 @@ ImuFilterNodelet:
   stateless: false
   remove_gravity_vector: false
 
-PhidgetsSpatialNodelet:
+phidgets_spatial_node:
   data_interval_ms: 8 # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
   publish_rate: 100.0 # optional param publish_rate, defaults to 0
   # serial: 123456  # optional param serial, default is -1
