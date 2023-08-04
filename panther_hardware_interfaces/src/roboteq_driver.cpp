@@ -196,7 +196,14 @@ void RoboteqDriver::SendRoboteqCmd(double channel_1_speed, double channel_2_spee
   // tpdo_mapped[0x2005][10] = LimitCmd(channel_2_cmd);
 }
 
-void RoboteqDriver::ResetRoboteqScript() { SyncSdoWrite<uint8_t>(0x2018, 0, 2); }
+void RoboteqDriver::ResetRoboteqScript()
+{
+  try {
+    SyncSdoWrite<uint8_t>(0x2018, 0, 2);
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error("Error when trying to reset roboteq script: " + std::string(e.what()));
+  }
+}
 
 void RoboteqDriver::TurnOnEstop()
 {
