@@ -8,17 +8,6 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 Node responsible for managing the Husarion Panther robot. Composes control of three behavior trees responsible for handling LED panels, safety features, and software shutdown of components.
 
-To set up a connection with a new user computer, login to the built-in computer with `ssh husarion@10.15.20.2`.
-Add built-in computer's public key to **known_hosts** of a computer you want to shutdown automatically:
-``` bash
-ssh-copy-id username@10.15.20.XX
-```
-
-To allow your computer to be shutdown without the sudo password, ssh into it and execute:
-``` bash
-echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
-```
-
 #### Subscribes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: state of internal battery.
@@ -82,6 +71,16 @@ hosts:
     username: pi
     command: /home/pi/my_long_shutdown_sequence.sh
 ```
+To set up a connection with a new User Computer and allow execution of commands, login to the Built-in Computer with `ssh husarion@10.15.20.2`.
+Add built-in computer's public key to **known_hosts** of a computer you want to shutdown automatically:
+``` bash
+ssh-copy-id username@10.15.20.XX
+```
+
+To allow your computer to be shutdown without the sudo password, ssh into it and execute:
+``` bash
+echo $USERNAME 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
+```
 
 ### system_status_node.py
 
@@ -140,12 +139,12 @@ A tree responsible for scheduling animations displayed on LED panels based on th
 </p>
 
 Default blackboard entries:
-- `battery_percent` [*float*, default: **NaN**]: moving average of battery percentage.
+- `battery_percent` [*float*, default: **None**]: moving average of battery percentage.
 - `battery_percent_round` [*string*, default: **None**] battery percentage rounded to a value specified with `~lights/update_charging_anim_step` parameter and casted to string.
-- `battery_status` [*unsigned*, default: **sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN**]: current battery status.
+- `battery_status` [*unsigned*, default: **None**]: current battery status.
 - `charging_anim_percent` [*string*, default: **None**]: the charging  animation battery percentage value, casted to a string.
 - `current_anim_id` [*int*, default: **-1**]: ID of currently displayed animation.
-- `e_stop_state` [*bool*, default: **true**]: state of emergency stop.
+- `e_stop_state` [*bool*, default: **None**]: state of emergency stop.
 
 Default constant blackboard entries:
 - `BATTERY_STATE_ANIM_PERIOD` [*float*, default: **120.0**]: refers to `battery_state_anim_period` ROS parameter.
@@ -178,12 +177,12 @@ A tree responsible for monitoring the Panther robot's state and handling safety 
 </p>
 
 Default blackboard entries:
-- `aux_state` [*bool*, default: **false**]: state of AUX power.
-- `bat_temp` [*double*, default: **NaN**]: moving average of battery temperature.
-- `cpu_temp` [*double*, default: **NaN**]: moving average of CPU temperature
-- `driver_temp` [*double*, default: **NaN**]: moving average of driver temperature. Out of the two drivers, the one with the higher temperature is taken into account.
-- `e_stop_state` [*bool*, default: **true**]: state of emergency stop.
-- `fan_state` [*bool*, default: **true**]: state of fan.
+- `aux_state` [*bool*, default: **None**]: state of AUX power.
+- `bat_temp` [*double*, default: **None**]: moving average of battery temperature.
+- `cpu_temp` [*double*, default: **None**]: moving average of CPU temperature
+- `driver_temp` [*double*, default: **None**]: moving average of driver temperature. Out of the two drivers, the one with the higher temperature is taken into account.
+- `e_stop_state` [*bool*, default: **None**]: state of emergency stop.
+- `fan_state` [*bool*, default: **None**]: state of fan.
 
 Default constant blackboard entries:
 - `CPU_FAN_OFF_TEMP` [*float*, default: **60.0**]: refers to `cpu_fan_off_temp` ROS parameter.
