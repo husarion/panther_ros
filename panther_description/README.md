@@ -20,8 +20,6 @@ Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the 
 - `imu_rot_r` [*float*, default: **0.0**]: roll rotation of IMU sensor in relation to `body_link`.
 - `imu_rot_p` [*float*, default: **0.0**]: pitch rotation of IMU sensor in relation to `body_link`.
 - `imu_rot_y`  [*float*, default: **0.0**]: yaw rotation of IMU sensor in relation to `body_link`.
-
-
 - `use_sim` [*bool*, default: **false**]: Unused. Kept for ROS 2 compatibility.
 - `wheel_config_path` [*float*, default: **$(find panther_description)/config/WH01.yaml**]: - absolute path to YAML file defining wheel properties.
 - `simulation_engine` [*float*, default: **gazebo-classic**]: physics engine to select plugins for. Supported engines: `gazebo-classic`. Kept for compatibility with ROS2 model. Currently, no other engines are planned to be supported.
