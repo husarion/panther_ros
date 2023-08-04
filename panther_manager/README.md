@@ -77,9 +77,12 @@ Add built-in computer's public key to **known_hosts** of a computer you want to 
 ssh-copy-id username@10.15.20.XX
 ```
 
-To allow your computer to be shutdown without the sudo password, ssh into it and execute (replace username with name od the user you want to allow shutting down without sudo):
+> **Warning**
+> To allow your computer to be shutdown without the sudo password, ssh into it and execute
+> (if needed replace **husarion** with username of your choice):
 ``` bash
-echo username 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | sudo EDITOR='tee -a' visudo
+sudo su
+echo husarion 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | EDITOR='tee -a' visudo
 ```
 
 ### system_status_node.py
@@ -89,6 +92,8 @@ Publishes stats and status of the built-in computer. Stats include CPU utilizati
 #### Publishes
 
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: information about internal computer CPU temperature, utilization, disk, and RAM usage.
+
+---
 
 ## BehaviorTree
 
