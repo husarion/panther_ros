@@ -82,10 +82,10 @@ ssh-copy-id username@10.15.20.XX
 > **Warning**
 > To allow your computer to be shutdown without the sudo password, ssh into it and execute
 > (if needed replace **husarion** with username of your choice):
-``` bash
-sudo su
-echo husarion 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | EDITOR='tee -a' visudo
-```
+> ``` bash
+> sudo su
+> echo husarion 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | EDITOR='tee -a' visudo
+> ```
 
 #### Faults Handle
 
