@@ -89,7 +89,7 @@ ssh-copy-id username@10.15.20.XX
 
 #### Faults Handle
 
-After receiving a message on the `/battery` topic, the `panther_manager` node makes decisions about what needs to be done. For more information regarding power supply state refer to [adc_node](/panther_battery/README.md#battery-statuses) documentation.
+After receiving a message on the `/battery` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding power supply state, please refer to [adc_node](/panther_battery/README.md#battery-statuses) documentation.
 
 | Power Supply Health | Procedure                                                                                                                                                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
