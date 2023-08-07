@@ -21,7 +21,7 @@ Publishes battery state read from ADC unit and thermistors. Available from Panth
 
 #### Battery statuses
 
-The battery status is described with two ROS message fields: `power_supply_status` and `power_supply_health`. **This information is subsequently retrieved in the panther_manager node, where decisions related to safety procedures are made**.
+The battery status is described with two [Battery State](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/BatteryState.html) message fields: `power_supply_status` and `power_supply_health`. **This information is subsequently retrieved in the panther_manager node, where decisions related to safety procedures are made**.
 
 Safety thresholds used in calculating the various values describing the state of the battery:
 
@@ -63,7 +63,7 @@ The method of calculating individual values:
 | Current (charge)            | `I_charge`                                  | `I_charge_bat_x`                                                            | -                                      |
 | Percentage                  | `percentage`                                | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)` *For `V_bat` or `V_bat_?`* | `/battery`, `/battery_1`, `/battery_2` |
 
-##### `power_supply_health` Field
+##### Value of `power_supply_health` Field
 
 | Status                | Method of verification                                  | Condition                      | Procedure                                                                                                                                     |
 | --------------------- | ------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -77,7 +77,7 @@ The method of calculating individual values:
 | WATCHDOG_TIMER_EXPIRE | -                                                       | -                              | -                                                                                                                                             |
 | SAFETY_TIMER_EXPIRE   | -                                                       | -                              | -                                                                                                                                             |
 
-##### `power_supply_status` Field
+##### Value of `power_supply_status` Field
 
 | State        | Condition                                                   | Comment                                                                                                                                                                                                     |
 | ------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
