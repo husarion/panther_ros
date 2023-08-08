@@ -16,7 +16,7 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: state of the system including CPU temperature and load.
 
-#### Services subscribed (for default trees)
+#### Services Subscribed (for Default Trees)
 
 - `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables aux power output.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers e-stop.
@@ -55,7 +55,9 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
   - `timeout` [*string*, default: **5.0**]: time in **seconds** to wait for the host to shutdown. The built-in computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
 
-For more information regarding shutdown behaviour refer to `ShutdownSingleHost` BT node in the [Actions](#actions) section. Example of shutdown hosts YAML file can be found below.
+#### Shutdown Behavior
+
+For more information regarding shutdown behavior refer to `ShutdownSingleHost` BT node in the [Actions](#actions) section. Example of shutdown hosts YAML file can be found below.
 ``` yaml
 # My shutdown_hosts.yaml
 hosts:
@@ -80,10 +82,29 @@ ssh-copy-id username@10.15.20.XX
 > **Warning**
 > To allow your computer to be shutdown without the sudo password, ssh into it and execute
 > (if needed replace **husarion** with username of your choice):
-``` bash
-sudo su
-echo husarion 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | EDITOR='tee -a' visudo
-```
+> ``` bash
+> sudo su
+> echo husarion 'ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown' | EDITOR='tee -a' visudo
+> ```
+
+#### Faults Handle
+
+After receiving a message on the `/battery` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding power supply state, please refer to [adc_node](/panther_battery/README.md#battery-statuses) documentation.
+
+| Power Supply Health | Procedure                                                                                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GOOD                | -                                                                                                                                                                                                                  |
+| UNKNOWN             | -                                                                                                                                                                                                                  |
+| OVERHEAT            | 1. Turn on the fan. <br> 2. If battery temperature is higher that 55.0 **&deg;C**, trigger an emergency stop and turn off AUX. <br> 3. If battery temperature is higher that 62.0 **&deg;C**, shutdown the robot. |
+| DEAD                | Shutdown the robot.                                                                                                                                                                                               |
+| OVERVOLTAGE         | 1. Initiate an emergency stop. <br> 2. Display an error animation if the charger is connected.                                                                                                                     |
+| COLD                | -                                                                                                                                                                                                                  |
+
+> **NOTE**
+>
+> 1. The fan exhibits a form of hysteresis, allowing it to be turned off after a delay of at least 60 seconds.
+> 2. Once the Panther ROS stack initializes, the fan activates and operates for a duration of approximately 60 seconds.
+
 
 ### system_status_node.py
 
@@ -135,7 +156,7 @@ For a BehaviorTree project to work correctly, it must contain three trees with n
 
 ### Trees
 
-#### Lights 
+#### Lights
 
 A tree responsible for scheduling animations displayed on LED panels based on the Husarion Panther robot's system state.
 
@@ -173,8 +194,8 @@ Default constant blackboard entries:
 - `POWER_SUPPLY_STATUS_NOT_CHARGING` [*unsigned*, value: **3**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_NOT_CHARGING`.
 - `POWER_SUPPLY_STATUS_FULL` [*unsigned*, value: **4**]: power supply status constant obtained from `sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_FULL`.
 
-### Safety 
- 
+### Safety
+
 A tree responsible for monitoring the Panther robot's state and handling safety measures, such as cooling the robot in case of high CPU or battery temperatures.
 
 <p align="center">
@@ -226,16 +247,15 @@ Each behavior tree can be easily customized to enhance its functions and capabil
 
 When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees.
 
-> **Note**: 
+> **Note**:
 > It is essential to exercise caution when modifying the trees responsible for safety or shutdown and ensure that default behaviors are not removed.
-> 
+>
 > Remember to use the files from the existing project in a way that avoids conflicts, such as by saving them under new names to ensure they don't overwrite any existing files.
 
 When modifying behavior trees, you have the flexibility to use standard BehaviorTree.CPP nodes or leverage nodes created specifically for Panther, as detailed in the [Nodes](#nodes) section. Additionally, if you have more specific requirements, you can even create your own custom Behavior Tree nodes. However, this will involve modifying the package and rebuilding the project accordingly.
 
 To use your customized project, you need to provide the `bt_project_file` launch argument when running `panther_bringup.launch` file. Here's an example of how to launch the project with the specified BehaviorTree project file:
 
-```
+```bash
 roslaunch --wait panther_bringup bringup.launch bt_project_file:=/path/to/bt/project/file
 ```
-
