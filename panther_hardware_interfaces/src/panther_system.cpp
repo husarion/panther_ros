@@ -17,22 +17,25 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     return CallbackReturn::ERROR;
   }
 
-  if (info_.joints.size() != JOINTS_SIZE_) {
+  if (info_.joints.size() != kJointsSize) {
     RCLCPP_FATAL(
       rclcpp::get_logger("PantherSystem"), "Wrong number of joints defined: %zu, %zu expected.",
-      info_.joints.size(), JOINTS_SIZE_);
+      info_.joints.size(), kJointsSize);
     return CallbackReturn::ERROR;
   }
 
-  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
-    for (std::size_t j = 0; j < JOINTS_SIZE_; j++) {
+  // Sort joints names - later hw_states and hw_commands are accessed by static indexes, so it
+  // is necessary to make sure that joints are in specific order and order of definitions in URDF
+  // doesn't matter
+  for (std::size_t i = 0; i < kJointsSize; i++) {
+    for (std::size_t j = 0; j < kJointsSize; j++) {
       if (info_.joints[j].name.find(joint_order_[i]) != std::string::npos) {
         joints_names_sorted_[i] = info_.joints[j].name;
       }
     }
   }
 
-  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+  for (std::size_t i = 0; i < kJointsSize; i++) {
     if (joints_names_sorted_[i] == "") {
       RCLCPP_FATAL(
         rclcpp::get_logger("PantherSystem"),
@@ -44,7 +47,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
   // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it shouldn't)
   // In case of velocity, I think that setting initial value to 0.0 is the best option
-  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+  for (std::size_t i = 0; i < kJointsSize; i++) {
     hw_commands_velocities_[i] = 0.0;
     hw_states_positions_[i] = std::numeric_limits<double>::quiet_NaN();
     hw_states_velocities_[i] = std::numeric_limits<double>::quiet_NaN();
@@ -102,28 +105,36 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     }
   }
 
-  // TODO add checking if parameters were defined
   DrivetrainSettings drivetrain_settings;
-  drivetrain_settings.motor_torque_constant =
-    std::stof(info_.hardware_parameters["motor_torque_constant"]);
-  drivetrain_settings.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
-  drivetrain_settings.gearbox_efficiency =
-    std::stof(info_.hardware_parameters["gearbox_efficiency"]);
-  drivetrain_settings.encoder_resolution =
-    std::stof(info_.hardware_parameters["encoder_resolution"]);
-  drivetrain_settings.max_rpm_motor_speed =
-    std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
-
   CanSettings can_settings;
-  can_settings.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-  can_settings.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-  can_settings.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
 
-  roboteq_state_period_ = std::stof(info_.hardware_parameters["roboteq_state_period"]);
+  try {
+    drivetrain_settings.motor_torque_constant =
+      std::stof(info_.hardware_parameters["motor_torque_constant"]);
+    drivetrain_settings.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
+    drivetrain_settings.gearbox_efficiency =
+      std::stof(info_.hardware_parameters["gearbox_efficiency"]);
+    drivetrain_settings.encoder_resolution =
+      std::stof(info_.hardware_parameters["encoder_resolution"]);
+    drivetrain_settings.max_rpm_motor_speed =
+      std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
+
+    can_settings.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
+    can_settings.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
+    can_settings.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+
+    roboteq_state_period_ = std::stof(info_.hardware_parameters["roboteq_state_period"]);
+  } catch (std::invalid_argument & err) {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("PantherSystem"),
+      "One of the required hardware parameters was not defined");
+    return CallbackReturn::ERROR;
+  }
 
   roboteq_controller_ =
     std::make_unique<PantherWheelsController>(can_settings, drivetrain_settings);
-  // TODO comment
+
+  // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
 
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
@@ -170,7 +181,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+  for (std::size_t i = 0; i < kJointsSize; i++) {
     hw_commands_velocities_[i] = 0.0;
     hw_states_positions_[i] = 0.0;
     hw_states_velocities_[i] = 0.0;
@@ -244,7 +255,7 @@ std::vector<StateInterface> PantherSystem::export_state_interfaces()
 {
   // TODO: check order
   std::vector<StateInterface> state_interfaces;
-  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+  for (std::size_t i = 0; i < kJointsSize; i++) {
     state_interfaces.emplace_back(StateInterface(
       joints_names_sorted_[i], hardware_interface::HW_IF_POSITION, &hw_states_positions_[i]));
     state_interfaces.emplace_back(StateInterface(
@@ -259,7 +270,7 @@ std::vector<StateInterface> PantherSystem::export_state_interfaces()
 std::vector<CommandInterface> PantherSystem::export_command_interfaces()
 {
   std::vector<CommandInterface> command_interfaces;
-  for (std::size_t i = 0; i < JOINTS_SIZE_; i++) {
+  for (std::size_t i = 0; i < kJointsSize; i++) {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       joints_names_sorted_[i], hardware_interface::HW_IF_VELOCITY, &hw_commands_velocities_[i]));
   }

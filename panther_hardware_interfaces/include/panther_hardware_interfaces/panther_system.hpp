@@ -71,8 +71,7 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 protected:
-  // TODO: naming
-  static constexpr size_t JOINTS_SIZE_ = 4;
+  static constexpr size_t kJointsSize = 4;
 
   // consider adding position and torque mode after updating roboteq firmware to 2.1a
   // In 2.1 both position and torque mode aren't really stable and safe
@@ -80,16 +79,16 @@ protected:
   // position mode also isn't really stable (reacts abruptly to spikes, which we hope will be fixed
   // in the new firmware)
 
-  double hw_commands_velocities_[JOINTS_SIZE_];
+  double hw_commands_velocities_[kJointsSize];
 
-  double hw_states_positions_[JOINTS_SIZE_];
-  double hw_states_velocities_[JOINTS_SIZE_];
-  double hw_states_efforts_[JOINTS_SIZE_];
+  double hw_states_positions_[kJointsSize];
+  double hw_states_velocities_[kJointsSize];
+  double hw_states_efforts_[kJointsSize];
 
   // Define expected joint order, so that it doesn't mattter order defined in the panther_macro
   // it is expected that joint name should contain these specifiers
-  std::string joint_order_[JOINTS_SIZE_] = {"fl", "fr", "rl", "rr"};
-  std::string joints_names_sorted_[JOINTS_SIZE_];
+  std::string joint_order_[kJointsSize] = {"fl", "fr", "rl", "rr"};
+  std::string joints_names_sorted_[kJointsSize];
 
   std::unique_ptr<GPIOController> gpio_controller_;
   std::unique_ptr<PantherWheelsController> roboteq_controller_;
