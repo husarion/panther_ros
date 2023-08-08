@@ -1,23 +1,23 @@
 # panther_battery
 
-Package containing nodes monitoring and publishing internal battery state of the Husarion Panther robot.
+Package containing nodes monitoring and publishing the internal battery state of the Husarion Panther robot.
 
 ## ROS Nodes
 
 ### adc_node.py
 
-Publishes battery state read from ADC unit and thermistors. Available from Panther version 1.2. Voltage, current and temperature are smoothed out using a moving average.
+Publishes battery state read from ADC unit and thermistors. Available from Panther version 1.2. Voltage, current, and temperature are smoothed out using a moving average.
 
 #### Publishes
 
-- `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if panther has two batteries. In case of single battery values only for the single one.
+- `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if the panther has two batteries. In the case of single battery values only for the single one.
 - `/panther/battery_1` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
 - `/panther/battery_2` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
 
 #### Subscribes
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
-- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with charging current.
+- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with the charging current.
 
 #### Battery statuses
 
@@ -37,40 +37,40 @@ Safety thresholds used in calculating the various values describing the state of
 
 The method of calculating individual values:
 
-- for single battery:
+- for a single battery:
 
-| Value                                       | Variable name                                                 | Method of calculating                            | Comment                                                                                          | Published on |
-| ------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------------ |
-| Voltage                                     | `V_bat`                                                       | Measured with ADC unit                           | -                                                                                                | `/battery`   |
-| Temperature                                 | `temp_bat`                                                    | Measured with thermistor                         | -                                                                                                | `/battery`   |
-| Each channel current (charge and discharge) | `I_bat_1`, `I_bat_2`, <br> `I_charge_bat_1`, `I_charge_bat_2` | Measured with ADC unit                           | Despite the single battery, two ADC unit channels are taken into consideration | -            |
-| Current (discharge)                         | `I_bat`                                                       | `-(I_bat_1 + I_bat_2) + I_charge_bat_1`          | As above                                                                                         | `/battery`   |
-| Current (charge)                            | `I_charge`                                                    | `I_charge_bat_1 + I_charge_bat_2`                | As above                                                                                         | -            |
-| Percentage                                  | `percentage`                                                  | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)` | -                                                                                                | `/battery`   |  |
+| Value                                       | Variable name                                                 | Method of calculating                                                             | Comment                                                                                          | Published on |
+| ------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------ |
+| Voltage                                     | `V_bat`                                                       | Measured with ADC unit                                                            | -                                                                                                | `/battery`   |
+| Temperature                                 | `temp_bat`                                                    | Thermistor voltage converted to temperature value with `_voltage_to_deg` function | -                                                                                                | `/battery`   |
+| Each channel current (charge and discharge) | `I_bat_1`, `I_bat_2`, <br> `I_charge_bat_1`, `I_charge_bat_2` | Measured with ADC unit                                                            | Despite the fact that the battery is single, two ADC unit channels are taken into account anyway | -            |
+| Current (discharge)                         | `I_bat`                                                       | `-(I_bat_1 + I_bat_2) + I_charge_bat_1`                                           | As above                                                                                         | `/battery`   |
+| Current (charge)                            | `I_charge`                                                    | `I_charge_bat_1 + I_charge_bat_2`                                                 | As above                                                                                         | -            |
+| Percentage                                  | `percentage`                                                  | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)`                                  | -                                                                                                | `/battery`   |  |
 
-- for double battery:
+- for the double battery:
 
-| Value                       | Variable name                               | Method of calculating                                                       | Published on                           |
-| --------------------------- | ------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------- |
-| Channel voltage             | `V_bat_1`, `V_bat_2`                        | Measured with ADC unit separately for each battery                          | `/battery_1`, `/battery_2`             |
-| Mean voltage                | `V_bat`                                     | `V_bat_1 + V_bat_2`                                                         | `/battery`                             |
-| Channel temperature         | `temp_bat_1`, `temp_bat_2`                  | Measured with thermistor separately for each battery                        | `/battery_1`, `/battery_2`             |
-| Channel current (discharge) | `I_bat_1`, `I_bat_2`                        | Measured with ADC unit separately for each battery                          | -                                      |
-| Channel current (charge)    | `I_charge_bat_1`, `I_charge_bat_2`          | Measured with ADC unit separately for each battery                          | -                                      |
-| Mean current (discharge)    | `I_bat` *Mean value of two ADC channels*    | `-(I_bat_1 + I_bat_2) + I_charge_bat_1 + I_charge_bat_2,`                   | `/battery`                             |
-| Current (discharge)         | `I_bat`                                     | `-I_bat_? + I_charge_bat_?`                                                 | `/battery_1`, `/battery_2`             |
-| Mean current (charge)       | `I_charge` *Mean value of two ADC channels* | `I_charge_bat_1 + I_charge_bat_2`                                           | -                                      |
-| Current (charge)            | `I_charge`                                  | `I_charge_bat_x`                                                            | -                                      |
-| Percentage                  | `percentage`                                | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)` *For `V_bat` or `V_bat_?`* | `/battery`, `/battery_1`, `/battery_2` |
+| Value                       | Variable name                               | Method of calculating                                                                                         | Published on                           |
+| --------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Channel voltage             | `V_bat_1`, `V_bat_2`                        | Measured with ADC unit separately for each battery                                                            | `/battery_1`, `/battery_2`             |
+| Mean voltage                | `V_bat`                                     | `V_bat_1 + V_bat_2`                                                                                           | `/battery`                             |
+| Channel temperature         | `temp_bat_1`, `temp_bat_2`                  | Thermistor voltage converted to temperature value with `_voltage_to_deg` function separately for each battery | `/battery_1`, `/battery_2`             |
+| Channel current (discharge) | `I_bat_1`, `I_bat_2`                        | Measured with ADC unit separately for each battery                                                            | -                                      |
+| Channel current (charge)    | `I_charge_bat_1`, `I_charge_bat_2`          | Measured with ADC unit separately for each battery                                                            | -                                      |
+| Mean current (discharge)    | `I_bat` *Mean value of two ADC channels*    | `-(I_bat_1 + I_bat_2) + I_charge_bat_1 + I_charge_bat_2,`                                                     | `/battery`                             |
+| Current (discharge)         | `I_bat`                                     | `-I_bat_1 + I_charge_bat_1` or `-I_bat_2 + I_charge_bat_2`                                                                                   | `/battery_1`, `/battery_2`             |
+| Mean current (charge)       | `I_charge` *Mean value of two ADC channels* | `I_charge_bat_1 + I_charge_bat_2`                                                                             | -                                      |
+| Current (charge)            | `I_charge`                                  | `I_charge_bat_1` or `I_charge_bat_2`                                                                                              | -                                      |
+| Percentage                  | `percentage`                                | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)` <br> *For `V_bat`, `V_bat_1` or `V_bat_2`*                                   | `/battery`, `/battery_1`, `/battery_2` |
 
 ##### Value of `power_supply_health` Field
 
 | Status                | Method of verification                                  | Condition                      | Procedure                                                                                                                                     |
 | --------------------- | ------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | GOOD                  | None of these conditions are met                        | n/a                            | -                                                                                                                                             |
-| UNKNOWN               | Check the last time of Roboteq driver message receive  | data not received              | -                                                                                                                                             |
+| UNKNOWN               | Check the last time of Roboteq driver messages receive  | data not received              | -                                                                                                                                             |
 | OVERHEAT              | Battery temperature measurement with ADC & thermistor   | `temp_bat > OVERHEAT_BAT_TEMP` | The `adc_node` issues a warning. This status is then read in the `panther_manager` safety behavior tree.                                      |
-| DEAD                  | Mean battery voltage  (moving average, window size: 10) | `V_bat < V_BAT_FATAL_MIN`      | The `adc_node` issues a warning. This status is then read in the `panther_manager` safety behavior tree.                                              |
+| DEAD                  | Mean battery voltage  (moving average, window size: 10) | `V_bat < V_BAT_FATAL_MIN`      | `adc_node` logs warning. This status is then read in the `panther_manager` safety behavior tree.                                              |
 | OVERVOLTAGE           | Mean battery voltage  (moving average, window size: 10) | `V_bat > V_BAT_FATAL_MAX`      | After 2 seconds of high voltage being present, the warning is logged. This status is then read in the `panther_manager` safety behavior tree. |
 | COLD                  | Battery temperature measurement with ADC & thermistor   | `temp_bat < LOW_BAT_TEMP`      | `adc_node` logs warning                                                                                                                       |
 | UNSPEC_FAILURE        | -                                                       | -                              | -                                                                                                                                             |
@@ -81,15 +81,15 @@ The method of calculating individual values:
 
 | State        | Condition                                                   | Comment                                                                                                                                                                                                     |
 | ------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| UNKNOWN      | -                            | -                                                                                                                                                                                                           |
+| UNKNOWN      | None of these conditions are met                            | -                                                                                                                                                                                                           |
 | CHARGING     | Charger connected and `I_charge > BAT_CHARGING_CURR_THRESH` | The state is published on the `/battery` topic. If the robot has two batteries, it is also published on `/battery` (where the threshold is `2 * BAT_CHARGING_CURR_THRESH`), `/battery_1`, and `/battery_2`. |
 | FULL         | Batter percentage                                           | when charge is 100%, but 100% is equal to `V_BAT_FULL`                                                                                                                                                      |
 | NOT_CHARGING | Charger connected but none of above conditions are met      |                                                                                                                                                                                                             |
-| DISCHARGING  | None of above conditions are met                            |                                                                                                                                                                                                             |
+| DISCHARGING  | none of above conditions are met                            |                                                                                                                                                                                                             |
 
 ### roboteq_republisher_node.py
 
-Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurement are smoothed out using a moving average. Current accounts only for motor controllers.
+Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurements are smoothed out using a moving average. Current accounts only for motor controllers.
 
 #### Publishes
 
