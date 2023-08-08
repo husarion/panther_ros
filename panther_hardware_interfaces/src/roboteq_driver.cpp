@@ -124,8 +124,6 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 
 RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
-  // TODO!!!!! Wait doesn't work
-
   try {
     auto temp = SyncSdoRead<int8_t>(0x210F, 1);
     auto voltage = SyncSdoRead<uint16_t>(0x210D, 2);

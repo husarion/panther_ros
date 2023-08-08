@@ -24,9 +24,6 @@ void PantherWheelsController::Initialize()
 {
   can_communication_started_.store(false);
 
-  // TODO: does it have to be a thread
-  // TODO!!!!!: configure SCHED_FIFO priority
-
   executor_thread_ = std::thread([this]() {
     if (realtime_tools::has_realtime_kernel()) {
       if (!realtime_tools::configure_sched_fifo(kSchedPriority)) {
