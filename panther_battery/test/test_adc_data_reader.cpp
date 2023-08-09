@@ -54,15 +54,19 @@ TEST_F(TestADCDataReader, TestGetADCMeasurement)
 {
   WriteNumberToFile<int>(1420, data_file_path_);
 
-  auto data = data_reader_->GetADCMeasurement(0);
+  auto data = data_reader_->GetADCMeasurement(0, 0);
   EXPECT_FLOAT_EQ(1.42, data);
 
   WriteNumberToFile<int>(200, data_file_path_);
-  data = data_reader_->GetADCMeasurement(0);
+  data = data_reader_->GetADCMeasurement(0, 0);
   EXPECT_FLOAT_EQ(0.2, data);
 
+  WriteNumberToFile<int>(200, data_file_path_);
+  data = data_reader_->GetADCMeasurement(0, 100);
+  EXPECT_FLOAT_EQ(0.1, data);
+
   WriteNumberToFile<float>(0.5, scale_file_path_);
-  data = data_reader_->GetADCMeasurement(0);
+  data = data_reader_->GetADCMeasurement(0, 0);
   EXPECT_FLOAT_EQ(0.1, data);
 }
 
