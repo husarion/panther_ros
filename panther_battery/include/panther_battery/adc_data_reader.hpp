@@ -19,20 +19,20 @@ public:
     }
   }
 
-  float GetADCMeasurement(const int channel);
+  float GetADCMeasurement(const int channel, const int offset);
 
 private:
-  const std::filesystem::path device_path_;
-
   template <typename T>
   T ReadChannel(const int channel, const std::string data_type);
+
+  const std::filesystem::path device_path_;
 };
 
-inline float ADCDataReader::GetADCMeasurement(const int channel)
+inline float ADCDataReader::GetADCMeasurement(const int channel, const int offset)
 {
   auto LSB = ReadChannel<float>(channel, "scale") / 1000;
   auto raw_value = ReadChannel<int>(channel, "raw");
-  return raw_value * LSB;
+  return (raw_value - offset) * LSB;
 }
 
 template <typename T>
