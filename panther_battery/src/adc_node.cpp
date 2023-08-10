@@ -151,7 +151,7 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
 
   battery_msg.power_supply_technology = battery_msg_1.power_supply_technology;
   battery_msg.location = battery_msg_1.location;
-  battery_msg.present = true;
+  battery_msg.present = battery_msg_1.present || battery_msg_2.present;
 
   battery_msg.header.stamp = battery_msg_1.header.stamp;
   battery_msg.voltage = (battery_msg_1.voltage + battery_msg_2.voltage) / 2.0f;
