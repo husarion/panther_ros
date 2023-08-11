@@ -31,7 +31,7 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 - `robot_description` [*string*, default=**xacro $(find panther_description)/urdf/panther.urdf.xacro**]: robot description in URDF format. URDF itself contains its own arguments that are responsible for wheel selection and IMU position. If you use Xacro alongside URDF add `xacro` command before argument to parse the URDF file.
 - `shutdown_hosts_config_file` [*string*, default=**$(find panther_bringup)/config/shutdown_hosts.yaml**]: path to YAML file with description of hosts to shutdown. For more information, see [panther_manager](../panther_manager/README.md).
 - `test_animations` [*bool*, default=**false**]: enables service `/panther/lights/controller/set/image_animation` allowing to test animations based on provided images.
-- `user_animations_file` [*string*, default=**None**]: optional parameter with path to YAML file with user-defined animations. 
+- `user_animations_file` [*string*, default=**None**]: optional parameter with a path to YAML file with user-defined animations. 
 - `use_ekf` [*bool*, default=**true**]: enable or disable Extended Kalman Filter. Keep in mind that parameters in [panther_common.yaml](./config/panther_common.yaml) and in [ekf_config.yaml](./config/ekf_config.yaml) are separate and are not affected by this parameter. Especially, parameters such as `publish_tf` and TF frames are separate for both nodes and have to be changed independently.
 - `wheel_config_file` [*string*, default=**$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
 - `wheel_type` [*string*, default=**WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_file` argument accordingly).
@@ -41,9 +41,9 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 If the environment variable `PANTHER_HW_CONFIG_CORRECT` is set to `true` the robot will normally start. If it is set to `false` all ROS nodes will be prevented from starting. In such case, a welcome message will be displayed, followed by a warning:
 ```
 [ERROR] [0.0]: [/welcome_msg_node] OS detected incorrect hardware. ROS nodes are prevented from starting!
-[ERROR] [0:0]: [/welcome_msg_node] Refer to instructions in manual or those shown on terminal login.
+[ERROR] [0:0]: [/welcome_msg_node] Refer to the instructions in the manual or those shown on the terminal login.
 ```
-`welcome_msg_node` is a required node. Setting `exit_on_wrong_hw` will cause it to stop spinning, in the case of `PANTHER_HW_CONFIG_CORRECT` not being equal to `true`. This will result in the entire launch file being stopped. If stopping the whole roslaunch behavior is not desired (running within Docker container), setting `exit_on_wrong_hw` to `false` will result in expected behavior while preventing launching ROS nodes in a potentially harmful way. 
+`welcome_msg_node` is a required node. Setting `exit_on_wrong_hw` will cause it to stop spinning, in the case of `PANTHER_HW_CONFIG_CORRECT` not being equal to `true`. This will result in the entire launch file being stopped. If stopping the whole roslaunch behavior is not desired (running within the Docker container), setting `exit_on_wrong_hw` to `false` will result in expected behavior while preventing launching ROS nodes in a potentially harmful way. 
 
 ## ROS Nodes
 
