@@ -4,9 +4,9 @@ The package contains the default configuration and launch files necessary to sta
 
 ## Default nodes launched
 
-In cases where different nodes are used depending on the robot version, **<= 1.06** means a node is used in Husarion Panther 1.06 and older versions. **>= 1.20** means Husarion Panther 1.20 and newer is expected.
+In cases where different nodes are used depending on the robot version, **<= 1.06** means a node is used in Husarion Panther 1.06 and older versions. **>= 1.2** means Husarion Panther 1.2 and newer is expected.
 
-- `battery_node` [<= 1.06 *panther_battery/roboteq_republisher_node.py*, >= 1.20 *panther_battery/adc_node.py*]: node responsible for monitoring and publishing the internal battery state of the Husarion Panther robot. For more information, refer to: [panther_battery](../panther_battery/README.md).
+- `battery_node` [<= 1.06 *panther_battery/roboteq_republisher_node.py*, >= 1.2 *panther_battery/adc_node.py*]: node responsible for monitoring and publishing the internal battery state of the Husarion Panther robot. For more information, refer to: [panther_battery](../panther_battery/README.md).
 - `driver_node` [*panther_driver/driver_node.py*]: node responsible for communication with motor controllers and computing the inverse and forward kinematics of a robot. For more information, refer to: [panther_driver](../panther_driver/README.md).
 - `ekf_node` [*robot_localization/ekf_localization_node.py*]: Extended Kalman Filter node for more accurate odomtery. For more information, refer to: [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](./config/ekf_config.yaml).
 - `imu_filter_node` [*imu_filter_madgwick/imu_filter_node*]: node responsible for filtering and fusing raw data from IMU.
@@ -14,7 +14,7 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 - `lights_driver_node` [*panther_lights/driver_node*]: node responsible for displaying frames on the Husarion Panther robot LED panels. For more information, refer to: [panther_lights](../panther_lights/README.md).
 - `manager_bt_node` [*panther_manager/manager_bt_node*]: node responsible for managing the Husarion Panther robot. Incorporates a system for managing displayed LED panel animations, safety features, and software shutdown of components. For more information, refer to: [panther_manager](../panther_manager/README.md).
 - `phidgets_spatial_node` [*nodelet/nodelet*, type: **phidgets_spatial/PhidgetsSpatialNodelet**] - Phidget Spatial IMU ROS driver.
-- `power_control_node` [<= 1.06 *panther_power_control/relays_node.py*, >= 1.20 *panther_power_control/power_board_node.py*]: node responsible for power management of the Husarion Panther robot. For more information, refer to: [panther_power_control](../panther_power_control/README.md).
+- `power_control_node` [<= 1.06 *panther_power_control/relays_node.py*, >= 1.2 *panther_power_control/power_board_node.py*]: node responsible for power management of the Husarion Panther robot. For more information, refer to: [panther_power_control](../panther_power_control/README.md).
 - `robot_state_publisher` [*robot_state_publisher/robot_state_publisher*]: node publishing description and transformations of the Husarion Panther robot. For more information, refer to: [panther_description](../panther_description/README.md).
 - `system_status_node` [*panther_manager/system_status_node.py*]: publishes information about the status of a Build-in Computer.
 - `welcome_msg_node` [*panther_bringup/welcome_msg_node.py*]: user-friendly welcome message with basic information about the given robot.
