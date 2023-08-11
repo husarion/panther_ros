@@ -9,7 +9,7 @@ Basic Panther configuration can be found in file [panther.urdf.xacro](./urdf/pan
 ## Parameters
 
 > **Note**
-> Default location of the IMU sensor in the URDF is the same as in Panther 1.0. On real robot the location is set by [panther_bringup/bringup.launch](../panther_bringup/launch/bringup.launch) from environment variables. Environment variables store IMU location of the given robot and are set on boot time.
+> Default location of the IMU sensor in the URDF is the same as in Panther 1.0. On a real robot, the location is set by [panther_bringup/bringup.launch](../panther_bringup/launch/bringup.launch) from environment variables. Environment variables store the IMU location of the given robot and are set on boot time.
 
 Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the same as parameters of [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro). Thus, this section covers both of them.
 
@@ -27,13 +27,13 @@ Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the 
 
 There is one additional [panther.urdf.xacro](./urdf/panther.urdf.xacro) argument:
 - `use_gpu` [*float*, default: **false**]: Turns on GPU acceleration for sensors.
-It is not present in the [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) since base of a robot does not have any sensors that can be accelerated with GPU.
+It is not present in the [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) since the base of a robot does not have any sensors that can be accelerated with GPU.
 
 Parameter `wheel_config_path` allows using non-standard wheels with Panther robot without modifying URDF file. The syntax is following:
 - `wheel_radius` - wheel radius in **[m]**.
 - `wheel_separation` - separation of wheels alongside *y* axis in **[m]**.
 - `mass` - wheel mass in **[Kg]**.
-- `inertia` - diagonal of inertia tensor in **[Kg m^2]**. Required subfields:
+- `inertia` - the diagonal of inertia tensor in **[Kg m^2]**. Required subfields:
   - `ixx` - inertia alongside axis **x**.
   - `iyy` - inertia alongside axis **y**.
   - `izz` - inertia alongside axis **z**.
@@ -41,7 +41,7 @@ Parameter `wheel_config_path` allows using non-standard wheels with Panther robo
 - `mesh_package` - ROS package name to search for custom meshes. Used in evaluation **$(find my_amazing_package)/**.
 - `folder_path` - path used to search for mesh files within the ROS package.
 - `kinematics` - kinematics type. Possible options: `differential`, `mecanum`.
-- `odom_stderr` - standard deviation used to populated odometry message:
+- `odom_stderr` - standard deviation used to populate odometry message:
   - `vel_x` - standard deviation for linear velocity in **x** direction.
   - `vel_y` - standard deviation for linear velocity in **y** direction.
   - `vel_yaw` - standard deviation for angular velocity alongside **z** axis.
@@ -56,22 +56,22 @@ Wheels have to be named as follows:
 ## Links
 
 Evaluating [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) following links are created:
-- `base_link` laying on the ground in center of the robot.
-- `body_link` right above the `base_link` on the level of rotation axis of wheels.
+- `base_link` laying on the ground in the center of the robot.
+- `body_link` right above the `base_link` on the level of the rotation axis of wheels.
 - `imu_link` location of IMU sensor.
 - `fl_wheel_link` front left wheel link.
 - `fr_wheel_link` front right wheel link.
 - `rl_wheel_link` rear left wheel link.
 - `rr_wheel_link` rear right wheel link.
 
-There are also links created for user to attach own sensors and components. The purpose of those links is to simplify localization of mounting points. Those are mentioned links:
-- `cover_link` at the level of the top surface of rails, located in the center of the robot. Positive `x` axis pointing in front of the robot, positive `z` axis pointing up from the robot, and positive `y` pointing to the left of a robot.
-- `front_bumper_link` in front of the robot, at the height of v-slot of front bumpers. Exact height is in the middle of the v-slot. Position in `x` axis is the front surface of the v-slot, while in `y` axis it is the center of the robot. Rotation is same as `cover_link`.
-- `rear_bumper_link` analogous to `front_bumper_link`, but mounted to the back of the robot. This reference frame has positive `x` facing to the back of a robot. Positive `z` is facing up and positive and `y` is facing to the right of a robot. 
+There are also links created for users to attach their own sensors and components. The purpose of those links is to simplify the localization of mounting points. Those are mentioned links:
+- `cover_link` at the level of the top surface of the rails, located in the center of the robot. The positive `x` axis points in front of the robot, the positive `z` axis points up from the robot, and the positive `y` points to the left of the robot.
+- `front_bumper_link` in front of the robot, at the height of the v-slot of front bumpers. The exact height is in the middle of the v-slot. Position in `x` axis is the front surface of the v-slot, while in `y` axis it is the center of the robot. Rotation is the same as `cover_link`.
+- `rear_bumper_link` analogous to `front_bumper_link`, but mounted to the back of the robot. This reference frame has a positive `x` facing to the back of a robot. Positive `z` is facing up and positive and `y` is facing to the right of the robot. 
 
 ## Panther specific components configuration
 
-GPS antenna component is defined in [external_antenna.urdf.xacro](./urdf/components/external_antenna.urdf.xacro). Parameters of the macro follow the convention from the next section.
+GPS antenna component is defined in [external_antenna.urdf.xacro](./urdf/components/external_antenna.urdf.xacro). The parameters of the macro follow the convention from the next section.
 
 ## Sensor configuration
 
