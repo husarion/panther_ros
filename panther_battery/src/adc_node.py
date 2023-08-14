@@ -141,8 +141,8 @@ class ADCNode:
 
             self._publish_battery_msg(
                 self._battery_pub,
-                (V_bat_1 + V_bat_2) / 2.0,
-                (temp_bat_1 + temp_bat_2) / 2.0,
+                max(V_bat_1, V_bat_2),
+                max(temp_bat_1, temp_bat_2),
                 -(I_bat_1 + I_bat_2) + I_charge_bat_1 + I_charge_bat_2,
                 I_charge_bat_1 + I_charge_bat_2,
             )
