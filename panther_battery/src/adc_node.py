@@ -235,7 +235,7 @@ class ADCNode:
                     )
                 else:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
-                    rospy.logerr_throttle(
+                    rospy.logwarn_throttle(
                         5.0,
                         f'[{rospy.get_name()}] The charger has been plugged in, '
                         f'but the charging process has not started. ',
