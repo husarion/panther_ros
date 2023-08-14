@@ -221,10 +221,25 @@ class ADCNode:
             if self._charger_connected:
                 if battery_msg.percentage == 1.0:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
+                    rospy.loginfo_throttle(
+                        60.0,
+                        f'[{rospy.get_name()}] The battery is fully charged. '
+                        f'The robot can be disconnected from the charger.',
+                    )
                 elif I_bat_mean > self._I_bat_charging_thresh[bat_pub]:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+                    rospy.loginfo_throttle(
+                        1800.0,
+                        f'[{rospy.get_name()}] Robot charging process update: \n',
+                        f'    - Battery Percentage: {battery_msg.percentage * 100}%',
+                    )
                 else:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
+                    rospy.logerr_throttle(
+                        5.0,
+                        f'[{rospy.get_name()}] The charger has been plugged in, '
+                        f'but the charging process has not started. ',
+                    )
             else:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
