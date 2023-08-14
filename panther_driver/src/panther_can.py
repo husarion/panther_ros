@@ -72,7 +72,7 @@ class PantherCAN:
         for controller in self._motor_controllers:
             if self._robot_driver_initialized:
                 faults = [
-                    time_now - cb_time > rospy.Duration(0.5)
+                    time_now - cb_time > rospy.Duration(0.2)
                     for cb_time in controller.last_time_callback.values()
                 ]
                 yield any(faults)
