@@ -230,8 +230,8 @@ class ADCNode:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
                     rospy.loginfo_throttle(
                         1800.0,
-                        f'[{rospy.get_name()}] Robot charging process update: \n',
-                        f'    - Battery Percentage: {battery_msg.percentage * 100}%',
+                        f'[{rospy.get_name()}] Robot charging process update. '
+                        f'Battery Percentage: {battery_msg.percentage * 100}%',
                     )
                 else:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
