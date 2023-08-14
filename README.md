@@ -13,9 +13,9 @@ API for each node can be found in each package folder.
 </picture>
 
 > **Note**: 
-> Building the latest version of this code will likely not work with your current OS. Make sure you are running the newest OS image for Built-in Computer. You can find the link to download it and instruction on updating at [husarion.com](https://husarion.com/manuals/panther/operating-system-reinstallation/#built-in-computer-system-reinstallation).
+> Building the latest version of this code will likely not work with your current OS. Make sure you are running the newest OS image for Built-in Computer. You can find the link to download it and instructions on updating at [husarion.com](https://husarion.com/manuals/panther/operating-system-reinstallation/#built-in-computer-system-reinstallation).
 >
-> Current software stack uses some of the features in kernel and underlying OS that were not introduces in older versions. You need system verstion `v1.1.0` or newer. You can check currently installed OS verstion by examining this environment variable:
+> Current software stack uses some of the features in the kernel and underlying OS that were not introduced in older versions. You need system version `v1.1.0` or newer. You can check the currently installed OS version by examining this environment variable:
 > ``` bash
 > echo $SYSTEM_BUILD_VERSION
 > ```
@@ -45,7 +45,7 @@ source /opt/ros/$ROS_DISTRO/setup.bash
 catkin_make -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release
 ```
 
-After successful build run:
+After a successful build run:
 ``` bash
 roslaunch panther_bringup bringup.launch
 ```
@@ -96,11 +96,11 @@ Possible wheels names:
 - `WH04`: small pneumatic wheels.
 - `custom`: custom wheels type.
 
-If you want to use custom wheels, use argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as default panther wheel configurations found in [**WH01.yaml**](./panther_description/config/WH01.yaml).
+If you want to use custom wheels, use the argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as the default panther wheel configurations found in [**WH01.yaml**](./panther_description/config/WH01.yaml).
 
 ### Providing custom robot description
 
-By default Panther will launch the default robot description - raw robot without any sensors. There are two ways of providing custom robot description, which are described below.
+By default, Panther will launch the default robot description - raw robot without any sensors. There are two ways of providing custom robot descriptions, which are described below.
 
 **a) Disabling the default robot state publisher**
 
@@ -120,7 +120,7 @@ roslaunch panther_bringup bringup.launch robot_description:="xacro $(rospack fin
 
 ## Shutting down User Computers
 
-You can shut down any computer within internal Panther's network.
+You can shut down any computer within the internal Panther network.
 You can do so by exchanging SSH public keys between the Built-in Computer and the one you want to shutdown. Later you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
 ``` yaml
 hosts:
