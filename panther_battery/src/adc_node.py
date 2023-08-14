@@ -238,8 +238,8 @@ class ADCNode:
                     rospy.logwarn_throttle(
                         5.0,
                         f'[{rospy.get_name()}] The charger has been plugged in, '
-                        f'but the charging process has not started. ',
-                        f'Verify whether the charger is connected to a power source.'
+                        f'but the charging process has not started. '
+                        f'Verify whether the charger is connected to a power source.',
                     )
             else:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
