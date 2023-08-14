@@ -41,8 +41,9 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 If the environment variable `PANTHER_HW_CONFIG_CORRECT` is set to `true` the robot will typically start. If it is set to `false` all ROS nodes will be prevented from starting. In such case, a welcome message will be displayed, followed by a warning:
 ```
 [ERROR] [0.0]: [/welcome_msg_node] OS detected incorrect hardware. ROS nodes are prevented from starting!
-[ERROR] [0:0]: [/welcome_msg_node] Refer to instructions in manual or those shown on terminal login.
+[ERROR] [0:0]: [/welcome_msg_node] Refer to the instructions in the manual or those shown on the terminal login.
 ```
+
 `welcome_msg_node` is a required node. Setting `exit_on_wrong_hw` will cause it to stop spinning, in the case of `PANTHER_HW_CONFIG_CORRECT` not being equal to `true`. This will result in the entire launch file being stopped. If stopping the whole roslaunch behavior is not desired (running within the Docker container), setting `exit_on_wrong_hw` to `false` will result in the expected behavior while preventing launching ROS nodes in a potentially harmful way. 
 
 ## ROS Nodes

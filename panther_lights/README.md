@@ -17,7 +17,7 @@ This node is responsible for processing animations and publishing frames to be d
 
 - `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot front LED panel.
 - `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot rear LED panel.
-- `/panther/lights/controller/queue` [*panther_msgs/LEDAnimationQueue*]: list of names of currently enqueued animations in controller node, the first element of the list is the currently displayed animation.
+- `/panther/lights/controller/queue` [*panther_msgs/LEDAnimationQueue*]: list of names of currently enqueued animations in the controller node, the first element of the list is the currently displayed animation.
 
 #### Services advertised
 
@@ -49,28 +49,28 @@ This node is responsible for displaying frames on the Husarion Panther robot LED
 #### Parameters
 
 - `~frame_timeout` [*float*, default: **0.1**]: time in seconds after which an incoming frame will be considered too old.
-- `~global_brightness` [*float*, default: **1.0**]: LED global brightness. Range between [0,1].
+- `~global_brightness` [*float*, default: **1.0**]: LED global brightness. The range between [0,1].
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single panel.
 
 ## Animations
 
-Basic animations provided by Husarion are loaded upon node start from [`panther_lights_animations.yaml`](config/panther_lights_animations.yaml) and parsed as a list using the ROS parameter. Supported keys are:
+Basic animations provided by Husarion are loaded upon node starting from [`panther_lights_animations.yaml`](config/panther_lights_animations.yaml) and parsed as a list using the ROS parameter. Supported keys are:
 
-- `animation` [*dict*]: definition of animation for each LED panel. Use keys described below to display the same animation on both panels or different ones on each. The keys for configuration of different animations are explained in detail under the [**Animation types**](#animation-types) section.
-  - `both` animation for front and rear LED panel.
-  - `front` animation for front LED panel.
-  - `rear` animation for rear LED panel.
+- `animation` [*dict*]: definition of animation for each LED panel. Use the keys described below to display the same animation on both panels or different ones on each. The keys for the configuration of different animations are explained in detail under the [**Animation types**](#animation-types) section.
+  - `both` animation for front and rear LED panels.
+  - `front` animation for the front LED panel.
+  - `rear` animation for the rear LED panel.
 - `id` [*int*]: ID of an animation.
-- `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to `ANIMATION_<ID>`, where `<ID>` is eqal to `id` parameter of given animation.
-- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows behavior when an animation with a given ID arrives:
+- `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to `ANIMATION_<ID>`, where `<ID>` is equal to `id` parameter of the given animation.
+- `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows the behavior when an animation with a given ID arrives:
     - **1** interrupts and removes animation with priorities **2** and **3**.
     - **2** interrupts animations with priority **3**.
-    - **3** adds animation to the end of queue.
+    - **3** adds animation to the end of the queue.
 - `timeout` [*float*, default: **120.0**]: time in seconds, after which animation will be removed from the queue.
 
 > **Warning**
 > 
-> If `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
+> If the `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
 
 Default animations can be found in the table below:
 
@@ -85,28 +85,28 @@ Default animations can be found in the table below:
 | 6   | LOW_BATTERY       | 2        | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | 2        | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing battery percentage and filling back to the center, color changes from red to green |
-| 9   | CHARGING_BATTERY  | 3        | whole panel blinking with a duty cycle proportional to the battery percentage. Short blinking means low battery, no blinking means full battery. Color changes from red to green |
+| 9   | CHARGING_BATTERY  | 3        | whole panel blinks with a duty cycle proportional to the battery percentage. Short blinking means low battery, no blinking means full battery. Color changes from red to green |
 
 ### Animation types
 
 #### Animation
 
-Basic animation definition. Keys are inherited from basic **Animation** class by all animations. Supported keys are:
+Basic animation definition. Keys are inherited from the basic **Animation** class by all animations. Supported keys are:
 
-- `brightness` [*float*, optional]: animation brightness relative to APA102 driver `global_brightness`. Range between [0,1].
-- `duration` [*float*, required]: duration of an animation for a given panel.
+- `brightness` [*float*, optional]: animation brightness relative to APA102 driver `global_brightness`. The range between [0,1].
+- `duration` [*float*, required]: duration of animation for a given panel.
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
 - `type` [*string*, required]: animation type, default animation types are: `image_animation`, `battery_animation`, `charging_animation`.
 
 > **Note**
 > 
-> Overall display duration of an animation is a product of a single image duration and repeat count. Result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
+> Overall display duration of an animation is a product of a single image duration and repeat count. The result of `duration` x `repeat`  can't exceed 10 seconds. If animation fails to fulfill the requirement it will result in an error.
 
 #### ImageAnimation
 
-Animation of type `image_animation`, returns frames to display based on an supplied image. Extends `Animation` with keys:
+Animation of type `image_animation`, returns frames to display based on a supplied image. Extends `Animation` with keys:
 
-- `color` [*int*, optional]: image is turned into grayscale and then the color is applied with brightness from gray image. Values have to be in HEX format.
+- `color` [*int*, optional]: image is turned into grayscale and then the color is applied with brightness from the gray image. Values have to be in HEX format.
 - `image` [*string*, required]: path to an image file. Only global paths are valid. Allows using `$(find ros_package)` syntax.
 
 #### BatteryAnimation
@@ -115,11 +115,11 @@ Animation of type `battery_animation` returning frame to display based on `param
 
 ### ChargingAnimation
 
-Animation of type `charging_animation` returning frame to display based on `param` value representing battery percentage. Displays solid color with a duty cycle proportional to the battery percentage. Color is changing from red (battery discharged) to green (battery fully charged).
+Animation of type `charging_animation` returning frame to display based on `param` value representing battery percentage. Displays solid color with a duty cycle proportional to the battery percentage. The color is changing from red (battery discharged) to green (battery fully charged).
 
 ### Defining animations
 
-User can define own animations using basic animation types. Similar to basic ones, user animations are parsed using a ROS parameter `/panther/lights/lights_controller_node/user_animations`. They can be loaded on node start or updated using the `/panther/lights/controller/update_animations` ROS service. For `ImageAnimation` you can use basic images from the `animations` folder and change their color with the `color` key ([see ImageAnimation](#imageanimation)). Follow the example below to add custom animations. 
+Users can define their own animations using basic animation types. Similar to basic ones, user animations are parsed using a ROS parameter `/panther/lights/lights_controller_node/user_animations`. They can be loaded on node start or updated using the `/panther/lights/controller/update_animations` ROS service. For `ImageAnimation` you can use basic images from the `animations` folder and change their color with the `color` key ([see ImageAnimation](#imageanimation)). Follow the example below to add custom animations. 
 
 Create a yaml file with an animation description list. Example file: 
 
@@ -149,7 +149,7 @@ user_animations:
         duration: 3
         repeat: 1
 
-  # animation with custom image from custom ROS package
+  # animation with a custom image from custom ROS package
   - id: 23
     name: ANIMATION_3
     priority: 3
@@ -221,7 +221,7 @@ rosservice call /panther/lights/controller/set/animation "{animation: {id: 21, p
 
 User animations can also be updated at a runtime.
 
-Create a yaml file with an animation description list similar to one in [Defining animations](#defining-animations). Then update user animations ROS parameter:
+Create a yaml file with an animation description list similar to the one in [Defining animations](#defining-animations). Then update user animations ROS parameter:
 
 ```bash
 rosparam load ./my_awesome_user_animations.yaml /panther/lights_controller_node
