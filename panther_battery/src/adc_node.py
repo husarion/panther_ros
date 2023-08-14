@@ -231,7 +231,7 @@ class ADCNode:
                     rospy.loginfo_throttle(
                         1800.0,
                         f'[{rospy.get_name()}] Robot charging process update. '
-                        f'Battery Percentage: {battery_msg.percentage * 100}%',
+                        f'Battery percentage: {battery_msg.percentage * 100}%',
                     )
                 else:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
@@ -239,6 +239,7 @@ class ADCNode:
                         5.0,
                         f'[{rospy.get_name()}] The charger has been plugged in, '
                         f'but the charging process has not started. ',
+                        f'Verify whether the charger is connected to a power source.'
                     )
             else:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
