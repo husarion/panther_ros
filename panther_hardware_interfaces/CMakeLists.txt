@@ -75,6 +75,14 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(${PROJECT_NAME}_test test/test_load_panther_system.cpp)
+  ament_target_dependencies(${PROJECT_NAME}_test
+    hardware_interface
+  )
+endif()
+
 ament_export_include_directories(
   include
 )
