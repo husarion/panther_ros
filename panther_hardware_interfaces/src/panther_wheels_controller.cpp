@@ -101,23 +101,12 @@ void PantherWheelsController::Initialize()
   }
 }
 
-void PantherWheelsController::TurnOnEstop()
+void PantherWheelsController::Deinitialize()
 {
-  try {
-    front_driver_->TurnOnEstop();
-    rear_driver_->TurnOnEstop();
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Exception when trying to turn on estop: " + std::string(err.what()));
-  }
-}
-void PantherWheelsController::TurnOffEstop()
-{
-  try {
-    front_driver_->TurnOffEstop();
-    rear_driver_->TurnOffEstop();
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Exception when trying to turn off estop: " + std::string(err.what()));
-  }
+  can_communication_started_.store(false);
+  master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
+  // TODO: check
+  executor_thread_.join();
 }
 
 void PantherWheelsController::Activate()
@@ -151,12 +140,6 @@ void PantherWheelsController::Activate()
     throw std::runtime_error("Rear driver send 0 command exception: " + std::string(err.what()));
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-}
-
-void PantherWheelsController::Deinitialize()
-{
-  can_communication_started_.store(false);
-  master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
 }
 
 RoboteqFeedback PantherWheelsController::Read()
@@ -257,6 +240,26 @@ void PantherWheelsController::CheckErrors(RoboteqFlags flags)
     }
 
     throw std::runtime_error("Flags error: " + detected_errors.str());
+  }
+}
+
+void PantherWheelsController::TurnOnEstop()
+{
+  try {
+    front_driver_->TurnOnEstop();
+    rear_driver_->TurnOnEstop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error("Exception when trying to turn on estop: " + std::string(err.what()));
+  }
+}
+
+void PantherWheelsController::TurnOffEstop()
+{
+  try {
+    front_driver_->TurnOffEstop();
+    rear_driver_->TurnOffEstop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error("Exception when trying to turn off estop: " + std::string(err.what()));
   }
 }
 

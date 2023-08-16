@@ -116,6 +116,7 @@ private:
   std::shared_ptr<lely::ev::Loop> loop_;
   std::unique_ptr<lely::io::Poll> poll_;
   std::unique_ptr<lely::ev::Executor> exec_;
+  // TODO: change name
   std::thread executor_thread_;
   std::unique_ptr<lely::io::Timer> timer_;
   std::unique_ptr<lely::io::CanController> ctrl_;
