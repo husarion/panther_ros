@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <hardware_interface/resource_manager.hpp>
+#include <hardware_interface/types/lifecycle_state_names.hpp>
 
 TEST(TestPantherSystem, load_panther_system)
 {
@@ -55,6 +56,11 @@ TEST(TestPantherSystem, load_panther_system)
   // Use try-catch instead of ASSERT_NO_THROW to get and print exception message
   try {
     hardware_interface::ResourceManager rm(panther_system_urdf);
+
+    EXPECT_EQ(
+      rm.get_components_status()["wheels"].state.label(),
+      hardware_interface::lifecycle_state_names::UNCONFIGURED);
+
     SUCCEED();
   } catch (std::exception & err) {
     FAIL() << "Exception caught when trying to create resource manager: " << err.what();
