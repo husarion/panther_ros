@@ -1,6 +1,5 @@
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
-#include <thread>
 #include <cmath>
 #include <future>
 
