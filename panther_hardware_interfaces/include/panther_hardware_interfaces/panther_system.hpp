@@ -94,7 +94,7 @@ protected:
   std::unique_ptr<PantherWheelsController> roboteq_controller_;
 
   std::shared_ptr<rclcpp::Node> node_;
-  rclcpp::executors::MultiThreadedExecutor executor_;
+  std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
   std::unique_ptr<std::thread> executor_thread_;
 
   std::shared_ptr<rclcpp::Publisher<panther_msgs::msg::DriverState>> driver_state_publisher_ =
@@ -105,7 +105,12 @@ protected:
   double roboteq_state_period_ = 0.0;
   rclcpp::Time next_roboteq_state_update_;
 
-  void cleanup_node();
+  DrivetrainSettings drivetrain_settings_;
+  CanSettings can_settings_;
+
+  void reset_publishers();
+  void destroy_node();
+  std::atomic_bool stop_executor_ = false;
 };
 
 }  // namespace panther_hardware_interfaces

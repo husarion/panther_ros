@@ -105,23 +105,20 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     }
   }
 
-  DrivetrainSettings drivetrain_settings;
-  CanSettings can_settings;
-
   try {
-    drivetrain_settings.motor_torque_constant =
+    drivetrain_settings_.motor_torque_constant =
       std::stof(info_.hardware_parameters["motor_torque_constant"]);
-    drivetrain_settings.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
-    drivetrain_settings.gearbox_efficiency =
+    drivetrain_settings_.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
+    drivetrain_settings_.gearbox_efficiency =
       std::stof(info_.hardware_parameters["gearbox_efficiency"]);
-    drivetrain_settings.encoder_resolution =
+    drivetrain_settings_.encoder_resolution =
       std::stof(info_.hardware_parameters["encoder_resolution"]);
-    drivetrain_settings.max_rpm_motor_speed =
+    drivetrain_settings_.max_rpm_motor_speed =
       std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
 
-    can_settings.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-    can_settings.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-    can_settings.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+    can_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
+    can_settings_.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
+    can_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
 
     roboteq_state_period_ = std::stof(info_.hardware_parameters["roboteq_state_period"]);
   } catch (std::invalid_argument & err) {
@@ -131,25 +128,50 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     return CallbackReturn::ERROR;
   }
 
-  roboteq_controller_ =
-    std::make_unique<PantherWheelsController>(can_settings, drivetrain_settings);
-
-  // Waiting for final GPIO implementation, current one doesn't work due to permission issues
-  // gpio_controller_ = std::make_unique<GPIOController>();
-
-  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
-  executor_.add_node(node_);
-  executor_thread_ = std::make_unique<std::thread>(
-    std::bind(&rclcpp::executors::MultiThreadedExecutor::spin, &executor_));
-
-  next_roboteq_state_update_ = node_->get_clock()->now();
-
   return CallbackReturn::SUCCESS;
+}
+
+void PantherSystem::reset_publishers()
+{
+  realtime_driver_state_publisher_.reset();
+  driver_state_publisher_.reset();
+}
+
+void PantherSystem::destroy_node()
+{
+  roboteq_controller_->Deinitialize();
+
+  stop_executor_.store(true);
+  // TODO: check
+  executor_thread_->join();
+  stop_executor_.store(false);
+
+  executor_.reset();
+  node_.reset();
+  roboteq_controller_.reset();
 }
 
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
+
+  roboteq_controller_ =
+    std::make_unique<PantherWheelsController>(can_settings_, drivetrain_settings_);
+
+  // Waiting for final GPIO implementation, current one doesn't work due to permission issues
+  // gpio_controller_ = std::make_unique<GPIOController>();
+
+  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
+  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+  executor_->add_node(node_);
+
+  executor_thread_ = std::make_unique<std::thread>([this]() {
+    while (!stop_executor_) {
+      executor_->spin_some();
+    }
+  });
+
+  next_roboteq_state_update_ = node_->get_clock()->now();
 
   try {
     roboteq_controller_->Initialize();
@@ -164,8 +186,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Cleaning up");
-  // TODO maybe send 0 command first
-  roboteq_controller_->Deinitialize();
+
+  destroy_node();
   return CallbackReturn::SUCCESS;
 }
 
@@ -207,18 +229,13 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-void PantherSystem::cleanup_node()
-{
-  realtime_driver_state_publisher_.reset();
-  driver_state_publisher_.reset();
-}
-
 CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Deactivating");
 
+  // TODO maybe send 0 command first
   // roboteq_controller_->Deactivate();
-  cleanup_node();
+  reset_publishers();
   return CallbackReturn::SUCCESS;
 }
 
@@ -227,7 +244,8 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
   // TODO
   // roboteq_controller_->Deinitialize();
-  cleanup_node();
+  reset_publishers();
+  destroy_node();
   return CallbackReturn::SUCCESS;
 }
 
@@ -247,7 +265,8 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   // TODO
   // roboteq_controller_->Deinitialize();
 
-  cleanup_node();
+  reset_publishers();
+  destroy_node();
   return CallbackReturn::SUCCESS;
 }
 
