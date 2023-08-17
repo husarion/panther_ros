@@ -16,7 +16,7 @@ Node responsible for communication with motor controllers and computing inverse 
 - `/panther/pose` [*geometry_msgs/Pose*]: robot position.
 - `/tf` [*tf2_msgs/TFMessage*]: transform between `odom_frame` and `base_link_frame`.
 
-For a `/joint_states` message carrying given data:
+For a `/joint_states` topic, message carries given data:
 - `position = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Encoder pulses.
 - `velocity = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Encoder pulses per second.
 - `effort = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Approximate motor torque in Nm.
