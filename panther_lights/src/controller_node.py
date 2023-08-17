@@ -303,11 +303,11 @@ class LightsControllerNode:
 
     def _add_animation_to_queue(self, animation: PantherAnimation) -> None:
         if animation.repeating:
-            interupting_animation = deepcopy(animation)
-            interupting_animation.init_time -= 0.0001
-            if interupting_animation.priority > 2:
-                interupting_animation.priority = 2
-            self._anim_queue.put(interupting_animation)
+            interrupting_animation = deepcopy(animation)
+            interrupting_animation.init_time -= 0.0001
+            if interrupting_animation.priority > 2:
+                interrupting_animation.priority = 2
+            self._anim_queue.put(interrupting_animation)
             self._anim_queue.remove(self._default_animation)
             self._default_animation = animation
         self._anim_queue.put(animation)
