@@ -168,7 +168,7 @@ Default blackboard entries:
 - `battery_percent` [*float*, default: **None**]: moving average of battery percentage.
 - `battery_percent_round` [*string*, default: **None**] battery percentage rounded to a value specified with `~lights/update_charging_anim_step` parameter and casted to string.
 - `battery_status` [*unsigned*, default: **None**]: current battery status.
-- `charging_anim_percent` [*string*, default: **None**]: the charging  animation battery percentage value, casted to a string.
+- `charging_anim_percent` [*string*, default: **None**]: the charging animation battery percentage value, casted to a string.
 - `current_anim_id` [*int*, default: **-1**]: ID of currently displayed animation.
 - `e_stop_state` [*bool*, default: **None**]: state of emergency stop.
 
