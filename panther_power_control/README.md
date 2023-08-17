@@ -32,7 +32,7 @@ Node responsible for management of the safety board and the power board. Availab
 - `/panther/hardware/digital_power_enable` [*std_srvs/SetBool*]: enable or disable the internal digital power used to power on, e.g. NUC, Router, etc.
 - `/panther/hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.
-- `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable internal fan. By default, the fan is controlled using the `manager_node`. Calling the service from the terminal when it is enabled might not work as expected. It is advisable to use `manager_node` when implementing fan behaviors. For more information, refere to [panther_manager](../panther_manager/README.md).
+- `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable internal fan. By default, the fan is controlled using the `manager_node`. Calling the service from the terminal when it is enabled might not work as expected. It is advisable to use `manager_node` when implementing fan behaviors. For more information, refer to [panther_manager](../panther_manager/README.md).
 - `/panther/hardware/motor_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
 
 #### Service clients
