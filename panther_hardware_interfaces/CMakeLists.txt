@@ -84,6 +84,7 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test
     hardware_interface
     rclcpp
+    panther_msgs
   )
   target_link_libraries(${PROJECT_NAME}_test PkgConfig::LIBLELY_COAPP)
 

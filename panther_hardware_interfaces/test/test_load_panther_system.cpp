@@ -7,7 +7,9 @@
 #include <hardware_interface/resource_manager.hpp>
 #include <hardware_interface/types/lifecycle_state_names.hpp>
 
-#include "lifecycle_msgs/msg/state.hpp"
+#include <lifecycle_msgs/msg/state.hpp>
+
+#include <panther_msgs/msg/driver_state.hpp>
 
 #include <mock_roboteq.hpp>
 
@@ -428,7 +430,8 @@ TEST(TestPantherSystem, read_feedback_panther_system)
   try {
     rm.read(TIME, PERIOD);
   } catch (std::exception & err) {
-    std::cerr << "Exception: " << err.what() << std::endl;
+    FAIL() << "Exception: " << err.what();
+    return;
   }
   // TODO channel order
   ASSERT_NEAR(fr_s_p.get_value(), 100 * roboteq_pos_feedback_to_radians_, 0.0001);
@@ -445,6 +448,79 @@ TEST(TestPantherSystem, read_feedback_panther_system)
   ASSERT_NEAR(fl_s_e.get_value(), 200 * roboteq_current_feedback_to_newton_meters_, 0.0001);
   ASSERT_NEAR(rr_s_e.get_value(), 300 * roboteq_current_feedback_to_newton_meters_, 0.0001);
   ASSERT_NEAR(rl_s_e.get_value(), 400 * roboteq_current_feedback_to_newton_meters_, 0.0001);
+
+  shutdown_components(rm);
+
+  // TODO test teardown
+  roboteq_mock.Stop();
+  rclcpp::shutdown();
+}
+
+TEST(TestPantherSystem, read_other_roboteq_params_panther_system)
+{
+  using hardware_interface::LoanedStateInterface;
+
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
+
+  // TODO wait for initialization
+  // workaround
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  roboteq_mock.front_driver_->SetTemperature(30);
+  roboteq_mock.rear_driver_->SetTemperature(32);
+  roboteq_mock.front_driver_->SetVoltage(400);
+  roboteq_mock.rear_driver_->SetVoltage(430);
+  roboteq_mock.front_driver_->SetBatAmps1(10);
+  roboteq_mock.rear_driver_->SetBatAmps1(20);
+  roboteq_mock.front_driver_->SetBatAmps2(30);
+  roboteq_mock.rear_driver_->SetBatAmps2(40);
+
+  rclcpp::init(0, nullptr);
+
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
+
+  hardware_interface::ResourceManager rm(panther_system_urdf);
+
+  configure_components(rm);
+  activate_components(rm);
+
+  panther_msgs::msg::DriverState::SharedPtr state_msg;
+  auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
+    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  const auto TIME = node->get_clock()->now();
+  const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
+  try {
+    rm.read(TIME, PERIOD);
+  } catch (std::exception & err) {
+    FAIL() << "Exception: " << err.what();
+    return;
+  }
+
+  rclcpp::Time start = node->now();
+  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
+    rclcpp::spin_some(node);
+    if (state_msg) {
+      break;
+    }
+  }
+
+  sub.reset();
+
+  ASSERT_TRUE(state_msg);
+
+  ASSERT_EQ(state_msg->front.temperature, 30);
+  ASSERT_EQ(state_msg->rear.temperature, 32);
+
+  ASSERT_EQ(state_msg->front.voltage, 40);
+  ASSERT_EQ(state_msg->rear.voltage, 43);
+
+  ASSERT_EQ(state_msg->front.current, 4);
+  ASSERT_EQ(state_msg->rear.current, 6);
 
   shutdown_components(rm);
 
@@ -495,6 +571,6 @@ TEST(TestPantherSystem, encoder_disconnected_panther_system)
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  // testing::GTEST_FLAG(filter) = "TestPantherSystem.encoder_disconnected_panther_system";
+  // testing::GTEST_FLAG(filter) = "TestPantherSystem.read_other_roboteq_params_panther_system";
   return RUN_ALL_TESTS();
 }
