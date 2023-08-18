@@ -111,7 +111,6 @@ private:
   std::unique_ptr<RoboteqDriver> rear_driver_;
   std::unique_ptr<lely::canopen::AsyncMaster> master_;
 
-  std::unique_ptr<lely::io::IoGuard> io_guard_;
   std::unique_ptr<lely::io::Context> ctx_;
   std::shared_ptr<lely::ev::Loop> loop_;
   std::unique_ptr<lely::io::Poll> poll_;

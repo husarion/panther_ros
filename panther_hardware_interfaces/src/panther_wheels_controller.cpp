@@ -35,7 +35,8 @@ void PantherWheelsController::Initialize()
       std::cerr << "RT kernel is recommended for better performance (CAN thread)" << std::endl;
     }
 
-    io_guard_ = std::make_unique<lely::io::IoGuard>();
+    lely::io::IoGuard io_guard;
+
     ctx_ = std::make_unique<lely::io::Context>();
     poll_ = std::make_unique<lely::io::Poll>(*ctx_);
     loop_ = std::make_shared<lely::ev::Loop>(poll_->get_poll());
@@ -120,7 +121,6 @@ void PantherWheelsController::Deinitialize()
   loop_.reset();
   poll_.reset();
   ctx_.reset();
-  io_guard_.reset();
 }
 
 void PantherWheelsController::Activate()
