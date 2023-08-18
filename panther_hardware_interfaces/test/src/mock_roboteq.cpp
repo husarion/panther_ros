@@ -91,7 +91,7 @@ void RoboteqSlave::SetDriverScriptFlag(DriverScriptFlags flag)
   (*this)[0x2106][7] = current_data;
 }
 
-void RoboteqSlave::SetDriverRuntimeErrors(uint8_t channel, DriverRuntimeErrors flag)
+void RoboteqSlave::SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors flag)
 {
   int32_t current_data = (*this)[0x2106][8];
   current_data |= int32_t(0b00000001 << uint8_t(flag)) << channel * 8;

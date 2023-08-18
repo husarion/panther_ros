@@ -55,7 +55,7 @@ public:
   void SetCurrent(uint8_t channel, int32_t value);
   void SetDriverFaultFlag(DriverFaultFlags flag);
   void SetDriverScriptFlag(DriverScriptFlags flag);
-  void SetDriverRuntimeErrors(uint8_t channel, DriverRuntimeErrors flag);
+  void SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors flag);
   void SetTemperature(int16_t value) { (*this)[0x210F][1] = value; }
   void SetVoltage(uint16_t value) { (*this)[0x210D][2] = value; }
   void SetBatAmps1(int16_t value) { (*this)[0x210C][1] = value; }
