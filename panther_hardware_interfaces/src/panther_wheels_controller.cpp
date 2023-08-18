@@ -56,6 +56,7 @@ void PantherWheelsController::Initialize()
         ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
       "config" / "master.dcf";
 
+    // TODO timer chan unique??
     master_ = std::make_unique<lely::canopen::AsyncMaster>(
       *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
@@ -107,6 +108,19 @@ void PantherWheelsController::Deinitialize()
   master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
   // TODO: check
   executor_thread_.join();
+
+  // without resets: corrupted double-linked list
+  rear_driver_.reset();
+  front_driver_.reset();
+  master_.reset();
+  chan_.reset();
+  ctrl_.reset();
+  timer_.reset();
+  exec_.reset();
+  loop_.reset();
+  poll_.reset();
+  ctx_.reset();
+  io_guard_.reset();
 }
 
 void PantherWheelsController::Activate()
