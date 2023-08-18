@@ -312,7 +312,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
       driver_state.front.temperature = feedback.front.temp;
 
       driver_state.rear.voltage = feedback.rear.voltage;
-      driver_state.rear.current = feedback.rear.bat_amps_1 + feedback.front.bat_amps_2;
+      driver_state.rear.current = feedback.rear.bat_amps_1 + feedback.rear.bat_amps_2;
       driver_state.rear.temperature = feedback.rear.temp;
 
       next_roboteq_state_update_ = time + rclcpp::Duration::from_seconds(roboteq_state_period_);
