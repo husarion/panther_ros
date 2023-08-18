@@ -91,6 +91,11 @@ if(BUILD_TESTING)
     TARGETS mock_roboteq
     RUNTIME DESTINATION lib/${PROJECT_NAME}
   )
+
+  install(DIRECTORY
+    test/config
+    DESTINATION share/${PROJECT_NAME}/test
+)
 endif()
 
 ament_export_include_directories(

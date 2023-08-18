@@ -60,10 +60,15 @@ int main()
   std::string slave_eds_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                  "panther_hardware_interfaces")) /
                                "config" / "roboteq_motor_controllers_v80_21.eds";
-  std::string slave_eds_bin_path =
+  std::string slave1_eds_bin_path =
     std::filesystem::path(
       ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
-    "config" / "slave_1.bin";
+    "test" / "config" / "slave_1.bin";
+
+  std::string slave2_eds_bin_path =
+    std::filesystem::path(
+      ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
+    "test" / "config" / "slave_2.bin";
 
   io::IoGuard io_guard;
   io::Context ctx;
@@ -75,12 +80,12 @@ int main()
   io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
   io::CanChannel chan1(poll, exec);
   chan1.open(ctrl);
-  MySlave slave1(timer1, chan1, slave_eds_path, slave_eds_bin_path, 1);
+  MySlave slave1(timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
   io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
   io::CanChannel chan2(poll, exec);
   chan2.open(ctrl);
-  MySlave slave2(timer2, chan2, slave_eds_path, slave_eds_bin_path, 2);
+  MySlave slave2(timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
 
   io::SignalSet sigset(poll, exec);
   sigset.insert(SIGHUP);
