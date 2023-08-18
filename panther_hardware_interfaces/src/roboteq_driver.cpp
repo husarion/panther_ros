@@ -124,7 +124,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
   try {
-    auto temp = SyncSdoRead<int8_t>(0x210F, 1);
+    auto temp = SyncSdoRead<int16_t>(0x210F, 1);
     auto voltage = SyncSdoRead<uint16_t>(0x210D, 2);
     auto bat_amps_1 = SyncSdoRead<int16_t>(0x210C, 1);
     auto bat_amps_2 = SyncSdoRead<int16_t>(0x210C, 2);
