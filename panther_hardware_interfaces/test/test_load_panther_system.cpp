@@ -11,6 +11,7 @@
 
 #include <mock_roboteq.hpp>
 
+// UTILS
 std::string panther_system_urdf =
   R"(
 <?xml version="1.0" encoding="utf-8"?>
@@ -56,22 +57,6 @@ std::string panther_system_urdf =
   </ros2_control>
 </robot>
 )";
-
-TEST(TestPantherSystem, load_panther_system)
-{
-  // Use try-catch instead of ASSERT_NO_THROW to get and print exception message
-  try {
-    hardware_interface::ResourceManager rm(panther_system_urdf);
-
-    EXPECT_EQ(
-      rm.get_components_status()["wheels"].state.label(),
-      hardware_interface::lifecycle_state_names::UNCONFIGURED);
-
-    SUCCEED();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to create resource manager: " << err.what();
-  }
-}
 
 void set_components_state(
   hardware_interface::ResourceManager & rm, const std::vector<std::string> & components,
@@ -122,6 +107,25 @@ auto shutdown_components = [](
     rm, components, lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
     hardware_interface::lifecycle_state_names::FINALIZED);
 };
+
+// LOADING
+TEST(TestPantherSystem, load_panther_system)
+{
+  // Use try-catch instead of ASSERT_NO_THROW to get and print exception message
+  try {
+    hardware_interface::ResourceManager rm(panther_system_urdf);
+
+    EXPECT_EQ(
+      rm.get_components_status()["wheels"].state.label(),
+      hardware_interface::lifecycle_state_names::UNCONFIGURED);
+
+    SUCCEED();
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to create resource manager: " << err.what();
+  }
+}
+
+// TRANSITIONS
 
 // // set some new values in commands
 // fl_c_v.set_value(0.1);
@@ -379,6 +383,62 @@ TEST(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system
   roboteq_mock.Stop();
   rclcpp::shutdown();
 }
+
+// WRITING
+TEST(TestPantherSystem, write_commands_panther_system)
+{
+  using hardware_interface::LoanedCommandInterface;
+
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
+
+  rclcpp::init(0, nullptr);
+
+  hardware_interface::ResourceManager rm(panther_system_urdf);
+
+  configure_components(rm);
+  activate_components(rm);
+
+  LoanedCommandInterface fl_c_v = rm.claim_command_interface("fl_wheel_joint/velocity");
+  LoanedCommandInterface fr_c_v = rm.claim_command_interface("fr_wheel_joint/velocity");
+  LoanedCommandInterface rl_c_v = rm.claim_command_interface("rl_wheel_joint/velocity");
+  LoanedCommandInterface rr_c_v = rm.claim_command_interface("rr_wheel_joint/velocity");
+
+  fl_c_v.set_value(0.1);
+  fr_c_v.set_value(0.2);
+  rl_c_v.set_value(0.3);
+  rr_c_v.set_value(0.4);
+
+  ASSERT_EQ(0.1, fl_c_v.get_value());
+  ASSERT_EQ(0.2, fr_c_v.get_value());
+  ASSERT_EQ(0.3, rl_c_v.get_value());
+  ASSERT_EQ(0.4, rr_c_v.get_value());
+
+  const auto TIME = rclcpp::Time(0);
+  const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
+
+  rm.write(TIME, PERIOD);
+
+  double radians_per_second_to_roboteq_cmd =
+    30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
+
+  ASSERT_EQ(
+    roboteq_mock.front_driver_->GetRoboteqCmd(1), int32_t(0.1 * radians_per_second_to_roboteq_cmd));
+  ASSERT_EQ(
+    roboteq_mock.front_driver_->GetRoboteqCmd(2), int32_t(0.2 * radians_per_second_to_roboteq_cmd));
+  ASSERT_EQ(
+    roboteq_mock.rear_driver_->GetRoboteqCmd(1), int32_t(0.3 * radians_per_second_to_roboteq_cmd));
+  ASSERT_EQ(
+    roboteq_mock.rear_driver_->GetRoboteqCmd(2), int32_t(0.4 * radians_per_second_to_roboteq_cmd));
+
+  shutdown_components(rm);
+
+  // TODO test teardown
+  roboteq_mock.Stop();
+  rclcpp::shutdown();
+}
+
+// todo initial procedure
 
 int main(int argc, char ** argv)
 {

@@ -48,6 +48,8 @@ class RoboteqSlave : public lely::canopen::BasicSlave
 public:
   using BasicSlave::BasicSlave;
 
+  // TODO channel
+
   void SetPosition(uint8_t channel, int32_t value);
   void SetVelocity(uint8_t channel, int32_t value);
   void SetCurrent(uint8_t channel, int32_t value);
@@ -58,6 +60,12 @@ public:
   void SetVoltage(uint16_t value) { (*this)[0x210D][2] = value; }
   void SetBatAmps1(int16_t value) { (*this)[0x210C][1] = value; }
   void SetBatAmps2(int16_t value) { (*this)[0x210C][2] = value; }
+
+  int32_t GetRoboteqCmd(uint8_t channel) { return (*this)[0x2000][channel]; }
+  uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
+  uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
+  uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
+  uint8_t GetTurnOffEstop() { return (*this)[0x202C][0]; }
 
   void ClearErrorFlags();
 
@@ -81,6 +89,9 @@ public:
 
   void Start();
   void Stop();
+
+  std::unique_ptr<RoboteqSlave> front_driver_;
+  std::unique_ptr<RoboteqSlave> rear_driver_;
 
 private:
   std::shared_ptr<lely::io::Context> ctx_;

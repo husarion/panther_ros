@@ -127,24 +127,26 @@ void RoboteqMock::Start()
     lely::io::CanChannel chan1(poll, exec);
     chan1.open(ctrl);
     lely::io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
-    RoboteqSlave front_driver(timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
+    front_driver_ =
+      std::make_unique<RoboteqSlave>(timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
     lely::io::CanChannel chan2(poll, exec);
     chan2.open(ctrl);
     lely::io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
-    RoboteqSlave rear_driver(timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
+    rear_driver_ =
+      std::make_unique<RoboteqSlave>(timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
 
-    front_driver.Reset();
-    rear_driver.Reset();
-    front_driver.InitializeValues();
-    rear_driver.InitializeValues();
-    front_driver.StartPublishing();
-    rear_driver.StartPublishing();
+    front_driver_->Reset();
+    rear_driver_->Reset();
+    front_driver_->InitializeValues();
+    rear_driver_->InitializeValues();
+    front_driver_->StartPublishing();
+    rear_driver_->StartPublishing();
 
     loop.run();
 
-    front_driver.StopPublishing();
-    rear_driver.StopPublishing();
+    front_driver_->StopPublishing();
+    rear_driver_->StopPublishing();
   });
 }
 
@@ -152,6 +154,9 @@ void RoboteqMock::Stop()
 {
   ctx_->shutdown();
   executor_thread_.join();
+
+  front_driver_.reset();
+  rear_driver_.reset();
 }
 
 // int main()
