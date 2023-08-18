@@ -127,74 +127,6 @@ TEST(TestPantherSystem, load_panther_system)
 
 // TRANSITIONS
 
-// // set some new values in commands
-// fl_c_v.set_value(0.1);
-// fr_c_v.set_value(0.2);
-// rl_c_v.set_value(0.3);
-// rr_c_v.set_value(0.4);
-
-// // State values should not be changed
-// ASSERT_EQ(0.0, fl_s_p.get_value());
-// ASSERT_EQ(0.0, fr_s_p.get_value());
-// ASSERT_EQ(0.0, rl_s_p.get_value());
-// ASSERT_EQ(0.0, rr_s_p.get_value());
-
-// ASSERT_EQ(0.0, fl_s_v.get_value());
-// ASSERT_EQ(0.0, fr_s_v.get_value());
-// ASSERT_EQ(0.0, rl_s_v.get_value());
-// ASSERT_EQ(0.0, rr_s_v.get_value());
-
-// ASSERT_EQ(0.0, fl_s_e.get_value());
-// ASSERT_EQ(0.0, fr_s_e.get_value());
-// ASSERT_EQ(0.0, rl_s_e.get_value());
-// ASSERT_EQ(0.0, rr_s_e.get_value());
-
-// ASSERT_EQ(0.1, fl_c_v.get_value());
-// ASSERT_EQ(0.2, fr_c_v.get_value());
-// ASSERT_EQ(0.3, rl_c_v.get_value());
-// ASSERT_EQ(0.4, rr_c_v.get_value());
-
-// const auto TIME = rclcpp::Time(0);
-// const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
-
-// // write() does not change values
-// rm.write(TIME, PERIOD);
-// ASSERT_EQ(3.45, j1p_s.get_value());
-// ASSERT_EQ(0.0, j1v_s.get_value());
-// ASSERT_EQ(2.78, j2p_s.get_value());
-// ASSERT_EQ(0.0, j2v_s.get_value());
-// ASSERT_EQ(0.11, j1p_c.get_value());
-// ASSERT_EQ(0.22, j1v_c.get_value());
-// ASSERT_EQ(0.33, j2p_c.get_value());
-// ASSERT_EQ(0.44, j2v_c.get_value());
-
-// // read() mirrors commands + offset to states
-// rm.read(TIME, PERIOD);
-// ASSERT_EQ(0.11 + offset, j1p_s.get_value());
-// ASSERT_EQ(0.22, j1v_s.get_value());
-// ASSERT_EQ(0.33 + offset, j2p_s.get_value());
-// ASSERT_EQ(0.44, j2v_s.get_value());
-// ASSERT_EQ(0.11, j1p_c.get_value());
-// ASSERT_EQ(0.22, j1v_c.get_value());
-// ASSERT_EQ(0.33, j2p_c.get_value());
-// ASSERT_EQ(0.44, j2v_c.get_value());
-
-// // set some new values in commands
-// j1p_c.set_value(0.55);
-// j1v_c.set_value(0.66);
-// j2p_c.set_value(0.77);
-// j2v_c.set_value(0.88);
-
-// // state values should not be changed
-// ASSERT_EQ(0.11 + offset, j1p_s.get_value());
-// ASSERT_EQ(0.22, j1v_s.get_value());
-// ASSERT_EQ(0.33 + offset, j2p_s.get_value());
-// ASSERT_EQ(0.44, j2v_s.get_value());
-// ASSERT_EQ(0.55, j1p_c.get_value());
-// ASSERT_EQ(0.66, j1v_c.get_value());
-// ASSERT_EQ(0.77, j2p_c.get_value());
-// ASSERT_EQ(0.88, j2v_c.get_value());
-
 void check_interfaces(hardware_interface::ResourceManager & rm)
 {
   EXPECT_EQ(1u, rm.system_components_size());
@@ -430,6 +362,89 @@ TEST(TestPantherSystem, write_commands_panther_system)
     roboteq_mock.rear_driver_->GetRoboteqCmd(1), int32_t(0.3 * radians_per_second_to_roboteq_cmd));
   ASSERT_EQ(
     roboteq_mock.rear_driver_->GetRoboteqCmd(2), int32_t(0.4 * radians_per_second_to_roboteq_cmd));
+
+  shutdown_components(rm);
+
+  // TODO test teardown
+  roboteq_mock.Stop();
+  rclcpp::shutdown();
+}
+
+// READING
+TEST(TestPantherSystem, read_feedback_panther_system)
+{
+  using hardware_interface::LoanedStateInterface;
+
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
+
+  // TODO wait for initialization
+  // workaround
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  roboteq_mock.front_driver_->SetPosition(1, 100);
+  roboteq_mock.front_driver_->SetPosition(2, 200);
+  roboteq_mock.rear_driver_->SetPosition(1, 300);
+  roboteq_mock.rear_driver_->SetPosition(2, 400);
+
+  roboteq_mock.front_driver_->SetVelocity(1, 100);
+  roboteq_mock.front_driver_->SetVelocity(2, 200);
+  roboteq_mock.rear_driver_->SetVelocity(1, 300);
+  roboteq_mock.rear_driver_->SetVelocity(2, 400);
+
+  roboteq_mock.front_driver_->SetCurrent(1, 100);
+  roboteq_mock.front_driver_->SetCurrent(2, 200);
+  roboteq_mock.rear_driver_->SetCurrent(1, 300);
+  roboteq_mock.rear_driver_->SetCurrent(2, 400);
+
+  double roboteq_pos_feedback_to_radians_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
+  double roboteq_vel_feedback_to_radians_per_second_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
+  double roboteq_current_feedback_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
+
+  rclcpp::init(0, nullptr);
+
+  hardware_interface::ResourceManager rm(panther_system_urdf);
+
+  configure_components(rm);
+  activate_components(rm);
+
+  LoanedStateInterface fl_s_p = rm.claim_state_interface("fl_wheel_joint/position");
+  LoanedStateInterface fr_s_p = rm.claim_state_interface("fr_wheel_joint/position");
+  LoanedStateInterface rl_s_p = rm.claim_state_interface("rl_wheel_joint/position");
+  LoanedStateInterface rr_s_p = rm.claim_state_interface("rr_wheel_joint/position");
+
+  LoanedStateInterface fl_s_v = rm.claim_state_interface("fl_wheel_joint/velocity");
+  LoanedStateInterface fr_s_v = rm.claim_state_interface("fr_wheel_joint/velocity");
+  LoanedStateInterface rl_s_v = rm.claim_state_interface("rl_wheel_joint/velocity");
+  LoanedStateInterface rr_s_v = rm.claim_state_interface("rr_wheel_joint/velocity");
+
+  LoanedStateInterface fl_s_e = rm.claim_state_interface("fl_wheel_joint/effort");
+  LoanedStateInterface fr_s_e = rm.claim_state_interface("fr_wheel_joint/effort");
+  LoanedStateInterface rl_s_e = rm.claim_state_interface("rl_wheel_joint/effort");
+  LoanedStateInterface rr_s_e = rm.claim_state_interface("rr_wheel_joint/effort");
+
+  const auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
+  const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
+  try {
+    rm.read(TIME, PERIOD);
+  } catch (std::exception & err) {
+    std::cerr << "Exception: " << err.what() << std::endl;
+  }
+  // TODO channel order
+  ASSERT_NEAR(fr_s_p.get_value(), 100 * roboteq_pos_feedback_to_radians_, 0.0001);
+  ASSERT_NEAR(fl_s_p.get_value(), 200 * roboteq_pos_feedback_to_radians_, 0.0001);
+  ASSERT_NEAR(rr_s_p.get_value(), 300 * roboteq_pos_feedback_to_radians_, 0.0001);
+  ASSERT_NEAR(rl_s_p.get_value(), 400 * roboteq_pos_feedback_to_radians_, 0.0001);
+
+  ASSERT_NEAR(fr_s_v.get_value(), 100 * roboteq_vel_feedback_to_radians_per_second_, 0.0001);
+  ASSERT_NEAR(fl_s_v.get_value(), 200 * roboteq_vel_feedback_to_radians_per_second_, 0.0001);
+  ASSERT_NEAR(rr_s_v.get_value(), 300 * roboteq_vel_feedback_to_radians_per_second_, 0.0001);
+  ASSERT_NEAR(rl_s_v.get_value(), 400 * roboteq_vel_feedback_to_radians_per_second_, 0.0001);
+
+  ASSERT_NEAR(fr_s_e.get_value(), 100 * roboteq_current_feedback_to_newton_meters_, 0.0001);
+  ASSERT_NEAR(fl_s_e.get_value(), 200 * roboteq_current_feedback_to_newton_meters_, 0.0001);
+  ASSERT_NEAR(rr_s_e.get_value(), 300 * roboteq_current_feedback_to_newton_meters_, 0.0001);
+  ASSERT_NEAR(rl_s_e.get_value(), 400 * roboteq_current_feedback_to_newton_meters_, 0.0001);
 
   shutdown_components(rm);
 
