@@ -83,22 +83,7 @@ public:
   void Stop();
 
 private:
-  std::unique_ptr<RoboteqSlave> front_driver_;
-  std::unique_ptr<RoboteqSlave> rear_driver_;
-
-  std::unique_ptr<lely::io::IoGuard> io_guard_;
-  std::unique_ptr<lely::io::Context> ctx_;
-  std::shared_ptr<lely::ev::Loop> loop_;
-  std::unique_ptr<lely::io::Poll> poll_;
-  std::unique_ptr<lely::ev::Executor> exec_;
-
-  std::unique_ptr<lely::io::CanController> ctrl_;
-
-  std::unique_ptr<lely::io::Timer> timer1_;
-  std::unique_ptr<lely::io::CanChannel> chan1_;
-
-  std::unique_ptr<lely::io::Timer> timer2_;
-  std::unique_ptr<lely::io::CanChannel> chan2_;
+  std::shared_ptr<lely::io::Context> ctx_;
 
   // TODO: change name
   std::thread executor_thread_;

@@ -102,6 +102,8 @@ void RoboteqSlave::SetDriverRuntimeErrors(uint8_t channel, DriverRuntimeErrors f
 
 void RoboteqMock::Start()
 {
+  ctx_ = std::make_shared<lely::io::Context>();
+
   executor_thread_ = std::thread([this]() {
     std::string slave_eds_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                    "panther_hardware_interfaces")) /
@@ -116,44 +118,40 @@ void RoboteqMock::Start()
         ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
       "test" / "config" / "slave_2.bin";
 
-    io_guard_ = std::make_unique<lely::io::IoGuard>();
-    ctx_ = std::make_unique<lely::io::Context>();
-    poll_ = std::make_unique<lely::io::Poll>(*ctx_);
-    loop_ = std::make_shared<lely::ev::Loop>(poll_->get_poll());
-    exec_ = std::make_unique<lely::ev::Executor>(loop_->get_executor());
-    ctrl_ = std::make_unique<lely::io::CanController>("panther_can");
+    io::IoGuard io_guard;
+    io::Poll poll(*ctx_);
+    ev::Loop loop(poll.get_poll());
+    auto exec = loop.get_executor();
+    io::Timer timer(poll, exec, CLOCK_MONOTONIC);
 
-    timer1_ = std::make_unique<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
-    chan1_ = std::make_unique<lely::io::CanChannel>(*poll_, *exec_);
-    chan1_->open(*ctrl_);
+    io::CanController ctrl("panther_can");
 
-    front_driver_ =
-      std::make_unique<RoboteqSlave>(*timer1_, *chan1_, slave_eds_path, slave1_eds_bin_path, 1);
+    io::CanChannel chan1(poll, exec);
+    chan1.open(ctrl);
+    io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
+    RoboteqSlave front_driver(timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
-    timer2_ = std::make_unique<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
-    chan2_ = std::make_unique<lely::io::CanChannel>(*poll_, *exec_);
-    chan2_->open(*ctrl_);
-    rear_driver_ =
-      std::make_unique<RoboteqSlave>(*timer2_, *chan2_, slave_eds_path, slave2_eds_bin_path, 2);
+    io::CanChannel chan2(poll, exec);
+    chan2.open(ctrl);
+    io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
+    RoboteqSlave rear_driver(timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
 
-    front_driver_->Reset();
-    rear_driver_->Reset();
+    front_driver.Reset();
+    rear_driver.Reset();
+    front_driver.InitializeValues();
+    rear_driver.InitializeValues();
+    front_driver.StartPublishing();
+    rear_driver.StartPublishing();
 
-    front_driver_->InitializeValues();
-    rear_driver_->InitializeValues();
+    loop.run();
 
-    front_driver_->StartPublishing();
-    rear_driver_->StartPublishing();
-
-    loop_->run();
+    front_driver.StopPublishing();
+    rear_driver.StopPublishing();
   });
 }
 
 void RoboteqMock::Stop()
 {
-  front_driver_->StopPublishing();
-  rear_driver_->StopPublishing();
-
   ctx_->shutdown();
   executor_thread_.join();
 }
