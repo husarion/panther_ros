@@ -1,7 +1,5 @@
 #include <mock_roboteq.hpp>
 
-using namespace lely;
-
 void RoboteqSlave::SetPosition(uint8_t channel, int32_t value)
 {
   if (channel == 1) {
@@ -118,22 +116,22 @@ void RoboteqMock::Start()
         ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
       "test" / "config" / "slave_2.bin";
 
-    io::IoGuard io_guard;
-    io::Poll poll(*ctx_);
-    ev::Loop loop(poll.get_poll());
+    lely::io::IoGuard io_guard;
+    lely::io::Poll poll(*ctx_);
+    lely::ev::Loop loop(poll.get_poll());
     auto exec = loop.get_executor();
-    io::Timer timer(poll, exec, CLOCK_MONOTONIC);
+    lely::io::Timer timer(poll, exec, CLOCK_MONOTONIC);
 
-    io::CanController ctrl("panther_can");
+    lely::io::CanController ctrl("panther_can");
 
-    io::CanChannel chan1(poll, exec);
+    lely::io::CanChannel chan1(poll, exec);
     chan1.open(ctrl);
-    io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
+    lely::io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
     RoboteqSlave front_driver(timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
-    io::CanChannel chan2(poll, exec);
+    lely::io::CanChannel chan2(poll, exec);
     chan2.open(ctrl);
-    io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
+    lely::io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
     RoboteqSlave rear_driver(timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
 
     front_driver.Reset();
