@@ -12,3 +12,5 @@ sudo ip link set panther_can up
 ## Runing tests
 
 colcon build --packages-select panther_hardware_interfaces --symlink-install
+colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces
+colcon test-result --verbose --all

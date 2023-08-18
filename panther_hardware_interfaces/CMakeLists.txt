@@ -77,25 +77,34 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(${PROJECT_NAME}_test test/test_load_panther_system.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test test/test_load_panther_system.cpp test/src/mock_roboteq.cpp)
+  target_include_directories(${PROJECT_NAME}_test PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+  )
   ament_target_dependencies(${PROJECT_NAME}_test
     hardware_interface
+    rclcpp
   )
+  target_link_libraries(${PROJECT_NAME}_test PkgConfig::LIBLELY_COAPP)
 
-  add_executable(mock_roboteq test/mock_roboteq.cpp)
-  # not the best solution, but rclcpp adds filesystem
-  ament_target_dependencies(mock_roboteq ament_index_cpp rclcpp)
-  target_link_libraries(mock_roboteq PkgConfig::LIBLELY_COAPP)
 
-  install(
-    TARGETS mock_roboteq
-    RUNTIME DESTINATION lib/${PROJECT_NAME}
-  )
+  # add_executable(mock_roboteq test/src/mock_roboteq.cpp)
+  # target_include_directories(mock_roboteq PUBLIC
+  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+  # )
+  # # not the best solution, but rclcpp adds filesystem
+  # ament_target_dependencies(mock_roboteq ament_index_cpp rclcpp)
+  # target_link_libraries(mock_roboteq PkgConfig::LIBLELY_COAPP)
+
+  # install(
+  #   TARGETS mock_roboteq
+  #   RUNTIME DESTINATION lib/${PROJECT_NAME}
+  # )
 
   install(DIRECTORY
     test/config
     DESTINATION share/${PROJECT_NAME}/test
-)
+  )
 endif()
 
 ament_export_include_directories(
