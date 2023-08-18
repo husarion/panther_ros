@@ -81,6 +81,16 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test
     hardware_interface
   )
+
+  add_executable(mock_roboteq test/mock_roboteq.cpp)
+  # not the best solution, but rclcpp adds filesystem
+  ament_target_dependencies(mock_roboteq ament_index_cpp rclcpp)
+  target_link_libraries(mock_roboteq PkgConfig::LIBLELY_COAPP)
+
+  install(
+    TARGETS mock_roboteq
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+  )
 endif()
 
 ament_export_include_directories(
