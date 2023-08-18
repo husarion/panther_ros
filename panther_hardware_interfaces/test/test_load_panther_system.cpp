@@ -453,10 +453,48 @@ TEST(TestPantherSystem, read_feedback_panther_system)
   rclcpp::shutdown();
 }
 
+// ENCODER DISCONNECTED
+
+TEST(TestPantherSystem, encoder_disconnected_panther_system)
+{
+  using hardware_interface::LoanedStateInterface;
+
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
+
+  // TODO wait for initialization
+  // workaround
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  roboteq_mock.front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
+
+  rclcpp::init(0, nullptr);
+
+  hardware_interface::ResourceManager rm(panther_system_urdf);
+
+  configure_components(rm);
+  activate_components(rm);
+
+  const auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
+  const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
+
+  rm.read(TIME, PERIOD);
+
+  // error handled with success -> state changes to unconfigured
+  auto status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::UNCONFIGURED);
+
+  // TODO test teardown
+  roboteq_mock.Stop();
+  rclcpp::shutdown();
+}
+
 // todo initial procedure
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
+  // testing::GTEST_FLAG(filter) = "TestPantherSystem.encoder_disconnected_panther_system";
   return RUN_ALL_TESTS();
 }
