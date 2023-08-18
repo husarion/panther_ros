@@ -123,43 +123,76 @@ auto shutdown_components = [](
     hardware_interface::lifecycle_state_names::FINALIZED);
 };
 
-TEST(TestPantherSystem, activate_panther_system)
+// // set some new values in commands
+// fl_c_v.set_value(0.1);
+// fr_c_v.set_value(0.2);
+// rl_c_v.set_value(0.3);
+// rr_c_v.set_value(0.4);
+
+// // State values should not be changed
+// ASSERT_EQ(0.0, fl_s_p.get_value());
+// ASSERT_EQ(0.0, fr_s_p.get_value());
+// ASSERT_EQ(0.0, rl_s_p.get_value());
+// ASSERT_EQ(0.0, rr_s_p.get_value());
+
+// ASSERT_EQ(0.0, fl_s_v.get_value());
+// ASSERT_EQ(0.0, fr_s_v.get_value());
+// ASSERT_EQ(0.0, rl_s_v.get_value());
+// ASSERT_EQ(0.0, rr_s_v.get_value());
+
+// ASSERT_EQ(0.0, fl_s_e.get_value());
+// ASSERT_EQ(0.0, fr_s_e.get_value());
+// ASSERT_EQ(0.0, rl_s_e.get_value());
+// ASSERT_EQ(0.0, rr_s_e.get_value());
+
+// ASSERT_EQ(0.1, fl_c_v.get_value());
+// ASSERT_EQ(0.2, fr_c_v.get_value());
+// ASSERT_EQ(0.3, rl_c_v.get_value());
+// ASSERT_EQ(0.4, rr_c_v.get_value());
+
+// const auto TIME = rclcpp::Time(0);
+// const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
+
+// // write() does not change values
+// rm.write(TIME, PERIOD);
+// ASSERT_EQ(3.45, j1p_s.get_value());
+// ASSERT_EQ(0.0, j1v_s.get_value());
+// ASSERT_EQ(2.78, j2p_s.get_value());
+// ASSERT_EQ(0.0, j2v_s.get_value());
+// ASSERT_EQ(0.11, j1p_c.get_value());
+// ASSERT_EQ(0.22, j1v_c.get_value());
+// ASSERT_EQ(0.33, j2p_c.get_value());
+// ASSERT_EQ(0.44, j2v_c.get_value());
+
+// // read() mirrors commands + offset to states
+// rm.read(TIME, PERIOD);
+// ASSERT_EQ(0.11 + offset, j1p_s.get_value());
+// ASSERT_EQ(0.22, j1v_s.get_value());
+// ASSERT_EQ(0.33 + offset, j2p_s.get_value());
+// ASSERT_EQ(0.44, j2v_s.get_value());
+// ASSERT_EQ(0.11, j1p_c.get_value());
+// ASSERT_EQ(0.22, j1v_c.get_value());
+// ASSERT_EQ(0.33, j2p_c.get_value());
+// ASSERT_EQ(0.44, j2v_c.get_value());
+
+// // set some new values in commands
+// j1p_c.set_value(0.55);
+// j1v_c.set_value(0.66);
+// j2p_c.set_value(0.77);
+// j2v_c.set_value(0.88);
+
+// // state values should not be changed
+// ASSERT_EQ(0.11 + offset, j1p_s.get_value());
+// ASSERT_EQ(0.22, j1v_s.get_value());
+// ASSERT_EQ(0.33 + offset, j2p_s.get_value());
+// ASSERT_EQ(0.44, j2v_s.get_value());
+// ASSERT_EQ(0.55, j1p_c.get_value());
+// ASSERT_EQ(0.66, j1v_c.get_value());
+// ASSERT_EQ(0.77, j2p_c.get_value());
+// ASSERT_EQ(0.88, j2v_c.get_value());
+
+void check_interfaces(hardware_interface::ResourceManager & rm)
 {
-  using hardware_interface::LoanedCommandInterface;
-  using hardware_interface::LoanedStateInterface;
-
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
-
-  rclcpp::init(0, nullptr);
-
-  hardware_interface::ResourceManager rm(panther_system_urdf);
-
-  // check is hardware is configured
-  auto status_map = rm.get_components_status();
-  ASSERT_EQ(
-    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::UNCONFIGURED);
-
-  try {
-    configure_components(rm);
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to create resource manager: " << err.what();
-    return;
-  }
-  status_map = rm.get_components_status();
-  ASSERT_EQ(
-    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::INACTIVE);
-
-  try {
-    activate_components(rm);
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to create resource manager: " << err.what();
-    return;
-  }
-  status_map = rm.get_components_status();
-  ASSERT_EQ(status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::ACTIVE);
-
-  // Check interfaces
   EXPECT_EQ(1u, rm.system_components_size());
   ASSERT_EQ(12u, rm.state_interface_keys().size());
   EXPECT_TRUE(rm.state_interface_exists("fl_wheel_joint/position"));
@@ -182,8 +215,13 @@ TEST(TestPantherSystem, activate_panther_system)
   EXPECT_TRUE(rm.command_interface_exists("fr_wheel_joint/velocity"));
   EXPECT_TRUE(rm.command_interface_exists("rl_wheel_joint/velocity"));
   EXPECT_TRUE(rm.command_interface_exists("rr_wheel_joint/velocity"));
+}
 
-  // Check initial values
+void check_initial_values(hardware_interface::ResourceManager & rm)
+{
+  using hardware_interface::LoanedCommandInterface;
+  using hardware_interface::LoanedStateInterface;
+
   LoanedStateInterface fl_s_p = rm.claim_state_interface("fl_wheel_joint/position");
   LoanedStateInterface fr_s_p = rm.claim_state_interface("fr_wheel_joint/position");
   LoanedStateInterface rl_s_p = rm.claim_state_interface("rl_wheel_joint/position");
@@ -223,86 +261,53 @@ TEST(TestPantherSystem, activate_panther_system)
   ASSERT_EQ(0.0, fr_c_v.get_value());
   ASSERT_EQ(0.0, rl_c_v.get_value());
   ASSERT_EQ(0.0, rr_c_v.get_value());
+}
 
-  // // set some new values in commands
-  // fl_c_v.set_value(0.1);
-  // fr_c_v.set_value(0.2);
-  // rl_c_v.set_value(0.3);
-  // rr_c_v.set_value(0.4);
+TEST(TestPantherSystem, configure_activate_finalize_panther_system)
+{
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
 
-  // // State values should not be changed
-  // ASSERT_EQ(0.0, fl_s_p.get_value());
-  // ASSERT_EQ(0.0, fr_s_p.get_value());
-  // ASSERT_EQ(0.0, rl_s_p.get_value());
-  // ASSERT_EQ(0.0, rr_s_p.get_value());
+  rclcpp::init(0, nullptr);
 
-  // ASSERT_EQ(0.0, fl_s_v.get_value());
-  // ASSERT_EQ(0.0, fr_s_v.get_value());
-  // ASSERT_EQ(0.0, rl_s_v.get_value());
-  // ASSERT_EQ(0.0, rr_s_v.get_value());
+  hardware_interface::ResourceManager rm(panther_system_urdf);
 
-  // ASSERT_EQ(0.0, fl_s_e.get_value());
-  // ASSERT_EQ(0.0, fr_s_e.get_value());
-  // ASSERT_EQ(0.0, rl_s_e.get_value());
-  // ASSERT_EQ(0.0, rr_s_e.get_value());
+  // check is hardware is configured
+  auto status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::UNCONFIGURED);
 
-  // ASSERT_EQ(0.1, fl_c_v.get_value());
-  // ASSERT_EQ(0.2, fr_c_v.get_value());
-  // ASSERT_EQ(0.3, rl_c_v.get_value());
-  // ASSERT_EQ(0.4, rr_c_v.get_value());
+  try {
+    configure_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to configure_components: " << err.what();
+    return;
+  }
+  status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::INACTIVE);
 
-  // const auto TIME = rclcpp::Time(0);
-  // const auto PERIOD = rclcpp::Duration::from_seconds(0.01);
+  try {
+    activate_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to activate_components: " << err.what();
+    return;
+  }
+  status_map = rm.get_components_status();
+  ASSERT_EQ(status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::ACTIVE);
 
-  // // write() does not change values
-  // rm.write(TIME, PERIOD);
-  // ASSERT_EQ(3.45, j1p_s.get_value());
-  // ASSERT_EQ(0.0, j1v_s.get_value());
-  // ASSERT_EQ(2.78, j2p_s.get_value());
-  // ASSERT_EQ(0.0, j2v_s.get_value());
-  // ASSERT_EQ(0.11, j1p_c.get_value());
-  // ASSERT_EQ(0.22, j1v_c.get_value());
-  // ASSERT_EQ(0.33, j2p_c.get_value());
-  // ASSERT_EQ(0.44, j2v_c.get_value());
+  // Check interfaces
+  check_interfaces(rm);
 
-  // // read() mirrors commands + offset to states
-  // rm.read(TIME, PERIOD);
-  // ASSERT_EQ(0.11 + offset, j1p_s.get_value());
-  // ASSERT_EQ(0.22, j1v_s.get_value());
-  // ASSERT_EQ(0.33 + offset, j2p_s.get_value());
-  // ASSERT_EQ(0.44, j2v_s.get_value());
-  // ASSERT_EQ(0.11, j1p_c.get_value());
-  // ASSERT_EQ(0.22, j1v_c.get_value());
-  // ASSERT_EQ(0.33, j2p_c.get_value());
-  // ASSERT_EQ(0.44, j2v_c.get_value());
+  // Check initial values
+  check_initial_values(rm);
 
-  // // set some new values in commands
-  // j1p_c.set_value(0.55);
-  // j1v_c.set_value(0.66);
-  // j2p_c.set_value(0.77);
-  // j2v_c.set_value(0.88);
-
-  // // state values should not be changed
-  // ASSERT_EQ(0.11 + offset, j1p_s.get_value());
-  // ASSERT_EQ(0.22, j1v_s.get_value());
-  // ASSERT_EQ(0.33 + offset, j2p_s.get_value());
-  // ASSERT_EQ(0.44, j2v_s.get_value());
-  // ASSERT_EQ(0.55, j1p_c.get_value());
-  // ASSERT_EQ(0.66, j1v_c.get_value());
-  // ASSERT_EQ(0.77, j2p_c.get_value());
-  // ASSERT_EQ(0.88, j2v_c.get_value());
-
-  // deactivate_components(rm);
-  // status_map = rm.get_components_status();
-  // ASSERT_EQ(
-  //   status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::INACTIVE);
-
-  // unconfigure_components(rm);
-  // status_map = rm.get_components_status();
-  // ASSERT_EQ(
-  //   status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::UNCONFIGURED);
-
-  shutdown_components(rm);
+  try {
+    shutdown_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to shutdown_components: " << err.what();
+    return;
+  }
   status_map = rm.get_components_status();
   ASSERT_EQ(
     status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::FINALIZED);
@@ -310,8 +315,69 @@ TEST(TestPantherSystem, activate_panther_system)
   // TODO test teardown
   roboteq_mock.Stop();
   rclcpp::shutdown();
+}
 
-  SUCCEED();
+TEST(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system)
+{
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
+
+  rclcpp::init(0, nullptr);
+
+  hardware_interface::ResourceManager rm(panther_system_urdf);
+
+  auto status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::UNCONFIGURED);
+
+  try {
+    configure_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to create resource manager: " << err.what();
+    return;
+  }
+  status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::INACTIVE);
+
+  try {
+    activate_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to create resource manager: " << err.what();
+    return;
+  }
+  status_map = rm.get_components_status();
+  ASSERT_EQ(status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::ACTIVE);
+
+  // Check interfaces
+  check_interfaces(rm);
+
+  // Check initial values
+  check_initial_values(rm);
+
+  try {
+    deactivate_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to deactivate_components: " << err.what();
+    return;
+  }
+  status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::INACTIVE);
+
+  try {
+    unconfigure_components(rm);
+  } catch (std::exception & err) {
+    FAIL() << "Exception caught when trying to unconfigure_components: " << err.what();
+    return;
+  }
+  status_map = rm.get_components_status();
+  ASSERT_EQ(
+    status_map["wheels"].state.label(), hardware_interface::lifecycle_state_names::UNCONFIGURED);
+
+  // TODO test teardown
+  roboteq_mock.Stop();
+  rclcpp::shutdown();
 }
 
 int main(int argc, char ** argv)
