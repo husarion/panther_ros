@@ -566,11 +566,55 @@ TEST(TestPantherSystem, encoder_disconnected_panther_system)
   rclcpp::shutdown();
 }
 
-// todo initial procedure
+// INITIAL PROCEDURE
+
+TEST(TestPantherSystem, initial_procedure_test_panther_system)
+{
+  using hardware_interface::LoanedStateInterface;
+
+  RoboteqMock roboteq_mock;
+  roboteq_mock.Start();
+
+  // TODO wait for initialization
+  // workaround
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  roboteq_mock.front_driver_->SetRoboteqCmd(1, 234);
+  roboteq_mock.front_driver_->SetRoboteqCmd(2, 32);
+  roboteq_mock.rear_driver_->SetRoboteqCmd(1, 54);
+  roboteq_mock.rear_driver_->SetRoboteqCmd(2, 12);
+
+  roboteq_mock.front_driver_->SetResetRoboteqScript(65);
+  roboteq_mock.rear_driver_->SetResetRoboteqScript(23);
+
+  rclcpp::init(0, nullptr);
+
+  hardware_interface::ResourceManager rm(panther_system_urdf);
+
+  configure_components(rm);
+
+  activate_components(rm);
+
+  // TODO check timing
+
+  ASSERT_EQ(roboteq_mock.front_driver_->GetRoboteqCmd(1), 0);
+  ASSERT_EQ(roboteq_mock.front_driver_->GetRoboteqCmd(2), 0);
+  ASSERT_EQ(roboteq_mock.rear_driver_->GetRoboteqCmd(1), 0);
+  ASSERT_EQ(roboteq_mock.rear_driver_->GetRoboteqCmd(2), 0);
+
+  ASSERT_EQ(roboteq_mock.front_driver_->GetResetRoboteqScript(), 2);
+  ASSERT_EQ(roboteq_mock.rear_driver_->GetResetRoboteqScript(), 2);
+
+  shutdown_components(rm);
+
+  // TODO test teardown
+  roboteq_mock.Stop();
+  rclcpp::shutdown();
+}
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  // testing::GTEST_FLAG(filter) = "TestPantherSystem.read_other_roboteq_params_panther_system";
+  // testing::GTEST_FLAG(filter) = "TestPantherSystem.initial_procedure_test_panther_system";
   return RUN_ALL_TESTS();
 }

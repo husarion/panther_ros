@@ -61,6 +61,9 @@ public:
   void SetBatAmps1(int16_t value) { (*this)[0x210C][1] = value; }
   void SetBatAmps2(int16_t value) { (*this)[0x210C][2] = value; }
 
+  void SetRoboteqCmd(uint8_t channel, int32_t value) { (*this)[0x2000][channel] = value; }
+  void SetResetRoboteqScript(uint8_t value) { (*this)[0x2018][0] = value; }
+
   int32_t GetRoboteqCmd(uint8_t channel) { return (*this)[0x2000][channel]; }
   uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
   uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
