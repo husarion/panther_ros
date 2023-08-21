@@ -249,12 +249,12 @@ class ADCNode:
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
                 error_msg = 'The battery voltage is critically low!'
-            elif V_bat_mean > self.V_BAT_FATAL_MAX:
-                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
-                error_msg = 'The battery overvoltage!'
             elif temp_bat >= self.OVERHEAT_BAT_TEMP:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
                 error_msg = 'The battery is overheating!'
+            elif V_bat_mean > self.V_BAT_FATAL_MAX:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
+                error_msg = 'The battery overvoltage!'
             elif temp_bat <= self.LOW_BAT_TEMP:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_COLD
                 error_msg = 'The battery is too cold! It may result in reduced effectiveness.'
