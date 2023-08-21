@@ -29,6 +29,7 @@ class RoboteqRepublisherNode:
         self._battery_voltage_hist = [37.0] * self._volt_mean_length
 
         self._battery_timeout = 1.0
+        self._init_battery_timeout = 10.0
         self._last_battery_info_time = rospy.get_time()
 
         # -------------------------------
@@ -69,17 +70,18 @@ class RoboteqRepublisherNode:
 
     def _battery_pub_timer_cb(self, *args) -> None:
         with self._lock:
+            if (
+                self._battery_voltage == None or self._battery_current == None
+            ) and rospy.get_time() - self._last_battery_info_time < self._init_battery_timeout:
+                return
+
             battery_msg = BatteryState()
             battery_msg.header.stamp = rospy.Time.now()
             battery_msg.capacity = 20.0
             battery_msg.design_capacity = 20.0
             battery_msg.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LION
 
-            if (
-                self._battery_voltage == None
-                or self._battery_current == None
-                or rospy.get_time() - self._last_battery_info_time > self._battery_timeout
-            ):
+            if rospy.get_time() - self._last_battery_info_time > self._battery_timeout:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_UNKNOWN
             else:
                 battery_msg.voltage = self._battery_voltage
