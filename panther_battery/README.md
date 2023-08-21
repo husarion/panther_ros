@@ -11,8 +11,8 @@ Publishes battery state read from ADC unit. Available from Panther version 1.2.
 #### Publishes
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
-- `/panther/battery_1` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
-- `/panther/battery_2` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
+- `/panther/battery_1_raw` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
+- `/panther/battery_2_raw` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
 
 #### Subscribes
 

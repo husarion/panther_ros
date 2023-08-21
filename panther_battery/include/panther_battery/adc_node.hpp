@@ -12,7 +12,6 @@
 
 #include <panther_battery/adc_data_reader.hpp>
 #include <panther_battery/battery.hpp>
-#include <panther_utils/moving_average.hpp>
 
 namespace panther_battery
 {

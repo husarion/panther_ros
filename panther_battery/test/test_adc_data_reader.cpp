@@ -14,7 +14,6 @@ public:
 
 protected:
   std::shared_ptr<panther_battery::ADCDataReader> data_reader_;
-  std::filesystem::path current_path_;
   std::filesystem::path data_file_path_;
   std::filesystem::path scale_file_path_;
   std::ofstream file_;
@@ -25,13 +24,13 @@ protected:
 
 TestADCDataReader::TestADCDataReader()
 {
-  current_path_ = std::filesystem::current_path();
-  data_file_path_ = current_path_ / "in_voltage0_raw";
-  scale_file_path_ = current_path_ / "in_voltage0_scale";
+  auto current_path = std::filesystem::current_path();
+  data_file_path_ = current_path / "in_voltage0_raw";
+  scale_file_path_ = current_path / "in_voltage0_scale";
 
   WriteNumberToFile<float>(1.0, scale_file_path_);
 
-  data_reader_ = std::make_shared<panther_battery::ADCDataReader>(current_path_);
+  data_reader_ = std::make_shared<panther_battery::ADCDataReader>(current_path);
 }
 
 TestADCDataReader::~TestADCDataReader()
@@ -60,6 +59,10 @@ TEST_F(TestADCDataReader, TestGetADCMeasurement)
   WriteNumberToFile<int>(200, data_file_path_);
   data = data_reader_->GetADCMeasurement(0, 0);
   EXPECT_FLOAT_EQ(0.2, data);
+
+  WriteNumberToFile<int>(-200, data_file_path_);
+  data = data_reader_->GetADCMeasurement(0, 0);
+  EXPECT_FLOAT_EQ(-0.2, data);
 
   WriteNumberToFile<int>(200, data_file_path_);
   data = data_reader_->GetADCMeasurement(0, 100);

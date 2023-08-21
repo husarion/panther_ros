@@ -2,6 +2,7 @@
 #define PANTHER_BATTERY_BATTERY_HPP_
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <functional>
 #include <limits>
@@ -23,7 +24,6 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
 struct BatteryParams
 {
-  const float high_bat_temp;
   const int64_t voltage_window_len;
   const int64_t temp_window_len;
   const int64_t current_window_len;
@@ -53,37 +53,38 @@ private:
   float ADCToBatteryVoltage(const float adc_data);
   float ADCToBatteryCurrent(const float adc_data);
   float ADCToBatteryCharge(const float adc_data);
-  float ADCToBatteryVoltageTemp(const float adc_data);
   float ADCToBatteryTemp(const float adc_data);
+  float ADCToBatteryVoltageTemp(const float adc_data);
   void UpdateBatteryMsg(rclcpp::Time & header_stamp, const bool charger_connected);
   void ResetBatteryMsg(rclcpp::Time & header_stamp);
 
+  static constexpr float charging_current_thresh_ = 0.1;
   static constexpr float bat_detect_thresh_ = 3.03;
   static constexpr float V_bat_fatal_min_ = 27.0;
   static constexpr float V_bat_fatal_max_ = 43.0;
   static constexpr float V_bat_full_ = 41.4;
   static constexpr float V_bat_min_ = 32.0;
-  static constexpr float charging_current_thresh_ = 0.1;
+  static constexpr float low_bat_temp_ = -10.0;
+  static constexpr float overheat_bat_temp_ = 45.0;
   static constexpr float designed_capacity_ = 20.0;
   static constexpr std::string_view location_ = "user_compartment";
 
-  // ADC conversion params
-  static constexpr float bat_voltage_factor = 25.04255;  // calculated as (Rg + Rd) / Rd
-  static constexpr float bat_current_factor = 20.0;      // 40
-  static constexpr float bat_charge_factor = 2.5;        // 5
-  static constexpr float bat_temp_factor = 1.0;          // 2
-  // static constexpr float Rg_ = 113000.0;
-  // static constexpr float Rd_ = 4700.0;
+  // ADC conversion parameters. Values were determined based on
+  // voltage divider resistance values or 
+  // differential amplifier gain and resistance values
+  static constexpr float bat_voltage_factor_ = 25.04255;
+  static constexpr float bat_current_factor_ = 20.0;
+  static constexpr float bat_charge_factor_ = 2.5;
+  static constexpr float bat_temp_factor_ = 1.0;
 
-  // temp conversion params
+  // Temperature conversion parameters
   static constexpr double temp_coeff_A_ = 298.15;
   static constexpr double temp_coeff_B_ = 3977.0;
   static constexpr double R1_ = 10000.0;
   static constexpr double R0_ = 10000.0;
   static constexpr double u_supply_ = 3.28;
-  static constexpr double kelvin_to_celcius_offset = 273.15;
+  static constexpr double kelvin_to_celcius_offset_ = 273.15;
 
-  float high_bat_temp_;
   float voltage_raw_;
   float current_raw_;
   float temp_raw_;
@@ -110,8 +111,6 @@ inline Battery::Battery(
   const BatteryParams & params)
 : ReadVoltage(read_voltage), ReadCurrent(read_current), ReadTemp(read_temp), ReadCharge(read_charge)
 {
-  high_bat_temp_ = params.high_bat_temp;
-
   voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     params.voltage_window_len, std::numeric_limits<double>::quiet_NaN());
   temp_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
@@ -163,17 +162,17 @@ inline void Battery::Reset(rclcpp::Time & header_stamp)
 
 inline float Battery::ADCToBatteryVoltage(const float adc_data)
 {
-  return adc_data * bat_voltage_factor;
+  return adc_data * bat_voltage_factor_;
 }
 
 inline float Battery::ADCToBatteryCurrent(const float adc_data)
 {
-  return adc_data * bat_current_factor;
+  return adc_data * bat_current_factor_;
 }
 
 inline float Battery::ADCToBatteryCharge(const float adc_data)
 {
-  return adc_data * bat_charge_factor;
+  return adc_data * bat_charge_factor_;
 }
 
 inline float Battery::ADCToBatteryTemp(const float adc_data)
@@ -185,12 +184,12 @@ inline float Battery::ADCToBatteryTemp(const float adc_data)
 
   auto R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
   return (temp_coeff_A_ * temp_coeff_B_ / (temp_coeff_A_ * log(R_therm / R0_) + temp_coeff_B_)) -
-         kelvin_to_celcius_offset;
+         kelvin_to_celcius_offset_;
 }
 
 inline float Battery::ADCToBatteryVoltageTemp(const float adc_data)
 {
-  return adc_data * bat_temp_factor;
+  return adc_data * bat_temp_factor_;
 }
 
 inline void Battery::UpdateBatteryMsg(rclcpp::Time & header_stamp, const bool charger_connected)
@@ -232,12 +231,15 @@ inline void Battery::UpdateBatteryMsg(rclcpp::Time & header_stamp, const bool ch
   if (V_bat < V_bat_fatal_min_) {
     battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
     error_msg_ = "Battery voltage is critically low!";
+  } else if (temp_bat >= overheat_bat_temp_) {
+    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+    error_msg_ = "Battery is overheating!";
   } else if (V_bat > V_bat_fatal_max_) {
     battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
     error_msg_ = "Battery overvoltage!";
-  } else if (temp_bat >= high_bat_temp_) {
-    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-    error_msg_ = "Battery is overheating!";
+  } else if (temp_bat < low_bat_temp_) {
+    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+    error_msg_ = "The battery is too cold! It may result in reduced effectiveness.";
   } else {
     battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
     error_msg_ = "";

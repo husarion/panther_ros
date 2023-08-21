@@ -23,6 +23,9 @@ public:
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
+  void MotorControllersStateSubCB(const DriverStateMsg & msg);
+  void BatteryPubTimerCB();
+
   static constexpr float bat_designed_capacity_ = 20.0;
   static constexpr float v_bat_fatal_min_ = 27.0;
   static constexpr float v_bat_fatal_max_ = 43.0;
@@ -39,9 +42,6 @@ private:
   rclcpp::Subscription<DriverStateMsg>::SharedPtr motor_controllers_state_sub_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
   rclcpp::TimerBase::SharedPtr battery_pub_timer_;
-
-  void MotorControllersStateSubCB(const DriverStateMsg & msg);
-  void BatteryPubTimerCB();
 };
 
 }  // namespace panther_battery

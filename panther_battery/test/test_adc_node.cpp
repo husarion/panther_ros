@@ -136,8 +136,8 @@ TEST_F(TestADCNode, MergeBatteryMsg)
   EXPECT_FLOAT_EQ(40.0, bat.design_capacity);
   EXPECT_FLOAT_EQ(5.0, bat.charge);
   EXPECT_TRUE(std::isnan(bat.capacity));
-  EXPECT_EQ(size_t(5), bat.cell_voltage.size());
-  EXPECT_EQ(size_t(5), bat.cell_temperature.size());
+  EXPECT_EQ(size_t(10), bat.cell_voltage.size());
+  EXPECT_EQ(size_t(10), bat.cell_temperature.size());
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, bat.power_supply_status);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, bat.power_supply_health);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, bat.power_supply_technology);
@@ -178,25 +178,33 @@ TEST_F(TestADCNode, MergeBatteryMsgHealth)
   auto bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD, bat.power_supply_health);
 
-  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
-  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD, bat.power_supply_health);
-
-  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD, bat.power_supply_health);
-
-  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, bat.power_supply_health);
-
-  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT, bat.power_supply_health);
-
   bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, bat.power_supply_health);
+
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+  bat_2.temperature = -15.0f;
+  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(-15.0, bat.temperature);
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+  bat_1.voltage = 50.0f;
+  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(50.0, bat.temperature);
+
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+  bat_2.temperature = 50.0f;
+  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(50.0, bat.temperature);
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+  bat_1.voltage = -2.0f;
+  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(-2.0, bat.temperature);
 }
 
 TEST_F(TestADCNode, BatteryTimeout)

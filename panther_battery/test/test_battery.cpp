@@ -41,7 +41,7 @@ protected:
 
 TestBattery::TestBattery()
 {
-  panther_battery::BatteryParams params = {45.0, 10, 10, 10, 10};
+  panther_battery::BatteryParams params = {10, 10, 10, 10};
   battery_ = std::make_unique<panther_battery::Battery>(
     [&]() { return battery_voltage_raw_; }, [&]() { return battery_current_raw_; },
     [&]() { return battery_temp_raw_; }, [&]() { return battery_charge_raw_; }, params);
@@ -149,7 +149,7 @@ TEST_F(TestBattery, BatteryMsgValues)
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   UpdateBattery(1.6, 0.02, 1.4, 0.4, false);
-  expected_voltage = (1.5 + 1.6)/2.0 * 25.04255f;
+  expected_voltage = (1.5 + 1.6) / 2.0 * 25.04255f;
   expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   expected_temp = 30.306725;
   expected_current = -(0.015 * 20) + (0.45 * 2.5);

@@ -28,14 +28,12 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   this->declare_parameter<std::string>("adc0_device", "/sys/bus/iio/devices/iio:device0");
   this->declare_parameter<std::string>("adc1_device", "/sys/bus/iio/devices/iio:device1");
   this->declare_parameter<float>("battery_timeout", 1.0);
-  this->declare_parameter<float>("high_bat_temp", 45.0);
   this->declare_parameter<int>("batery_voltage_window_len", 10);
   this->declare_parameter<int>("batery_temp_window_len", 10);
   this->declare_parameter<int>("batery_current_window_len", 10);
   this->declare_parameter<int>("batery_charge_window_len", 10);
 
   battery_timeout_ = this->get_parameter("battery_timeout").as_double();
-  const float high_bat_temp = this->get_parameter("high_bat_temp").as_double();
   const auto adc0_device = this->get_parameter("adc0_device").as_string();
   const auto adc1_device = this->get_parameter("adc1_device").as_string();
   const auto battery_voltage_window_len = this->get_parameter("batery_voltage_window_len").as_int();
@@ -48,7 +46,6 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
   BatteryParams default_battery_params = {
-    high_bat_temp,
     battery_voltage_window_len,
     battery_temp_window_len,
     battery_current_window_len,
@@ -162,22 +159,8 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
   battery_msg.design_capacity = battery_msg_1.design_capacity + battery_msg_2.design_capacity;
   battery_msg.charge = battery_msg_1.charge + battery_msg_2.charge;
 
-  //  this should be list of 20 nans? have to check that
-  battery_msg.cell_voltage.insert(
-    battery_msg.cell_voltage.end(), battery_msg_1.cell_voltage.begin(),
-    battery_msg_1.cell_voltage.end());
-  battery_msg.cell_voltage.insert(
-    battery_msg.cell_voltage.end(), battery_msg_2.cell_voltage.begin(),
-    battery_msg_2.cell_voltage.end());
-  battery_msg.cell_temperature.insert(
-    battery_msg.cell_temperature.end(), battery_msg_1.cell_temperature.begin(),
-    battery_msg_1.cell_temperature.end());
-  battery_msg.cell_temperature.insert(
-    battery_msg.cell_temperature.end(), battery_msg_2.cell_temperature.begin(),
-    battery_msg_2.cell_temperature.end());
-
-  // battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
-  // battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
 
   // add else UNKNOWN at the end??? it is redundant as it defaults to unknown if not assigned
   if (battery_msg_1.power_supply_status == battery_msg_2.power_supply_status) {
@@ -199,25 +182,29 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
   if (battery_msg_1.power_supply_health == battery_msg_2.power_supply_health) {
     battery_msg.power_supply_health = battery_msg_1.power_supply_health;
   } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD ||
+    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD) {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+    battery_msg.temperature = std::min<float>(battery_msg_1.voltage, battery_msg_2.voltage);
   } else if (
     battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT ||
     battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+    battery_msg.temperature = std::max<float>(battery_msg_1.temperature, battery_msg_2.temperature);
   } else if (
     battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE ||
     battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-  } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+    battery_msg.temperature = std::max<float>(battery_msg_1.voltage, battery_msg_2.voltage);
   } else if (
     battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD ||
     battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+    battery_msg.temperature = std::min<float>(battery_msg_1.temperature, battery_msg_2.temperature);
+  } else if (
+    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN ||
+    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   }
 
   return battery_msg;
