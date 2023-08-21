@@ -11,7 +11,7 @@ Node responsible for communication with motor controllers and computing inverse 
 #### Publishes
 
 - `/joint_states` [*sensor_msgs/JointState*]: robot joints states.
-- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: motor controllers current, voltage, fault flags, script flags and runtime error flags.
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: motor controllers current, voltage, fault flags, script flags and runtime error flags. If the robot's motors are disabled, no messages will be sent to this topic.
 - `/panther/odom/wheels` [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
 - `/panther/pose` [*geometry_msgs/Pose*]: robot position.
 - `/tf` [*tf2_msgs/TFMessage*]: transform between `odom_frame` and `base_link_frame`.

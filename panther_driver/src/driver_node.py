@@ -118,6 +118,8 @@ class PantherDriverNode:
         self._motor_off_last_time = rospy.Time.now()
         self._cmd_vel_command_last_time = rospy.Time.now()
         self._cmd_vel_timeout = 0.2
+        self._motor_power_on_timeout = 2.3
+        self._motor_power_on_error_timeout = 2.5
 
         self._robot_pos = [0.0, 0.0, 0.0]  # x,  y,  yaw
         self._robot_vel = [0.0, 0.0, 0.0]  # lin_x, lin_y, ang_z
@@ -361,7 +363,9 @@ class PantherDriverNode:
 
     def _driver_state_timer_cb(self, *args) -> None:
         # wait for motor drivers to power on before publishing their state
-        if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.3):
+        if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(
+            self._motor_power_on_timeout
+        ):
             return
 
         if not self._motor_on:
@@ -422,7 +426,9 @@ class PantherDriverNode:
                 self._motor_off_last_time = rospy.Time.now()
             else:
                 # wait for motor drivers to power on before logging an error
-                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.5):
+                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(
+                    self._motor_power_on_error_timeout
+                ):
                     return
                 rospy.logerr_throttle(
                     10.0,
