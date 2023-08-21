@@ -15,7 +15,7 @@
 #include <test_utils.hpp>
 
 // LOADING
-TEST(TestPantherSystem, load_panther_system)
+TEST(SimpleTestPantherSystem, load_panther_system)
 {
   // Use try-catch instead of ASSERT_NO_THROW to get and print exception message
   try {
@@ -105,16 +105,29 @@ void check_initial_values(hardware_interface::ResourceManager & rm)
   ASSERT_EQ(0.0, rr_c_v.get_value());
 }
 
-TEST(TestPantherSystem, configure_activate_finalize_panther_system)
+class TestPantherSystem : public ::testing::Test
 {
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
+public:
+  RoboteqMock roboteq_mock_;
 
-  rclcpp::init(0, nullptr);
+  void SetUp() override
+  {
+    roboteq_mock_.Start();
+    rclcpp::init(0, nullptr);
+  }
 
+  void TearDown() override
+  {
+    rclcpp::shutdown();
+    roboteq_mock_.Stop();
+  }
+};
+
+TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
+{
   hardware_interface::ResourceManager rm(panther_system_urdf);
 
-  // check is hardware is configured
+  // check if hardware is configured
   auto status_map = rm.get_components_status();
   ASSERT_EQ(
     status_map[panther_system_name].state.label(),
@@ -158,19 +171,10 @@ TEST(TestPantherSystem, configure_activate_finalize_panther_system)
   ASSERT_EQ(
     status_map[panther_system_name].state.label(),
     hardware_interface::lifecycle_state_names::FINALIZED);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
-TEST(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system)
+TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system)
 {
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
-
-  rclcpp::init(0, nullptr);
-
   hardware_interface::ResourceManager rm(panther_system_urdf);
 
   auto status_map = rm.get_components_status();
@@ -227,21 +231,12 @@ TEST(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system
   ASSERT_EQ(
     status_map[panther_system_name].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
 // WRITING
-TEST(TestPantherSystem, write_commands_panther_system)
+TEST_F(TestPantherSystem, write_commands_panther_system)
 {
   using hardware_interface::LoanedCommandInterface;
-
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
-
-  rclcpp::init(0, nullptr);
 
   hardware_interface::ResourceManager rm(panther_system_urdf);
 
@@ -272,49 +267,42 @@ TEST(TestPantherSystem, write_commands_panther_system)
     30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
 
   ASSERT_EQ(
-    roboteq_mock.front_driver_->GetRoboteqCmd(1), int32_t(0.1 * radians_per_second_to_roboteq_cmd));
+    roboteq_mock_.front_driver_->GetRoboteqCmd(1),
+    int32_t(0.1 * radians_per_second_to_roboteq_cmd));
   ASSERT_EQ(
-    roboteq_mock.front_driver_->GetRoboteqCmd(2), int32_t(0.2 * radians_per_second_to_roboteq_cmd));
+    roboteq_mock_.front_driver_->GetRoboteqCmd(2),
+    int32_t(0.2 * radians_per_second_to_roboteq_cmd));
   ASSERT_EQ(
-    roboteq_mock.rear_driver_->GetRoboteqCmd(1), int32_t(0.3 * radians_per_second_to_roboteq_cmd));
+    roboteq_mock_.rear_driver_->GetRoboteqCmd(1), int32_t(0.3 * radians_per_second_to_roboteq_cmd));
   ASSERT_EQ(
-    roboteq_mock.rear_driver_->GetRoboteqCmd(2), int32_t(0.4 * radians_per_second_to_roboteq_cmd));
+    roboteq_mock_.rear_driver_->GetRoboteqCmd(2), int32_t(0.4 * radians_per_second_to_roboteq_cmd));
 
   shutdown_components(rm);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
 // READING
-TEST(TestPantherSystem, read_feedback_panther_system)
+TEST_F(TestPantherSystem, read_feedback_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
 
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
+  roboteq_mock_.front_driver_->SetPosition(1, 100);
+  roboteq_mock_.front_driver_->SetPosition(2, 200);
+  roboteq_mock_.rear_driver_->SetPosition(1, 300);
+  roboteq_mock_.rear_driver_->SetPosition(2, 400);
 
-  roboteq_mock.front_driver_->SetPosition(1, 100);
-  roboteq_mock.front_driver_->SetPosition(2, 200);
-  roboteq_mock.rear_driver_->SetPosition(1, 300);
-  roboteq_mock.rear_driver_->SetPosition(2, 400);
+  roboteq_mock_.front_driver_->SetVelocity(1, 100);
+  roboteq_mock_.front_driver_->SetVelocity(2, 200);
+  roboteq_mock_.rear_driver_->SetVelocity(1, 300);
+  roboteq_mock_.rear_driver_->SetVelocity(2, 400);
 
-  roboteq_mock.front_driver_->SetVelocity(1, 100);
-  roboteq_mock.front_driver_->SetVelocity(2, 200);
-  roboteq_mock.rear_driver_->SetVelocity(1, 300);
-  roboteq_mock.rear_driver_->SetVelocity(2, 400);
-
-  roboteq_mock.front_driver_->SetCurrent(1, 100);
-  roboteq_mock.front_driver_->SetCurrent(2, 200);
-  roboteq_mock.rear_driver_->SetCurrent(1, 300);
-  roboteq_mock.rear_driver_->SetCurrent(2, 400);
+  roboteq_mock_.front_driver_->SetCurrent(1, 100);
+  roboteq_mock_.front_driver_->SetCurrent(2, 200);
+  roboteq_mock_.rear_driver_->SetCurrent(1, 300);
+  roboteq_mock_.rear_driver_->SetCurrent(2, 400);
 
   double roboteq_pos_feedback_to_radians_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
   double roboteq_vel_feedback_to_radians_per_second_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
   double roboteq_current_feedback_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
-
-  rclcpp::init(0, nullptr);
 
   hardware_interface::ResourceManager rm(panther_system_urdf);
 
@@ -361,29 +349,20 @@ TEST(TestPantherSystem, read_feedback_panther_system)
   ASSERT_NEAR(rl_s_e.get_value(), 400 * roboteq_current_feedback_to_newton_meters_, 0.0001);
 
   shutdown_components(rm);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
-TEST(TestPantherSystem, read_other_roboteq_params_panther_system)
+TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
 
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
-
-  roboteq_mock.front_driver_->SetTemperature(30);
-  roboteq_mock.rear_driver_->SetTemperature(32);
-  roboteq_mock.front_driver_->SetVoltage(400);
-  roboteq_mock.rear_driver_->SetVoltage(430);
-  roboteq_mock.front_driver_->SetBatAmps1(10);
-  roboteq_mock.rear_driver_->SetBatAmps1(20);
-  roboteq_mock.front_driver_->SetBatAmps2(30);
-  roboteq_mock.rear_driver_->SetBatAmps2(40);
-
-  rclcpp::init(0, nullptr);
+  roboteq_mock_.front_driver_->SetTemperature(30);
+  roboteq_mock_.rear_driver_->SetTemperature(32);
+  roboteq_mock_.front_driver_->SetVoltage(400);
+  roboteq_mock_.rear_driver_->SetVoltage(430);
+  roboteq_mock_.front_driver_->SetBatAmps1(10);
+  roboteq_mock_.rear_driver_->SetBatAmps1(20);
+  roboteq_mock_.front_driver_->SetBatAmps2(30);
+  roboteq_mock_.rear_driver_->SetBatAmps2(40);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
 
@@ -430,24 +409,14 @@ TEST(TestPantherSystem, read_other_roboteq_params_panther_system)
   ASSERT_EQ(state_msg->rear.current, 6);
 
   shutdown_components(rm);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
 // ENCODER DISCONNECTED
-
-TEST(TestPantherSystem, encoder_disconnected_panther_system)
+TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
 
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
-
-  roboteq_mock.front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
-
-  rclcpp::init(0, nullptr);
+  roboteq_mock_.front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
 
   hardware_interface::ResourceManager rm(panther_system_urdf);
 
@@ -464,30 +433,20 @@ TEST(TestPantherSystem, encoder_disconnected_panther_system)
   ASSERT_EQ(
     status_map[panther_system_name].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
 // INITIAL PROCEDURE
-
-TEST(TestPantherSystem, initial_procedure_test_panther_system)
+TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
 
-  RoboteqMock roboteq_mock;
-  roboteq_mock.Start();
+  roboteq_mock_.front_driver_->SetRoboteqCmd(1, 234);
+  roboteq_mock_.front_driver_->SetRoboteqCmd(2, 32);
+  roboteq_mock_.rear_driver_->SetRoboteqCmd(1, 54);
+  roboteq_mock_.rear_driver_->SetRoboteqCmd(2, 12);
 
-  roboteq_mock.front_driver_->SetRoboteqCmd(1, 234);
-  roboteq_mock.front_driver_->SetRoboteqCmd(2, 32);
-  roboteq_mock.rear_driver_->SetRoboteqCmd(1, 54);
-  roboteq_mock.rear_driver_->SetRoboteqCmd(2, 12);
-
-  roboteq_mock.front_driver_->SetResetRoboteqScript(65);
-  roboteq_mock.rear_driver_->SetResetRoboteqScript(23);
-
-  rclcpp::init(0, nullptr);
+  roboteq_mock_.front_driver_->SetResetRoboteqScript(65);
+  roboteq_mock_.rear_driver_->SetResetRoboteqScript(23);
 
   hardware_interface::ResourceManager rm(panther_system_urdf);
 
@@ -497,19 +456,15 @@ TEST(TestPantherSystem, initial_procedure_test_panther_system)
 
   // TODO check timing
 
-  ASSERT_EQ(roboteq_mock.front_driver_->GetRoboteqCmd(1), 0);
-  ASSERT_EQ(roboteq_mock.front_driver_->GetRoboteqCmd(2), 0);
-  ASSERT_EQ(roboteq_mock.rear_driver_->GetRoboteqCmd(1), 0);
-  ASSERT_EQ(roboteq_mock.rear_driver_->GetRoboteqCmd(2), 0);
+  ASSERT_EQ(roboteq_mock_.front_driver_->GetRoboteqCmd(1), 0);
+  ASSERT_EQ(roboteq_mock_.front_driver_->GetRoboteqCmd(2), 0);
+  ASSERT_EQ(roboteq_mock_.rear_driver_->GetRoboteqCmd(1), 0);
+  ASSERT_EQ(roboteq_mock_.rear_driver_->GetRoboteqCmd(2), 0);
 
-  ASSERT_EQ(roboteq_mock.front_driver_->GetResetRoboteqScript(), 2);
-  ASSERT_EQ(roboteq_mock.rear_driver_->GetResetRoboteqScript(), 2);
+  ASSERT_EQ(roboteq_mock_.front_driver_->GetResetRoboteqScript(), 2);
+  ASSERT_EQ(roboteq_mock_.rear_driver_->GetResetRoboteqScript(), 2);
 
   shutdown_components(rm);
-
-  // TODO test teardown
-  roboteq_mock.Stop();
-  rclcpp::shutdown();
 }
 
 int main(int argc, char ** argv)
