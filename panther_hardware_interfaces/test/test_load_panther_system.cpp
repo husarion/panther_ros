@@ -295,10 +295,6 @@ TEST(TestPantherSystem, read_feedback_panther_system)
   RoboteqMock roboteq_mock;
   roboteq_mock.Start();
 
-  // TODO wait for initialization
-  // workaround
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
   roboteq_mock.front_driver_->SetPosition(1, 100);
   roboteq_mock.front_driver_->SetPosition(2, 200);
   roboteq_mock.rear_driver_->SetPosition(1, 300);
@@ -378,10 +374,6 @@ TEST(TestPantherSystem, read_other_roboteq_params_panther_system)
   RoboteqMock roboteq_mock;
   roboteq_mock.Start();
 
-  // TODO wait for initialization
-  // workaround
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
   roboteq_mock.front_driver_->SetTemperature(30);
   roboteq_mock.rear_driver_->SetTemperature(32);
   roboteq_mock.front_driver_->SetVoltage(400);
@@ -453,10 +445,6 @@ TEST(TestPantherSystem, encoder_disconnected_panther_system)
   RoboteqMock roboteq_mock;
   roboteq_mock.Start();
 
-  // TODO wait for initialization
-  // workaround
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
   roboteq_mock.front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
 
   rclcpp::init(0, nullptr);
@@ -490,10 +478,6 @@ TEST(TestPantherSystem, initial_procedure_test_panther_system)
 
   RoboteqMock roboteq_mock;
   roboteq_mock.Start();
-
-  // TODO wait for initialization
-  // workaround
-  std::this_thread::sleep_for(std::chrono::seconds(2));
 
   roboteq_mock.front_driver_->SetRoboteqCmd(1, 234);
   roboteq_mock.front_driver_->SetRoboteqCmd(2, 32);

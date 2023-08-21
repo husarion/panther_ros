@@ -2,19 +2,20 @@
 #define PANTHER_HARDWARE_INTERFACES__MOCK_ROBOTEQ_HPP_
 
 #include <atomic>
+#include <condition_variable>
 #include <filesystem>
 #include <iostream>
 #include <thread>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
+#include <lely/coapp/slave.hpp>
 #include <lely/ev/loop.hpp>
 #include <lely/io2/linux/can.hpp>
 #include <lely/io2/posix/poll.hpp>
 #include <lely/io2/sys/io.hpp>
 #include <lely/io2/sys/sigset.hpp>
 #include <lely/io2/sys/timer.hpp>
-#include <lely/coapp/slave.hpp>
 
 enum class DriverFaultFlags {
   OVERHEAT = 0,
@@ -101,6 +102,10 @@ private:
 
   // TODO: change name
   std::thread executor_thread_;
+
+  std::atomic<bool> can_communication_started_ = false;
+  std::condition_variable can_communication_started_cond_;
+  std::mutex can_communication_started_mtx_;
 };
 
 #endif

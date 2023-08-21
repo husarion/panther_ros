@@ -100,6 +100,7 @@ void RoboteqSlave::SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors fl
 
 void RoboteqMock::Start()
 {
+  can_communication_started_.store(false);
   ctx_ = std::make_shared<lely::io::Context>();
 
   executor_thread_ = std::thread([this]() {
@@ -143,11 +144,26 @@ void RoboteqMock::Start()
     front_driver_->StartPublishing();
     rear_driver_->StartPublishing();
 
+    {
+      std::lock_guard lk(can_communication_started_mtx_);
+      can_communication_started_.store(true);
+    }
+    can_communication_started_cond_.notify_all();
+
     loop.run();
 
     front_driver_->StopPublishing();
     rear_driver_->StopPublishing();
   });
+
+  if (!can_communication_started_.load()) {
+    std::unique_lock lck(can_communication_started_mtx_);
+    can_communication_started_cond_.wait(lck);
+  }
+
+  if (!can_communication_started_.load()) {
+    throw std::runtime_error("CAN communication not initialized");
+  }
 }
 
 void RoboteqMock::Stop()
@@ -157,6 +173,8 @@ void RoboteqMock::Stop()
 
   front_driver_.reset();
   rear_driver_.reset();
+
+  can_communication_started_.store(false);
 }
 
 // int main()
