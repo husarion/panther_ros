@@ -77,7 +77,7 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(${PROJECT_NAME}_test test/test_load_panther_system.cpp test/src/mock_roboteq.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test test/test_panther_system.cpp test/src/mock_roboteq.cpp)
   target_include_directories(${PROJECT_NAME}_test PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
   )
