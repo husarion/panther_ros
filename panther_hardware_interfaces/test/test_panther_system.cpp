@@ -311,23 +311,62 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 // ENCODER DISCONNECTED
 TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 {
-  using hardware_interface::LoanedStateInterface;
+  using hardware_interface::LoanedCommandInterface;
 
   roboteq_mock_->front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
 
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
+
   configure_panther_system();
   activate_panther_system();
+
+  panther_msgs::msg::DriverState::SharedPtr state_msg;
+  auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
+    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 
   const auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
   rm_->read(TIME, PERIOD);
 
-  // error handled with success -> state changes to unconfigured
-  auto status_map = rm_->get_components_status();
-  ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
-    hardware_interface::lifecycle_state_names::UNCONFIGURED);
+  rclcpp::Time start = node->now();
+  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
+    rclcpp::spin_some(node);
+    if (state_msg) {
+      break;
+    }
+  }
+
+  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
+
+  // writing should be blocked - error
+
+  LoanedCommandInterface fl_c_v = rm_->claim_command_interface("fl_wheel_joint/velocity");
+  LoanedCommandInterface fr_c_v = rm_->claim_command_interface("fr_wheel_joint/velocity");
+  LoanedCommandInterface rl_c_v = rm_->claim_command_interface("rl_wheel_joint/velocity");
+  LoanedCommandInterface rr_c_v = rm_->claim_command_interface("rr_wheel_joint/velocity");
+
+  fl_c_v.set_value(0.1);
+  fr_c_v.set_value(0.1);
+  rl_c_v.set_value(0.1);
+  rr_c_v.set_value(0.1);
+
+  ASSERT_EQ(0.1, fl_c_v.get_value());
+  ASSERT_EQ(0.1, fr_c_v.get_value());
+  ASSERT_EQ(0.1, rl_c_v.get_value());
+  ASSERT_EQ(0.1, rr_c_v.get_value());
+
+  rm_->write(TIME, PERIOD);
+
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(1), 0);
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(2), 0);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(1), 0);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(2), 0);
+
+  shutdown_panther_system();
 }
 
 // INITIAL PROCEDURE
@@ -362,6 +401,9 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  // testing::GTEST_FLAG(filter) = "TestPantherSystem.initial_procedure_test_panther_system";
+
+  // For testing individual tests:
+  // testing::GTEST_FLAG(filter) = "TestPantherSystem.encoder_disconnected_panther_system";
+
   return RUN_ALL_TESTS();
 }
