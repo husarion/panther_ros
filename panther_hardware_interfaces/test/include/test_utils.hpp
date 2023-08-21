@@ -1,6 +1,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES__TEST_UTILS_HPP_
 #define PANTHER_HARDWARE_INTERFACES__TEST_UTILS_HPP_
 
+#include <cmath>
 #include <string>
 
 #include <lifecycle_msgs/msg/state.hpp>
@@ -8,10 +9,45 @@
 #include <hardware_interface/resource_manager.hpp>
 #include <hardware_interface/types/lifecycle_state_names.hpp>
 
-const std::string panther_system_name = "wheels";
+#include <mock_roboteq.hpp>
 
-const std::string panther_system_urdf =
-  R"(
+class TestPantherSystem : public ::testing::Test
+{
+public:
+  std::unique_ptr<RoboteqMock> roboteq_mock_;
+  std::unique_ptr<hardware_interface::ResourceManager> rm_;
+
+  double rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
+  double rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
+  double rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
+  double rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
+
+  // 100 Hz
+  const double period_ = 0.01;
+
+  const double assert_near_abs_error_ = 0.0001;
+
+  void SetUp() override
+  {
+    roboteq_mock_ = std::make_unique<RoboteqMock>();
+    roboteq_mock_->Start();
+    rclcpp::init(0, nullptr);
+
+    rm_ = std::make_unique<hardware_interface::ResourceManager>(panther_system_urdf_);
+  }
+
+  void TearDown() override
+  {
+    rclcpp::shutdown();
+    roboteq_mock_->Stop();
+    roboteq_mock_.reset();
+    rm_.reset();
+  }
+
+  const std::string panther_system_name_ = "wheels";
+
+  const std::string panther_system_urdf_ =
+    R"(
 <?xml version="1.0" encoding="utf-8"?>
 <robot name="Panther">
   <ros2_control name="wheels" type="system">
@@ -56,56 +92,118 @@ const std::string panther_system_urdf =
 </robot>
 )";
 
-void set_components_state(
-  hardware_interface::ResourceManager & rm, const std::vector<std::string> & components,
-  const uint8_t state_id, const std::string & state_name)
-{
-  for (const auto & component : components) {
+  void set_state(const uint8_t state_id, const std::string & state_name)
+  {
     rclcpp_lifecycle::State state(state_id, state_name);
-    rm.set_component_state(component, state);
+    rm_->set_component_state(panther_system_name_, state);
   }
-}
 
-auto configure_components = [](
-                              hardware_interface::ResourceManager & rm,
-                              const std::vector<std::string> & components = {panther_system_name}) {
-  set_components_state(
-    rm, components, lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
-    hardware_interface::lifecycle_state_names::INACTIVE);
-};
-
-auto unconfigure_components =
-  [](
-    hardware_interface::ResourceManager & rm,
-    const std::vector<std::string> & components = {panther_system_name}) {
-    set_components_state(
-      rm, components, lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
-      hardware_interface::lifecycle_state_names::UNCONFIGURED);
-  };
-
-auto activate_components = [](
-                             hardware_interface::ResourceManager & rm,
-                             const std::vector<std::string> & components = {panther_system_name}) {
-  set_components_state(
-    rm, components, lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE,
-    hardware_interface::lifecycle_state_names::ACTIVE);
-};
-
-auto deactivate_components =
-  [](
-    hardware_interface::ResourceManager & rm,
-    const std::vector<std::string> & components = {panther_system_name}) {
-    set_components_state(
-      rm, components, lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
+  void configure_panther_system()
+  {
+    set_state(
+      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
       hardware_interface::lifecycle_state_names::INACTIVE);
-  };
+  }
 
-auto shutdown_components = [](
-                             hardware_interface::ResourceManager & rm,
-                             const std::vector<std::string> & components = {panther_system_name}) {
-  set_components_state(
-    rm, components, lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
-    hardware_interface::lifecycle_state_names::FINALIZED);
+  void unconfigure_panther_system()
+  {
+    set_state(
+      lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
+      hardware_interface::lifecycle_state_names::UNCONFIGURED);
+  }
+
+  void activate_panther_system()
+  {
+    set_state(
+      lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE,
+      hardware_interface::lifecycle_state_names::ACTIVE);
+  }
+
+  void deactivate_panther_system()
+  {
+    set_state(
+      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
+      hardware_interface::lifecycle_state_names::INACTIVE);
+  }
+
+  void shutdown_panther_system()
+  {
+    set_state(
+      lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
+      hardware_interface::lifecycle_state_names::FINALIZED);
+  }
+
+  void check_interfaces()
+  {
+    EXPECT_EQ(1u, rm_->system_components_size());
+    ASSERT_EQ(12u, rm_->state_interface_keys().size());
+    EXPECT_TRUE(rm_->state_interface_exists("fl_wheel_joint/position"));
+    EXPECT_TRUE(rm_->state_interface_exists("fr_wheel_joint/position"));
+    EXPECT_TRUE(rm_->state_interface_exists("rl_wheel_joint/position"));
+    EXPECT_TRUE(rm_->state_interface_exists("rr_wheel_joint/position"));
+
+    EXPECT_TRUE(rm_->state_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(rm_->state_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(rm_->state_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(rm_->state_interface_exists("rr_wheel_joint/velocity"));
+
+    EXPECT_TRUE(rm_->state_interface_exists("fl_wheel_joint/effort"));
+    EXPECT_TRUE(rm_->state_interface_exists("fr_wheel_joint/effort"));
+    EXPECT_TRUE(rm_->state_interface_exists("rl_wheel_joint/effort"));
+    EXPECT_TRUE(rm_->state_interface_exists("rr_wheel_joint/effort"));
+
+    ASSERT_EQ(4u, rm_->command_interface_keys().size());
+    EXPECT_TRUE(rm_->command_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(rm_->command_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(rm_->command_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(rm_->command_interface_exists("rr_wheel_joint/velocity"));
+  }
+
+  void check_initial_values()
+  {
+    using hardware_interface::LoanedCommandInterface;
+    using hardware_interface::LoanedStateInterface;
+
+    LoanedStateInterface fl_s_p = rm_->claim_state_interface("fl_wheel_joint/position");
+    LoanedStateInterface fr_s_p = rm_->claim_state_interface("fr_wheel_joint/position");
+    LoanedStateInterface rl_s_p = rm_->claim_state_interface("rl_wheel_joint/position");
+    LoanedStateInterface rr_s_p = rm_->claim_state_interface("rr_wheel_joint/position");
+
+    LoanedStateInterface fl_s_v = rm_->claim_state_interface("fl_wheel_joint/velocity");
+    LoanedStateInterface fr_s_v = rm_->claim_state_interface("fr_wheel_joint/velocity");
+    LoanedStateInterface rl_s_v = rm_->claim_state_interface("rl_wheel_joint/velocity");
+    LoanedStateInterface rr_s_v = rm_->claim_state_interface("rr_wheel_joint/velocity");
+
+    LoanedStateInterface fl_s_e = rm_->claim_state_interface("fl_wheel_joint/effort");
+    LoanedStateInterface fr_s_e = rm_->claim_state_interface("fr_wheel_joint/effort");
+    LoanedStateInterface rl_s_e = rm_->claim_state_interface("rl_wheel_joint/effort");
+    LoanedStateInterface rr_s_e = rm_->claim_state_interface("rr_wheel_joint/effort");
+
+    LoanedCommandInterface fl_c_v = rm_->claim_command_interface("fl_wheel_joint/velocity");
+    LoanedCommandInterface fr_c_v = rm_->claim_command_interface("fr_wheel_joint/velocity");
+    LoanedCommandInterface rl_c_v = rm_->claim_command_interface("rl_wheel_joint/velocity");
+    LoanedCommandInterface rr_c_v = rm_->claim_command_interface("rr_wheel_joint/velocity");
+
+    ASSERT_EQ(0.0, fl_s_p.get_value());
+    ASSERT_EQ(0.0, fr_s_p.get_value());
+    ASSERT_EQ(0.0, rl_s_p.get_value());
+    ASSERT_EQ(0.0, rr_s_p.get_value());
+
+    ASSERT_EQ(0.0, fl_s_v.get_value());
+    ASSERT_EQ(0.0, fr_s_v.get_value());
+    ASSERT_EQ(0.0, rl_s_v.get_value());
+    ASSERT_EQ(0.0, rr_s_v.get_value());
+
+    ASSERT_EQ(0.0, fl_s_e.get_value());
+    ASSERT_EQ(0.0, fr_s_e.get_value());
+    ASSERT_EQ(0.0, rl_s_e.get_value());
+    ASSERT_EQ(0.0, rr_s_e.get_value());
+
+    ASSERT_EQ(0.0, fl_c_v.get_value());
+    ASSERT_EQ(0.0, fr_c_v.get_value());
+    ASSERT_EQ(0.0, rl_c_v.get_value());
+    ASSERT_EQ(0.0, rr_c_v.get_value());
+  }
 };
 
 #endif
