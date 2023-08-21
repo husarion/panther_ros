@@ -303,7 +303,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 
   if (time > next_roboteq_state_update_) {
     try {
-      DriversFeedback feedback = roboteq_controller_->ReadDriverFeedback();
+      DriversState feedback = roboteq_controller_->ReadDriversState();
 
       // TODO: locking???
       auto & driver_state = realtime_driver_state_publisher_->msg_;
@@ -325,24 +325,36 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   }
 
   try {
-    RoboteqFeedback feedback = roboteq_controller_->Read();
+    SystemFeedback feedback = roboteq_controller_->ReadSystemFeedback();
 
-    hw_states_positions_[0] = feedback.fl.pos;
-    hw_states_positions_[1] = feedback.fr.pos;
-    hw_states_positions_[2] = feedback.rl.pos;
-    hw_states_positions_[3] = feedback.rr.pos;
+    hw_states_positions_[0] = feedback.front.left.pos;
+    hw_states_positions_[1] = feedback.front.right.pos;
+    hw_states_positions_[2] = feedback.rear.left.pos;
+    hw_states_positions_[3] = feedback.rear.right.pos;
 
-    hw_states_velocities_[0] = feedback.fl.vel;
-    hw_states_velocities_[1] = feedback.fr.vel;
-    hw_states_velocities_[2] = feedback.rl.vel;
-    hw_states_velocities_[3] = feedback.rr.vel;
+    hw_states_velocities_[0] = feedback.front.left.vel;
+    hw_states_velocities_[1] = feedback.front.right.vel;
+    hw_states_velocities_[2] = feedback.rear.left.vel;
+    hw_states_velocities_[3] = feedback.rear.right.vel;
 
-    hw_states_efforts_[0] = feedback.fl.torque;
-    hw_states_efforts_[1] = feedback.fr.torque;
-    hw_states_efforts_[2] = feedback.rl.torque;
-    hw_states_efforts_[3] = feedback.rr.torque;
+    hw_states_efforts_[0] = feedback.front.left.torque;
+    hw_states_efforts_[1] = feedback.front.right.torque;
+    hw_states_efforts_[2] = feedback.rear.left.torque;
+    hw_states_efforts_[3] = feedback.rear.right.torque;
 
-    // TODO: driver state flags
+    auto & driver_state = realtime_driver_state_publisher_->msg_;
+    // TODO rename motor1 motor2
+    driver_state.front.fault_flag = feedback.front.fault_flags;
+    driver_state.front.script_flag = feedback.front.script_flags;
+    driver_state.front.left_motor.runtime_error = feedback.front.runtime_stat_flag_motor_1;
+    driver_state.front.right_motor.runtime_error = feedback.front.runtime_stat_flag_motor_2;
+
+    driver_state.rear.fault_flag = feedback.rear.fault_flags;
+    driver_state.rear.script_flag = feedback.rear.script_flags;
+    driver_state.rear.left_motor.runtime_error = feedback.rear.runtime_stat_flag_motor_1;
+    driver_state.rear.right_motor.runtime_error = feedback.rear.runtime_stat_flag_motor_2;
+
+    error_ = feedback.error_set;
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
@@ -358,6 +370,13 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  // "soft" error - still there is a comunication over CAN with drivers, so publishing feedback is continued -
+  // hardware interface's onError isn't triggered
+  // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
+  if (error_) {
+    return return_type::OK;
+  }
+
   try {
     roboteq_controller_->WriteSpeed(
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],

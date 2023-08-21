@@ -1,31 +1,24 @@
 #ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_
 #define PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_
 
+#include <condition_variable>
 #include <thread>
 
+#include <lely/coapp/fiber_driver.hpp>
+#include <lely/coapp/master.hpp>
 #include <lely/ev/loop.hpp>
 #include <lely/io2/linux/can.hpp>
 #include <lely/io2/posix/poll.hpp>
 #include <lely/io2/sys/io.hpp>
 #include <lely/io2/sys/sigset.hpp>
 #include <lely/io2/sys/timer.hpp>
-#include <lely/coapp/fiber_driver.hpp>
-#include <lely/coapp/master.hpp>
 
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
+#include <panther_hardware_interfaces/roboteq_feedback_converters.hpp>
 
 namespace panther_hardware_interfaces
 {
 
-struct RoboteqFeedback
-{
-  RoboteqChannelFeedback fr, fl, rr, rl;
-};
-
-struct DriversFeedback
-{
-  RoboteqDriverFeedback front, rear;
-};
 
 struct CanSettings
 {
@@ -66,7 +59,7 @@ public:
    * driver was set or can error was detected
    * @return roboteq feedback
    */
-  RoboteqFeedback Read();
+  SystemFeedback ReadSystemFeedback();
 
   /**
    * @brief Reads current roboteq driver feedback
@@ -74,7 +67,7 @@ public:
    * @exception std::runtime_error if there was error
    * @return roboteq driver feedback
    */
-  DriversFeedback ReadDriverFeedback();
+  DriversState ReadDriversState();
 
   /**
    * @brief Write speed commands to motors
@@ -127,48 +120,17 @@ private:
   // TODO: currently drivers set to 10Hz, change it after setting 100Hz
   std::chrono::milliseconds motors_feedback_timeout_ = std::chrono::milliseconds(150);
 
-  std::vector<std::string> driver_fault_flags_ = {
-    "overheat",       "overvoltage",
-    "undervoltage",   "short_circuit",
-    "emergency_stop", "motor_or_sensor_setup_fault",
-    "mosfet_failure", "default_config_loaded_at_startup",
-  };
-
-  std::vector<std::string> CheckFlags(uint8_t flags, std::vector<std::string> errors)
-  {
-    uint8_t i = 0;
-    std::vector<std::string> errors_detected;
-    for (auto x : errors) {
-      if (flags & (0b00000001 << i)) {
-        errors_detected.push_back(x);
-      }
-      ++i;
-    }
-    return errors_detected;
-  }
-
   // Suppress flags:
   // safety_stop_active
   // amps_limit_active
-  uint8_t suppressed_driver_flags_ = 0b11110110;
+  uint8_t suppressed_runtime_errors_ = 0b11110110;
 
-  std::vector<std::string> driver_runtime_errors_ = {
-    "amps_limit_active",
-    "motor_stall",
-    "loop_error",
-    "safety_stop_active",
-    "forward_limit_triggered",
-    "reverse_limit_triggered",
-    "amps_trigger_activated",
-  };
-
-  std::vector<std::string> driver_script_flags_ = {
-    "loop_error",
-    "encoder_disconected",
-    "amp_limiter",
-  };
-
-  void CheckErrors(RoboteqFlags flags);
+  RoboteqMotorFeedbackConverter roboteq_motor_feedback_converter_;
+  RoboteqCommandConverter roboteq_command_converter_;
+  FaultFlagsConverter fault_flags_converter_;
+  ScriptFlagsConverter script_flags_converter_;
+  RuntimeErrorsConverter runtime_errors_converter_;
+  RoboteqDriverStateConverter roboteq_driver_state_converter_;
 };
 
 }  // namespace panther_hardware_interfaces

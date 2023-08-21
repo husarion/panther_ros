@@ -7,50 +7,39 @@
 
 #include <lely/coapp/fiber_driver.hpp>
 
+#include <panther_msgs/msg/fault_flag.hpp>
+#include <panther_msgs/msg/script_flag.hpp>
+#include <panther_msgs/msg/runtime_error.hpp>
+
 namespace panther_hardware_interfaces
 {
 
-enum class RoboteqMode { POSITION = 0, VELOCITY = 1, TORQUE = 2 };
-struct RoboteqChannelFeedback
+struct RoboteqDriverState
 {
-  float pos;
-  float vel;
-  float torque;
+  int16_t temp;
+  uint16_t voltage;
+  int16_t bat_amps_1;
+  int16_t bat_amps_2;
 };
 
-struct RoboteqFlags
+struct RoboteqMotorFeedback
 {
-  uint8_t fault_flags;
-  uint8_t script_flags;
-  uint8_t runtime_stat_flag_motor_1;
-  uint8_t runtime_stat_flag_motor_2;
-};
-
-struct RoboteqMotorsFeedback
-{
-  RoboteqChannelFeedback motor_1;
-  RoboteqChannelFeedback motor_2;
-
-  RoboteqFlags flags;
-
-  timespec timestamp;
+  int32_t pos;
+  int32_t vel;
+  int32_t current;
 };
 
 struct RoboteqDriverFeedback
 {
-  float temp;
-  float voltage;
-  float bat_amps_1;
-  float bat_amps_2;
-};
+  RoboteqMotorFeedback motor_1;
+  RoboteqMotorFeedback motor_2;
 
-struct DrivetrainSettings
-{
-  float motor_torque_constant;
-  float gear_ratio;
-  float gearbox_efficiency;
-  float encoder_resolution;
-  float max_rpm_motor_speed;
+  uint8_t fault_flags;
+  uint8_t script_flags;
+  uint8_t runtime_stat_flag_motor_1;
+  uint8_t runtime_stat_flag_motor_2;
+
+  timespec timestamp;
 };
 
 // All ids and sub ids were read directly from eds file
@@ -67,19 +56,18 @@ class RoboteqDriver : public lely::canopen::FiberDriver
 public:
   using FiberDriver::FiberDriver;
 
-  RoboteqDriver(
-    DrivetrainSettings drivetrain_settings, ev_exec_t * exec, lely::canopen::AsyncMaster & master,
-    uint8_t id);
+  RoboteqDriver(ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id);
 
   /**
    * @brief ReadRoboteqDriverFeedback
    *
    * @exception std::runtime_error if any operation returns error
    */
+  RoboteqDriverState ReadRoboteqDriverState();
+
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
-  RoboteqMotorsFeedback ReadRoboteqMotorsFeedback();
-
+  // TODO: limiting cmd??
   /**
    * @brief Sends commands to Roboteq drivers
    *
@@ -87,7 +75,7 @@ public:
    * @param channel_2_cmd command value for second channel in rad/s
    * @exception std::runtime_error if any operation returns error
    */
-  void SendRoboteqCmd(double channel_1_speed, double channel_2_speed);
+  void SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed);
 
   /**
    * @brief Sends commands to reset script on the Roboteq drivers
@@ -124,10 +112,6 @@ public:
   bool Boot();
 
 private:
-  static constexpr int32_t max_roboteq_cmd_value_ = 1000;
-  int32_t LimitCmd(int32_t cmd);
-  uint8_t GetByte(uint32_t data, uint8_t byte_no);
-
   std::atomic<bool> booted = false;
   std::condition_variable boot_cond;
   std::mutex boot_mtx;
@@ -138,12 +122,6 @@ private:
   lely::io::CanError can_error_code;
 
   std::mutex rpdo_timestamp_mtx_;
-
-  float radians_per_second_to_roboteq_cmd_;
-
-  float roboteq_pos_feedback_to_radians_;
-  float roboteq_vel_feedback_to_radians_per_second_;
-  float roboteq_current_feedback_to_newton_meters_;
 
   std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(10);
   std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(15);

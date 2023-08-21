@@ -3,45 +3,13 @@
 #include <cmath>
 #include <future>
 
+#include <panther_hardware_interfaces/utils.hpp>
 namespace panther_hardware_interfaces
 {
 
-RoboteqDriver::RoboteqDriver(
-  DrivetrainSettings drivetrain_settings, ev_exec_t * exec, lely::canopen::AsyncMaster & master,
-  uint8_t id)
+RoboteqDriver::RoboteqDriver(ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id)
 : lely::canopen::FiberDriver(exec, master, id)
 {
-  // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
-  // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)
-  // 2. Convert motor rad/s speed to motor rotation per second speed (multiplication by 1.0/(2.0*pi))
-  // 3. Convert motor rotation per second speed to motor rotation per minute speed (multiplication by 60.0)
-  // 4. Convert motor rotation per minute speed to Roboteq GO command - permille of the max rotation per minute
-  //    speed set in the Roboteq driver (MXRPM parameter) - multiplication by 1000.0/max_rpm_motor_speed
-  radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0 / (2.0 * M_PI)) *
-                                       60.0 * (1000.0 / drivetrain_settings.max_rpm_motor_speed);
-
-  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in radians. Steps:
-  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by (1.0/encoder_resolution))
-  // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
-  // 3. Convert wheel rotation to wheel position in radians (multiplication by 2.0*pi)
-  roboteq_pos_feedback_to_radians_ = (1. / drivetrain_settings.encoder_resolution) *
-                                     (1.0 / drivetrain_settings.gear_ratio) * (2.0 * M_PI);
-
-  // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
-  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed (multiplication by (1.0/gear_ratio))
-  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication by (1.0/60.0))
-  // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
-  roboteq_vel_feedback_to_radians_per_second_ =
-    (1. / drivetrain_settings.gear_ratio) * (1. / 60.) * (2.0 * M_PI);
-
-  // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
-  // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
-  // 2. Convert motor A current to motor Nm torque (multiplication by motor_torque_constant)
-  // 3. Convert motor Nm torque to wheel ideal Nm torque (multiplication by gear_ratio)
-  // 4. Convert wheel ideal Nm torque to wheel real Nm torque (multiplication by gearbox_efficiency)
-  roboteq_current_feedback_to_newton_meters_ =
-    (1. / 10.) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
-    drivetrain_settings.gearbox_efficiency;
 }
 
 template <class type>
@@ -121,67 +89,56 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   }
 }
 
-RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
+RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
 {
   try {
-    auto temp = SyncSdoRead<int16_t>(0x210F, 1);
-    auto voltage = SyncSdoRead<uint16_t>(0x210D, 2);
-    auto bat_amps_1 = SyncSdoRead<int16_t>(0x210C, 1);
-    auto bat_amps_2 = SyncSdoRead<int16_t>(0x210C, 2);
-
-    RoboteqDriverFeedback feedback;
-    feedback.temp = temp;
-    feedback.voltage = voltage / 10.0;
-    feedback.bat_amps_1 = bat_amps_1 / 10.0;
-    feedback.bat_amps_2 = bat_amps_2 / 10.0;
-
-    return feedback;
+    RoboteqDriverState fb;
+    fb.temp = SyncSdoRead<int16_t>(0x210F, 1);
+    fb.voltage = SyncSdoRead<uint16_t>(0x210D, 2);
+    fb.bat_amps_1 = SyncSdoRead<int16_t>(0x210C, 1);
+    fb.bat_amps_2 = SyncSdoRead<int16_t>(0x210C, 2);
+    return fb;
   } catch (std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to read roboteq driver feedback: " + std::string(e.what()));
   }
 }
 
-RoboteqMotorsFeedback RoboteqDriver::ReadRoboteqMotorsFeedback()
+RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
-  RoboteqMotorsFeedback feedback;
+  RoboteqDriverFeedback fb;
 
   // uint32_t
   // already does locking when accessing rpdo
-  feedback.motor_1.pos = int32_t(rpdo_mapped[0x2106][1]) * roboteq_pos_feedback_to_radians_;
-  feedback.motor_2.pos = int32_t(rpdo_mapped[0x2106][2]) * roboteq_pos_feedback_to_radians_;
-  feedback.motor_1.vel =
-    int32_t(rpdo_mapped[0x2106][3]) * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.motor_2.vel =
-    int32_t(rpdo_mapped[0x2106][4]) * roboteq_vel_feedback_to_radians_per_second_;
-  feedback.motor_1.torque =
-    int32_t(rpdo_mapped[0x2106][5]) * roboteq_current_feedback_to_newton_meters_;
-  feedback.motor_2.torque =
-    int32_t(rpdo_mapped[0x2106][6]) * roboteq_current_feedback_to_newton_meters_;
+  fb.motor_1.pos = rpdo_mapped[0x2106][1];
+  fb.motor_2.pos = rpdo_mapped[0x2106][2];
+
+  fb.motor_1.vel = rpdo_mapped[0x2106][3];
+  fb.motor_2.vel = rpdo_mapped[0x2106][4];
+
+  fb.motor_1.current = rpdo_mapped[0x2106][5];
+  fb.motor_2.current = rpdo_mapped[0x2106][6];
 
   // TODO endians
-  feedback.flags.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
-  feedback.flags.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
+  fb.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
+  fb.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
 
-  feedback.flags.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
-  feedback.flags.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
+  fb.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
+  fb.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
 
   std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
-  feedback.timestamp = last_rpdo_write_timestamp_;
+  fb.timestamp = last_rpdo_write_timestamp_;
 
-  return feedback;
+  return fb;
 }
 
-void RoboteqDriver::SendRoboteqCmd(double channel_1_speed, double channel_2_speed)
+void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed)
 {
-  int32_t channel_1_cmd = channel_1_speed * radians_per_second_to_roboteq_cmd_;
-  int32_t channel_2_cmd = channel_2_speed * radians_per_second_to_roboteq_cmd_;
-
   // TODO!!!!: fix timeouts
 
   try {
-    SyncSdoWrite<int32_t>(0x2000, 1, LimitCmd(channel_1_cmd));
-    SyncSdoWrite<int32_t>(0x2000, 2, LimitCmd(channel_2_cmd));
+    SyncSdoWrite<int32_t>(0x2000, 1, channel_1_speed);
+    SyncSdoWrite<int32_t>(0x2000, 2, channel_2_speed);
   } catch (std::runtime_error & e) {
     throw std::runtime_error("Error when trying to send roboteq command: " + std::string(e.what()));
   }
@@ -252,16 +209,6 @@ bool RoboteqDriver::Boot()
 {
   booted.store(false);
   return FiberDriver::Boot();
-}
-
-int32_t RoboteqDriver::LimitCmd(int32_t cmd)
-{
-  return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
-}
-
-uint8_t RoboteqDriver::GetByte(uint32_t data, uint8_t byte_no)
-{
-  return (data >> (byte_no * 8)) & 0xFF;
 }
 
 void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept

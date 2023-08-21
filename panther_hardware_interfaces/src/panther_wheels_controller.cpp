@@ -15,9 +15,13 @@ int const kSchedPriority = 50;
 
 PantherWheelsController::PantherWheelsController(
   CanSettings can_settings, DrivetrainSettings drivetrain_settings)
+: roboteq_motor_feedback_converter_(drivetrain_settings),
+  roboteq_command_converter_(drivetrain_settings)
 {
   can_settings_ = can_settings;
   drivetrain_settings_ = drivetrain_settings;
+
+  runtime_errors_converter_.SetSurpressedFlags(suppressed_runtime_errors_);
 }
 
 void PantherWheelsController::Initialize()
@@ -61,10 +65,10 @@ void PantherWheelsController::Initialize()
     master_ = std::make_unique<lely::canopen::AsyncMaster>(
       *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
-    front_driver_ = std::make_unique<RoboteqDriver>(
-      drivetrain_settings_, *exec_, *master_, can_settings_.front_driver_can_id);
-    rear_driver_ = std::make_unique<RoboteqDriver>(
-      drivetrain_settings_, *exec_, *master_, can_settings_.rear_driver_can_id);
+    front_driver_ =
+      std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.front_driver_can_id);
+    rear_driver_ =
+      std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.rear_driver_can_id);
 
     // Start the NMT service of the master by pretending to receive a 'reset
     // node' command.
@@ -156,50 +160,71 @@ void PantherWheelsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-RoboteqFeedback PantherWheelsController::Read()
+SystemFeedback PantherWheelsController::ReadSystemFeedback()
 {
-  RoboteqFeedback feedback;
-  RoboteqMotorsFeedback front_driver_feedback = front_driver_->ReadRoboteqMotorsFeedback();
-  RoboteqMotorsFeedback rear_driver_feedback = rear_driver_->ReadRoboteqMotorsFeedback();
+  SystemFeedback feedback;
+
+  RoboteqDriverFeedback front_driver_feedback = front_driver_->ReadRoboteqDriverFeedback();
+  RoboteqDriverFeedback rear_driver_feedback = rear_driver_->ReadRoboteqDriverFeedback();
 
   timespec front_driver_ts = front_driver_feedback.timestamp;
   timespec rear_driver_ts = rear_driver_feedback.timestamp;
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  if (
+  feedback.front.data_too_old =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
-     motors_feedback_timeout_) ||
+     motors_feedback_timeout_);
+  feedback.rear.data_too_old =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
-     motors_feedback_timeout_)) {
-    throw std::runtime_error("Data too old detected, when trying to read roboteq feedback");
-  }
+     motors_feedback_timeout_);
 
-  feedback.fr = front_driver_feedback.motor_1;
-  feedback.fl = front_driver_feedback.motor_2;
-  feedback.rr = rear_driver_feedback.motor_1;
-  feedback.rl = rear_driver_feedback.motor_2;
+  feedback.front.right = roboteq_motor_feedback_converter_.Convert(front_driver_feedback.motor_1);
+  feedback.front.left = roboteq_motor_feedback_converter_.Convert(front_driver_feedback.motor_2);
+  feedback.rear.right = roboteq_motor_feedback_converter_.Convert(rear_driver_feedback.motor_1);
+  feedback.rear.left = roboteq_motor_feedback_converter_.Convert(rear_driver_feedback.motor_2);
 
-  try {
-    CheckErrors(front_driver_feedback.flags);
-    CheckErrors(rear_driver_feedback.flags);
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error(err.what());
+  feedback.front.fault_flags = fault_flags_converter_.Convert(front_driver_feedback.fault_flags);
+  feedback.front.script_flags = script_flags_converter_.Convert(front_driver_feedback.script_flags);
+  feedback.front.runtime_stat_flag_motor_1 =
+    runtime_errors_converter_.Convert(front_driver_feedback.runtime_stat_flag_motor_1);
+  feedback.front.runtime_stat_flag_motor_2 =
+    runtime_errors_converter_.Convert(front_driver_feedback.runtime_stat_flag_motor_2);
+
+  feedback.rear.fault_flags = fault_flags_converter_.Convert(rear_driver_feedback.fault_flags);
+  feedback.rear.script_flags = script_flags_converter_.Convert(rear_driver_feedback.script_flags);
+  feedback.rear.runtime_stat_flag_motor_1 =
+    runtime_errors_converter_.Convert(rear_driver_feedback.runtime_stat_flag_motor_1);
+  feedback.rear.runtime_stat_flag_motor_2 =
+    runtime_errors_converter_.Convert(rear_driver_feedback.runtime_stat_flag_motor_2);
+
+  if (
+    fault_flags_converter_.IsError(front_driver_feedback.fault_flags) ||
+    script_flags_converter_.IsError(front_driver_feedback.script_flags) ||
+    runtime_errors_converter_.IsError(front_driver_feedback.runtime_stat_flag_motor_1) ||
+    runtime_errors_converter_.IsError(front_driver_feedback.runtime_stat_flag_motor_2) ||
+    fault_flags_converter_.IsError(rear_driver_feedback.fault_flags) ||
+    script_flags_converter_.IsError(rear_driver_feedback.script_flags) ||
+    runtime_errors_converter_.IsError(rear_driver_feedback.runtime_stat_flag_motor_1) ||
+    runtime_errors_converter_.IsError(rear_driver_feedback.runtime_stat_flag_motor_2)) {
+    feedback.error_set = true;
   }
 
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
+    feedback.front.fault_flags.can_net_err = front_driver_->get_can_error();
+    feedback.rear.fault_flags.can_net_err = rear_driver_->get_can_error();
     throw std::runtime_error("CAN error detected when trying to read roboteq feedback");
   }
 
   return feedback;
 }
 
-DriversFeedback PantherWheelsController::ReadDriverFeedback()
+DriversState PantherWheelsController::ReadDriversState()
 {
   try {
-    DriversFeedback fb;
-    fb.front = front_driver_->ReadRoboteqDriverFeedback();
-    fb.rear = rear_driver_->ReadRoboteqDriverFeedback();
+    DriversState fb;
+    fb.front = roboteq_driver_state_converter_.Convert(front_driver_->ReadRoboteqDriverState());
+    fb.rear = roboteq_driver_state_converter_.Convert(rear_driver_->ReadRoboteqDriverState());
     return fb;
   } catch (std::runtime_error & e) {
     throw std::runtime_error(
@@ -211,49 +236,20 @@ void PantherWheelsController::WriteSpeed(
   double speed_fl, double speed_fr, double speed_rl, double speed_rr)
 {
   try {
-    front_driver_->SendRoboteqCmd(speed_fl, speed_fr);
+    front_driver_->SendRoboteqCmd(
+      roboteq_command_converter_.Convert(speed_fl), roboteq_command_converter_.Convert(speed_fr));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
   }
   try {
-    rear_driver_->SendRoboteqCmd(speed_rl, speed_rr);
+    rear_driver_->SendRoboteqCmd(
+      roboteq_command_converter_.Convert(speed_rl), roboteq_command_converter_.Convert(speed_rr));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
 
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
     throw std::runtime_error("CAN error detected when trying to write speed commands");
-  }
-}
-
-void PantherWheelsController::CheckErrors(RoboteqFlags flags)
-{
-  flags.runtime_stat_flag_motor_1 &= suppressed_driver_flags_;
-  flags.runtime_stat_flag_motor_2 &= suppressed_driver_flags_;
-
-  if (
-    flags.fault_flags != 0 || flags.script_flags != 0 || flags.runtime_stat_flag_motor_1 != 0 ||
-    flags.runtime_stat_flag_motor_2 != 0) {
-    std::vector<std::string> errors;
-
-    auto errors_fault = CheckFlags(flags.fault_flags, driver_fault_flags_);
-    errors.insert(errors.end(), errors_fault.begin(), errors_fault.end());
-
-    auto errors_script = CheckFlags(flags.script_flags, driver_script_flags_);
-    errors.insert(errors.end(), errors_script.begin(), errors_script.end());
-
-    auto errors_runtime_mot1 = CheckFlags(flags.runtime_stat_flag_motor_1, driver_runtime_errors_);
-    errors.insert(errors.end(), errors_runtime_mot1.begin(), errors_runtime_mot1.end());
-
-    auto errors_runtime_mot2 = CheckFlags(flags.runtime_stat_flag_motor_2, driver_runtime_errors_);
-    errors.insert(errors.end(), errors_runtime_mot2.begin(), errors_runtime_mot2.end());
-
-    std::stringstream detected_errors;
-    for (const auto & e : errors) {
-      detected_errors << e << "\n";
-    }
-
-    throw std::runtime_error("Flags error: " + detected_errors.str());
   }
 }
 

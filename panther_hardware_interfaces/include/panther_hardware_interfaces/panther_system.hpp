@@ -111,6 +111,8 @@ protected:
   void reset_publishers();
   void destroy_node();
   std::atomic_bool stop_executor_ = false;
+
+  bool error_ = false;
 };
 
 }  // namespace panther_hardware_interfaces
