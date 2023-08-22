@@ -136,8 +136,8 @@ class ADCNode:
 
             self._publish_battery_msg(
                 self._battery_pub,
-                (V_bat_1 + V_bat_2) / 2.0,
-                (temp_bat_1 + temp_bat_2) / 2.0,
+                max(V_bat_1, V_bat_2),
+                max(temp_bat_1, temp_bat_2),
                 -(I_bat_1 + I_bat_2) + I_charge_bat_1 + I_charge_bat_2,
                 I_charge_bat_1 + I_charge_bat_2,
             )
@@ -216,10 +216,26 @@ class ADCNode:
             if self._charger_connected:
                 if battery_msg.percentage == 1.0:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
+                    rospy.loginfo_throttle(
+                        60.0,
+                        f'[{rospy.get_name()}] The battery is fully charged. '
+                        f'The robot can be disconnected from the charger.',
+                    )
                 elif I_bat_mean > self._I_bat_charging_thresh[bat_pub]:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
+                    rospy.loginfo_throttle(
+                        1800.0,
+                        f'[{rospy.get_name()}] Robot charging process update. '
+                        f'Battery percentage: {battery_msg.percentage * 100}%',
+                    )
                 else:
                     battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
+                    rospy.logwarn_throttle(
+                        5.0,
+                        f'[{rospy.get_name()}] The charger has been plugged in, '
+                        f'but the charging process has not started. '
+                        f'Verify whether the charger is connected to a power source.',
+                    )
             else:
                 battery_msg.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
 
@@ -228,12 +244,12 @@ class ADCNode:
             if V_bat_mean < self.V_BAT_FATAL_MIN:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_DEAD
                 error_msg = 'The battery voltage is critically low!'
-            elif V_bat_mean > self.V_BAT_FATAL_MAX:
-                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
-                error_msg = 'The battery overvoltage!'
             elif temp_bat >= self.OVERHEAT_BAT_TEMP:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERHEAT
                 error_msg = 'The battery is overheating!'
+            elif V_bat_mean > self.V_BAT_FATAL_MAX:
+                battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_OVERVOLTAGE
+                error_msg = 'The battery overvoltage!'
             elif temp_bat <= self.LOW_BAT_TEMP:
                 battery_msg.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_COLD
                 error_msg = 'The battery is too cold! It may result in reduced effectiveness.'

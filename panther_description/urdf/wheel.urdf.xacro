@@ -39,14 +39,14 @@
       <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
-          <mesh filename="file://$(find ${wheel_config['mesh_package']})/${wheel_config['folder_path']}/${prefix}_wheel.dae" />
+          <mesh filename="package://${wheel_config['mesh_package']}/${wheel_config['folder_path']}/${prefix}_wheel.dae" />
         </geometry>
       </visual>
 
       <collision>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
-          <mesh filename="file://$(find ${wheel_config['mesh_package']})/${wheel_config['folder_path']}/wheel_collision.stl" />
+          <mesh filename="package://${wheel_config['mesh_package']}/${wheel_config['folder_path']}/wheel_collision.stl" />
         </geometry>
       </collision>
 
