@@ -39,7 +39,7 @@ For a `/joint_states` topic, message carries given data:
 
 - `~base_link_frame` [*string*, default: **base_link**]: the name of the `base_link` frame.
 - `~can_interface` [*string*, default: **panther_can**]: the name of the socket CAN interface.
-- `~eds_file` [*string*, default: **None**]: required path to eds file containing CANopen configuration for Roboteq motor controllers.
+- `~eds_file` [*string*, default: **None**]: required path to eds file containing CANopen configuration for the Roboteq motor controllers.
 - `~encoder_resolution` [*int*, default: **1600**]: resolution of motor encoder in **[PPR]**.
 - `~gear_ratio` [*float*, default: **30.08**]: wheel gear ratio.
 - `~kinematics` [*string*, default: **differential**]: kinematics type, possible are **differential** and **mecanum**.
