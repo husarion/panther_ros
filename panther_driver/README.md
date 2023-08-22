@@ -23,7 +23,7 @@ Node responsible for communication with motor controllers and computing inverse 
 - `/tf` [*tf2_msgs/TFMessage*]: transform between `odom` and `base_link` frames.
 
 For a `/joint_states` topic, message carries given data:
-- `position = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` wheel position in **[rad]**, ranging from **[-&pi;]** to **[&pi;]**.
+- `position = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` wheel position in **[rad]**, ranging from **[-pi, pi]**.
 - `velocity = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` wheels velocity in **[rad/s]**.
 - `effort = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Approximate motor torque in **[Nm]**.
 
