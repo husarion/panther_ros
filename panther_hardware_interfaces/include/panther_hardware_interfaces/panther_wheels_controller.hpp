@@ -14,7 +14,7 @@
 #include <lely/io2/sys/timer.hpp>
 
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
-#include <panther_hardware_interfaces/roboteq_feedback_converters.hpp>
+#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces
 {

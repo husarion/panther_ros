@@ -35,7 +35,7 @@ add_library(
   src/panther_system.cpp
   src/panther_wheels_controller.cpp
   src/roboteq_driver.cpp
-  src/roboteq_feedback_converters.cpp
+  src/roboteq_data_converters.cpp
 )
 target_include_directories(
   ${PROJECT_NAME}
