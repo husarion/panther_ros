@@ -35,7 +35,7 @@ Safety thresholds used in calculating the various values describing the state of
 | `LOW_BAT_TEMP`             | -10.0 | **&deg;C** |
 | `OVERHEAT_BAT_TEMP`        | 45.0  | **&deg;C** |
 
-**Calculating individual values for a Single Battery**
+**Calculating Individual vVlues for a Single Battery**
 
 | Value                                       | Variable name                                                 | Method of calculating                                                              | Comment                                                           | Published on |
 | ------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------ |
@@ -46,7 +46,7 @@ Safety thresholds used in calculating the various values describing the state of
 | Current (charge)                            | `I_charge`                                                    | `I_charge_bat_1 + I_charge_bat_2`, averaged using a 20-point moving average.       | As above                                                          | -            |
 | Percentage                                  | `percentage`                                                  | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)`                                   | -                                                                 | `/battery`   |  |
 
-**Calculating individual values for a Double Battery**
+**Calculating Individual Values for a Double Battery**
 
 | Value                                    | Variable name                               | Method of calculating                                                                                         | Published on                           |
 | ---------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
@@ -62,7 +62,7 @@ Safety thresholds used in calculating the various values describing the state of
 | Current (charge)                         | `I_charge`                                  | `I_charge_bat_1` or `I_charge_bat_2`, averaged using a 20-point moving average.                               | -                                      |
 | Percentage                               | `percentage`                                | `(V_bat - V_BAT_MIN) / (V_BAT_FULL - V_BAT_MIN)` <br> *For `V_bat`, `V_bat_1` or `V_bat_2`*                   | `/battery`, `/battery_1`, `/battery_2` |
 
-##### Value of `power_supply_health` Field
+**Value of `power_supply_health` Field**
 
 | Status                | Method of verification                                | Condition                      | Procedure                                                                                                                                     |
 | --------------------- | ----------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -76,7 +76,7 @@ Safety thresholds used in calculating the various values describing the state of
 | WATCHDOG_TIMER_EXPIRE | -                                                     | -                              | -                                                                                                                                             |
 | SAFETY_TIMER_EXPIRE   | -                                                     | -                              | -                                                                                                                                             |
 
-##### Value of `power_supply_status` Field
+**Value of `power_supply_status` Field**
 
 | State        | Condition                                                   | Comment                                                                                                                                                                                                     |
 | ------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
