@@ -83,7 +83,7 @@ Default animations can be found in the table below:
 | 6   | LOW_BATTERY       | 2        | two orange stripes moving towards the center, repeats twice |
 | 7   | CRITICAL_BATTERY  | 2        | two red stripes moving towards the center, repeats twice    |
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing Battery percentage and filling back to the center, color changes from red to green |
-| 9   | CHARGING_BATTERY  | 3        | whole bumper blinks with a duty cycle proportional to the battery percentage. Short blinking means low Battery, and no blinking means full Battery. The color changes from red to green |
+| 9   | CHARGING_BATTERY  | 3        | whole bumper blinks with a duty cycle proportional to the Battery percentage. Short blinking means low Battery, and no blinking means full Battery. The color changes from red to green |
 
 ### Animation types
 
@@ -108,11 +108,11 @@ Animation of type `image_animation`, returns frames to display based on a suppli
 
 #### BatteryAnimation
 
-Animation of type `battery_animation` returning frame to display based on `param` value representing battery percentage. The animation displays two stripes moving towards the edges, stopping at a point representing the Battery percentage, and filling back to the center. The color changes from red (Battery discharged) to green (Battery full).
+Animation of type `battery_animation` returning frame to display based on `param` value representing Battery percentage. The animation displays two stripes moving towards the edges, stopping at a point representing the Battery percentage, and filling back to the center. The color changes from red (Battery discharged) to green (Battery full).
 
 ### ChargingAnimation
 
-Animation of type `charging_animation` returning frame to display based on `param` value representing battery percentage. Displays a solid color with a duty cycle proportional to the Battery percentage. The color is changing from red (battery discharged) to green (battery fully charged).
+Animation of type `charging_animation` returning frame to display based on `param` value representing Battery percentage. Displays a solid color with a duty cycle proportional to the Battery percentage. The color is changing from red (Battery discharged) to green (Battery fully charged).
 
 ### Defining Animations
 
