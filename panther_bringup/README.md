@@ -2,7 +2,7 @@
 
 The package contains the default configuration and launch files necessary to start all the basic functionalities of the Husarion Panther robot.
 
-## Default nodes launched
+## Default Nodes Launched
 
 In cases where different nodes are used depending on the robot version, **<= 1.06** means a node is used in Husarion Panther 1.06 and older versions. **>= 1.2** means Husarion Panther 1.2 and newer is expected.
 
@@ -16,10 +16,10 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 - `phidgets_spatial_node` [*nodelet/nodelet*, type: *[phidgets_spatial/PhidgetsSpatialNodelet](https://github.com/ros-drivers/phidgets_drivers/blob/noetic/phidgets_spatial/src/phidgets_spatial_nodelet.cpp)*]: Phidget Spatial IMU ROS driver.
 - `power_control_node` [<= 1.06 *[panther_power_control/relays_node.py](../panther_power_control/src/relays_node.py)*, >= 1.2 *[panther_power_control/power_board_node.py](../panther_power_control/src/power_board_node.py)*]: node responsible for power management of the Husarion Panther robot. For more information, refer to [panther_power_control](../panther_power_control/README.md).
 - `robot_state_publisher` [*[robot_state_publisher/robot_state_publisher](https://github.com/ros/robot_state_publisher/blob/noetic-devel/src/robot_state_publisher_node.cpp)*]: node publishing description and transformations of the Husarion Panther robot. For more information, refer to [panther_description](../panther_description/README.md).
-- `system_status_node` [*[panther_manager/system_status_node.py](../panther_manager/src/system_status_node.py)*]: publishes information about the status of a Build-in Computer.
+- `system_status_node` [*[panther_manager/system_status_node.py](../panther_manager/src/system_status_node.py)*]: node publishing information about the status of a Build-in Computer.
 - `welcome_msg_node` [*[panther_bringup/welcome_msg_node.py](../panther_bringup/src/welcome_msg_node.py)*]: user-friendly welcome message with basic information about the given robot.
 
-## Bringup launch arguments
+## Bringup Launch Arguments
 
 - `bt_project_file` [*string*, default=**$(find panther_manager)/config/Panther106BT.btproj**]: path to BehaviorTree project used by `panther_manager`. The default value of this parameter depends on the `panther_version` argument. For version 1.2 and above, it is **(find panther_manager)/config/Panther12BT.btproj**. Otherwise: **(find panther_manager)/config/Panther106BT.btproj**
 - `disable_manager` [*bool*, default=**false**]: allows disabling `panther_manager`, used for testing purposes.
@@ -36,7 +36,7 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 - `wheel_config_file` [*string*, default=**$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
 - `wheel_type` [*string*, default=**WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_file` argument accordingly).
 
-## Expected launch behavior
+## Expected Launch Behavior
 
 If the environment variable `PANTHER_HW_CONFIG_CORRECT` is set to `true` the robot will typically start. If it is set to `false` all ROS nodes will be prevented from starting. In such case, a welcome message will be displayed, followed by a warning:
 ```
@@ -73,6 +73,6 @@ The serial number and robot version are changed according to the parameters of y
 - `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
 - `/panther/robot_version` [*string*, default: **1.0**]: robot hardware revision.
 
-#### Environment variables
+#### Environment Variables
 
 - `PANTHER_HW_CONFIG_CORRECT` [*string*, default: **None**]: information whether hardware is correctly configured.

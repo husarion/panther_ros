@@ -8,18 +8,18 @@ Package containing nodes monitoring and publishing the internal battery state of
 
 Publishes battery state read from ADC unit and thermistors. Available from Panther version 1.2. Voltage, current, and temperature are smoothed out using a moving average.
 
-#### Publishes
+#### Subscribers
+
+- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with the charging current.
+
+#### Publishers
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if the panther has two batteries. In the case of single battery values only for the single one.
 - `/panther/battery_1` [*sensor_msgs/BatteryState*]: first battery state. Published if second battery detected.
 - `/panther/battery_2` [*sensor_msgs/BatteryState*]: second battery state. Published if second battery detected.
 
-#### Subscribes
-
-- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
-- `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with the charging current.
-
-#### Battery statuses
+#### Battery Statuses
 
 The battery status is described with two [Battery State](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/BatteryState.html) message fields: `power_supply_status` and `power_supply_health`. **This information is subsequently retrieved in the panther_manager node, where decisions related to safety procedures are made**.
 
@@ -92,10 +92,10 @@ The method of calculating individual values:
 
 Node publishing Panther battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurements are smoothed out using a moving average. Current accounts only for motor controllers.
 
-#### Publishes
-
-- `/panther/battery` [*sensor_msgs/BatteryState*]: battery state estimated from motor controllers.
-
-#### Subscribes
+#### Subscribers
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+
+#### Publishers
+
+- `/panther/battery` [*sensor_msgs/BatteryState*]: battery state estimated from motor controllers.
