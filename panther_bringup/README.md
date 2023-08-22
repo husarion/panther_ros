@@ -69,10 +69,10 @@ The serial number and robot version are changed according to the parameters of y
 
 #### Parameters
 
-- `~exit_on_wrong_hw` [*bool*, default:  **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
-- `/panther/serial_no` [*string*, default:  **----**]: serial number of a robot.
-- `/panther/robot_version` [*string*, default:  **1.0**]: robot hardware revision.
+- `~exit_on_wrong_hw` [*bool*, default: **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
+- `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
+- `/panther/robot_version` [*string*, default: **1.0**]: robot hardware revision.
 
 #### Environment Variables
 
-- `PANTHER_HW_CONFIG_CORRECT` [*string*, default:  **None**]: information whether hardware is correctly configured.
+- `PANTHER_HW_CONFIG_CORRECT` [*string*, default: **None**]: information whether hardware is correctly configured.
