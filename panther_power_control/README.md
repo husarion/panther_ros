@@ -13,7 +13,7 @@ Node responsible for management of the safety board and the power board. Availab
 - `/cmd_vel` [*geometry_msgs/Twist*]: observes if velocity commands are sent to the robot. Prevents disabling E-stop if published.
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: checks for errors on motor controllers.
 
-#### Service Servers
+#### Publishers
 
 - `/panther/hardware/e_stop` [*std_msgs/Bool*, latched: **true**]: the current state of the E-stop.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*, latched: **true**]: publishes state of panther IO pins. Message fields are related to:
