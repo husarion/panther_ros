@@ -21,20 +21,20 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 
 ## Bringup Launch Arguments
 
-- `bt_project_file` [*string*, default:**$(find panther_manager)/config/Panther106BT.btproj**]: path to BehaviorTree project used by `panther_manager`. The default value of this parameter depends on the `panther_version` argument. For version 1.2 and above, it is **(find panther_manager)/config/Panther12BT.btproj**. Otherwise: **(find panther_manager)/config/Panther106BT.btproj**
-- `disable_manager` [*bool*, default:**false**]: allows disabling `panther_manager`, used for testing purposes.
-- `exit_on_wrong_hw` [*bool*, default:**true**]: if set to **true** and incorrect hardware is detected, the entire roslaunch is killed. If set to **false** does not launch nodes and only spins the dummy `welcome_msg_node`.
-- `namespace` [*string*, default:**panther**]: namespace to use with robot.
-- `panther_common_config_file` [*string*, default:**$(find panther_bringup)/config/panther_common.yaml**]: path to YAML file with standard parameters used by the `panther_driver/driver_node`.
-- `panther_version` [*float*, default:**1.0**]: robot version parsed using `PANTHER_ROBOT_VERSION` environmental variable.
-- `publish_robot_state` [*bool*, default:**true**]: whether to publish the default Panther robot description.
-- `robot_description` [*string*, default:**xacro $(find panther_description)/urdf/panther.urdf.xacro**]: robot description in URDF format. URDF itself contains its own arguments that are responsible for wheel selection and IMU position. If you use Xacro alongside URDF add the `xacro` command before the argument to parse the URDF file.
-- `shutdown_hosts_config_file` [*string*, default:**$(find panther_bringup)/config/shutdown_hosts.yaml**]: path to YAML file with description of hosts to shutdown. For more information, see [panther_manager](../panther_manager/README.md).
-- `test_animations` [*bool*, default:**false**]: enables service `/panther/lights/controller/set/image_animation` allowing to test animations based on provided images.
-- `user_animations_file` [*string*, default:**None**]: optional parameter with a path to YAML file with user-defined animations. 
-- `use_ekf` [*bool*, default:**true**]: enable or disable Extended Kalman Filter. Keep in mind that parameters in [panther_common.yaml](./config/panther_common.yaml) and in [ekf_config.yaml](./config/ekf_config.yaml) are separate and are not affected by this parameter. Especially, parameters such as `publish_tf` and TF frames are separate for both nodes and have to be changed independently.
-- `wheel_config_file` [*string*, default:**$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
-- `wheel_type` [*string*, default:**WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_file` argument accordingly).
+- `bt_project_file` [*string*, default: **$(find panther_manager)/config/Panther106BT.btproj**]: path to BehaviorTree project used by `panther_manager`. The default value of this parameter depends on the `panther_version` argument. For version 1.2 and above, it is **(find panther_manager)/config/Panther12BT.btproj**. Otherwise: **(find panther_manager)/config/Panther106BT.btproj**
+- `disable_manager` [*bool*, default: **false**]: allows disabling `panther_manager`, used for testing purposes.
+- `exit_on_wrong_hw` [*bool*, default: **true**]: if set to **true** and incorrect hardware is detected, the entire roslaunch is killed. If set to **false** does not launch nodes and only spins the dummy `welcome_msg_node`.
+- `namespace` [*string*, default: **panther**]: namespace to use with robot.
+- `panther_common_config_file` [*string*, default: **$(find panther_bringup)/config/panther_common.yaml**]: path to YAML file with standard parameters used by the `panther_driver/driver_node`.
+- `panther_version` [*float*, default: **1.0**]: robot version parsed using `PANTHER_ROBOT_VERSION` environmental variable.
+- `publish_robot_state` [*bool*, default: **true**]: whether to publish the default Panther robot description.
+- `robot_description` [*string*, default: **xacro $(find panther_description)/urdf/panther.urdf.xacro**]: robot description in URDF format. URDF itself contains its own arguments that are responsible for wheel selection and IMU position. If you use Xacro alongside URDF add the `xacro` command before the argument to parse the URDF file.
+- `shutdown_hosts_config_file` [*string*, default: **$(find panther_bringup)/config/shutdown_hosts.yaml**]: path to YAML file with description of hosts to shutdown. For more information, see [panther_manager](../panther_manager/README.md).
+- `test_animations` [*bool*, default: **false**]: enables service `/panther/lights/controller/set/image_animation` allowing to test animations based on provided images.
+- `user_animations_file` [*string*, default: **None**]: optional parameter with a path to YAML file with user-defined animations. 
+- `use_ekf` [*bool*, default: **true**]: enable or disable Extended Kalman Filter. Keep in mind that parameters in [panther_common.yaml](./config/panther_common.yaml) and in [ekf_config.yaml](./config/ekf_config.yaml) are separate and are not affected by this parameter. Especially, parameters such as `publish_tf` and TF frames are separate for both nodes and have to be changed independently.
+- `wheel_config_file` [*string*, default: **$(find panther_description)/config/WH01.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
+- `wheel_type` [*string*, default: **WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_file` argument accordingly).
 
 ## Expected Launch Behavior
 
@@ -69,10 +69,10 @@ The serial number and robot version are changed according to the parameters of y
 
 #### Parameters
 
-- `~exit_on_wrong_hw` [*bool*, default: **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
-- `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
-- `/panther/robot_version` [*string*, default: **1.0**]: robot hardware revision.
+- `~exit_on_wrong_hw` [*bool*, default:  **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
+- `/panther/serial_no` [*string*, default:  **----**]: serial number of a robot.
+- `/panther/robot_version` [*string*, default:  **1.0**]: robot hardware revision.
 
 #### Environment Variables
 
-- `PANTHER_HW_CONFIG_CORRECT` [*string*, default: **None**]: information whether hardware is correctly configured.
+- `PANTHER_HW_CONFIG_CORRECT` [*string*, default:  **None**]: information whether hardware is correctly configured.
