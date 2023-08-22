@@ -22,17 +22,18 @@ struct RoboteqDriverState
   int16_t bat_amps_2;
 };
 
-struct RoboteqMotorFeedback
+struct RoboteqMotorState
 {
   int32_t pos;
   int32_t vel;
   int32_t current;
 };
 
+// TODO rename
 struct RoboteqDriverFeedback
 {
-  RoboteqMotorFeedback motor_1;
-  RoboteqMotorFeedback motor_2;
+  RoboteqMotorState motor_1;
+  RoboteqMotorState motor_2;
 
   uint8_t fault_flags;
   uint8_t script_flags;

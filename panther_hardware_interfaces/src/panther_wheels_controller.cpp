@@ -15,13 +15,12 @@ int const kSchedPriority = 50;
 
 PantherWheelsController::PantherWheelsController(
   CanSettings can_settings, DrivetrainSettings drivetrain_settings)
-: roboteq_motor_feedback_converter_(drivetrain_settings),
+: front_data_(drivetrain_settings),
+  rear_data_(drivetrain_settings),
   roboteq_command_converter_(drivetrain_settings)
 {
   can_settings_ = can_settings;
   drivetrain_settings_ = drivetrain_settings;
-
-  runtime_errors_converter_.SetSurpressedFlags(suppressed_runtime_errors_);
 }
 
 void PantherWheelsController::Initialize()
@@ -160,10 +159,8 @@ void PantherWheelsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-SystemFeedback PantherWheelsController::ReadSystemFeedback()
+void PantherWheelsController::UpdateSystemFeedback()
 {
-  SystemFeedback feedback;
-
   RoboteqDriverFeedback front_driver_feedback = front_driver_->ReadRoboteqDriverFeedback();
   RoboteqDriverFeedback rear_driver_feedback = rear_driver_->ReadRoboteqDriverFeedback();
 
@@ -172,60 +169,41 @@ SystemFeedback PantherWheelsController::ReadSystemFeedback()
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  feedback.front.data_too_old =
+  bool front_data_too_old =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
      motors_feedback_timeout_);
-  feedback.rear.data_too_old =
+  bool rear_data_too_old =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
      motors_feedback_timeout_);
 
-  feedback.front.right = roboteq_motor_feedback_converter_.Convert(front_driver_feedback.motor_1);
-  feedback.front.left = roboteq_motor_feedback_converter_.Convert(front_driver_feedback.motor_2);
-  feedback.rear.right = roboteq_motor_feedback_converter_.Convert(rear_driver_feedback.motor_1);
-  feedback.rear.left = roboteq_motor_feedback_converter_.Convert(rear_driver_feedback.motor_2);
+  front_data_.SetMotorStates(
+    front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_too_old);
+  rear_data_.SetMotorStates(
+    rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_too_old);
 
-  feedback.front.fault_flags = fault_flags_converter_.Convert(front_driver_feedback.fault_flags);
-  feedback.front.script_flags = script_flags_converter_.Convert(front_driver_feedback.script_flags);
-  feedback.front.runtime_stat_flag_motor_1 =
-    runtime_errors_converter_.Convert(front_driver_feedback.runtime_stat_flag_motor_1);
-  feedback.front.runtime_stat_flag_motor_2 =
-    runtime_errors_converter_.Convert(front_driver_feedback.runtime_stat_flag_motor_2);
+  bool front_can_error = front_driver_->get_can_error();
+  bool rear_can_error = rear_driver_->get_can_error();
 
-  feedback.rear.fault_flags = fault_flags_converter_.Convert(rear_driver_feedback.fault_flags);
-  feedback.rear.script_flags = script_flags_converter_.Convert(rear_driver_feedback.script_flags);
-  feedback.rear.runtime_stat_flag_motor_1 =
-    runtime_errors_converter_.Convert(rear_driver_feedback.runtime_stat_flag_motor_1);
-  feedback.rear.runtime_stat_flag_motor_2 =
-    runtime_errors_converter_.Convert(rear_driver_feedback.runtime_stat_flag_motor_2);
+  front_data_.SetFlags(
+    front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
+    front_driver_feedback.runtime_stat_flag_motor_1,
+    front_driver_feedback.runtime_stat_flag_motor_2, front_can_error);
 
-  if (
-    fault_flags_converter_.IsError(front_driver_feedback.fault_flags) ||
-    script_flags_converter_.IsError(front_driver_feedback.script_flags) ||
-    runtime_errors_converter_.IsError(front_driver_feedback.runtime_stat_flag_motor_1) ||
-    runtime_errors_converter_.IsError(front_driver_feedback.runtime_stat_flag_motor_2) ||
-    fault_flags_converter_.IsError(rear_driver_feedback.fault_flags) ||
-    script_flags_converter_.IsError(rear_driver_feedback.script_flags) ||
-    runtime_errors_converter_.IsError(rear_driver_feedback.runtime_stat_flag_motor_1) ||
-    runtime_errors_converter_.IsError(rear_driver_feedback.runtime_stat_flag_motor_2)) {
-    feedback.error_set = true;
-  }
+  rear_data_.SetFlags(
+    rear_driver_feedback.fault_flags, rear_driver_feedback.script_flags,
+    rear_driver_feedback.runtime_stat_flag_motor_1, rear_driver_feedback.runtime_stat_flag_motor_2,
+    rear_can_error);
 
-  if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
-    feedback.front.fault_flags.can_net_err = front_driver_->get_can_error();
-    feedback.rear.fault_flags.can_net_err = rear_driver_->get_can_error();
+  if (front_can_error || rear_can_error) {
     throw std::runtime_error("CAN error detected when trying to read roboteq feedback");
   }
-
-  return feedback;
 }
 
-DriversState PantherWheelsController::ReadDriversState()
+void PantherWheelsController::UpdateDriversState()
 {
   try {
-    DriversState fb;
-    fb.front = roboteq_driver_state_converter_.Convert(front_driver_->ReadRoboteqDriverState());
-    fb.rear = roboteq_driver_state_converter_.Convert(rear_driver_->ReadRoboteqDriverState());
-    return fb;
+    front_data_.SetDriverState(front_driver_->ReadRoboteqDriverState());
+    rear_data_.SetDriverState(rear_driver_->ReadRoboteqDriverState());
   } catch (std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to read roboteq drivers feedback: " + std::string(e.what()));
@@ -248,6 +226,7 @@ void PantherWheelsController::WriteSpeed(
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
 
+  // TODO
   if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
     throw std::runtime_error("CAN error detected when trying to write speed commands");
   }

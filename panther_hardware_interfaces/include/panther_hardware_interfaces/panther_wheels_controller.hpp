@@ -19,7 +19,6 @@
 namespace panther_hardware_interfaces
 {
 
-
 struct CanSettings
 {
   uint8_t master_can_id;
@@ -59,7 +58,7 @@ public:
    * driver was set or can error was detected
    * @return roboteq feedback
    */
-  SystemFeedback ReadSystemFeedback();
+  void UpdateSystemFeedback();
 
   /**
    * @brief Reads current roboteq driver feedback
@@ -67,7 +66,10 @@ public:
    * @exception std::runtime_error if there was error
    * @return roboteq driver feedback
    */
-  DriversState ReadDriversState();
+  void UpdateDriversState();
+
+  const RoboteqData & GetFrontData() { return front_data_; }
+  const RoboteqData & GetRearData() { return rear_data_; }
 
   /**
    * @brief Write speed commands to motors
@@ -120,17 +122,10 @@ private:
   // TODO: currently drivers set to 10Hz, change it after setting 100Hz
   std::chrono::milliseconds motors_feedback_timeout_ = std::chrono::milliseconds(150);
 
-  // Suppress flags:
-  // safety_stop_active
-  // amps_limit_active
-  uint8_t suppressed_runtime_errors_ = 0b11110110;
+  RoboteqData front_data_;
+  RoboteqData rear_data_;
 
-  RoboteqMotorFeedbackConverter roboteq_motor_feedback_converter_;
   RoboteqCommandConverter roboteq_command_converter_;
-  FaultFlagsConverter fault_flags_converter_;
-  ScriptFlagsConverter script_flags_converter_;
-  RuntimeErrorsConverter runtime_errors_converter_;
-  RoboteqDriverStateConverter roboteq_driver_state_converter_;
 };
 
 }  // namespace panther_hardware_interfaces

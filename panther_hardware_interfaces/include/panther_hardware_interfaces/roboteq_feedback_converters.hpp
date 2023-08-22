@@ -24,71 +24,39 @@ struct DrivetrainSettings
   float max_rpm_motor_speed;
 };
 
-struct MotorFeedback
-{
-  float pos;
-  float vel;
-  float torque;
-};
-
-struct DriverFeedback
-{
-  MotorFeedback right;
-  MotorFeedback left;
-
-  panther_msgs::msg::FaultFlag fault_flags;
-  panther_msgs::msg::ScriptFlag script_flags;
-  panther_msgs::msg::RuntimeError runtime_stat_flag_motor_1;
-  panther_msgs::msg::RuntimeError runtime_stat_flag_motor_2;
-
-  timespec timestamp;
-
-  bool data_too_old;
-};
-
-struct SystemFeedback
-{
-  DriverFeedback front;
-  DriverFeedback rear;
-
-  bool error_set;
-};
-
-// TODO change names
-struct DriverState
-{
-  float temp;
-  float voltage;
-  float bat_amps_1;
-  float bat_amps_2;
-};
-
-struct DriversState
-{
-  DriverState front, rear;
-};
-
-class RoboteqMotorFeedbackConverter
+class MotorState
 {
 public:
-  RoboteqMotorFeedbackConverter(DrivetrainSettings drivetrain_settings);
+  MotorState(DrivetrainSettings drivetrain_settings);
 
-  MotorFeedback Convert(RoboteqMotorFeedback fb);
+  void SetData(RoboteqMotorState fb) { last_state_ = fb; };
+
+  float GetPosition() const { return last_state_.pos * roboteq_pos_feedback_to_radians_; }
+  float GetVelocity() const
+  {
+    return last_state_.vel * roboteq_vel_feedback_to_radians_per_second_;
+  }
+  float GetTorque() const
+  {
+    return last_state_.current * roboteq_current_feedback_to_newton_meters_;
+  }
 
 private:
   float roboteq_pos_feedback_to_radians_;
   float roboteq_vel_feedback_to_radians_per_second_;
   float roboteq_current_feedback_to_newton_meters_;
+
+  RoboteqMotorState last_state_;
 };
 
 class RoboteqCommandConverter
 {
 public:
   RoboteqCommandConverter(DrivetrainSettings drivetrain_settings);
-  int32_t Convert(double cmd) { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
+  int32_t Convert(double cmd) const { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
 
 private:
-  inline int32_t LimitCmd(int32_t cmd)
+  inline int32_t LimitCmd(int32_t cmd) const
   {
     return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
   }
@@ -98,18 +66,25 @@ private:
 };
 
 // TODO restructure panther_msgs
-class FaultFlagsConverter
+class FaultFlag
 {
 public:
-  FaultFlagsConverter() {}
+  FaultFlag() {}
 
-  panther_msgs::msg::FaultFlag Convert(uint8_t fault_flags);
+  panther_msgs::msg::FaultFlag GetMessage() const;
+  void SetData(uint8_t fault_flags, bool can_error)
+  {
+    fault_flags_ = fault_flags;
+    can_error_ = can_error;
+  }
 
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
-  bool IsError(uint8_t fault_flags) { return (fault_flags & surpressed_flags_) != 0; }
+  bool IsError() const { return (fault_flags_ & surpressed_flags_) != 0; }
 
 private:
   uint8_t surpressed_flags_ = 0b11111111;
+  uint8_t fault_flags_ = 0b00000000;
+  bool can_error_ = false;
 
   // TODO
   std::vector<std::string> driver_fault_flags_ = {
@@ -120,18 +95,20 @@ private:
   };
 };
 
-class ScriptFlagsConverter
+class ScriptFlag
 {
 public:
-  ScriptFlagsConverter() {}
+  ScriptFlag() {}
 
-  panther_msgs::msg::ScriptFlag Convert(uint8_t fault_flags);
+  panther_msgs::msg::ScriptFlag GetMessage() const;
+  void SetData(uint8_t script_flags) { script_flags_ = script_flags; }
 
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
-  bool IsError(uint8_t fault_flags) { return (fault_flags & surpressed_flags_) != 0; }
+  bool IsError() const { return (script_flags_ & surpressed_flags_) != 0; }
 
 private:
   uint8_t surpressed_flags_ = 0b11111111;
+  uint8_t script_flags_ = 0b00000000;
 
   // TODO
   std::vector<std::string> driver_script_flags_ = {
@@ -141,18 +118,20 @@ private:
   };
 };
 
-class RuntimeErrorsConverter
+class RuntimeError
 {
 public:
-  RuntimeErrorsConverter() {}
+  RuntimeError() {}
 
-  panther_msgs::msg::RuntimeError Convert(uint8_t fault_flags);
+  panther_msgs::msg::RuntimeError GetMessage() const;
+  void SetData(uint8_t runtime_errors_flags) { runtime_errors_flags_ = runtime_errors_flags; }
 
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
-  bool IsError(uint8_t fault_flags) { return (fault_flags & surpressed_flags_) != 0; }
+  bool IsError() const { return (runtime_errors_flags_ & surpressed_flags_) != 0; }
 
 private:
   uint8_t surpressed_flags_ = 0b11111111;
+  uint8_t runtime_errors_flags_ = 0b00000000;
 
   // TODO
   std::vector<std::string> driver_runtime_errors_ = {
@@ -166,12 +145,84 @@ private:
   };
 };
 
-class RoboteqDriverStateConverter
+class DriverState
 {
 public:
-  RoboteqDriverStateConverter() {}
+  DriverState() {}
 
-  DriverState Convert(RoboteqDriverState state);
+  void SetData(RoboteqDriverState state) { last_state_ = state; };
+
+  float GetTemperature() const { return last_state_.temp; }
+  float GetVoltage() const { return last_state_.voltage / 10; }
+  float GetCurrent() const { return last_state_.bat_amps_1 / 10.0 + last_state_.bat_amps_2 / 10.0; }
+
+private:
+  RoboteqDriverState last_state_;
+};
+
+class RoboteqData
+{
+public:
+  RoboteqData(DrivetrainSettings drivetrain_settings)
+  : left_state_(drivetrain_settings), right_state_(drivetrain_settings)
+  {
+    left_runtime_error_.SetSurpressedFlags(suppressed_runtime_errors_);
+    right_runtime_error_.SetSurpressedFlags(suppressed_runtime_errors_);
+  }
+
+  void SetMotorStates(RoboteqMotorState left_state, RoboteqMotorState right_state, bool old_data)
+  {
+    left_state_.SetData(left_state);
+    right_state_.SetData(right_state);
+    old_data_ = old_data;
+  }
+
+  void SetFlags(
+    uint8_t fault_flags, uint8_t script_flags, uint8_t left_runtime_errors_flags,
+    uint8_t right_runtime_errors_flags, bool can_error)
+  {
+    fault_flags_.SetData(fault_flags, can_error);
+    script_flags_.SetData(script_flags);
+    left_runtime_error_.SetData(left_runtime_errors_flags);
+    right_runtime_error_.SetData(right_runtime_errors_flags);
+  }
+
+  void SetDriverState(RoboteqDriverState state) { driver_state_.SetData(state); }
+
+  bool IsError() const
+  {
+    return fault_flags_.IsError() || script_flags_.IsError() || left_runtime_error_.IsError() ||
+           right_runtime_error_.IsError() || old_data_;
+  }
+
+  bool IsDataOld() const { return old_data_; }
+
+  const MotorState & GetLeftMotorState() const { return left_state_; }
+  const MotorState & GetRightMotorState() const { return right_state_; }
+  const DriverState & GetDriverState() const { return driver_state_; }
+
+  const FaultFlag & GetFaultFlag() const { return fault_flags_; }
+  const ScriptFlag & GetScriptFlag() const { return script_flags_; }
+  const RuntimeError & GetLeftRuntimeError() const { return left_runtime_error_; }
+  const RuntimeError & GetRightRuntimeError() const { return right_runtime_error_; }
+
+private:
+  MotorState left_state_;
+  MotorState right_state_;
+
+  DriverState driver_state_;
+
+  FaultFlag fault_flags_;
+  ScriptFlag script_flags_;
+  RuntimeError left_runtime_error_;
+  RuntimeError right_runtime_error_;
+
+  bool old_data_ = false;
+
+  // Suppress flags:
+  // safety_stop_active
+  // amps_limit_active
+  uint8_t suppressed_runtime_errors_ = 0b11110110;
 };
 
 }  // namespace panther_hardware_interfaces

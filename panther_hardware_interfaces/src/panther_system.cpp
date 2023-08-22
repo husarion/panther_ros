@@ -303,17 +303,21 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 
   if (time > next_roboteq_state_update_) {
     try {
-      DriversState feedback = roboteq_controller_->ReadDriversState();
+      roboteq_controller_->UpdateDriversState();
 
       // TODO: locking???
       auto & driver_state = realtime_driver_state_publisher_->msg_;
-      driver_state.front.voltage = feedback.front.voltage;
-      driver_state.front.current = feedback.front.bat_amps_1 + feedback.front.bat_amps_2;
-      driver_state.front.temperature = feedback.front.temp;
 
-      driver_state.rear.voltage = feedback.rear.voltage;
-      driver_state.rear.current = feedback.rear.bat_amps_1 + feedback.rear.bat_amps_2;
-      driver_state.rear.temperature = feedback.rear.temp;
+      auto front = roboteq_controller_->GetFrontData().GetDriverState();
+      auto rear = roboteq_controller_->GetRearData().GetDriverState();
+
+      driver_state.front.voltage = front.GetVoltage();
+      driver_state.front.current = front.GetCurrent();
+      driver_state.front.temperature = front.GetTemperature();
+
+      driver_state.rear.voltage = rear.GetVoltage();
+      driver_state.rear.current = rear.GetCurrent();
+      driver_state.rear.temperature = rear.GetTemperature();
 
       next_roboteq_state_update_ = time + rclcpp::Duration::from_seconds(roboteq_state_period_);
     } catch (std::runtime_error & err) {
@@ -325,36 +329,47 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   }
 
   try {
-    SystemFeedback feedback = roboteq_controller_->ReadSystemFeedback();
+    roboteq_controller_->UpdateSystemFeedback();
 
-    hw_states_positions_[0] = feedback.front.left.pos;
-    hw_states_positions_[1] = feedback.front.right.pos;
-    hw_states_positions_[2] = feedback.rear.left.pos;
-    hw_states_positions_[3] = feedback.rear.right.pos;
+    auto front = roboteq_controller_->GetFrontData();
+    auto rear = roboteq_controller_->GetRearData();
 
-    hw_states_velocities_[0] = feedback.front.left.vel;
-    hw_states_velocities_[1] = feedback.front.right.vel;
-    hw_states_velocities_[2] = feedback.rear.left.vel;
-    hw_states_velocities_[3] = feedback.rear.right.vel;
+    auto fl = front.GetLeftMotorState();
+    auto fr = front.GetRightMotorState();
+    auto rl = rear.GetLeftMotorState();
+    auto rr = rear.GetRightMotorState();
 
-    hw_states_efforts_[0] = feedback.front.left.torque;
-    hw_states_efforts_[1] = feedback.front.right.torque;
-    hw_states_efforts_[2] = feedback.rear.left.torque;
-    hw_states_efforts_[3] = feedback.rear.right.torque;
+    hw_states_positions_[0] = fl.GetPosition();
+    hw_states_positions_[1] = fr.GetPosition();
+    hw_states_positions_[2] = rl.GetPosition();
+    hw_states_positions_[3] = rr.GetPosition();
+
+    hw_states_velocities_[0] = fl.GetVelocity();
+    hw_states_velocities_[1] = fr.GetVelocity();
+    hw_states_velocities_[2] = rl.GetVelocity();
+    hw_states_velocities_[3] = rr.GetVelocity();
+
+    hw_states_efforts_[0] = fl.GetTorque();
+    hw_states_efforts_[1] = fr.GetTorque();
+    hw_states_efforts_[2] = rl.GetTorque();
+    hw_states_efforts_[3] = rr.GetTorque();
 
     auto & driver_state = realtime_driver_state_publisher_->msg_;
-    // TODO rename motor1 motor2
-    driver_state.front.fault_flag = feedback.front.fault_flags;
-    driver_state.front.script_flag = feedback.front.script_flags;
-    driver_state.front.left_motor.runtime_error = feedback.front.runtime_stat_flag_motor_1;
-    driver_state.front.right_motor.runtime_error = feedback.front.runtime_stat_flag_motor_2;
 
-    driver_state.rear.fault_flag = feedback.rear.fault_flags;
-    driver_state.rear.script_flag = feedback.rear.script_flags;
-    driver_state.rear.left_motor.runtime_error = feedback.rear.runtime_stat_flag_motor_1;
-    driver_state.rear.right_motor.runtime_error = feedback.rear.runtime_stat_flag_motor_2;
+    driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
+    driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
+    driver_state.front.left_motor.runtime_error = front.GetLeftRuntimeError().GetMessage();
+    driver_state.front.right_motor.runtime_error = front.GetRightRuntimeError().GetMessage();
 
-    error_ = feedback.error_set;
+    driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
+    driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
+    driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
+    driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
+
+    // TODO old data to message
+
+    error_ = front.IsError() || rear.IsError();
+
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
