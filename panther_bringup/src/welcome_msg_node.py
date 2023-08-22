@@ -45,7 +45,7 @@ class WelcomMsgNode:
         )
         rospy.loginfo(f'[{rospy.get_name()}] Panther statistics: {stats_msg}')
 
-        if not correct_hw_env or correct_hw_env.lower() == 'false':
+        if not correct_hw_env or correct_hw_env.lower() != 'true':
             for msg in textwrap.dedent(WelcomMsgNode.ERROR_MESSAGE).strip('\n').split('\n'):
                 rospy.logerr(f'[{rospy.get_name()}] {msg}')
 

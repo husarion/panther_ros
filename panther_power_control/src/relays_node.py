@@ -78,7 +78,7 @@ class RelaysNode:
         )
 
         # -------------------------------
-        #   Service servers
+        #   Service Servers
         # -------------------------------
 
         self._e_stop_reset_server = rospy.Service(
@@ -89,14 +89,6 @@ class RelaysNode:
         )
         self._motor_power_enable_server = rospy.Service(
             'hardware/motor_power_enable', SetBool, self._motor_power_enable_cb
-        )
-
-        # -------------------------------
-        #   Service clients
-        # -------------------------------
-
-        self._reset_roboteq_script_client = rospy.ServiceProxy(
-            'driver/reset_roboteq_script', Trigger
         )
 
         # -------------------------------

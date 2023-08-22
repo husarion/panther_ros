@@ -126,7 +126,7 @@ class PowerBoardNode:
         )
 
         # -------------------------------
-        #   Service servers
+        #   Service Servers
         # -------------------------------
 
         self._aux_power_enable_server = rospy.Service(
@@ -150,7 +150,7 @@ class PowerBoardNode:
         )
 
         # -------------------------------
-        #   Service clients
+        #   Service Clients
         # -------------------------------
 
         self._reset_roboteq_script_client = rospy.ServiceProxy(
