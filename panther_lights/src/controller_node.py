@@ -146,7 +146,7 @@ class LightsControllerNode:
         )
 
         # -------------------------------
-        #   Service servers
+        #   Service Servers
         # -------------------------------
 
         self._set_animation_server = rospy.Service(
