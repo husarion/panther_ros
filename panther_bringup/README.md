@@ -1,6 +1,14 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_bringup
 
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
+
 The package contains the default configuration and launch files necessary to start all the basic functionalities of the Husarion Panther robot.
+
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
 
 ## Default Nodes Launched
 
@@ -48,7 +56,17 @@ If the environment variable `PANTHER_HW_CONFIG_CORRECT` is set to **true** the r
 
 ## ROS Nodes
 
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+
+[//]: # (ROS_API_NODE_NAME_START)
+
 ### welcome_msg_node.py
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
 
 Displays user-friendly welcome message:
 ```
@@ -65,14 +83,24 @@ Website: https://husarion.com
 Support: https://community.husarion.com/
 Bugtracker: https://github.com/husarion/panther_ros/issues
 ```
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
 The serial number and robot version are changed according to the parameters of your real robot. If the `PANTHER_HW_CONFIG_CORRECT` is not set to **true** or does not exist, an error indicating incorrect hardware will be displayed after the welcome message.
 
 #### Parameters
+
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `~exit_on_wrong_hw` [*bool*, default: **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
 - `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
 - `/panther/robot_version` [*string*, default: **1.0**]: robot hardware revision.
 
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+
 #### Environment Variables
 
 - `PANTHER_HW_CONFIG_CORRECT` [*string*, default: **None**]: information whether hardware is correctly configured.
+
+[//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)
