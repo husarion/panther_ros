@@ -59,9 +59,7 @@ For a `/joint_states` topic, message carries given data:
 - `velocity_x_stderr` [*float*, default: **3.2e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
 - `velocity_y_stderr` [*float*, default: **3.2e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
 - `velocity_yaw_stderr` [*float*, default: **8.5e-3**]: standard error used to place in covariance matrix, after squaring, in odometry message.
-
-#### Velocity Smoother Parameters
-
+<br/><br/>
 - `~max_vel_x` [*float*, default: **2.0**]: maximum linear vlelocity in **X** direction. 
 - `~max_vel_y` [*float*, default: **2.0**]: maximum linear vlelocity in **Y** direction.
 - `~max_vel_theta` [*float*, default: **4.0**]: maximum angular velocity.

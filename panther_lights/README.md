@@ -2,7 +2,7 @@
 
 Package used to control the Husarion Panther Bumper Lights.
 
-## ROS structure
+Structure of the nodes in this package is shown below:
 
 ![panther_lights ROS structure](https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/panther_lights.drawio.svg)
 
