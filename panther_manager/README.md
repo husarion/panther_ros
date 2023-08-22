@@ -246,7 +246,7 @@ Each behavior tree can be easily customized to enhance its functions and capabil
 
 When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees.
 
-> **Note**:
+> **Note**
 > It is essential to exercise caution when modifying the trees responsible for safety or shutdown and ensure that default behaviors are not removed.
 >
 > Remember to use the files from the existing project in a way that avoids conflicts, such as by saving them under new names to ensure they don't overwrite any existing files.
