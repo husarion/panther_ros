@@ -100,8 +100,7 @@ public:
 private:
   std::shared_ptr<lely::io::Context> ctx_;
 
-  // TODO: change name
-  std::thread executor_thread_;
+  std::thread can_communication_thread_;
 
   std::atomic<bool> can_communication_started_ = false;
   std::condition_variable can_communication_started_cond_;

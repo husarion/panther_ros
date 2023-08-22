@@ -103,7 +103,7 @@ void RoboteqMock::Start()
   can_communication_started_.store(false);
   ctx_ = std::make_shared<lely::io::Context>();
 
-  executor_thread_ = std::thread([this]() {
+  can_communication_thread_ = std::thread([this]() {
     std::string slave_eds_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                    "panther_hardware_interfaces")) /
                                  "config" / "roboteq_motor_controllers_v80_21.eds";
@@ -169,7 +169,7 @@ void RoboteqMock::Start()
 void RoboteqMock::Stop()
 {
   ctx_->shutdown();
-  executor_thread_.join();
+  can_communication_thread_.join();
 
   front_driver_.reset();
   rear_driver_.reset();

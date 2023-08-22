@@ -26,7 +26,7 @@ void PantherWheelsController::Initialize()
 {
   can_communication_started_.store(false);
 
-  executor_thread_ = std::thread([this]() {
+  can_communication_thread_ = std::thread([this]() {
     if (realtime_tools::has_realtime_kernel()) {
       if (!realtime_tools::configure_sched_fifo(kSchedPriority)) {
         std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
@@ -110,7 +110,7 @@ void PantherWheelsController::Deinitialize()
   can_communication_started_.store(false);
   master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
   // TODO: check
-  executor_thread_.join();
+  can_communication_thread_.join();
 
   // without resets: corrupted double-linked list
   rear_driver_.reset();
@@ -127,6 +127,9 @@ void PantherWheelsController::Deinitialize()
 
 void PantherWheelsController::Activate()
 {
+  // Activation procedure - it is necessary to first reset scripts, wait for a bit (1 second)
+  // and then send 0 commands for some time (also 1 second)
+
   try {
     front_driver_->ResetRoboteqScript();
   } catch (std::runtime_error & err) {
@@ -142,8 +145,6 @@ void PantherWheelsController::Activate()
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-  // TODO: comment
 
   try {
     front_driver_->SendRoboteqCmd(0, 0);

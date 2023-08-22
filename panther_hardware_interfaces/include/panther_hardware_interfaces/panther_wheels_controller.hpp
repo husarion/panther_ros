@@ -102,19 +102,19 @@ private:
   std::condition_variable can_communication_started_cond_;
   std::mutex can_communication_started_mtx_;
 
-  std::unique_ptr<RoboteqDriver> front_driver_;
-  std::unique_ptr<RoboteqDriver> rear_driver_;
-  std::unique_ptr<lely::canopen::AsyncMaster> master_;
+  std::thread can_communication_thread_;
 
   std::unique_ptr<lely::io::Context> ctx_;
   std::shared_ptr<lely::ev::Loop> loop_;
   std::unique_ptr<lely::io::Poll> poll_;
   std::unique_ptr<lely::ev::Executor> exec_;
-  // TODO: change name
-  std::thread executor_thread_;
   std::unique_ptr<lely::io::Timer> timer_;
   std::unique_ptr<lely::io::CanController> ctrl_;
   std::unique_ptr<lely::io::CanChannel> chan_;
+  std::unique_ptr<lely::canopen::AsyncMaster> master_;
+
+  std::unique_ptr<RoboteqDriver> front_driver_;
+  std::unique_ptr<RoboteqDriver> rear_driver_;
 
   CanSettings can_settings_;
 
