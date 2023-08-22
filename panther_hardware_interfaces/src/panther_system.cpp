@@ -119,8 +119,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     can_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
     can_settings_.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
     can_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
-
-    roboteq_state_period_ = std::stof(info_.hardware_parameters["roboteq_state_period"]);
   } catch (std::invalid_argument & err) {
     RCLCPP_FATAL(
       rclcpp::get_logger("PantherSystem"),
@@ -170,8 +168,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
       executor_->spin_some();
     }
   });
-
-  next_roboteq_state_update_ = node_->get_clock()->now();
 
   try {
     roboteq_controller_->Initialize();
@@ -297,14 +293,16 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
   return command_interfaces;
 }
 
-return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration &)
+return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // TODO!!!! add reading other stuff
+  try {
+    // Other feedback values are read through SDO - it requires more time, so instead of
+    // reading all of them at once, every read cycle one value is updated, once all of them
+    // were read, sent feedback message is updated. As there are 8 values, frequency of updates will
+    // be controller_frequency / 8
+    bool finished_updates = roboteq_controller_->UpdateDriversState();
 
-  if (time > next_roboteq_state_update_) {
-    try {
-      roboteq_controller_->UpdateDriversState();
-
+    if (finished_updates) {
       // TODO: locking???
       auto & driver_state = realtime_driver_state_publisher_->msg_;
 
@@ -318,14 +316,12 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
       driver_state.rear.voltage = rear.GetVoltage();
       driver_state.rear.current = rear.GetCurrent();
       driver_state.rear.temperature = rear.GetTemperature();
-
-      next_roboteq_state_update_ = time + rclcpp::Duration::from_seconds(roboteq_state_period_);
-    } catch (std::runtime_error & err) {
-      RCLCPP_ERROR_STREAM(
-        rclcpp::get_logger("PantherSystem"),
-        "Error when trying to read drivers feedback: " << err.what());
-      return return_type::ERROR;
     }
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR_STREAM(
+      rclcpp::get_logger("PantherSystem"),
+      "Error when trying to read drivers feedback: " << err.what());
+    return return_type::ERROR;
   }
 
   try {

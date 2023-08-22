@@ -81,9 +81,6 @@ protected:
   std::shared_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_ = nullptr;
 
-  double roboteq_state_period_ = 0.0;
-  rclcpp::Time next_roboteq_state_update_;
-
   DrivetrainSettings drivetrain_settings_;
   CanSettings can_settings_;
 

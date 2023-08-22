@@ -199,11 +199,44 @@ void PantherWheelsController::UpdateSystemFeedback()
   }
 }
 
-void PantherWheelsController::UpdateDriversState()
+bool PantherWheelsController::UpdateDriversState()
 {
   try {
-    front_data_.SetDriverState(front_driver_->ReadRoboteqDriverState());
-    rear_data_.SetDriverState(rear_driver_->ReadRoboteqDriverState());
+    switch (current_update_) {
+      case 0:
+        front_data_.SetTemperature(front_driver_->ReadTemperature());
+        break;
+      case 1:
+        front_data_.SetVoltage(front_driver_->ReadVoltage());
+        break;
+      case 2:
+        front_data_.SetBatAmps1(front_driver_->ReadBatAmps1());
+        break;
+      case 3:
+        front_data_.SetBatAmps2(front_driver_->ReadBatAmps2());
+        break;
+      case 4:
+        rear_data_.SetTemperature(rear_driver_->ReadTemperature());
+        break;
+      case 5:
+        rear_data_.SetVoltage(rear_driver_->ReadVoltage());
+        break;
+      case 6:
+        rear_data_.SetBatAmps1(rear_driver_->ReadBatAmps1());
+        break;
+      case 7:
+        rear_data_.SetBatAmps2(rear_driver_->ReadBatAmps2());
+        break;
+    }
+
+    ++current_update_;
+    if (current_update_ > 7) {
+      current_update_ = 0;
+      return true;
+    }
+
+    return false;
+
   } catch (std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to read roboteq drivers feedback: " + std::string(e.what()));

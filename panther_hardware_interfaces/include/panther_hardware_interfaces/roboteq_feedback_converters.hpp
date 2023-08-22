@@ -150,14 +150,20 @@ class DriverState
 public:
   DriverState() {}
 
-  void SetData(RoboteqDriverState state) { last_state_ = state; };
+  void SetTemperature(int16_t temp) { last_temp_ = temp; };
+  void SetVoltage(uint16_t voltage) { last_voltage_ = voltage; };
+  void SetBatAmps1(int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
+  void SetBatAmps2(int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
 
-  float GetTemperature() const { return last_state_.temp; }
-  float GetVoltage() const { return last_state_.voltage / 10; }
-  float GetCurrent() const { return last_state_.bat_amps_1 / 10.0 + last_state_.bat_amps_2 / 10.0; }
+  float GetTemperature() const { return last_temp_; }
+  float GetVoltage() const { return last_voltage_ / 10; }
+  float GetCurrent() const { return last_bat_amps_1_ / 10.0 + last_bat_amps_2_ / 10.0; }
 
 private:
-  RoboteqDriverState last_state_;
+  int16_t last_temp_;
+  uint16_t last_voltage_;
+  int16_t last_bat_amps_1_;
+  int16_t last_bat_amps_2_;
 };
 
 class RoboteqData
@@ -187,7 +193,10 @@ public:
     right_runtime_error_.SetData(right_runtime_errors_flags);
   }
 
-  void SetDriverState(RoboteqDriverState state) { driver_state_.SetData(state); }
+  void SetTemperature(int16_t temp) { driver_state_.SetTemperature(temp); };
+  void SetVoltage(uint16_t voltage) { driver_state_.SetVoltage(voltage); };
+  void SetBatAmps1(int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
+  void SetBatAmps2(int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
 
   bool IsError() const
   {

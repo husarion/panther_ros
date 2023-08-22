@@ -269,25 +269,35 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   activate_panther_system();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
+  uint8_t state_msg_count = 0;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
     "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
-    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+    [&](const panther_msgs::msg::DriverState::SharedPtr msg) {
+      state_msg = msg;
+      ++state_msg_count;
+    });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
 
-  const auto TIME = node->get_clock()->now();
+  auto simulated_time = node->get_clock()->now();
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
-  try {
-    rm_->read(TIME, PERIOD);
-  } catch (std::exception & err) {
-    FAIL() << "Exception: " << err.what();
-    return;
+
+  // Every read call one value is updated - has to be called 8 times to update all of them and send new values
+  for (int i = 0; i < 8; ++i) {
+    try {
+      rm_->read(simulated_time, PERIOD);
+    } catch (std::exception & err) {
+      FAIL() << "Exception: " << err.what();
+      return;
+    }
+
+    simulated_time += PERIOD;
   }
 
   rclcpp::Time start = node->now();
   while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
     rclcpp::spin_some(node);
-    if (state_msg) {
+    if (state_msg && state_msg_count == 8) {
       break;
     }
   }

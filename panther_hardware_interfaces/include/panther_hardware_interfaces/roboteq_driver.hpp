@@ -14,14 +14,6 @@
 namespace panther_hardware_interfaces
 {
 
-struct RoboteqDriverState
-{
-  int16_t temp;
-  uint16_t voltage;
-  int16_t bat_amps_1;
-  int16_t bat_amps_2;
-};
-
 struct RoboteqMotorState
 {
   int32_t pos;
@@ -64,7 +56,11 @@ public:
    *
    * @exception std::runtime_error if any operation returns error
    */
-  RoboteqDriverState ReadRoboteqDriverState();
+
+  int16_t ReadTemperature();
+  uint16_t ReadVoltage();
+  int16_t ReadBatAmps1();
+  int16_t ReadBatAmps2();
 
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 

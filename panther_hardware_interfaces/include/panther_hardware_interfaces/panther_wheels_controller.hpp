@@ -66,7 +66,7 @@ public:
    * @exception std::runtime_error if there was error
    * @return roboteq driver feedback
    */
-  void UpdateDriversState();
+  bool UpdateDriversState();
 
   const RoboteqData & GetFrontData() { return front_data_; }
   const RoboteqData & GetRearData() { return rear_data_; }
@@ -126,6 +126,8 @@ private:
   RoboteqData rear_data_;
 
   RoboteqCommandConverter roboteq_command_converter_;
+
+  uint8_t current_update_ = 0;
 };
 
 }  // namespace panther_hardware_interfaces

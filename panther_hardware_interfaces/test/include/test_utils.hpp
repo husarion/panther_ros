@@ -61,7 +61,6 @@ public:
       <param name="master_can_id">3</param>
       <param name="front_driver_can_id">1</param>
       <param name="rear_driver_can_id">2</param>
-      <param name="roboteq_state_period">1.0</param>
     </hardware>
 
     <joint name="fl_wheel_joint">
