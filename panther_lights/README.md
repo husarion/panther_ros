@@ -85,7 +85,7 @@ Default animations can be found in the table below:
 | 8   | BATTERY_STATE     | 3        | two stripes moving towards the edges stopping at a point representing Battery percentage and filling back to the center, color changes from red to green |
 | 9   | CHARGING_BATTERY  | 3        | whole bumper blinks with a duty cycle proportional to the Battery percentage. Short blinking means low Battery, and no blinking means full Battery. The color changes from red to green |
 
-### Animation types
+### Animation Types
 
 #### Animation
 
