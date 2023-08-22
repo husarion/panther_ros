@@ -1,6 +1,6 @@
 # panther_ros
 
-Packages composing basic functionalities of the Husarion Panther robot.
+Packages composing the basic functionalities of the Husarion Panther robot.
 API for each node can be found in each package folder.
 
 > **Warning**
@@ -27,7 +27,7 @@ API for each node can be found in each package folder.
 > **Note**
 >  Docker is the recommended approach for utilizing this software stack.
 
-There are already prebuilt and tested docker images dedicated to Panther robot software and simulation. For more information about the latest stable versions, guidance on updating your software, or running the simulation, please refer to [panther-docker](https://github.com/husarion/panther-docker/tree/ros1) repository documentation.
+There are already prebuilt, and tested Docker images dedicated to Panther robot software and simulation. For more information about the latest stable versions, guidance on updating your software, or running the simulation, please refer to [panther-docker](https://github.com/husarion/panther-docker/tree/ros1) repository documentation.
 
 ## Build and Run on Hardware
 
@@ -72,7 +72,7 @@ source /opt/ros/$ROS_DISTRO/setup.bash
 catkin_make -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release
 ```
 
-Later to launch simulation run:
+Later to launch a simulation run:
 ``` bash
 roslaunch panther_gazebo panther_simulation.launch
 ```
@@ -83,7 +83,7 @@ This will launch Gazebo and Rviz.
 
 Parameters stored in [**panther_default.yaml**](./panther_bringup/config/panther_default.yaml) are generic and are overwritten with your specific Panther configuration on start.
 
-### Changing Wheels Type
+### Changing Wheel Type
 
 Changing the wheels requires changing the `wheel_type` parameter. To do this, you can use the following command by modifying the value of the `wheel_type:=WH0X` parameter:
 ``` bash
@@ -98,7 +98,7 @@ Possible wheels names:
 
 If you want to use custom wheels, use the argument `wheel_config_file` where you provide a path to `wheel.yaml` file. The file has to be written in the same manner as the default panther wheel configurations found in [**WH01.yaml**](./panther_description/config/WH01.yaml).
 
-### Providing Custom Robot Description
+### Providing a Custom Robot Description
 
 By default, Panther will launch the default robot description - raw robot without any sensors. There are two ways of providing custom robot descriptions, which are described below.
 
@@ -110,7 +110,7 @@ If you want to use a custom robot description from a different location within y
 roslaunch panther_bringup bringup.launch publish_robot_state:=false
 ```
 
-**b) Providing Custom Robot Description**
+**b) Providing a Custom Robot Description**
 
 Alternatively, you can provide a custom robot description directly using the `robot_description` launch argument.
 
@@ -118,10 +118,10 @@ Alternatively, you can provide a custom robot description directly using the `ro
 roslaunch panther_bringup bringup.launch robot_description:="xacro $(rospack find my_awesome_package)/urdf/panther.urdf.xacro"
 ```
 
-## Shutting Down User Computers
+## Software Shutdown of User Computers
 
-You can shut down any computer within the internal Panther network.
-You can do so by exchanging SSH public keys between the Built-in Computer and the one you want to shutdown. Later you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
+You can shutdown any computer within the internal Panther network.
+You can do so by exchanging SSH public keys between the Built-in Computer and the one you want to shutdown. Later, you have to modify [**shutdown_hosts.yaml**](./panther_bringup/config/shutdown_hosts.yaml) adding your computer as follows:
 ``` yaml
 hosts:
   - ip: 10.15.20.XX
@@ -147,4 +147,5 @@ user_animations:
         duration: 2
 ```
 
-You also have the option to create code-based animations. Detailed information on how to make use of these features, as well as a description of default behavior and customization options for Panther Bumper Lights, can be found in [panther_lights](./panther_lights/README.md) documentation.
+You also have the option to create code-based animations. Detailed information on how to make use of these features, as well as a description of default behavior and customization options for Panther Bumper Lights, can be found in the [panther_lights](./panther_lights/README.md) documentation.
+
