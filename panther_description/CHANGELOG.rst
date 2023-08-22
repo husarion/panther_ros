@@ -2,6 +2,9 @@
 Changelog for package panther_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.42 (2023-08-22)
 -------------------
 
