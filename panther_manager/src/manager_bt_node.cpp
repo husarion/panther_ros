@@ -175,6 +175,10 @@ ManagerBTNode::ManagerBTNode(
     shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
   }
 
+  // -------------------------------
+  //   Subscribers
+  // -------------------------------
+
   battery_sub_ = nh_->subscribe("battery", 10, &ManagerBTNode::battery_cb, this);
   driver_state_sub_ =
     nh_->subscribe("driver/motor_controllers_state", 10, &ManagerBTNode::driver_state_cb, this);
@@ -200,6 +204,10 @@ ManagerBTNode::ManagerBTNode(
     rate.sleep();
     ros::spinOnce();
   }
+
+  // -------------------------------
+  //   Timers
+  // -------------------------------
 
   if (launch_lights_tree) {
     lights_tree_timer_ =
