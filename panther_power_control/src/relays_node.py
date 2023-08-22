@@ -59,7 +59,7 @@ class RelaysNode:
         self._e_stop_state_pub.publish(self._e_stop_state)
 
         self._io_state = IOState()
-        self._io_state.motor_on = self._last_motor_state
+        self._io_state.motor_power = self._last_motor_state
         self._io_state.aux_power = False
         self._io_state.charger_connected = False
         self._io_state.fan = False
@@ -191,8 +191,8 @@ class RelaysNode:
             self._publish_motor_state(state_to_set)
 
     def _publish_motor_state(self, desired_state: bool) -> None:
-        if self._io_state.motor_on != desired_state:
-            self._io_state.motor_on = desired_state
+        if self._io_state.motor_power != desired_state:
+            self._io_state.motor_power = desired_state
             self._io_state_pub.publish(self._io_state)
 
 

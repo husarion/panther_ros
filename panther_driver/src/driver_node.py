@@ -129,7 +129,7 @@ class PantherDriverNode:
         self._motors_effort = [0.0, 0.0, 0.0, 0.0]
 
         self._e_stop_cliented = False
-        self._motor_on = False
+        self._motor_power = False
         self._stop_motors = True
 
         self._velocity_smoother = VelocitySmoother(
@@ -419,7 +419,7 @@ class PantherDriverNode:
                 self._trigger_panther_e_stop()
                 self._stop_motors = True
 
-            if not self._motor_on:
+            if not self._motor_power:
                 rospy.logwarn_throttle(
                     60.0, f'[{rospy.get_name()}] Motor controllers are not powered on'
                 )
@@ -450,7 +450,7 @@ class PantherDriverNode:
         self._cmd_vel_command_last_time = rospy.Time.now()
 
     def _io_state_cb(self, io_state: IOState) -> None:
-        self._motor_on = io_state.motor_on
+        self._motor_power = io_state.motor_power
 
     def _reset_roboteq_script_cb(self, req: TriggerRequest) -> TriggerResponse:
         try:

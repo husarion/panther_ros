@@ -113,7 +113,7 @@ class PowerBoardNode:
         io_state.power_button = False
         io_state.digital_power = not self._lines['VDIG_OFF'].get_value()
         io_state.charger_enabled = not self._lines['CHRG_DISABLE'].get_value()
-        io_state.motor_on = self._lines['DRIVER_EN'].get_value()
+        io_state.motor_power = self._lines['DRIVER_EN'].get_value()
         self._io_state_pub.publish(io_state)
 
         # -------------------------------
@@ -292,7 +292,7 @@ class PowerBoardNode:
         if not res.success:
             return res
 
-        self._publish_io_state('motor_on', req.data)
+        self._publish_io_state('motor_power', req.data)
 
         if req.data:
             # wait for motor drivers to power on
@@ -302,12 +302,12 @@ class PowerBoardNode:
                 if not reset_script_res.success:
                     res = self._set_bool_srv_handle(False, 'DRIVER_EN', 'Motor drivers enable')
                     if res.success:
-                        self._publish_io_state('motor_on', False)
+                        self._publish_io_state('motor_power', False)
                     return SetBoolResponse(reset_script_res.success, reset_script_res.message)
             except rospy.ServiceException as e:
                 res = self._set_bool_srv_handle(False, 'DRIVER_EN', 'Motor drivers enable')
                 if res.success:
-                    self._publish_io_state('motor_on', False)
+                    self._publish_io_state('motor_power', False)
                 return SetBoolResponse(False, f'Failed to reset roboteq script: {e}')
 
         return res

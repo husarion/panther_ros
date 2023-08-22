@@ -17,7 +17,7 @@ Node responsible for management of the safety board and the power board. Availab
   - `charger_enabled` is related to service `charger_enable`,
   - `digital_power` is related to service `digital_power_enable`,
   - `fan` is related to service `fan_enable`,
-  - `motor_on` is related to service `motor_enable`,
+  - `motor_power` is related to service `motor_enable`,
   - `power_button` indicates if power button is pressed.
 
 #### Subscribes
@@ -46,7 +46,7 @@ This node is responsible for power management using relays. Available in Panther
 
 - `/panther/hardware/e_stop` [*std_msgs/Bool*, *latched*]: the current state of the emulated emergency stop.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*, *latched*]: publishes state of panther IO pins. Used for driver compatybility with Panther version 1.06 and below. Message fields with real hardware representation are:
-  - `motor_on` indicates if motor drivers are powered on.
+  - `motor_power` indicates if motor drivers are powered on.
 
 #### Services advertised
 
