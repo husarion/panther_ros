@@ -40,7 +40,7 @@ Parameter `wheel_config_path` allows using non-standard wheels with Panther robo
 - `inertia_y_offset` - Offset of center of mass in **Y** direction in **[m]**.
 - `mesh_package` - ROS package name to search for custom meshes. Used in evaluation **$(find my_amazing_package)/**.
 - `folder_path` - path used to search for mesh files within the ROS package.
-- `kinematics` - kinematics type. Possible options: `differential`, `mecanum`.
+- `kinematics` - kinematics type. Possible options: **differential**, **mecanum**.
 - `odom_stderr` - standard deviation used to populate odometry message:
   - `vel_x` - standard deviation for linear velocity in **X** direction.
   - `vel_y` - standard deviation for linear velocity in **Y** direction.
