@@ -13,14 +13,14 @@ Basic Panther configuration can be found in file [panther.urdf.xacro](./urdf/pan
 
 Arguments passed to the [panther.urdf.xacro](./urdf/panther.urdf.xacro) are the same as parameters of [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro). Thus, this section covers both of them.
 
-- `dual_bat` [*bool*, default: **false**]: Changes inertia and mass for robot body to match 2 batteries setup. Not implemented yet.
+- `dual_bat` [*bool*, default: **false**]: changes inertia and mass for robot body to match 2 batteries setup. Not implemented yet.
 - `imu_pos_x` [*float*, default: **0.169**]: **X** coordinate of IMU sensor in relation to `body_link`.
 - `imu_pos_y` [*float*, default: **0.025**]: **Y** coordinate of IMU sensor in relation to `body_link`.
 - `imu_pos_z` [*float*,default: **0.092**]: **Z** coordinate of IMU sensor in relation to `body_link`.
 - `imu_rot_r` [*float*, default: **0.0**]: roll rotation of IMU sensor in relation to `body_link`.
 - `imu_rot_p` [*float*, default: **0.0**]: pitch rotation of IMU sensor in relation to `body_link`.
 - `imu_rot_y`  [*float*, default: **0.0**]: yaw rotation of IMU sensor in relation to `body_link`.
-- `use_sim` [*bool*, default: **false**]: Unused. Kept for ROS 2 compatibility.
+- `use_sim` [*bool*, default: **false**]: unused. Kept for ROS 2 compatibility.
 - `wheel_config_path` [*float*, default: **$(find panther_description)/config/WH01.yaml**]: - absolute path to YAML file defining wheel properties.
 - `simulation_engine` [*float*, default: **gazebo-classic**]: physics engine to select plugins for. Supported engines: **gazebo-classic**. Kept for compatibility with ROS2 model. Currently, no other engines are planned to be supported.
 - `use_ros_control` [*bool*, default: **false**]: whether to use `ros_control`.
@@ -63,8 +63,8 @@ Evaluating [panther_macro.urdf.xacro](./urdf/panther_macro.urdf.xacro) following
 - `fr_wheel_link` front right wheel link.
 - `rl_wheel_link` rear left wheel link.
 - `rr_wheel_link` rear right wheel link.
-- `front_light_link` Front Bumper Lights link.
-- `rear_light_link` Rear Bumper Lights link.
+- `front_light_link` Front Bumper Lights link. Reference for front animation image.
+- `rear_light_link` Rear Bumper Lights link. Reference for rear animation image.
 
 There are also links created for users to attach their sensors and components. The purpose of those links is to simplify the localization of mounting points. Those are mentioned links:
 - `cover_link` at the level of the top surface of the Mounting rails, located in the center of the robot. The positive **X** axis points in front of the robot, the positive **Z** axis points up from the robot, and the positive **Y** points to the left of the robot.
