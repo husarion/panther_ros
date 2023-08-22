@@ -20,12 +20,12 @@ Node responsible for communication with motor controllers and computing inverse 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: motor controllers current, voltage, fault flags, script flags, and runtime error flags.
 - `/panther/odom/wheels` [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
 - `/panther/pose` [*geometry_msgs/Pose*]: robot position.
-- `/tf` [*tf2_msgs/TFMessage*]: transform between `odom_frame` and `base_link_frame`.
+- `/tf` [*tf2_msgs/TFMessage*]: transform between `odom` and `base_link` frames.
 
 For a `/joint_states` topic, message carries given data:
-- `position = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Encoder pulses.
-- `velocity = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Encoder pulses per second.
-- `effort = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Approximate motor torque in Nm.
+- `position = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` wheel position in **[rad]**, ranging from **[-&pi;]** to **[&pi;]**.
+- `velocity = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` wheels velocity in **[rad/s]**.
+- `effort = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Approximate motor torque in **[Nm]**.
 
 #### Service Servers
 
@@ -51,7 +51,7 @@ For a `/joint_states` topic, message carries given data:
 - `~publish_joints` [*bool*, default: **true**]: whether to publish robot `joints_states`.
 - `~publish_odometry` [*bool*, default: **true**]: whether to publish robot odometry.
 - `~publish_pose` [*bool*, default: **true**]: whether to publish robot pose.
-- `~publish_tf` [*bool*, default: **true**]: whether to publish transform between `odom` and `base_link` frame.
+- `~publish_tf` [*bool*, default: **true**]: whether to publish transform between `odom` and `base_link` frames.
 - `~robot_length` [*float*, default: **0.44**]: distance between wheels alongside **X** axis in **[m]**.
 - `~use_pdo` [*bool*, default: **false**]: whether to use Process Data Object protocol to acquire motors drivers data via CAN interface. Available since Panther version 1.2.
 - `~wheel_radius` [*float*, default: **0.1825**]: wheel radius in **[m]**.
