@@ -197,7 +197,7 @@ command: >
   user_animations_file:=/my_awesome_user_animations.yaml
 ```
 
-> **Warning**:
+> **Warning**
 > While using Docker you will only be able to find packages that are within that Docker. Only images from packages that were built inside that Docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will only refere to paths inside Docker container.
 
 Restart the Docker container:
