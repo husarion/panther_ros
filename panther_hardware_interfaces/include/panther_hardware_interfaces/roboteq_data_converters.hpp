@@ -204,8 +204,6 @@ public:
            right_runtime_error_.IsError() || old_data_;
   }
 
-  bool IsDataOld() const { return old_data_; }
-
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }

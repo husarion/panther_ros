@@ -117,7 +117,6 @@ private:
   std::unique_ptr<lely::io::CanChannel> chan_;
 
   CanSettings can_settings_;
-  DrivetrainSettings drivetrain_settings_;
 
   // TODO: currently drivers set to 10Hz, change it after setting 100Hz
   std::chrono::milliseconds motors_feedback_timeout_ = std::chrono::milliseconds(150);

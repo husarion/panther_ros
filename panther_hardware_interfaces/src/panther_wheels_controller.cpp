@@ -20,7 +20,6 @@ PantherWheelsController::PantherWheelsController(
   roboteq_command_converter_(drivetrain_settings)
 {
   can_settings_ = can_settings;
-  drivetrain_settings_ = drivetrain_settings;
 }
 
 void PantherWheelsController::Initialize()
