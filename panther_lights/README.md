@@ -198,7 +198,7 @@ command: >
 ```
 
 > **Warning**:
-> While using Cocker you will only be able to find packages that are within that Cocker. Only images from packages that were built inside that Cocker image can be found using `$(find my_package)` syntax. Global paths work normally, but will only refere to paths inside Cocker container.
+> While using Docker you will only be able to find packages that are within that Docker. Only images from packages that were built inside that Docker image can be found using `$(find my_package)` syntax. Global paths work normally, but will only refere to paths inside Docker container.
 
 Restart the Cocker container:
 
