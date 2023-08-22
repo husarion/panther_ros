@@ -1,8 +1,6 @@
 #ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_HPP_
 #define PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_HPP_
 
-#include <panther_hardware_interfaces/visibility_control.hpp>
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -37,37 +35,18 @@ class PantherSystem : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(PantherSystem)
 
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo & hardware_info) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
 
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   std::vector<StateInterface> export_state_interfaces() override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-
-  PANTHER_HARDWARE_INTERFACES_PUBLIC
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 protected:
