@@ -46,7 +46,7 @@ class RelaysNode:
         self._last_motor_state = self._lines['STAGE2_INPUT'].get_value()
         self._cmd_vel_msg_time = rospy.get_time()
         self._can_net_err = True
-        self._motor_enabled = True
+        self._motor_power_enabled = True
 
         # -------------------------------
         #   Publishers
@@ -87,8 +87,8 @@ class RelaysNode:
         self._e_stop_trigger_server = rospy.Service(
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
-        self._motor_enable_server = rospy.Service(
-            'hardware/motor_enable', SetBool, self._motor_enable_cb
+        self._motor_power_enable_server = rospy.Service(
+            'hardware/motor_power_enable', SetBool, self._motor_power_enable_cb
         )
 
         # -------------------------------
@@ -157,22 +157,23 @@ class RelaysNode:
             self._e_stop_state_pub.publish(self._e_stop_state)
             return TriggerResponse(True, 'E-SROP triggered successful')
 
-    def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+    def _motor_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         with self._motors_lock:
             if not self._lines['STAGE2_INPUT'].get_value():
-                self._motor_enabled = False
+                self._motor_power_enabled = False
                 return SetBoolResponse(
                     not req.data,
                     f'Motors are {"already " if not req.data else ""}disabled. '
                     + '(Main switch set to Stage 1)',
                 )
 
-            if self._motor_enabled == req.data:
+            if self._motor_power_enabled == req.data:
                 return SetBoolResponse(
-                    True, f'Motors are already {"enabled" if self._motor_enabled else "disabled"}'
+                    True,
+                    f'Motors are already {"enabled" if self._motor_power_enabled else "disabled"}',
                 )
 
-            self._motor_enabled = req.data
+            self._motor_power_enabled = req.data
             self._lines['MOTOR_ON'].set_value(req.data)
             self._publish_motor_state(req.data)
             return SetBoolResponse(True, f'Motors {"enabled" if req.data else "disabled"}')
@@ -182,11 +183,11 @@ class RelaysNode:
             motor_state = self._lines['STAGE2_INPUT'].get_value()
             # if switch changes from off to on overwrite service value
             if not self._last_motor_state and motor_state:
-                self._motor_enabled = True
+                self._motor_power_enabled = True
 
             self._last_motor_state = motor_state
 
-            state_to_set = motor_state and self._motor_enabled
+            state_to_set = motor_state and self._motor_power_enabled
             self._lines['MOTOR_ON'].set_value(state_to_set)
             self._publish_motor_state(state_to_set)
 

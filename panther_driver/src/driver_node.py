@@ -368,7 +368,7 @@ class PantherDriverNode:
         ):
             return
 
-        if not self._motor_on:
+        if not self._motor_power:
             return
 
         [

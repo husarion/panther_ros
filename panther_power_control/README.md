@@ -17,7 +17,7 @@ Node responsible for management of the safety board and the power board. Availab
   - `charger_enabled` is related to service `charger_enable`,
   - `digital_power` is related to service `digital_power_enable`,
   - `fan` is related to service `fan_enable`,
-  - `motor_power` is related to service `motor_enable`,
+  - `motor_power` is related to service `motor_power_enable`,
   - `power_button` indicates if power button is pressed.
 
 #### Subscribes
@@ -32,7 +32,7 @@ Node responsible for management of the safety board and the power board. Availab
 - `/panther/hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.
 - `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable internal fan.
-- `/panther/hardware/motor_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
+- `/panther/hardware/motor_power_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
 
 #### Service clients
 
@@ -52,4 +52,4 @@ This node is responsible for power management using relays. Available in Panther
 
 - `/panther/hardware/e_stop_reset` [*std_srvs/Trigger*]: reset emergency stop.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger emergency stop.
-- `/panther/hardware/motor_enable` [*std_srvs/SetBool*]: enable or disable motor drivers. Acts in conjunction with the three-position Main switch. Motors can not be enabled if switch is in Stage 1. In case of switch transitioning from Stage 1 to Stage 2, state set by service will be overwritten and motors will be enabled.
+- `/panther/hardware/motor_power_enable` [*std_srvs/SetBool*]: enable or disable motor drivers. Acts in conjunction with the three-position Main switch. Motors can not be enabled if switch is in Stage 1. In case of switch transitioning from Stage 1 to Stage 2, state set by service will be overwritten and motors will be enabled.

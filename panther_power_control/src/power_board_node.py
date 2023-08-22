@@ -145,8 +145,8 @@ class PowerBoardNode:
             'hardware/e_stop_trigger', Trigger, self._e_stop_trigger_cb
         )
         self._fan_enable_server = rospy.Service('hardware/fan_enable', SetBool, self._fan_enable_cb)
-        self._motor_enable_server = rospy.Service(
-            'hardware/motor_enable', SetBool, self._motor_enable_cb
+        self._motor_power_enable_server = rospy.Service(
+            'hardware/motor_power_enable', SetBool, self._motor_power_enable_cb
         )
 
         # -------------------------------
@@ -283,7 +283,7 @@ class PowerBoardNode:
             self._publish_io_state('fan', req.data)
         return res
 
-    def _motor_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
+    def _motor_power_enable_cb(self, req: SetBoolRequest) -> SetBoolResponse:
         with self._pins_lock:
             if self._lines['DRIVER_EN'].get_value() == req.data:
                 return SetBoolResponse(True, f'Motor state already set to: {req.data}')
