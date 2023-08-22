@@ -202,7 +202,7 @@ A tree responsible for monitoring the Panther robot's state and handling safety 
 </p>
 
 Default blackboard entries:
-- `aux_state` [*bool*, default: **None**]: state of Aux Power.
+- `aux_state` [*bool*, default: **None**]: state of AUX Power.
 - `bat_temp` [*double*, default: **None**]: moving average of the Battery temperature.
 - `cpu_temp` [*double*, default: **None**]: moving average of the Built-in Computer's CPU temperature
 - `driver_temp` [*double*, default: **None**]: moving average of driver temperature. Out of the two drivers, the one with the higher temperature is taken into account.
