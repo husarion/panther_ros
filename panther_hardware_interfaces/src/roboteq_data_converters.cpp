@@ -53,7 +53,6 @@ RoboteqCommandConverter::RoboteqCommandConverter(DrivetrainSettings drivetrain_s
 
 panther_msgs::msg::FaultFlag FaultFlag::GetMessage() const
 {
-  // TODO: can_net_err
   panther_msgs::msg::FaultFlag fault_flags_msg;
 
   fault_flags_msg.overheat = BitSet(fault_flags_, 0);
