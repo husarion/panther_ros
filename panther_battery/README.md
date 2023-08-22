@@ -1,23 +1,54 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_battery
+
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
 
 Package containing nodes monitoring and publishing the internal Battery state of the Husarion Panther robot.
 
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
+
 ## ROS Nodes
+
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+
+[//]: # (ROS_API_NODE_NAME_START)
 
 ### adc_node.py
 
-Publishes Battery state read from ADC unit and thermistors. Available from Panther version 1.2. Voltage, current, and temperature are smoothed out using a moving average.
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
+Publishes Battery state read from ADC unit and thermistors. Voltage, current, and temperature are smoothed out using a moving average.
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
+> **Note**
+> Available since Panther version 1.2.
 
 #### Subscribers
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks if charger is connected. Later fuses the information with the charging current.
 
+[//]: # (ROS_API_NODE_SUBSCRIBERS_END)
+
 #### Publishers
+
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: average values of both batteries if the panther has two batteries. In the case of single Battery values only for the single one.
 - `/panther/battery_1` [*sensor_msgs/BatteryState*]: first Battery state. Published if second Battery detected.
 - `/panther/battery_2` [*sensor_msgs/BatteryState*]: second Battery state. Published if second Battery detected.
+
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+[//]: # (ROS_API_NODE_END)
 
 #### Battery Statuses
 
@@ -86,14 +117,38 @@ Safety thresholds used in calculating the various values describing the state of
 | NOT_CHARGING | Charger connected but none of the above conditions are met  |                                                                                                                                                                                                             |
 | DISCHARGING  | None of the above conditions are met                        |                                                                                                                                                                                                             |
 
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+
+[//]: # (ROS_API_NODE_NAME_START)
+
 ### roboteq_republisher_node.py
 
-Node publishing Panther Battery state read from motor controllers. Used in Panther versions 1.06 and below. Voltage and current measurements are smoothed out using a moving average. Current accounts only for motor controllers.
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
+Node publishing Panther Battery state read from motor controllers. Voltage and current measurements are smoothed out using a moving average. Current accounts only for motor controllers.
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
+> **Note**
+> This node is used in Panther versions 1.06 and below.
 
 #### Subscribers
 
+[//]: # (ROS_API_NODE_SUBSCRIBERS_START)
+
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
 #### Publishers
 
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
+
 - `/panther/battery` [*sensor_msgs/BatteryState*]: Battery state estimated from motor controllers.
+
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+[//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)

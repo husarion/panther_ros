@@ -90,7 +90,7 @@ This node is responsible for power management using relays.
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
 > **Note**
-> Available in Panther versions 1.06 and below.
+> This node is used in Panther versions 1.06 and below.
 
 #### Subscribers
 
