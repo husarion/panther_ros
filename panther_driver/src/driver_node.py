@@ -76,9 +76,9 @@ class PantherDriverNode:
         self._motor_torque_constant = rospy.get_param('~motor_torque_constant', 2.6149)
         self._gear_ratio = rospy.get_param('~gear_ratio', 30.08)
         self._encoder_resolution = rospy.get_param('~encoder_resolution', 400 * 4)
-        self._v_x_var = float(rospy.get_param('~odom_stderr/vel_x', 3.2e-3))**2
-        self._v_y_var = float(rospy.get_param('~odom_stderr/vel_y', 3.2e-3))**2
-        self._v_yaw_var = float(rospy.get_param('~odom_stderr/vel_yaw', 8.5e-3))**2
+        self._v_x_var = float(rospy.get_param('~odom_stderr/vel_x', 3.2e-3)) ** 2
+        self._v_y_var = float(rospy.get_param('~odom_stderr/vel_y', 3.2e-3)) ** 2
+        self._v_yaw_var = float(rospy.get_param('~odom_stderr/vel_yaw', 8.5e-3)) ** 2
 
         self._publish_tf = rospy.get_param('~publish_tf', True)
         self._publish_odom = rospy.get_param('~publish_odometry', True)
@@ -118,6 +118,8 @@ class PantherDriverNode:
         self._motor_off_last_time = rospy.Time.now()
         self._cmd_vel_command_last_time = rospy.Time.now()
         self._cmd_vel_timeout = 0.2
+        self._motor_power_on_timeout = 2.3
+        self._motor_power_on_error_timeout = 2.5
 
         self._robot_pos = [0.0, 0.0, 0.0]  # x,  y,  yaw
         self._robot_vel = [0.0, 0.0, 0.0]  # lin_x, lin_y, ang_z
@@ -360,6 +362,15 @@ class PantherDriverNode:
             self._publish_tf_cb()
 
     def _driver_state_timer_cb(self, *args) -> None:
+        # wait for motor drivers to power on before publishing their state
+        if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(
+            self._motor_power_on_timeout
+        ):
+            return
+
+        if not self._motor_on:
+            return
+
         [
             self._driver_state_msg.front.current,
             self._driver_state_msg.front.voltage,
@@ -415,7 +426,9 @@ class PantherDriverNode:
                 self._motor_off_last_time = rospy.Time.now()
             else:
                 # wait for motor drivers to power on before logging an error
-                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(2.0):
+                if rospy.Time.now() - self._motor_off_last_time < rospy.Duration(
+                    self._motor_power_on_error_timeout
+                ):
                     return
                 rospy.logerr_throttle(
                     10.0,
