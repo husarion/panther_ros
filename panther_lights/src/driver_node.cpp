@@ -44,6 +44,10 @@ DriverNode::DriverNode(
   front_panel_.set_global_brightness(global_brightness);
   rear_panel_.set_global_brightness(global_brightness);
 
+  // -------------------------------
+  //   Subscribers
+  // -------------------------------
+
   front_light_sub_ = it_->subscribe(
     "lights/driver/front_panel_frame", 5, [&](const sensor_msgs::Image::ConstPtr & msg) {
       frame_cb(msg, front_panel_, front_panel_ts_, "front");
@@ -55,6 +59,10 @@ DriverNode::DriverNode(
       frame_cb(msg, rear_panel_, rear_panel_ts_, "rear");
       rear_panel_ts_ = msg->header.stamp;
     });
+
+  // -------------------------------
+  //   Service Servers
+  // -------------------------------
 
   set_brightness_server_ =
     nh_->advertiseService("lights/driver/set/brightness", &DriverNode::set_brightness_cb, this);

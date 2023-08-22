@@ -78,7 +78,7 @@ class RelaysNode:
         )
 
         # -------------------------------
-        #   Service servers
+        #   Service Servers
         # -------------------------------
 
         self._e_stop_reset_server = rospy.Service(
