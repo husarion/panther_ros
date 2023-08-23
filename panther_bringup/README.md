@@ -96,7 +96,7 @@ The serial number and robot version are changed according to the parameters of y
 - `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
 - `/panther/robot_version` [*string*, default: **1.0**]: robot hardware revision.
 
-[//]: # (ROS_API_NODE_PUBLISHERS_END)
+[//]: # (ROS_API_NODE_PARAMETERS_END)
 
 #### Environment Variables
 
