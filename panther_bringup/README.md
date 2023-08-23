@@ -90,7 +90,7 @@ The serial number and robot version are changed according to the parameters of y
 
 #### Parameters
 
-[//]: # (ROS_API_NODE_PUBLISHERS_START)
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 - `~exit_on_wrong_hw` [*bool*, default: **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
 - `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
