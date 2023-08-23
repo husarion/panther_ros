@@ -14,7 +14,6 @@ Structure of the nodes in this package is shown below:
 
 ![panther_lights ROS structure](https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/panther_lights.drawio.svg)
 
-
 ## ROS Nodes
 
 [//]: # (ROS_API_NODE_START)
