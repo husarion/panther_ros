@@ -40,14 +40,14 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 
 #### Service Clients (for Default Trees)
 
-[//]: # (ROS_API_NODE_PUBLISHERS_START)
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
 
 - `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables Aux Power output.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers E-stop.
 - `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
-[//]: # (ROS_API_NODE_PUBLISHERS_END)
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
 
 #### Parameters
 
