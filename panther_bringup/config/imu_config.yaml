@@ -10,7 +10,7 @@ imu_filter_node:
   use_magnetic_field_msg: true # If set to true, subscribe to the /imu/mag topic as a sensor_msgs/MagneticField; if set to false (deprecated), use geometry_msgs/Vector3Stamped. Only changes type of the message, whether mag data is used is controlled by the use_mag parameter
   fixed_frame: imu_link
   stateless: false
-  remove_gravity_vector: false
+  remove_gravity_vector: true
 
 phidgets_spatial_node:
   data_interval_ms: 8 # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
