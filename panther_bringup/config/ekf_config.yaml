@@ -36,7 +36,7 @@ imu0_differential: false
 imu0_relative: true
 imu0_queue_size: 5
 
-imu0_remove_gravitational_acceleration: true
+imu0_remove_gravitational_acceleration: false
 
 reset_on_time_jump: false
 predict_to_current_time: false
