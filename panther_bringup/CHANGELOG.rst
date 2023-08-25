@@ -2,6 +2,9 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.43 (2023-08-22)
 -------------------
 
