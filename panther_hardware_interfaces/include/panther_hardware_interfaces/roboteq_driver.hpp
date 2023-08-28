@@ -120,7 +120,8 @@ private:
 
   std::mutex rpdo_timestamp_mtx_;
 
-  std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(10);
+  // TODO: too long timeouts, sometimes takes even longer
+  std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(15);
   std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(15);
 
   template <class type>
