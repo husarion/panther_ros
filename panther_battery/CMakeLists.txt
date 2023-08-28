@@ -31,6 +31,7 @@ ament_target_dependencies(roboteq_republisher_node
 add_executable(adc_node
   src/adc_node_main.cpp
   src/adc_node.cpp
+  src/battery.cpp
 )
 
 ament_target_dependencies(adc_node
@@ -71,7 +72,7 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
 
-  ament_add_gtest(${PROJECT_NAME}_test_battery test/test_battery.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_battery test/test_battery.cpp src/battery.cpp)
   target_include_directories(${PROJECT_NAME}_test_battery PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -82,7 +83,7 @@ if(BUILD_TESTING)
     sensor_msgs
   )
 
-  ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp src/battery.cpp)
   target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>

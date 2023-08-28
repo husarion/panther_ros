@@ -19,41 +19,36 @@ public:
     }
   }
 
-  float GetADCMeasurement(const int channel, const int offset);
+  float GetADCMeasurement(const int channel, const int offset)
+  {
+    auto LSB = ReadChannel<float>(channel, "scale") / 1000;
+    auto raw_value = ReadChannel<int>(channel, "raw");
+    return (raw_value - offset) * LSB;
+  }
 
 private:
   template <typename T>
-  T ReadChannel(const int channel, const std::string data_type);
+  T ReadChannel(const int channel, const std::string data_type)
+  {
+    if (data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency") {
+      throw std::logic_error("Invalid data type: " + data_type);
+    }
+
+    T data;
+    auto data_file = "in_voltage" + std::to_string(channel) + "_" + data_type;
+    auto file_path = device_path_ / data_file;
+
+    std::fstream file(file_path, std::ios_base::in);
+    if (!file) {
+      throw std::runtime_error("Failed to open file: " + std::string(file_path));
+    }
+
+    file >> data;
+    return data;
+  }
 
   const std::filesystem::path device_path_;
 };
-
-inline float ADCDataReader::GetADCMeasurement(const int channel, const int offset)
-{
-  auto LSB = ReadChannel<float>(channel, "scale") / 1000;
-  auto raw_value = ReadChannel<int>(channel, "raw");
-  return (raw_value - offset) * LSB;
-}
-
-template <typename T>
-inline T ADCDataReader::ReadChannel(const int channel, const std::string data_type)
-{
-  if (data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency") {
-    throw std::logic_error("Invalid data type: " + data_type);
-  }
-
-  T data;
-  auto data_file = "in_voltage" + std::to_string(channel) + "_" + data_type;
-  auto file_path = device_path_ / data_file;
-
-  std::fstream file(file_path, std::ios_base::in);
-  if (!file) {
-    throw std::runtime_error("Failed to open file: " + std::string(file_path));
-  }
-
-  file >> data;
-  return data;
-}
 
 }  // namespace panther_battery
 
