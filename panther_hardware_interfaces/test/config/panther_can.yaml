@@ -5,11 +5,9 @@ master:
 slave_1:
   dcf: "roboteq_motor_controllers_v80_21.eds"
   node_id: 1
-  # TODO: check on roboteq
-  heartbeat_producer: 1000
+  heartbeat_producer: 100
 
 slave_2:
   dcf: "roboteq_motor_controllers_v80_21.eds"
   node_id: 2
-  # TODO: check on roboteq
-  heartbeat_producer: 1000
+  heartbeat_producer: 100
