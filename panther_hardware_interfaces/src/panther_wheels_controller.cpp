@@ -176,6 +176,7 @@ void PantherWheelsController::UpdateSystemFeedback()
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
      motors_feedback_timeout_);
 
+  // Channel 1 - right, Channel 2 - left
   front_data_.SetMotorStates(
     front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_too_old);
   rear_data_.SetMotorStates(
@@ -186,12 +187,12 @@ void PantherWheelsController::UpdateSystemFeedback()
 
   front_data_.SetFlags(
     front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
-    front_driver_feedback.runtime_stat_flag_motor_1,
-    front_driver_feedback.runtime_stat_flag_motor_2, front_can_error);
+    front_driver_feedback.runtime_stat_flag_motor_2,
+    front_driver_feedback.runtime_stat_flag_motor_1, front_can_error);
 
   rear_data_.SetFlags(
     rear_driver_feedback.fault_flags, rear_driver_feedback.script_flags,
-    rear_driver_feedback.runtime_stat_flag_motor_1, rear_driver_feedback.runtime_stat_flag_motor_2,
+    rear_driver_feedback.runtime_stat_flag_motor_2, rear_driver_feedback.runtime_stat_flag_motor_1,
     rear_can_error);
 
   if (front_can_error || rear_can_error) {
@@ -246,15 +247,16 @@ bool PantherWheelsController::UpdateDriversState()
 void PantherWheelsController::WriteSpeed(
   double speed_fl, double speed_fr, double speed_rl, double speed_rr)
 {
+  // Channel 1 - right, Channel 2 - left
   try {
     front_driver_->SendRoboteqCmd(
-      roboteq_command_converter_.Convert(speed_fl), roboteq_command_converter_.Convert(speed_fr));
+      roboteq_command_converter_.Convert(speed_fr), roboteq_command_converter_.Convert(speed_fl));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
   }
   try {
     rear_driver_->SendRoboteqCmd(
-      roboteq_command_converter_.Convert(speed_rl), roboteq_command_converter_.Convert(speed_rr));
+      roboteq_command_converter_.Convert(speed_rr), roboteq_command_converter_.Convert(speed_rl));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
