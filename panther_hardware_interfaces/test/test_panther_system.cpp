@@ -155,13 +155,13 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
   rm_->write(TIME, PERIOD);
 
   ASSERT_EQ(
-    roboteq_mock_->front_driver_->GetRoboteqCmd(1), int32_t(fl_v * rad_per_sec_to_rbtq_cmd_));
+    roboteq_mock_->front_driver_->GetRoboteqCmd(2), int32_t(fl_v * rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
-    roboteq_mock_->front_driver_->GetRoboteqCmd(2), int32_t(fr_v * rad_per_sec_to_rbtq_cmd_));
+    roboteq_mock_->front_driver_->GetRoboteqCmd(1), int32_t(fr_v * rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
-    roboteq_mock_->rear_driver_->GetRoboteqCmd(1), int32_t(rl_v * rad_per_sec_to_rbtq_cmd_));
+    roboteq_mock_->rear_driver_->GetRoboteqCmd(2), int32_t(rl_v * rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
-    roboteq_mock_->rear_driver_->GetRoboteqCmd(2), int32_t(rr_v * rad_per_sec_to_rbtq_cmd_));
+    roboteq_mock_->rear_driver_->GetRoboteqCmd(1), int32_t(rr_v * rad_per_sec_to_rbtq_cmd_));
 
   shutdown_panther_system();
 }
@@ -176,20 +176,20 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   const int32_t rl_val = 300;
   const int32_t rr_val = 400;
 
-  roboteq_mock_->front_driver_->SetPosition(1, fl_val);
-  roboteq_mock_->front_driver_->SetPosition(2, fr_val);
-  roboteq_mock_->rear_driver_->SetPosition(1, rl_val);
-  roboteq_mock_->rear_driver_->SetPosition(2, rr_val);
+  roboteq_mock_->front_driver_->SetPosition(2, fl_val);
+  roboteq_mock_->front_driver_->SetPosition(1, fr_val);
+  roboteq_mock_->rear_driver_->SetPosition(2, rl_val);
+  roboteq_mock_->rear_driver_->SetPosition(1, rr_val);
 
-  roboteq_mock_->front_driver_->SetVelocity(1, fl_val);
-  roboteq_mock_->front_driver_->SetVelocity(2, fr_val);
-  roboteq_mock_->rear_driver_->SetVelocity(1, rl_val);
-  roboteq_mock_->rear_driver_->SetVelocity(2, rr_val);
+  roboteq_mock_->front_driver_->SetVelocity(2, fl_val);
+  roboteq_mock_->front_driver_->SetVelocity(1, fr_val);
+  roboteq_mock_->rear_driver_->SetVelocity(2, rl_val);
+  roboteq_mock_->rear_driver_->SetVelocity(1, rr_val);
 
-  roboteq_mock_->front_driver_->SetCurrent(1, fl_val);
-  roboteq_mock_->front_driver_->SetCurrent(2, fr_val);
-  roboteq_mock_->rear_driver_->SetCurrent(1, rl_val);
-  roboteq_mock_->rear_driver_->SetCurrent(2, rr_val);
+  roboteq_mock_->front_driver_->SetCurrent(2, fl_val);
+  roboteq_mock_->front_driver_->SetCurrent(1, fr_val);
+  roboteq_mock_->rear_driver_->SetCurrent(2, rl_val);
+  roboteq_mock_->rear_driver_->SetCurrent(1, rr_val);
 
   configure_panther_system();
   activate_panther_system();
@@ -218,25 +218,24 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
     return;
   }
 
-  // TODO channel order
-  ASSERT_NEAR(fr_s_p.get_value(), fl_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
-  ASSERT_NEAR(fl_s_p.get_value(), fr_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
-  ASSERT_NEAR(rr_s_p.get_value(), rl_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
-  ASSERT_NEAR(rl_s_p.get_value(), rr_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
+  ASSERT_NEAR(fl_s_p.get_value(), fl_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
+  ASSERT_NEAR(fr_s_p.get_value(), fr_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
+  ASSERT_NEAR(rl_s_p.get_value(), rl_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
+  ASSERT_NEAR(rr_s_p.get_value(), rr_val * rbtq_pos_fb_to_rad_, assert_near_abs_error_);
 
-  ASSERT_NEAR(fr_s_v.get_value(), fl_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
-  ASSERT_NEAR(fl_s_v.get_value(), fr_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
-  ASSERT_NEAR(rr_s_v.get_value(), rl_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
-  ASSERT_NEAR(rl_s_v.get_value(), rr_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
+  ASSERT_NEAR(fl_s_v.get_value(), fl_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
+  ASSERT_NEAR(fr_s_v.get_value(), fr_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
+  ASSERT_NEAR(rl_s_v.get_value(), rl_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
+  ASSERT_NEAR(rr_s_v.get_value(), rr_val * rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
 
   ASSERT_NEAR(
-    fr_s_e.get_value(), fl_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
+    fl_s_e.get_value(), fl_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
   ASSERT_NEAR(
-    fl_s_e.get_value(), fr_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
+    fr_s_e.get_value(), fr_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
   ASSERT_NEAR(
-    rr_s_e.get_value(), rl_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
+    rl_s_e.get_value(), rl_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
   ASSERT_NEAR(
-    rl_s_e.get_value(), rr_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
+    rr_s_e.get_value(), rr_val * rbtq_current_fb_to_newton_meters_, assert_near_abs_error_);
 
   shutdown_panther_system();
 }
