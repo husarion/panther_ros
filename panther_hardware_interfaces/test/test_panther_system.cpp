@@ -397,16 +397,36 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 
   // TODO check timing
 
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
+
   ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(1), 0);
   ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(2), 0);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(1), 0);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(2), 0);
 
-  ASSERT_EQ(roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
-  ASSERT_EQ(roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
-
   shutdown_panther_system();
 }
+
+// ERROR HANDLING
+
+// TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
+// {
+//   using hardware_interface::LoanedStateInterface;
+
+//   configure_panther_system();
+//   activate_panther_system();
+
+//   roboteq_mock_->Stop();
+
+//   auto status_map = rm_->get_components_status();
+//   ASSERT_EQ(
+//     status_map[panther_system_name_].state.label(),
+//     hardware_interface::lifecycle_state_names::UNCONFIGURED);
+// }
+
+// TODO estops
+// TODO wrong order urdf
 
 int main(int argc, char ** argv)
 {
