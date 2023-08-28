@@ -92,37 +92,36 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 int16_t RoboteqDriver::ReadTemperature()
 {
   try {
-    return SyncSdoRead<int16_t>(0x210F, 1);
+    return SyncSdoRead<int8_t>(0x210F, 1);
   } catch (std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to read roboteq driver feedback: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
   }
 }
+
 uint16_t RoboteqDriver::ReadVoltage()
 {
   try {
     return SyncSdoRead<uint16_t>(0x210D, 2);
   } catch (std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to read roboteq driver feedback: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
   }
 }
+
 int16_t RoboteqDriver::ReadBatAmps1()
 {
   try {
     return SyncSdoRead<int16_t>(0x210C, 1);
   } catch (std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to read roboteq driver feedback: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
   }
 }
+
 int16_t RoboteqDriver::ReadBatAmps2()
 {
   try {
     return SyncSdoRead<int16_t>(0x210C, 2);
   } catch (std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to read roboteq driver feedback: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
   }
 }
 
