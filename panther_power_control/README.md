@@ -62,7 +62,7 @@ Node responsible for management of the safety board and the power board.
 - `/panther/hardware/digital_power_enable` [*std_srvs/SetBool*]: enable or disable the internal digital power used to power on, e.g. User Computer, Router, etc.
 - `/panther/hardware/e_stop_reset` [*std_srvs/Trigger*]: reset E-stop.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: trigger E-stop.
-- `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable the internal fan. Calling the service from the terminal when it is enabled might yield unintuitive behavior. This is because `manager_node` overwrites control. It is advisable to use `manager_node` when implementing fan behaviors. For more information, refer to [panther_manager](../panther_manager/README.md).
+- `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enable or disable the internal fan. Calling the service from the terminal when it is enabled might yield unintuitive behavior. This is because `manager_node` overwrites control. It is advisable to use `manager_node` when implementing fan behaviors.
 - `/panther/hardware/motor_power_enable` [*std_srvs/SetBool*]: enable or disable motor drivers.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
