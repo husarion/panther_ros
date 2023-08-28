@@ -14,3 +14,8 @@ sudo ip link set panther_can up
 colcon build --packages-select panther_hardware_interfaces --symlink-install
 colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces
 colcon test-result --verbose --all
+
+## Updating config
+Copy eds file to config and run 
+`dcfgen panther_can.yaml -r`
+Remove master.dcf
