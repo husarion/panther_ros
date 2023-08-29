@@ -38,8 +38,8 @@ private:
   float battery_timeout_;
   rclcpp::Time last_battery_info_time_;
 
-  std::unique_ptr<ADCDataReader> adc0_reader_;
-  std::unique_ptr<ADCDataReader> adc1_reader_;
+  std::shared_ptr<ADCDataReader> adc0_reader_;
+  std::shared_ptr<ADCDataReader> adc1_reader_;
   std::unique_ptr<Battery> battery_1_;
   std::unique_ptr<Battery> battery_2_;
 

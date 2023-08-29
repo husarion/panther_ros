@@ -41,8 +41,8 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   const auto battery_current_window_len = this->get_parameter("batery_current_window_len").as_int();
   const auto battery_charge_window_len = this->get_parameter("batery_charge_window_len").as_int();
 
-  adc0_reader_ = std::make_unique<ADCDataReader>(adc0_device);
-  adc1_reader_ = std::make_unique<ADCDataReader>(adc1_device);
+  adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
+  adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
   BatteryParams default_battery_params = {
