@@ -40,7 +40,7 @@ private:
 
     std::fstream file(file_path, std::ios_base::in);
     if (!file) {
-      throw std::runtime_error("Failed to open file: " + std::string(file_path));
+      throw std::runtime_error("Failed to open device file: " + std::string(file_path));
     }
 
     file >> data;
