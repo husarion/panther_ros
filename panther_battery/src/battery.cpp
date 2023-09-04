@@ -19,8 +19,8 @@ namespace panther_battery
 {
 
 Battery::Battery(
-  std::function<float()> read_voltage, std::function<float()> read_current,
-  std::function<float()> read_temp, std::function<float()> read_charge,
+  const std::function<float()> & read_voltage, const std::function<float()> & read_current,
+  const std::function<float()> & read_temp, const std::function<float()> & read_charge,
   const BatteryParams & params)
 : ReadVoltage(read_voltage), ReadCurrent(read_current), ReadTemp(read_temp), ReadCharge(read_charge)
 {
