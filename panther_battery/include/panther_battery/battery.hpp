@@ -29,9 +29,9 @@ class Battery
 {
 public:
   Battery(
-    std::function<float()> read_voltage, std::function<float()> read_current,
-    std::function<float()> read_temp, std::function<float()> read_charge,
-    const BatteryParams & params);
+  const std::function<float()> & read_voltage, const std::function<float()> & read_current,
+  const std::function<float()> & read_temp, const std::function<float()> & read_charge,
+  const BatteryParams & params);
 
   ~Battery() {}
 
