@@ -19,7 +19,7 @@ public:
     }
   }
 
-  float GetADCMeasurement(const int channel, const int offset)
+  float GetADCMeasurement(const int channel, const int offset) const
   {
     const auto LSB = ReadChannel<float>(channel, "scale") / 1000;
     const auto raw_value = ReadChannel<int>(channel, "raw");
