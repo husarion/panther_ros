@@ -142,7 +142,7 @@ void ADCNode::BatteryPubTimerCB()
 }
 
 BatteryStateMsg ADCNode::MergeBatteryMsgs(
-  const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2)
+  const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
 {
   BatteryStateMsg battery_msg;
 
