@@ -35,8 +35,8 @@ private:
     }
 
     T data;
-    auto data_file = "in_voltage" + std::to_string(channel) + "_" + data_type;
-    auto file_path = device_path_ / data_file;
+    const auto data_file = "in_voltage" + std::to_string(channel) + "_" + data_type;
+    const auto file_path = device_path_ / data_file;
 
     std::fstream file(file_path, std::ios_base::in);
     if (!file) {
