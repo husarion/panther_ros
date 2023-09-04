@@ -24,14 +24,14 @@ Battery::Battery(
   const BatteryParams & params)
 : ReadVoltage(read_voltage), ReadCurrent(read_current), ReadTemp(read_temp), ReadCharge(read_charge)
 {
-  voltage_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    params.voltage_window_len, std::numeric_limits<double>::quiet_NaN());
-  temp_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    params.temp_window_len, std::numeric_limits<double>::quiet_NaN());
-  current_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    params.current_window_len, std::numeric_limits<double>::quiet_NaN());
-  charge_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    params.charge_window_len, std::numeric_limits<double>::quiet_NaN());
+  voltage_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.voltage_window_len, std::numeric_limits<float>::quiet_NaN());
+  temp_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.temp_window_len, std::numeric_limits<float>::quiet_NaN());
+  current_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.current_window_len, std::numeric_limits<float>::quiet_NaN());
+  charge_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.charge_window_len, std::numeric_limits<float>::quiet_NaN());
 }
 
 bool Battery::Present()
