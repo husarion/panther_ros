@@ -86,7 +86,7 @@ float Battery::ADCToBatteryTemp(const float adc_data) const
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  auto R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
+  const auto R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
   return (temp_coeff_A_ * temp_coeff_B_ / (temp_coeff_A_ * log(R_therm / R0_) + temp_coeff_B_)) -
          kelvin_to_celcius_offset_;
 }
