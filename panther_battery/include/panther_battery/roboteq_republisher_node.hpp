@@ -23,7 +23,7 @@ public:
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
-  void MotorControllersStateSubCB(const DriverStateMsg & msg);
+  void MotorControllersStateSubCB(const DriverStateMsg::SharedPtr msg);
   void BatteryPubTimerCB();
 
   static constexpr float bat_designed_capacity_ = 20.0;

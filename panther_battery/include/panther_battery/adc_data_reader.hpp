@@ -15,26 +15,26 @@ public:
   ADCDataReader(const std::string & device_path) : device_path_(device_path)
   {
     if (!std::filesystem::exists(device_path_)) {
-      throw std::runtime_error("Failed to open device path: " + std::string(device_path_));
+      throw std::runtime_error(
+        "Device does not exists under given path:" + std::string(device_path_));
     }
   }
 
   float GetADCMeasurement(const int channel, const int offset) const
   {
-    const auto LSB = ReadChannel<float>(channel, "scale") / 1000;
+    const auto LSB = ReadChannel<float>(channel, "scale") / 1000.0f;
     const auto raw_value = ReadChannel<int>(channel, "raw");
     return (raw_value - offset) * LSB;
   }
 
 private:
   template <typename T>
-  T ReadChannel(const int channel, const std::string & data_type)
+  T ReadChannel(const int channel, const std::string & data_type) const
   {
     if (data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency") {
       throw std::logic_error("Invalid data type: " + data_type);
     }
 
-    T data;
     const auto data_file = "in_voltage" + std::to_string(channel) + "_" + data_type;
     const auto file_path = device_path_ / data_file;
 
@@ -43,6 +43,7 @@ private:
       throw std::runtime_error("Failed to open device file: " + std::string(file_path));
     }
 
+    T data;
     file >> data;
     return data;
   }

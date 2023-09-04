@@ -45,11 +45,11 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
-  BatteryParams default_battery_params = {
-    battery_voltage_window_len,
-    battery_temp_window_len,
-    battery_current_window_len,
-    battery_charge_window_len,
+  const BatteryParams default_battery_params = {
+    static_cast<std::size_t>(battery_voltage_window_len),
+    static_cast<std::size_t>(battery_temp_window_len),
+    static_cast<std::size_t>(battery_current_window_len),
+    static_cast<std::size_t>(battery_charge_window_len),
   };
 
   battery_2_ = std::make_unique<Battery>(
@@ -146,11 +146,33 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
 {
   BatteryStateMsg battery_msg;
 
-  battery_msg.power_supply_technology = battery_msg_1.power_supply_technology;
-  battery_msg.location = battery_msg_1.location;
-  battery_msg.present = battery_msg_1.present || battery_msg_2.present;
+  if (battery_msg_1.header.stamp != battery_msg_2.header.stamp) {
+    throw std::runtime_error("Can't merge battery messages. Message header stamp mismatch");
+  }
+  if (battery_msg_1.power_supply_technology != battery_msg_2.power_supply_technology) {
+    throw std::runtime_error(
+      "Can't merge battery messages. Battery power supply technology mismatch");
+  }
+  if (battery_msg_1.cell_voltage.size() != battery_msg_2.cell_voltage.size()) {
+    throw std::runtime_error("Can't merge battery messages. Battery cell voltage mismatch");
+  }
+  if (battery_msg_1.cell_temperature.size() != battery_msg_2.cell_temperature.size()) {
+    throw std::runtime_error("Can't merge battery messages. Battery cell temperature mismatch");
+  }
+  if (battery_msg_1.location != battery_msg_2.location) {
+    throw std::runtime_error("Can't merge battery messages. Battery location mismatch");
+  }
+  if (battery_msg_1.present != battery_msg_2.present) {
+    throw std::runtime_error("Can't merge battery messages. Battery present mismatch");
+  }
 
   battery_msg.header.stamp = battery_msg_1.header.stamp;
+  battery_msg.power_supply_technology = battery_msg_1.power_supply_technology;
+  battery_msg.cell_voltage = battery_msg_1.cell_voltage;
+  battery_msg.cell_temperature = battery_msg_1.cell_temperature;
+  battery_msg.location = battery_msg_1.location;
+  battery_msg.present = battery_msg_1.present;
+
   battery_msg.voltage = (battery_msg_1.voltage + battery_msg_2.voltage) / 2.0f;
   battery_msg.temperature = (battery_msg_1.temperature + battery_msg_2.temperature) / 2.0f;
   battery_msg.current = battery_msg_1.current + battery_msg_2.current;
@@ -158,9 +180,6 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
   battery_msg.capacity = battery_msg_1.capacity + battery_msg_2.capacity;
   battery_msg.design_capacity = battery_msg_1.design_capacity + battery_msg_2.design_capacity;
   battery_msg.charge = battery_msg_1.charge + battery_msg_2.charge;
-
-  battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
-  battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
 
   // add else UNKNOWN at the end??? it is redundant as it defaults to unknown if not assigned
   if (battery_msg_1.power_supply_status == battery_msg_2.power_supply_status) {

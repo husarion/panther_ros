@@ -103,8 +103,8 @@ TEST_F(TestADCNode, MergeBatteryMsg)
   bat_1.capacity = std::numeric_limits<float>::quiet_NaN();
   bat_1.design_capacity = 20.0;
   bat_1.charge = 2.0;
-  bat_1.cell_voltage = std::vector<float>(2, std::numeric_limits<float>::quiet_NaN());
-  bat_1.cell_temperature = std::vector<float>(2, std::numeric_limits<float>::quiet_NaN());
+  bat_1.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  bat_1.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
   bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   bat_1.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
@@ -119,8 +119,8 @@ TEST_F(TestADCNode, MergeBatteryMsg)
   bat_2.capacity = std::numeric_limits<float>::quiet_NaN();
   bat_2.design_capacity = 20.0;
   bat_2.charge = 3.0;
-  bat_2.cell_voltage = std::vector<float>(3, std::numeric_limits<float>::quiet_NaN());
-  bat_2.cell_temperature = std::vector<float>(3, std::numeric_limits<float>::quiet_NaN());
+  bat_2.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  bat_2.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
   bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   bat_2.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;

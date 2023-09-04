@@ -47,15 +47,15 @@ RoboteqRepublisherNode::RoboteqRepublisherNode(
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
-void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg & msg)
+void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg::SharedPtr msg)
 {
-  if (msg.front.fault_flag.can_net_err || msg.rear.fault_flag.can_net_err) {
+  if (msg->front.fault_flag.can_net_err || msg->rear.fault_flag.can_net_err) {
     return;
   }
 
   last_battery_info_time_ = this->get_clock()->now();
-  battery_voltage_ma_->Roll((msg.front.voltage + msg.rear.voltage) / 2.0);
-  battery_current_ma_->Roll(msg.front.current + msg.rear.current);
+  battery_voltage_ma_->Roll((msg->front.voltage + msg->rear.voltage) / 2.0);
+  battery_current_ma_->Roll(msg->front.current + msg->rear.current);
 }
 
 void RoboteqRepublisherNode::BatteryPubTimerCB()

@@ -45,14 +45,16 @@ public:
   BatteryStateMsg GetBatteryMsgRaw() const;
 
 private:
-  float ADCToBatteryVoltage(const float adc_data);
-  float ADCToBatteryCurrent(const float adc_data);
-  float ADCToBatteryCharge(const float adc_data);
-  float ADCToBatteryTemp(const float adc_data);
-  float ADCToBatteryVoltageTemp(const float adc_data);
+  inline float ADCToBatteryVoltage(const float adc_data) const;
+  inline float ADCToBatteryCurrent(const float adc_data) const;
+  inline float ADCToBatteryCharge(const float adc_data) const;
+  inline float ADCToBatteryVoltageTemp(const float adc_data) const;
+  float ADCToBatteryTemp(const float adc_data) const;
   void UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected);
   void ResetBatteryMsg(const rclcpp::Time & header_stamp);
 
+  static constexpr int number_of_cells_ = 10;
+  static constexpr int bat_present_mean_len_ = 10;
   static constexpr float charging_current_thresh_ = 0.1;
   static constexpr float bat_detect_thresh_ = 3.03;
   static constexpr float V_bat_fatal_min_ = 27.0;
@@ -73,12 +75,12 @@ private:
   static constexpr float bat_temp_factor_ = 1.0;
 
   // Temperature conversion parameters
-  static constexpr double temp_coeff_A_ = 298.15;
-  static constexpr double temp_coeff_B_ = 3977.0;
-  static constexpr double R1_ = 10000.0;
-  static constexpr double R0_ = 10000.0;
-  static constexpr double u_supply_ = 3.28;
-  static constexpr double kelvin_to_celcius_offset_ = 273.15;
+  static constexpr float temp_coeff_A_ = 298.15;
+  static constexpr float temp_coeff_B_ = 3977.0;
+  static constexpr float R1_ = 10000.0;
+  static constexpr float R0_ = 10000.0;
+  static constexpr float u_supply_ = 3.28;
+  static constexpr float kelvin_to_celcius_offset_ = 273.15;
 
   float voltage_raw_;
   float current_raw_;

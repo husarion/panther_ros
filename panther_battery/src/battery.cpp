@@ -36,15 +36,14 @@ Battery::Battery(
 
 bool Battery::Present()
 {
-  const auto get_temp_attempts = 10;
   auto V_temp_sum = 0.0f;
 
-  for (int i = 0; i < get_temp_attempts; i++) {
+  for (int i = 0; i < bat_present_mean_len_; i++) {
     V_temp_sum += ADCToBatteryVoltageTemp(ReadTemp());
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
-  const auto V_temp_bat = V_temp_sum / static_cast<float>(get_temp_attempts);
+  const auto V_temp_bat = V_temp_sum / static_cast<float>(bat_present_mean_len_);
 
   return V_temp_bat < bat_detect_thresh_;
 }
@@ -63,7 +62,7 @@ void Battery::Update(const rclcpp::Time & header_stamp, const bool charger_conne
   UpdateBatteryMsg(header_stamp, charger_connected);
 }
 
-void Battery::Reset(rclcpp::Time & header_stamp)
+void Battery::Reset(const rclcpp::Time & header_stamp)
 {
   voltage_ma_->Reset();
   temp_ma_->Reset();
@@ -73,16 +72,30 @@ void Battery::Reset(rclcpp::Time & header_stamp)
   ResetBatteryMsg(header_stamp);
 }
 
-float Battery::ADCToBatteryVoltage(const float adc_data) const { return adc_data * bat_voltage_factor_; }
+inline float Battery::ADCToBatteryVoltage(const float adc_data) const
+{
+  return adc_data * bat_voltage_factor_;
+}
 
-float Battery::ADCToBatteryCurrent(const float adc_data) const { return adc_data * bat_current_factor_; }
+inline float Battery::ADCToBatteryCurrent(const float adc_data) const
+{
+  return adc_data * bat_current_factor_;
+}
 
-float Battery::ADCToBatteryCharge(const float adc_data) const { return adc_data * bat_charge_factor_; }
+inline float Battery::ADCToBatteryCharge(const float adc_data) const
+{
+  return adc_data * bat_charge_factor_;
+}
+
+inline float Battery::ADCToBatteryVoltageTemp(const float adc_data) const
+{
+  return adc_data * bat_temp_factor_;
+}
 
 float Battery::ADCToBatteryTemp(const float adc_data) const
 {
   const auto V_temp = ADCToBatteryVoltageTemp(adc_data);
-  if (V_temp == 0 || V_temp >= u_supply_) {
+  if (fabs(V_temp) < std::numeric_limits<float>::epsilon() || V_temp >= u_supply_) {
     return std::numeric_limits<float>::quiet_NaN();
   }
 
@@ -90,8 +103,6 @@ float Battery::ADCToBatteryTemp(const float adc_data) const
   return (temp_coeff_A_ * temp_coeff_B_ / (temp_coeff_A_ * logf(R_therm / R0_) + temp_coeff_B_)) -
          kelvin_to_celcius_offset_;
 }
-
-float Battery::ADCToBatteryVoltageTemp(const float adc_data) const { return adc_data * bat_temp_factor_; }
 
 void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected)
 {
@@ -109,8 +120,10 @@ void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool cha
   battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
   battery_state_.design_capacity = designed_capacity_;
   battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
-  battery_state_.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
-  battery_state_.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_voltage =
+    std::vector<float>(number_of_cells_, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_temperature =
+    std::vector<float>(number_of_cells_, std::numeric_limits<float>::quiet_NaN());
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_state_.present = true;
   battery_state_.location = location_;
@@ -156,7 +169,7 @@ void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool cha
   battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
 }
 
-void Battery::ResetBatteryMsg(rclcpp::Time & header_stamp)
+void Battery::ResetBatteryMsg(const rclcpp::Time & header_stamp)
 {
   battery_state_.header.stamp = header_stamp;
   battery_state_.voltage = std::numeric_limits<float>::quiet_NaN();
@@ -166,8 +179,10 @@ void Battery::ResetBatteryMsg(rclcpp::Time & header_stamp)
   battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
   battery_state_.design_capacity = designed_capacity_;
   battery_state_.charge = std::numeric_limits<float>::quiet_NaN();
-  battery_state_.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
-  battery_state_.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_voltage =
+    std::vector<float>(number_of_cells_, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_temperature =
+    std::vector<float>(number_of_cells_, std::numeric_limits<float>::quiet_NaN());
   battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
   battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
