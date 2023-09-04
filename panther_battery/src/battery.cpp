@@ -81,7 +81,7 @@ float Battery::ADCToBatteryCharge(const float adc_data) const { return adc_data 
 
 float Battery::ADCToBatteryTemp(const float adc_data) const
 {
-  auto V_temp = ADCToBatteryVoltageTemp(adc_data);
+  const auto V_temp = ADCToBatteryVoltageTemp(adc_data);
   if (V_temp == 0 || V_temp >= u_supply_) {
     return std::numeric_limits<float>::quiet_NaN();
   }
