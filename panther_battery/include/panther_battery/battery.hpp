@@ -50,8 +50,8 @@ private:
   float ADCToBatteryCharge(const float adc_data);
   float ADCToBatteryTemp(const float adc_data);
   float ADCToBatteryVoltageTemp(const float adc_data);
-  void UpdateBatteryMsg(rclcpp::Time & header_stamp, const bool charger_connected);
-  void ResetBatteryMsg(rclcpp::Time & header_stamp);
+  void UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected);
+  void ResetBatteryMsg(const rclcpp::Time & header_stamp);
 
   static constexpr float charging_current_thresh_ = 0.1;
   static constexpr float bat_detect_thresh_ = 3.03;
