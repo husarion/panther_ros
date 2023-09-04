@@ -26,7 +26,7 @@ public:
 
 protected:
   BatteryStateMsg MergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2);
+    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
 
 private:
   void BatteryPubTimerCB();
