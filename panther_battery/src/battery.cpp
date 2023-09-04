@@ -105,7 +105,7 @@ void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool cha
   battery_state_.temperature = temp_bat;
   battery_state_.current = -I_bat + I_charge;
   battery_state_.percentage =
-    std::clamp((V_bat - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0, 1.0);
+    std::clamp((V_bat - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0f, 1.0f);
   battery_state_.capacity = std::numeric_limits<double>::quiet_NaN();
   battery_state_.design_capacity = designed_capacity_;
   battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
