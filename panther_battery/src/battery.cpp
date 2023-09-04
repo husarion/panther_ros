@@ -95,10 +95,10 @@ float Battery::ADCToBatteryVoltageTemp(const float adc_data) const { return adc_
 
 void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected)
 {
-  auto V_bat = voltage_ma_->GetAverage();
-  auto I_bat = current_ma_->GetAverage();
-  auto temp_bat = temp_ma_->GetAverage();
-  auto I_charge = charge_ma_->GetAverage();
+  const auto V_bat = voltage_ma_->GetAverage();
+  const auto I_bat = current_ma_->GetAverage();
+  const auto temp_bat = temp_ma_->GetAverage();
+  const auto I_charge = charge_ma_->GetAverage();
 
   battery_state_.header.stamp = header_stamp;
   battery_state_.voltage = V_bat;
