@@ -19,10 +19,10 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
 struct BatteryParams
 {
-  const int64_t voltage_window_len;
-  const int64_t temp_window_len;
-  const int64_t current_window_len;
-  const int64_t charge_window_len;
+  const std::size_t voltage_window_len;
+  const std::size_t temp_window_len;
+  const std::size_t current_window_len;
+  const std::size_t charge_window_len;
 };
 
 class Battery
