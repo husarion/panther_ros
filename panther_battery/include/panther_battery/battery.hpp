@@ -36,8 +36,8 @@ public:
   ~Battery() {}
 
   bool Present();
-  void Update(rclcpp::Time & header_stamp, const bool charger_connected);
-  void Reset(rclcpp::Time & header_stamp);
+  void Update(const rclcpp::Time & header_stamp, const bool charger_connected);
+  void Reset(const rclcpp::Time & header_stamp);
   bool HasErrorMsg() const;
 
   std::string GetErrorMsg() const;
