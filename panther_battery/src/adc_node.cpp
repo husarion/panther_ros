@@ -95,7 +95,7 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 
 void ADCNode::BatteryPubTimerCB()
 {
-  auto header_stamp = this->get_clock()->now();
+  const auto header_stamp = this->get_clock()->now();
 
   try {
     battery_1_->Update(header_stamp, charger_connected_);
