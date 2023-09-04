@@ -44,7 +44,7 @@ bool Battery::Present()
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
-  const auto V_temp_bat = V_temp_sum / get_temp_attempts;
+  const auto V_temp_bat = V_temp_sum / static_cast<float>(get_temp_attempts);
 
   return V_temp_bat < bat_detect_thresh_;
 }
