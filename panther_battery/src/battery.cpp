@@ -73,13 +73,13 @@ void Battery::Reset(rclcpp::Time & header_stamp)
   ResetBatteryMsg(header_stamp);
 }
 
-float Battery::ADCToBatteryVoltage(const float adc_data) { return adc_data * bat_voltage_factor_; }
+float Battery::ADCToBatteryVoltage(const float adc_data) const { return adc_data * bat_voltage_factor_; }
 
-float Battery::ADCToBatteryCurrent(const float adc_data) { return adc_data * bat_current_factor_; }
+float Battery::ADCToBatteryCurrent(const float adc_data) const { return adc_data * bat_current_factor_; }
 
-float Battery::ADCToBatteryCharge(const float adc_data) { return adc_data * bat_charge_factor_; }
+float Battery::ADCToBatteryCharge(const float adc_data) const { return adc_data * bat_charge_factor_; }
 
-float Battery::ADCToBatteryTemp(const float adc_data)
+float Battery::ADCToBatteryTemp(const float adc_data) const
 {
   auto V_temp = ADCToBatteryVoltageTemp(adc_data);
   if (V_temp == 0 || V_temp >= u_supply_) {
