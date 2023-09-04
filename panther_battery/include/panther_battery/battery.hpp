@@ -94,10 +94,10 @@ private:
   BatteryStateMsg battery_state_;
   BatteryStateMsg battery_state_raw_;
 
-  std::unique_ptr<panther_utils::MovingAverage<double>> voltage_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> current_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> charge_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<float>> temp_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<float>> current_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<float>> charge_ma_;
 };
 
 }  // namespace panther_battery
