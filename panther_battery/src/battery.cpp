@@ -91,7 +91,7 @@ float Battery::ADCToBatteryTemp(const float adc_data) const
          kelvin_to_celcius_offset_;
 }
 
-float Battery::ADCToBatteryVoltageTemp(const float adc_data) { return adc_data * bat_temp_factor_; }
+float Battery::ADCToBatteryVoltageTemp(const float adc_data) const { return adc_data * bat_temp_factor_; }
 
 void Battery::UpdateBatteryMsg(rclcpp::Time & header_stamp, const bool charger_connected)
 {
