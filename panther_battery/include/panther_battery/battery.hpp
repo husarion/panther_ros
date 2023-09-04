@@ -86,10 +86,10 @@ private:
   float charge_raw_;
   std::string error_msg_;
 
-  std::function<float()> ReadVoltage;
-  std::function<float()> ReadCurrent;
-  std::function<float()> ReadTemp;
-  std::function<float()> ReadCharge;
+  const std::function<float()> ReadVoltage;
+  const std::function<float()> ReadCurrent;
+  const std::function<float()> ReadTemp;
+  const std::function<float()> ReadCharge;
 
   BatteryStateMsg battery_state_;
   BatteryStateMsg battery_state_raw_;
