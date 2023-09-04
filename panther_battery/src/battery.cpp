@@ -175,13 +175,7 @@ void Battery::ResetBatteryMsg(rclcpp::Time & header_stamp)
   battery_state_.location = location_;
 }
 
-bool Battery::HasErrorMsg() const
-{
-  if (error_msg_.empty()) {
-    return false;
-  }
-  return true;
-}
+bool Battery::HasErrorMsg() const { return !error_msg_.empty(); }
 
 std::string Battery::GetErrorMsg() const { return error_msg_; }
 
