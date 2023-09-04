@@ -93,7 +93,7 @@ float Battery::ADCToBatteryTemp(const float adc_data) const
 
 float Battery::ADCToBatteryVoltageTemp(const float adc_data) const { return adc_data * bat_temp_factor_; }
 
-void Battery::UpdateBatteryMsg(rclcpp::Time & header_stamp, const bool charger_connected)
+void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected)
 {
   auto V_bat = voltage_ma_->GetAverage();
   auto I_bat = current_ma_->GetAverage();
