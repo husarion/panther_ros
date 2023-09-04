@@ -159,13 +159,13 @@ void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool cha
 void Battery::ResetBatteryMsg(rclcpp::Time & header_stamp)
 {
   battery_state_.header.stamp = header_stamp;
-  battery_state_.voltage = std::numeric_limits<double>::quiet_NaN();
-  battery_state_.temperature = std::numeric_limits<double>::quiet_NaN();
-  battery_state_.current = std::numeric_limits<double>::quiet_NaN();
-  battery_state_.percentage = std::numeric_limits<double>::quiet_NaN();
-  battery_state_.capacity = std::numeric_limits<double>::quiet_NaN();
+  battery_state_.voltage = std::numeric_limits<float>::quiet_NaN();
+  battery_state_.temperature = std::numeric_limits<float>::quiet_NaN();
+  battery_state_.current = std::numeric_limits<float>::quiet_NaN();
+  battery_state_.percentage = std::numeric_limits<float>::quiet_NaN();
+  battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
   battery_state_.design_capacity = designed_capacity_;
-  battery_state_.charge = std::numeric_limits<double>::quiet_NaN();
+  battery_state_.charge = std::numeric_limits<float>::quiet_NaN();
   battery_state_.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_state_.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
