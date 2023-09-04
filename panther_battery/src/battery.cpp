@@ -49,7 +49,7 @@ bool Battery::Present()
   return V_temp_bat < bat_detect_thresh_;
 }
 
-void Battery::Update(rclcpp::Time & header_stamp, const bool charger_connected)
+void Battery::Update(const rclcpp::Time & header_stamp, const bool charger_connected)
 {
   voltage_raw_ = ADCToBatteryVoltage(ReadVoltage());
   current_raw_ = ADCToBatteryCurrent(ReadCurrent());
