@@ -36,14 +36,14 @@ Battery::Battery(
 
 bool Battery::Present()
 {
-  auto V_temp_sum = 0.0f;
+  float V_temp_sum = 0.0f;
 
   for (int i = 0; i < bat_present_mean_len_; i++) {
     V_temp_sum += ADCToBatteryVoltageTemp(ReadTemp());
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
-  const auto V_temp_bat = V_temp_sum / static_cast<float>(bat_present_mean_len_);
+  const float V_temp_bat = V_temp_sum / static_cast<float>(bat_present_mean_len_);
 
   return V_temp_bat < bat_detect_thresh_;
 }
@@ -94,22 +94,22 @@ inline float Battery::ADCToBatteryVoltageTemp(const float adc_data) const
 
 float Battery::ADCToBatteryTemp(const float adc_data) const
 {
-  const auto V_temp = ADCToBatteryVoltageTemp(adc_data);
+  const float V_temp = ADCToBatteryVoltageTemp(adc_data);
   if (fabs(V_temp) < std::numeric_limits<float>::epsilon() || V_temp >= u_supply_) {
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  const auto R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
+  const float R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
   return (temp_coeff_A_ * temp_coeff_B_ / (temp_coeff_A_ * logf(R_therm / R0_) + temp_coeff_B_)) -
          kelvin_to_celcius_offset_;
 }
 
 void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected)
 {
-  const auto V_bat = voltage_ma_->GetAverage();
-  const auto I_bat = current_ma_->GetAverage();
-  const auto temp_bat = temp_ma_->GetAverage();
-  const auto I_charge = charge_ma_->GetAverage();
+  const float V_bat = voltage_ma_->GetAverage();
+  const float I_bat = current_ma_->GetAverage();
+  const float temp_bat = temp_ma_->GetAverage();
+  const float I_charge = charge_ma_->GetAverage();
 
   battery_state_.header.stamp = header_stamp;
   battery_state_.voltage = V_bat;

@@ -34,12 +34,12 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   this->declare_parameter<int>("batery_charge_window_len", 10);
 
   battery_timeout_ = this->get_parameter("battery_timeout").as_double();
-  const auto adc0_device = this->get_parameter("adc0_device").as_string();
-  const auto adc1_device = this->get_parameter("adc1_device").as_string();
-  const auto battery_voltage_window_len = this->get_parameter("batery_voltage_window_len").as_int();
-  const auto battery_temp_window_len = this->get_parameter("batery_temp_window_len").as_int();
-  const auto battery_current_window_len = this->get_parameter("batery_current_window_len").as_int();
-  const auto battery_charge_window_len = this->get_parameter("batery_charge_window_len").as_int();
+  const std::string adc0_device = this->get_parameter("adc0_device").as_string();
+  const std::string adc1_device = this->get_parameter("adc1_device").as_string();
+  const int battery_voltage_window_len = this->get_parameter("batery_voltage_window_len").as_int();
+  const int battery_temp_window_len = this->get_parameter("batery_temp_window_len").as_int();
+  const int battery_current_window_len = this->get_parameter("batery_current_window_len").as_int();
+  const int battery_charge_window_len = this->get_parameter("batery_charge_window_len").as_int();
 
   adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
   adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
