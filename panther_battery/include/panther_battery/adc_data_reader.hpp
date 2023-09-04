@@ -28,7 +28,7 @@ public:
 
 private:
   template <typename T>
-  T ReadChannel(const int channel, const std::string data_type)
+  T ReadChannel(const int channel, const std::string & data_type)
   {
     if (data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency") {
       throw std::logic_error("Invalid data type: " + data_type);
