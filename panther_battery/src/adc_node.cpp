@@ -117,13 +117,24 @@ void ADCNode::BatteryPubTimerCB()
   }
 
   if (battery_count_ == 2) {
-    battery_pub_->publish(
-      MergeBatteryMsgs(battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg()));
+    try {
+      auto battery_msg = MergeBatteryMsgs(battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
+      battery_pub_->publish(battery_msg);
+      BatteryStatusLogger(battery_msg);
+    } catch (const std::runtime_error & err) {
+      RCLCPP_WARN(
+        this->get_logger(),
+        "Failed to merge battery_1 and battery_2 messages: %s\nBattery message will not be "
+        "published",
+        err.what());
+    }
     battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
     battery_2_pub_->publish(battery_2_->GetBatteryMsgRaw());
   } else {
-    battery_pub_->publish(battery_1_->GetBatteryMsg());
+    auto battery_msg = battery_1_->GetBatteryMsg();
+    battery_pub_->publish(battery_msg);
     battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
+    BatteryStatusLogger(battery_msg);
   }
 
   if (battery_1_->HasErrorMsg()) {
@@ -147,23 +158,22 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
   BatteryStateMsg battery_msg;
 
   if (battery_msg_1.header.stamp != battery_msg_2.header.stamp) {
-    throw std::runtime_error("Can't merge battery messages. Message header stamp mismatch");
+    throw std::runtime_error("Message header stamp mismatch");
   }
   if (battery_msg_1.power_supply_technology != battery_msg_2.power_supply_technology) {
-    throw std::runtime_error(
-      "Can't merge battery messages. Battery power supply technology mismatch");
+    throw std::runtime_error("Battery power supply technology mismatch");
   }
   if (battery_msg_1.cell_voltage.size() != battery_msg_2.cell_voltage.size()) {
-    throw std::runtime_error("Can't merge battery messages. Battery cell voltage mismatch");
+    throw std::runtime_error("Battery cell voltage mismatch");
   }
   if (battery_msg_1.cell_temperature.size() != battery_msg_2.cell_temperature.size()) {
-    throw std::runtime_error("Can't merge battery messages. Battery cell temperature mismatch");
+    throw std::runtime_error("Battery cell temperature mismatch");
   }
   if (battery_msg_1.location != battery_msg_2.location) {
-    throw std::runtime_error("Can't merge battery messages. Battery location mismatch");
+    throw std::runtime_error("Battery location mismatch");
   }
   if (battery_msg_1.present != battery_msg_2.present) {
-    throw std::runtime_error("Can't merge battery messages. Battery present mismatch");
+    throw std::runtime_error("Battery present mismatch");
   }
 
   battery_msg.header.stamp = battery_msg_1.header.stamp;
@@ -181,13 +191,18 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
   battery_msg.design_capacity = battery_msg_1.design_capacity + battery_msg_2.design_capacity;
   battery_msg.charge = battery_msg_1.charge + battery_msg_2.charge;
 
-  // add else UNKNOWN at the end??? it is redundant as it defaults to unknown if not assigned
   if (battery_msg_1.power_supply_status == battery_msg_2.power_supply_status) {
     battery_msg.power_supply_status = battery_msg_1.power_supply_status;
   } else if (
     battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN ||
     battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN) {
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
+  } else if (
+    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING ||
+    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING) {
+    throw std::runtime_error(
+      "Detected critical mismatch between battery 1 and battery 2 messages. Battery 1 indicates "
+      "discharging, while battery 2 indicates charging state.");
   } else if (
     battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING ||
     battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING) {
@@ -196,6 +211,8 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
     battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING ||
     battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING) {
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
+  } else {
+    battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
   }
 
   if (battery_msg_1.power_supply_health == battery_msg_2.power_supply_health) {
@@ -224,9 +241,39 @@ BatteryStateMsg ADCNode::MergeBatteryMsgs(
     battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN ||
     battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+  } else {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
   }
 
   return battery_msg;
+}
+
+void ADCNode::BatteryStatusLogger(const BatteryStateMsg & battery_state)
+{
+  switch (battery_state.power_supply_status) {
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING:
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 10000,
+        "The charger has been plugged in, but the charging process has not started. Check if the "
+        "charger is connected to a power source.");
+      break;
+
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING:
+      RCLCPP_INFO_THROTTLE(
+        this->get_logger(), *this->get_clock(), 180000,
+        "Robot charging process update. Battery percentage: %d%%",
+        int(battery_state.percentage * 100));
+      break;
+
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
+      RCLCPP_INFO_THROTTLE(
+        this->get_logger(), *this->get_clock(), 180000,
+        "The battery is fully charged. Robot can be disconnected from the charger");
+      break;
+
+    default:
+      break;
+  }
 }
 
 }  // namespace panther_battery

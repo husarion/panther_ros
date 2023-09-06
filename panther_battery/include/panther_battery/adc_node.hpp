@@ -30,6 +30,7 @@ protected:
 
 private:
   void BatteryPubTimerCB();
+  void BatteryStatusLogger(const BatteryStateMsg & battery_state);
 
   static constexpr int adc_current_offset_ = 625;
 
