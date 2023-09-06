@@ -140,29 +140,29 @@ TEST_F(TestBattery, BatteryMsgValues)
 {
   UpdateBattery(1.5, 0.01, 1.5, 0.5, false);
 
-  double expected_voltage = 1.5 * 25.04255f;
-  double expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  double expected_temp = 28.875206;
-  double expected_current = -(0.01 * 20) + (0.5 * 2.5);
+  float expected_voltage = 1.5 * 25.04255;
+  float expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
+  float expected_temp = 28.875206;
+  float expected_current = -(0.01 * 20.0) + (0.5 * 2.5);
   CheckBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   UpdateBattery(1.6, 0.02, 1.4, 0.4, false);
-  expected_voltage = (1.5 + 1.6) / 2.0 * 25.04255f;
+  expected_voltage = (1.5 + 1.6) / 2.0 * 25.04255;
   expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   expected_temp = 30.306725;
-  expected_current = -(0.015 * 20) + (0.45 * 2.5);
+  expected_current = -(0.015 * 20.0) + (0.45 * 2.5);
   CheckBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // Check raw battery msg
   battery_state_ = battery_->GetBatteryMsgRaw();
-  expected_voltage = 1.6 * 25.04255f;
+  expected_voltage = 1.6 * 25.04255;
   expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   expected_temp = 31.738245;
-  expected_current = -(0.02 * 20) + (0.4 * 2.5);
+  expected_current = -(0.02 * 20.0) + (0.4 * 2.5);
   CheckBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
@@ -197,6 +197,14 @@ TEST_F(TestBattery, BatteryMsgHealthOverheat)
   EXPECT_TRUE(battery_->HasErrorMsg());
 }
 
+TEST_F(TestBattery, BatteryMsgHealthCold)
+{
+  UpdateBattery(1.5, 0.01, 2.81, 0.5, false);
+
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD, battery_state_.power_supply_health);
+  EXPECT_TRUE(battery_->HasErrorMsg());
+}
+
 TEST_F(TestBattery, BatteryMsgStatusFull)
 {
   UpdateBattery(1.66, 0.01, 0.98, 0.5, true);
@@ -226,7 +234,6 @@ TEST_F(TestBattery, TestGetErrorMsg)
 
   // send overvoltage
   auto stamp = rclcpp::Time(0);
-
   battery_voltage_raw_ = 1.72;
   battery_current_raw_ = 0.01;
   battery_temp_raw_ = 1.5;

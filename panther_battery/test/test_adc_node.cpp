@@ -1,97 +1,12 @@
+#include <test/test_adc_node.hpp>
+
 #include <chrono>
-#include <memory>
+#include <limits>
+#include <vector>
 
 #include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
 
-#include <sensor_msgs/msg/battery_state.hpp>
-
-#include <panther_msgs/msg/io_state.hpp>
-
-#include <panther_battery/adc_node.hpp>
 #include <panther_utils/test/test_utils.hpp>
-
-using BatteryStateMsg = sensor_msgs::msg::BatteryState;
-using IOStateMsg = panther_msgs::msg::IOState;
-
-class ADCNodeWrapper : public panther_battery::ADCNode
-{
-public:
-  ADCNodeWrapper(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
-  : ADCNode(node_name, options)
-  {
-  }
-
-  BatteryStateMsg MergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2)
-  {
-    return ADCNode::MergeBatteryMsgs(battery_msg_1, battery_msg_2);
-  }
-};
-
-class TestADCNode : public testing::Test
-{
-public:
-  TestADCNode();
-  ~TestADCNode();
-
-protected:
-  template <typename T>
-  void WriteNumberToFile(const T number, const std::string file_path);
-
-  std::filesystem::path current_path_;
-  std::ofstream file_;
-  std::vector<std::string> created_files_;
-  BatteryStateMsg::SharedPtr battery_state_;
-  std::shared_ptr<ADCNodeWrapper> adc_node_;
-  rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_state_sub_;
-  rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_pub_;
-};
-
-TestADCNode::TestADCNode()
-{
-  current_path_ = std::filesystem::current_path();
-
-  // create only files that are required for adc_node to start
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage0_raw"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage0_scale"));
-
-  std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("adc0_device", current_path_));
-  params.push_back(rclcpp::Parameter("adc1_device", current_path_));
-
-  rclcpp::NodeOptions options;
-  options.parameter_overrides(params);
-
-  adc_node_ = std::make_shared<ADCNodeWrapper>("adc_node", options);
-
-  battery_state_sub_ = adc_node_->create_subscription<BatteryStateMsg>(
-    "battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
-
-  io_state_pub_ = adc_node_->create_publisher<IOStateMsg>("hardware/io_state", 10);
-}
-
-TestADCNode::~TestADCNode()
-{
-  for (auto & file : created_files_) {
-    std::filesystem::remove(file);
-  }
-  adc_node_.reset();
-}
-
-template <typename T>
-void TestADCNode::WriteNumberToFile(const T number, const std::string file_path)
-{
-  std::ofstream file(file_path);
-  if (file.is_open()) {
-    file << number;
-    file.close();
-    created_files_.push_back(file_path);
-  } else {
-    throw std::runtime_error("Failed to create file: " + file_path);
-  }
-}
 
 TEST_F(TestADCNode, MergeBatteryMsg)
 {
@@ -155,7 +70,12 @@ TEST_F(TestADCNode, MergeBatteryMsgState)
   auto bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, bat.power_supply_status);
 
-  bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
+  bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
+  bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
+  bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_FULL, bat.power_supply_status);
+
+  bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
   bat = adc_node_->MergeBatteryMsgs(bat_1, bat_2);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, bat.power_supply_status);
 
@@ -207,6 +127,32 @@ TEST_F(TestADCNode, MergeBatteryMsgHealth)
   EXPECT_FLOAT_EQ(-2.0, bat.temperature);
 }
 
+TEST_F(TestADCNode, BatteryTopicsPublished)
+{
+  // create and write some values
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage1_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage2_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage3_raw"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage0_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage1_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage2_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage3_scale"));
+
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    adc_node_, battery_state_, std::chrono::milliseconds(1000)));
+  EXPECT_TRUE(battery_state_ != nullptr);
+
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    adc_node_, battery_1_state_, std::chrono::milliseconds(1000)));
+  EXPECT_TRUE(battery_1_state_ != nullptr);
+
+  // battery_2_raw topic should not be published
+  ASSERT_FALSE(panther_utils::test_utils::WaitForMsg(
+    adc_node_, battery_2_state_, std::chrono::milliseconds(1000)));
+  EXPECT_TRUE(battery_2_state_ == nullptr);
+}
+
 TEST_F(TestADCNode, BatteryTimeout)
 {
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
@@ -222,14 +168,14 @@ TEST_F(TestADCNode, BatteryTimeout)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 
   // create and write some values
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage0_raw"));
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage1_raw"));
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage2_raw"));
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage3_raw"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage0_scale"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage1_scale"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage2_scale"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage3_scale"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage1_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage2_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage3_raw"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage0_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage1_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage2_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage3_scale"));
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     adc_node_, battery_state_, std::chrono::milliseconds(1000)));
@@ -242,7 +188,7 @@ TEST_F(TestADCNode, BatteryTimeout)
   EXPECT_FALSE(std::isnan(battery_state_->percentage));
 
   // Force error and wait for timeout
-  std::filesystem::remove(std::filesystem::path(current_path_ / "in_voltage2_raw"));
+  std::filesystem::remove(std::filesystem::path(device_path_ / "in_voltage2_raw"));
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     adc_node_, battery_state_, std::chrono::milliseconds(1000)));
@@ -260,14 +206,14 @@ TEST_F(TestADCNode, BatteryTimeout)
 TEST_F(TestADCNode, BatteryCharging)
 {
   // create and write some values
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage0_raw"));
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage1_raw"));
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage2_raw"));
-  WriteNumberToFile<int>(800, std::filesystem::path(current_path_ / "in_voltage3_raw"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage0_scale"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage1_scale"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage2_scale"));
-  WriteNumberToFile<float>(1.0, std::filesystem::path(current_path_ / "in_voltage3_scale"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage1_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage2_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device_path_ / "in_voltage3_raw"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage0_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage1_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage2_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device_path_ / "in_voltage3_scale"));
 
   // Publish charger connected state
   IOStateMsg io_state;

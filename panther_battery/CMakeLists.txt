@@ -85,10 +85,22 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp src/battery.cpp)
   target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_adc_node
+    rclcpp
+    panther_utils
+    panther_msgs
+    sensor_msgs
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_adc_node_dual_bat test/test_adc_node_dual_bat.cpp src/adc_node.cpp src/battery.cpp test/test_adc_node.hpp)
+  target_include_directories(${PROJECT_NAME}_test_adc_node_dual_bat PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+    )
+  ament_target_dependencies(${PROJECT_NAME}_test_adc_node_dual_bat
     rclcpp
     panther_utils
     panther_msgs
