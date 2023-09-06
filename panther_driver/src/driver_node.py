@@ -15,7 +15,7 @@ from std_msgs.msg import Bool
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 
 from panther_msgs.msg import DriverState, FaultFlag, IOState, RuntimeError, ScriptFlag
-from panther_can import PantherCANSDO, PantherCANPDO
+from panther_can import PantherCAN
 from panther_kinematics import PantherDifferential, PantherMecanum
 from velocity_smoother import VelocitySmoother
 
@@ -69,9 +69,6 @@ class PantherDriverNode:
 
         self._lock = Lock()
 
-        self._eds_file = rospy.get_param('~eds_file')
-        self._use_pdo = rospy.get_param('~use_pdo', False)
-        self._can_interface = rospy.get_param('~can_interface', 'panther_can')
         self._kinematics_type = rospy.get_param('~kinematics', 'differential')
         self._motor_torque_constant = rospy.get_param('~motor_torque_constant', 2.6149)
         self._gear_ratio = rospy.get_param('~gear_ratio', 30.08)
@@ -86,6 +83,10 @@ class PantherDriverNode:
         self._publish_joints = rospy.get_param('~publish_joints', True)
         self._odom_frame = rospy.get_param('~odom_frame', 'odom')
         self._base_link_frame = rospy.get_param('~base_link_frame', 'base_link')
+
+        eds_file = rospy.get_param('~eds_file')
+        use_pdo = rospy.get_param('~use_pdo', False)
+        can_interface = rospy.get_param('~can_interface', 'panther_can')
 
         robot_width = rospy.get_param('~wheel_separation', 0.697)
         robot_length = rospy.get_param('~robot_length', 0.44)
@@ -177,14 +178,7 @@ class PantherDriverNode:
         #   CAN interface
         # -------------------------------
 
-        if self._use_pdo:
-            self._panther_can = PantherCANPDO(
-                eds_file=self._eds_file, can_interface=self._can_interface
-            )
-        else:
-            self._panther_can = PantherCANSDO(
-                eds_file=self._eds_file, can_interface=self._can_interface
-            )
+        self._panther_can = PantherCAN(eds_file, can_interface, use_pdo)
         rospy.sleep(4.0)
 
         # -------------------------------
@@ -276,7 +270,7 @@ class PantherDriverNode:
         #   Service servers
         # -------------------------------
 
-        if self._use_pdo:
+        if use_pdo:
             self._reset_roboteq_script_server = rospy.Service(
                 'driver/reset_roboteq_script', Trigger, self._reset_roboteq_script_cb
             )
@@ -321,36 +315,37 @@ class PantherDriverNode:
                 self._cmd_vel, self._main_timer_period, emergency_breaking
             )
             self._panther_kinematics.inverse_kinematics(cmd_vel)
-            self._panther_can.write_wheels_enc_velocity(self._panther_kinematics.wheels_enc_speed)
+            self._panther_can.set_wheels_enc_velocity(self._panther_kinematics.wheels_enc_speed)
         else:
-            self._panther_can.write_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
+            self._panther_can.set_wheels_enc_velocity([0.0, 0.0, 0.0, 0.0])
 
-        wheel_enc_pos = self._panther_can.query_wheels_enc_pose()
-        wheel_enc_vel = self._panther_can.query_wheels_enc_velocity()
-        wheel_enc_curr = self._panther_can.query_motor_current()
+        if not any(self._panther_can.can_connection_error()):
+            wheel_enc_pos = self._panther_can.query_wheels_enc_pose()
+            wheel_enc_vel = self._panther_can.query_wheels_enc_velocity()
+            wheel_enc_curr = self._panther_can.query_motor_current()
 
-        # convert tics to rad
-        self._wheels_ang_pos = [
-            (2.0 * math.pi) * (pos / (self._encoder_resolution * self._gear_ratio))
-            for pos in wheel_enc_pos
-        ]
-        # convert RPM to rad/s
-        self._wheels_ang_vel = [
-            (2.0 * math.pi / 60.0) * (vel / self._gear_ratio) for vel in wheel_enc_vel
-        ]
-        # convert A to Nm
-        self._motors_effort = [
-            enc_curr * self._motor_torque_constant for enc_curr in wheel_enc_curr
-        ]
+            # convert tics to rad
+            self._wheels_ang_pos = [
+                (2.0 * math.pi) * (pos / (self._encoder_resolution * self._gear_ratio))
+                for pos in wheel_enc_pos
+            ]
+            # convert RPM to rad/s
+            self._wheels_ang_vel = [
+                (2.0 * math.pi / 60.0) * (vel / self._gear_ratio) for vel in wheel_enc_vel
+            ]
+            # convert A to Nm
+            self._motors_effort = [
+                enc_curr * self._motor_torque_constant for enc_curr in wheel_enc_curr
+            ]
 
-        try:
-            self._robot_pos, self._robot_vel = self._panther_kinematics.forward_kinematics(
-                *self._wheels_ang_vel, dt=dt
-            )
-        except:
-            rospy.logwarn(f'[{rospy.get_name()}] Could not get robot pose')
+            try:
+                self._robot_pos, self._robot_vel = self._panther_kinematics.forward_kinematics(
+                    *self._wheels_ang_vel, dt=dt
+                )
+            except:
+                rospy.logwarn(f'[{rospy.get_name()}] Could not get robot pose')
 
-        self._robot_orientation_quat = quaternion_from_euler(0.0, 0.0, self._robot_pos[2])
+            self._robot_orientation_quat = quaternion_from_euler(0.0, 0.0, self._robot_pos[2])
 
         if self._publish_joints:
             self._publish_joint_state_cb()
@@ -369,6 +364,16 @@ class PantherDriverNode:
             return
 
         if not self._motor_power:
+            return
+
+        can_net_errors = list(self._panther_can.can_connection_error())
+        if any(can_net_errors):
+            [
+                self._driver_state_msg.front.fault_flag.can_net_err,
+                self._driver_state_msg.rear.fault_flag.can_net_err,
+            ] = can_net_errors
+
+            self._driver_state_pub.publish(self._driver_state_msg)
             return
 
         [
@@ -434,7 +439,7 @@ class PantherDriverNode:
                     10.0,
                     f'[{rospy.get_name()}] Unable to communicate with motor controllers (CAN interface connection failure)',
                 )
-        elif self._e_stop_cliented:
+        elif e_stop_cliented:
             self._stop_motors = True
         else:
             self._stop_motors = False
