@@ -1,14 +1,34 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_manager
+
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
 
 A package containing nodes responsible for high-level control of Husarion Panther robot.
 
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
+
 ## ROS Nodes
+
+[//]: # (ROS_API_NODE_START)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+[//]: # (ROS_API_NODE_NAME_START)
 
 ### manager_bt_node
 
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
 Node responsible for managing the Husarion Panther robot. Composes control of three behavior trees responsible for handling Bumper Lights animation scheduling, safety features, and software shutdown of components.
 
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
 #### Subscribers
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
 - `/panther/battery` [*sensor_msgs/BatteryState*]: state of the internal Battery.
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: state of motor controllers.
@@ -16,14 +36,22 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: state of the system, including Built-in Computer's CPU temperature and load.
 
+[//]: # (ROS_API_NODE_SUBSCRIBERS_END)
+
 #### Service Clients (for Default Trees)
+
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
 
 - `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables Aux Power output.
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers E-stop.
 - `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
+
 #### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 - `~battery_percent_window_len` [*int*, default: **6**]: moving average window length used to smooth out Battery percentage readings.
 - `~battery_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of the Battery.
@@ -54,6 +82,9 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
   - `port` [*string*, default: **22**]: SSH communication port.
   - `timeout` [*string*, default: **5.0**]: time in **[s]** to wait for the host to shutdown. The built-in computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
+
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
 
 #### Shutdown Behavior
 
@@ -104,14 +135,29 @@ After receiving a message on the `/panther/battery` topic, the `panther_manager`
 > 1. The fan exhibits a form of hysteresis, allowing it to be turned off after a delay of at least 60 seconds.
 > 2. Once the Panther ROS stack initializes, the fan activates and operates for a duration of approximately 60 seconds.
 
+[//]: # (ROS_API_NODE_START)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+[//]: # (ROS_API_NODE_NAME_START)
 
 ### system_status_node.py
 
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
 Publishes stats and status of the Built-in Computer. Stats include CPU utilization and temperature, as well as disk and RAM usage.
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
 
 #### Publishers
 
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
+
 - `/panther/system_status` [*panther_msgs/SystemStatus*]: information about Built-in Computer CPU temperature, utilization, disk, and RAM usage.
+
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+[//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)
 
 ---
 

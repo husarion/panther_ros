@@ -1,6 +1,14 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_lights
 
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
+
 Package used to control the Husarion Panther Bumper Lights.
+
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
 
 Structure of the nodes in this package is shown below:
 
@@ -8,23 +16,43 @@ Structure of the nodes in this package is shown below:
 
 ## ROS Nodes
 
+[//]: # (ROS_API_NODE_START)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+[//]: # (ROS_API_NODE_NAME_START)
+
 ### controller_node.py
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
 
 This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
 
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
 #### Publishers
+
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot Front Bumper Lights.
 - `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame pixels to be displayed on robot Rear Bumper Lights.
 - `/panther/lights/controller/queue` [*panther_msgs/LEDAnimationQueue*]: list of names of currently enqueued animations in the controller node, the first element of the list is the currently displayed animation.
 
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+
 #### Service Servers
+
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
 - `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 - `/panther/lights/controller/set/image_animation` [*panther_msgs/SetLEDImageAnimation*]: allows setting animation based on provided images. Only available if `~test` parameter is set to **true**.
 - `/panther/lights/controller/update_animations` [*std_srvs/Trigger*]: allows updating user-defined animations using `~user_animations` parameter.
 
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
+
 #### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 - `~animations` [*list*, default: **None**]:  required list of defined animations.
 - `~controller_frequency` [*float*, default: **46.0**]: frequency **[Hz]** at which the lights controller node will process animations.
@@ -32,24 +60,51 @@ This node is responsible for processing animations and publishing frames to be d
 - `~test` [*bool*, default: **false**]: enables `/panther/lights/controller/set/image_animation` service.
 - `~user_animations` [*list*, default: **None**]: optional list of animations defined by the user.
 
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
+
+[//]: # (ROS_API_NODE_START)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+[//]: # (ROS_API_NODE_NAME_START)
+
 ### driver_node
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
 
 This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
 
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
 #### Subscribers
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
 - `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
 - `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
+[//]: # (ROS_API_NODE_SUBSCRIBERS_END)
+
 #### Service Servers
+
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
 - `/panther/lights/driver/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows setting global LED brightness, value ranges from **0.0** to **1.0**.
 
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
+
 #### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 - `~frame_timeout` [*float*, default: **0.1**]: time in **[s]** after which an incoming frame will be considered too old.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. The range between **[0.0, 1.0]**.
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single bumper.
+
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)
 
 ## Animations
 
@@ -68,7 +123,7 @@ Basic animations provided by Husarion are loaded upon node starting from [`panth
 - `timeout` [*float*, default: **120.0**]: time in **[s]**, after which animation will be removed from the queue.
 
 > **Warning**
-> If the `animation` key at the same time has values `both` and `front` or `rear` provided. It will default to `both`.
+> If the `animation` key at the same time has values **both** and **front** or **rear** provided. It will default to **both**.
 
 Default animations can be found in the table below:
 

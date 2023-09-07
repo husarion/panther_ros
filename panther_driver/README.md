@@ -1,20 +1,46 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_driver
+
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
 
 Software for controlling the Husarion Panther robot motors via CAN interface.
 
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
+
 ## ROS Nodes
+
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+
+[//]: # (ROS_API_NODE_NAME_START)
 
 ### driver_node.py
 
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
 Node responsible for communication with motor controllers and computing inverse and forward kinematics of a robot. Commanded velocities are smoothed with acceleration constraints.
 
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
 #### Subscribers
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
 - `/cmd_vel` [*geometry_msgs/Twist*]: robot desired control velocity.
 - `/panther/hardware/e_stop` [*std_msgs/Bool*]: robot E-stop state.
 - `/panther/hardware/io_state` [*panther_msgs/IOState*]: checks whether robot GPIO pins are powered on.
 
+[//]: # (ROS_API_NODE_SUBSCRIBERS_END)
+
 #### Publishers
+
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `/joint_states` [*sensor_msgs/JointState*]: robot joints states.
 - `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: motor controllers current, voltage, fault flags, script flags and runtime error flags. If the robot's motors are disabled, no messages will be sent to this topic.
@@ -27,15 +53,27 @@ For a `/joint_states` topic, message carries given data:
 - `velocity = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` wheels velocity in **[rad/s]**.
 - `effort = [fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint]` Approximate motor torque in **[Nm]**.
 
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+
 #### Service Servers
+
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
 - `/panther/driver/reset_roboteq_script` [*std_srvs/Trigger*]: resets the script running on motor drivers. Available since Panther version 1.2.
 
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
+
 #### Service Clients
+
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
 
 - `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: allows to trigger robot E-stop.
 
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
+
 #### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 - `~base_link_frame` [*string*, default: **base_link**]: the name of the `base_link` frame.
 - `~can_interface` [*string*, default: **panther_can**]: the name of the socket CAN interface.
@@ -72,6 +110,10 @@ For a `/joint_states` topic, message carries given data:
 - `~emergency_decel_lim_x` [*float*, default: **2.7**]: maximum linear decelaration in **X** direction when a timeout is reached for velocity commands.
 - `~emergency_decel_lim_y` [*float*, default: **2.7**]: maximum linear decelaration in **Y** direction when a timeout is reached for velocity commands.
 - `~emergency_decel_lim_theta` [*float*, default: **5.74**]: maximum angular deceleration when a timeout is reached for velocity commands.
+
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)
 
 #### Kinematics Type - Explanation
 

@@ -1,6 +1,14 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_bringup
 
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
+
 The package contains the default configuration and launch files necessary to start all the basic functionalities of the Husarion Panther robot.
+
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
 
 ## Default Nodes Launched
 
@@ -8,7 +16,7 @@ In cases where different nodes are used depending on the robot version, **<= 1.0
 
 - `battery_node` [<= 1.06 *[panther_battery/roboteq_republisher_node.py](../panther_battery/src/roboteq_republisher_node.py)*, >= 1.2 *[panther_battery/adc_node.py](../panther_battery/src/adc_node.py)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](../panther_battery/README.md).
 - `driver_node` [*[panther_driver/driver_node.py](../panther_driver/src/driver_node.py)*]: node responsible for communication with motor controllers and computing the inverse and forward kinematics of a robot. For more information, refer to [panther_driver](../panther_driver/README.md).
-- `ekf_node` [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/noetic-devel/src/ekf_localization_node.cpp)*]: Extended Kalman Filter node for more accurate odomtery. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](./config/ekf_config.yaml).
+- `ekf_node` [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/noetic-devel/src/ekf_localization_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](./config/ekf_config.yaml).
 - `imu_filter_node` [*[imu_filter_madgwick/imu_filter_node](https://github.com/CCNYRoboticsLab/imu_tools/blob/noetic/imu_filter_madgwick/src/imu_filter_node.cpp)*]: node responsible for filtering and fusing raw data from IMU.
 - `lights_controller_node` [*[panther_lights/controller_node.py](../panther_lights/src/controller_node.py)*]: node responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot LED panels. For more information, refer to [panther_lights](../panther_lights/README.md).
 - `lights_driver_node` [*[panther_lights/driver_node](../panther_lights/src/driver_node.cpp)*]: node responsible for displaying frames on the Husarion Panther robot LED panels. For more information, refer to [panther_lights](../panther_lights/README.md).
@@ -48,7 +56,17 @@ If the environment variable `PANTHER_HW_CONFIG_CORRECT` is set to **true** the r
 
 ## ROS Nodes
 
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+
+[//]: # (ROS_API_NODE_NAME_START)
+
 ### welcome_msg_node.py
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
 
 Displays user-friendly welcome message:
 ```
@@ -65,14 +83,24 @@ Website: https://husarion.com
 Support: https://community.husarion.com/
 Bugtracker: https://github.com/husarion/panther_ros/issues
 ```
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
 The serial number and robot version are changed according to the parameters of your real robot. If the `PANTHER_HW_CONFIG_CORRECT` is not set to **true** or does not exist, an error indicating incorrect hardware will be displayed after the welcome message.
 
 #### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 - `~exit_on_wrong_hw` [*bool*, default: **true**]: if set to **true** stops the node if incorrect hardware is detected. Otherwise, keeps spinning the node.
 - `/panther/serial_no` [*string*, default: **----**]: serial number of a robot.
 - `/panther/robot_version` [*string*, default: **1.0**]: robot hardware revision.
 
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+
 #### Environment Variables
 
 - `PANTHER_HW_CONFIG_CORRECT` [*string*, default: **None**]: information whether hardware is correctly configured.
+
+[//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)
