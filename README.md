@@ -35,10 +35,11 @@ To build hardware interface packages running on the Panther robot's Built-in Com
 ``` bash
 export HUSARION_ROS_BUILD_TYPE=hardware
 
+cd ~/husarion_ws
 git clone https://github.com/husarion/panther_ros.git src/panther_ros
 vcs import src < src/panther_ros/panther/panther.repos
 rm -r src/panther_ros/panther_gazebo
-rosdep init
+sudo rosdep init
 rosdep update --rosdistro $ROS_DISTRO
 rosdep install --from-paths src -y -i
 source /opt/ros/$ROS_DISTRO/setup.bash
@@ -47,6 +48,7 @@ catkin_make -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release
 
 After a successful build run:
 ``` bash
+source ~/husarion_ws/devel/setup.bash
 roslaunch panther_bringup bringup.launch
 ```
 
