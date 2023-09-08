@@ -1,4 +1,4 @@
-#include <test/test_adc_node.hpp>
+#include <include/test_adc_node.hpp>
 
 #include <chrono>
 
@@ -66,7 +66,7 @@ TEST_F(TestADCNodeDualBattery, BatteryMsgValues)
   EXPECT_FALSE(fabs(battery_1_state_->current - battery_2_state_->current) < std::numeric_limits<float>::epsilon());
   EXPECT_FLOAT_EQ(battery_1_state_->temperature, battery_2_state_->temperature);
 
-  WriteNumberToFile<int>(800, std::filesystem::path(device0_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(1000, std::filesystem::path(device0_path_ / "in_voltage0_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     adc_node_, battery_2_state_, std::chrono::milliseconds(1000)));
   EXPECT_FALSE(fabs(battery_1_state_->temperature - battery_2_state_->temperature) < std::numeric_limits<float>::epsilon());
