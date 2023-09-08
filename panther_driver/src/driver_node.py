@@ -367,12 +367,13 @@ class PantherDriverNode:
             return
 
         can_net_errors = list(self._panther_can.can_connection_error())
+
         if any(can_net_errors):
             [
                 self._driver_state_msg.front.fault_flag.can_net_err,
                 self._driver_state_msg.rear.fault_flag.can_net_err,
             ] = can_net_errors
-
+            
             self._driver_state_pub.publish(self._driver_state_msg)
             return
 
@@ -392,11 +393,6 @@ class PantherDriverNode:
             self._driver_flag_loggers['fault_flags'](flag_val)
             for flag_val in self._panther_can.query_fault_flags()
         ]
-
-        (
-            self._driver_state_msg.front.fault_flag.can_net_err,
-            self._driver_state_msg.rear.fault_flag.can_net_err,
-        ) = self._panther_can.can_connection_error()
 
         [self._driver_state_msg.front.script_flag, self._driver_state_msg.rear.script_flag] = [
             self._driver_flag_loggers['script_flags'](flag_val)

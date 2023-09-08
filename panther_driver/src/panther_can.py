@@ -19,7 +19,7 @@ class ControllerChannels:
 
 
 class MotorController:
-    HEARTBEAT_TIMEOUT_S = 0.3
+    HEARTBEAT_TIMEOUT = 0.3
 
     def __init__(self, can_node_id: int, eds_file: str, lock: Lock) -> None:
         self._lock = lock
@@ -47,9 +47,31 @@ class MotorController:
         if self._can_node.nmt.state != 'OPERATIONAL':
             return True
 
-        return rospy.Time.now() - self._heartbeat_timestamp > rospy.Duration(
-            self.HEARTBEAT_TIMEOUT_S
-        )
+        return rospy.Time.now() - self._heartbeat_timestamp > rospy.Duration(self.HEARTBEAT_TIMEOUT)
+
+    @property
+    def wheel_pos(self) -> List[float]:
+        return self._wheel_pos
+
+    @property
+    def wheel_vel(self) -> List[float]:
+        return self._wheel_vel
+
+    @property
+    def wheel_curr(self) -> List[float]:
+        return self._wheel_curr
+
+    @property
+    def runtime_stat_flags(self) -> List[float]:
+        return self._runtime_stat_flags
+
+    @property
+    def fault_flags(self) -> float:
+        return self._fault_flags
+
+    @property
+    def script_flags(self) -> float:
+        return self._script_flags
 
     @property
     def driver_temperature(self) -> float:
@@ -95,37 +117,13 @@ class MotorController:
                 except:
                     pass
 
-    def _heartbeat_cb(self, nmt_state: int) -> None:
+    def _heartbeat_cb(self, _: int) -> None:
         self._heartbeat_timestamp = rospy.Time.now()
 
 
 class MotorControllerPDO(MotorController):
     def __init__(self, can_node_id: int, eds_file: str, lock: Lock) -> None:
         super().__init__(can_node_id, eds_file, lock)
-
-    @property
-    def wheel_pos(self) -> List[float]:
-        return self._wheel_pos
-
-    @property
-    def wheel_vel(self) -> List[float]:
-        return self._wheel_vel
-
-    @property
-    def wheel_curr(self) -> List[float]:
-        return self._wheel_curr
-
-    @property
-    def runtime_stat_flags(self) -> List[float]:
-        return self._runtime_stat_flags
-
-    @property
-    def fault_flags(self) -> float:
-        return self._fault_flags
-
-    @property
-    def script_flags(self) -> float:
-        return self._script_flags
 
     def setup(self, network: canopen.Network) -> None:
         super().setup(network)
@@ -263,11 +261,6 @@ class MotorControllerSDO(MotorController):
 
         return self._fault_flags
 
-    @property
-    def script_flags(self) -> float:
-        # mockup for compatybility with new driver version
-        return self._script_flags
-
 
 class PantherCAN:
     def __init__(self, eds_file: str, can_interface: str, use_pdo: bool) -> None:
@@ -312,8 +305,7 @@ class PantherCAN:
         return True
 
     def set_wheels_enc_velocity(self, velocity: List[float]) -> None:
-        vel = [velocity[:2], velocity[2:]]
-        for controller, v in zip(self._motor_controllers, vel):
+        for controller, v in zip(self._motor_controllers, [velocity[:2], velocity[2:]]):
             controller.write_wheels_enc_velocity(v)
 
     def query_wheels_enc_pose(self) -> Generator[float, None, None]:
