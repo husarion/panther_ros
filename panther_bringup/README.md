@@ -143,7 +143,6 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 
 - `/panther/odom/filtered` [*nav_msgs/Odometry*]: provides filtered odometry information. This topic contains a fused and enhanced estimate of the robot's pose and velocity, incorporating data from various sensors and correcting for any errors in the estimated state.
 - `/tf` [*tf2_msgs/TFMessage*]: publishes `base_link` to `odom` transform.
-- `/tf_static` [*tf2_msgs/TFMessage*]: publishes static transforms of robot system.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
