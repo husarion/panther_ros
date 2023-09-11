@@ -11,7 +11,7 @@
 #include <vector>
 
 #include <behaviortree_cpp/bt_factory.h>
-#include <behaviortree_cpp/loggers/bt_cout_logger.h>
+#include <behaviortree_cpp/loggers/groot2_publisher.h>
 #include <behaviortree_cpp/utils/shared_library.h>
 
 #include <ros/package.h>
@@ -134,6 +134,7 @@ ManagerBTNode::ManagerBTNode(
 
     lights_config_ = create_bt_config(lights_initial_bb);
     lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
+    lights_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(lights_tree_, 5555);
   }
 
   if (launch_safety_tree) {
@@ -164,6 +165,7 @@ ManagerBTNode::ManagerBTNode(
 
     safety_config_ = create_bt_config(safety_initial_bb);
     safety_tree_ = factory_.createTree("Safety", safety_config_.blackboard);
+    safety_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(safety_tree_, 6666);
   }
 
   if (launch_shutdown_tree_) {
@@ -173,6 +175,7 @@ ManagerBTNode::ManagerBTNode(
 
     shutdown_config_ = create_bt_config(shutdown_initial_bb);
     shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
+    shutdown_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(shutdown_tree_, 7777);
   }
 
   // -------------------------------
@@ -309,7 +312,6 @@ void ManagerBTNode::lights_tree_timer_cb()
       round(battery_percent_ma_->get_average() / update_charging_anim_step_) *
       update_charging_anim_step_));
 
-  // BT::StdCoutLogger logger_cout(lights_tree_);  // debugging
   lights_tree_status_ = lights_tree_.tickOnce();
 }
 
@@ -328,7 +330,6 @@ void ManagerBTNode::safety_tree_timer_cb()
     "driver_temp",
     std::max({front_driver_temp_ma_->get_average(), rear_driver_temp_ma_->get_average()}));
 
-  // BT::StdCoutLogger logger_cout(safety_tree_);  // debugging
   safety_tree_status_ = safety_tree_.tickOnce();
 
   std::pair<bool, std::string> signal_shutdown;
@@ -347,7 +348,6 @@ void ManagerBTNode::shutdown_robot(const std::string & reason)
   safety_tree_.haltTree();
 
   // tick shutdown tree
-  // BT::StdCoutLogger logger_cout(shutdown_tree_);  // debugging
   shutdown_tree_status_ = BT::NodeStatus::RUNNING;
   auto start_time = ros::Time::now();
   ros::Rate rate(30.0);  // 30 Hz

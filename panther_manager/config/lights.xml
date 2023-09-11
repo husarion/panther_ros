@@ -5,7 +5,7 @@
       <Sequence name="ChargingSequence"
                 _skipIf="battery_status != POWER_SUPPLY_STATUS_CHARGING \
 &amp;&amp; battery_status != POWER_SUPPLY_STATUS_FULL">
-        <CallSetLedAnimationService name="SerErrorAnimation"
+        <CallSetLedAnimationService name="SetErrorAnimation"
                                     id="{ERROR_ANIM_ID}"
                                     param=""
                                     repeating="true"
