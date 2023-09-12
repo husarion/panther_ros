@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>panther_battery</name>
-  <version>1.0.46</version>
+  <version>1.0.47</version>
 
   <description>Nodes monitoring the battery state of Husarion Panhter robot</description>
   <license>Apache License 2.0</license>
