@@ -208,7 +208,7 @@ Node responsible for filtering and fusing raw data from the IMU.
 
 External node type: *[phidgets_spatial/phidgets_spatial_nodelet.cpp](https://github.com/ros-drivers/phidgets_drivers/blob/noetic/phidgets_spatial/src/phidgets_spatial_nodelet.cpp)*.
 
-The ROS driver for Phidgets spatial.
+The ROS driver for Phidgets Spatial.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
