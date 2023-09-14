@@ -125,7 +125,8 @@ The serial number and robot version are changed according to the parameters of y
 
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-[*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/noetic-devel/src/ekf_localization_node.cpp)*]
+Node type: [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/noetic-devel/src/ekf_localization_node.cpp)*]
+
 Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in `panther_bringup/ekf_config.yaml`.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
@@ -153,7 +154,7 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `/panther/set_pose` [*robot_localization/SetPose*]: by issuing a geometry_msgs/PoseWithCovarianceStamped message to the set_pose topic, users can manually set the state of the filter. This is useful for resetting the filter during testing and allows for interaction with Rviz. Alternatively, the state estimation nodes advertise a SetPose service, whose type is `robot_localization/SetPose`.
+- `/panther/set_pose` [*robot_localization/SetPose*]: by issuing a *geometry_msgs/PoseWithCovarianceStamped* message to the set_pose topic, users can manually set the state of the filter. This is useful for resetting the filter during testing and allows for interaction with Rviz. Alternatively, the state estimation nodes advertise a SetPose service, whose type is *robot_localization/SetPose*.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 [//]: # (ROS_API_NODE_END)
@@ -170,8 +171,9 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-[*[imu_filter_madgwick/imu_filter_node](https://github.com/CCNYRoboticsLab/imu_tools/blob/noetic/imu_filter_madgwick/src/imu_filter_node.cpp)*]
-Node responsible for filtering and fusing raw data from IMU.
+Node type: [*[imu_filter_madgwick/imu_filter_node](https://github.com/CCNYRoboticsLab/imu_tools/blob/noetic/imu_filter_madgwick/src/imu_filter_node.cpp)*]
+
+Node responsible for filtering and fusing raw data from the IMU.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
@@ -187,7 +189,7 @@ Node responsible for filtering and fusing raw data from IMU.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/panther/imu/data` [*sensor_msgs/Imu*]: the fused Imu messages, containing the orientation. 
+- `/panther/imu/data` [*sensor_msgs/Imu*]: the fused IMU messages, containing the orientation. 
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_END)
@@ -204,7 +206,8 @@ Node responsible for filtering and fusing raw data from IMU.
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-[*[phidgets_spatial/phidgets_spatial_nodelet.cpp](https://github.com/ros-drivers/phidgets_drivers/blob/noetic/phidgets_spatial/src/phidgets_spatial_nodelet.cpp)*]
+Node type: [*[phidgets_spatial/phidgets_spatial_nodelet.cpp](https://github.com/ros-drivers/phidgets_drivers/blob/noetic/phidgets_spatial/src/phidgets_spatial_nodelet.cpp)*]
+
 The ROS driver for Phidgets spatial.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
@@ -214,7 +217,7 @@ The ROS driver for Phidgets spatial.
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `/panther/imu/data_raw` [*sensor_msgs/Imu*]: the raw accelerometer and gyroscope data.
-- `/panther/imu/is_calibrated` [*std_msgs/Bool*]: whether the gyroscope has been calibrated; this will be done automatically at startup time, but can also be re-done at any time by calling the `imu/calibrate service`.
+- `/panther/imu/is_calibrated` [*std_msgs/Bool*]: whether the gyroscope has been calibrated; this will be done automatically at startup time but can also be re-done at any time by calling the `imu/calibrate service`.
 - `/panther/imu/mag` [*sensor_msgs/MagneticField*]: the raw magnetometer data.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
