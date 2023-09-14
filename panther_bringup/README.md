@@ -226,7 +226,7 @@ The ROS driver for Phidgets Spatial.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `/panther/imu/calibrate` [*std_srvs/Empty*]: - run calibration on the gyroscope.
+- `/panther/imu/calibrate` [*std_srvs/Empty*]: run calibration on the gyroscope.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 [//]: # (ROS_API_NODE_END)
