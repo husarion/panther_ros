@@ -217,7 +217,7 @@ The ROS driver for Phidgets Spatial.
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `/panther/imu/data_raw` [*sensor_msgs/Imu*]: the raw accelerometer and gyroscope data.
-- `/panther/imu/is_calibrated` [*std_msgs/Bool*]: whether the gyroscope has been calibrated; this will be done automatically at startup time but can also be re-done at any time by calling the `imu/calibrate service`.
+- `/panther/imu/is_calibrated` [*std_msgs/Bool*]: whether the gyroscope has been calibrated. This will be done automatically at startup time but can also be re-done at any time by calling the `imu/calibrate` service.
 - `/panther/imu/mag` [*sensor_msgs/MagneticField*]: the raw magnetometer data.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
