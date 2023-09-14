@@ -154,7 +154,7 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `/panther/set_pose` [*robot_localization/SetPose*]: by issuing a *geometry_msgs/PoseWithCovarianceStamped* message to the set_pose topic, users can manually set the state of the filter. This is useful for resetting the filter during testing and allows for interaction with Rviz. Alternatively, the state estimation nodes advertise a SetPose service, whose type is *robot_localization/SetPose*.
+- `/panther/set_pose` [*robot_localization/SetPose*]: by issuing a *geometry_msgs/PoseWithCovarianceStamped* message to the set_pose topic, users can manually set the state of the filter. This is useful for resetting the filter during testing and allows for interaction with RViz. Alternatively, the state estimation nodes advertise a SetPose service, whose type is *robot_localization/SetPose*.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 [//]: # (ROS_API_NODE_END)
