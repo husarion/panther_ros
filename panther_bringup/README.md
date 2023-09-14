@@ -125,7 +125,7 @@ The serial number and robot version are changed according to the parameters of y
 
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-Node type: [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/noetic-devel/src/ekf_localization_node.cpp)*]
+External node type: [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/noetic-devel/src/ekf_localization_node.cpp)*]
 
 Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in `panther_bringup/ekf_config.yaml`.
 
@@ -171,7 +171,7 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-Node type: [*[imu_filter_madgwick/imu_filter_node](https://github.com/CCNYRoboticsLab/imu_tools/blob/noetic/imu_filter_madgwick/src/imu_filter_node.cpp)*]
+External node type: [*[imu_filter_madgwick/imu_filter_node](https://github.com/CCNYRoboticsLab/imu_tools/blob/noetic/imu_filter_madgwick/src/imu_filter_node.cpp)*]
 
 Node responsible for filtering and fusing raw data from the IMU.
 
@@ -206,7 +206,7 @@ Node responsible for filtering and fusing raw data from the IMU.
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-Node type: [*[phidgets_spatial/phidgets_spatial_nodelet.cpp](https://github.com/ros-drivers/phidgets_drivers/blob/noetic/phidgets_spatial/src/phidgets_spatial_nodelet.cpp)*]
+External node type: [*[phidgets_spatial/phidgets_spatial_nodelet.cpp](https://github.com/ros-drivers/phidgets_drivers/blob/noetic/phidgets_spatial/src/phidgets_spatial_nodelet.cpp)*]
 
 The ROS driver for Phidgets spatial.
 
