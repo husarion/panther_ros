@@ -158,6 +158,11 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 [//]: # (ROS_API_NODE_END)
 
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+
 [//]: # (ROS_API_NODE_NAME_START)
 
 ### imu_filter_node.cpp
@@ -186,6 +191,11 @@ Node responsible for filtering and fusing raw data from IMU.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_END)
+
+[//]: # (ROS_API_NODE_START)
+
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 
 [//]: # (ROS_API_NODE_NAME_START)
 
