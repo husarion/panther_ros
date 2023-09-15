@@ -78,7 +78,7 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `ping_for_success` [*bool*, default: **true**]: ping host until it is not available or timeout is reached.
   - `port` [*string*, default: **22**]: SSH communication port.
-  - `timeout` [*string*, default: **5.0**]: time in **[s]** to wait for the host to shutdown. The built-in computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
+  - `timeout` [*string*, default: **5.0**]: time in **[s]** to wait for the host to shutdown. The Built-in Computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information. 
   - `username` [*string*, default: **None**]: username used to log in to over SSH.
 
 [//]: # (ROS_API_NODE_PARAMETERS_END)
@@ -272,7 +272,7 @@ Default constant blackboard entries:
 
 ### Shutdown 
  
-A tree responsible for the graceful shutdown of robot components, user computers, and the built-in computer. By default, it will proceed to shutdown all computers defined in a YAML file with a path defined by the `~shutdown_host_file` ROS parameter.
+A tree responsible for the graceful shutdown of robot components, user computers, and the Built-in Computer. By default, it will proceed to shutdown all computers defined in a YAML file with a path defined by the `~shutdown_host_file` ROS parameter.
 
 <p align="center">
   <img src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/shutdown_tree.svg">
