@@ -2,6 +2,9 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.48 (2023-09-14)
 -------------------
 

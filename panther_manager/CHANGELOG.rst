@@ -2,6 +2,9 @@
 Changelog for package panther_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.48 (2023-09-14)
 -------------------
 
