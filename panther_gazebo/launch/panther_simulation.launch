@@ -5,9 +5,10 @@
   <arg name="wheel_type" default="WH01" />
   <arg name="use_gpu" default="false" />
   <arg name="publish_robot_state" default="true" />
-  <arg name="pos_x" default="0" />
-  <arg name="pos_y" default="0" />
-  <arg name="pos_z" default="0" />
+  <arg name="pos_x" default="0.0" />
+  <arg name="pos_y" default="0.0" />
+  <arg name="pos_z" default="0.0" />
+  <arg name="rot_yaw" default="0.0" />
   <arg name="world_file" default="worlds/empty.world" />
 
   <include file="$(find panther_gazebo)/launch/panther_world.launch">
@@ -22,6 +23,7 @@
     <arg name="pos_x" default="$(arg pos_x)" />
     <arg name="pos_y" default="$(arg pos_y)" />
     <arg name="pos_z" default="$(arg pos_z)" />
+    <arg name="rot_yaw" default="$(arg rot_yaw)" />
   </include>
 
   <node if="$(arg use_rviz)" pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(arg rviz_config)" />
