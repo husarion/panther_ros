@@ -3,6 +3,9 @@
   <arg name="wheel_type" />
   <arg name="use_gpu" />
   <arg name="publish_robot_state" />
+  <arg name="pos_x" />
+  <arg name="pos_y" />
+  <arg name="pos_z" />
   <arg name="robot_description"
     default="$(find xacro)/xacro $(find panther_description)/urdf/panther.urdf.xacro
               use_gpu:=$(arg use_gpu)
@@ -11,7 +14,7 @@
               use_ros_control:=$(arg use_ros_control)" />
 
   <node pkg="gazebo_ros" type="spawn_model" name="panther_spawn" output="screen"
-    args="-urdf -param robot_description -model panther" />
+    args="-urdf -param robot_description -model panther -x $(arg pos_x) -y $(arg pos_y) -z $(arg pos_z)" />
 
   <group if="$(arg use_ros_control)">
     <rosparam command="load" file="$(find panther_gazebo)/config/panther_ros_controler.yaml" />
