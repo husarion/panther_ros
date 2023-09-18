@@ -16,7 +16,8 @@ The advised way of launching the simulation is by using [panther_simulation.laun
 - `wheel_type` [*string*, default: **WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic.
 - `use_gpu` [*bool*, default: **false**]: turns on GPU acceleration for sensors.
 - `publish_robot_state` [*bool*, default: **true**]: whether to publish robot state.
-- `pos_x` [*float*, default: **0**]: spawn position of the robot in the world in **X** direction.
-- `pos_y` [*float*, default: **0**]: spawn position of the robot in the world in **Y** direction.
-- `pos_z` [*float*, default: **0**]: spawn position of the robot in the world in **Z** direction.
+- `pos_x` [*float*, default: **0.0**]: spawn position **[m]** of the robot in the world in **X** direction.
+- `pos_y` [*float*, default: **0.0**]: spawn position **[m]** of the robot in the world in **Y** direction.
+- `pos_z` [*float*, default: **0.0**]: spawn position **[m]** of the robot in the world in **Z** direction.
+- `rot_yaw` [*float*, default: **0.0**]: spawn yaw angle **[rad]** of the robot in the world.
 - `world_file` [*string*, default: **worlds/empty.world**]: path to Gazebo world file used for simulation.

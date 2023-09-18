@@ -21,7 +21,7 @@ A package containing nodes responsible for power management of the Husarion Pant
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-Node responsible for management of the safety board and the power board.
+Node responsible for management of the Safety Board and the Power Board.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
