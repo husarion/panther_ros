@@ -120,9 +120,10 @@ private:
 
   std::mutex rpdo_timestamp_mtx_;
 
-  // TODO: too long timeouts, sometimes takes even longer
-  std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(15);
-  std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(15);
+  // Wait timeout has to be longer - first we want to give a chance for lely to cancel
+  // operation
+  std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(4);
+  std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(5);
 
   template <class type>
   type SyncSdoRead(uint16_t index, uint8_t subindex);
