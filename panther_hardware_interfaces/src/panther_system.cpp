@@ -376,7 +376,9 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
     // TODO old data to message
 
-    error_ = front.IsError() || rear.IsError();
+    if (front.IsError() || rear.IsError()) {
+      error_ = true;
+    }
 
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
@@ -386,6 +388,7 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     // return return_type::ERROR;
   }
 
+  realtime_driver_state_publisher_->msg_.error = error_;
   if (realtime_driver_state_publisher_->trylock()) {
     realtime_driver_state_publisher_->unlockAndPublish();
   }
