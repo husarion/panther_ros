@@ -37,40 +37,51 @@ void PantherWheelsController::Initialize()
       std::cerr << "RT kernel is recommended for better performance (CAN thread)" << std::endl;
     }
 
-    lely::io::IoGuard io_guard;
+    try {
+      lely::io::IoGuard io_guard;
 
-    ctx_ = std::make_unique<lely::io::Context>();
-    poll_ = std::make_unique<lely::io::Poll>(*ctx_);
-    loop_ = std::make_shared<lely::ev::Loop>(poll_->get_poll());
-    exec_ = std::make_unique<lely::ev::Executor>(loop_->get_executor());
+      ctx_ = std::make_unique<lely::io::Context>();
+      poll_ = std::make_unique<lely::io::Poll>(*ctx_);
+      loop_ = std::make_shared<lely::ev::Loop>(poll_->get_poll());
+      exec_ = std::make_unique<lely::ev::Executor>(loop_->get_executor());
 
-    timer_ = std::make_unique<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
+      timer_ = std::make_unique<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
 
-    ctrl_ = std::make_unique<lely::io::CanController>("panther_can");
-    chan_ = std::make_unique<lely::io::CanChannel>(*poll_, *exec_);
+      ctrl_ = std::make_unique<lely::io::CanController>("panther_can");
+      chan_ = std::make_unique<lely::io::CanChannel>(*poll_, *exec_);
 
-    chan_->open(*ctrl_);
+      chan_->open(*ctrl_);
 
-    // Master dcf is generated from roboteq_motor_controllers_v80_21 using following command:
-    // dcfgen panther_can.yaml -r
-    // dcfgen comes with lely, -r option tells to enable remote PDO mapping
-    std::string master_dcf_path =
-      std::filesystem::path(
-        ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
-      "config" / "master.dcf";
+      // Master dcf is generated from roboteq_motor_controllers_v80_21 using following command:
+      // dcfgen panther_can.yaml -r
+      // dcfgen comes with lely, -r option tells to enable remote PDO mapping
+      std::string master_dcf_path =
+        std::filesystem::path(
+          ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
+        "config" / "master.dcf";
 
-    // TODO timer chan unique??
-    master_ = std::make_unique<lely::canopen::AsyncMaster>(
-      *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
+      // TODO timer chan unique??
+      master_ = std::make_unique<lely::canopen::AsyncMaster>(
+        *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
-    front_driver_ =
-      std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.front_driver_can_id);
-    rear_driver_ =
-      std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.rear_driver_can_id);
+      front_driver_ =
+        std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.front_driver_can_id);
+      rear_driver_ =
+        std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.rear_driver_can_id);
 
-    // Start the NMT service of the master by pretending to receive a 'reset
-    // node' command.
-    master_->Reset();
+      // Start the NMT service of the master by pretending to receive a 'reset
+      // node' command.
+      master_->Reset();
+
+    } catch (std::system_error & err) {
+      std::cerr << "Exception caught during CAN intialization: " << err.what() << std::endl;
+      {
+        std::lock_guard lk(can_communication_started_mtx_);
+        can_communication_started_.store(false);
+      }
+      can_communication_started_cond_.notify_all();
+      return;
+    }
 
     {
       std::lock_guard lk(can_communication_started_mtx_);
@@ -78,7 +89,12 @@ void PantherWheelsController::Initialize()
     }
     can_communication_started_cond_.notify_all();
 
-    loop_->run();
+    try {
+      loop_->run();
+    } catch (std::system_error & err) {
+      // TODO: error state
+      std::cerr << "Exception caught in loop run: " << err.what() << std::endl;
+    }
   });
 
   if (!can_communication_started_.load()) {
@@ -90,19 +106,29 @@ void PantherWheelsController::Initialize()
     throw std::runtime_error("CAN communication not initialized");
   }
 
-  front_driver_->Boot();
-  rear_driver_->Boot();
+  try {
+    front_driver_->Boot();
+    rear_driver_->Boot();
+  } catch (std::system_error & ex) {
+    // TODO add info which driver
+    std::cerr << "Exception caught when trying to Boot drivers";
+  }
 
+  // TODO combine try-catch
   try {
     front_driver_->wait_for_boot();
+    // TODO change exceptions to const
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver boot failed");
   }
+
   try {
     rear_driver_->wait_for_boot();
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver boot failed");
   }
+
+  // TODO initialization attempt count
 }
 
 void PantherWheelsController::Deinitialize()
