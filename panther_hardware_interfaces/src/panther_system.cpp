@@ -317,11 +317,23 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       driver_state.rear.current = rear.GetCurrent();
       driver_state.rear.temperature = rear.GetTemperature();
     }
+
+    current_read_error_count_ = 0;
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"),
       "Error when trying to read drivers feedback: " << err.what());
-    return return_type::ERROR;
+    // TODO
+    // return return_type::ERROR;
+
+    ++current_read_error_count_;
+    if (current_read_error_count_ >= max_read_errors_count_) {
+      error_ = true;
+      RCLCPP_ERROR_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "Read error count exceeded max value, entering error state");
+      // return return_type::ERROR;
+    }
   }
 
   try {
@@ -369,7 +381,9 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
-    return return_type::ERROR;
+    error_ = true;
+    // TODO
+    // return return_type::ERROR;
   }
 
   if (realtime_driver_state_publisher_->trylock()) {
@@ -392,10 +406,20 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     roboteq_controller_->WriteSpeed(
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
       hw_commands_velocities_[3]);
+    current_write_error_count_ = 0;
+
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
-    return return_type::ERROR;
+
+    ++current_write_error_count_;
+    if (current_write_error_count_ >= max_write_errors_count_) {
+      error_ = true;
+      RCLCPP_ERROR_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "Error count exceeded max value, entering error state");
+      // return return_type::ERROR;
+    }
   }
 
   return return_type::OK;

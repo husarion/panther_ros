@@ -29,7 +29,8 @@ using StateInterface = hardware_interface::StateInterface;
 using CommandInterface = hardware_interface::CommandInterface;
 
 // TODO: [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out
-
+// TODO: [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to node 02: SDO protocol timed out
+// TODO: it still isn't handled, check when these SDO errors happen
 class PantherSystem : public hardware_interface::SystemInterface
 {
 public:
@@ -87,6 +88,14 @@ protected:
   void reset_publishers();
   void destroy_node();
   std::atomic_bool stop_executor_ = false;
+
+  // Sometimes there's a single SDO write error, which is better to filter out
+  // If more consecutive errors happen, action should be taken
+  const int8_t max_write_errors_count_ = 2;
+  int8_t current_write_error_count_ = 0;
+
+  const int8_t max_read_errors_count_ = 2;
+  int8_t current_read_error_count_ = 0;
 
   bool error_ = false;
 };
