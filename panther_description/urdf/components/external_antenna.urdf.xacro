@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro
+    name="external_antenna"
+    params="parent_link xyz rpy
+            tf_prefix:=None
+            frame_id:=gps
+            topic:=gps
+            initial_latitude:=53.1978
+            initial_longitude:=18.3735
+            initial_altitude:=89.0
+            simulation_engine:=ignition-gazebo">
+
+    <xacro:if value="${tf_prefix == 'None'}">
+      <xacro:property name="tf_prefix_ext" value="" />
+    </xacro:if>
+    <xacro:unless value="${tf_prefix == 'None'}">
+      <xacro:property name="tf_prefix_ext" value="${tf_prefix}_" />
+    </xacro:unless>
+
+    <joint name="${parent_link.rstrip('_link')}_to_${tf_prefix_ext}external_antenna_joint"
+      type="fixed">
+      <origin xyz="${xyz}" rpy="${rpy}" />
+      <parent link="${parent_link}" />
+      <child link="${tf_prefix_ext}external_antenna_link" />
+    </joint>
+
+    <link name="${tf_prefix_ext}external_antenna_link">
+      <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <geometry>
+          <mesh filename="file://$(find panther_description)/meshes/components/external_antenna.dae" />
+        </geometry>
+      </visual>
+
+      <collision>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <geometry>
+          <mesh
+            filename="file://$(find panther_description)/meshes/components/external_antenna_collision.stl" />
+        </geometry>
+      </collision>
+
+      <inertial>
+        <origin xyz="0.045 0.0 0.0058" rpy="0.0 0.0 0.0" />
+        <mass value="0.59" />
+        <inertia ixx="0.003964" ixy="0.0" ixz="0.0"
+          iyy="0.0003964" iyz="0.0"
+          izz="0.0004177" />
+      </inertial>
+    </link>
+
+    <joint
+      name="${tf_prefix_ext}external_antenna_to_${tf_prefix_ext}${frame_id.rstrip('_link')}_joint"
+      type="fixed">
+      <origin xyz="0.045 0.0 0.0058" rpy="0.0 0.0 0.0" />
+      <parent link="${tf_prefix_ext}external_antenna_link" />
+      <child link="${tf_prefix_ext}${frame_id}" />
+    </joint>
+
+    <link name="${tf_prefix_ext}${frame_id}" />
+
+
+  </xacro:macro>
+</robot>
