@@ -59,7 +59,7 @@ void Battery::Update(const rclcpp::Time & header_stamp, const bool charger_conne
   temp_ma_->Roll(temp_raw_);
   charge_ma_->Roll(charge_raw_);
 
-  UpdateBatteryMsg(header_stamp, charger_connected);
+  UpdateBatteryMsgs(header_stamp, charger_connected);
 }
 
 void Battery::Reset(const rclcpp::Time & header_stamp)
@@ -69,7 +69,7 @@ void Battery::Reset(const rclcpp::Time & header_stamp)
   current_ma_->Reset();
   charge_ma_->Reset();
 
-  ResetBatteryMsg(header_stamp);
+  ResetBatteryMsgs(header_stamp);
 }
 
 inline float Battery::ADCToBatteryVoltage(const float adc_data) const
@@ -104,7 +104,13 @@ float Battery::ADCToBatteryTemp(const float adc_data) const
          kelvin_to_celcius_offset_;
 }
 
-void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected)
+void Battery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp, const bool charger_connected)
+{
+  UpdateBatteryState(header_stamp, charger_connected);
+  UpdateBatteryStateRaw();
+}
+
+void Battery::UpdateBatteryState(const rclcpp::Time & header_stamp, const bool charger_connected)
 {
   const float V_bat = voltage_ma_->GetAverage();
   const float I_bat = current_ma_->GetAverage();
@@ -115,8 +121,7 @@ void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool cha
   battery_state_.voltage = V_bat;
   battery_state_.temperature = temp_bat;
   battery_state_.current = -I_bat + I_charge;
-  battery_state_.percentage =
-    std::clamp((V_bat - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0f, 1.0f);
+  battery_state_.percentage = GetBatteryPercent(V_bat);
   battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
   battery_state_.design_capacity = designed_capacity_;
   battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
@@ -127,49 +132,61 @@ void Battery::UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool cha
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_state_.present = true;
   battery_state_.location = location_;
+  battery_state_.power_supply_status = GetBatteryStatus(I_charge, charger_connected);
+  battery_state_.power_supply_health = GetBatteryHealth(V_bat, temp_bat);
+}
 
-  // check battery status
-  if (charger_connected) {
-    if (fabs(battery_state_.percentage - 1.0f) < std::numeric_limits<float>::epsilon()) {
-      battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
-    } else if (I_charge > charging_current_thresh_) {
-      battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
-    } else {
-      battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
-    }
-  } else {
-    battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
-  }
-
-  // check battery health
-  if (V_bat < V_bat_fatal_min_) {
-    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-    error_msg_ = "Battery voltage is critically low!";
-  } else if (temp_bat >= overheat_bat_temp_) {
-    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-    error_msg_ = "Battery is overheating!";
-  } else if (V_bat > V_bat_fatal_max_) {
-    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-    error_msg_ = "Battery overvoltage!";
-  } else if (temp_bat < low_bat_temp_) {
-    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
-    error_msg_ = "The battery is too cold! It may result in reduced effectiveness.";
-  } else {
-    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
-    error_msg_ = "";
-  }
-
-  // Update battery raw msg
+void Battery::UpdateBatteryStateRaw()
+{
   battery_state_raw_ = battery_state_;
   battery_state_raw_.voltage = voltage_raw_;
   battery_state_raw_.temperature = temp_raw_;
   battery_state_raw_.current = -current_raw_ + charge_raw_;
-  battery_state_raw_.percentage =
-    std::clamp((voltage_raw_ - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0f, 1.0f);
+  battery_state_raw_.percentage = GetBatteryPercent(voltage_raw_);
   battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
 }
 
-void Battery::ResetBatteryMsg(const rclcpp::Time & header_stamp)
+float Battery::GetBatteryPercent(const float voltage) const
+{
+  return std::clamp((voltage - V_bat_min_) / (V_bat_full_ - V_bat_min_), 0.0f, 1.0f);
+}
+
+uint8_t Battery::GetBatteryStatus(const float charge, const bool charger_connected)
+{
+  if (charger_connected) {
+    if (fabs(battery_state_.percentage - 1.0f) < std::numeric_limits<float>::epsilon()) {
+      return BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
+    } else if (charge > charging_current_thresh_) {
+      return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
+    } else {
+      return BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
+    }
+  } else {
+    return BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
+  }
+}
+
+uint8_t Battery::GetBatteryHealth(const float voltage, const float temp)
+{
+  if (voltage < V_bat_fatal_min_) {
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+    error_msg_ = "Battery voltage is critically low!";
+  } else if (temp >= overheat_bat_temp_) {
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+    error_msg_ = "Battery is overheating!";
+  } else if (voltage > V_bat_fatal_max_) {
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+    error_msg_ = "Battery overvoltage!";
+  } else if (temp < low_bat_temp_) {
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+    error_msg_ = "The battery is too cold! It may result in reduced effectiveness.";
+  } else {
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
+    error_msg_ = "";
+  }
+}
+
+void Battery::ResetBatteryMsgs(const rclcpp::Time & header_stamp)
 {
   battery_state_.header.stamp = header_stamp;
   battery_state_.voltage = std::numeric_limits<float>::quiet_NaN();
@@ -188,6 +205,8 @@ void Battery::ResetBatteryMsg(const rclcpp::Time & header_stamp)
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_state_.present = true;
   battery_state_.location = location_;
+
+  battery_state_raw_ = battery_state_;
 }
 
 bool Battery::HasErrorMsg() const { return !error_msg_.empty(); }

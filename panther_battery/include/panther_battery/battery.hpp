@@ -29,9 +29,9 @@ class Battery
 {
 public:
   Battery(
-  const std::function<float()> & read_voltage, const std::function<float()> & read_current,
-  const std::function<float()> & read_temp, const std::function<float()> & read_charge,
-  const BatteryParams & params);
+    const std::function<float()> & read_voltage, const std::function<float()> & read_current,
+    const std::function<float()> & read_temp, const std::function<float()> & read_charge,
+    const BatteryParams & params);
 
   ~Battery() {}
 
@@ -50,8 +50,13 @@ private:
   inline float ADCToBatteryCharge(const float adc_data) const;
   inline float ADCToBatteryVoltageTemp(const float adc_data) const;
   float ADCToBatteryTemp(const float adc_data) const;
-  void UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected);
-  void ResetBatteryMsg(const rclcpp::Time & header_stamp);
+  float GetBatteryPercent(const float voltage) const;
+  void UpdateBatteryMsgs(const rclcpp::Time & header_stamp, const bool charger_connected);
+  void ResetBatteryMsgs(const rclcpp::Time & header_stamp);
+  void UpdateBatteryState(const rclcpp::Time & header_stamp, const bool charger_connected);
+  void UpdateBatteryStateRaw();
+  uint8_t GetBatteryStatus(const float charge, const bool charger_connected);
+  uint8_t GetBatteryHealth(const float voltage, const float temp);
 
   static constexpr int number_of_cells_ = 10;
   static constexpr int bat_present_mean_len_ = 10;
@@ -67,7 +72,7 @@ private:
   static constexpr std::string_view location_ = "user_compartment";
 
   // ADC conversion parameters. Values were determined based on
-  // voltage divider resistance values or 
+  // voltage divider resistance values or
   // differential amplifier gain and resistance values
   static constexpr float bat_voltage_factor_ = 25.04255;
   static constexpr float bat_current_factor_ = 20.0;
