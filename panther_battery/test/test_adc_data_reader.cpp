@@ -24,7 +24,7 @@ protected:
 
 TestADCDataReader::TestADCDataReader()
 {
-  auto current_path = std::filesystem::current_path();
+  std::filesystem::path current_path = testing::TempDir();
   data_file_path_ = current_path / "in_voltage0_raw";
   scale_file_path_ = current_path / "in_voltage0_scale";
 

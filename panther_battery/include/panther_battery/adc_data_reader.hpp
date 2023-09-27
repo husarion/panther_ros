@@ -31,21 +31,37 @@ private:
   template <typename T>
   T ReadChannel(const int channel, const std::string & data_type) const
   {
-    if (data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency") {
+    if (InvalidDataType(data_type)) {
       throw std::logic_error("Invalid data type: " + data_type);
     }
 
     const auto data_file = "in_voltage" + std::to_string(channel) + "_" + data_type;
     const auto file_path = device_path_ / data_file;
 
-    std::fstream file(file_path, std::ios_base::in);
+    return ReadFile<T>(file_path);
+  }
+
+  template <typename T>
+  T ReadFile(const std::filesystem::path file_path) const
+  {
+
+    std::ifstream file(file_path, std::ios_base::in);
     if (!file) {
-      throw std::runtime_error("Failed to open device file: " + std::string(file_path));
+      throw std::runtime_error("Failed to open file: " + std::string(file_path));
     }
 
     T data;
     file >> data;
+    if (!file) {
+      throw std::runtime_error("Failed to read from file: " + std::string(file_path));
+    }
+
     return data;
+  }
+
+  bool InvalidDataType(const std::string & data_type) const
+  {
+    return data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency";
   }
 
   const std::filesystem::path device_path_;
