@@ -136,7 +136,11 @@
       </gazebo>
       <gazebo reference="imu_link">
         <sensor name="imu" type="imu">
-          <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu"></plugin>
+          <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu">
+            <ros>
+              <remapping>/imu_broadcaster/imu:=/imu/data_raw</remapping>
+            </ros>
+          </plugin>
           <always_on>true</always_on>
           <update_rate>100</update_rate>
           <topic>imu/data_raw</topic>

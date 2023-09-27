@@ -17,6 +17,8 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
     panther_base_controller:
       type: diff_drive_controller/DiffDriveController
+    imu_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
 imu_broadcaster:
   ros__parameters:
@@ -39,7 +41,7 @@ panther_base_controller:
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
-    # Feedback from motors is published at around 20 Hz
+    # Feedback from motors is published at around 100 Hz
     publish_rate: 100.0
     odom_frame_id: odom
     base_frame_id: base_link

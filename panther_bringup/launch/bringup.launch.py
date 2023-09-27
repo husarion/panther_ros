@@ -2,11 +2,7 @@
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.substitutions import (
-    LaunchConfiguration,
-    PathJoinSubstitution,
-    PythonExpression
-)
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node, SetParameter
@@ -68,31 +64,29 @@ def generate_launch_description():
         }.items(),
     )
 
-    # robot_localization_node = Node(
-    #     package="robot_localization",
-    #     executable="ekf_node",
-    #     name="ekf_filter_node",
-    #     output="screen",
-    #     parameters=[
-    #         PathJoinSubstitution(
-    #             [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
-    #         )
-    #     ],
-    # )
-
-    # laser_filter_node = Node(
-    #     package="laser_filters",
-    #     executable="scan_to_scan_filter_chain",
-    #     parameters=[
-    #         PathJoinSubstitution(
-    #             [
-    #                 get_package_share_directory("panther_bringup"),
-    #                 "config",
-    #                 "laser_filter.yaml",
-    #             ]
-    #         )
-    #     ],
-    # )
+    madgwick_filter_node = Node(
+        package='imu_filter_madgwick',
+        executable='imu_filter_madgwick_node',
+        name='imu_filter',
+        output='screen',
+        parameters=[
+            PathJoinSubstitution(
+                [get_package_share_directory("panther_bringup"), "config", "imu_filter.yaml"]
+            )
+        ],
+    )
+    
+    robot_localization_node = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_filter_node",
+        output="screen",
+        parameters=[
+            PathJoinSubstitution(
+                [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
+            )
+        ],
+    )
 
     actions = [
         declare_wheel_type_arg,
@@ -101,8 +95,8 @@ def generate_launch_description():
         declare_controller_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
-        # robot_localization_node,
-        # laser_filter_node,
+        madgwick_filter_node,
+        robot_localization_node,
     ]
 
     return LaunchDescription(actions)

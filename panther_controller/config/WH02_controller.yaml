@@ -17,6 +17,8 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
     panther_base_controller:
       type: mecanum_drive_controller/MecanumDriveController
+    imu_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
 imu_broadcaster:
   ros__parameters:
