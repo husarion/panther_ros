@@ -8,15 +8,12 @@
 
 #include <sensor_msgs/msg/battery_state.hpp>
 
-#include <panther_msgs/msg/io_state.hpp>
-
 #include <panther_battery/adc_data_reader.hpp>
 #include <panther_battery/battery.hpp>
+#include <panther_battery/battery_publisher.hpp>
 
 namespace panther_battery
 {
-using BatteryStateMsg = sensor_msgs::msg::BatteryState;
-using IOStateMsg = panther_msgs::msg::IOState;
 
 class ADCNode : public rclcpp::Node
 {
@@ -24,31 +21,26 @@ public:
   ADCNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
-protected:
-  BatteryStateMsg MergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
-
 private:
   void BatteryPubTimerCB();
-  void BatteryStatusLogger(const BatteryStateMsg & battery_state);
+  void Initialize();
+  BatteryParams GetBatteryParams();
 
   static constexpr int adc_current_offset_ = 625;
 
-  bool charger_connected_;
-  int battery_count_;
-  float battery_timeout_;
+  std::size_t battery_voltage_window_len_;
+  std::size_t battery_temp_window_len_;
+  std::size_t battery_current_window_len_;
+  std::size_t battery_charge_window_len_;
   rclcpp::Time last_battery_info_time_;
 
   std::shared_ptr<ADCDataReader> adc0_reader_;
   std::shared_ptr<ADCDataReader> adc1_reader_;
-  std::unique_ptr<Battery> battery_1_;
-  std::unique_ptr<Battery> battery_2_;
+  std::shared_ptr<Battery> battery_1_;
+  std::shared_ptr<Battery> battery_2_;
+  std::shared_ptr<BatteryPublisher> battery_publisher_;
 
-  rclcpp::Subscription<IOStateMsg>::SharedPtr io_state_sub_;
   rclcpp::TimerBase::SharedPtr battery_pub_timer_;
-  std::shared_ptr<rclcpp::Publisher<BatteryStateMsg>> battery_pub_;
-  std::shared_ptr<rclcpp::Publisher<BatteryStateMsg>> battery_1_pub_;
-  std::shared_ptr<rclcpp::Publisher<BatteryStateMsg>> battery_2_pub_;
 };
 
 }  // namespace panther_battery
