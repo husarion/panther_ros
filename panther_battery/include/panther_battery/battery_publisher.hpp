@@ -44,9 +44,7 @@ public:
       RCLCPP_ERROR(node_->get_logger(), "Error reading battery data: %s. ", e.what());
     }
 
-    if (
-      (node_->get_clock()->now() - last_battery_info_time_) >
-      rclcpp::Duration::from_seconds(battery_timeout_)) {
+    if (TimeoutReached()) {
       this->Reset();
     }
 
@@ -59,6 +57,12 @@ protected:
   virtual void Reset() = 0;
   virtual void PublishBatteryState() = 0;
   virtual void LogErrors() = 0;
+
+  bool TimeoutReached()
+  {
+    return (node_->get_clock()->now() - last_battery_info_time_) >
+           rclcpp::Duration::from_seconds(battery_timeout_);
+  }
 
   void BatteryStatusLogger(const BatteryStateMsg & battery_state)
   {
