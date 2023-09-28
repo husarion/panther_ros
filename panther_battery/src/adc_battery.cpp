@@ -160,20 +160,20 @@ uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_conn
 uint8_t ADCBattery::GetBatteryHealth(const float voltage, const float temp)
 {
   if (voltage < V_bat_fatal_min_) {
+    SetErrorMsg("Battery voltage is critically low!");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-    error_msg_ = "Battery voltage is critically low!";
   } else if (temp >= overheat_bat_temp_) {
+    SetErrorMsg("Battery is overheating!");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-    error_msg_ = "Battery is overheating!";
   } else if (voltage > V_bat_fatal_max_) {
+    SetErrorMsg("Battery overvoltage!");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-    error_msg_ = "Battery overvoltage!";
   } else if (temp < low_bat_temp_) {
+    SetErrorMsg("The battery is too cold! It may result in reduced effectiveness.");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
-    error_msg_ = "The battery is too cold! It may result in reduced effectiveness.";
   } else {
+    SetErrorMsg("");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
-    error_msg_ = "";
   }
 }
 
