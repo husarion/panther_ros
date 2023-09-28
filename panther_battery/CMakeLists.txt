@@ -68,22 +68,34 @@ if(BUILD_TESTING)
   #   sensor_msgs
   # )
 
-  # ament_add_gtest(${PROJECT_NAME}_test_adc_data_reader test/test_adc_data_reader.cpp)
-  # target_include_directories(${PROJECT_NAME}_test_adc_data_reader PUBLIC
-  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  #   $<INSTALL_INTERFACE:include>
-  # )
+  ament_add_gtest(${PROJECT_NAME}_test_adc_data_reader test/test_adc_data_reader.cpp)
+  target_include_directories(${PROJECT_NAME}_test_adc_data_reader PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
 
-  # ament_add_gtest(${PROJECT_NAME}_test_battery test/test_battery.cpp src/battery.cpp)
-  # target_include_directories(${PROJECT_NAME}_test_battery PUBLIC
-  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  #   $<INSTALL_INTERFACE:include>
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_battery
-  #   rclcpp
-  #   panther_utils
-  #   sensor_msgs
-  # )
+  ament_add_gtest(${PROJECT_NAME}_test_battery test/test_battery.cpp)
+  target_include_directories(${PROJECT_NAME}_test_battery PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_battery
+    rclcpp
+    sensor_msgs
+  )
+  target_compile_options(${PROJECT_NAME}_test_battery PRIVATE
+    -Wno-unused-parameter
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_adc_battery test/test_adc_battery.cpp src/adc_battery.cpp)
+  target_include_directories(${PROJECT_NAME}_test_adc_battery PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_adc_battery
+    rclcpp
+    sensor_msgs
+  )
 
   # ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp src/battery.cpp)
   # target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
