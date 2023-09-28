@@ -24,7 +24,6 @@ public:
 private:
   void BatteryPubTimerCB();
   void Initialize();
-  BatteryParams GetBatteryParams();
 
   static constexpr int adc_current_offset_ = 625;
 

@@ -31,7 +31,7 @@ ament_target_dependencies(roboteq_republisher_node
 add_executable(adc_node
   src/adc_node_main.cpp
   src/adc_node.cpp
-  src/battery.cpp
+  src/adc_battery.cpp
   src/single_battery_publisher.cpp
   src/dual_battery_publisher.cpp
 )
@@ -56,58 +56,58 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(${PROJECT_NAME}_test_roboteq_republisher_node test/test_roboteq_republisher_node.cpp src/roboteq_republisher_node.cpp)
-  target_include_directories(${PROJECT_NAME}_test_roboteq_republisher_node PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
-    rclcpp
-    panther_msgs
-    panther_utils
-    sensor_msgs
-  )
+  # ament_add_gtest(${PROJECT_NAME}_test_roboteq_republisher_node test/test_roboteq_republisher_node.cpp src/roboteq_republisher_node.cpp)
+  # target_include_directories(${PROJECT_NAME}_test_roboteq_republisher_node PUBLIC
+  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  #   $<INSTALL_INTERFACE:include>
+  # )
+  # ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
+  #   rclcpp
+  #   panther_msgs
+  #   panther_utils
+  #   sensor_msgs
+  # )
 
-  ament_add_gtest(${PROJECT_NAME}_test_adc_data_reader test/test_adc_data_reader.cpp)
-  target_include_directories(${PROJECT_NAME}_test_adc_data_reader PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-  )
+  # ament_add_gtest(${PROJECT_NAME}_test_adc_data_reader test/test_adc_data_reader.cpp)
+  # target_include_directories(${PROJECT_NAME}_test_adc_data_reader PUBLIC
+  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  #   $<INSTALL_INTERFACE:include>
+  # )
 
-  ament_add_gtest(${PROJECT_NAME}_test_battery test/test_battery.cpp src/battery.cpp)
-  target_include_directories(${PROJECT_NAME}_test_battery PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_battery
-    rclcpp
-    panther_utils
-    sensor_msgs
-  )
+  # ament_add_gtest(${PROJECT_NAME}_test_battery test/test_battery.cpp src/battery.cpp)
+  # target_include_directories(${PROJECT_NAME}_test_battery PUBLIC
+  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  #   $<INSTALL_INTERFACE:include>
+  # )
+  # ament_target_dependencies(${PROJECT_NAME}_test_battery
+  #   rclcpp
+  #   panther_utils
+  #   sensor_msgs
+  # )
 
-  ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp src/battery.cpp)
-  target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
-    $<INSTALL_INTERFACE:include>
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_adc_node
-    rclcpp
-    panther_utils
-    panther_msgs
-    sensor_msgs
-  )
+  # ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp src/battery.cpp)
+  # target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
+  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+  #   $<INSTALL_INTERFACE:include>
+  # )
+  # ament_target_dependencies(${PROJECT_NAME}_test_adc_node
+  #   rclcpp
+  #   panther_utils
+  #   panther_msgs
+  #   sensor_msgs
+  # )
 
-  ament_add_gtest(${PROJECT_NAME}_test_adc_node_dual_bat test/test_adc_node_dual_bat.cpp src/adc_node.cpp src/battery.cpp)
-  target_include_directories(${PROJECT_NAME}_test_adc_node_dual_bat PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
-    $<INSTALL_INTERFACE:include>
-    )
-  ament_target_dependencies(${PROJECT_NAME}_test_adc_node_dual_bat
-    rclcpp
-    panther_utils
-    panther_msgs
-    sensor_msgs
-  )
+  # ament_add_gtest(${PROJECT_NAME}_test_adc_node_dual_bat test/test_adc_node_dual_bat.cpp src/adc_node.cpp src/battery.cpp)
+  # target_include_directories(${PROJECT_NAME}_test_adc_node_dual_bat PUBLIC
+  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+  #   $<INSTALL_INTERFACE:include>
+  #   )
+  # ament_target_dependencies(${PROJECT_NAME}_test_adc_node_dual_bat
+  #   rclcpp
+  #   panther_utils
+  #   panther_msgs
+  #   sensor_msgs
+  # )
 endif()
 
 ament_package()

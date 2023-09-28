@@ -7,13 +7,10 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <sensor_msgs/msg/battery_state.hpp>
-
-#include <panther_msgs/msg/io_state.hpp>
-
+#include <panther_battery/adc_battery.hpp>
 #include <panther_battery/adc_data_reader.hpp>
-#include <panther_battery/battery.hpp>
 #include <panther_battery/battery_publisher.hpp>
+#include <panther_battery/battery.hpp>
 #include <panther_battery/dual_battery_publisher.hpp>
 #include <panther_battery/single_battery_publisher.hpp>
 
@@ -52,46 +49,43 @@ void ADCNode::Initialize()
   adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
   adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
 
-  battery_2_ = std::make_shared<Battery>(
+  ADCBatteryParams battery_params = {
+    battery_voltage_window_len_,
+    battery_temp_window_len_,
+    battery_current_window_len_,
+    battery_charge_window_len_,
+  };
+
+  battery_2_ = std::make_shared<ADCBattery>(
     std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 3, 0),
     std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 1, adc_current_offset_),
     std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 0, 0),
-    std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 2, 0), GetBatteryParams());
+    std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 2, 0), battery_params);
 
   if (battery_2_->Present()) {
     RCLCPP_INFO(this->get_logger(), "Second battery detected");
-    battery_1_ = std::make_shared<Battery>(
+    battery_1_ = std::make_shared<ADCBattery>(
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 0, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 2, adc_current_offset_),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
-      std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), GetBatteryParams());
+      std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
     battery_publisher_ =
       std::make_shared<DualBatteryPublisher>(this->shared_from_this(), battery_1_, battery_2_);
   } else {
-    battery_1_ = std::make_shared<Battery>(
+    battery_1_ = std::make_shared<ADCBattery>(
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 0, 0),
       [&]() {
         return adc1_reader_->GetADCMeasurement(2, adc_current_offset_) +
                adc1_reader_->GetADCMeasurement(1, adc_current_offset_);
       },
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
-      std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), GetBatteryParams());
+      std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
     battery_2_.reset();
     battery_publisher_ =
       std::make_shared<SingleBatteryPublisher>(this->shared_from_this(), battery_1_);
   }
 
   RCLCPP_INFO(this->get_logger(), "Battery publisher initialized");
-}
-
-BatteryParams ADCNode::GetBatteryParams()
-{
-  return {
-    battery_voltage_window_len_,
-    battery_temp_window_len_,
-    battery_current_window_len_,
-    battery_charge_window_len_,
-  };
 }
 
 void ADCNode::BatteryPubTimerCB()
