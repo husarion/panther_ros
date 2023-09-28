@@ -69,15 +69,11 @@ private:
   float current_raw_;
   float temp_raw_;
   float charge_raw_;
-  std::string error_msg_;
 
   const std::function<float()> ReadVoltage;
   const std::function<float()> ReadCurrent;
   const std::function<float()> ReadTemp;
   const std::function<float()> ReadCharge;
-
-  BatteryStateMsg battery_state_;
-  BatteryStateMsg battery_state_raw_;
 
   std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
   std::unique_ptr<panther_utils::MovingAverage<float>> temp_ma_;
