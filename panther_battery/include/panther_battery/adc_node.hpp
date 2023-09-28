@@ -32,7 +32,6 @@ private:
   std::size_t battery_temp_window_len_;
   std::size_t battery_current_window_len_;
   std::size_t battery_charge_window_len_;
-  rclcpp::Time last_battery_info_time_;
 
   std::shared_ptr<ADCDataReader> adc0_reader_;
   std::shared_ptr<ADCDataReader> adc1_reader_;

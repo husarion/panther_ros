@@ -32,6 +32,8 @@ add_executable(adc_node
   src/adc_node_main.cpp
   src/adc_node.cpp
   src/battery.cpp
+  src/single_battery_publisher.cpp
+  src/dual_battery_publisher.cpp
 )
 
 ament_target_dependencies(adc_node
