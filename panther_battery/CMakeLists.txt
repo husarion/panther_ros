@@ -109,6 +109,30 @@ if(BUILD_TESTING)
     panther_msgs
   )
 
+  ament_add_gtest(${PROJECT_NAME}_test_single_battery_publisher test/test_single_battery_publisher.cpp src/adc_battery.cpp src/single_battery_publisher.cpp)
+  target_include_directories(${PROJECT_NAME}_test_single_battery_publisher PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_single_battery_publisher
+    rclcpp
+    panther_utils
+    sensor_msgs
+    panther_msgs
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_dual_battery_publisher test/test_dual_battery_publisher.cpp src/adc_battery.cpp src/dual_battery_publisher.cpp)
+  target_include_directories(${PROJECT_NAME}_test_dual_battery_publisher PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_dual_battery_publisher
+    rclcpp
+    panther_utils
+    sensor_msgs
+    panther_msgs
+  )
+
   # ament_add_gtest(${PROJECT_NAME}_test_adc_node test/test_adc_node.cpp src/adc_node.cpp src/battery.cpp)
   # target_include_directories(${PROJECT_NAME}_test_adc_node PUBLIC
   #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
