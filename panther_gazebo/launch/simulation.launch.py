@@ -19,8 +19,29 @@ def generate_launch_description():
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",
-        description="Type of wheel. Possible: 'WH01', 'WH02', 'WH04' or a user-defined custom name.",
+        description="Type of wheel. If you choose a value from the preset options "
+        "('WH01', 'WH02', 'WH04'), you can ignore the 'wheel_config_path' and "
+        "'controller_config_path' parameters. For custom wheels, please define these parameters "
+        "to point to files that accurately describe the custom wheels.",
+        choices=['WH01', 'WH02', 'WH04', 'CUSTOM'],
     )
+
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                get_package_share_directory("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description="Path to wheel configuration file. "
+        "By default, it should be located in 'panther_description/config/<wheel_type arg>.yaml'. "
+        "You can also specify the path to your custom wheel configuration file here. "
+        "It can be located in any directory.",
+    )
+
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
@@ -31,9 +52,9 @@ def generate_launch_description():
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
         ),
-        description="Path to controller configuration file. "
-        "By default, it should be located in "
-        "panther_controller/config/<wheel_type arg>_controller.yaml",
+        description="Path to wheel configuration file. By default, it should be located in "
+        "'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify the path "
+        "to your custom controller configuration file here. It can be located in any directory.",
     )
 
     map_package = get_package_share_directory("husarion_office_gz")
@@ -82,9 +103,12 @@ def generate_launch_description():
         name="ign_bridge",
         arguments=[
             "/clock" + "@rosgraph_msgs/msg/Clock" + "[ignition.msgs.Clock",
-            "/velodyne_points/points"
-            + "@sensor_msgs/msg/PointCloud2"
-            + "[ignition.msgs.PointCloudPacked",
+            "/model/panther/battery/panther_battery/state" + 
+            "@sensor_msgs/msg/BatteryState" + 
+            "[ignition.msgs.BatteryState",
+        ],
+        remappings=[
+            ("model/panther/battery/panther_battery/state", "/battery"),
         ],
         output="screen",
     )
@@ -101,6 +125,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "wheel_type": wheel_type,
+            "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
             "use_sim": "True",
             "simulation_engine": "ignition-gazebo",
@@ -111,6 +136,7 @@ def generate_launch_description():
         [
             declare_world_arg,
             declare_wheel_type_arg,
+            declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
             LogInfo(msg=["Controller configuration file path set to: ", controller_config_path]),
             # # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)

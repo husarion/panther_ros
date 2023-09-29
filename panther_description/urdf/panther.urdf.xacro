@@ -11,7 +11,9 @@
   <xacro:arg name="imu_rot_p" default="0.0" />
   <xacro:arg name="imu_rot_y" default="-1.57" />
   <xacro:arg name="simulation_engine" default="ignition-gazebo" />
-  <xacro:arg name="controllers_config_file"
+  <xacro:arg name="wheel_config_file"
+    default="$(find panther_description)/config/WH01.yaml" />
+  <xacro:arg name="controller_config_file"
     default="$(find panther_controller)/config/WH01_controller.yaml" />
 
   <xacro:include filename="$(find panther_description)/urdf/panther_macro.urdf.xacro" ns="husarion" />
@@ -25,6 +27,7 @@
     imu_rot_p="$(arg imu_rot_p)"
     imu_rot_y="$(arg imu_rot_y)"
     simulation_engine="$(arg simulation_engine)" 
-    controllers_config_file="$(arg controllers_config_file)"/>
+    wheel_config_file="$(arg wheel_config_file)"
+    controller_config_file="$(arg controller_config_file)"/>
 
 </robot>

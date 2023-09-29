@@ -4,9 +4,6 @@
   <!-- wheel defining macro -->
   <xacro:macro name="wheel" params="wheel_config wheel_separation_x prefix">
 
-    <xacro:property name="max_lin_velocity" value="2.0" />
-    <xacro:property name="max_ang_velocity" value="${max_lin_velocity / wheel_config['wheel_radius']}" />
-
     <xacro:if value="${prefix == 'fl'}">
       <xacro:property name="x" value="${wheel_separation_x/2.0}" />
       <xacro:property name="y" value="${wheel_config['wheel_separation']/2.0}" />
@@ -34,7 +31,7 @@
       <child link="${prefix}_wheel_link" />
       <axis xyz="0.0 1.0 0.0" />
 
-      <limit effort="34.5" velocity="${max_ang_velocity}" />
+      <limit effort="34.5" velocity="10.958" />
       <dynamics damping="0.01" friction="0.01" />
     </joint>
 

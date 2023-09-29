@@ -17,11 +17,10 @@
 
 from launch import LaunchDescription
 from launch.actions import RegisterEventHandler, DeclareLaunchArgument
-from launch.conditions import UnlessCondition, IfCondition
+from launch.conditions import UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
     Command,
-    PythonExpression,
     FindExecutable,
     PathJoinSubstitution,
     LaunchConfiguration,
@@ -30,29 +29,18 @@ from launch.substitutions import (
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
-from ament_index_python.packages import get_package_share_directory
-
 
 def generate_launch_description():
-    wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description="Type of wheel. Possible: 'WH01', 'WH02', 'WH04' or a user-defined custom name.",
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        description="Path to wheel configuration file.",
     )
+
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                get_package_share_directory("panther_controller"),
-                "config",
-                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
-            ]
-        ),
-        description="Path to controller configuration file. "
-        "By default, it should be located in "
-        "panther_controller/config/<wheel_type arg>_controller.yaml",
+        description="Path to wheel configuration file.",
     )
 
     use_sim = LaunchConfiguration("use_sim")
@@ -81,13 +69,13 @@ def generate_launch_description():
                     "panther.urdf.xacro",
                 ]
             ),
-            " wheel_type:=",
-            wheel_type,
             " use_sim:=",
             use_sim,
             " simulation_engine:=",
             simulation_engine,
-            " controllers_config_file:=",
+            " wheel_config_file:=",
+            wheel_config_path,
+            " controller_config_file:=",
             controller_config_path,
         ]
     )
@@ -133,7 +121,7 @@ def generate_launch_description():
             "120",
         ],
     )
-    
+
     # Delay start of robot_controller after joint_state_broadcaster
     delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -162,18 +150,18 @@ def generate_launch_description():
             on_exit=[imu_broadcaster_spawner],
         )
     )
-    
+
     actions = [
-        declare_wheel_type_arg,
+        declare_wheel_config_path_arg,
+        declare_controller_config_path_arg,
         declare_use_sim_arg,
         declare_simulation_engine_arg,
-        declare_controller_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_imu_broadcaster_spawner_after_robot_controller_spawner
+        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
     ]
 
     return LaunchDescription(actions)

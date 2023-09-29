@@ -3,7 +3,8 @@
 
   <xacro:macro
     name="panther_robot"
-    params="controllers_config_file
+    params="wheel_config_file
+            controller_config_file
             use_sim:=false
             dual_bat:=false
             imu_pos_x:=0.168
@@ -14,8 +15,10 @@
             imu_rot_y:=0.0
             simulation_engine:='ignition-gazebo'">
 
-    <xacro:property name="controllers_config" value="${xacro.load_yaml(controllers_config_file)}" />
-    <xacro:property name="wheel_config" value="${controllers_config['wheel_params']['ros__parameters']}" />
+    <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
+    <xacro:property name="controllers_config" value="${xacro.load_yaml(controller_config_file)}" />
+
+    <xacro:property name="wheel_separation_x" value="0.44" />
 
     <!-- INCLUDE ROBOT PARTS DEFINITIONS -->
     <xacro:include filename="$(find panther_description)/urdf/body.urdf.xacro" ns="body" />
@@ -31,8 +34,6 @@
       imu_rot_p="${imu_rot_p}"
       imu_rot_y="${imu_rot_y}"
       simulation_engine="${simulation_engine}" />
-
-    <xacro:property name="wheel_separation_x" value="0.44" />
 
     <!-- WHEEL DECLARATION -->
     <xacro:wheel.wheel
@@ -128,19 +129,33 @@
       <gazebo>
         <plugin filename="ign_ros2_control-system"
           name="ign_ros2_control::IgnitionROS2ControlPlugin">
-          <parameters>${controllers_config_file}</parameters>
+          <parameters>${controller_config_file}</parameters>
           <ros>
             <remapping>/panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
           </ros>
         </plugin>
       </gazebo>
+      <gazebo>
+        <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+          name="gz::sim::systems::LinearBatteryPlugin">
+          <battery_name>panther_battery</battery_name>
+          <voltage>42</voltage>
+          <open_circuit_voltage_constant_coef>42</open_circuit_voltage_constant_coef>
+          <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
+          <initial_charge>20</initial_charge>
+          <capacity>20 </capacity>
+          <resistance>0.15</resistance>
+          <smooth_current_tau>2.0</smooth_current_tau>
+          <enable_recharge>true</enable_recharge>
+          <charging_time>6.0</charging_time>
+          <soc_threshold>2</soc_threshold>
+          <power_load>25</power_load>
+          <start_on_motion>false</start_on_motion>
+        </plugin>
+      </gazebo>
       <gazebo reference="imu_link">
         <sensor name="imu" type="imu">
-          <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu">
-            <ros>
-              <remapping>/imu_broadcaster/imu:=/imu/data_raw</remapping>
-            </ros>
-          </plugin>
+          <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu" />
           <always_on>true</always_on>
           <update_rate>100</update_rate>
           <topic>imu/data_raw</topic>

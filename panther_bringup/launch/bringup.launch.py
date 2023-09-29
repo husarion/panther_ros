@@ -15,8 +15,29 @@ def generate_launch_description():
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",
-        description="Type of wheel. Possible: 'WH01', 'WH02', 'WH04' or a user-defined custom name.",
+        description="Type of wheel. If you choose a value from the preset options "
+        "('WH01', 'WH02', 'WH04'), you can ignore the 'wheel_config_path' and "
+        "'controller_config_path' parameters. For custom wheels, please define these parameters "
+        "to point to files that accurately describe the custom wheels.",
+        choices=['WH01', 'WH02', 'WH04', 'CUSTOM'],
     )
+
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                get_package_share_directory("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description="Path to wheel configuration file. "
+        "By default, it should be located in 'panther_description/config/<wheel_type arg>.yaml'. "
+        "You can also specify the path to your custom wheel configuration file here. "
+        "It can be located in any directory.",
+    )
+
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
@@ -27,9 +48,9 @@ def generate_launch_description():
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
         ),
-        description="Path to controller configuration file. "
-        "By default, it should be located in "
-        "panther_controller/config/<wheel_type arg>_controller.yaml",
+        description="Path to wheel configuration file. By default, it should be located in "
+        "'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify the path "
+        "to your custom controller configuration file here. It can be located in any directory.",
     )
 
     use_sim = LaunchConfiguration("use_sim")
@@ -58,22 +79,11 @@ def generate_launch_description():
         ),
         launch_arguments={
             "wheel_type": wheel_type,
+            "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
             "use_sim": use_sim,
             "simulation_engine": simulation_engine,
         }.items(),
-    )
-
-    madgwick_filter_node = Node(
-        package='imu_filter_madgwick',
-        executable='imu_filter_madgwick_node',
-        name='imu_filter',
-        output='screen',
-        parameters=[
-            PathJoinSubstitution(
-                [get_package_share_directory("panther_bringup"), "config", "imu_filter.yaml"]
-            )
-        ],
     )
     
     robot_localization_node = Node(
@@ -90,12 +100,12 @@ def generate_launch_description():
 
     actions = [
         declare_wheel_type_arg,
+        declare_wheel_config_path_arg,
+        declare_controller_config_path_arg,
         declare_use_sim_arg,
         declare_simulation_engine_arg,
-        declare_controller_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
-        madgwick_filter_node,
         robot_localization_node,
     ]
 
