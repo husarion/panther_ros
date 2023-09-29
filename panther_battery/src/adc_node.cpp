@@ -23,7 +23,6 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
 {
   this->declare_parameter<std::string>("adc0_device", "/home/ros/ros2_ws/src/device0");
   this->declare_parameter<std::string>("adc1_device", "/home/ros/ros2_ws/src/device1");
-  this->declare_parameter<float>("battery_timeout", 1.0);
   this->declare_parameter<int>("batery_voltage_window_len", 10);
   this->declare_parameter<int>("batery_temp_window_len", 10);
   this->declare_parameter<int>("batery_current_window_len", 10);

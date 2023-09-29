@@ -24,8 +24,10 @@ class BatteryPublisher
 public:
   BatteryPublisher(std::shared_ptr<rclcpp::Node> node) : node_(node)
   {
-    charger_connected_ = false;
+    node_->declare_parameter<float>("battery_timeout", 1.0);
     battery_timeout_ = node_->get_parameter("battery_timeout").as_double();
+
+    charger_connected_ = false;
     last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
     io_state_sub_ = node_->create_subscription<IOStateMsg>(
