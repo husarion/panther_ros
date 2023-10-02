@@ -42,7 +42,14 @@ def generate_launch_description():
         "controller_config_path",
         description="Path to wheel configuration file.",
     )
-
+    
+    battery_config_path = LaunchConfiguration("battery_config_path")
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        description="Path to parameters file for the Ignition LinearBatteryPlugin. "
+        "This configuration is intended for use in simulations only.",
+    )
+    
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -77,6 +84,8 @@ def generate_launch_description():
             wheel_config_path,
             " controller_config_file:=",
             controller_config_path,
+            " battery_config_file:=",
+            battery_config_path,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -154,6 +163,7 @@ def generate_launch_description():
     actions = [
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,
+        declare_battery_config_path_arg,
         declare_use_sim_arg,
         declare_simulation_engine_arg,
         SetParameter(name="use_sim_time", value=use_sim),

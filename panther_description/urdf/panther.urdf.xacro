@@ -3,7 +3,6 @@
 
   <xacro:arg name="use_sim" default="false" />
   <xacro:arg name="use_gpu" default="false" />
-  <xacro:arg name="dual_bat" default="false" />
   <xacro:arg name="imu_pos_x" default="0.169" />
   <xacro:arg name="imu_pos_y" default="0.025" />
   <xacro:arg name="imu_pos_z" default="0.092" />
@@ -15,19 +14,21 @@
     default="$(find panther_description)/config/WH01.yaml" />
   <xacro:arg name="controller_config_file"
     default="$(find panther_controller)/config/WH01_controller.yaml" />
+  <xacro:arg name="battery_config_file"
+    default="$(find panther_description)/config/battery_ign_plugin.yaml" />
 
   <xacro:include filename="$(find panther_description)/urdf/panther_macro.urdf.xacro" ns="husarion" />
   <xacro:husarion.panther_robot
     use_sim="$(arg use_sim)"
-    dual_bat="$(arg dual_bat)"
     imu_pos_x="$(arg imu_pos_x)"
     imu_pos_y="$(arg imu_pos_y)"
     imu_pos_z="$(arg imu_pos_z)"
     imu_rot_r="$(arg imu_rot_r)"
     imu_rot_p="$(arg imu_rot_p)"
     imu_rot_y="$(arg imu_rot_y)"
-    simulation_engine="$(arg simulation_engine)" 
+    simulation_engine="$(arg simulation_engine)"
     wheel_config_file="$(arg wheel_config_file)"
-    controller_config_file="$(arg controller_config_file)"/>
+    controller_config_file="$(arg controller_config_file)"
+    battery_config_file="$(arg battery_config_file)" />
 
 </robot>

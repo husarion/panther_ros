@@ -2,8 +2,9 @@
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 
 from launch_ros.actions import Node, SetParameter
 
@@ -11,6 +12,13 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
     wheel_type = LaunchConfiguration("wheel_type")
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
@@ -53,11 +61,12 @@ def generate_launch_description():
         "to your custom controller configuration file here. It can be located in any directory.",
     )
 
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
+    battery_config_path = LaunchConfiguration("battery_config_path")
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        description="Path to parameters file for the Ignition LinearBatteryPlugin. "
+        "This configuration is intended for use in simulations only.",
+        condition=IfCondition(use_sim),
     )
 
     simulation_engine = LaunchConfiguration("simulation_engine")
@@ -81,11 +90,12 @@ def generate_launch_description():
             "wheel_type": wheel_type,
             "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
+            "battery_config_path": battery_config_path,
             "use_sim": use_sim,
             "simulation_engine": simulation_engine,
         }.items(),
     )
-    
+
     robot_localization_node = Node(
         package="robot_localization",
         executable="ekf_node",
@@ -99,10 +109,11 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_use_sim_arg,
         declare_wheel_type_arg,
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,
-        declare_use_sim_arg,
+        declare_battery_config_path_arg,
         declare_simulation_engine_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,

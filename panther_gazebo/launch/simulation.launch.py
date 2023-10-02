@@ -57,6 +57,34 @@ def generate_launch_description():
         "to your custom controller configuration file here. It can be located in any directory.",
     )
 
+    battery_config_path = LaunchConfiguration("battery_config_path")
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                get_package_share_directory("panther_gazebo"),
+                "config",
+                "battery_plugin.yaml",
+            ]
+        ),
+        description="Path to parameters file for the Ignition LinearBatteryPlugin. "
+        "This configuration is intended for use in simulations only.",
+    )
+    
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
+    declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
+        "gz_bridge_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                get_package_share_directory("panther_gazebo"),
+                "config",
+                "gz_bridge.yaml",
+            ]
+        ),
+        description="Path to the parameter_bridge configuration file",
+    )
+    
+    
     map_package = get_package_share_directory("husarion_office_gz")
     world_file = PathJoinSubstitution([map_package, "worlds", "husarion_world.sdf"])
     world_cfg = LaunchConfiguration("world")
@@ -97,19 +125,11 @@ def generate_launch_description():
         output="screen",
     )
 
-    ign_bridge = Node(
+    gz_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        name="ign_bridge",
-        arguments=[
-            "/clock" + "@rosgraph_msgs/msg/Clock" + "[ignition.msgs.Clock",
-            "/model/panther/battery/panther_battery/state" + 
-            "@sensor_msgs/msg/BatteryState" + 
-            "[ignition.msgs.BatteryState",
-        ],
-        remappings=[
-            ("model/panther/battery/panther_battery/state", "/battery"),
-        ],
+        name="gz_bridge",
+        parameters=[{'config_file': gz_bridge_config_path}],
         output="screen",
     )
 
@@ -127,6 +147,7 @@ def generate_launch_description():
             "wheel_type": wheel_type,
             "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
+            "battery_config_path": battery_config_path,
             "use_sim": "True",
             "simulation_engine": "ignition-gazebo",
         }.items(),
@@ -138,11 +159,12 @@ def generate_launch_description():
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
-            LogInfo(msg=["Controller configuration file path set to: ", controller_config_path]),
-            # # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
+            declare_battery_config_path_arg,
+            declare_gz_bridge_config_path_arg,
+            # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,
-            ign_bridge,
+            gz_bridge,
             gz_spawn_entity,
             bringup_launch,
         ]
