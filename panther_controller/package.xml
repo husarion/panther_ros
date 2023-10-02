@@ -27,6 +27,7 @@
 
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>diff_drive_controller</exec_depend>
+  <exec_depend>imu_sensor_broadcaster</exec_depend>
   <exec_depend>mecanum_drive_controller</exec_depend>
 
   <exec_depend>panther_hardware_interfaces</exec_depend>
