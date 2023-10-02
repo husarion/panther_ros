@@ -4,15 +4,16 @@
   <name>panther_gazebo</name>
   <version>0.0.1</version>
 
-  <description>The panther_gazebo package</description>
-  <license>Apache License 2.0</license>
-
-  <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
+  <description>The panther_description package</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
+  <license>Apache License 2.0</license>
 
   <url type="website">https://husarion.com/</url>
   <url type="repository">https://github.com/husarion/panther_ros</url>
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
+
+  <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
+  <author email="maciej.stepien@husarion.com">Maciej Stepien</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

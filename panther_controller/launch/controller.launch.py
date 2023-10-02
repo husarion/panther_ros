@@ -46,7 +46,7 @@ def generate_launch_description():
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
-        description="Path to parameters file for the Ignition LinearBatteryPlugin. "
+        description="Path to the Ignition LinearBatteryPlugin configuration file. "
         "This configuration is intended for use in simulations only.",
     )
     

@@ -41,7 +41,7 @@ def generate_launch_description():
             ]
         ),
         description="Path to wheel configuration file. "
-        "By default, it should be located in 'panther_description/config/<wheel_type arg>.yaml'. "
+        "By default, it is be located in 'panther_description/config/<wheel_type arg>.yaml'. "
         "You can also specify the path to your custom wheel configuration file here. "
         "It can be located in any directory.",
     )
@@ -56,7 +56,7 @@ def generate_launch_description():
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
         ),
-        description="Path to wheel configuration file. By default, it should be located in "
+        description="Path to wheel configuration file. By default, it is be located in "
         "'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify the path "
         "to your custom controller configuration file here. It can be located in any directory.",
     )
@@ -64,7 +64,7 @@ def generate_launch_description():
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
-        description="Path to parameters file for the Ignition LinearBatteryPlugin. "
+        description="Path to the Ignition LinearBatteryPlugin configuration file. "
         "This configuration is intended for use in simulations only.",
         condition=IfCondition(use_sim),
     )
