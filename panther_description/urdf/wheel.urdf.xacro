@@ -36,7 +36,7 @@
       <axis xyz="0.0 1.0 0.0" />
 
       <limit effort="64.5" velocity="10.958" />
-      <dynamics damping="0.01" friction="0.01" />
+      <dynamics damping="0.01" friction="0.1" />
     </joint>
 
     <link name="${prefix}_wheel_link">
