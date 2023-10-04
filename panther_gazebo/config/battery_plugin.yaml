@@ -15,5 +15,5 @@ charging_time: 6.0 # [h]
 # When the 'simulate_discharging' parameter is set to false, this value defaults to 0.
 # Users are encouraged to customize this value to match their specific needs.
 # For more information on Panther power consumption, please refer to: 
-#   https://husarion.com/manuals/panther/#battery--charging
+# https://husarion.com/manuals/panther/#battery--charging
 power_load: 120.0 # [W]
