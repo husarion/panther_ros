@@ -40,7 +40,7 @@ def generate_launch_description():
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
-        description="Path to wheel configuration file.",
+        description="Path to controller configuration file.",
     )
     
     battery_config_path = LaunchConfiguration("battery_config_path")
