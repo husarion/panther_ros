@@ -152,7 +152,7 @@
         <plugin filename="ignition-gazebo-linearbatteryplugin-system"
           name="gz::sim::systems::LinearBatteryPlugin">
           <battery_name>panther_battery</battery_name>
-          <voltage>42</voltage>
+          <voltage>41.4</voltage>
           <open_circuit_voltage_constant_coef>42</open_circuit_voltage_constant_coef>
           <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
           <initial_charge>${bat_initial_charge}</initial_charge>
