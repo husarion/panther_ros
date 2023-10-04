@@ -3,7 +3,6 @@
 <package format="3">
   <name>panther_gazebo</name>
   <version>0.0.1</version>
-
   <description>The panther_description package</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
