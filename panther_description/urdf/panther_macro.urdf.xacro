@@ -16,7 +16,6 @@
             simulation_engine:='ignition-gazebo'">
 
     <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
-    <xacro:property name="controllers_config" value="${xacro.load_yaml(controller_config_file)}" />
 
     <xacro:if value="${use_sim}">
       <xacro:property name="battery_config" value="${xacro.load_yaml(battery_config_file)}" />
