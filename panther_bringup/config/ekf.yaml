@@ -18,7 +18,6 @@ ekf_filter_node:
                   true, true, false,
                   false, false, true,
                   false, false, false]
-
     odom0_queue_size: 10 
     odom0_nodelay: true
     odom0_differential: false
