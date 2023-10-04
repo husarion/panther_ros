@@ -22,8 +22,8 @@ from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
     Command,
     FindExecutable,
-    PathJoinSubstitution,
     LaunchConfiguration,
+    PathJoinSubstitution,
 )
 
 from launch_ros.actions import Node, SetParameter
