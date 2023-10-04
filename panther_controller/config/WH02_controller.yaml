@@ -23,8 +23,8 @@ panther_base_controller:
     rear_right_wheel_name: rr_wheel_joint
 
     wheel_separation_x: 0.44
-    wheel_separation_y: 0.697
-    wheel_radius: 0.1825
+    wheel_separation_y: 0.6785
+    wheel_radius: 0.1016
 
     wheel_separation_multiplier_x: 1.0
     wheel_separation_multiplier_y: 1.0
