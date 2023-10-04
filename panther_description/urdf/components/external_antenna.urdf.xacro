@@ -60,6 +60,5 @@
 
     <link name="${tf_prefix_ext}${frame_id}" />
 
-
   </xacro:macro>
 </robot>
