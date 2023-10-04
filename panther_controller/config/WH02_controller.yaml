@@ -82,8 +82,8 @@ panther_base_controller:
         has_velocity_limits: true
         has_acceleration_limits: true
         has_jerk_limits: false
-        max_velocity: 0.2 # rad/s
+        max_velocity: 2.2 # rad/s
         # min_velocity -  When unspecified, -max_velocity is used
-        max_acceleration: 0.2 # rad/s^2
+        max_acceleration: 3.2 # rad/s^2
         # min_acceleration - When unspecified, -max_acceleration is used.
         max_jerk: 0.0 # rad/s^3
