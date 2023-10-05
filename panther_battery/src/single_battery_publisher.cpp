@@ -18,8 +18,8 @@ SingleBatteryPublisher::SingleBatteryPublisher(
   std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Battery> & battery)
 : BatteryPublisher(node), battery_(std::move(battery))
 {
-  battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 10);
-  battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 10);
+  battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
+  battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
 }
 
 void SingleBatteryPublisher::Update()
@@ -36,7 +36,7 @@ void SingleBatteryPublisher::Reset()
 
 void SingleBatteryPublisher::PublishBatteryState()
 {
-  auto battery_msg = battery_->GetBatteryMsg();
+  const auto battery_msg = battery_->GetBatteryMsg();
   battery_pub_->publish(battery_msg);
   battery_1_pub_->publish(battery_->GetBatteryMsgRaw());
   BatteryStatusLogger(battery_msg);

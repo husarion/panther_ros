@@ -19,9 +19,9 @@ DualBatteryPublisher::DualBatteryPublisher(
   std::shared_ptr<Battery> & battery_2)
 : BatteryPublisher(node), battery_1_(std::move(battery_1)), battery_2_(std::move(battery_2))
 {
-  battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 10);
-  battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 10);
-  battery_2_pub_ = node_->create_publisher<BatteryStateMsg>("battery_2_raw", 10);
+  battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
+  battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
+  battery_2_pub_ = node_->create_publisher<BatteryStateMsg>("battery_2_raw", 5);
 }
 
 void DualBatteryPublisher::Update()
@@ -41,15 +41,14 @@ void DualBatteryPublisher::Reset()
 void DualBatteryPublisher::PublishBatteryState()
 {
   try {
-    auto battery_msg = MergeBatteryMsgs(battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
+    const auto battery_msg =
+      MergeBatteryMsgs(battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
     battery_pub_->publish(battery_msg);
     BatteryStatusLogger(battery_msg);
   } catch (const std::runtime_error & err) {
     RCLCPP_WARN(
-      node_->get_logger(),
-      "Failed to merge battery_1 and battery_2 messages: %s\nBattery message will not be "
-      "published",
-      err.what());
+      node_->get_logger(), "Failed to merge battery_1 and battery_2 messages: %s", err.what());
+    RCLCPP_WARN(node_->get_logger(), "Battery message will not be published");
   }
   battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
   battery_2_pub_->publish(battery_2_->GetBatteryMsgRaw());

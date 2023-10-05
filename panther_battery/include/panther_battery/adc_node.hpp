@@ -27,11 +27,6 @@ private:
 
   static constexpr int adc_current_offset_ = 625;
 
-  std::size_t battery_voltage_window_len_;
-  std::size_t battery_temp_window_len_;
-  std::size_t battery_current_window_len_;
-  std::size_t battery_charge_window_len_;
-
   std::shared_ptr<ADCDataReader> adc0_reader_;
   std::shared_ptr<ADCDataReader> adc1_reader_;
   std::shared_ptr<Battery> battery_1_;

@@ -32,8 +32,9 @@ add_executable(adc_node
   src/adc_node_main.cpp
   src/adc_node.cpp
   src/adc_battery.cpp
-  src/single_battery_publisher.cpp
+  src/battery_publisher.cpp
   src/dual_battery_publisher.cpp
+  src/single_battery_publisher.cpp
 )
 
 ament_target_dependencies(adc_node
@@ -56,17 +57,17 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  # ament_add_gtest(${PROJECT_NAME}_test_roboteq_republisher_node test/test_roboteq_republisher_node.cpp src/roboteq_republisher_node.cpp)
-  # target_include_directories(${PROJECT_NAME}_test_roboteq_republisher_node PUBLIC
-  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  #   $<INSTALL_INTERFACE:include>
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
-  #   rclcpp
-  #   panther_msgs
-  #   panther_utils
-  #   sensor_msgs
-  # )
+  ament_add_gtest(${PROJECT_NAME}_test_roboteq_republisher_node test/test_roboteq_republisher_node.cpp src/roboteq_republisher_node.cpp)
+  target_include_directories(${PROJECT_NAME}_test_roboteq_republisher_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_roboteq_republisher_node
+    rclcpp
+    panther_msgs
+    panther_utils
+    sensor_msgs
+  )
 
   ament_add_gtest(${PROJECT_NAME}_test_adc_data_reader test/test_adc_data_reader.cpp)
   target_include_directories(${PROJECT_NAME}_test_adc_data_reader PUBLIC
@@ -97,7 +98,7 @@ if(BUILD_TESTING)
     sensor_msgs
   )
 
-  ament_add_gtest(${PROJECT_NAME}_test_battery_publisher test/test_battery_publisher.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_battery_publisher test/test_battery_publisher.cpp src/battery_publisher.cpp)
   target_include_directories(${PROJECT_NAME}_test_battery_publisher PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -109,7 +110,12 @@ if(BUILD_TESTING)
     panther_msgs
   )
 
-  ament_add_gtest(${PROJECT_NAME}_test_single_battery_publisher test/test_single_battery_publisher.cpp src/adc_battery.cpp src/single_battery_publisher.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_single_battery_publisher 
+    test/test_single_battery_publisher.cpp 
+    src/adc_battery.cpp 
+    src/battery_publisher.cpp 
+    src/single_battery_publisher.cpp
+  )
   target_include_directories(${PROJECT_NAME}_test_single_battery_publisher PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -121,7 +127,12 @@ if(BUILD_TESTING)
     panther_msgs
   )
 
-  ament_add_gtest(${PROJECT_NAME}_test_dual_battery_publisher test/test_dual_battery_publisher.cpp src/adc_battery.cpp src/dual_battery_publisher.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_dual_battery_publisher 
+    test/test_dual_battery_publisher.cpp 
+    src/adc_battery.cpp 
+    src/battery_publisher.cpp 
+    src/dual_battery_publisher.cpp
+  )
   target_include_directories(${PROJECT_NAME}_test_dual_battery_publisher PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>

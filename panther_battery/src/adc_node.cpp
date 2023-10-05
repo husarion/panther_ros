@@ -28,11 +28,6 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   this->declare_parameter<int>("ma_window_len/current", 10);
   this->declare_parameter<int>("ma_window_len/charge", 10);
 
-  battery_voltage_window_len_ = this->get_parameter("batery_voltage_window_len").as_int();
-  battery_temp_window_len_ = this->get_parameter("batery_temp_window_len").as_int();
-  battery_current_window_len_ = this->get_parameter("batery_current_window_len").as_int();
-  battery_charge_window_len_ = this->get_parameter("batery_charge_window_len").as_int();
-
   // running at 10 Hz
   battery_pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(100), std::bind(&ADCNode::BatteryPubTimerCB, this));
@@ -48,11 +43,11 @@ void ADCNode::Initialize()
   adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
   adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
 
-  ADCBatteryParams battery_params = {
-    battery_voltage_window_len_,
-    battery_temp_window_len_,
-    battery_current_window_len_,
-    battery_charge_window_len_,
+  const ADCBatteryParams battery_params = {
+    static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
+    static_cast<std::size_t>(this->get_parameter("ma_window_len/temp").as_int()),
+    static_cast<std::size_t>(this->get_parameter("ma_window_len/current").as_int()),
+    static_cast<std::size_t>(this->get_parameter("ma_window_len/charge").as_int()),
   };
 
   battery_2_ = std::make_shared<ADCBattery>(
