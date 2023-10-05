@@ -63,7 +63,7 @@ def generate_launch_description():
             [
                 get_package_share_directory("panther_gazebo"),
                 "config",
-                "battery_plugin.yaml",
+                "battery_plugin_config.yaml",
             ]
         ),
         description="Path to the Ignition LinearBatteryPlugin configuration file. "
