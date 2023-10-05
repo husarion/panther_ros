@@ -1,4 +1,4 @@
-ekf_filter_node:
+ekf_node:
   ros__parameters:
     predict_to_current_time: false
     frequency: 30.0

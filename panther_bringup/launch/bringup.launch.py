@@ -105,6 +105,7 @@ def generate_launch_description():
                 [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
             )
         ],
+        arguments=['--ros-args', '--log-level', 'info']
     )
 
     actions = [
