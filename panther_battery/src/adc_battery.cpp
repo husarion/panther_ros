@@ -66,6 +66,7 @@ void ADCBattery::Reset(const rclcpp::Time & header_stamp)
   charge_ma_->Reset();
 
   ResetBatteryMsgs(header_stamp);
+  SetErrorMsg("");
 }
 
 inline float ADCBattery::ADCToBatteryVoltage(const float adc_data) const

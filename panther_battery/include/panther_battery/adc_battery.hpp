@@ -3,7 +3,6 @@
 
 #include <functional>
 #include <memory>
-#include <string>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -18,12 +17,12 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 struct ADCBatteryParams
 {
   const std::size_t voltage_window_len;
-  const std::size_t temp_window_len;
   const std::size_t current_window_len;
+  const std::size_t temp_window_len;
   const std::size_t charge_window_len;
 };
 
-class ADCBattery: public Battery
+class ADCBattery : public Battery
 {
 public:
   ADCBattery(

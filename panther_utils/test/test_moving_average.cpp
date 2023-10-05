@@ -45,7 +45,7 @@ TEST(TestMovingAverage, TestHighOverload)
   const std::size_t window_len = 1000;
   panther_utils::MovingAverage<double> ma(window_len);
 
-  double sum;
+  double sum = 0.0;
   for (std::size_t i = 1; i <= window_len * 10; i++) {
     sum += double(i);
     ma.Roll(double(i));
