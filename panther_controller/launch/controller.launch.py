@@ -37,7 +37,7 @@ def generate_launch_description():
         default_value="False",
         description="Whether simulation is used",
     )
-    
+
     wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
@@ -49,7 +49,7 @@ def generate_launch_description():
         "controller_config_path",
         description="Path to controller configuration file.",
     )
-    
+
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",

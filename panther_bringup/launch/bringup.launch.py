@@ -75,6 +75,14 @@ def generate_launch_description():
         description="Which simulation engine will be used",
     )
 
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
+        description="Whether to launch the robot_state_publisher node."
+        "When set to False, users should publish their own robot description.",
+    )
+
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -92,6 +100,7 @@ def generate_launch_description():
             "battery_config_path": battery_config_path,
             "use_sim": use_sim,
             "simulation_engine": simulation_engine,
+            "publish_robot_state": publish_robot_state,
         }.items(),
     )
 
@@ -105,7 +114,6 @@ def generate_launch_description():
                 [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
             )
         ],
-        arguments=['--ros-args', '--log-level', 'info']
     )
 
     actions = [
@@ -115,6 +123,7 @@ def generate_launch_description():
         declare_controller_config_path_arg,
         declare_battery_config_path_arg,
         declare_simulation_engine_arg,
+        declare_publish_robot_state_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
         robot_localization_node,

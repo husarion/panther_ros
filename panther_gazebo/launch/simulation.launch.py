@@ -116,6 +116,14 @@ def generate_launch_description():
         "rot_yaw", default_value=["0.0"], description="Initial robot orientation."
     )
 
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
+        description="Whether to launch the robot_state_publisher node."
+        "When set to False, users should publish their own robot description.",
+    )
+
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -174,6 +182,7 @@ def generate_launch_description():
             "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
             "battery_config_path": battery_config_path,
+            "publish_robot_state": publish_robot_state,
             "use_sim": "True",
             "simulation_engine": "ignition-gazebo",
         }.items(),
@@ -191,6 +200,7 @@ def generate_launch_description():
             declare_controller_config_path_arg,
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
+            declare_publish_robot_state_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,
