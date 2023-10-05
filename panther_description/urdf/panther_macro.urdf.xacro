@@ -20,7 +20,7 @@
     <xacro:if value="${use_sim}">
       <xacro:property name="battery_config" value="${xacro.load_yaml(battery_config_file)}" />
       <xacro:property name="bat_initial_charge"
-        value="${20*battery_config['initial_charge_percentage']/100.0}" />
+        value="${20.0*battery_config['initial_charge_percentage']/100.0}" />
       <xacro:property name="bat_charging_time" value="${battery_config['charging_time']}" />
 
       <xacro:if value="${battery_config['simulate_discharging']}">
@@ -152,7 +152,7 @@
           name="gz::sim::systems::LinearBatteryPlugin">
           <battery_name>panther_battery</battery_name>
           <voltage>41.4</voltage>
-          <open_circuit_voltage_constant_coef>42</open_circuit_voltage_constant_coef>
+          <open_circuit_voltage_constant_coef>42.0</open_circuit_voltage_constant_coef>
           <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
           <initial_charge>${bat_initial_charge}</initial_charge>
           <capacity>20.0</capacity>
