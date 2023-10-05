@@ -69,7 +69,7 @@ def generate_launch_description():
         description="Path to the Ignition LinearBatteryPlugin configuration file. "
         "This configuration is intended for use in simulations only.",
     )
-    
+
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
@@ -82,13 +82,38 @@ def generate_launch_description():
         ),
         description="Path to the parameter_bridge configuration file",
     )
-    
-    
+
     map_package = get_package_share_directory("husarion_office_gz")
     world_file = PathJoinSubstitution([map_package, "worlds", "husarion_world.sdf"])
     world_cfg = LaunchConfiguration("world")
     declare_world_arg = DeclareLaunchArgument(
         "world", default_value=["-r ", world_file], description="SDF world file"
+    )
+
+    pose_x = LaunchConfiguration("pose_x")
+    declare_pose_x_arg = DeclareLaunchArgument(
+        "pose_x",
+        default_value=["5.0"],
+        description="Initial robot position in the global 'x' axis.",
+    )
+
+    pose_y = LaunchConfiguration("pose_y")
+    declare_pose_y_arg = DeclareLaunchArgument(
+        "pose_y",
+        default_value=["-5.0"],
+        description="Initial robot position in the global 'y' axis.",
+    )
+
+    pose_z = LaunchConfiguration("pose_z")
+    declare_pose_z_arg = DeclareLaunchArgument(
+        "pose_z",
+        default_value=["0.2"],
+        description="Initial robot position in the global 'z' axis.",
+    )
+
+    rot_yaw = LaunchConfiguration("rot_yaw")
+    declare_rot_yaw_arg = DeclareLaunchArgument(
+        "rot_yaw", default_value=["0.0"], description="Initial robot orientation."
     )
 
     gz_sim = IncludeLaunchDescription(
@@ -115,11 +140,13 @@ def generate_launch_description():
             "-topic",
             "robot_description",
             "-x",
-            "5.0",
+            pose_x,
             "-y",
-            "-5.0",
+            pose_y,
             "-z",
-            "0.2",
+            pose_z,
+            "-Y",
+            rot_yaw,
         ],
         output="screen",
     )
@@ -160,6 +187,10 @@ def generate_launch_description():
             declare_controller_config_path_arg,
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
+            declare_pose_x_arg,
+            declare_pose_y_arg,
+            declare_pose_z_arg,
+            declare_rot_yaw_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,

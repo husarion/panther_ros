@@ -17,7 +17,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
-from launch.conditions import UnlessCondition
+from launch.conditions import UnlessCondition, IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
     Command,
@@ -31,6 +31,13 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+    
     wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
@@ -48,13 +55,7 @@ def generate_launch_description():
         "battery_config_path",
         description="Path to the Ignition LinearBatteryPlugin configuration file. "
         "This configuration is intended for use in simulations only.",
-    )
-    
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
+        condition=IfCondition(use_sim),
     )
 
     simulation_engine = LaunchConfiguration("simulation_engine")
@@ -161,10 +162,10 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_use_sim_arg,
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,
         declare_battery_config_path_arg,
-        declare_use_sim_arg,
         declare_simulation_engine_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
