@@ -45,8 +45,7 @@
       imu_pos_z="${imu_pos_z}"
       imu_rot_r="${imu_rot_r}"
       imu_rot_p="${imu_rot_p}"
-      imu_rot_y="${imu_rot_y}"
-      simulation_engine="${simulation_engine}" />
+      imu_rot_y="${imu_rot_y}" />
 
     <!-- WHEEL DECLARATION -->
     <xacro:wheel.wheel

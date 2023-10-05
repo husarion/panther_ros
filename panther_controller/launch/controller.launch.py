@@ -65,6 +65,14 @@ def generate_launch_description():
         description="Which simulation engine will be used",
     )
 
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
+        description="Whether to launch the robot_state_publisher node."
+        "When set to False, users should publish their own robot description.",
+    )
+
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -106,6 +114,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        condition=IfCondition(publish_robot_state),
     )
 
     robot_controller_spawner = Node(
@@ -167,6 +176,7 @@ def generate_launch_description():
         declare_controller_config_path_arg,
         declare_battery_config_path_arg,
         declare_simulation_engine_arg,
+        declare_publish_robot_state_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,

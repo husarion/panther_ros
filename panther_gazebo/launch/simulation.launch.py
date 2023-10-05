@@ -182,15 +182,15 @@ def generate_launch_description():
     return LaunchDescription(
         [
             declare_world_arg,
+            declare_pose_x_arg,
+            declare_pose_y_arg,
+            declare_pose_z_arg,
+            declare_rot_yaw_arg,
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
-            declare_pose_x_arg,
-            declare_pose_y_arg,
-            declare_pose_z_arg,
-            declare_rot_yaw_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,
