@@ -83,11 +83,20 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file",
     )
 
-    map_package = get_package_share_directory("husarion_office_gz")
-    world_file = PathJoinSubstitution([map_package, "worlds", "husarion_world.sdf"])
     world_cfg = LaunchConfiguration("world")
     declare_world_arg = DeclareLaunchArgument(
-        "world", default_value=["-r ", world_file], description="SDF world file"
+        "world",
+        default_value=[
+            "-r ",
+            PathJoinSubstitution(
+                [
+                    get_package_share_directory("husarion_office_gz"),
+                    "worlds",
+                    "husarion_world.sdf",
+                ],
+            ),
+        ],
+        description="SDF world file",
     )
 
     pose_x = LaunchConfiguration("pose_x")
