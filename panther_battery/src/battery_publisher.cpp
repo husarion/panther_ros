@@ -58,7 +58,7 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
     case BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING:
       RCLCPP_INFO_THROTTLE(
         node_->get_logger(), *node_->get_clock(), 180000,
-        "Robot charging process update. Battery percentage: %d%%",
+        "Robot is charging. Current battery percentage: %d%%.",
         int(battery_state.percentage * 100));
       break;
 
