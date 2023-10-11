@@ -65,7 +65,7 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
     case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
       RCLCPP_INFO_THROTTLE(
         node_->get_logger(), *node_->get_clock(), 180000,
-        "The battery is fully charged. Robot can be disconnected from the charger");
+        "The battery is fully charged. Robot can be disconnected from the charger.");
       break;
 
     default:
