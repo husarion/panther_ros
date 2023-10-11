@@ -17,7 +17,7 @@ BatteryPublisher::BatteryPublisher(std::shared_ptr<rclcpp::Node> node) : node_(n
   last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
 
   io_state_sub_ = node_->create_subscription<IOStateMsg>(
-    "hardware/io_state", 10,
+    "hardware/io_state", 3,
     [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
 }
 
