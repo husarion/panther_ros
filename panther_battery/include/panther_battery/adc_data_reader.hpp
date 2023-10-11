@@ -42,7 +42,7 @@ private:
   }
 
   template <typename T>
-  T ReadFile(const std::filesystem::path file_path) const
+  T ReadFile(const std::filesystem::path & file_path) const
   {
 
     std::ifstream file(file_path, std::ios_base::in);
