@@ -14,7 +14,7 @@ namespace panther_battery
 class SingleBatteryPublisher : public BatteryPublisher
 {
 public:
-  SingleBatteryPublisher(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Battery> & battery);
+  SingleBatteryPublisher(const std::shared_ptr<rclcpp::Node> & node, const std::shared_ptr<Battery> & battery);
 
   ~SingleBatteryPublisher() {}
 

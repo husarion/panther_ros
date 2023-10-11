@@ -8,7 +8,8 @@
 namespace panther_battery
 {
 
-BatteryPublisher::BatteryPublisher(std::shared_ptr<rclcpp::Node> node) : node_(node)
+BatteryPublisher::BatteryPublisher(const std::shared_ptr<rclcpp::Node> & node)
+: node_(std::move(node))
 {
   node_->declare_parameter<float>("battery_timeout", 1.0);
   battery_timeout_ = node_->get_parameter("battery_timeout").as_double();
@@ -39,13 +40,13 @@ void BatteryPublisher::Publish()
   this->LogErrors();
 }
 
-bool BatteryPublisher::TimeoutReached()
+bool BatteryPublisher::TimeoutReached() const
 {
   return (node_->get_clock()->now() - last_battery_info_time_) >
          rclcpp::Duration::from_seconds(battery_timeout_);
 }
 
-void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state)
+void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state) const
 {
   switch (battery_state.power_supply_status) {
     case BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING:

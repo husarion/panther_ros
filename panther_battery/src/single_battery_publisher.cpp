@@ -15,8 +15,8 @@ namespace panther_battery
 {
 
 SingleBatteryPublisher::SingleBatteryPublisher(
-  std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Battery> & battery)
-: BatteryPublisher(node), battery_(std::move(battery))
+  const std::shared_ptr<rclcpp::Node> & node, const std::shared_ptr<Battery> & battery)
+: BatteryPublisher(std::move(node)), battery_(std::move(battery))
 {
   battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
   battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);

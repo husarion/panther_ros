@@ -18,7 +18,7 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class BatteryPublisher
 {
 public:
-  BatteryPublisher(std::shared_ptr<rclcpp::Node> node);
+  BatteryPublisher(const std::shared_ptr<rclcpp::Node> & node);
 
   ~BatteryPublisher() {}
 
@@ -30,8 +30,8 @@ protected:
   virtual void PublishBatteryState() = 0;
   virtual void LogErrors() = 0;
 
-  bool TimeoutReached();
-  void BatteryStatusLogger(const BatteryStateMsg & battery_state);
+  bool TimeoutReached() const;
+  void BatteryStatusLogger(const BatteryStateMsg & battery_state) const;
   bool ChargerConnected() const;
 
   std::shared_ptr<rclcpp::Node> node_;

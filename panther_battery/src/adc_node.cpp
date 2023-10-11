@@ -66,6 +66,7 @@ void ADCNode::Initialize()
     battery_publisher_ =
       std::make_shared<DualBatteryPublisher>(this->shared_from_this(), battery_1_, battery_2_);
   } else {
+    battery_2_.reset();
     battery_1_ = std::make_shared<ADCBattery>(
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 0, 0),
       [&]() {
@@ -74,7 +75,6 @@ void ADCNode::Initialize()
       },
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
-    battery_2_.reset();
     battery_publisher_ =
       std::make_shared<SingleBatteryPublisher>(this->shared_from_this(), battery_1_);
   }

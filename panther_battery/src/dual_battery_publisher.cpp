@@ -15,9 +15,11 @@ namespace panther_battery
 {
 
 DualBatteryPublisher::DualBatteryPublisher(
-  std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Battery> & battery_1,
-  std::shared_ptr<Battery> & battery_2)
-: BatteryPublisher(node), battery_1_(std::move(battery_1)), battery_2_(std::move(battery_2))
+  const std::shared_ptr<rclcpp::Node> & node, const std::shared_ptr<Battery> & battery_1,
+  const std::shared_ptr<Battery> & battery_2)
+: BatteryPublisher(std::move(node)),
+  battery_1_(std::move(battery_1)),
+  battery_2_(std::move(battery_2))
 {
   battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
   battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
@@ -71,8 +73,6 @@ void DualBatteryPublisher::LogErrors()
 BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
   const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
 {
-  ValidateMergeBatteryMsgs(battery_msg_1, battery_msg_2);
-
   BatteryStateMsg battery_msg;
 
   battery_msg.header.stamp = battery_msg_1.header.stamp;
@@ -113,33 +113,11 @@ BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
     battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD) {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
     battery_msg.temperature = std::min<float>(battery_msg_1.temperature, battery_msg_2.temperature);
-  } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   } else {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   }
 
   return battery_msg;
-}
-
-void DualBatteryPublisher::ValidateMergeBatteryMsgs(
-  const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
-{
-  if (battery_msg_1.header.stamp != battery_msg_2.header.stamp) {
-    throw std::runtime_error("Message header stamp mismatch");
-  } else if (battery_msg_1.power_supply_technology != battery_msg_2.power_supply_technology) {
-    throw std::runtime_error("Battery power supply technology mismatch");
-  } else if (battery_msg_1.cell_voltage.size() != battery_msg_2.cell_voltage.size()) {
-    throw std::runtime_error("Battery cell voltage mismatch");
-  } else if (battery_msg_1.cell_temperature.size() != battery_msg_2.cell_temperature.size()) {
-    throw std::runtime_error("Battery cell temperature mismatch");
-  } else if (battery_msg_1.location != battery_msg_2.location) {
-    throw std::runtime_error("Battery location mismatch");
-  } else if (battery_msg_1.present != battery_msg_2.present) {
-    throw std::runtime_error("Battery present mismatch");
-  }
 }
 
 uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
@@ -161,12 +139,8 @@ uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
     battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING ||
     battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING) {
     return BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
-  } else if (
-    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING ||
-    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING) {
-    return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
   } else {
-    return BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
+    return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
   }
 }
 

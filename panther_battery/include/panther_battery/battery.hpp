@@ -33,7 +33,7 @@ public:
   BatteryStateMsg GetBatteryMsgRaw() const { return battery_state_raw_; }
 
 protected:
-  void SetErrorMsg(const std::string error_msg) { error_msg_ = error_msg; }
+  void SetErrorMsg(const std::string & error_msg) { error_msg_ = error_msg; }
 
   float GetBatteryPercent(const float voltage) const
   {

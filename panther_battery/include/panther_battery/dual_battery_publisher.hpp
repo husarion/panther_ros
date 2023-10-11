@@ -15,8 +15,8 @@ class DualBatteryPublisher : public BatteryPublisher
 {
 public:
   DualBatteryPublisher(
-    std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Battery> & battery_1,
-    std::shared_ptr<Battery> & battery_2);
+    const std::shared_ptr<rclcpp::Node> & node, const std::shared_ptr<Battery> & battery_1,
+    const std::shared_ptr<Battery> & battery_2);
 
   ~DualBatteryPublisher() {}
 
@@ -27,8 +27,6 @@ protected:
   void LogErrors() override;
 
   BatteryStateMsg MergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
-  void ValidateMergeBatteryMsgs(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
   uint8_t MergeBatteryPowerSupplyStatus(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;

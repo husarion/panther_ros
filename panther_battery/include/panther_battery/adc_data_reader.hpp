@@ -31,7 +31,7 @@ private:
   template <typename T>
   T ReadChannel(const int channel, const std::string & data_type) const
   {
-    if (InvalidDataType(data_type)) {
+    if (data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency") {
       throw std::logic_error("Invalid data type: " + data_type);
     }
 
@@ -44,7 +44,6 @@ private:
   template <typename T>
   T ReadFile(const std::filesystem::path & file_path) const
   {
-
     std::ifstream file(file_path, std::ios_base::in);
     if (!file) {
       throw std::runtime_error("Failed to open file: " + std::string(file_path));
@@ -57,11 +56,6 @@ private:
     }
 
     return data;
-  }
-
-  bool InvalidDataType(const std::string & data_type) const
-  {
-    return data_type != "raw" && data_type != "scale" && data_type != "sampling_frequency";
   }
 
   const std::filesystem::path device_path_;

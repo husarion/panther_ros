@@ -29,12 +29,6 @@ public:
     return DualBatteryPublisher::MergeBatteryMsgs(battery_msg_1, battery_msg_2);
   }
 
-  void ValidateMergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
-  {
-    return DualBatteryPublisher::ValidateMergeBatteryMsgs(battery_msg_1, battery_msg_2);
-  }
-
   uint8_t MergeBatteryPowerSupplyStatus(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
   {
@@ -145,36 +139,6 @@ TEST_F(TestDualBatteryPublisher, MergeBatteryMsg)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, bat.power_supply_technology);
   EXPECT_TRUE(bat.present);
   EXPECT_EQ("user_compartment", bat.location);
-}
-
-TEST_F(TestDualBatteryPublisher, ValidateMergeBatteryMsgs)
-{
-  BatteryStateMsg bat_1;
-  BatteryStateMsg bat_2;
-
-  bat_2.present = true;
-  EXPECT_THROW(battery_publisher_->ValidateMergeBatteryMsgs(bat_1, bat_2), std::runtime_error);
-  bat_2.present = bat_1.present;
-
-  bat_2.location = "somwhere";
-  EXPECT_THROW(battery_publisher_->ValidateMergeBatteryMsgs(bat_1, bat_2), std::runtime_error);
-  bat_2.location = bat_1.location;
-
-  bat_2.cell_temperature = {0.0, 0.0};
-  EXPECT_THROW(battery_publisher_->ValidateMergeBatteryMsgs(bat_1, bat_2), std::runtime_error);
-  bat_2.cell_temperature = bat_1.cell_temperature;
-
-  bat_2.cell_voltage = {0.0, 0.0};
-  EXPECT_THROW(battery_publisher_->ValidateMergeBatteryMsgs(bat_1, bat_2), std::runtime_error);
-  bat_2.cell_voltage = bat_1.cell_voltage;
-
-  bat_2.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
-  EXPECT_THROW(battery_publisher_->ValidateMergeBatteryMsgs(bat_1, bat_2), std::runtime_error);
-  bat_2.power_supply_technology = bat_1.power_supply_technology;
-
-  bat_2.header.stamp = node_->get_clock()->now();
-  EXPECT_THROW(battery_publisher_->ValidateMergeBatteryMsgs(bat_1, bat_2), std::runtime_error);
-  bat_2.header.stamp = bat_1.header.stamp;
 }
 
 TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatus)
