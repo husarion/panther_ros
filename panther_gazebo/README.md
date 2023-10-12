@@ -1,6 +1,6 @@
 # panther_gazebo
 
-A package containing the launch files and dependencies needed to run the simulation in Ignition Fortress.
+A package containing the launch files and dependencies needed to run the simulation in Gazebo Fortress.
 
 ## Usage
 
