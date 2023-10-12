@@ -26,6 +26,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
       [&mtx, &cv, &err_code, &data](
         uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
         {
+          // TODO std::system_error
           std::lock_guard lck(mtx);
           if (ec) {
             err_code = ec;
@@ -66,6 +67,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
     this->SubmitWrite(
       index, subindex, data,
       [&mtx, &cv, &err_code](uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
+        // TODO std::system_error
         std::lock_guard lck(mtx);
         if (ec) {
           err_code = ec;
@@ -155,7 +157,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 
 void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed)
 {
-  // TODO!!!!: fix timeouts
+  // TODO: sometimes timeouts happens on SDO write
 
   try {
     SyncSdoWrite<int32_t>(0x2000, 1, channel_1_speed);
@@ -240,6 +242,11 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
   if (!es || es == 'L') {
     booted.store(true);
   }
+
+  // [ros2_control_node - 1] OnBoot es : D[ros2_control_node - 1] OnBoot what
+  // : Value of object 1018 sub -
+  //   index 01 from CANopen device is different to value in object 1F85(Vendor - ID)
+  //     .
 
   std::unique_lock<std::mutex> lck(boot_mtx);
   this->boot_what = what;
