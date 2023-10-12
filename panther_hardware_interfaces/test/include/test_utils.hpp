@@ -91,6 +91,52 @@ public:
 </robot>
 )";
 
+  // TODO: add test
+  const std::string panther_system_urdf_changed_order_ =
+    R"(
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="Panther">
+  <ros2_control name="wheels" type="system">
+    <hardware>
+      <plugin>panther_hardware_interfaces/PantherSystem</plugin>
+      <param name="encoder_resolution">1600</param>
+      <param name="gear_ratio">30.08</param>
+      <param name="gearbox_efficiency">0.75</param>
+      <param name="motor_torque_constant">0.11</param>
+      <param name="max_rpm_motor_speed">3600.0</param>
+      <param name="master_can_id">3</param>
+      <param name="front_driver_can_id">1</param>
+      <param name="rear_driver_can_id">2</param>
+    </hardware>
+    
+    <joint name="rl_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="fr_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="rr_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="fl_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+  </ros2_control>
+</robot>
+)";
+
   void set_state(const uint8_t state_id, const std::string & state_name)
   {
     rclcpp_lifecycle::State state(state_id, state_name);
