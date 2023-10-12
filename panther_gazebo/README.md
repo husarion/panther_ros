@@ -9,7 +9,7 @@ The recommended method for launching the simulation is by utilizing the [simulat
 ### Launch Arguments
 
 - `battery_config_path` [*string*, default: **panther_gazebo/config/battery_plugin_config.yaml**]: Path to the Ignition `LinearBatteryPlugin` configuration file. This configuration is intended for use in simulations only. For more information on how to configure this plugin, please refer to the [Linear Battery Plugin](#linear-battery-plugin) section.
-- `controller_config_path` [*string*, default: **<panther_controller share directory>/config/<wheel_type arg>_controller.yaml**]: Path to the controller configuration file. If you want to use a custom configuration, you can specify the path to your custom controller configuration file here.
+- `controller_config_path` [*string*, default: **panther_controller/config/<wheel_type arg>_controller.yaml**]: Path to the controller configuration file. If you want to use a custom configuration, you can specify the path to your custom controller configuration file here.
 - `gz_bridge_config_path` [*string*, default: **<panther_gazebo share directory>/config/gz_bridge.yaml**]: Path to the `parameter_bridge` configuration file. For detailed information on configuring the `parameter_bridge`, please refer to this [example](https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_bridge#example-5-configuring-the-bridge-via-yaml).
 - `pos_x` [*float*, default: **5.0**]: spawn position **[m]** of the robot in the world in **X** direction.
 - `pos_y` [*float*, default: **-5.0**]: spawn position **[m]** of the robot in the world in **Y** direction.
