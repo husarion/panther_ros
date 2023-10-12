@@ -329,6 +329,7 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     ++current_read_error_count_;
     if (current_read_error_count_ >= max_read_errors_count_) {
       error_ = true;
+      read_error_ = true;
       RCLCPP_ERROR_STREAM(
         rclcpp::get_logger("PantherSystem"),
         "Read error count exceeded max value, entering error state");
@@ -378,17 +379,23 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
     if (front.IsError() || rear.IsError()) {
       error_ = true;
+      read_error_ = true;
     }
 
   } catch (std::runtime_error & err) {
+    error_ = true;
+    read_error_ = true;
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
-    error_ = true;
+
     // TODO
     // return return_type::ERROR;
   }
 
   realtime_driver_state_publisher_->msg_.error = error_;
+  realtime_driver_state_publisher_->msg_.write_error = write_error_;
+  realtime_driver_state_publisher_->msg_.read_error = read_error_;
+
   if (realtime_driver_state_publisher_->trylock()) {
     realtime_driver_state_publisher_->unlockAndPublish();
   }
@@ -418,6 +425,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     ++current_write_error_count_;
     if (current_write_error_count_ >= max_write_errors_count_) {
       error_ = true;
+      write_error_ = true;
       RCLCPP_ERROR_STREAM(
         rclcpp::get_logger("PantherSystem"),
         "Error count exceeded max value, entering error state");

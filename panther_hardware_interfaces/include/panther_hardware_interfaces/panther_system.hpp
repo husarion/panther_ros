@@ -31,6 +31,12 @@ using CommandInterface = hardware_interface::CommandInterface;
 // TODO: [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out
 // TODO: [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to node 02: SDO protocol timed out
 // TODO: it still isn't handled, check when these SDO errors happen
+
+// TODO
+// class PantherSystemError
+// {
+// }
+
 class PantherSystem : public hardware_interface::SystemInterface
 {
 public:
@@ -98,6 +104,8 @@ protected:
   int8_t current_read_error_count_ = 0;
 
   bool error_ = false;
+  bool read_error_ = false;
+  bool write_error_ = false;
 };
 
 }  // namespace panther_hardware_interfaces

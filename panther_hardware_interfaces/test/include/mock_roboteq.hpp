@@ -80,6 +80,19 @@ public:
 
   void TriggerPDOPublish();
 
+  void SetOnWriteWait(uint32_t wait_time_microseconds)
+  {
+    OnWrite<int32_t>(
+      0x2000, 1,
+      [wait_time_microseconds](
+        uint16_t idx, uint8_t subidx, int32_t &, int32_t) -> std::error_code {
+        if (idx == 0x2000 && subidx == 1) {
+          usleep(wait_time_microseconds);
+        }
+        return std::error_code();
+      });
+  }
+
 private:
   std::thread pdo_publishing_thread_;
   std::atomic_bool stop_publishing_ = false;
