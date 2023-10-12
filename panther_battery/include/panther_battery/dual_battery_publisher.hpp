@@ -15,7 +15,7 @@ class DualBatteryPublisher : public BatteryPublisher
 {
 public:
   DualBatteryPublisher(
-    const std::shared_ptr<rclcpp::Node> & node, const std::shared_ptr<Battery> & battery_1,
+    const rclcpp::Node::SharedPtr & node, const std::shared_ptr<Battery> & battery_1,
     const std::shared_ptr<Battery> & battery_2);
 
   ~DualBatteryPublisher() {}
@@ -37,9 +37,9 @@ protected:
 private:
   std::shared_ptr<Battery> battery_1_;
   std::shared_ptr<Battery> battery_2_;
-  std::shared_ptr<rclcpp::Publisher<BatteryStateMsg>> battery_pub_;
-  std::shared_ptr<rclcpp::Publisher<BatteryStateMsg>> battery_1_pub_;
-  std::shared_ptr<rclcpp::Publisher<BatteryStateMsg>> battery_2_pub_;
+  rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
+  rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_1_pub_;
+  rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_2_pub_;
 };
 
 }  // namespace panther_battery

@@ -17,7 +17,7 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class BatteryPublisherWrapper : public panther_battery::BatteryPublisher
 {
 public:
-  BatteryPublisherWrapper(std::shared_ptr<rclcpp::Node> node)
+  BatteryPublisherWrapper(rclcpp::Node::SharedPtr node)
   : panther_battery::BatteryPublisher(node)
   {
   }
@@ -45,8 +45,8 @@ public:
   ~TestBatteryPublisher() {}
 
 protected:
-  std::shared_ptr<rclcpp::Node> node_;
-  std::shared_ptr<rclcpp::Publisher<IOStateMsg>> io_state_pub_;
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_pub_;
   std::shared_ptr<BatteryPublisherWrapper> battery_publisher_;
 };
 

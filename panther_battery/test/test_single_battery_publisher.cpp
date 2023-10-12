@@ -20,7 +20,7 @@ public:
   ~TestSingleBatteryPublisher() {}
 
 protected:
-  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_1_sub_;
 

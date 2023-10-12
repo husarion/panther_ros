@@ -17,7 +17,7 @@ class DualBatteryPublisherWrapper : public panther_battery::DualBatteryPublisher
 {
 public:
   DualBatteryPublisherWrapper(
-    std::shared_ptr<rclcpp::Node> node, std::shared_ptr<panther_battery::Battery> & battery_1,
+    rclcpp::Node::SharedPtr node, std::shared_ptr<panther_battery::Battery> & battery_1,
     std::shared_ptr<panther_battery::Battery> & battery_2)
   : DualBatteryPublisher(node, battery_1, battery_2)
   {
@@ -51,7 +51,7 @@ public:
   ~TestDualBatteryPublisher() {}
 
 protected:
-  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_1_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_2_sub_;

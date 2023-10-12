@@ -18,7 +18,7 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class BatteryPublisher
 {
 public:
-  BatteryPublisher(const std::shared_ptr<rclcpp::Node> & node);
+  BatteryPublisher(const rclcpp::Node::SharedPtr & node);
 
   ~BatteryPublisher() {}
 
@@ -34,7 +34,7 @@ protected:
   void BatteryStatusLogger(const BatteryStateMsg & battery_state) const;
   bool ChargerConnected() const;
 
-  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::Node::SharedPtr node_;
 
 private:
   bool charger_connected_;

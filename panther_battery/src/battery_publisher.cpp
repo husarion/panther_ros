@@ -8,7 +8,7 @@
 namespace panther_battery
 {
 
-BatteryPublisher::BatteryPublisher(const std::shared_ptr<rclcpp::Node> & node)
+BatteryPublisher::BatteryPublisher(const rclcpp::Node::SharedPtr & node)
 : node_(std::move(node))
 {
   node_->declare_parameter<float>("battery_timeout", 1.0);
