@@ -33,6 +33,10 @@ It is possible to simulate the battery operation of the Panther robot. By defaul
 - `charging_time` [*float*, default: **6.0**]: Specifies the charging time for the battery in hours.
 - `power_load` [*float*, default: **120.0**]: Represents the average power load during normal operation **[W]** and is initially set to 120.0 W. With the default power load of 120.0 W, the robot can operate for up to 8 hours. When the `simulate_discharging` parameter is set to `false`, this value defaults to 0.0 W. Users are encouraged to customize this value to match their specific requirements. For more information on Panther power consumption, please refer to [Panther Battery & Charging Documentation](https://husarion.com/manuals/panther/#battery--charging).
 
+> **Note**
+>
+> The `percentage` field has a range of 0.0-100.0. This differs from the real functioning of Panthera, where, in accordance with the BatteryState message definition, the value is within the range of 0.0-1.0.
+
 #### Charging Process
 
 Unfortunately, there is no straightforward way to exchange `LinearBatteryPlugin` services between ROS and Gazebo Transport, so you need to use the `ign` commands. As a result, the method of charging differs between the real and simulated robot.
