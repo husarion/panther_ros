@@ -27,9 +27,12 @@ protected:
   void LogErrors() override;
 
   BatteryStateMsg MergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
+    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2);
   uint8_t MergeBatteryPowerSupplyStatus(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
+  void MergeBatteryPowerSupplyHealth(
+    BatteryStateMsg & battery_msg, const BatteryStateMsg & battery_msg_1,
+    const BatteryStateMsg & battery_msg_2);
 
 private:
   std::shared_ptr<Battery> battery_1_;

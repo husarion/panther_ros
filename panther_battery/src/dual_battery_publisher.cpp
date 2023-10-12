@@ -71,7 +71,7 @@ void DualBatteryPublisher::LogErrors()
 }
 
 BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
-  const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
+  const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2)
 {
   BatteryStateMsg battery_msg;
 
@@ -91,31 +91,7 @@ BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
   battery_msg.design_capacity = battery_msg_1.design_capacity + battery_msg_2.design_capacity;
   battery_msg.charge = battery_msg_1.charge + battery_msg_2.charge;
 
-  if (battery_msg_1.power_supply_health == battery_msg_2.power_supply_health) {
-    battery_msg.power_supply_health = battery_msg_1.power_supply_health;
-  } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-    battery_msg.temperature = std::min<float>(battery_msg_1.voltage, battery_msg_2.voltage);
-  } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-    battery_msg.temperature = std::max<float>(battery_msg_1.temperature, battery_msg_2.temperature);
-  } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-    battery_msg.temperature = std::max<float>(battery_msg_1.voltage, battery_msg_2.voltage);
-  } else if (
-    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD ||
-    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD) {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
-    battery_msg.temperature = std::min<float>(battery_msg_1.temperature, battery_msg_2.temperature);
-  } else {
-    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
-  }
+  MergeBatteryPowerSupplyHealth(battery_msg, battery_msg_1, battery_msg_2);
 
   return battery_msg;
 }
@@ -141,6 +117,37 @@ uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
     return BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
   } else {
     return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
+  }
+}
+
+void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
+  BatteryStateMsg & battery_msg, const BatteryStateMsg & battery_msg_1,
+  const BatteryStateMsg & battery_msg_2)
+{
+  if (battery_msg_1.power_supply_health == battery_msg_2.power_supply_health) {
+    battery_msg.power_supply_health = battery_msg_1.power_supply_health;
+  } else if (
+    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD ||
+    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD) {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+    battery_msg.voltage = std::min<float>(battery_msg_1.voltage, battery_msg_2.voltage);
+  } else if (
+    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT ||
+    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT) {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+    battery_msg.temperature = std::max<float>(battery_msg_1.temperature, battery_msg_2.temperature);
+  } else if (
+    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE ||
+    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE) {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+    battery_msg.voltage = std::max<float>(battery_msg_1.voltage, battery_msg_2.voltage);
+  } else if (
+    battery_msg_1.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD ||
+    battery_msg_2.power_supply_health == BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD) {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+    battery_msg.temperature = std::min<float>(battery_msg_1.temperature, battery_msg_2.temperature);
+  } else {
+    battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   }
 }
 
