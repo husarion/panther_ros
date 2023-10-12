@@ -16,7 +16,7 @@ The recommended method for launching the simulation is by utilizing the [simulat
 - `pos_z` [*float*, default: **0.2**]: spawn position **[m]** of the robot in the world in **Z** direction.
 - `rot_yaw` [*float*, default: **0.0**]: spawn yaw angle **[rad]** of the robot in the world.
 - `publish_robot_state` [*bool*, default: **true**]: Whether to launch the robot_state_publisher node. When set to `false`, users should publish their own robot description.
-- `wheel_config_path` [*string*, default: **<panther_description share directory>/config/<wheel_type arg>.yaml**]: Path to the wheel configuration file. If you want to use a custom configuration, you can specify the path to your custom wheel configuration file here. Please refer to the `wheel_type` parameter description for more information.
+- `wheel_config_path` [*string*, default: **panther_description/config/<wheel_type arg>.yaml**]: Path to the wheel configuration file. If you want to use a custom configuration, you can specify the path to your custom wheel configuration file here. Please refer to the `wheel_type` parameter description for more information.
 - `wheel_type` [*string*, default: **WH01**]: Specify the type of wheel. If you select a value from the provided options (`WH01`, `WH02`, `WH04`), you can disregard the `wheel_config_path` and `controller_config_path` parameters. If you have custom wheels, set this parameter to `CUSTOM` and provide the necessary configurations.
 - `world` [*string*, default: **-r <husarion_office_gz share directory>/worlds/husarion_world.sdf**]: path to Gazebo world file used for simulation.
 
