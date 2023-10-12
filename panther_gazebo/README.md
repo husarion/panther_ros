@@ -53,7 +53,7 @@ ign service --service /model/panther/battery/panther_battery/recharge/stop --req
 
 The NavSat system is utilized to publish the Panther robot's position within the Gazebo world. It manages navigation satellite sensors, such as GPS, which report position and velocity in spherical coordinates (latitude/longitude) through Ignition Transport.
 
-The NavSat sensors depend on the spherical coordinates of the world origin being configured. This configuration can be accomplished, for instance, by employing the `<spherical_coordinates>` tag within the world's SDF or by utilizing the Ignition `/world/world_name/set_spherical_coordinates` service.
+The NavSat sensors requires the spherical coordinates of the world origin to be configured. This configuration can be accomplished, for instance, by employing the `<spherical_coordinates>` tag within the world's SDF or by utilizing the Ignition `/world/world_name/set_spherical_coordinates` service.
 
 To obtain GPS data in Ignition, all you need to do is include the [external_antenna](../panther_description/urdf/components/external_antenna.urdf.xacro) macro to your robot model and add the following tag to your world's SDF file and point this file with `world` param:
 
