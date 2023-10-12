@@ -20,6 +20,7 @@
 
 #include <panther_hardware_interfaces/gpio_driver.hpp>
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
+#include <panther_hardware_interfaces/panther_system_error_handler.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -31,11 +32,6 @@ using CommandInterface = hardware_interface::CommandInterface;
 // TODO: [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out
 // TODO: [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to node 02: SDO protocol timed out
 // TODO: it still isn't handled, check when these SDO errors happen
-
-// TODO
-// class PantherSystemError
-// {
-// }
 
 class PantherSystem : public hardware_interface::SystemInterface
 {
@@ -57,6 +53,12 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 protected:
+  void UpdateHwStates();
+  void UpdateMsgDriversErrorsState();
+  void UpdateMsgDriversState();
+  void UpdateMsgErrors();
+  void PublishDriverState();
+
   static constexpr size_t kJointsSize = 4;
 
   // consider adding position and torque mode after updating roboteq firmware to 2.1a
@@ -95,17 +97,7 @@ protected:
   void destroy_node();
   std::atomic_bool stop_executor_ = false;
 
-  // Sometimes there's a single SDO write error, which is better to filter out
-  // If more consecutive errors happen, action should be taken
-  const int8_t max_write_errors_count_ = 2;
-  int8_t current_write_error_count_ = 0;
-
-  const int8_t max_read_errors_count_ = 2;
-  int8_t current_read_error_count_ = 0;
-
-  bool error_ = false;
-  bool read_error_ = false;
-  bool write_error_ = false;
+  PantherSystemErrorHandler error_handler_;
 };
 
 }  // namespace panther_hardware_interfaces

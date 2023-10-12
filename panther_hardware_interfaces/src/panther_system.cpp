@@ -304,101 +304,37 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
     if (finished_updates) {
       // TODO: locking???
-      auto & driver_state = realtime_driver_state_publisher_->msg_;
-
-      auto front = roboteq_controller_->GetFrontData().GetDriverState();
-      auto rear = roboteq_controller_->GetRearData().GetDriverState();
-
-      driver_state.front.voltage = front.GetVoltage();
-      driver_state.front.current = front.GetCurrent();
-      driver_state.front.temperature = front.GetTemperature();
-
-      driver_state.rear.voltage = rear.GetVoltage();
-      driver_state.rear.current = rear.GetCurrent();
-      driver_state.rear.temperature = rear.GetTemperature();
+      UpdateMsgDriversState();
     }
 
-    current_read_error_count_ = 0;
+    error_handler_.UpdateSDOReadErrors(false);
+
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"),
       "Error when trying to read drivers feedback: " << err.what());
-    // TODO
-    // return return_type::ERROR;
-
-    ++current_read_error_count_;
-    if (current_read_error_count_ >= max_read_errors_count_) {
-      error_ = true;
-      read_error_ = true;
-      RCLCPP_ERROR_STREAM(
-        rclcpp::get_logger("PantherSystem"),
-        "Read error count exceeded max value, entering error state");
-      // return return_type::ERROR;
-    }
+    error_handler_.UpdateSDOReadErrors(true);
   }
 
   try {
     roboteq_controller_->UpdateSystemFeedback();
+    UpdateHwStates();
+    UpdateMsgDriversErrorsState();
 
-    auto front = roboteq_controller_->GetFrontData();
-    auto rear = roboteq_controller_->GetRearData();
-
-    auto fl = front.GetLeftMotorState();
-    auto fr = front.GetRightMotorState();
-    auto rl = rear.GetLeftMotorState();
-    auto rr = rear.GetRightMotorState();
-
-    hw_states_positions_[0] = fl.GetPosition();
-    hw_states_positions_[1] = fr.GetPosition();
-    hw_states_positions_[2] = rl.GetPosition();
-    hw_states_positions_[3] = rr.GetPosition();
-
-    hw_states_velocities_[0] = fl.GetVelocity();
-    hw_states_velocities_[1] = fr.GetVelocity();
-    hw_states_velocities_[2] = rl.GetVelocity();
-    hw_states_velocities_[3] = rr.GetVelocity();
-
-    hw_states_efforts_[0] = fl.GetTorque();
-    hw_states_efforts_[1] = fr.GetTorque();
-    hw_states_efforts_[2] = rl.GetTorque();
-    hw_states_efforts_[3] = rr.GetTorque();
-
-    auto & driver_state = realtime_driver_state_publisher_->msg_;
-
-    driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
-    driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
-    driver_state.front.left_motor.runtime_error = front.GetLeftRuntimeError().GetMessage();
-    driver_state.front.right_motor.runtime_error = front.GetRightRuntimeError().GetMessage();
-
-    driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
-    driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
-    driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
-    driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
-
-    // TODO old data to message
-
-    if (front.IsError() || rear.IsError()) {
-      error_ = true;
-      read_error_ = true;
+    if (
+      roboteq_controller_->GetFrontData().IsError() ||
+      roboteq_controller_->GetRearData().IsError()) {
+      error_handler_.UpdateReadPDOErrors(true);
     }
 
   } catch (std::runtime_error & err) {
-    error_ = true;
-    read_error_ = true;
+    error_handler_.UpdateReadPDOErrors(true);
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
-
-    // TODO
-    // return return_type::ERROR;
   }
 
-  realtime_driver_state_publisher_->msg_.error = error_;
-  realtime_driver_state_publisher_->msg_.write_error = write_error_;
-  realtime_driver_state_publisher_->msg_.read_error = read_error_;
-
-  if (realtime_driver_state_publisher_->trylock()) {
-    realtime_driver_state_publisher_->unlockAndPublish();
-  }
+  UpdateMsgErrors();
+  PublishDriverState();
 
   return return_type::OK;
 }
@@ -408,7 +344,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // "soft" error - still there is a comunication over CAN with drivers, so publishing feedback is continued -
   // hardware interface's onError isn't triggered
   // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
-  if (error_) {
+  if (error_handler_.IsError()) {
     return return_type::OK;
   }
 
@@ -416,24 +352,90 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     roboteq_controller_->WriteSpeed(
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
       hw_commands_velocities_[3]);
-    current_write_error_count_ = 0;
-
+    error_handler_.UpdateWriteErrors(false);
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
-
-    ++current_write_error_count_;
-    if (current_write_error_count_ >= max_write_errors_count_) {
-      error_ = true;
-      write_error_ = true;
-      RCLCPP_ERROR_STREAM(
-        rclcpp::get_logger("PantherSystem"),
-        "Error count exceeded max value, entering error state");
-      // return return_type::ERROR;
-    }
+    error_handler_.UpdateWriteErrors(true);
   }
 
   return return_type::OK;
+}
+
+void PantherSystem::UpdateHwStates()
+{
+  auto front = roboteq_controller_->GetFrontData();
+  auto rear = roboteq_controller_->GetRearData();
+
+  auto fl = front.GetLeftMotorState();
+  auto fr = front.GetRightMotorState();
+  auto rl = rear.GetLeftMotorState();
+  auto rr = rear.GetRightMotorState();
+
+  hw_states_positions_[0] = fl.GetPosition();
+  hw_states_positions_[1] = fr.GetPosition();
+  hw_states_positions_[2] = rl.GetPosition();
+  hw_states_positions_[3] = rr.GetPosition();
+
+  hw_states_velocities_[0] = fl.GetVelocity();
+  hw_states_velocities_[1] = fr.GetVelocity();
+  hw_states_velocities_[2] = rl.GetVelocity();
+  hw_states_velocities_[3] = rr.GetVelocity();
+
+  hw_states_efforts_[0] = fl.GetTorque();
+  hw_states_efforts_[1] = fr.GetTorque();
+  hw_states_efforts_[2] = rl.GetTorque();
+  hw_states_efforts_[3] = rr.GetTorque();
+}
+
+void PantherSystem::UpdateMsgDriversErrorsState()
+{
+  auto & driver_state = realtime_driver_state_publisher_->msg_;
+
+  auto front = roboteq_controller_->GetFrontData();
+  auto rear = roboteq_controller_->GetRearData();
+
+  driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
+  driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
+  driver_state.front.left_motor.runtime_error = front.GetLeftRuntimeError().GetMessage();
+  driver_state.front.right_motor.runtime_error = front.GetRightRuntimeError().GetMessage();
+
+  driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
+  driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
+  driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
+  driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
+
+  // TODO old data to message
+}
+
+void PantherSystem::UpdateMsgDriversState()
+{
+  auto & driver_state = realtime_driver_state_publisher_->msg_;
+
+  auto front = roboteq_controller_->GetFrontData().GetDriverState();
+  auto rear = roboteq_controller_->GetRearData().GetDriverState();
+
+  driver_state.front.voltage = front.GetVoltage();
+  driver_state.front.current = front.GetCurrent();
+  driver_state.front.temperature = front.GetTemperature();
+
+  driver_state.rear.voltage = rear.GetVoltage();
+  driver_state.rear.current = rear.GetCurrent();
+  driver_state.rear.temperature = rear.GetTemperature();
+}
+
+void PantherSystem::UpdateMsgErrors()
+{
+  realtime_driver_state_publisher_->msg_.error = error_handler_.IsError();
+  realtime_driver_state_publisher_->msg_.write_error = error_handler_.IsWriteError();
+  realtime_driver_state_publisher_->msg_.read_error = error_handler_.IsReadError();
+}
+
+void PantherSystem::PublishDriverState()
+{
+  if (realtime_driver_state_publisher_->trylock()) {
+    realtime_driver_state_publisher_->unlockAndPublish();
+  }
 }
 
 }  // namespace panther_hardware_interfaces
