@@ -55,15 +55,36 @@ The NavSat system is utilized to publish the Panther robot's position within the
 
 The NavSat sensors requires the spherical coordinates of the world origin to be configured. This configuration can be accomplished, for instance, by employing the `<spherical_coordinates>` tag within the world's SDF or by utilizing the Ignition `/world/world_name/set_spherical_coordinates` service.
 
-To obtain GPS data in Ignition, all you need to do is include the [external_antenna](../panther_description/urdf/components/external_antenna.urdf.xacro) macro to your robot model and add the following tag to your world's SDF file and point this file with `world` param:
+To obtain GPS data in Ignition, follow these steps:
+- Include the [external_antenna](../panther_description/urdf/components/external_antenna.urdf.xacro) macro in your robot model by adding the following lines to your [panther.urdf.xacro](../panther_description/urdf/panther.urdf.xacro)  file within the `<robot>` tag:
 
 ```xml
+<xacro:include filename="$(find panther_description)/urdf/components/external_antenna.urdf.xacro" ns="antenna" />
+<xacro:antenna.external_antenna
+  parent_link="cover_link" 
+  xyz="0.185 -0.12 0.0"
+  rpy="0.0 0.0 ${pi}" />
+``` 
+
+- Add the following tag to your world's SDF file and specify this file using the `world` parameter (the default `husarion_world.sdf` file already includes this tag):
+```xml
 <spherical_coordinates>
-    <surface_model>EARTH_WGS84</surface_model>
-    <world_frame_orientation>ENU</world_frame_orientation>
-    <latitude_deg>53.1978</latitude_deg>
-    <longitude_deg>18.3732</longitude_deg>
-    <elevation>0</elevation>
-    <heading_deg>0</heading_deg>
+  <surface_model>EARTH_WGS84</surface_model>
+  <world_frame_orientation>ENU</world_frame_orientation>
+  <latitude_deg>53.1978</latitude_deg>
+  <longitude_deg>18.3732</longitude_deg>
+  <elevation>0</elevation>
+  <heading_deg>0</heading_deg>
 </spherical_coordinates>
 ```
+
+- Configure the `parameter_bridge` by adding these lines to the [gz_bridge.yaml](./config/gz_bridge.yaml) file:
+
+```yaml
+- ros_topic_name: "navsat/fix"
+  gz_topic_name: "/world/husarion_world/model/panther/link/base_link/sensor/navsat/navsat"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
+  gz_type_name: "ignition.msgs.NavSat"
+  direction: GZ_TO_ROS
+```
+
