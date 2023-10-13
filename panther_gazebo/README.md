@@ -35,7 +35,7 @@ It is possible to simulate the battery operation of the Panther robot. By defaul
 
 > **Note**
 >
-> The `percentage` field has a range of 0.0-100.0. This differs from the real functioning of Panthera, where, in accordance with the BatteryState message definition, the value is within the range of 0.0-1.0.
+> The `percentage` field has a range of 0.0-100.0. This differs from the real functioning of Panther, where, in accordance with the BatteryState message definition, the value is within the range of 0.0-1.0.
 
 #### Charging Process
 
