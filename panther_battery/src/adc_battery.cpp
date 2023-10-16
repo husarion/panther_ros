@@ -22,10 +22,10 @@ ADCBattery::ADCBattery(
 {
   voltage_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
     params.voltage_window_len, std::numeric_limits<float>::quiet_NaN());
-  temp_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
-    params.temp_window_len, std::numeric_limits<float>::quiet_NaN());
   current_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
     params.current_window_len, std::numeric_limits<float>::quiet_NaN());
+  temp_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.temp_window_len, std::numeric_limits<float>::quiet_NaN());
   charge_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
     params.charge_window_len, std::numeric_limits<float>::quiet_NaN());
 }
@@ -61,8 +61,8 @@ void ADCBattery::Update(const rclcpp::Time & header_stamp, const bool charger_co
 void ADCBattery::Reset(const rclcpp::Time & header_stamp)
 {
   voltage_ma_->Reset();
-  temp_ma_->Reset();
   current_ma_->Reset();
+  temp_ma_->Reset();
   charge_ma_->Reset();
 
   ResetBatteryMsgs(header_stamp);

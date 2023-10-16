@@ -24,8 +24,8 @@ ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & opti
   this->declare_parameter<std::string>("adc0_device", "/home/ros/ros2_ws/src/device0");
   this->declare_parameter<std::string>("adc1_device", "/home/ros/ros2_ws/src/device1");
   this->declare_parameter<int>("ma_window_len/voltage", 10);
-  this->declare_parameter<int>("ma_window_len/temp", 10);
   this->declare_parameter<int>("ma_window_len/current", 10);
+  this->declare_parameter<int>("ma_window_len/temp", 10);
   this->declare_parameter<int>("ma_window_len/charge", 10);
 
   // running at 10 Hz
@@ -45,8 +45,8 @@ void ADCNode::Initialize()
 
   const ADCBatteryParams battery_params = {
     static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
-    static_cast<std::size_t>(this->get_parameter("ma_window_len/temp").as_int()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/current").as_int()),
+    static_cast<std::size_t>(this->get_parameter("ma_window_len/temp").as_int()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/charge").as_int()),
   };
 

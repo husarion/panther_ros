@@ -75,8 +75,8 @@ private:
   const std::function<float()> ReadCharge;
 
   std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<float>> current_ma_;
+  std::unique_ptr<panther_utils::MovingAverage<float>> temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<float>> charge_ma_;
 };
 
