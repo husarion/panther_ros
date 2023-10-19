@@ -34,14 +34,14 @@ bool ADCBattery::Present()
 {
   float V_temp_sum = 0.0f;
 
-  for (int i = 0; i < bat_present_mean_len_; i++) {
-    V_temp_sum += ADCToBatteryVoltageTemp(ReadTemp());
+  for (int i = 0; i < kBatPresentMeanLen; i++) {
+    V_temp_sum += ReadTemp();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
-  const float V_temp_bat = V_temp_sum / static_cast<float>(bat_present_mean_len_);
+  const float V_temp_bat = V_temp_sum / static_cast<float>(kBatPresentMeanLen);
 
-  return V_temp_bat < bat_detect_thresh_;
+  return V_temp_bat < kBatDetectTresh + std::numeric_limits<float>::epsilon();
 }
 
 void ADCBattery::Update(const rclcpp::Time & header_stamp, const bool charger_connected)
@@ -71,34 +71,29 @@ void ADCBattery::Reset(const rclcpp::Time & header_stamp)
 
 inline float ADCBattery::ADCToBatteryVoltage(const float adc_data) const
 {
-  return adc_data * bat_voltage_factor_;
+  return adc_data * kBatVoltageFactor;
 }
 
 inline float ADCBattery::ADCToBatteryCurrent(const float adc_data) const
 {
-  return adc_data * bat_current_factor_;
+  return adc_data * kBatCurrentFactor;
 }
 
 inline float ADCBattery::ADCToBatteryCharge(const float adc_data) const
 {
-  return adc_data * bat_charge_factor_;
-}
-
-inline float ADCBattery::ADCToBatteryVoltageTemp(const float adc_data) const
-{
-  return adc_data * bat_temp_factor_;
+  return adc_data * kBatChargeFactor;
 }
 
 float ADCBattery::ADCToBatteryTemp(const float adc_data) const
 {
-  const float V_temp = ADCToBatteryVoltageTemp(adc_data);
-  if (fabs(V_temp) < std::numeric_limits<float>::epsilon() || V_temp >= u_supply_) {
+  if (fabs(adc_data) < std::numeric_limits<float>::epsilon() || adc_data >= kUSupply) {
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  const float R_therm = (V_temp * R1_) / (u_supply_ - V_temp);
-  return (temp_coeff_A_ * temp_coeff_B_ / (temp_coeff_A_ * logf(R_therm / R0_) + temp_coeff_B_)) -
-         kelvin_to_celcius_offset_;
+  const float R_therm = (adc_data * kR1) / (kUSupply - adc_data);
+  return (kTempCoeffA * kTempCoeffB / (kTempCoeffA * logf(R_therm / kR0) + kTempCoeffB)) -
+         kKelvinToCelciusOffset;
+  return adc_data * kBatTempFactor;
 }
 
 void ADCBattery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp, const bool charger_connected)
@@ -120,15 +115,15 @@ void ADCBattery::UpdateBatteryState(const rclcpp::Time & header_stamp, const boo
   battery_state_.current = -I_bat + I_charge;
   battery_state_.percentage = GetBatteryPercent(V_bat);
   battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
-  battery_state_.design_capacity = designed_capacity_;
+  battery_state_.design_capacity = kDesignedCapacity;
   battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
   battery_state_.cell_voltage =
-    std::vector<float>(number_of_cells_, std::numeric_limits<float>::quiet_NaN());
+    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
   battery_state_.cell_temperature =
-    std::vector<float>(number_of_cells_, std::numeric_limits<float>::quiet_NaN());
+    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_state_.present = true;
-  battery_state_.location = location_;
+  battery_state_.location = kLocation;
   battery_state_.power_supply_status = GetBatteryStatus(I_charge, charger_connected);
   battery_state_.power_supply_health = GetBatteryHealth(V_bat, temp_bat);
 }
@@ -148,7 +143,7 @@ uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_conn
   if (charger_connected) {
     if (fabs(battery_state_.percentage - 1.0f) < std::numeric_limits<float>::epsilon()) {
       return BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
-    } else if (charge > charging_current_thresh_) {
+    } else if (charge > kChargingCurrentTresh) {
       return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
     } else {
       return BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
@@ -160,16 +155,16 @@ uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_conn
 
 uint8_t ADCBattery::GetBatteryHealth(const float voltage, const float temp)
 {
-  if (voltage < V_bat_fatal_min_) {
+  if (voltage < kVBatFatalMin) {
     SetErrorMsg("Battery voltage is critically low!");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-  } else if (temp >= overheat_bat_temp_) {
+  } else if (temp >= kOverheatBatTemp) {
     SetErrorMsg("Battery is overheating!");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-  } else if (voltage > V_bat_fatal_max_) {
+  } else if (voltage > kVBatFatalMax) {
     SetErrorMsg("Battery overvoltage!");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-  } else if (temp < low_bat_temp_) {
+  } else if (temp < kLowBatTemp) {
     SetErrorMsg("The battery is too cold! It may result in reduced effectiveness.");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
   } else {

@@ -21,8 +21,8 @@ using std::placeholders::_1;
 ADCNode::ADCNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
-  this->declare_parameter<std::string>("adc0_device", "/home/ros/ros2_ws/src/device0");
-  this->declare_parameter<std::string>("adc1_device", "/home/ros/ros2_ws/src/device1");
+  this->declare_parameter<std::string>("adc0_device", "/sys/bus/iio/devices/iio:device0");
+  this->declare_parameter<std::string>("adc1_device", "/sys/bus/iio/devices/iio:device1");
   this->declare_parameter<int>("ma_window_len/voltage", 10);
   this->declare_parameter<int>("ma_window_len/current", 10);
   this->declare_parameter<int>("ma_window_len/temp", 10);
@@ -52,7 +52,7 @@ void ADCNode::Initialize()
 
   battery_2_ = std::make_shared<ADCBattery>(
     std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 3, 0),
-    std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 1, adc_current_offset_),
+    std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 1, kADCCurrentOffest),
     std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 0, 0),
     std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 2, 0), battery_params);
 
@@ -60,7 +60,7 @@ void ADCNode::Initialize()
     RCLCPP_INFO(this->get_logger(), "Second battery detected");
     battery_1_ = std::make_shared<ADCBattery>(
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 0, 0),
-      std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 2, adc_current_offset_),
+      std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 2, kADCCurrentOffest),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
     battery_publisher_ =
@@ -70,8 +70,8 @@ void ADCNode::Initialize()
     battery_1_ = std::make_shared<ADCBattery>(
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 0, 0),
       [&]() {
-        return adc1_reader_->GetADCMeasurement(2, adc_current_offset_) +
-               adc1_reader_->GetADCMeasurement(1, adc_current_offset_);
+        return adc1_reader_->GetADCMeasurement(2, kADCCurrentOffest) +
+               adc1_reader_->GetADCMeasurement(1, kADCCurrentOffest);
       },
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);

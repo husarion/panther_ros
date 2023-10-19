@@ -26,8 +26,8 @@ public:
 
   // mock up methods to make wrapper a valid subclass
   bool Present() { return true; }
-  void Update(const rclcpp::Time & header_stamp, bool charger_connected) {}
-  void Reset(const rclcpp::Time & header_stamp) {}
+  void Update(const rclcpp::Time &, bool) {}
+  void Reset(const rclcpp::Time &) {}
 };
 
 class TestBattery : public testing::Test

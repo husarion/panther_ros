@@ -25,7 +25,7 @@ private:
   void BatteryPubTimerCB();
   void Initialize();
 
-  static constexpr int adc_current_offset_ = 625;
+  static constexpr int kADCCurrentOffest = 625;
 
   std::shared_ptr<ADCDataReader> adc0_reader_;
   std::shared_ptr<ADCDataReader> adc1_reader_;
