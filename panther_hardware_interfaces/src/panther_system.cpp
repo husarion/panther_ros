@@ -156,8 +156,9 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
-  roboteq_controller_ =
-    std::make_unique<PantherWheelsController>(can_settings_, drivetrain_settings_);
+  // TODO: move to parameter
+  roboteq_controller_ = std::make_unique<PantherWheelsController>(
+    can_settings_, drivetrain_settings_, std::chrono::milliseconds(15));
 
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();

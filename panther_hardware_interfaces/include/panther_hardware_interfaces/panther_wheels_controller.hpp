@@ -29,7 +29,9 @@ struct CanSettings
 class PantherWheelsController
 {
 public:
-  PantherWheelsController(CanSettings can_settings, DrivetrainSettings drivetrain_settings);
+  PantherWheelsController(
+    CanSettings can_settings, DrivetrainSettings drivetrain_settings,
+    std::chrono::milliseconds motors_feedback_timeout);
 
   /**
    * @brief Activate procedure for roboteq drivers - reset scripts and send 0 command on both channels
@@ -118,14 +120,12 @@ private:
 
   CanSettings can_settings_;
 
-  // TODO: currently drivers set to 10Hz, change it after setting 100Hz
-  // TODO: maybe make it configurable
-  std::chrono::milliseconds motors_feedback_timeout_ = std::chrono::milliseconds(15);
-
   RoboteqData front_data_;
   RoboteqData rear_data_;
 
   RoboteqCommandConverter roboteq_command_converter_;
+
+  const std::chrono::milliseconds motors_feedback_timeout_;
 
   uint8_t current_update_ = 0;
 };

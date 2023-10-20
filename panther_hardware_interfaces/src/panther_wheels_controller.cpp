@@ -15,10 +15,12 @@ namespace panther_hardware_interfaces
 int const kSchedPriority = 55;
 
 PantherWheelsController::PantherWheelsController(
-  CanSettings can_settings, DrivetrainSettings drivetrain_settings)
+  CanSettings can_settings, DrivetrainSettings drivetrain_settings,
+  std::chrono::milliseconds motors_feedback_timeout)
 : front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
-  roboteq_command_converter_(drivetrain_settings)
+  roboteq_command_converter_(drivetrain_settings),
+  motors_feedback_timeout_(motors_feedback_timeout)
 {
   can_settings_ = can_settings;
 }
