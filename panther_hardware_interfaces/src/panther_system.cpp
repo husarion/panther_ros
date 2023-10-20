@@ -173,11 +173,23 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     }
   });
 
-  try {
-    roboteq_controller_->Initialize();
-  } catch (std::runtime_error & err) {
-    RCLCPP_FATAL_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Initialization failed: " << err.what());
+  unsigned initialization_attempts_counter;
+  for (initialization_attempts_counter = 0;
+       initialization_attempts_counter < max_roboteq_initialization_attempts_;
+       ++initialization_attempts_counter) {
+    try {
+      roboteq_controller_->Initialize();
+    } catch (std::runtime_error & err) {
+      RCLCPP_WARN_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "Initialization failed: " << err.what() << ". Attempt "
+                                  << initialization_attempts_counter + 1 << " of "
+                                  << max_roboteq_initialization_attempts_);
+    }
+  }
+
+  if (initialization_attempts_counter >= max_roboteq_initialization_attempts_) {
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Initialization failed");
     return CallbackReturn::FAILURE;
   }
 
@@ -213,10 +225,22 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   // gpio_controller_->start();
 
-  try {
-    roboteq_controller_->Activate();
-  } catch (std::runtime_error & err) {
-    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed " << err.what());
+  unsigned activation_attempts_counter;
+  for (activation_attempts_counter = 0;
+       activation_attempts_counter < max_roboteq_activation_attempts_;
+       ++activation_attempts_counter) {
+    try {
+      roboteq_controller_->Activate();
+    } catch (std::runtime_error & err) {
+      RCLCPP_WARN_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "Activation failed: " << err.what() << ". Attempt " << activation_attempts_counter + 1
+                              << " of " << max_roboteq_activation_attempts_);
+    }
+  }
+
+  if (activation_attempts_counter >= max_roboteq_activation_attempts_) {
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed");
     return CallbackReturn::FAILURE;
   }
 
