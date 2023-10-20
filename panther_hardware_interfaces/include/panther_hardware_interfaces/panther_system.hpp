@@ -85,6 +85,7 @@ protected:
   std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
   std::unique_ptr<std::thread> executor_thread_;
 
+  // TODO nullptr
   std::shared_ptr<rclcpp::Publisher<panther_msgs::msg::DriverState>> driver_state_publisher_ =
     nullptr;
   std::shared_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
@@ -93,8 +94,8 @@ protected:
   DrivetrainSettings drivetrain_settings_;
   CanSettings can_settings_;
 
-  void reset_publishers();
-  void destroy_node();
+  void ResetPublishers();
+  void DestroyNode();
   std::atomic_bool stop_executor_ = false;
 
   PantherSystemErrorHandler error_handler_;

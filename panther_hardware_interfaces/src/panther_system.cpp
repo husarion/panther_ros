@@ -129,13 +129,13 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   return CallbackReturn::SUCCESS;
 }
 
-void PantherSystem::reset_publishers()
+void PantherSystem::ResetPublishers()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
 }
 
-void PantherSystem::destroy_node()
+void PantherSystem::DestroyNode()
 {
   roboteq_controller_->Deinitialize();
 
@@ -172,7 +172,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   try {
     roboteq_controller_->Initialize();
   } catch (std::runtime_error & err) {
-    RCLCPP_FATAL(rclcpp::get_logger("PantherSystem"), "Initialization failed");
+    RCLCPP_FATAL_STREAM(
+      rclcpp::get_logger("PantherSystem"), "Initialization failed: " << err.what());
     return CallbackReturn::FAILURE;
   }
 
@@ -183,7 +184,7 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Cleaning up");
 
-  destroy_node();
+  DestroyNode();
   return CallbackReturn::SUCCESS;
 }
 
@@ -231,7 +232,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 
   // TODO maybe send 0 command first
   // roboteq_controller_->Deactivate();
-  reset_publishers();
+  ResetPublishers();
   return CallbackReturn::SUCCESS;
 }
 
@@ -240,8 +241,8 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
   // TODO
   // roboteq_controller_->Deinitialize();
-  reset_publishers();
-  destroy_node();
+  ResetPublishers();
+  DestroyNode();
   return CallbackReturn::SUCCESS;
 }
 
@@ -261,8 +262,8 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   // TODO
   // roboteq_controller_->Deinitialize();
 
-  reset_publishers();
-  destroy_node();
+  ResetPublishers();
+  DestroyNode();
   return CallbackReturn::SUCCESS;
 }
 
@@ -324,6 +325,8 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     if (
       roboteq_controller_->GetFrontData().IsError() ||
       roboteq_controller_->GetRearData().IsError()) {
+      // TODO: throttle
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "Error state on one of the drivers");
       error_handler_.UpdateReadPDOErrors(true);
     }
 
@@ -345,6 +348,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // hardware interface's onError isn't triggered
   // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
   if (error_handler_.IsError()) {
+    // TODO: set 0
     return return_type::OK;
   }
 
@@ -428,7 +432,9 @@ void PantherSystem::UpdateMsgErrors()
 {
   realtime_driver_state_publisher_->msg_.error = error_handler_.IsError();
   realtime_driver_state_publisher_->msg_.write_error = error_handler_.IsWriteError();
-  realtime_driver_state_publisher_->msg_.read_error = error_handler_.IsReadError();
+  // TODO
+  realtime_driver_state_publisher_->msg_.read_error_sdo = error_handler_.IsSDOReadError();
+  realtime_driver_state_publisher_->msg_.read_error_pdo = error_handler_.IsPDOReadError();
 }
 
 void PantherSystem::PublishDriverState()
