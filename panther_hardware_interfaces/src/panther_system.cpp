@@ -247,7 +247,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
   realtime_driver_state_publisher_ =
-    std::make_shared<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
+    std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
       driver_state_publisher_);
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");

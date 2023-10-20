@@ -104,14 +104,14 @@ private:
 
   std::thread can_communication_thread_;
 
-  std::unique_ptr<lely::io::Context> ctx_;
+  std::shared_ptr<lely::io::Context> ctx_;
   std::shared_ptr<lely::ev::Loop> loop_;
-  std::unique_ptr<lely::io::Poll> poll_;
-  std::unique_ptr<lely::ev::Executor> exec_;
-  std::unique_ptr<lely::io::Timer> timer_;
-  std::unique_ptr<lely::io::CanController> ctrl_;
-  std::unique_ptr<lely::io::CanChannel> chan_;
-  std::unique_ptr<lely::canopen::AsyncMaster> master_;
+  std::shared_ptr<lely::io::Poll> poll_;
+  std::shared_ptr<lely::ev::Executor> exec_;
+  std::shared_ptr<lely::io::Timer> timer_;
+  std::shared_ptr<lely::io::CanController> ctrl_;
+  std::shared_ptr<lely::io::CanChannel> chan_;
+  std::shared_ptr<lely::canopen::AsyncMaster> master_;
 
   std::unique_ptr<RoboteqDriver> front_driver_;
   std::unique_ptr<RoboteqDriver> rear_driver_;

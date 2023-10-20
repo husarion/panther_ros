@@ -81,11 +81,9 @@ protected:
   std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
   std::unique_ptr<std::thread> executor_thread_;
 
-  // TODO nullptr
-  std::shared_ptr<rclcpp::Publisher<panther_msgs::msg::DriverState>> driver_state_publisher_ =
-    nullptr;
-  std::shared_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
-    realtime_driver_state_publisher_ = nullptr;
+  std::shared_ptr<rclcpp::Publisher<panther_msgs::msg::DriverState>> driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
+    realtime_driver_state_publisher_;
 
   DrivetrainSettings drivetrain_settings_;
   CanSettings can_settings_;

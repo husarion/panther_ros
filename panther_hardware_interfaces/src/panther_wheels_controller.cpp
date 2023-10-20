@@ -42,15 +42,15 @@ void PantherWheelsController::Initialize()
     try {
       lely::io::IoGuard io_guard;
 
-      ctx_ = std::make_unique<lely::io::Context>();
-      poll_ = std::make_unique<lely::io::Poll>(*ctx_);
+      ctx_ = std::make_shared<lely::io::Context>();
+      poll_ = std::make_shared<lely::io::Poll>(*ctx_);
       loop_ = std::make_shared<lely::ev::Loop>(poll_->get_poll());
-      exec_ = std::make_unique<lely::ev::Executor>(loop_->get_executor());
+      exec_ = std::make_shared<lely::ev::Executor>(loop_->get_executor());
 
-      timer_ = std::make_unique<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
+      timer_ = std::make_shared<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
 
-      ctrl_ = std::make_unique<lely::io::CanController>("panther_can");
-      chan_ = std::make_unique<lely::io::CanChannel>(*poll_, *exec_);
+      ctrl_ = std::make_shared<lely::io::CanController>("panther_can");
+      chan_ = std::make_shared<lely::io::CanChannel>(*poll_, *exec_);
 
       chan_->open(*ctrl_);
 
@@ -62,8 +62,7 @@ void PantherWheelsController::Initialize()
           ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
         "config" / "master.dcf";
 
-      // TODO timer chan unique??
-      master_ = std::make_unique<lely::canopen::AsyncMaster>(
+      master_ = std::make_shared<lely::canopen::AsyncMaster>(
         *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
       front_driver_ =
