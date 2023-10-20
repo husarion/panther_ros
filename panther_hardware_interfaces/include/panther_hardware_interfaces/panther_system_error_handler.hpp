@@ -10,8 +10,8 @@ public:
 
   bool IsError() { return error_; };
   bool IsWriteError() { return write_error_; };
-  // TODO: separate???
-  bool IsReadError() { return read_sdo_error_ || read_pdo_error_; };
+  bool IsSDOReadError() { return read_sdo_error_; };
+  bool IsPDOReadError() { return read_pdo_error_; };
 
   void UpdateSDOReadErrors(bool current_error)
   {
@@ -61,9 +61,13 @@ public:
     read_sdo_error_ = false;
     read_pdo_error_ = false;
     write_error_ = false;
+
+    // todo current_write_error_count_
   };
 
 private:
+  // TODO: parameter
+
   // Sometimes there's a single SDO write error, which is better to filter out
   // If more consecutive errors happen, action should be taken
   const int8_t max_write_errors_count_ = 2;
