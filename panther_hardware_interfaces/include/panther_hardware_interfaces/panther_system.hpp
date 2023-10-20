@@ -98,7 +98,7 @@ protected:
   void DestroyNode();
   std::atomic_bool stop_executor_ = false;
 
-  PantherSystemErrorHandler error_handler_;
+  std::unique_ptr<PantherSystemErrorHandler> error_handler_;
 };
 
 }  // namespace panther_hardware_interfaces

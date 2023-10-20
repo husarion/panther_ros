@@ -126,6 +126,9 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     return CallbackReturn::ERROR;
   }
 
+  // TODO: maybe move to parameter
+  error_handler_ = std::make_unique<PantherSystemErrorHandler>(2, 2, 1);
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -162,6 +165,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
+  // TODO add service for clearing errors
 
   executor_thread_ = std::make_unique<std::thread>([this]() {
     while (!stop_executor_) {
@@ -308,13 +312,13 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       UpdateMsgDriversState();
     }
 
-    error_handler_.UpdateSDOReadErrors(false);
+    error_handler_->UpdateReadSDOErrors(false);
 
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"),
       "Error when trying to read drivers feedback: " << err.what());
-    error_handler_.UpdateSDOReadErrors(true);
+    error_handler_->UpdateReadSDOErrors(true);
   }
 
   try {
@@ -327,11 +331,11 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       roboteq_controller_->GetRearData().IsError()) {
       // TODO: throttle
       RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "Error state on one of the drivers");
-      error_handler_.UpdateReadPDOErrors(true);
+      error_handler_->UpdateReadPDOErrors(true);
     }
 
   } catch (std::runtime_error & err) {
-    error_handler_.UpdateReadPDOErrors(true);
+    error_handler_->UpdateReadPDOErrors(true);
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
   }
@@ -347,8 +351,9 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // "soft" error - still there is a comunication over CAN with drivers, so publishing feedback is continued -
   // hardware interface's onError isn't triggered
   // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
-  if (error_handler_.IsError()) {
+  if (error_handler_->IsError()) {
     // TODO: set 0
+    // TODO: add error stream
     return return_type::OK;
   }
 
@@ -356,11 +361,11 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     roboteq_controller_->WriteSpeed(
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
       hw_commands_velocities_[3]);
-    error_handler_.UpdateWriteErrors(false);
+    error_handler_->UpdateWriteSDOErrors(false);
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
-    error_handler_.UpdateWriteErrors(true);
+    error_handler_->UpdateWriteSDOErrors(true);
   }
 
   return return_type::OK;
@@ -430,11 +435,11 @@ void PantherSystem::UpdateMsgDriversState()
 
 void PantherSystem::UpdateMsgErrors()
 {
-  realtime_driver_state_publisher_->msg_.error = error_handler_.IsError();
-  realtime_driver_state_publisher_->msg_.write_error = error_handler_.IsWriteError();
-  // TODO
-  realtime_driver_state_publisher_->msg_.read_error_sdo = error_handler_.IsSDOReadError();
-  realtime_driver_state_publisher_->msg_.read_error_pdo = error_handler_.IsPDOReadError();
+  realtime_driver_state_publisher_->msg_.error = error_handler_->IsError();
+  // TODO rename
+  realtime_driver_state_publisher_->msg_.write_error = error_handler_->IsWriteSDOError();
+  realtime_driver_state_publisher_->msg_.read_error_sdo = error_handler_->IsReadSDOError();
+  realtime_driver_state_publisher_->msg_.read_error_pdo = error_handler_->IsReadPDOError();
 }
 
 void PantherSystem::PublishDriverState()

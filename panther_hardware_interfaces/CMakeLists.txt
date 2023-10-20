@@ -79,17 +79,23 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(${PROJECT_NAME}_test test/test_panther_system.cpp test/src/mock_roboteq.cpp)
-  target_include_directories(${PROJECT_NAME}_test PUBLIC
+  ament_add_gtest(${PROJECT_NAME}_panther_system_test test/test_panther_system.cpp test/src/mock_roboteq.cpp)
+  target_include_directories(${PROJECT_NAME}_panther_system_test PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
   )
-  ament_target_dependencies(${PROJECT_NAME}_test
+  ament_target_dependencies(${PROJECT_NAME}_panther_system_test
     hardware_interface
     rclcpp
     panther_msgs
   )
-  target_link_libraries(${PROJECT_NAME}_test PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_panther_system_test PkgConfig::LIBLELY_COAPP)
 
+  ament_add_gtest(${PROJECT_NAME}_panther_system_error_handler_test test/test_panther_system_error_handler.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_panther_system_error_handler_test
+    PRIVATE
+    include
+  )
 
   # add_executable(mock_roboteq test/src/mock_roboteq.cpp)
   # target_include_directories(mock_roboteq PUBLIC
