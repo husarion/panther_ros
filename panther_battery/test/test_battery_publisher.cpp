@@ -7,7 +7,7 @@
 
 #include <sensor_msgs/msg/battery_state.hpp>
 
-#include <panther_msgs/msg/io_state.h>
+#include <panther_msgs/msg/io_state.hpp>
 
 #include <panther_battery/battery_publisher.hpp>
 
@@ -17,7 +17,7 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class BatteryPublisherWrapper : public panther_battery::BatteryPublisher
 {
 public:
-  BatteryPublisherWrapper(rclcpp::Node::SharedPtr node)
+  BatteryPublisherWrapper(const rclcpp::Node::SharedPtr & node)
   : panther_battery::BatteryPublisher(node)
   {
   }
@@ -45,6 +45,7 @@ public:
   ~TestBatteryPublisher() {}
 
 protected:
+  static constexpr float battery_timeout_ = 1.0;
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_pub_;
   std::shared_ptr<BatteryPublisherWrapper> battery_publisher_;
@@ -52,6 +53,12 @@ protected:
 
 TestBatteryPublisher::TestBatteryPublisher()
 {
+  std::vector<rclcpp::Parameter> params;
+  params.push_back(rclcpp::Parameter("battery_timeout", battery_timeout_));
+
+  rclcpp::NodeOptions options;
+  options.parameter_overrides();
+
   node_ = std::make_shared<rclcpp::Node>("node");
   io_state_pub_ = node_->create_publisher<IOStateMsg>("/hardware/io_state", 10);
   battery_publisher_ = std::make_shared<BatteryPublisherWrapper>(node_);
@@ -63,7 +70,7 @@ TEST_F(TestBatteryPublisher, TimeoutReached)
   battery_publisher_->Publish();
   EXPECT_FALSE(battery_publisher_->TimeoutReached());
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(battery_timeout_ * 1000)));
   EXPECT_TRUE(battery_publisher_->TimeoutReached());
 }
 

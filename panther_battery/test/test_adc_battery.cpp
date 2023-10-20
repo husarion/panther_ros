@@ -7,6 +7,7 @@
 #include <sensor_msgs/msg/battery_state.hpp>
 
 #include <panther_battery/adc_battery.hpp>
+#include <panther_utils/test/test_utils.hpp>
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
@@ -20,15 +21,13 @@ protected:
   void UpdateBattery(
     const float & voltage_raw, const float & current_raw, const float & temp_raw,
     const float & charge_raw, const bool & charging);
-  void CheckBatteryStateMsg(
+  void TestDefaultBatteryStateMsg(
     const uint8_t & power_supply_status, const uint8_t & power_supply_health);
 
-  void CheckBatteryStateMsg(
+  void TestBatteryStateMsg(
     const float & expected_voltage, const float & expected_current, const float & expected_temp,
     const float & expected_percentage, const uint8_t & power_supply_status,
     const uint8_t & power_supply_health);
-
-  bool CheckNaNVector(const std::vector<float> & vector);
 
   float battery_voltage_raw_;
   float battery_current_raw_;
@@ -61,7 +60,7 @@ void TestADCBattery::UpdateBattery(
   battery_state_ = battery_->GetBatteryMsg();
 }
 
-void TestADCBattery::CheckBatteryStateMsg(
+void TestADCBattery::TestDefaultBatteryStateMsg(
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
   // const values
@@ -69,8 +68,8 @@ void TestADCBattery::CheckBatteryStateMsg(
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
-  EXPECT_TRUE(CheckNaNVector(battery_state_.cell_voltage));
-  EXPECT_TRUE(CheckNaNVector(battery_state_.cell_temperature));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_.cell_voltage));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_.cell_temperature));
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
@@ -84,7 +83,7 @@ void TestADCBattery::CheckBatteryStateMsg(
   EXPECT_EQ(power_supply_health, battery_state_.power_supply_health);
 }
 
-void TestADCBattery::CheckBatteryStateMsg(
+void TestADCBattery::TestBatteryStateMsg(
   const float & expected_voltage, const float & expected_current, const float & expected_temp,
   const float & expected_percentage, const uint8_t & power_supply_status,
   const uint8_t & power_supply_health)
@@ -93,8 +92,8 @@ void TestADCBattery::CheckBatteryStateMsg(
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
   EXPECT_FLOAT_EQ(expected_temp, battery_state_.temperature);
-  EXPECT_TRUE(CheckNaNVector(battery_state_.cell_voltage));
-  EXPECT_TRUE(CheckNaNVector(battery_state_.cell_temperature));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_.cell_voltage));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_.cell_temperature));
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
@@ -107,12 +106,6 @@ void TestADCBattery::CheckBatteryStateMsg(
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ(power_supply_status, battery_state_.power_supply_status);
   EXPECT_EQ(power_supply_health, battery_state_.power_supply_health);
-}
-
-bool TestADCBattery::CheckNaNVector(const std::vector<float> & vector)
-{
-  return std::all_of(
-    vector.begin(), vector.end(), [](const float value) { return std::isnan(value); });
 }
 
 TEST_F(TestADCBattery, BatteryPresent)
@@ -131,38 +124,47 @@ TEST_F(TestADCBattery, BatteryMsgUnknown)
   battery_->Reset(stamp);
   battery_state_ = battery_->GetBatteryMsg();
 
-  CheckBatteryStateMsg(
+  TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 TEST_F(TestADCBattery, BatteryMsgValues)
 {
+  const auto voltage_factor = 25.04255;
+  const auto current_factor = 20.0;
+  const auto charge_factor = 2.5;
+  const auto V_bat_full = 41.4;
+  const auto V_bat_min = 32.0;
+
   UpdateBattery(1.5, 0.01, 1.5, 0.5, false);
-
-  float expected_voltage = 1.5 * 25.04255;
-  float expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
+  float expected_voltage = 1.5 * voltage_factor;
+  float expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   float expected_temp = 28.875206;
-  float expected_current = -(0.01 * 20.0) + (0.5 * 2.5);
-  CheckBatteryStateMsg(
+  float expected_current = -(0.01 * current_factor) + (0.5 * charge_factor);
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
+  // check if values are smoothed out with moving average.
   UpdateBattery(1.6, 0.02, 1.4, 0.4, false);
-  expected_voltage = (1.5 + 1.6) / 2.0 * 25.04255;
-  expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
+  const float voltage_mean = (1.5 + 1.6) / 2.0;
+  const float current_mean = (0.01 + 0.02) / 2.0;
+  const float charge_mean = (0.5 + 0.4) / 2.0;
+  expected_voltage = voltage_mean * voltage_factor;
+  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   expected_temp = 30.306725;
-  expected_current = -(0.015 * 20.0) + (0.45 * 2.5);
-  CheckBatteryStateMsg(
+  expected_current = -(current_mean * current_factor) + (charge_mean * charge_factor);
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
-  // Check raw battery msg
+  // Raw battery message should depend only on last readings
   battery_state_ = battery_->GetBatteryMsgRaw();
-  expected_voltage = 1.6 * 25.04255;
-  expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
+  expected_voltage = 1.6 * voltage_factor;
+  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   expected_temp = 31.738245;
-  expected_current = -(0.02 * 20.0) + (0.4 * 2.5);
-  CheckBatteryStateMsg(
+  expected_current = -(0.02 * current_factor) + (0.4 * charge_factor);
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -232,14 +234,7 @@ TEST_F(TestADCBattery, GetErrorMsg)
   EXPECT_EQ("", battery_->GetErrorMsg());
 
   // send overvoltage
-  auto stamp = rclcpp::Time(0);
-  battery_voltage_raw_ = 1.72;
-  battery_current_raw_ = 0.01;
-  battery_temp_raw_ = 1.5;
-  battery_charge_raw_ = 0.5;
-
-  battery_->Update(stamp, false);
-  battery_state_ = battery_->GetBatteryMsg();
+  UpdateBattery(1.72, 0.01, 1.5, 0.5, false);
 
   ASSERT_TRUE(battery_->HasErrorMsg());
   EXPECT_NE("", battery_->GetErrorMsg());
@@ -248,8 +243,5 @@ TEST_F(TestADCBattery, GetErrorMsg)
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-
-  auto run_tests = RUN_ALL_TESTS();
-
-  return run_tests;
+  return RUN_ALL_TESTS();
 }

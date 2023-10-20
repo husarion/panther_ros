@@ -102,21 +102,19 @@ uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
   if (battery_msg_1.power_supply_status == battery_msg_2.power_supply_status) {
     return battery_msg_1.power_supply_status;
   } else if (
-    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN ||
-    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN) {
-    return BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
-  } else if (
-    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING ||
-    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING) {
-    throw std::runtime_error(
-      "Detected critical mismatch between battery 1 and battery 2 messages. Battery 1 indicates "
-      "discharging, while battery 2 indicates charging state.");
-  } else if (
     battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING ||
     battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING) {
     return BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
-  } else {
+  } else if (
+    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING ||
+    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING) {
     return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
+  } else if (
+    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_FULL ||
+    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_FULL) {
+    return BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
+  } else {
+    return BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
   }
 }
 

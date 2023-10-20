@@ -7,6 +7,7 @@
 #include <sensor_msgs/msg/battery_state.hpp>
 
 #include <panther_battery/battery.hpp>
+#include <panther_utils/test/test_utils.hpp>
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
@@ -37,10 +38,8 @@ public:
   ~TestBattery() {}
 
 protected:
-  void CheckBatteryStateMsg(
+  void TestDefaultBatteryStateMsg(
     const uint8_t & power_supply_status, const uint8_t & power_supply_health);
-
-  bool CheckNaNVector(const std::vector<float> & vector);
 
   std::unique_ptr<BatteryWrapper> battery_;
   BatteryStateMsg battery_state_;
@@ -48,7 +47,7 @@ protected:
 
 TestBattery::TestBattery() { battery_ = std::make_unique<BatteryWrapper>(); }
 
-void TestBattery::CheckBatteryStateMsg(
+void TestBattery::TestDefaultBatteryStateMsg(
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
   // const values
@@ -56,8 +55,8 @@ void TestBattery::CheckBatteryStateMsg(
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
-  EXPECT_TRUE(CheckNaNVector(battery_state_.cell_voltage));
-  EXPECT_TRUE(CheckNaNVector(battery_state_.cell_temperature));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_.cell_voltage));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_.cell_temperature));
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
@@ -71,12 +70,6 @@ void TestBattery::CheckBatteryStateMsg(
   EXPECT_EQ(power_supply_health, battery_state_.power_supply_health);
 }
 
-bool TestBattery::CheckNaNVector(const std::vector<float> & vector)
-{
-  return std::all_of(
-    vector.begin(), vector.end(), [](const float value) { return std::isnan(value); });
-}
-
 TEST_F(TestBattery, GetErrorMsg)
 {
   EXPECT_FALSE(battery_->HasErrorMsg());
@@ -85,10 +78,10 @@ TEST_F(TestBattery, GetErrorMsg)
   battery_->SetErrorMsg("error");
 
   ASSERT_TRUE(battery_->HasErrorMsg());
-  EXPECT_NE("", battery_->GetErrorMsg());
+  EXPECT_EQ("error", battery_->GetErrorMsg());
 }
 
-TEST_F(TestBattery, GetBatteryPrcent)
+TEST_F(TestBattery, GetBatteryPercent)
 {
   EXPECT_FLOAT_EQ(0.0, battery_->GetBatteryPercent(30.0f));
   EXPECT_FLOAT_EQ(0.0, battery_->GetBatteryPercent(32.0f));
@@ -106,19 +99,16 @@ TEST_F(TestBattery, ResetBatteryMsgs)
   auto stamp = rclcpp::Time(0);
   battery_->ResetBatteryMsgs(stamp);
   battery_state_ = battery_->GetBatteryMsg();
-  CheckBatteryStateMsg(
+  TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 
   battery_state_ = battery_->GetBatteryMsgRaw();
-  CheckBatteryStateMsg(
+  TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-
-  auto run_tests = RUN_ALL_TESTS();
-
-  return run_tests;
+  return RUN_ALL_TESTS();
 }

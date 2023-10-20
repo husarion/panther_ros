@@ -17,7 +17,7 @@ class DualBatteryPublisherWrapper : public panther_battery::DualBatteryPublisher
 {
 public:
   DualBatteryPublisherWrapper(
-    rclcpp::Node::SharedPtr node, std::shared_ptr<panther_battery::Battery> & battery_1,
+    const rclcpp::Node::SharedPtr & node, std::shared_ptr<panther_battery::Battery> & battery_1,
     std::shared_ptr<panther_battery::Battery> & battery_2)
   : DualBatteryPublisher(node, battery_1, battery_2)
   {
@@ -49,6 +49,9 @@ class TestDualBatteryPublisher : public testing::Test
 public:
   TestDualBatteryPublisher();
   ~TestDualBatteryPublisher() {}
+
+  void TestMergeBatteryPowerSupplyStatus(
+    const uint8_t battery_1_status, const uint8_t battery_2_status, const uint8_t expected_status);
 
 protected:
   rclcpp::Node::SharedPtr node_;
@@ -84,6 +87,18 @@ TestDualBatteryPublisher::TestDualBatteryPublisher()
   battery_publisher_ = std::make_shared<DualBatteryPublisherWrapper>(node_, battery_1_, battery_2_);
 }
 
+void TestDualBatteryPublisher::TestMergeBatteryPowerSupplyStatus(
+  const uint8_t battery_1_status, const uint8_t battery_2_status, const uint8_t expected_status)
+{
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_status = battery_1_status;
+  bat_2.power_supply_status = battery_2_status;
+  auto power_supply_status = battery_publisher_->MergeBatteryPowerSupplyStatus(bat_1, bat_2);
+  EXPECT_EQ(expected_status, power_supply_status);
+}
+
 TEST_F(TestDualBatteryPublisher, CorrectTopicPublished)
 {
   battery_publisher_->Publish();
@@ -97,6 +112,123 @@ TEST_F(TestDualBatteryPublisher, CorrectTopicPublished)
     node_, battery_2_state_, std::chrono::milliseconds(1000)));
 }
 
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusDischarging)
+{
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusNotCharging)
+{
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusCharging)
+{
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, BatteryStateMsg::POWER_SUPPLY_STATUS_FULL,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusFull)
+{
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_FULL, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_FULL);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusUnknown)
+{
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyHealthGood)
+{
+  BatteryStateMsg bat;
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
+  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD, bat.power_supply_health);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyHealthDead)
+{
+  BatteryStateMsg bat;
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+  bat_1.voltage = -2.0f;
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(-2.0f, bat.voltage);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyHealthOverheat)
+{
+  BatteryStateMsg bat;
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
+  bat_1.temperature = 50.0f;
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(50.0f, bat.temperature);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyHealthOvervoltage)
+{
+  BatteryStateMsg bat;
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+  bat_1.voltage = 50.0f;
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(50.0f, bat.voltage);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyHealthCold)
+{
+  BatteryStateMsg bat;
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
+  bat_1.temperature = -15.0f;
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD, bat.power_supply_health);
+  EXPECT_FLOAT_EQ(-15.0f, bat.temperature);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyHealthUnknown)
+{
+  BatteryStateMsg bat;
+  BatteryStateMsg bat_1;
+  BatteryStateMsg bat_2;
+
+  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
+  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, bat.power_supply_health);
+}
+
 TEST_F(TestDualBatteryPublisher, MergeBatteryMsg)
 {
   BatteryStateMsg bat_1;
@@ -104,9 +236,9 @@ TEST_F(TestDualBatteryPublisher, MergeBatteryMsg)
   bat_1.temperature = 21.0;
   bat_1.current = 1.0;
   bat_1.percentage = 0.5;
-  bat_1.capacity = std::numeric_limits<float>::quiet_NaN();
   bat_1.design_capacity = 20.0;
   bat_1.charge = 2.0;
+  bat_1.capacity = std::numeric_limits<float>::quiet_NaN();
   bat_1.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   bat_1.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
@@ -120,9 +252,9 @@ TEST_F(TestDualBatteryPublisher, MergeBatteryMsg)
   bat_2.temperature = 22.0;
   bat_2.current = 2.0;
   bat_2.percentage = 0.6;
-  bat_2.capacity = std::numeric_limits<float>::quiet_NaN();
   bat_2.design_capacity = 20.0;
   bat_2.charge = 3.0;
+  bat_2.capacity = std::numeric_limits<float>::quiet_NaN();
   bat_2.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   bat_2.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
@@ -147,74 +279,6 @@ TEST_F(TestDualBatteryPublisher, MergeBatteryMsg)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, bat.power_supply_technology);
   EXPECT_TRUE(bat.present);
   EXPECT_EQ("user_compartment", bat.location);
-}
-
-TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatus)
-{
-  BatteryStateMsg bat_1;
-  BatteryStateMsg bat_2;
-
-  bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
-  bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
-  auto power_supply_status = battery_publisher_->MergeBatteryPowerSupplyStatus(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, power_supply_status);
-
-  bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
-  bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
-  power_supply_status = battery_publisher_->MergeBatteryPowerSupplyStatus(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_FULL, power_supply_status);
-
-  bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
-  power_supply_status = battery_publisher_->MergeBatteryPowerSupplyStatus(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, power_supply_status);
-
-  bat_2.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING;
-  power_supply_status = battery_publisher_->MergeBatteryPowerSupplyStatus(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING, power_supply_status);
-
-  bat_1.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
-  power_supply_status = battery_publisher_->MergeBatteryPowerSupplyStatus(bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, power_supply_status);
-}
-
-TEST_F(TestDualBatteryPublisher, MergeBatteryMsgHealth)
-{
-  BatteryStateMsg bat;
-  BatteryStateMsg bat_1;
-  BatteryStateMsg bat_2;
-
-  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
-  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
-  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD, bat.power_supply_health);
-
-  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
-  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, bat.power_supply_health);
-
-  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD;
-  bat_2.temperature = -15.0f;
-  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_COLD, bat.power_supply_health);
-  EXPECT_FLOAT_EQ(-15.0, bat.temperature);
-
-  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-  bat_1.voltage = 50.0f;
-  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, bat.power_supply_health);
-  EXPECT_FLOAT_EQ(50.0, bat.voltage);
-
-  bat_2.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT;
-  bat_2.temperature = 50.0f;
-  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT, bat.power_supply_health);
-  EXPECT_FLOAT_EQ(50.0, bat.temperature);
-
-  bat_1.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
-  bat_1.voltage = -2.0f;
-  battery_publisher_->MergeBatteryPowerSupplyHealth(bat, bat_1, bat_2);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD, bat.power_supply_health);
-  EXPECT_FLOAT_EQ(-2.0, bat.voltage);
 }
 
 int main(int argc, char ** argv)
