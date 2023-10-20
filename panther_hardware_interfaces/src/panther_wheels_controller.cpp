@@ -11,7 +11,8 @@
 namespace panther_hardware_interfaces
 {
 
-int const kSchedPriority = 50;
+// TODO
+int const kSchedPriority = 55;
 
 PantherWheelsController::PantherWheelsController(
   CanSettings can_settings, DrivetrainSettings drivetrain_settings)
@@ -31,7 +32,8 @@ void PantherWheelsController::Initialize()
       if (!realtime_tools::configure_sched_fifo(kSchedPriority)) {
         std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
       } else {
-        std::cerr << "FIFO RT scheduling policy set (CAN thread)" << std::endl;
+        std::cerr << "FIFO RT scheduling policy with priority " << kSchedPriority
+                  << " set (CAN thread) " << std::endl;
       }
     } else {
       std::cerr << "RT kernel is recommended for better performance (CAN thread)" << std::endl;
