@@ -305,6 +305,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 
   ASSERT_TRUE(state_msg);
 
+  // TODO: float
   ASSERT_EQ(state_msg->front.temperature, f_temp);
   ASSERT_EQ(state_msg->rear.temperature, r_temp);
 

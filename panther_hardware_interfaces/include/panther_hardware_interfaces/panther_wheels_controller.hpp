@@ -119,6 +119,7 @@ private:
   CanSettings can_settings_;
 
   // TODO: currently drivers set to 10Hz, change it after setting 100Hz
+  // TODO: maybe make it configurable
   std::chrono::milliseconds motors_feedback_timeout_ = std::chrono::milliseconds(15);
 
   RoboteqData front_data_;

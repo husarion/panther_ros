@@ -87,6 +87,8 @@ public:
       [wait_time_microseconds](
         uint16_t idx, uint8_t subidx, int32_t &, int32_t) -> std::error_code {
         if (idx == 0x2000 && subidx == 1) {
+          // TODO add comment
+          // Blocks whole communication
           usleep(wait_time_microseconds);
         }
         return std::error_code();

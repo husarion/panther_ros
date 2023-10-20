@@ -122,6 +122,7 @@ private:
 
   // Wait timeout has to be longer - first we want to give a chance for lely to cancel
   // operation
+  // TODO: move to parameter
   std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(4);
   std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(5);
 

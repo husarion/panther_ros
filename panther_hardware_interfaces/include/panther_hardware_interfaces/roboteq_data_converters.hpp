@@ -24,6 +24,8 @@ struct DrivetrainSettings
   float max_rpm_motor_speed;
 };
 
+// TODO: unit tests
+
 class MotorState
 {
 public:
@@ -225,6 +227,8 @@ private:
   RuntimeError right_runtime_error_;
 
   bool old_data_ = false;
+
+  // TODO: to parameter
 
   // Suppress flags:
   // safety_stop_active
