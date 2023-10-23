@@ -1,0 +1,99 @@
+#include <panther_battery/roboteq_battery.hpp>
+
+#include <functional>
+#include <limits>
+#include <vector>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <panther_utils/moving_average.hpp>
+
+namespace panther_battery
+{
+
+RoboteqBattery::RoboteqBattery(
+  const std::function<float()> & read_voltage, const std::function<float()> & read_current,
+  const RoboteqBatteryParams & params)
+: ReadVoltage(read_voltage), ReadCurrent(read_current)
+{
+  voltage_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.voltage_window_len, std::numeric_limits<float>::quiet_NaN());
+  current_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+    params.current_window_len, std::numeric_limits<float>::quiet_NaN());
+}
+
+bool RoboteqBattery::Present() { return true; }
+
+void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool)
+{
+  voltage_raw_ = ReadVoltage();
+  current_raw_ = ReadCurrent();
+  voltage_ma_->Roll(voltage_raw_);
+  current_ma_->Roll(current_raw_);
+
+  UpdateBatteryMsgs(header_stamp);
+}
+
+void RoboteqBattery::Reset(const rclcpp::Time & header_stamp)
+{
+  voltage_ma_->Reset();
+  current_ma_->Reset();
+
+  ResetBatteryMsgs(header_stamp);
+  SetErrorMsg("");
+}
+
+void RoboteqBattery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp)
+{
+  UpdateBatteryState(header_stamp);
+  UpdateBatteryStateRaw();
+}
+
+void RoboteqBattery::UpdateBatteryState(const rclcpp::Time & header_stamp)
+{
+  const float V_bat = voltage_ma_->GetAverage();
+  const float I_bat = current_ma_->GetAverage();
+
+  battery_state_.header.stamp = header_stamp;
+  battery_state_.voltage = V_bat;
+  battery_state_.temperature = std::numeric_limits<float>::quiet_NaN();
+  battery_state_.current = I_bat;
+  battery_state_.percentage = GetBatteryPercent(V_bat);
+  battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
+  battery_state_.design_capacity = kDesignedCapacity;
+  battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
+  battery_state_.cell_voltage =
+    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_temperature =
+    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
+  battery_state_.present = true;
+  battery_state_.location = kLocation;
+  battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
+  battery_state_.power_supply_health = GetBatteryHealth(V_bat);
+}
+
+void RoboteqBattery::UpdateBatteryStateRaw()
+{
+  battery_state_raw_ = battery_state_;
+  battery_state_raw_.voltage = voltage_raw_;
+  battery_state_raw_.current = current_raw_;
+  battery_state_raw_.percentage = GetBatteryPercent(voltage_raw_);
+  battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
+}
+
+uint8_t RoboteqBattery::GetBatteryHealth(const float voltage)
+{
+  if (voltage < kVBatFatalMin) {
+    SetErrorMsg("Battery voltage is critically low!");
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
+  } else if (voltage > kVBatFatalMax) {
+    SetErrorMsg("Battery overvoltage!");
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+  } else {
+    SetErrorMsg("");
+    return BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
+  }
+}
+
+}  // namespace panther_battery
