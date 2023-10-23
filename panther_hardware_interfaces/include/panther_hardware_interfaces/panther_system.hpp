@@ -77,11 +77,11 @@ protected:
   std::unique_ptr<GPIOController> gpio_controller_;
   std::unique_ptr<PantherWheelsController> roboteq_controller_;
 
-  std::shared_ptr<rclcpp::Node> node_;
-  std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
 
-  std::shared_ptr<rclcpp::Publisher<panther_msgs::msg::DriverState>> driver_state_publisher_;
+  rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_;
 
