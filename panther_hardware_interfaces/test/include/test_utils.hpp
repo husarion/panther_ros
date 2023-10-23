@@ -27,6 +27,7 @@ public:
 
   const double assert_near_abs_error_ = 0.0001;
 
+  //  TODO: move to constructor
   void SetUp() override
   {
     roboteq_mock_ = std::make_unique<RoboteqMock>();
@@ -61,6 +62,13 @@ public:
       <param name="master_can_id">3</param>
       <param name="front_driver_can_id">1</param>
       <param name="rear_driver_can_id">2</param>
+      <param name="sdo_operation_timeout">4</param>
+      <param name="feedback_timeout">15</param>
+      <param name="roboteq_initialization_attempts">3</param>
+      <param name="roboteq_activation_attempts">3</param>
+      <param name="max_write_sdo_errors_count">2</param>
+      <param name="max_read_sdo_errors_count">2</param>
+      <param name="max_read_pdo_errors_count">1</param>
     </hardware>
 
     <joint name="fl_wheel_joint">
@@ -107,6 +115,13 @@ public:
       <param name="master_can_id">3</param>
       <param name="front_driver_can_id">1</param>
       <param name="rear_driver_can_id">2</param>
+      <param name="sdo_operation_timeout">4</param>
+      <param name="feedback_timeout">15</param>
+      <param name="roboteq_initialization_attempts">3</param>
+      <param name="roboteq_activation_attempts">3</param>
+      <param name="max_write_sdo_errors_count">2</param>
+      <param name="max_read_sdo_errors_count">2</param>
+      <param name="max_read_pdo_errors_count">1</param>
     </hardware>
     
     <joint name="rl_wheel_joint">
