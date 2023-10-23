@@ -204,6 +204,8 @@ public:
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
+  // TOOD: rename
+  bool GetOldData() const { return old_data_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }

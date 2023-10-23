@@ -469,6 +469,11 @@ void PantherSystem::UpdateMsgErrors()
   realtime_driver_state_publisher_->msg_.write_error = error_handler_->IsWriteSDOError();
   realtime_driver_state_publisher_->msg_.read_error_sdo = error_handler_->IsReadSDOError();
   realtime_driver_state_publisher_->msg_.read_error_pdo = error_handler_->IsReadPDOError();
+
+  realtime_driver_state_publisher_->msg_.front.old_data =
+    roboteq_controller_->GetFrontData().GetOldData();
+  realtime_driver_state_publisher_->msg_.rear.old_data =
+    roboteq_controller_->GetRearData().GetOldData();
 }
 
 void PantherSystem::PublishDriverState()
