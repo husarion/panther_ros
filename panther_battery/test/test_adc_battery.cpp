@@ -136,7 +136,12 @@ TEST_F(TestADCBattery, BatteryMsgValues)
   const auto V_bat_full = 41.4;
   const auto V_bat_min = 32.0;
 
-  UpdateBattery(1.5, 0.01, 1.5, 0.5, false);
+  auto voltage_raw = 1.5;
+  auto current_raw = 0.01;
+  auto temp_raw = 1.5;
+  auto charge_raw = 0.5;
+  UpdateBattery(voltage_raw, current_raw, temp_raw, charge_raw, false);
+
   float expected_voltage = 1.5 * voltage_factor;
   float expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   float expected_temp = 28.875206;
@@ -146,7 +151,12 @@ TEST_F(TestADCBattery, BatteryMsgValues)
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // check if values are smoothed out with moving average.
-  UpdateBattery(1.6, 0.02, 1.4, 0.4, false);
+  voltage_raw = 1.6;
+  current_raw = 0.02;
+  temp_raw = 1.4;
+  charge_raw = 0.4;
+  UpdateBattery(voltage_raw, current_raw, temp_raw, charge_raw, false);
+
   const float voltage_mean = (1.5 + 1.6) / 2.0;
   const float current_mean = (0.01 + 0.02) / 2.0;
   const float charge_mean = (0.5 + 0.4) / 2.0;
