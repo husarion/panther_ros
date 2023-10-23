@@ -24,14 +24,14 @@ struct CanSettings
   uint8_t master_can_id;
   uint8_t front_driver_can_id;
   uint8_t rear_driver_can_id;
+  std::chrono::milliseconds feedback_timeout;
+  std::chrono::milliseconds sdo_operation_timeout;
 };
 
 class PantherWheelsController
 {
 public:
-  PantherWheelsController(
-    CanSettings can_settings, DrivetrainSettings drivetrain_settings,
-    std::chrono::milliseconds motors_feedback_timeout);
+  PantherWheelsController(CanSettings can_settings, DrivetrainSettings drivetrain_settings);
 
   /**
    * @brief Activate procedure for roboteq drivers - reset scripts and send 0 command on both channels

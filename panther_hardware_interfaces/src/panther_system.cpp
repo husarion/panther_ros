@@ -119,15 +119,32 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     can_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
     can_settings_.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
     can_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+    can_settings_.feedback_timeout =
+      std::chrono::milliseconds(std::stoi(info_.hardware_parameters["feedback_timeout"]));
+    can_settings_.sdo_operation_timeout =
+      std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout"]));
+
+    max_roboteq_initialization_attempts_ =
+      std::stoi(info_.hardware_parameters["roboteq_initialization_attempts"]);
+    max_roboteq_activation_attempts_ =
+      std::stoi(info_.hardware_parameters["roboteq_activation_attempts"]);
+
+    int8_t max_write_sdo_errors_count =
+      std::stoi(info_.hardware_parameters["max_write_sdo_errors_count"]);
+    int8_t max_read_sdo_errors_count =
+      std::stoi(info_.hardware_parameters["max_read_sdo_errors_count"]);
+    int8_t max_read_pdo_errors_count =
+      std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
+
+    error_handler_ = std::make_unique<PantherSystemErrorHandler>(
+      max_write_sdo_errors_count, max_read_sdo_errors_count, max_read_pdo_errors_count);
+
   } catch (std::invalid_argument & err) {
     RCLCPP_FATAL(
       rclcpp::get_logger("PantherSystem"),
       "One of the required hardware parameters was not defined");
     return CallbackReturn::ERROR;
   }
-
-  // TODO: maybe move to parameter
-  error_handler_ = std::make_unique<PantherSystemErrorHandler>(2, 2, 1);
 
   return CallbackReturn::SUCCESS;
 }
@@ -156,9 +173,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
-  // TODO: move to parameter
-  roboteq_controller_ = std::make_unique<PantherWheelsController>(
-    can_settings_, drivetrain_settings_, std::chrono::milliseconds(15));
+  roboteq_controller_ =
+    std::make_unique<PantherWheelsController>(can_settings_, drivetrain_settings_);
 
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
@@ -442,8 +458,6 @@ void PantherSystem::UpdateMsgDriversErrorsState()
   driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
   driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
   driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
-
-  // TODO old data to message
 }
 
 void PantherSystem::UpdateMsgDriversState()

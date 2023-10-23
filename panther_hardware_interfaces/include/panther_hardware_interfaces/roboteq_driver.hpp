@@ -49,7 +49,9 @@ class RoboteqDriver : public lely::canopen::FiberDriver
 public:
   using FiberDriver::FiberDriver;
 
-  RoboteqDriver(ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id);
+  RoboteqDriver(
+    ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id,
+    std::chrono::milliseconds sdo_operation_timeout);
 
   /**
    * @brief ReadRoboteqDriverFeedback
@@ -120,11 +122,8 @@ private:
 
   std::mutex rpdo_timestamp_mtx_;
 
-  // Wait timeout has to be longer - first we want to give a chance for lely to cancel
-  // operation
-  // TODO: move to parameter
-  std::chrono::milliseconds sdo_operation_timeout_ = std::chrono::milliseconds(4);
-  std::chrono::milliseconds sdo_operation_wait_timeout_ = std::chrono::milliseconds(5);
+  const std::chrono::milliseconds sdo_operation_timeout_;
+  const std::chrono::milliseconds sdo_operation_wait_timeout_;
 
   template <class type>
   type SyncSdoRead(uint16_t index, uint8_t subindex);

@@ -7,8 +7,14 @@
 namespace panther_hardware_interfaces
 {
 
-RoboteqDriver::RoboteqDriver(ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id)
-: lely::canopen::FiberDriver(exec, master, id)
+RoboteqDriver::RoboteqDriver(
+  ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id,
+  std::chrono::milliseconds sdo_operation_timeout)
+: lely::canopen::FiberDriver(exec, master, id),
+  sdo_operation_timeout_(sdo_operation_timeout),
+  // Wait timeout has to be longer - first we want to give a chance for lely to cancel
+  // operation
+  sdo_operation_wait_timeout_(sdo_operation_timeout + std::chrono::milliseconds(1))
 {
 }
 
@@ -157,8 +163,6 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 
 void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed)
 {
-  // TODO: sometimes timeouts happens on SDO write
-
   try {
     SyncSdoWrite<int32_t>(0x2000, 1, channel_1_speed);
     SyncSdoWrite<int32_t>(0x2000, 2, channel_2_speed);
@@ -167,10 +171,6 @@ void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_sp
   }
 
   // TODO check what happens what publishing is stopped
-  // Uses tpdo, which is read in roboteq script instead of Cmd_CANGO SDO command
-  // uint32_t
-  // tpdo_mapped[0x2005][9] = LimitCmd(channel_1_cmd);
-  // tpdo_mapped[0x2005][10] = LimitCmd(channel_2_cmd);
 }
 
 void RoboteqDriver::ResetRoboteqScript()

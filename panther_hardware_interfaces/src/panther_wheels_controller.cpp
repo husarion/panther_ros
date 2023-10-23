@@ -15,12 +15,11 @@ namespace panther_hardware_interfaces
 int const kSchedPriority = 55;
 
 PantherWheelsController::PantherWheelsController(
-  CanSettings can_settings, DrivetrainSettings drivetrain_settings,
-  std::chrono::milliseconds motors_feedback_timeout)
+  CanSettings can_settings, DrivetrainSettings drivetrain_settings)
 : front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_command_converter_(drivetrain_settings),
-  motors_feedback_timeout_(motors_feedback_timeout)
+  motors_feedback_timeout_(can_settings.feedback_timeout)
 {
   can_settings_ = can_settings;
 }
@@ -67,10 +66,10 @@ void PantherWheelsController::Initialize()
       master_ = std::make_shared<lely::canopen::AsyncMaster>(
         *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
 
-      front_driver_ =
-        std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.front_driver_can_id);
-      rear_driver_ =
-        std::make_unique<RoboteqDriver>(*exec_, *master_, can_settings_.rear_driver_can_id);
+      front_driver_ = std::make_unique<RoboteqDriver>(
+        *exec_, *master_, can_settings_.front_driver_can_id, can_settings_.sdo_operation_timeout);
+      rear_driver_ = std::make_unique<RoboteqDriver>(
+        *exec_, *master_, can_settings_.rear_driver_can_id, can_settings_.sdo_operation_timeout);
 
       // Start the NMT service of the master by pretending to receive a 'reset
       // node' command.
@@ -130,8 +129,6 @@ void PantherWheelsController::Initialize()
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver boot failed");
   }
-
-  // TODO initialization attempt count
 }
 
 void PantherWheelsController::Deinitialize()
