@@ -134,7 +134,9 @@ void PantherWheelsController::Initialize()
 void PantherWheelsController::Deinitialize()
 {
   can_communication_started_.store(false);
-  master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
+  if (master_) {
+    master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
+  }
   // TODO: check
   can_communication_thread_.join();
 

@@ -190,13 +190,17 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     }
   });
 
+  // TODO: add tests
+
   unsigned initialization_attempts_counter;
   for (initialization_attempts_counter = 0;
        initialization_attempts_counter < max_roboteq_initialization_attempts_;
        ++initialization_attempts_counter) {
     try {
       roboteq_controller_->Initialize();
+      break;
     } catch (std::runtime_error & err) {
+      roboteq_controller_->Deinitialize();
       RCLCPP_WARN_STREAM(
         rclcpp::get_logger("PantherSystem"),
         "Initialization failed: " << err.what() << ". Attempt "
@@ -248,6 +252,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
        ++activation_attempts_counter) {
     try {
       roboteq_controller_->Activate();
+      break;
     } catch (std::runtime_error & err) {
       RCLCPP_WARN_STREAM(
         rclcpp::get_logger("PantherSystem"),
