@@ -67,84 +67,79 @@ private:
   static constexpr int32_t max_roboteq_cmd_value_ = 1000;
 };
 
-// TODO restructure panther_msgs
-class FaultFlag
+class FlagError
 {
 public:
-  FaultFlag() {}
+  // TODO: reference?
+  FlagError(const std::vector<std::string> & flag_names) : flag_names_(flag_names) {}
+
+  void SetData(uint8_t flags) { flags_ = flags; }
+
+  void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
+  bool IsError() const { return (flags_ & surpressed_flags_) != 0; }
+
+  std::string GetErrorLog() const;
+
+protected:
+  uint8_t surpressed_flags_ = 0b11111111;
+  uint8_t flags_ = 0b00000000;
+
+  const std::vector<std::string> flag_names_;
+};
+
+// TODO restructure panther_msgs
+class FaultFlag : public FlagError
+{
+public:
+  FaultFlag()
+  : FlagError({
+      "overheat",
+      "overvoltage",
+      "undervoltage",
+      "short_circuit",
+      "emergency_stop",
+      "motor_or_sensor_setup_fault",
+      "mosfet_failure",
+      "default_config_loaded_at_startup",
+    })
+  {
+  }
 
   panther_msgs::msg::FaultFlag GetMessage() const;
-  void SetData(uint8_t fault_flags, bool can_error)
+  void SetData(uint8_t flags, bool can_error)
   {
-    fault_flags_ = fault_flags;
+    FlagError::SetData(flags);
     can_error_ = can_error;
   }
 
-  void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
-  bool IsError() const { return (fault_flags_ & surpressed_flags_) != 0; }
-
 private:
-  uint8_t surpressed_flags_ = 0b11111111;
-  uint8_t fault_flags_ = 0b00000000;
   bool can_error_ = false;
-
-  // TODO
-  std::vector<std::string> driver_fault_flags_ = {
-    "overheat",       "overvoltage",
-    "undervoltage",   "short_circuit",
-    "emergency_stop", "motor_or_sensor_setup_fault",
-    "mosfet_failure", "default_config_loaded_at_startup",
-  };
 };
 
-class ScriptFlag
+class ScriptFlag : public FlagError
 {
 public:
-  ScriptFlag() {}
-
+  ScriptFlag() : FlagError({"loop_error", "encoder_disconected", "amp_limiter"}) {}
   panther_msgs::msg::ScriptFlag GetMessage() const;
-  void SetData(uint8_t script_flags) { script_flags_ = script_flags; }
-
-  void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
-  bool IsError() const { return (script_flags_ & surpressed_flags_) != 0; }
-
-private:
-  uint8_t surpressed_flags_ = 0b11111111;
-  uint8_t script_flags_ = 0b00000000;
-
-  // TODO
-  std::vector<std::string> driver_script_flags_ = {
-    "loop_error",
-    "encoder_disconected",
-    "amp_limiter",
-  };
 };
 
-class RuntimeError
+class RuntimeError : public FlagError
 {
 public:
-  RuntimeError() {}
+  RuntimeError()
+  : FlagError({
+      "amps_limit_active",
+      "motor_stall",
+      "loop_error",
+      "safety_stop_active",
+      "forward_limit_triggered",
+      "reverse_limit_triggered",
+      "amps_trigger_activated",
+    })
+  {
+  }
 
   panther_msgs::msg::RuntimeError GetMessage() const;
-  void SetData(uint8_t runtime_errors_flags) { runtime_errors_flags_ = runtime_errors_flags; }
-
-  void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
-  bool IsError() const { return (runtime_errors_flags_ & surpressed_flags_) != 0; }
-
-private:
-  uint8_t surpressed_flags_ = 0b11111111;
-  uint8_t runtime_errors_flags_ = 0b00000000;
-
-  // TODO
-  std::vector<std::string> driver_runtime_errors_ = {
-    "amps_limit_active",
-    "motor_stall",
-    "loop_error",
-    "safety_stop_active",
-    "forward_limit_triggered",
-    "reverse_limit_triggered",
-    "amps_trigger_activated",
-  };
 };
 
 class DriverState
@@ -214,6 +209,15 @@ public:
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }
   const RuntimeError & GetLeftRuntimeError() const { return left_runtime_error_; }
   const RuntimeError & GetRightRuntimeError() const { return right_runtime_error_; }
+
+  std::string GetErrorLog() const
+  {
+    return "Fault flags: " + fault_flags_.GetErrorLog() +
+           "Script flags: " + script_flags_.GetErrorLog() +
+           "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
+           "Right motor runtime flags: " + right_runtime_error_.GetErrorLog() +
+           "Old data: " + (old_data_ ? "true" : "false");
+  }
 
 private:
   MotorState left_state_;

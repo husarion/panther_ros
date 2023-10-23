@@ -354,8 +354,12 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     if (
       roboteq_controller_->GetFrontData().IsError() ||
       roboteq_controller_->GetRearData().IsError()) {
-      // TODO: throttle
-      RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "Error state on one of the drivers");
+      // TODO: check log
+      RCLCPP_ERROR_STREAM_THROTTLE(
+        rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
+        "Error state on one of the drivers"
+          << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
+          << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
       error_handler_->UpdateReadPDOErrors(true);
     }
 
