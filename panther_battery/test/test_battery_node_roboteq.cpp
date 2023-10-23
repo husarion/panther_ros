@@ -1,0 +1,151 @@
+#include <include/test_battery_node.hpp>
+
+#include <chrono>
+
+#include <gtest/gtest.h>
+#include <rclcpp/rclcpp.hpp>
+
+#include <panther_utils/test/test_utils.hpp>
+
+class TestBatteryNodeRoboteq : public TestBatteryNode
+{
+public:
+  TestBatteryNodeRoboteq() : TestBatteryNode(1.0) {}
+};
+
+TEST_F(TestBatteryNodeRoboteq, BatteryValues)
+{
+  // Wait for node to initialize
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+
+  // battery state msg values should be NaN
+  EXPECT_TRUE(std::isnan(battery_state_->voltage));
+  EXPECT_TRUE(std::isnan(battery_state_->current));
+  EXPECT_TRUE(std::isnan(battery_state_->charge));
+  EXPECT_TRUE(std::isnan(battery_state_->percentage));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
+  
+  DriverStateMsg driver_state;
+  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.front.voltage = 35.0f;
+  driver_state.rear.voltage = 35.0f;
+  driver_state.front.current = 0.1f;
+  driver_state.rear.current = 0.1f;
+  driver_state_pub_->publish(driver_state);
+
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  // This is done to check if values were read correctly, not to verify calculations
+  // If any test performing calculations fails this test will most likely fail too.
+  EXPECT_FLOAT_EQ(35.0, battery_state_->voltage);
+  EXPECT_FLOAT_EQ(0.2, battery_state_->current);
+
+  // for single battery if readings stay the same values of battery_1 and battery should be the same
+  EXPECT_FLOAT_EQ(battery_1_state_->voltage, battery_state_->voltage);
+  EXPECT_FLOAT_EQ(battery_1_state_->current, battery_state_->current);
+  EXPECT_FLOAT_EQ(battery_1_state_->percentage, battery_state_->percentage);
+  EXPECT_FLOAT_EQ(battery_1_state_->charge, battery_state_->charge);
+}
+
+TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
+{
+  // Wait for node to initialize
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+
+  // battery state msg values should be NaN
+  EXPECT_TRUE(std::isnan(battery_state_->voltage));
+  EXPECT_TRUE(std::isnan(battery_state_->current));
+  EXPECT_TRUE(std::isnan(battery_state_->charge));
+  EXPECT_TRUE(std::isnan(battery_state_->percentage));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
+
+  // Publish some values
+  DriverStateMsg driver_state;
+  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.front.voltage = 35.0f;
+  driver_state.rear.voltage = 35.0f;
+  driver_state.front.current = 0.1f;
+  driver_state.rear.current = 0.1f;
+  driver_state_pub_->publish(driver_state);
+
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  // battery state msg should have some values
+  EXPECT_FALSE(std::isnan(battery_state_->voltage));
+  EXPECT_FALSE(std::isnan(battery_state_->current));
+  EXPECT_FALSE(std::isnan(battery_state_->charge));
+  EXPECT_FALSE(std::isnan(battery_state_->percentage));
+
+  // Wait for timeout
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  // battery state msg values should be NaN
+  EXPECT_TRUE(std::isnan(battery_state_->voltage));
+  EXPECT_TRUE(std::isnan(battery_state_->current));
+  EXPECT_TRUE(std::isnan(battery_state_->charge));
+  EXPECT_TRUE(std::isnan(battery_state_->percentage));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
+}
+
+TEST_F(TestBatteryNodeRoboteq, ValidateDriverStateMsg)
+{
+  // Wait for node to initialize
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+
+  EXPECT_THROW(battery_node_->ValidateDriverStateMsg(), std::runtime_error);
+
+  // Publish valid driver state
+  DriverStateMsg driver_state;
+  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.front.voltage = 35.0f;
+  driver_state.rear.voltage = 35.0f;
+  driver_state.front.current = 0.1f;
+  driver_state.rear.current = 0.1f;
+  driver_state_pub_->publish(driver_state);
+
+  rclcpp::spin_some(battery_node_->get_node_base_interface());
+  EXPECT_NO_THROW(battery_node_->ValidateDriverStateMsg());
+
+  // publish with old timestamp
+  std::this_thread::sleep_for(std::chrono::milliseconds(150));
+  driver_state_pub_->publish(driver_state);
+
+  rclcpp::spin_some(battery_node_->get_node_base_interface());
+  EXPECT_THROW(battery_node_->ValidateDriverStateMsg(), std::runtime_error);
+
+  // publish valid
+  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state_pub_->publish(driver_state);
+
+  rclcpp::spin_some(battery_node_->get_node_base_interface());
+  EXPECT_NO_THROW(battery_node_->ValidateDriverStateMsg());
+
+  // publish with can net error
+  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.front.fault_flag.can_net_err = true;
+  driver_state_pub_->publish(driver_state);
+
+  rclcpp::spin_some(battery_node_->get_node_base_interface());
+  EXPECT_THROW(battery_node_->ValidateDriverStateMsg(), std::runtime_error);
+}
+
+int main(int argc, char ** argv)
+{
+  rclcpp::init(argc, argv);
+  testing::InitGoogleTest(&argc, argv);
+
+  auto run_tests = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  return run_tests;
+}
