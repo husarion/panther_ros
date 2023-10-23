@@ -272,8 +272,21 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
       driver_state_publisher_);
 
+  clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
+    "clear_errors",
+    std::bind(&PantherSystem::ClearErrorsCb, this, std::placeholders::_1, std::placeholders::_2));
+
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
   return CallbackReturn::SUCCESS;
+}
+
+void PantherSystem::ClearErrorsCb(
+  std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+  std_srvs::srv::Trigger::Response::SharedPtr response)
+{
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
+  error_handler_->ClearErrors();
+  response->success = true;
 }
 
 CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)

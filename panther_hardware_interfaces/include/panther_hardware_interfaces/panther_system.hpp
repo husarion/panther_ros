@@ -16,6 +16,8 @@
 
 #include <realtime_tools/realtime_publisher.h>
 
+#include <std_srvs/srv/trigger.hpp>
+
 #include <panther_msgs/msg/driver_state.hpp>
 
 #include <panther_hardware_interfaces/gpio_driver.hpp>
@@ -85,6 +87,9 @@ protected:
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_;
 
+  // TODO: check
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
+
   DrivetrainSettings drivetrain_settings_;
   CanSettings can_settings_;
 
@@ -101,6 +106,10 @@ protected:
   // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to node 02: SDO protocol timed out
   unsigned max_roboteq_initialization_attempts_;
   unsigned max_roboteq_activation_attempts_;
+
+  void ClearErrorsCb(
+    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
 };
 
 }  // namespace panther_hardware_interfaces

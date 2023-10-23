@@ -18,6 +18,8 @@
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
 
+  <depend>std_srvs</depend>
+
   <depend>panther_msgs</depend>
 
   <depend>controller_interface</depend>

@@ -19,6 +19,7 @@ set(PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp
   rclcpp_lifecycle
+  std_srvs
   PkgConfig
   panther_msgs
   realtime_tools
@@ -50,6 +51,7 @@ ament_target_dependencies(
   rclcpp_lifecycle
   rclcpp
   pluginlib
+  std_srvs
   panther_msgs
   realtime_tools
 )
