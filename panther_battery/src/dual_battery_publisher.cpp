@@ -42,18 +42,12 @@ void DualBatteryPublisher::Reset()
 
 void DualBatteryPublisher::PublishBatteryState()
 {
-  try {
-    const auto battery_msg =
-      MergeBatteryMsgs(battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
-    battery_pub_->publish(battery_msg);
-    BatteryStatusLogger(battery_msg);
-  } catch (const std::runtime_error & err) {
-    RCLCPP_WARN(
-      node_->get_logger(), "Failed to merge battery_1 and battery_2 messages: %s", err.what());
-    RCLCPP_WARN(node_->get_logger(), "Battery message will not be published");
-  }
+  const auto battery_msg =
+    MergeBatteryMsgs(battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
+  battery_pub_->publish(battery_msg);
   battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
   battery_2_pub_->publish(battery_2_->GetBatteryMsgRaw());
+  BatteryStatusLogger(battery_msg);
 }
 
 void DualBatteryPublisher::LogErrors()
