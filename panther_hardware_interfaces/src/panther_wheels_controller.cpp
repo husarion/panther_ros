@@ -315,4 +315,16 @@ void PantherWheelsController::TurnOffEstop()
   }
 }
 
+// Safety stop is turned off when 0 command is published
+void PantherWheelsController::TurnOnSafetyStop()
+{
+  try {
+    front_driver_->TurnOnSafetyStop();
+    rear_driver_->TurnOnSafetyStop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error(
+      "Exception when trying to turn on safety stop: " + std::string(err.what()));
+  }
+}
+
 }  // namespace panther_hardware_interfaces

@@ -99,6 +99,13 @@ public:
    */
   void TurnOffEstop();
 
+  /**
+   * @brief Turns on Roboteq estop
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  void TurnOnSafetyStop();
+
 private:
   std::atomic<bool> can_communication_started_ = false;
   std::condition_variable can_communication_started_cond_;

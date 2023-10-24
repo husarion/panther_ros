@@ -4,7 +4,6 @@
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
-// TODO use safety stop instead of estop
 // TODO: add user variable to script that will trigger DOUT4 instead of safety stop
 
 namespace panther_hardware_interfaces
@@ -153,6 +152,7 @@ void PantherSystem::ResetPublishers()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
+  clear_errors_srv_.reset();
 }
 
 void PantherSystem::DestroyNode()
@@ -182,7 +182,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
-  // TODO add service for clearing errors
 
   executor_thread_ = std::make_unique<std::thread>([this]() {
     while (!stop_executor_) {
@@ -293,8 +292,13 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Deactivating");
 
-  // TODO maybe send 0 command first
-  // roboteq_controller_->Deactivate();
+  try {
+    roboteq_controller_->TurnOnSafetyStop();
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
+    return CallbackReturn::FAILURE;
+  }
+
   ResetPublishers();
   return CallbackReturn::SUCCESS;
 }
@@ -302,8 +306,12 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
-  // TODO
-  // roboteq_controller_->Deinitialize();
+  try {
+    roboteq_controller_->TurnOnSafetyStop();
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
+    return CallbackReturn::FAILURE;
+  }
   ResetPublishers();
   DestroyNode();
   return CallbackReturn::SUCCESS;
@@ -313,18 +321,13 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
 
-  // TODO
-  // Called when error is return from read or write
-  // Maybe trigger estop?
+  // TODO attempts
   try {
-    roboteq_controller_->TurnOnEstop();
+    roboteq_controller_->TurnOnSafetyStop();
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
     return CallbackReturn::FAILURE;
   }
-  // TODO
-  // roboteq_controller_->Deinitialize();
-
   ResetPublishers();
   DestroyNode();
   return CallbackReturn::SUCCESS;
@@ -415,8 +418,27 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // hardware interface's onError isn't triggered
   // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
   if (error_handler_->IsError()) {
-    // TODO: set 0
-    // TODO: add error stream
+    if (
+      (roboteq_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
+       roboteq_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
+       roboteq_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
+       roboteq_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active) ==
+      false) {
+      RCLCPP_ERROR(rclcpp::get_logger("PantherSystem"), "Sending safety stop request");
+      // 0 command is set with safety stop
+      try {
+        roboteq_controller_->TurnOnSafetyStop();
+      } catch (std::runtime_error & err) {
+        RCLCPP_FATAL_STREAM(
+          rclcpp::get_logger("PantherSystem"),
+          "Error when trying to turn on safety stop: " << err.what());
+        return return_type::ERROR;
+      }
+    }
+
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
+      "Error detected, ignoring write commands");
     return return_type::OK;
   }
 
