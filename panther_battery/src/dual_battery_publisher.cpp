@@ -103,10 +103,6 @@ uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
     battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING ||
     battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING) {
     return BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING;
-  } else if (
-    battery_msg_1.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_FULL ||
-    battery_msg_2.power_supply_status == BatteryStateMsg::POWER_SUPPLY_STATUS_FULL) {
-    return BatteryStateMsg::POWER_SUPPLY_STATUS_FULL;
   } else {
     return BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
   }

@@ -135,17 +135,16 @@ TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusCharging)
     BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING);
 }
 
-TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusFull)
-{
-  TestMergeBatteryPowerSupplyStatus(
-    BatteryStateMsg::POWER_SUPPLY_STATUS_FULL, BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN,
-    BatteryStateMsg::POWER_SUPPLY_STATUS_FULL);
-}
-
 TEST_F(TestDualBatteryPublisher, MergeBatteryPowerSupplyStatusUnknown)
 {
   TestMergeBatteryPowerSupplyStatus(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN);
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_STATUS_FULL,
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN);
+  TestMergeBatteryPowerSupplyStatus(
+    BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_STATUS_FULL,
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN);
 }
 
