@@ -129,11 +129,11 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
       std::stoi(info_.hardware_parameters["roboteq_activation_attempts"]);
 
     // TODO add warning if uint8 is used
-    uint8_t max_write_sdo_errors_count =
+    unsigned max_write_sdo_errors_count =
       std::stoi(info_.hardware_parameters["max_write_sdo_errors_count"]);
-    uint8_t max_read_sdo_errors_count =
+    unsigned max_read_sdo_errors_count =
       std::stoi(info_.hardware_parameters["max_read_sdo_errors_count"]);
-    uint8_t max_read_pdo_errors_count =
+    unsigned max_read_pdo_errors_count =
       std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
 
     error_handler_ = std::make_unique<PantherSystemErrorHandler>(
@@ -285,8 +285,7 @@ void PantherSystem::ClearErrorsCb(
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
-  // TODO locks or atomic
-  error_handler_->ClearErrors();
+  error_handler_->SetClearErrorFlag();
   response->success = true;
 }
 

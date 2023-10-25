@@ -178,7 +178,8 @@ TEST(TestPantherSystemErrorHandler, test_clear_errors)
   ASSERT_TRUE(error_handler.IsReadSDOError());
   ASSERT_TRUE(error_handler.IsReadPDOError());
 
-  error_handler.ClearErrors();
+  error_handler.SetClearErrorFlag();
+  error_handler.UpdateWriteSDOErrors(true);
 
   ASSERT_FALSE(error_handler.IsError());
   ASSERT_FALSE(error_handler.IsWriteSDOError());
@@ -198,7 +199,7 @@ TEST(TestPantherSystemErrorHandler, test_clear_errors_counters)
   ASSERT_FALSE(error_handler.IsReadSDOError());
   ASSERT_FALSE(error_handler.IsReadPDOError());
 
-  error_handler.ClearErrors();
+  error_handler.SetClearErrorFlag();
 
   error_handler.UpdateWriteSDOErrors(true);
   error_handler.UpdateReadSDOErrors(true);
