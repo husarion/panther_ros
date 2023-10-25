@@ -179,6 +179,7 @@ TEST(TestPantherSystemErrorHandler, test_clear_errors)
   ASSERT_TRUE(error_handler.IsReadPDOError());
 
   error_handler.SetClearErrorFlag();
+  // Has to trigger at least one update to clear errors
   error_handler.UpdateWriteSDOErrors(true);
 
   ASSERT_FALSE(error_handler.IsError());
