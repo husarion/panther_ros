@@ -99,13 +99,13 @@ protected:
 
   std::unique_ptr<PantherSystemErrorHandler> error_handler_;
 
-  // TODO test
-
   // Sometimes SDO errors can happen during initialization and activation of roboteqs, in this cases it is better to retry
   // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out
   // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to node 02: SDO protocol timed out
   unsigned max_roboteq_initialization_attempts_;
   unsigned max_roboteq_activation_attempts_;
+
+  const unsigned max_safety_stop_attempts_ = 20;
 
   void ClearErrorsCb(
     std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,

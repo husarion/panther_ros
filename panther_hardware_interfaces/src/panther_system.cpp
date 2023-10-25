@@ -128,11 +128,12 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     max_roboteq_activation_attempts_ =
       std::stoi(info_.hardware_parameters["roboteq_activation_attempts"]);
 
-    int8_t max_write_sdo_errors_count =
+    // TODO add warning if uint8 is used
+    uint8_t max_write_sdo_errors_count =
       std::stoi(info_.hardware_parameters["max_write_sdo_errors_count"]);
-    int8_t max_read_sdo_errors_count =
+    uint8_t max_read_sdo_errors_count =
       std::stoi(info_.hardware_parameters["max_read_sdo_errors_count"]);
-    int8_t max_read_pdo_errors_count =
+    uint8_t max_read_pdo_errors_count =
       std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
 
     error_handler_ = std::make_unique<PantherSystemErrorHandler>(
@@ -272,7 +273,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
       driver_state_publisher_);
 
   clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
-    "clear_errors",
+    "~/clear_errors",
     std::bind(&PantherSystem::ClearErrorsCb, this, std::placeholders::_1, std::placeholders::_2));
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
@@ -284,6 +285,7 @@ void PantherSystem::ClearErrorsCb(
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
+  // TODO locks or atomic
   error_handler_->ClearErrors();
   response->success = true;
 }
@@ -321,13 +323,26 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
 
-  // TODO attempts
-  try {
-    roboteq_controller_->TurnOnSafetyStop();
-  } catch (std::runtime_error & err) {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
+  unsigned safety_stop_attempts_counter;
+  for (safety_stop_attempts_counter = 0; safety_stop_attempts_counter < max_safety_stop_attempts_;
+       ++safety_stop_attempts_counter) {
+    try {
+      roboteq_controller_->TurnOnSafetyStop();
+      break;
+    } catch (std::runtime_error & err) {
+      RCLCPP_WARN_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "on_error safety stop activation failed: " << err.what() << ". Attempt "
+                                                   << safety_stop_attempts_counter + 1 << " of "
+                                                   << max_safety_stop_attempts_);
+    }
+  }
+
+  if (safety_stop_attempts_counter >= max_safety_stop_attempts_) {
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "safety stop failed");
     return CallbackReturn::FAILURE;
   }
+
   ResetPublishers();
   DestroyNode();
   return CallbackReturn::SUCCESS;
@@ -391,13 +406,14 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     if (
       roboteq_controller_->GetFrontData().IsError() ||
       roboteq_controller_->GetRearData().IsError()) {
-      // TODO: check log
       RCLCPP_ERROR_STREAM_THROTTLE(
         rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
         "Error state on one of the drivers"
           << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
           << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
       error_handler_->UpdateReadPDOErrors(true);
+    } else {
+      error_handler_->UpdateReadPDOErrors(false);
     }
 
   } catch (std::runtime_error & err) {
