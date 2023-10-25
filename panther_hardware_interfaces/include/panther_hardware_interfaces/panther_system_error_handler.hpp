@@ -51,6 +51,7 @@ private:
   {
     if (clear_errors_) {
       ClearErrors();
+      clear_errors_.store(false);
     }
 
     if (current_error) {
