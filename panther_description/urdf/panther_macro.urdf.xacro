@@ -86,9 +86,10 @@
         <!-- Depends on frequnecy of the controller -->
         <param name="feedback_timeout">15</param>
 
-        <param name="roboteq_initialization_attempts">3</param>
-        <param name="roboteq_activation_attempts">3</param>
+        <param name="roboteq_initialization_attempts">5</param>
+        <param name="roboteq_activation_attempts">5</param>
 
+        <!-- TODO uint8_t -->
         <param name="max_write_sdo_errors_count">2</param>
         <param name="max_read_sdo_errors_count">2</param>
         <param name="max_read_pdo_errors_count">1</param>
