@@ -268,7 +268,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   activate_panther_system();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
-  uint8_t state_msg_count = 0;
+  unsigned state_msg_count = 0;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
     "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) {

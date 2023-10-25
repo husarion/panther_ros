@@ -134,7 +134,7 @@ private:
 
   const std::chrono::milliseconds motors_feedback_timeout_;
 
-  uint8_t current_update_ = 0;
+  unsigned current_update_ = 0;
 };
 
 }  // namespace panther_hardware_interfaces
