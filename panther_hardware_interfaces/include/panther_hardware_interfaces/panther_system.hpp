@@ -77,7 +77,7 @@ protected:
   std::string joints_names_sorted_[kJointsSize];
 
   std::unique_ptr<GPIOController> gpio_controller_;
-  std::unique_ptr<PantherWheelsController> roboteq_controller_;
+  std::shared_ptr<PantherWheelsController> roboteq_controller_;
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
@@ -110,6 +110,9 @@ protected:
   void ClearErrorsCb(
     std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
     std_srvs::srv::Trigger::Response::SharedPtr response);
+
+  bool OperationWithAttempts(
+    std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error);
 };
 
 }  // namespace panther_hardware_interfaces

@@ -170,12 +170,30 @@ void PantherSystem::DestroyNode()
   roboteq_controller_.reset();
 }
 
+bool PantherSystem::OperationWithAttempts(
+  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
+{
+  for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
+    try {
+      operation();
+      return true;
+    } catch (std::runtime_error & err) {
+      on_error();
+      RCLCPP_WARN_STREAM(
+        rclcpp::get_logger("PantherSystem"), "Operation failed: " << err.what() << ". Attempt "
+                                                                  << attempts_counter + 1 << " of "
+                                                                  << max_attempts);
+    }
+  }
+  return false;
+}
+
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
   roboteq_controller_ =
-    std::make_unique<PantherWheelsController>(can_settings_, drivetrain_settings_);
+    std::make_shared<PantherWheelsController>(can_settings_, drivetrain_settings_);
 
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
@@ -192,24 +210,13 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   // TODO: add tests
 
-  unsigned initialization_attempts_counter;
-  for (initialization_attempts_counter = 0;
-       initialization_attempts_counter < max_roboteq_initialization_attempts_;
-       ++initialization_attempts_counter) {
-    try {
-      roboteq_controller_->Initialize();
-      break;
-    } catch (std::runtime_error & err) {
-      roboteq_controller_->Deinitialize();
-      RCLCPP_WARN_STREAM(
-        rclcpp::get_logger("PantherSystem"),
-        "Initialization failed: " << err.what() << ". Attempt "
-                                  << initialization_attempts_counter + 1 << " of "
-                                  << max_roboteq_initialization_attempts_);
-    }
-  }
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing roboteqs");
 
-  if (initialization_attempts_counter >= max_roboteq_initialization_attempts_) {
+  // TODO: check
+  if (!OperationWithAttempts(
+        std::bind(&PantherWheelsController::Initialize, roboteq_controller_),
+        max_roboteq_initialization_attempts_,
+        std::bind(&PantherWheelsController::Deinitialize, roboteq_controller_))) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Initialization failed");
     return CallbackReturn::FAILURE;
   }
@@ -238,22 +245,11 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   // gpio_controller_->start();
 
-  unsigned activation_attempts_counter;
-  for (activation_attempts_counter = 0;
-       activation_attempts_counter < max_roboteq_activation_attempts_;
-       ++activation_attempts_counter) {
-    try {
-      roboteq_controller_->Activate();
-      break;
-    } catch (std::runtime_error & err) {
-      RCLCPP_WARN_STREAM(
-        rclcpp::get_logger("PantherSystem"),
-        "Activation failed: " << err.what() << ". Attempt " << activation_attempts_counter + 1
-                              << " of " << max_roboteq_activation_attempts_);
-    }
-  }
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating roboteqs");
 
-  if (activation_attempts_counter >= max_roboteq_activation_attempts_) {
+  if (!OperationWithAttempts(
+        std::bind(&PantherWheelsController::Activate, roboteq_controller_),
+        max_roboteq_activation_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed");
     return CallbackReturn::FAILURE;
   }
@@ -314,22 +310,10 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
 
-  unsigned safety_stop_attempts_counter;
-  for (safety_stop_attempts_counter = 0; safety_stop_attempts_counter < max_safety_stop_attempts_;
-       ++safety_stop_attempts_counter) {
-    try {
-      roboteq_controller_->TurnOnSafetyStop();
-      break;
-    } catch (std::runtime_error & err) {
-      RCLCPP_WARN_STREAM(
-        rclcpp::get_logger("PantherSystem"),
-        "on_error safety stop activation failed: " << err.what() << ". Attempt "
-                                                   << safety_stop_attempts_counter + 1 << " of "
-                                                   << max_safety_stop_attempts_);
-    }
-  }
-
-  if (safety_stop_attempts_counter >= max_safety_stop_attempts_) {
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Setting safe stop");
+  if (!OperationWithAttempts(
+        std::bind(&PantherWheelsController::TurnOnSafetyStop, roboteq_controller_),
+        max_safety_stop_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "safety stop failed");
     return CallbackReturn::FAILURE;
   }
