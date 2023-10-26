@@ -229,14 +229,6 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating");
 
-  // TODO
-  try {
-    roboteq_controller_->TurnOffEstop();
-  } catch (std::runtime_error & err) {
-    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed " << err.what());
-    return CallbackReturn::FAILURE;
-  }
-
   for (std::size_t i = 0; i < kJointsSize; i++) {
     hw_commands_velocities_[i] = 0.0;
     hw_states_positions_[i] = 0.0;
