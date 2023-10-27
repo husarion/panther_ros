@@ -152,6 +152,9 @@ private:
   //   ::std::function<void(::std::error_code ec)> res) noexcept = 0;
   // void
   // Error()
+
+  std::atomic_bool is_sdo_read_timeout_ = false;
+  std::atomic_bool is_sdo_write_timeout_ = false;
 };
 
 }  // namespace panther_hardware_interfaces
