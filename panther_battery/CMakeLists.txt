@@ -80,6 +80,7 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_battery
     rclcpp
     sensor_msgs
+    panther_msgs
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_battery_publisher test/test_battery_publisher.cpp src/battery_publisher.cpp)

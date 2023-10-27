@@ -12,9 +12,8 @@ namespace panther_battery
 {
 
 RoboteqBattery::RoboteqBattery(
-  const std::function<float()> & read_voltage, const std::function<float()> & read_current,
-  const RoboteqBatteryParams & params)
-: ReadVoltage(read_voltage), ReadCurrent(read_current)
+  const std::function<DriverStateMsg::SharedPtr()> & get_driver_state, const RoboteqBatteryParams & params)
+: GetDriverState(get_driver_state), driver_state_timeout_(params.driver_state_timeout)
 {
   voltage_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
     params.voltage_window_len, std::numeric_limits<float>::quiet_NaN());
@@ -26,8 +25,11 @@ bool RoboteqBattery::Present() { return true; }
 
 void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool)
 {
-  voltage_raw_ = ReadVoltage();
-  current_raw_ = ReadCurrent();
+  driver_state_ = GetDriverState();
+  ValidateDriverStateMsg(header_stamp);
+
+  voltage_raw_ = (driver_state_->front.voltage + driver_state_->rear.voltage) / 2.0f;
+  current_raw_ = driver_state_->front.current + driver_state_->rear.current;
   voltage_ma_->Roll(voltage_raw_);
   current_ma_->Roll(current_raw_);
 
@@ -41,6 +43,22 @@ void RoboteqBattery::Reset(const rclcpp::Time & header_stamp)
 
   ResetBatteryMsgs(header_stamp);
   SetErrorMsg("");
+}
+
+void RoboteqBattery::ValidateDriverStateMsg(const rclcpp::Time & header_stamp)
+{
+  if (!driver_state_) {
+    throw std::runtime_error("Waiting for driver state message to arrive");
+  }
+
+  rclcpp::Time msg_time(driver_state_->header.stamp);
+  if ((header_stamp - msg_time) > rclcpp::Duration::from_seconds(driver_state_timeout_)) {
+    throw std::runtime_error("Driver state message timeout");
+  }
+
+  if (driver_state_->front.fault_flag.can_net_err || driver_state_->rear.fault_flag.can_net_err) {
+    throw std::runtime_error("Motor controller CAN network error");
+  }
 }
 
 void RoboteqBattery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp)

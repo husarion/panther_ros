@@ -96,49 +96,6 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 }
 
-TEST_F(TestBatteryNodeRoboteq, ValidateDriverStateMsg)
-{
-  // Wait for node to initialize
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
-
-  EXPECT_THROW(battery_node_->ValidateDriverStateMsg(), std::runtime_error);
-
-  // Publish valid driver state
-  DriverStateMsg driver_state;
-  driver_state.header.stamp = battery_node_->get_clock()->now();
-  driver_state.front.voltage = 35.0f;
-  driver_state.rear.voltage = 35.0f;
-  driver_state.front.current = 0.1f;
-  driver_state.rear.current = 0.1f;
-  driver_state_pub_->publish(driver_state);
-
-  rclcpp::spin_some(battery_node_->get_node_base_interface());
-  EXPECT_NO_THROW(battery_node_->ValidateDriverStateMsg());
-
-  // publish with old timestamp
-  std::this_thread::sleep_for(std::chrono::milliseconds(150));
-  driver_state_pub_->publish(driver_state);
-
-  rclcpp::spin_some(battery_node_->get_node_base_interface());
-  EXPECT_THROW(battery_node_->ValidateDriverStateMsg(), std::runtime_error);
-
-  // publish valid
-  driver_state.header.stamp = battery_node_->get_clock()->now();
-  driver_state_pub_->publish(driver_state);
-
-  rclcpp::spin_some(battery_node_->get_node_base_interface());
-  EXPECT_NO_THROW(battery_node_->ValidateDriverStateMsg());
-
-  // publish with can net error
-  driver_state.header.stamp = battery_node_->get_clock()->now();
-  driver_state.front.fault_flag.can_net_err = true;
-  driver_state_pub_->publish(driver_state);
-
-  rclcpp::spin_some(battery_node_->get_node_base_interface());
-  EXPECT_THROW(battery_node_->ValidateDriverStateMsg(), std::runtime_error);
-}
-
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);

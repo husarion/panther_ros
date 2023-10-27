@@ -1,6 +1,12 @@
 #ifndef PANTHER_BATTERY_TEST_BATTERY_NODE_
+#define PANTHER_BATTERY_TEST_BATTERY_NODE_
 
+#include <filesystem>
+#include <fstream>
+#include <limits>
 #include <memory>
+#include <stdexcept>
+#include <string>
 
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
@@ -16,20 +22,6 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using DriverStateMsg = panther_msgs::msg::DriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
 
-class BatteryNodeWrapper : public panther_battery::BatteryNode
-{
-public:
-  BatteryNodeWrapper(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
-  : BatteryNode(node_name, options)
-  {
-  }
-
-  void ValidateDriverStateMsg(){
-    return BatteryNode::ValidateDriverStateMsg();
-  }
-};
-
 class TestBatteryNode : public testing::Test
 {
 public:
@@ -38,14 +30,14 @@ public:
 
 protected:
   template <typename T>
-  void WriteNumberToFile(const T number, const std::string file_path);
+  void WriteNumberToFile(const T number, const std::string & file_path);
 
   std::filesystem::path device0_path_;
   std::filesystem::path device1_path_;
   BatteryStateMsg::SharedPtr battery_state_;
   BatteryStateMsg::SharedPtr battery_1_state_;
   BatteryStateMsg::SharedPtr battery_2_state_;
-  std::shared_ptr<BatteryNodeWrapper> battery_node_;
+  std::shared_ptr<panther_battery::BatteryNode> battery_node_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_1_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_2_sub_;
@@ -93,7 +85,7 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
 
-  battery_node_ = std::make_shared<BatteryNodeWrapper>("battery_node", options);
+  battery_node_ = std::make_shared<panther_battery::BatteryNode>("battery_node", options);
 
   battery_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
     "battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
@@ -119,7 +111,7 @@ TestBatteryNode::~TestBatteryNode()
 }
 
 template <typename T>
-void TestBatteryNode::WriteNumberToFile(const T number, const std::string file_path)
+void TestBatteryNode::WriteNumberToFile(const T number, const std::string & file_path)
 {
   std::ofstream file(file_path);
   if (file.is_open()) {

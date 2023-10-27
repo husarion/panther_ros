@@ -6,10 +6,29 @@
 
 #include <sensor_msgs/msg/battery_state.hpp>
 
+#include <panther_msgs/msg/driver_state.hpp>
+
 #include <panther_battery/roboteq_battery.hpp>
 #include <panther_utils/test/test_utils.hpp>
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using DriverStateMsg = panther_msgs::msg::DriverState;
+
+class RoboteqBatteryWrapper : public panther_battery::RoboteqBattery
+{
+public:
+  RoboteqBatteryWrapper(
+    const std::function<DriverStateMsg::SharedPtr()> & get_driver_state,
+    const panther_battery::RoboteqBatteryParams & params)
+  : RoboteqBattery(get_driver_state, params)
+  {
+  }
+
+  void ValidateDriverStateMsg(const rclcpp::Time & header_stamp)
+  {
+    return RoboteqBattery::ValidateDriverStateMsg(header_stamp);
+  }
+};
 
 class TestRoboteqBattery : public testing::Test
 {
@@ -19,31 +38,40 @@ public:
 
 protected:
   void UpdateBattery(const float voltage, const float current);
-  void TestDefaultBatteryStateMsg(const uint8_t power_supply_status, const uint8_t power_supply_health);
+  void TestDefaultBatteryStateMsg(
+    const uint8_t power_supply_status, const uint8_t power_supply_health);
 
   void TestBatteryStateMsg(
     const float expected_voltage, const float expected_current, const float expected_percentage,
     const uint8_t power_supply_status, const uint8_t power_supply_health);
 
-  float battery_voltage_;
-  float battery_current_;
-  std::unique_ptr<panther_battery::Battery> battery_;
+  static constexpr float kDriverStateTimeout = 0.2;
+
+  std::unique_ptr<RoboteqBatteryWrapper> battery_;
   BatteryStateMsg battery_state_;
+  DriverStateMsg::SharedPtr driver_state_;
 };
 
 TestRoboteqBattery::TestRoboteqBattery()
 {
-  panther_battery::RoboteqBatteryParams params = {10, 10};
-  battery_ = std::make_unique<panther_battery::RoboteqBattery>(
-    [&]() { return battery_voltage_; }, [&]() { return battery_current_; }, params);
+  panther_battery::RoboteqBatteryParams params = {kDriverStateTimeout, 10, 10};
+  battery_ =
+    std::make_unique<RoboteqBatteryWrapper>(std::bind([&]() { return driver_state_; }), params);
 }
 
 void TestRoboteqBattery::UpdateBattery(const float voltage, const float current)
 {
-  auto stamp = rclcpp::Time(0);
+  if (!driver_state_) {
+    driver_state_ = std::make_shared<DriverStateMsg>();
+  }
 
-  battery_voltage_ = voltage;
-  battery_current_ = current;
+  auto stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
+
+  driver_state_->header.stamp = stamp;
+  driver_state_->front.voltage = voltage;
+  driver_state_->rear.voltage = voltage;
+  driver_state_->front.current = current;
+  driver_state_->rear.current = current;
 
   battery_->Update(stamp, false);
   battery_state_ = battery_->GetBatteryMsg();
@@ -110,28 +138,36 @@ TEST_F(TestRoboteqBattery, BatteryMsgUnknown)
 
 TEST_F(TestRoboteqBattery, BatteryMsgValues)
 {
-  UpdateBattery(35.0, 0.1);
+  const auto V_bat_full = 41.4;
+  const auto V_bat_min = 32.0;
 
-  float expected_voltage = 35.0;
-  float expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  float expected_current = 0.1;
+  const float voltage_1 = 35.0;
+  const float current_1 = 0.1;
+  UpdateBattery(voltage_1, current_1);
+
+  float expected_voltage = voltage_1;
+  float expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  float expected_current = current_1 * 2.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
-  UpdateBattery(37.0, 0.2);
-  expected_voltage = (35.0 + 37.0) / 2.0;
-  expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  expected_current = (0.1 + 0.2) / 2.0 ;
+  const float voltage_2 = 37.0;
+  const float current_2 = 0.2;
+  UpdateBattery(voltage_2, current_2);
+
+  expected_voltage = (voltage_1 + voltage_2) / 2.0;
+  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  expected_current = (current_1 * 2.0 + current_2 * 2.0) / 2.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // Check raw battery msg
   battery_state_ = battery_->GetBatteryMsgRaw();
-  expected_voltage = 37.0;
-  expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  expected_current = 0.2;
+  expected_voltage = voltage_2;
+  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  expected_current = current_2 * 2.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
@@ -168,6 +204,33 @@ TEST_F(TestRoboteqBattery, GetErrorMsg)
 
   ASSERT_TRUE(battery_->HasErrorMsg());
   EXPECT_NE("", battery_->GetErrorMsg());
+}
+
+TEST_F(TestRoboteqBattery, ValidateDriverStateMsg)
+{
+  auto stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
+
+  // check empty driver_state msg
+  EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
+
+  UpdateBattery(35.0f, 0.1f);
+  EXPECT_NO_THROW(battery_->ValidateDriverStateMsg(stamp));
+
+  // check timeout
+  const uint32_t timeout_nanoseconds = (kDriverStateTimeout + 0.05) * 1e9;
+  stamp = rclcpp::Time(0, timeout_nanoseconds, RCL_ROS_TIME);
+  EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
+
+  // reset error
+  stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
+  EXPECT_NO_THROW(battery_->ValidateDriverStateMsg(stamp));
+
+  // check can net error throw
+  driver_state_->front.fault_flag.can_net_err = true;
+  EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
+  driver_state_->front.fault_flag.can_net_err = false;
+  driver_state_->rear.fault_flag.can_net_err = true;
+  EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
 }
 
 int main(int argc, char ** argv)

@@ -23,9 +23,6 @@ public:
   BatteryNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
-protected:
-  void ValidateDriverStateMsg();
-
 private:
   void BatteryPubTimerCB();
   void Initialize();

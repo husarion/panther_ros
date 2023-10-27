@@ -107,7 +107,10 @@ void BatteryNode::InitializeWithRoboteqBattery()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing battery node using motor controllers data");
 
+  this->declare_parameter<float>("driver_state_timeout", 0.2);
+
   const RoboteqBatteryParams battery_params = {
+    static_cast<float>(this->get_parameter("driver_state_timeout").as_double()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/current").as_int()),
   };
@@ -116,35 +119,11 @@ void BatteryNode::InitializeWithRoboteqBattery()
     "driver/motor_controllers_state", 5,
     [&](const DriverStateMsg::SharedPtr msg) { driver_state_ = msg; });
 
-  battery_1_ = std::make_shared<RoboteqBattery>(
-    [&]() {
-      ValidateDriverStateMsg();
-      return (driver_state_->front.voltage + driver_state_->rear.voltage) / 2.0f;
-    },
-    [&]() {
-      ValidateDriverStateMsg();
-      return driver_state_->front.current + driver_state_->rear.current;
-    },
-    battery_params);
+  battery_1_ =
+    std::make_shared<RoboteqBattery>([&]() { return driver_state_; }, battery_params);
 
   battery_publisher_ =
     std::make_shared<SingleBatteryPublisher>(this->shared_from_this(), battery_1_);
-}
-
-void BatteryNode::ValidateDriverStateMsg()
-{
-  if (!driver_state_) {
-    throw std::runtime_error("Waiting for driver state message to arrive");
-  }
-
-  rclcpp::Time msg_time(driver_state_->header.stamp);
-  if ((this->get_clock()->now() - msg_time) > rclcpp::Duration::from_seconds(0.1)) {
-    throw std::runtime_error("Driver state message timeout");
-  }
-
-  if (driver_state_->front.fault_flag.can_net_err || driver_state_->rear.fault_flag.can_net_err) {
-    throw std::runtime_error("Motor controller CAN network error");
-  }
 }
 
 void BatteryNode::BatteryPubTimerCB()
