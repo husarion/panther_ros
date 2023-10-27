@@ -21,17 +21,29 @@ RoboteqDriver::RoboteqDriver(
 template <class type>
 type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 {
+  // TODO: describe edge case
+  std::unique_lock<std::mutex> sdo_read_lk(sdo_read_mtx_, std::defer_lock);
+  if (!sdo_read_lk.try_lock()) {
+    throw std::runtime_error(
+      "Can't submit new SDO read operation - previous one is still being processed");
+  }
+
   std::mutex mtx;
   std::condition_variable cv;
   type data;
   std::error_code err_code;
+
+  if (is_sdo_read_timeout_) {
+    throw std::runtime_error(
+      "Can't submit new SDO read operation - previous one that timed out is still in queue");
+  }
 
   try {
     this->SubmitRead<type>(
       index, subindex,
       [&is_sdo_read_timeout_ = is_sdo_read_timeout_, &mtx, &cv, &err_code, &data](
         uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
-        // TODO std::system_error
+        // TODO check std::system_error
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
         if (is_sdo_read_timeout_) {
@@ -55,9 +67,6 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 
   std::unique_lock lk(mtx);
   if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
-    // TODO abort??
-    // TODO: check if already true - then we have more problems (more operations in queue)
-    // maybe it is possible to clear all queue?
     is_sdo_read_timeout_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
   }
@@ -72,24 +81,32 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 template <class type>
 void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 {
+  std::unique_lock<std::mutex> sdo_write_lk(sdo_write_mtx_, std::defer_lock);
+  if (!sdo_write_lk.try_lock()) {
+    throw std::runtime_error(
+      "Can't submit new SDO write operation - previous one is still being processed");
+  }
+
   std::mutex mtx;
   std::condition_variable cv;
   std::error_code err_code;
 
   // TODO: what happens on read/write timeout
 
+  if (is_sdo_write_timeout_) {
+    throw std::runtime_error(
+      "Can't submit new SDO write operation - previous one that timed out is still in queue");
+  }
+
   try {
     this->SubmitWrite(
       index, subindex, data,
       [&is_sdo_write_timeout_ = is_sdo_write_timeout_, &mtx, &cv, &err_code](
         uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
-        // TODO std::system_error
+        // TODO check std::system_error
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
         if (is_sdo_write_timeout_) {
-          // TODO: there is one edge case, when multiple operations are queued, and in
-          // this case is still won't be solved, it would be best to cancel
-          // submitwrite operation
           is_sdo_write_timeout_.store(false);
           return;
         }
@@ -109,7 +126,6 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   std::unique_lock lk(mtx);
 
   if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
-    // TODO abort??
     is_sdo_write_timeout_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
   }

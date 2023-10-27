@@ -111,6 +111,7 @@ public:
   bool Boot();
 
 private:
+  // TODO: fix naming
   std::atomic<bool> booted = false;
   std::condition_variable boot_cond;
   std::mutex boot_mtx;
@@ -155,6 +156,9 @@ private:
 
   std::atomic_bool is_sdo_read_timeout_ = false;
   std::atomic_bool is_sdo_write_timeout_ = false;
+
+  std::mutex sdo_read_mtx_;
+  std::mutex sdo_write_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces
