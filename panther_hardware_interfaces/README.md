@@ -61,6 +61,34 @@ This package doesn't contain any nodes - it is used as a plugin within controlle
 ### Services
 - `/panther_system_node/clear_errors` [*std_srvs/Trigger*]: clear current errors
 
+## panther_hardware_interface parameters
+
+Parameters that are required, they are defined when including interface in URDF (you can check out panther_macro.urdf.xacro).
+
+Physical properties
+ - `encoder_resolution` [*int*, default: 1600] - property of the encoder used, shouldn't be changed
+ - `gear_ratio` [*float*, default: 30.08] - property of the gearbox used, shouldn't be changed
+ - `motor_torque_constant` [*float*, default: 0.11] - same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor 
+ - `max_rpm_motor_speed` [*float*, default: 3600.0] - max RPM speed set in the Roboteq driver (MXRPM parameter)
+ - `gearbox_efficiency` [*float*, default: 0.75] - measured efficiency, used for converting read current to torque, can very depending on different factors such as temperature and wear
+
+CAN settings
+ - `master_can_id` [*int*, default: 3] - CAN ID of the master device (set as in `panther_can.yaml`)
+ - `front_driver_can_id` [*int*, default: 1] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
+ - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
+ - `sdo_operation_timeout` [*int*, default: 4 [ms]] - it is set so that full controller loop takes up to required time. Each controller loop contains of two SDO operations (one write and one read). For example in 100Hz loop there is up to 10ms for every operation. This timeout should be set so that in worst case everything takes 10ms.
+ - `feedback_timeout` [*int*, default: 15 [ms]]  - depends on frequnecy at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data, if it takes more than `feedback_timeout`, PDO read error is triggered
+ - `roboteq_initialization_attempts` [*int*, default: 5] - in some cases SDO error happen during initialization, it is possible to configure more attempts, before escaliting to error
+ - `roboteq_activation_attempts` [*int*, default: 5] - similat to initilizaiton, it is possible to allow some SDO errors before escaliting to error
+ - `max_write_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
+ - `max_read_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
+ - `max_read_pdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
+
+## Generating CAN config
+
+Adjust your configuration and generate new `master.dcf` using:
+`dcfgen panther_can.yaml -r`
+
 ## Setup
 
 <!-- TODO: automate and move it to CMakeLists -->
