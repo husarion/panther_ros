@@ -1,6 +1,7 @@
 #ifndef PANTHER_BATTERY_ROBOTEQ_BATTERY_HPP_
 #define PANTHER_BATTERY_ROBOTEQ_BATTERY_HPP_
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 

@@ -1,4 +1,6 @@
 #include <chrono>
+#include <cmath>
+#include <functional>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -54,9 +56,8 @@ protected:
 
 TestRoboteqBattery::TestRoboteqBattery()
 {
-  panther_battery::RoboteqBatteryParams params = {kDriverStateTimeout, 10, 10};
-  battery_ =
-    std::make_unique<RoboteqBatteryWrapper>(std::bind([&]() { return driver_state_; }), params);
+  const panther_battery::RoboteqBatteryParams params = {kDriverStateTimeout, 10, 10};
+  battery_ = std::make_unique<RoboteqBatteryWrapper>([&]() { return driver_state_; }, params);
 }
 
 void TestRoboteqBattery::UpdateBattery(const float voltage, const float current)

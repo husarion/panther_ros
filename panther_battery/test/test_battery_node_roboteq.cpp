@@ -1,6 +1,8 @@
 #include <include/test_battery_node.hpp>
 
 #include <chrono>
+#include <cmath>
+#include <thread>
 
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
@@ -43,7 +45,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   EXPECT_FLOAT_EQ(35.0, battery_state_->voltage);
   EXPECT_FLOAT_EQ(0.2, battery_state_->current);
 
-  // for single battery if readings stay the same values of battery_1 and battery should be the same
+  // If readings stay the same values of battery_1 and battery should be the same
   EXPECT_FLOAT_EQ(battery_1_state_->voltage, battery_state_->voltage);
   EXPECT_FLOAT_EQ(battery_1_state_->current, battery_state_->current);
   EXPECT_FLOAT_EQ(battery_1_state_->percentage, battery_state_->percentage);
