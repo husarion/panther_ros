@@ -87,7 +87,6 @@ protected:
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_;
 
-  // TODO: check
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
 
   DrivetrainSettings drivetrain_settings_;

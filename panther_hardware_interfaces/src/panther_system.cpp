@@ -212,7 +212,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing roboteqs");
 
-  // TODO: check
   if (!OperationWithAttempts(
         std::bind(&PantherWheelsController::Initialize, roboteq_controller_),
         max_roboteq_initialization_attempts_,
