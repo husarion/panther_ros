@@ -1,13 +1,5 @@
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
 
-#include <cmath>
-#include <filesystem>
-#include <iostream>
-
-#include <ament_index_cpp/get_package_share_directory.hpp>
-
-#include <realtime_tools/thread_priority.hpp>
-
 namespace panther_hardware_interfaces
 {
 
@@ -16,148 +8,17 @@ int const kSchedPriority = 55;
 
 PantherWheelsController::PantherWheelsController(
   CanSettings can_settings, DrivetrainSettings drivetrain_settings)
-: front_data_(drivetrain_settings),
+: can_controller_(can_settings),
+  front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_command_converter_(drivetrain_settings),
   motors_feedback_timeout_(can_settings.feedback_timeout)
 {
-  can_settings_ = can_settings;
 }
 
-void PantherWheelsController::Initialize()
-{
-  can_communication_started_.store(false);
+void PantherWheelsController::Initialize() { can_controller_.Initialize(); }
 
-  can_communication_thread_ = std::thread([this]() {
-    if (realtime_tools::has_realtime_kernel()) {
-      if (!realtime_tools::configure_sched_fifo(kSchedPriority)) {
-        std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
-      } else {
-        std::cerr << "FIFO RT scheduling policy with priority " << kSchedPriority
-                  << " set (CAN thread) " << std::endl;
-      }
-    } else {
-      std::cerr << "RT kernel is recommended for better performance (CAN thread)" << std::endl;
-    }
-
-    try {
-      lely::io::IoGuard io_guard;
-
-      ctx_ = std::make_shared<lely::io::Context>();
-      poll_ = std::make_shared<lely::io::Poll>(*ctx_);
-      loop_ = std::make_shared<lely::ev::Loop>(poll_->get_poll());
-      exec_ = std::make_shared<lely::ev::Executor>(loop_->get_executor());
-
-      timer_ = std::make_shared<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
-
-      ctrl_ = std::make_shared<lely::io::CanController>("panther_can");
-      chan_ = std::make_shared<lely::io::CanChannel>(*poll_, *exec_);
-
-      chan_->open(*ctrl_);
-
-      // Master dcf is generated from roboteq_motor_controllers_v80_21 using following command:
-      // dcfgen panther_can.yaml -r
-      // dcfgen comes with lely, -r option tells to enable remote PDO mapping
-      std::string master_dcf_path =
-        std::filesystem::path(
-          ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
-        "config" / "master.dcf";
-
-      master_ = std::make_shared<lely::canopen::AsyncMaster>(
-        *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
-
-      front_driver_ = std::make_unique<RoboteqDriver>(
-        *exec_, *master_, can_settings_.front_driver_can_id, can_settings_.sdo_operation_timeout);
-      rear_driver_ = std::make_unique<RoboteqDriver>(
-        *exec_, *master_, can_settings_.rear_driver_can_id, can_settings_.sdo_operation_timeout);
-
-      // Start the NMT service of the master by pretending to receive a 'reset
-      // node' command.
-      master_->Reset();
-
-    } catch (std::system_error & err) {
-      std::cerr << "Exception caught during CAN intialization: " << err.what() << std::endl;
-      {
-        std::lock_guard lk(can_communication_started_mtx_);
-        can_communication_started_.store(false);
-      }
-      can_communication_started_cond_.notify_all();
-      return;
-    }
-
-    {
-      std::lock_guard lk(can_communication_started_mtx_);
-      can_communication_started_.store(true);
-    }
-    can_communication_started_cond_.notify_all();
-
-    try {
-      loop_->run();
-    } catch (std::system_error & err) {
-      // TODO: error state
-      std::cerr << "Exception caught in loop run: " << err.what() << std::endl;
-    }
-  });
-
-  if (!can_communication_started_.load()) {
-    std::unique_lock lck(can_communication_started_mtx_);
-    can_communication_started_cond_.wait(lck);
-  }
-
-  if (!can_communication_started_.load()) {
-    throw std::runtime_error("CAN communication not initialized");
-  }
-
-  try {
-    front_driver_->Boot();
-  } catch (std::system_error & err) {
-    throw std::runtime_error(
-      "Exception caught when trying to Boot front driver" + std::string(err.what()));
-  }
-
-  try {
-    rear_driver_->Boot();
-  } catch (std::system_error & err) {
-    throw std::runtime_error(
-      "Exception caught when trying to Boot rear driver" + std::string(err.what()));
-  }
-
-  // TODO combine try-catch
-  try {
-    front_driver_->wait_for_boot();
-    // TODO change exceptions to const
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Front driver boot failed");
-  }
-
-  try {
-    rear_driver_->wait_for_boot();
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Rear driver boot failed");
-  }
-}
-
-void PantherWheelsController::Deinitialize()
-{
-  can_communication_started_.store(false);
-  if (master_) {
-    master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
-  }
-  // TODO: check
-  can_communication_thread_.join();
-
-  // without resets: corrupted double-linked list
-  rear_driver_.reset();
-  front_driver_.reset();
-  master_.reset();
-  chan_.reset();
-  ctrl_.reset();
-  timer_.reset();
-  exec_.reset();
-  loop_.reset();
-  poll_.reset();
-  ctx_.reset();
-}
+void PantherWheelsController::Deinitialize() { can_controller_.Deinitialize(); }
 
 void PantherWheelsController::Activate()
 {
@@ -165,14 +26,14 @@ void PantherWheelsController::Activate()
   // and then send 0 commands for some time (also 1 second)
 
   try {
-    front_driver_->ResetRoboteqScript();
+    can_controller_.GetFrontDriver()->ResetRoboteqScript();
   } catch (std::runtime_error & err) {
     throw std::runtime_error(
       "Front driver reset roboteq script exception: " + std::string(err.what()));
   }
 
   try {
-    rear_driver_->ResetRoboteqScript();
+    can_controller_.GetRearDriver()->ResetRoboteqScript();
   } catch (std::runtime_error & err) {
     throw std::runtime_error(
       "Rear driver reset roboteq script exception: " + std::string(err.what()));
@@ -181,12 +42,12 @@ void PantherWheelsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   try {
-    front_driver_->SendRoboteqCmd(0, 0);
+    can_controller_.GetFrontDriver()->SendRoboteqCmd(0, 0);
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver send 0 command exception: " + std::string(err.what()));
   }
   try {
-    rear_driver_->SendRoboteqCmd(0, 0);
+    can_controller_.GetRearDriver()->SendRoboteqCmd(0, 0);
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver send 0 command exception: " + std::string(err.what()));
   }
@@ -195,8 +56,10 @@ void PantherWheelsController::Activate()
 
 void PantherWheelsController::UpdateSystemFeedback()
 {
-  RoboteqDriverFeedback front_driver_feedback = front_driver_->ReadRoboteqDriverFeedback();
-  RoboteqDriverFeedback rear_driver_feedback = rear_driver_->ReadRoboteqDriverFeedback();
+  RoboteqDriverFeedback front_driver_feedback =
+    can_controller_.GetFrontDriver()->ReadRoboteqDriverFeedback();
+  RoboteqDriverFeedback rear_driver_feedback =
+    can_controller_.GetRearDriver()->ReadRoboteqDriverFeedback();
 
   timespec front_driver_ts = front_driver_feedback.timestamp;
   timespec rear_driver_ts = rear_driver_feedback.timestamp;
@@ -216,8 +79,8 @@ void PantherWheelsController::UpdateSystemFeedback()
   rear_data_.SetMotorStates(
     rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_too_old);
 
-  bool front_can_error = front_driver_->get_can_error();
-  bool rear_can_error = rear_driver_->get_can_error();
+  bool front_can_error = can_controller_.GetFrontDriver()->get_can_error();
+  bool rear_can_error = can_controller_.GetRearDriver()->get_can_error();
 
   front_data_.SetFlags(
     front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
@@ -239,28 +102,28 @@ bool PantherWheelsController::UpdateDriversState()
   try {
     switch (current_update_) {
       case 0:
-        front_data_.SetTemperature(front_driver_->ReadTemperature());
+        front_data_.SetTemperature(can_controller_.GetFrontDriver()->ReadTemperature());
         break;
       case 1:
-        front_data_.SetVoltage(front_driver_->ReadVoltage());
+        front_data_.SetVoltage(can_controller_.GetFrontDriver()->ReadVoltage());
         break;
       case 2:
-        front_data_.SetBatAmps1(front_driver_->ReadBatAmps1());
+        front_data_.SetBatAmps1(can_controller_.GetFrontDriver()->ReadBatAmps1());
         break;
       case 3:
-        front_data_.SetBatAmps2(front_driver_->ReadBatAmps2());
+        front_data_.SetBatAmps2(can_controller_.GetFrontDriver()->ReadBatAmps2());
         break;
       case 4:
-        rear_data_.SetTemperature(rear_driver_->ReadTemperature());
+        rear_data_.SetTemperature(can_controller_.GetRearDriver()->ReadTemperature());
         break;
       case 5:
-        rear_data_.SetVoltage(rear_driver_->ReadVoltage());
+        rear_data_.SetVoltage(can_controller_.GetRearDriver()->ReadVoltage());
         break;
       case 6:
-        rear_data_.SetBatAmps1(rear_driver_->ReadBatAmps1());
+        rear_data_.SetBatAmps1(can_controller_.GetRearDriver()->ReadBatAmps1());
         break;
       case 7:
-        rear_data_.SetBatAmps2(rear_driver_->ReadBatAmps2());
+        rear_data_.SetBatAmps2(can_controller_.GetRearDriver()->ReadBatAmps2());
         break;
     }
 
@@ -283,20 +146,22 @@ void PantherWheelsController::WriteSpeed(
 {
   // Channel 1 - right, Channel 2 - left
   try {
-    front_driver_->SendRoboteqCmd(
+    can_controller_.GetFrontDriver()->SendRoboteqCmd(
       roboteq_command_converter_.Convert(speed_fr), roboteq_command_converter_.Convert(speed_fl));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
   }
   try {
-    rear_driver_->SendRoboteqCmd(
+    can_controller_.GetRearDriver()->SendRoboteqCmd(
       roboteq_command_converter_.Convert(speed_rr), roboteq_command_converter_.Convert(speed_rl));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
 
   // TODO
-  if (front_driver_->get_can_error() || rear_driver_->get_can_error()) {
+  if (
+    can_controller_.GetFrontDriver()->get_can_error() ||
+    can_controller_.GetRearDriver()->get_can_error()) {
     throw std::runtime_error("CAN error detected when trying to write speed commands");
   }
 }
@@ -304,8 +169,8 @@ void PantherWheelsController::WriteSpeed(
 void PantherWheelsController::TurnOnEstop()
 {
   try {
-    front_driver_->TurnOnEstop();
-    rear_driver_->TurnOnEstop();
+    can_controller_.GetFrontDriver()->TurnOnEstop();
+    can_controller_.GetRearDriver()->TurnOnEstop();
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Exception when trying to turn on estop: " + std::string(err.what()));
   }
@@ -313,9 +178,10 @@ void PantherWheelsController::TurnOnEstop()
 
 void PantherWheelsController::TurnOffEstop()
 {
+  // TODO: separate
   try {
-    front_driver_->TurnOffEstop();
-    rear_driver_->TurnOffEstop();
+    can_controller_.GetFrontDriver()->TurnOffEstop();
+    can_controller_.GetRearDriver()->TurnOffEstop();
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Exception when trying to turn off estop: " + std::string(err.what()));
   }
@@ -326,8 +192,8 @@ void PantherWheelsController::TurnOffEstop()
 void PantherWheelsController::TurnOnSafetyStop()
 {
   try {
-    front_driver_->TurnOnSafetyStop();
-    rear_driver_->TurnOnSafetyStop();
+    can_controller_.GetFrontDriver()->TurnOnSafetyStop();
+    can_controller_.GetRearDriver()->TurnOnSafetyStop();
   } catch (std::runtime_error & err) {
     throw std::runtime_error(
       "Exception when trying to turn on safety stop: " + std::string(err.what()));

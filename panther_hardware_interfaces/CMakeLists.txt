@@ -36,6 +36,7 @@ add_library(
   SHARED
   src/panther_system.cpp
   src/panther_wheels_controller.cpp
+  src/can_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
 )

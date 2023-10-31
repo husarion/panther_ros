@@ -10,10 +10,13 @@ A brief introduction on code structure of panther system.
 
 Low level CANopen driver implementing FiberDriver from [Lely](https://opensource.lely.com/canopen/) ([here](https://en.wikipedia.org/wiki/Fiber_%28computer_science%29) you can read more about fibers). It takes care of translating CANopen indexes into meaningful data. It handles PDO and SDO communication and provides methods for sending commands and reading all the useful parameters from the Roboteq drivers. It saves timestamp of last RPDO, which can be later used to detect timeout errors.
 
+### `can_controller`
+Takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - intializaiton. For handling CANopen communication separate thread is created.  
+
 ### `panther_wheels_controller`
 
 It abstract usage of two Roboteq controllers:
-* takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - intializaiton. For handling CANopen communication separate thread is created.  
+* uses `can_controller` for communication with Roboteq controllers
 * implements activate procedure for controllers - resets script and sends initial 0 command.
 * provides methods to get data feedback and send commands. Data is converted between raw Roboteq formats and SI units using `roboteq_data_converters`
 
@@ -50,6 +53,7 @@ Apart from usual ros2_control interface, it also creates node to provide additio
 * publishing current drivers state
 * service for clearing errors
 
+<!-- TODO: when exception is thrown it is not RT safe -->
 
 ## ROS Nodes
 
