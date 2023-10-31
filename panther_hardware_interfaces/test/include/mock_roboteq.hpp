@@ -65,11 +65,15 @@ public:
   void SetRoboteqCmd(uint8_t channel, int32_t value) { (*this)[0x2000][channel] = value; }
   void SetResetRoboteqScript(uint8_t value) { (*this)[0x2018][0] = value; }
 
+  void SetTurnOnEstop(uint8_t value) { (*this)[0x200C][0] = value; }
+  void SetTurnOffEstop(uint8_t value) { (*this)[0x200D][0] = value; }
+  void SetTurnOnSafetyStop(uint8_t value) { (*this)[0x202C][0] = value; }
+
   int32_t GetRoboteqCmd(uint8_t channel) { return (*this)[0x2000][channel]; }
   uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
   uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
+  uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
   uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
-  uint8_t GetTurnOffEstop() { return (*this)[0x202C][0]; }
 
   void ClearErrorFlags();
 

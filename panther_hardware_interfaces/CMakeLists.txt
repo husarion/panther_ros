@@ -131,6 +131,24 @@ if(BUILD_TESTING)
   )
   target_link_libraries(${PROJECT_NAME}_test_can_controller PkgConfig::LIBLELY_COAPP)
 
+  ament_add_gtest(${PROJECT_NAME}_test_roboteq_driver
+    test/test_roboteq_driver.cpp
+    test/src/mock_roboteq.cpp
+    src/can_controller.cpp
+    src/roboteq_driver.cpp
+  )
+  target_include_directories(${PROJECT_NAME}_test_roboteq_driver PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    include
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver
+    rclcpp
+    panther_msgs
+    realtime_tools
+  )
+  target_link_libraries(${PROJECT_NAME}_test_roboteq_driver PkgConfig::LIBLELY_COAPP)
+
+
   # add_executable(mock_roboteq test/src/mock_roboteq.cpp)
   # target_include_directories(mock_roboteq PUBLIC
   #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
