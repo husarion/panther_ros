@@ -81,23 +81,36 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(${PROJECT_NAME}_panther_system_test test/test_panther_system.cpp test/src/mock_roboteq.cpp)
-  target_include_directories(${PROJECT_NAME}_panther_system_test PUBLIC
+  ament_add_gtest(${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp test/src/mock_roboteq.cpp)
+  target_include_directories(${PROJECT_NAME}_test_panther_system PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
   )
-  ament_target_dependencies(${PROJECT_NAME}_panther_system_test
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_system
     hardware_interface
     rclcpp
     panther_msgs
   )
-  target_link_libraries(${PROJECT_NAME}_panther_system_test PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_test_panther_system PkgConfig::LIBLELY_COAPP)
 
-  ament_add_gtest(${PROJECT_NAME}_panther_system_error_handler_test test/test_panther_system_error_handler.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_panther_system_error_handler test/test_panther_system_error_handler.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_panther_system_error_handler_test
+    ${PROJECT_NAME}_test_panther_system_error_handler
     PRIVATE
     include
   )
+
+  ament_add_gtest(${PROJECT_NAME}_test_roboteq_data_converters
+    test/test_roboteq_data_converters.cpp
+    src/roboteq_data_converters.cpp
+  )
+  target_include_directories(
+    ${PROJECT_NAME}_test_roboteq_data_converters
+    PRIVATE
+    include
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
+  panther_msgs
+)
 
   # add_executable(mock_roboteq test/src/mock_roboteq.cpp)
   # target_include_directories(mock_roboteq PUBLIC
