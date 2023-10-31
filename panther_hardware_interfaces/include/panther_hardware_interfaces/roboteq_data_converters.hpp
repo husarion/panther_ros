@@ -1,11 +1,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES__ROBOTEQ_DATA_CONVERTERS_HPP_
 #define PANTHER_HARDWARE_INTERFACES__ROBOTEQ_DATA_CONVERTERS_HPP_
 
-#include <atomic>
-#include <condition_variable>
 #include <vector>
-
-#include <lely/coapp/fiber_driver.hpp>
 
 #include <panther_msgs/msg/fault_flag.hpp>
 #include <panther_msgs/msg/script_flag.hpp>
@@ -48,7 +44,7 @@ private:
   float roboteq_vel_feedback_to_radians_per_second_;
   float roboteq_current_feedback_to_newton_meters_;
 
-  RoboteqMotorState last_state_;
+  RoboteqMotorState last_state_ = {0, 0, 0};
 };
 
 class RoboteqCommandConverter
@@ -153,14 +149,14 @@ public:
   void SetBatAmps2(int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
 
   float GetTemperature() const { return last_temp_; }
-  float GetVoltage() const { return last_voltage_ / 10; }
-  float GetCurrent() const { return last_bat_amps_1_ / 10.0 + last_bat_amps_2_ / 10.0; }
+  float GetVoltage() const { return last_voltage_ / 10.0; }
+  float GetCurrent() const { return (last_bat_amps_1_ + last_bat_amps_2_) / 10.0; }
 
 private:
-  int16_t last_temp_;
-  uint16_t last_voltage_;
-  int16_t last_bat_amps_1_;
-  int16_t last_bat_amps_2_;
+  int16_t last_temp_ = 0;
+  uint16_t last_voltage_ = 0;
+  int16_t last_bat_amps_1_ = 0;
+  int16_t last_bat_amps_2_ = 0;
 };
 
 class RoboteqData

@@ -1,12 +1,6 @@
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 #include <cmath>
-#include <filesystem>
-#include <iostream>
-
-#include <ament_index_cpp/get_package_share_directory.hpp>
-
-#include <realtime_tools/thread_priority.hpp>
 
 #include <panther_hardware_interfaces/utils.hpp>
 
@@ -35,7 +29,7 @@ MotorState::MotorState(DrivetrainSettings drivetrain_settings)
   // 3. Convert motor Nm torque to wheel ideal Nm torque (multiplication by gear_ratio)
   // 4. Convert wheel ideal Nm torque to wheel real Nm torque (multiplication by gearbox_efficiency)
   roboteq_current_feedback_to_newton_meters_ =
-    (1.0 / 10.) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
+    (1.0 / 10.0) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
     drivetrain_settings.gearbox_efficiency;
 }
 
@@ -55,7 +49,7 @@ std::string FlagError::GetErrorLog() const
 {
   std::string error_msg = "";
   for (size_t i = 0; i < flag_names_.size(); ++i) {
-    if (BitSet(flags_, i)) {
+    if (BitSet(flags_ & surpressed_flags_, i)) {
       error_msg += flag_names_[i] + " ";
     }
   }
