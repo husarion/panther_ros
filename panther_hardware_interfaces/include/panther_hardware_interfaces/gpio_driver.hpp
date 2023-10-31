@@ -2,16 +2,26 @@
 #define PANTHER_HARDWARE_INTERFACES__GPIO_CONTROLLER_HPP_
 
 #include <atomic>
-#include <cstdlib>
 #include <thread>
 #include <vector>
 #include <poll.h>
+
+#include <boost/function.hpp>
 #include <gpiod.hpp>
 
 namespace panther_hardware_interfaces
 {
+enum class GPIOpins {
+  WATCHDOG = 0,
+  E_STOP_RESET,
+  MOTOR_DRIVER_EN,
+  VMOT_ON,
+  FAN_SW,
+  TEST_IN,
+  UNKNOWN
+};
 
-enum class GPIOpins { WATCHDOG, E_STOP_RESET, MOTOR_DRIVER_EN, VMOT_ON, TEST_IN, UNKNOWN };
+GPIOpins operator+(const GPIOpins & pin, int int_val);
 
 struct GPIOinfo
 {
@@ -23,35 +33,46 @@ struct GPIOinfo
   gpiod::line::offset offset = -1;
 };
 
-class GPIODriver
+class GPIOController
 {
 public:
-  GPIODriver();
-  ~GPIODriver();
+  GPIOController();
+  ~GPIOController();
+
+  void start();
+  bool motors_enable(bool enable) { return set_pin_value(GPIOpins::VMOT_ON, enable); }
+  bool fan_enable(bool enable) { return set_pin_value(GPIOpins::FAN_SW, enable); }
+  bool e_stop_trigger();
+  bool e_stop_reset();
+
+  boost::function<void(const GPIOinfo & gpio_info)> publish_gpio_state_callback;
+
+private:
+  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip, GPIOpins pins);
+  std::unique_ptr<gpiod::line_request> create_line_request(
+    gpiod::chip & chip, const std::vector<GPIOpins> & pins);
+
+  void configure_line_request(gpiod::chip & chip, gpiod::request_builder & builder, GPIOpins pin);
+  gpiod::line_settings generate_line_settings(const GPIOinfo & pin_info);
+  GPIOpins get_pin_from_offset(gpiod::line::offset offset) const;
 
   bool get_pin_value(GPIOpins pin);
   bool set_pin_value(GPIOpins pin, bool value);
-  void watchdog_on();
-  void watchdog_off();
+  bool watchdog_on();
+  bool watchdog_off();
   bool is_watchdog_thread_running() const;
-
-private:
-  std::unique_ptr<gpiod::line_request> get_line_request(gpiod::chip & chip, GPIOpins pins);
-  std::unique_ptr<gpiod::line_request> get_line_request(
-    gpiod::chip & chip, const std::vector<GPIOpins> & pins);
-  GPIOpins get_name_from_offset(gpiod::line::offset offset) const;
-
   void gpio_monitor_on();
   void gpio_monitor_off();
+  void monitor_async_events();
   void handle_edge_event(const gpiod::edge_event & event);
+  void watchdog_thread();
 
-  std::vector<GPIOpins> controll_pins_ = {
-    GPIOpins::E_STOP_RESET, GPIOpins::MOTOR_DRIVER_EN, GPIOpins::VMOT_ON, GPIOpins::TEST_IN};
   std::map<GPIOpins, GPIOinfo> gpio_info_{
     {GPIOpins::WATCHDOG, GPIOinfo{"TXD1", gpiod::line::direction::OUTPUT}},
     {GPIOpins::E_STOP_RESET, GPIOinfo{"GPIO18", gpiod::line::direction::OUTPUT}},
     {GPIOpins::MOTOR_DRIVER_EN, GPIOinfo{"GPIO23", gpiod::line::direction::OUTPUT}},
     {GPIOpins::VMOT_ON, GPIOinfo{"GPIO6", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::FAN_SW, GPIOinfo{"GPIO5", gpiod::line::direction::OUTPUT}},
     {GPIOpins::TEST_IN, GPIOinfo{"SDA1", gpiod::line::direction::INPUT}},
   };
 
@@ -61,26 +82,11 @@ private:
   std::unique_ptr<std::thread> watchdog_thread_;
   std::atomic<bool> gpio_monitor_thread_enabled_{false};
   std::atomic<bool> watchdog_thread_enabled_{false};
-
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
   const std::filesystem::path gpio_chip_path_ = "/dev/gpiochip0";
 
   static gpiod::line::value toggle_value(gpiod::line::value & value);
-};
-
-class GPIOController
-{
-public:
-  GPIOController() { gpio_driver_ = std::make_unique<GPIODriver>(); }
-
-  void start();
-  bool motors_enable(bool enable);
-  bool e_stop_trigger();
-  bool e_stop_reset();
-
-private:
-  std::unique_ptr<GPIODriver> gpio_driver_;
 };
 
 }  // namespace panther_hardware_interfaces
