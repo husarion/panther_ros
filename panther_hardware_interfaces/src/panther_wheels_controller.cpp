@@ -110,10 +110,16 @@ void PantherWheelsController::Initialize()
 
   try {
     front_driver_->Boot();
+  } catch (std::system_error & err) {
+    throw std::runtime_error(
+      "Exception caught when trying to Boot front driver" + std::string(err.what()));
+  }
+
+  try {
     rear_driver_->Boot();
-  } catch (std::system_error & ex) {
-    // TODO add info which driver
-    std::cerr << "Exception caught when trying to Boot drivers";
+  } catch (std::system_error & err) {
+    throw std::runtime_error(
+      "Exception caught when trying to Boot rear driver" + std::string(err.what()));
   }
 
   // TODO combine try-catch
@@ -315,6 +321,7 @@ void PantherWheelsController::TurnOffEstop()
   }
 }
 
+// TODO: add this info to readme
 // Safety stop is turned off when 0 command is published
 void PantherWheelsController::TurnOnSafetyStop()
 {
