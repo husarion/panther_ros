@@ -80,17 +80,24 @@ public:
 
   void TriggerPDOPublish();
 
-  void SetOnWriteWait(uint32_t wait_time_microseconds)
+  template <class type>
+  void SetOnWriteWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
   {
-    OnWrite<int32_t>(
-      0x2000, 1,
-      [wait_time_microseconds](
-        uint16_t idx, uint8_t subidx, int32_t &, int32_t) -> std::error_code {
-        if (idx == 0x2000 && subidx == 1) {
-          // TODO add comment
-          // Blocks whole communication
-          usleep(wait_time_microseconds);
-        }
+    OnWrite<type>(
+      idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, type &, type) -> std::error_code {
+        // TODO add comment
+        // Blocks whole communication
+        usleep(wait_time_microseconds);
+        return std::error_code();
+      });
+  }
+
+  template <class type>
+  void SetOnReadWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
+  {
+    OnRead<type>(
+      idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, type &) -> std::error_code {
+        usleep(wait_time_microseconds);
         return std::error_code();
       });
   }

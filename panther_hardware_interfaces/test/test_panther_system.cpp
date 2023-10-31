@@ -462,7 +462,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 //   state_msg.reset();
 
 //   // More than sdo_operation_wait_timeout_
-//   roboteq_mock_->front_driver_->SetOnWriteWait(5001);
+//   roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 5001);
 //   rm_->write(TIME, PERIOD);
 
 //   // std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
