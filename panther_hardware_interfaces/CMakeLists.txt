@@ -1,14 +1,34 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(panther_hardware_interfaces)
-
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
+# install libgpiod
+include(ExternalProject)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+
+ExternalProject_Add(libgpiod-build
+  GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+  GIT_TAG v2.0.2
+  # EXCLUDE_FROM_ALL TRUE
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
+  CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh --prefix=<INSTALL_DIR> --enable-tools=no --enable-bindings-cxx
+  BUILD_COMMAND make -j ${N}
+  INSTALL_COMMAND make install INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
+  BUILD_IN_SOURCE 1
+)
+
+add_library(libgpiod STATIC IMPORTED GLOBAL)
+add_dependencies(libgpiod libgpiod-build)
+
+set_target_properties(libgpiod PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib/libgpiodcxx.so)
+set_target_properties(libgpiod PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # find dependencies
 set(PACKAGE_INCLUDE_DEPENDS
@@ -28,6 +48,24 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
+
+# #### Trash for testing purpose
+# include_directories(
+#   include
+#   ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
+# )
+
+# add_executable(gpio_test
+#   src/gpio_driver.cpp
+#   src/gpio_test.cpp
+# )
+
+# target_link_libraries(gpio_test libgpiod)
+
+# install(TARGETS gpio_test
+#   DESTINATION lib/${PROJECT_NAME}
+# )
+# #######
 
 add_library(
   ${PROJECT_NAME}
@@ -52,7 +90,7 @@ ament_target_dependencies(
   panther_msgs
   realtime_tools
 )
-target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP gpiodcxx)
+target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP libgpiod)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
 
