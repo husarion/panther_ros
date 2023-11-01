@@ -56,6 +56,8 @@ public:
   void SetCurrent(uint8_t channel, int32_t value);
   void SetDriverFaultFlag(DriverFaultFlags flag);
   void SetDriverScriptFlag(DriverScriptFlags flag);
+
+  // TODO: channel 0,1 or 1,2
   void SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors flag);
   void SetTemperature(int8_t value) { (*this)[0x210F][1] = value; }
   void SetVoltage(uint16_t value) { (*this)[0x210D][2] = value; }
@@ -79,7 +81,7 @@ public:
 
   void InitializeValues();
 
-  void StartPublishing();
+  void StartPublishing(std::chrono::milliseconds period = std::chrono::milliseconds(100));
   void StopPublishing();
 
   void TriggerPDOPublish();

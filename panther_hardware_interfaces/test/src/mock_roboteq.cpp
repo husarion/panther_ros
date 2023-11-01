@@ -50,14 +50,14 @@ void RoboteqSlave::InitializeValues()
   ClearErrorFlags();
 };
 
-void RoboteqSlave::StartPublishing()
+void RoboteqSlave::StartPublishing(std::chrono::milliseconds period)
 {
-  pdo_publishing_thread_ = std::thread([this]() {
+  pdo_publishing_thread_ = std::thread([this, period]() {
     while (!stop_publishing_) {
       // std::cout << "Publishing PDO" << std::endl;
 
       TriggerPDOPublish();
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(period);
     }
   });
 }
