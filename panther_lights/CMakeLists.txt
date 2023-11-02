@@ -6,11 +6,58 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(panther_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
+# find_library(LIBGPIOD libgpiod PATHS /home/husarion/ros2_ws/build/panther_lights/libgpiod-prefix/lib)
+# if(NOT LIBGPIOD)
+#   message(WARNING "libgpiod not found. Building from source")
+#   include(ExternalProject)
+
+#   ExternalProject_Add(libgpiod
+#     GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+#     GIT_TAG v2.0.2
+#     PREFIX ${CATKIN_DEVEL_PREFIX}
+#     CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh --prefix=<INSTALL_DIR> --enable-tools=no --enable-bindings-cxx
+#     BUILD_COMMAND make
+#     INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/libgpiod
+#     BUILD_IN_SOURCE 1
+#   )
+# endif()
 
 include_directories(
   include
   ${panther_utils_INCLUDE_DIRS}
 )
+
+add_executable(lights_driver_node 
+  src/main.cpp
+  src/driver_node.cpp
+  src/apa102.cpp
+)
+
+target_link_libraries(lights_driver_node
+  /usr/local/lib/libgpiodcxx.so
+)
+
+ament_target_dependencies(lights_driver_node
+  image_transport
+  panther_msgs
+  rclcpp
+  sensor_msgs
+)
+
+install(TARGETS 
+  lights_driver_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# install(DIRECTORY
+#   launch
+#   DESTINATION share/${PROJECT_NAME}
+# )
 
 # if(BUILD_TESTING)
 #   find_package(ament_lint_auto REQUIRED)
