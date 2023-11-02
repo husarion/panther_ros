@@ -74,6 +74,12 @@ private:
 
   // TODO decide priority
   int const kCanOpenThreadSchedPriority = 55;
+
+  // TODO: rename
+  void InitializeCanCommunication();
+  void ConfigureRT();
+  void NotifyCanCommunication(bool result);
+  void Boot();
 };
 
 }  // namespace panther_hardware_interfaces
