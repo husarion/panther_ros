@@ -45,6 +45,10 @@ As it usually are rare and singular occurences, it is better to filter some of t
 
 WIP - it will handle reading/writing pins of the RPi GPIO.
 
+### `panther_system_node`
+
+TODO
+
 ### `panther_system`
 
 Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documetation](https://control.ros.org/master/index.html)).

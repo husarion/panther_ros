@@ -35,6 +35,7 @@ add_library(
   ${PROJECT_NAME}
   SHARED
   src/panther_system.cpp
+  src/panther_system_node.cpp
   src/panther_wheels_controller.cpp
   src/canopen_controller.cpp
   src/roboteq_driver.cpp
