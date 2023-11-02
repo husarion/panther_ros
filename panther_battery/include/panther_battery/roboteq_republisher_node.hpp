@@ -26,12 +26,12 @@ private:
   void MotorControllersStateSubCB(const DriverStateMsg::SharedPtr msg);
   void BatteryPubTimerCB();
 
-  static constexpr float bat_designed_capacity_ = 20.0;
-  static constexpr float v_bat_fatal_min_ = 27.0;
-  static constexpr float v_bat_fatal_max_ = 43.0;
-  static constexpr float v_bat_full_ = 41.4;
-  static constexpr float v_bat_min_ = 32.0;
-  static constexpr std::string_view location_ = "user_compartment";
+  static constexpr float kBatDesignedCapacity = 20.0;
+  static constexpr float kVBatFatalMin = 27.0;
+  static constexpr float kVBatFatalMax = 43.0;
+  static constexpr float kVBatFull = 41.4;
+  static constexpr float kVBatMin = 32.0;
+  static constexpr std::string_view kLocation = "user_compartment";
 
   float battery_timeout_;
   rclcpp::Time last_battery_info_time_;

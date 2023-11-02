@@ -6,6 +6,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -22,6 +24,16 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test_moving_average PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_test_utils test/test_test_utils.cpp)
+  target_include_directories(${PROJECT_NAME}_test_test_utils PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_test_utils
+    rclcpp
+    std_msgs
   )
 endif()
 

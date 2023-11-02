@@ -63,13 +63,13 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
   auto battery_msg = BatteryStateMsg();
   battery_msg.header.stamp = this->get_clock()->now();
   battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
-  battery_msg.design_capacity = bat_designed_capacity_;
+  battery_msg.design_capacity = kBatDesignedCapacity;
   battery_msg.temperature = std::numeric_limits<float>::quiet_NaN();
   battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_msg.present = true;
   battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
-  battery_msg.location = location_;
+  battery_msg.location = kLocation;
 
   auto battery_voltage = battery_voltage_ma_->GetAverage();
   auto battery_current = battery_current_ma_->GetAverage();
@@ -90,11 +90,11 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
 
     // check battery health
-    if (battery_voltage < v_bat_fatal_min_) {
+    if (battery_voltage < kVBatFatalMin) {
       battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
       RCLCPP_ERROR_THROTTLE(
         this->get_logger(), *this->get_clock(), 10000, "Battery voltage is critically low!");
-    } else if (battery_voltage > v_bat_fatal_max_) {
+    } else if (battery_voltage > kVBatFatalMax) {
       battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
       RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 10000, "Battery overvoltage!");
     } else {
@@ -105,7 +105,7 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
   battery_msg.voltage = battery_voltage;
   battery_msg.current = battery_current;
   battery_msg.percentage =
-    std::clamp((battery_voltage - v_bat_min_) / (v_bat_full_ - v_bat_min_), 0.0, 1.0);
+    std::clamp((battery_voltage - kVBatMin) / (kVBatFull - kVBatMin), 0.0, 1.0);
   battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity;
 
   battery_pub_->publish(battery_msg);

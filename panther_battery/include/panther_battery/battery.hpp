@@ -1,105 +1,84 @@
 #ifndef PANTHER_BATTERY_BATTERY_HPP_
 #define PANTHER_BATTERY_BATTERY_HPP_
 
-#include <functional>
-#include <memory>
+#include <algorithm>
+#include <limits>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/battery_state.hpp>
-
-#include <panther_utils/moving_average.hpp>
 
 namespace panther_battery
 {
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
-struct BatteryParams
-{
-  const std::size_t voltage_window_len;
-  const std::size_t temp_window_len;
-  const std::size_t current_window_len;
-  const std::size_t charge_window_len;
-};
-
 class Battery
 {
 public:
-  Battery(
-  const std::function<float()> & read_voltage, const std::function<float()> & read_current,
-  const std::function<float()> & read_temp, const std::function<float()> & read_charge,
-  const BatteryParams & params);
-
+  Battery() {}
   ~Battery() {}
 
-  bool Present();
-  void Update(const rclcpp::Time & header_stamp, const bool charger_connected);
-  void Reset(const rclcpp::Time & header_stamp);
-  bool HasErrorMsg() const;
+  virtual bool Present() = 0;
+  virtual void Update(const rclcpp::Time & header_stamp, const bool charger_connected) = 0;
+  virtual void Reset(const rclcpp::Time & header_stamp) = 0;
 
-  std::string GetErrorMsg() const;
-  BatteryStateMsg GetBatteryMsg() const;
-  BatteryStateMsg GetBatteryMsgRaw() const;
+  bool HasErrorMsg() const { return !error_msg_.empty(); }
 
-private:
-  inline float ADCToBatteryVoltage(const float adc_data) const;
-  inline float ADCToBatteryCurrent(const float adc_data) const;
-  inline float ADCToBatteryCharge(const float adc_data) const;
-  inline float ADCToBatteryVoltageTemp(const float adc_data) const;
-  float ADCToBatteryTemp(const float adc_data) const;
-  void UpdateBatteryMsg(const rclcpp::Time & header_stamp, const bool charger_connected);
-  void ResetBatteryMsg(const rclcpp::Time & header_stamp);
+  std::string GetErrorMsg() const { return error_msg_; }
+  BatteryStateMsg GetBatteryMsg() const { return battery_state_; }
+  BatteryStateMsg GetBatteryMsgRaw() const { return battery_state_raw_; }
 
-  static constexpr int number_of_cells_ = 10;
-  static constexpr int bat_present_mean_len_ = 10;
-  static constexpr float charging_current_thresh_ = 0.1;
-  static constexpr float bat_detect_thresh_ = 3.03;
-  static constexpr float V_bat_fatal_min_ = 27.0;
-  static constexpr float V_bat_fatal_max_ = 43.0;
-  static constexpr float V_bat_full_ = 41.4;
-  static constexpr float V_bat_min_ = 32.0;
-  static constexpr float low_bat_temp_ = -10.0;
-  static constexpr float overheat_bat_temp_ = 45.0;
-  static constexpr float designed_capacity_ = 20.0;
-  static constexpr std::string_view location_ = "user_compartment";
+protected:
+  void SetErrorMsg(const std::string & error_msg) { error_msg_ = error_msg; }
 
-  // ADC conversion parameters. Values were determined based on
-  // voltage divider resistance values or 
-  // differential amplifier gain and resistance values
-  static constexpr float bat_voltage_factor_ = 25.04255;
-  static constexpr float bat_current_factor_ = 20.0;
-  static constexpr float bat_charge_factor_ = 2.5;
-  static constexpr float bat_temp_factor_ = 1.0;
+  float GetBatteryPercent(const float voltage) const
+  {
+    return std::clamp((voltage - kVBatMin) / (kVBatFull - kVBatMin), 0.0f, 1.0f);
+  }
 
-  // Temperature conversion parameters
-  static constexpr float temp_coeff_A_ = 298.15;
-  static constexpr float temp_coeff_B_ = 3977.0;
-  static constexpr float R1_ = 10000.0;
-  static constexpr float R0_ = 10000.0;
-  static constexpr float u_supply_ = 3.28;
-  static constexpr float kelvin_to_celcius_offset_ = 273.15;
+  void ResetBatteryMsgs(const rclcpp::Time & header_stamp)
+  {
+    battery_state_.header.stamp = header_stamp;
+    battery_state_.voltage = std::numeric_limits<float>::quiet_NaN();
+    battery_state_.temperature = std::numeric_limits<float>::quiet_NaN();
+    battery_state_.current = std::numeric_limits<float>::quiet_NaN();
+    battery_state_.percentage = std::numeric_limits<float>::quiet_NaN();
+    battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
+    battery_state_.design_capacity = kDesignedCapacity;
+    battery_state_.charge = std::numeric_limits<float>::quiet_NaN();
+    battery_state_.cell_voltage =
+      std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+    battery_state_.cell_temperature =
+      std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+    battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
+    battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
+    battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
+    battery_state_.present = true;
+    battery_state_.location = kLocation;
 
-  float voltage_raw_;
-  float current_raw_;
-  float temp_raw_;
-  float charge_raw_;
+    battery_state_raw_ = battery_state_;
+  }
+
+  static constexpr int kNumberOfCells = 10;
+  static constexpr int kBatPresentMeanLen = 10;
+  static constexpr float kChargingCurrentTresh = 0.1;
+  static constexpr float kBatDetectTresh = 3.03;
+  static constexpr float kVBatFatalMin = 27.0;
+  static constexpr float kVBatFatalMax = 43.0;
+  static constexpr float kVBatFull = 41.4;
+  static constexpr float kVBatMin = 32.0;
+  static constexpr float kLowBatTemp = -10.0;
+  static constexpr float kOverheatBatTemp = 45.0;
+  static constexpr float kDesignedCapacity = 20.0;
+  static constexpr std::string_view kLocation = "user_compartment";
+
   std::string error_msg_;
-
-  const std::function<float()> ReadVoltage;
-  const std::function<float()> ReadCurrent;
-  const std::function<float()> ReadTemp;
-  const std::function<float()> ReadCharge;
-
   BatteryStateMsg battery_state_;
   BatteryStateMsg battery_state_raw_;
-
-  std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> current_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> charge_ma_;
 };
 
 }  // namespace panther_battery
