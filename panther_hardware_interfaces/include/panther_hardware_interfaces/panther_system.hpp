@@ -51,6 +51,16 @@ public:
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 protected:
+  void CheckJointSize();
+  void SortJointNames();
+  void CheckJointNames();
+  void SetInitialValues();
+  void CheckInterfaces();
+  void ReadDrivetrainSettings();
+  void ReadCanOpenSettings();
+  void ReadInitializationActivationAttempts();
+  void ReadParametersAndCreateCanOpenErrorFilter();
+
   void UpdateHwStates();
   void UpdateMsgDriversErrorsState();
   void UpdateMsgDriversState();

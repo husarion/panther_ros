@@ -8,21 +8,20 @@
 
 namespace panther_hardware_interfaces
 {
-CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
+
+using namespace std::literals;
+
+void PantherSystem::CheckJointSize()
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing");
-
-  if (hardware_interface::SystemInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
-    return CallbackReturn::ERROR;
-  }
-
   if (info_.joints.size() != kJointsSize) {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("PantherSystem"), "Wrong number of joints defined: %zu, %zu expected.",
-      info_.joints.size(), kJointsSize);
-    return CallbackReturn::ERROR;
+    throw std::runtime_error(
+      "Wrong number of joints defined: "s + std::to_string(info_.joints.size()) + ", "s +
+      std::to_string(kJointsSize) + "expected."s);
   }
+}
 
+void PantherSystem::SortJointNames()
+{
   // Sort joints names - later hw_states and hw_commands are accessed by static indexes, so it
   // is necessary to make sure that joints are in specific order and order of definitions in URDF
   // doesn't matter
@@ -33,17 +32,21 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
       }
     }
   }
+}
 
+void PantherSystem::CheckJointNames()
+{
   for (std::size_t i = 0; i < kJointsSize; i++) {
     if (joints_names_sorted_[i] == "") {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"),
-        "%s joint not defined (exactly one joint containing this string is required)",
-        joint_order_[i].c_str());
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        joint_order_[i] +
+        " joint not defined (exactly one joint containing this string is required)"s);
     }
   }
+}
 
+void PantherSystem::SetInitialValues()
+{
   // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it shouldn't)
   // In case of velocity, I think that setting initial value to 0.0 is the best option
   for (std::size_t i = 0; i < kJointsSize; i++) {
@@ -52,94 +55,122 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     hw_states_velocities_[i] = std::numeric_limits<double>::quiet_NaN();
     hw_states_efforts_[i] = std::numeric_limits<double>::quiet_NaN();
   }
+}
 
+void PantherSystem::CheckInterfaces()
+{
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     // Commands
     if (joint.command_interfaces.size() != 1) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"),
-        "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
-        joint.command_interfaces.size());
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        "Joint "s + joint.name + " has "s + std::to_string(joint.command_interfaces.size()) +
+        " command interfaces found. 1 expected."s);
     }
 
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"),
-        "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
-        joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY);
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        "Joint "s + joint.name + " have "s + joint.command_interfaces[0].name +
+        " command interfaces found. "s + hardware_interface::HW_IF_VELOCITY + " expected."s);
     }
 
     // States
     if (joint.state_interfaces.size() != 3) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"), "Joint '%s' has %zu state interface. 3 expected.",
-        joint.name.c_str(), joint.state_interfaces.size());
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        "Joint "s + joint.name + " has "s + std::to_string(joint.state_interfaces.size()) +
+        " state interface. 3 expected."s);
     }
 
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"),
-        "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        "Joint "s + joint.name + " have "s + joint.state_interfaces[0].name +
+        " as first state interface. "s + hardware_interface::HW_IF_POSITION + " expected."s);
     }
 
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"),
-        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY);
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        "Joint "s + joint.name + " have "s + joint.state_interfaces[1].name +
+        " as second state interface. "s + hardware_interface::HW_IF_VELOCITY + " expected."s);
     }
 
     if (joint.state_interfaces[2].name != hardware_interface::HW_IF_EFFORT) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("PantherSystem"),
-        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_EFFORT);
-      return CallbackReturn::ERROR;
+      throw std::runtime_error(
+        "Joint "s + joint.name + " have "s + joint.state_interfaces[2].name +
+        " as third state interface. "s + hardware_interface::HW_IF_EFFORT + " expected."s);
     }
+  }
+}
+
+void PantherSystem::ReadDrivetrainSettings()
+{
+  drivetrain_settings_.motor_torque_constant =
+    std::stof(info_.hardware_parameters["motor_torque_constant"]);
+  drivetrain_settings_.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
+  drivetrain_settings_.gearbox_efficiency =
+    std::stof(info_.hardware_parameters["gearbox_efficiency"]);
+  drivetrain_settings_.encoder_resolution =
+    std::stof(info_.hardware_parameters["encoder_resolution"]);
+  drivetrain_settings_.max_rpm_motor_speed =
+    std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
+}
+
+void PantherSystem::ReadCanOpenSettings()
+{
+  canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
+  canopen_settings_.front_driver_can_id =
+    std::stoi(info_.hardware_parameters["front_driver_can_id"]);
+  canopen_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+  canopen_settings_.pdo_feedback_timeout =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_feedback_timeout"]));
+  canopen_settings_.sdo_operation_timeout =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout"]));
+}
+
+void PantherSystem::ReadInitializationActivationAttempts()
+{
+  max_roboteq_initialization_attempts_ =
+    std::stoi(info_.hardware_parameters["roboteq_initialization_attempts"]);
+  max_roboteq_activation_attempts_ =
+    std::stoi(info_.hardware_parameters["roboteq_activation_attempts"]);
+}
+
+void PantherSystem::ReadParametersAndCreateCanOpenErrorFilter()
+{
+  unsigned max_write_sdo_errors_count =
+    std::stoi(info_.hardware_parameters["max_write_sdo_errors_count"]);
+  unsigned max_read_sdo_errors_count =
+    std::stoi(info_.hardware_parameters["max_read_sdo_errors_count"]);
+  unsigned max_read_pdo_errors_count =
+    std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
+
+  canopen_error_filter_ = std::make_unique<CanOpenErrorFilter>(
+    max_write_sdo_errors_count, max_read_sdo_errors_count, max_read_pdo_errors_count);
+}
+
+CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
+{
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing");
+
+  if (hardware_interface::SystemInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
+    return CallbackReturn::ERROR;
   }
 
   try {
-    drivetrain_settings_.motor_torque_constant =
-      std::stof(info_.hardware_parameters["motor_torque_constant"]);
-    drivetrain_settings_.gear_ratio = std::stof(info_.hardware_parameters["gear_ratio"]);
-    drivetrain_settings_.gearbox_efficiency =
-      std::stof(info_.hardware_parameters["gearbox_efficiency"]);
-    drivetrain_settings_.encoder_resolution =
-      std::stof(info_.hardware_parameters["encoder_resolution"]);
-    drivetrain_settings_.max_rpm_motor_speed =
-      std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
+    CheckJointSize();
+    SortJointNames();
+    CheckJointNames();
+    SetInitialValues();
+    CheckInterfaces();
+  } catch (std::runtime_error & err) {
+    RCLCPP_FATAL_STREAM(
+      rclcpp::get_logger("PantherSystem"), "Exception during initialization: " << err.what());
+    return CallbackReturn::ERROR;
+  }
 
-    canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-    canopen_settings_.front_driver_can_id =
-      std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-    canopen_settings_.rear_driver_can_id =
-      std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
-    canopen_settings_.pdo_feedback_timeout =
-      std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_feedback_timeout"]));
-    canopen_settings_.sdo_operation_timeout =
-      std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout"]));
-
-    max_roboteq_initialization_attempts_ =
-      std::stoi(info_.hardware_parameters["roboteq_initialization_attempts"]);
-    max_roboteq_activation_attempts_ =
-      std::stoi(info_.hardware_parameters["roboteq_activation_attempts"]);
-
-    // TODO add warning if uint8 is used
-    unsigned max_write_sdo_errors_count =
-      std::stoi(info_.hardware_parameters["max_write_sdo_errors_count"]);
-    unsigned max_read_sdo_errors_count =
-      std::stoi(info_.hardware_parameters["max_read_sdo_errors_count"]);
-    unsigned max_read_pdo_errors_count =
-      std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
-
-    canopen_error_filter_ = std::make_unique<CanOpenErrorFilter>(
-      max_write_sdo_errors_count, max_read_sdo_errors_count, max_read_pdo_errors_count);
+  try {
+    ReadDrivetrainSettings();
+    ReadCanOpenSettings();
+    ReadInitializationActivationAttempts();
+    ReadParametersAndCreateCanOpenErrorFilter();
 
   } catch (std::invalid_argument & err) {
     RCLCPP_FATAL(
