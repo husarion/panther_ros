@@ -17,10 +17,19 @@
 namespace panther_hardware_interfaces
 {
 
+/**
+ * @brief Class that takes care of additional ROS interface of panther system, such as publishing 
+ * driver state and providing services for clearing errors
+ */
 class PantherSystemNode
 {
 public:
   PantherSystemNode() {}
+
+  void Configure();
+  void Activate(std::function<void()> clear_errors);
+  void Deactivate();
+  void Deinitialize();
 
   void UpdateMsgDriversErrorsState(const RoboteqData & front, const RoboteqData & rear);
   void UpdateMsgDriversState(const DriverState & front, const DriverState & rear);
@@ -28,10 +37,6 @@ public:
     bool is_error, bool is_write_sdo_error, bool is_read_sdo_error, bool is_read_pdo_error,
     bool front_old_data, bool rear_old_data);
   void PublishDriverState();
-  void Configure();
-  void Activate(std::function<void()> clear_errors);
-  void ResetPublishers();
-  void DestroyNode();
 
 private:
   rclcpp::Node::SharedPtr node_;

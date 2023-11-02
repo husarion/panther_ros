@@ -216,7 +216,7 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
   roboteq_controller_->Deinitialize();
   roboteq_controller_.reset();
 
-  panther_system_node_.DestroyNode();
+  panther_system_node_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -261,7 +261,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.ResetPublishers();
+  panther_system_node_.Deactivate();
 
   return CallbackReturn::SUCCESS;
 }
@@ -276,12 +276,12 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.ResetPublishers();
+  panther_system_node_.Deactivate();
 
   roboteq_controller_->Deinitialize();
   roboteq_controller_.reset();
 
-  panther_system_node_.DestroyNode();
+  panther_system_node_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -298,12 +298,12 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.ResetPublishers();
+  panther_system_node_.Deactivate();
 
   roboteq_controller_->Deinitialize();
   roboteq_controller_.reset();
 
-  panther_system_node_.DestroyNode();
+  panther_system_node_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
