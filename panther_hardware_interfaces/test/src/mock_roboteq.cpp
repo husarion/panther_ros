@@ -100,10 +100,10 @@ void RoboteqSlave::SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors fl
 
 void RoboteqMock::Start()
 {
-  can_communication_started_.store(false);
+  canopen_communication_started_.store(false);
   ctx_ = std::make_shared<lely::io::Context>();
 
-  can_communication_thread_ = std::thread([this]() {
+  canopen_communication_thread_ = std::thread([this]() {
     std::string slave_eds_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                    "panther_hardware_interfaces")) /
                                  "config" / "roboteq_motor_controllers_v80_21.eds";
@@ -145,10 +145,10 @@ void RoboteqMock::Start()
     rear_driver_->StartPublishing();
 
     {
-      std::lock_guard lk(can_communication_started_mtx_);
-      can_communication_started_.store(true);
+      std::lock_guard lk(canopen_communication_started_mtx_);
+      canopen_communication_started_.store(true);
     }
-    can_communication_started_cond_.notify_all();
+    canopen_communication_started_cond_.notify_all();
 
     loop.run();
 
@@ -156,12 +156,12 @@ void RoboteqMock::Start()
     rear_driver_->StopPublishing();
   });
 
-  if (!can_communication_started_.load()) {
-    std::unique_lock lck(can_communication_started_mtx_);
-    can_communication_started_cond_.wait(lck);
+  if (!canopen_communication_started_.load()) {
+    std::unique_lock lck(canopen_communication_started_mtx_);
+    canopen_communication_started_cond_.wait(lck);
   }
 
-  if (!can_communication_started_.load()) {
+  if (!canopen_communication_started_.load()) {
     throw std::runtime_error("CAN communication not initialized");
   }
 }
@@ -169,12 +169,12 @@ void RoboteqMock::Start()
 void RoboteqMock::Stop()
 {
   ctx_->shutdown();
-  can_communication_thread_.join();
+  canopen_communication_thread_.join();
 
   front_driver_.reset();
   rear_driver_.reset();
 
-  can_communication_started_.store(false);
+  canopen_communication_started_.store(false);
 }
 
 // int main()

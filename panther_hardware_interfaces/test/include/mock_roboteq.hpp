@@ -128,11 +128,11 @@ public:
 private:
   std::shared_ptr<lely::io::Context> ctx_;
 
-  std::thread can_communication_thread_;
+  std::thread canopen_communication_thread_;
 
-  std::atomic<bool> can_communication_started_ = false;
-  std::condition_variable can_communication_started_cond_;
-  std::mutex can_communication_started_mtx_;
+  std::atomic<bool> canopen_communication_started_ = false;
+  std::condition_variable canopen_communication_started_cond_;
+  std::mutex canopen_communication_started_mtx_;
 };
 
 #endif

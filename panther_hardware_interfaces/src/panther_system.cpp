@@ -115,12 +115,14 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     drivetrain_settings_.max_rpm_motor_speed =
       std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
 
-    can_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-    can_settings_.front_driver_can_id = std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-    can_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
-    can_settings_.feedback_timeout =
-      std::chrono::milliseconds(std::stoi(info_.hardware_parameters["feedback_timeout"]));
-    can_settings_.sdo_operation_timeout =
+    canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
+    canopen_settings_.front_driver_can_id =
+      std::stoi(info_.hardware_parameters["front_driver_can_id"]);
+    canopen_settings_.rear_driver_can_id =
+      std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+    canopen_settings_.pdo_feedback_timeout =
+      std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_feedback_timeout"]));
+    canopen_settings_.sdo_operation_timeout =
       std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout"]));
 
     max_roboteq_initialization_attempts_ =
@@ -193,7 +195,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
   roboteq_controller_ =
-    std::make_shared<PantherWheelsController>(can_settings_, drivetrain_settings_);
+    std::make_shared<PantherWheelsController>(canopen_settings_, drivetrain_settings_);
 
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();

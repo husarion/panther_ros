@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <mock_roboteq.hpp>
-#include <panther_hardware_interfaces/can_controller.hpp>
+#include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
 
@@ -14,19 +14,19 @@ class TestPantherWheelsControllerInitialization : public ::testing::Test
 {
 public:
   std::unique_ptr<RoboteqMock> roboteq_mock_;
-  panther_hardware_interfaces::CanSettings can_settings_;
+  panther_hardware_interfaces::CanOpenSettings canopen_settings_;
   panther_hardware_interfaces::DrivetrainSettings drivetrain_settings_;
 
   std::unique_ptr<panther_hardware_interfaces::PantherWheelsController> panther_wheels_controller_;
 
   TestPantherWheelsControllerInitialization()
   {
-    can_settings_.master_can_id = 3;
-    can_settings_.front_driver_can_id = 1;
-    can_settings_.rear_driver_can_id = 2;
+    canopen_settings_.master_can_id = 3;
+    canopen_settings_.front_driver_can_id = 1;
+    canopen_settings_.rear_driver_can_id = 2;
     // TODO: change publishing frequency in roboteq mock
-    can_settings_.feedback_timeout = std::chrono::milliseconds(150);
-    can_settings_.sdo_operation_timeout = std::chrono::milliseconds(4);
+    canopen_settings_.pdo_feedback_timeout = std::chrono::milliseconds(150);
+    canopen_settings_.sdo_operation_timeout = std::chrono::milliseconds(4);
 
     drivetrain_settings_.motor_torque_constant = 0.11;
     drivetrain_settings_.gear_ratio = 30.08;
@@ -36,7 +36,7 @@ public:
 
     panther_wheels_controller_ =
       std::make_unique<panther_hardware_interfaces::PantherWheelsController>(
-        can_settings_, drivetrain_settings_);
+        canopen_settings_, drivetrain_settings_);
 
     roboteq_mock_ = std::make_unique<RoboteqMock>();
     roboteq_mock_->Start();
@@ -49,7 +49,7 @@ public:
   }
 };
 
-// These tests are related to can_controller tests, were boot should be already tested
+// These tests are related to canopen_controller tests, were boot should be already tested
 
 TEST_F(TestPantherWheelsControllerInitialization, test_initialize)
 {
@@ -243,7 +243,8 @@ TEST_F(TestPantherWheelsController, test_update_system_feedback_timestamps)
 {
   panther_wheels_controller_->UpdateSystemFeedback();
 
-  std::this_thread::sleep_for(can_settings_.feedback_timeout + std::chrono::milliseconds(10));
+  std::this_thread::sleep_for(
+    canopen_settings_.pdo_feedback_timeout + std::chrono::milliseconds(10));
 
   panther_wheels_controller_->UpdateSystemFeedback();
 
@@ -251,7 +252,7 @@ TEST_F(TestPantherWheelsController, test_update_system_feedback_timestamps)
   ASSERT_FALSE(panther_wheels_controller_->GetRearData().GetOldData());
 }
 
-TEST_F(TestPantherWheelsController, test_update_system_feedback_timeout)
+TEST_F(TestPantherWheelsController, test_update_system_pdo_feedback_timeout)
 {
   // TODO: maybe something nicer
   roboteq_mock_->front_driver_->StopPublishing();
@@ -261,7 +262,8 @@ TEST_F(TestPantherWheelsController, test_update_system_feedback_timeout)
 
   panther_wheels_controller_->UpdateSystemFeedback();
 
-  std::this_thread::sleep_for(can_settings_.feedback_timeout + std::chrono::milliseconds(10));
+  std::this_thread::sleep_for(
+    canopen_settings_.pdo_feedback_timeout + std::chrono::milliseconds(10));
 
   panther_wheels_controller_->UpdateSystemFeedback();
 

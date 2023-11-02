@@ -36,7 +36,7 @@ add_library(
   SHARED
   src/panther_system.cpp
   src/panther_wheels_controller.cpp
-  src/can_controller.cpp
+  src/canopen_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
 )
@@ -82,17 +82,6 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  
-  ament_add_gtest(${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp test/src/mock_roboteq.cpp)
-  target_include_directories(${PROJECT_NAME}_test_panther_system PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_panther_system
-    hardware_interface
-    rclcpp
-    panther_msgs
-  )
-  target_link_libraries(${PROJECT_NAME}_test_panther_system PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(${PROJECT_NAME}_test_panther_system_error_handler test/test_panther_system_error_handler.cpp)
   target_include_directories(
@@ -114,27 +103,27 @@ if(BUILD_TESTING)
     panther_msgs
   )
 
-  ament_add_gtest(${PROJECT_NAME}_test_can_controller
-    test/test_can_controller.cpp
+  ament_add_gtest(${PROJECT_NAME}_test_canopen_controller
+    test/test_canopen_controller.cpp
     test/src/mock_roboteq.cpp
-    src/can_controller.cpp
+    src/canopen_controller.cpp
     src/roboteq_driver.cpp
   )
-  target_include_directories(${PROJECT_NAME}_test_can_controller PUBLIC
+  target_include_directories(${PROJECT_NAME}_test_canopen_controller PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
     include
   )
-  ament_target_dependencies(${PROJECT_NAME}_test_can_controller
+  ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller
     rclcpp
     panther_msgs
     realtime_tools
   )
-  target_link_libraries(${PROJECT_NAME}_test_can_controller PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_test_canopen_controller PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(${PROJECT_NAME}_test_roboteq_driver
     test/test_roboteq_driver.cpp
     test/src/mock_roboteq.cpp
-    src/can_controller.cpp
+    src/canopen_controller.cpp
     src/roboteq_driver.cpp
   )
   target_include_directories(${PROJECT_NAME}_test_roboteq_driver PUBLIC
@@ -151,7 +140,7 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_panther_wheels_controller
     test/test_panther_wheels_controller.cpp
     test/src/mock_roboteq.cpp
-    src/can_controller.cpp
+    src/canopen_controller.cpp
     src/roboteq_driver.cpp
     src/roboteq_data_converters.cpp
     src/panther_wheels_controller.cpp
@@ -167,19 +156,16 @@ if(BUILD_TESTING)
   )
   target_link_libraries(${PROJECT_NAME}_test_panther_wheels_controller PkgConfig::LIBLELY_COAPP)
 
-
-  # add_executable(mock_roboteq test/src/mock_roboteq.cpp)
-  # target_include_directories(mock_roboteq PUBLIC
-  #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
-  # )
-  # # not the best solution, but rclcpp adds filesystem
-  # ament_target_dependencies(mock_roboteq ament_index_cpp rclcpp)
-  # target_link_libraries(mock_roboteq PkgConfig::LIBLELY_COAPP)
-
-  # install(
-  #   TARGETS mock_roboteq
-  #   RUNTIME DESTINATION lib/${PROJECT_NAME}
-  # )
+  ament_add_gtest(${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp test/src/mock_roboteq.cpp)
+  target_include_directories(${PROJECT_NAME}_test_panther_system PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_system
+    hardware_interface
+    rclcpp
+    panther_msgs
+  )
+  target_link_libraries(${PROJECT_NAME}_test_panther_system PkgConfig::LIBLELY_COAPP)
 
   install(DIRECTORY
     test/config

@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <mock_roboteq.hpp>
-#include <panther_hardware_interfaces/can_controller.hpp>
+#include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
 #include <iostream>
@@ -12,34 +12,35 @@ class TestRoboteqDriver : public ::testing::Test
 {
 public:
   std::unique_ptr<RoboteqMock> roboteq_mock_;
-  panther_hardware_interfaces::CanSettings can_settings_;
+  panther_hardware_interfaces::CanOpenSettings canopen_settings_;
 
-  std::unique_ptr<panther_hardware_interfaces::CanController> can_controller_;
+  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
 
   TestRoboteqDriver()
   {
-    can_settings_.master_can_id = 3;
-    can_settings_.front_driver_can_id = 1;
-    can_settings_.rear_driver_can_id = 2;
-    can_settings_.feedback_timeout = std::chrono::milliseconds(15);
-    can_settings_.sdo_operation_timeout = std::chrono::milliseconds(4);
+    canopen_settings_.master_can_id = 3;
+    canopen_settings_.front_driver_can_id = 1;
+    canopen_settings_.rear_driver_can_id = 2;
+    canopen_settings_.pdo_feedback_timeout = std::chrono::milliseconds(15);
+    canopen_settings_.sdo_operation_timeout = std::chrono::milliseconds(4);
 
-    can_controller_ = std::make_unique<panther_hardware_interfaces::CanController>(can_settings_);
+    canopen_controller_ =
+      std::make_unique<panther_hardware_interfaces::CanOpenController>(canopen_settings_);
 
     roboteq_mock_ = std::make_unique<RoboteqMock>();
     roboteq_mock_->Start();
-    can_controller_->Initialize();
+    canopen_controller_->Initialize();
   }
 
   ~TestRoboteqDriver()
   {
-    can_controller_->Deinitialize();
+    canopen_controller_->Deinitialize();
     roboteq_mock_->Stop();
     roboteq_mock_.reset();
   }
 };
 
-// These tests are related to can_controller tests, were boot should be already tested
+// These tests are related to canopen_controller tests, were boot should be already tested
 
 TEST_F(TestRoboteqDriver, test_read_temperature)
 {
@@ -49,8 +50,8 @@ TEST_F(TestRoboteqDriver, test_read_temperature)
   roboteq_mock_->front_driver_->SetTemperature(f_temp);
   roboteq_mock_->rear_driver_->SetTemperature(r_temp);
 
-  ASSERT_EQ(can_controller_->GetFrontDriver()->ReadTemperature(), f_temp);
-  ASSERT_EQ(can_controller_->GetRearDriver()->ReadTemperature(), r_temp);
+  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadTemperature(), f_temp);
+  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadTemperature(), r_temp);
 }
 
 TEST_F(TestRoboteqDriver, test_read_voltage)
@@ -61,8 +62,8 @@ TEST_F(TestRoboteqDriver, test_read_voltage)
   roboteq_mock_->front_driver_->SetVoltage(f_volt);
   roboteq_mock_->rear_driver_->SetVoltage(r_volt);
 
-  ASSERT_EQ(can_controller_->GetFrontDriver()->ReadVoltage(), f_volt);
-  ASSERT_EQ(can_controller_->GetRearDriver()->ReadVoltage(), r_volt);
+  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadVoltage(), f_volt);
+  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadVoltage(), r_volt);
 }
 
 TEST_F(TestRoboteqDriver, test_read_bat_amps1)
@@ -73,8 +74,8 @@ TEST_F(TestRoboteqDriver, test_read_bat_amps1)
   roboteq_mock_->front_driver_->SetBatAmps1(f_bat_amps_1);
   roboteq_mock_->rear_driver_->SetBatAmps1(r_bat_amps_1);
 
-  ASSERT_EQ(can_controller_->GetFrontDriver()->ReadBatAmps1(), f_bat_amps_1);
-  ASSERT_EQ(can_controller_->GetRearDriver()->ReadBatAmps1(), r_bat_amps_1);
+  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadBatAmps1(), f_bat_amps_1);
+  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadBatAmps1(), r_bat_amps_1);
 }
 
 TEST_F(TestRoboteqDriver, test_read_bat_amps2)
@@ -85,8 +86,8 @@ TEST_F(TestRoboteqDriver, test_read_bat_amps2)
   roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
   roboteq_mock_->rear_driver_->SetBatAmps2(r_bat_amps_2);
 
-  ASSERT_EQ(can_controller_->GetFrontDriver()->ReadBatAmps2(), f_bat_amps_2);
-  ASSERT_EQ(can_controller_->GetRearDriver()->ReadBatAmps2(), r_bat_amps_2);
+  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadBatAmps2(), f_bat_amps_2);
+  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadBatAmps2(), r_bat_amps_2);
 }
 
 TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
@@ -134,9 +135,9 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   panther_hardware_interfaces::RoboteqDriverFeedback f_fb =
-    can_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
+    canopen_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
   panther_hardware_interfaces::RoboteqDriverFeedback r_fb =
-    can_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+    canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
 
   ASSERT_EQ(f_fb.motor_2.pos, fl_pos);
   ASSERT_EQ(f_fb.motor_2.vel, fl_vel);
@@ -170,17 +171,17 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
   panther_hardware_interfaces::RoboteqDriverFeedback f_fb1 =
-    can_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
+    canopen_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
   panther_hardware_interfaces::RoboteqDriverFeedback r_fb1 =
-    can_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+    canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
 
   // TODO: based on publishing frequnecy in roboteq mock (100)
   std::this_thread::sleep_for(std::chrono::milliseconds(110));
 
   panther_hardware_interfaces::RoboteqDriverFeedback f_fb2 =
-    can_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
+    canopen_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
   panther_hardware_interfaces::RoboteqDriverFeedback r_fb2 =
-    can_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+    canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
 
   // feedback is published with period 100ms, to check if timestamps are accurate, it is checked if
   // consecutive messages will have timestamps 100ms + some threshold apart
@@ -199,8 +200,8 @@ TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
   const int32_t rl_v = 30;
   const int32_t rr_v = 40;
 
-  can_controller_->GetFrontDriver()->SendRoboteqCmd(fr_v, fl_v);
-  can_controller_->GetRearDriver()->SendRoboteqCmd(rr_v, rl_v);
+  canopen_controller_->GetFrontDriver()->SendRoboteqCmd(fr_v, fl_v);
+  canopen_controller_->GetRearDriver()->SendRoboteqCmd(rr_v, rl_v);
 
   ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(2), fl_v);
   ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(1), fr_v);
@@ -213,8 +214,8 @@ TEST_F(TestRoboteqDriver, test_reset_roboteq_script)
   roboteq_mock_->front_driver_->SetResetRoboteqScript(65);
   roboteq_mock_->rear_driver_->SetResetRoboteqScript(23);
 
-  can_controller_->GetFrontDriver()->ResetRoboteqScript();
-  can_controller_->GetRearDriver()->ResetRoboteqScript();
+  canopen_controller_->GetFrontDriver()->ResetRoboteqScript();
+  canopen_controller_->GetRearDriver()->ResetRoboteqScript();
 
   ASSERT_EQ(roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
@@ -225,8 +226,8 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_turn_on_estop)
   roboteq_mock_->front_driver_->SetTurnOnEstop(65);
   roboteq_mock_->rear_driver_->SetTurnOnEstop(23);
 
-  can_controller_->GetFrontDriver()->TurnOnEstop();
-  can_controller_->GetRearDriver()->TurnOnEstop();
+  canopen_controller_->GetFrontDriver()->TurnOnEstop();
+  canopen_controller_->GetRearDriver()->TurnOnEstop();
 
   ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnEstop(), 1);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnEstop(), 1);
@@ -237,8 +238,8 @@ TEST_F(TestRoboteqDriver, test_turn_off_estop)
   roboteq_mock_->front_driver_->SetTurnOffEstop(65);
   roboteq_mock_->rear_driver_->SetTurnOffEstop(23);
 
-  can_controller_->GetFrontDriver()->TurnOffEstop();
-  can_controller_->GetRearDriver()->TurnOffEstop();
+  canopen_controller_->GetFrontDriver()->TurnOffEstop();
+  canopen_controller_->GetRearDriver()->TurnOffEstop();
 
   ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOffEstop(), 1);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOffEstop(), 1);
@@ -249,8 +250,8 @@ TEST_F(TestRoboteqDriver, test_turn_on_safety_stop)
   roboteq_mock_->front_driver_->SetTurnOnSafetyStop(65);
   roboteq_mock_->rear_driver_->SetTurnOnSafetyStop(23);
 
-  can_controller_->GetFrontDriver()->TurnOnSafetyStop();
-  can_controller_->GetRearDriver()->TurnOnSafetyStop();
+  canopen_controller_->GetFrontDriver()->TurnOnSafetyStop();
+  canopen_controller_->GetRearDriver()->TurnOnSafetyStop();
 
   // TODO: somehow check is first channel was also set
   ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnSafetyStop(), 2);
@@ -260,21 +261,21 @@ TEST_F(TestRoboteqDriver, test_turn_on_safety_stop)
 TEST_F(TestRoboteqDriver, test_write_timeout)
 {
   roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
-  ASSERT_THROW(can_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
+  ASSERT_THROW(canopen_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
 }
 
 TEST_F(TestRoboteqDriver, test_read_timeout)
 {
   roboteq_mock_->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 100000);
-  ASSERT_THROW(can_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
+  ASSERT_THROW(canopen_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
 }
 
 // TODO
 // TEST_F(TestRoboteqDriver, test_can_error)
 // {
 // roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
-// ASSERT_THROW(can_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
-// ASSERT_TRUE(can_controller_->GetFrontDriver()->get_can_error());
+// ASSERT_THROW(canopen_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
+// ASSERT_TRUE(canopen_controller_->GetFrontDriver()->get_can_error());
 // }
 
 int main(int argc, char ** argv)

@@ -10,13 +10,13 @@ A brief introduction on code structure of panther system.
 
 Low level CANopen driver implementing FiberDriver from [Lely](https://opensource.lely.com/canopen/) ([here](https://en.wikipedia.org/wiki/Fiber_%28computer_science%29) you can read more about fibers). It takes care of translating CANopen indexes into meaningful data. It handles PDO and SDO communication and provides methods for sending commands and reading all the useful parameters from the Roboteq drivers. It saves timestamp of last RPDO, which can be later used to detect timeout errors.
 
-### `can_controller`
+### `canopen_controller`
 Takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - intializaiton. For handling CANopen communication separate thread is created.  
 
 ### `panther_wheels_controller`
 
 It abstract usage of two Roboteq controllers:
-* uses `can_controller` for communication with Roboteq controllers
+* uses `canopen_controller` for communication with Roboteq controllers
 * implements activate procedure for controllers - resets script and sends initial 0 command.
 * provides methods to get data feedback and send commands. Data is converted between raw Roboteq formats and SI units using `roboteq_data_converters`
 
@@ -81,7 +81,7 @@ CAN settings
  - `front_driver_can_id` [*int*, default: 1] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
  - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
  - `sdo_operation_timeout` [*int*, default: 4 [ms]] - it is set so that full controller loop takes up to required time. Each controller loop contains of two SDO operations (one write and one read). For example in 100Hz loop there is up to 10ms for every operation. This timeout should be set so that in worst case everything takes 10ms.
- - `feedback_timeout` [*int*, default: 15 [ms]]  - depends on frequnecy at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data, if it takes more than `feedback_timeout`, PDO read error is triggered
+ - `pdo_feedback_timeout` [*int*, default: 15 [ms]]  - depends on frequnecy at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data, if it takes more than `pdo_feedback_timeout`, PDO read error is triggered
  - `roboteq_initialization_attempts` [*int*, default: 5] - in some cases SDO error happen during initialization, it is possible to configure more attempts, before escaliting to error
  - `roboteq_activation_attempts` [*int*, default: 5] - similat to initilizaiton, it is possible to allow some SDO errors before escaliting to error
  - `max_write_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
@@ -150,9 +150,12 @@ sudo ip link set panther_can up
 
 ```
 colcon build --packages-select panther_hardware_interfaces --symlink-install
-colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces
+colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces --parallel-workers 1
 colcon test-result --verbose --all
 ```
+
+TODO comment
+--parallel-workers 1
 
 ### Updating config
 Copy eds file to config and run 

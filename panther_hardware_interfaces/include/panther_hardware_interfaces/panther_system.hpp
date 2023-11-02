@@ -90,7 +90,7 @@ protected:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
 
   DrivetrainSettings drivetrain_settings_;
-  CanSettings can_settings_;
+  CanOpenSettings canopen_settings_;
 
   void ResetPublishers();
   void DestroyNode();

@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
-#include <panther_hardware_interfaces/can_controller.hpp>
+#include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces
@@ -13,7 +13,7 @@ namespace panther_hardware_interfaces
 class PantherWheelsController
 {
 public:
-  PantherWheelsController(CanSettings can_settings, DrivetrainSettings drivetrain_settings);
+  PantherWheelsController(CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings);
 
   /**
    * @brief Activate procedure for roboteq drivers - reset scripts and send 0 command on both channels
@@ -48,7 +48,8 @@ public:
    * @brief Reads current roboteq driver feedback
    *
    * @exception std::runtime_error if there was error
-   * @return roboteq driver feedback
+   * @return whether all updates were finished - only one is read every iterations
+   * once it is ready driver state values can be accessed
    */
   bool UpdateDriversState();
 
@@ -89,14 +90,14 @@ public:
   void TurnOnSafetyStop();
 
 private:
-  CanController can_controller_;
+  CanOpenController canopen_controller_;
 
   RoboteqData front_data_;
   RoboteqData rear_data_;
 
   RoboteqCommandConverter roboteq_command_converter_;
 
-  const std::chrono::milliseconds motors_feedback_timeout_;
+  const std::chrono::milliseconds pdo_feedback_timeout_;
 
   unsigned current_update_ = 0;
 };

@@ -1,4 +1,4 @@
-#include <panther_hardware_interfaces/can_controller.hpp>
+#include <panther_hardware_interfaces/canopen_controller.hpp>
 
 #include <filesystem>
 #include <iostream>
@@ -10,21 +10,21 @@
 namespace panther_hardware_interfaces
 {
 
-// TODO
-int const kSchedPriority = 55;
-
-CanController::CanController(CanSettings can_settings) { can_settings_ = can_settings; }
-
-void CanController::Initialize()
+CanOpenController::CanOpenController(CanOpenSettings canopen_settings)
 {
-  can_communication_started_.store(false);
+  canopen_settings_ = canopen_settings;
+}
 
-  can_communication_thread_ = std::thread([this]() {
+void CanOpenController::Initialize()
+{
+  canopen_communication_started_.store(false);
+
+  canopen_communication_thread_ = std::thread([this]() {
     if (realtime_tools::has_realtime_kernel()) {
-      if (!realtime_tools::configure_sched_fifo(kSchedPriority)) {
+      if (!realtime_tools::configure_sched_fifo(kCanOpenThreadSchedPriority)) {
         std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
       } else {
-        std::cerr << "FIFO RT scheduling policy with priority " << kSchedPriority
+        std::cerr << "FIFO RT scheduling policy with priority " << kCanOpenThreadSchedPriority
                   << " set (CAN thread) " << std::endl;
       }
     } else {
@@ -55,12 +55,14 @@ void CanController::Initialize()
         "config" / "master.dcf";
 
       master_ = std::make_shared<lely::canopen::AsyncMaster>(
-        *timer_, *chan_, master_dcf_path, "", can_settings_.master_can_id);
+        *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
       front_driver_ = std::make_shared<RoboteqDriver>(
-        *exec_, *master_, can_settings_.front_driver_can_id, can_settings_.sdo_operation_timeout);
+        *exec_, *master_, canopen_settings_.front_driver_can_id,
+        canopen_settings_.sdo_operation_timeout);
       rear_driver_ = std::make_shared<RoboteqDriver>(
-        *exec_, *master_, can_settings_.rear_driver_can_id, can_settings_.sdo_operation_timeout);
+        *exec_, *master_, canopen_settings_.rear_driver_can_id,
+        canopen_settings_.sdo_operation_timeout);
 
       // Start the NMT service of the master by pretending to receive a 'reset
       // node' command.
@@ -69,18 +71,18 @@ void CanController::Initialize()
     } catch (std::system_error & err) {
       std::cerr << "Exception caught during CAN intialization: " << err.what() << std::endl;
       {
-        std::lock_guard lk(can_communication_started_mtx_);
-        can_communication_started_.store(false);
+        std::lock_guard lk(canopen_communication_started_mtx_);
+        canopen_communication_started_.store(false);
       }
-      can_communication_started_cond_.notify_all();
+      canopen_communication_started_cond_.notify_all();
       return;
     }
 
     {
-      std::lock_guard lk(can_communication_started_mtx_);
-      can_communication_started_.store(true);
+      std::lock_guard lk(canopen_communication_started_mtx_);
+      canopen_communication_started_.store(true);
     }
-    can_communication_started_cond_.notify_all();
+    canopen_communication_started_cond_.notify_all();
 
     try {
       loop_->run();
@@ -90,12 +92,12 @@ void CanController::Initialize()
     }
   });
 
-  if (!can_communication_started_.load()) {
-    std::unique_lock lck(can_communication_started_mtx_);
-    can_communication_started_cond_.wait(lck);
+  if (!canopen_communication_started_.load()) {
+    std::unique_lock lck(canopen_communication_started_mtx_);
+    canopen_communication_started_cond_.wait(lck);
   }
 
-  if (!can_communication_started_.load()) {
+  if (!canopen_communication_started_.load()) {
     throw std::runtime_error("CAN communication not initialized");
   }
 
@@ -128,16 +130,14 @@ void CanController::Initialize()
   }
 }
 
-void CanController::Deinitialize()
+void CanOpenController::Deinitialize()
 {
-  can_communication_started_.store(false);
   if (master_) {
     master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
   }
-  // TODO: check
-  can_communication_thread_.join();
+  canopen_communication_thread_.join();
+  canopen_communication_started_.store(false);
 
-  // without resets: corrupted double-linked list
   rear_driver_.reset();
   front_driver_.reset();
   master_.reset();
