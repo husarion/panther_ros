@@ -119,6 +119,18 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
   roboteq_mock_->rear_driver_->SetCurrent(2, rl_current);
   roboteq_mock_->rear_driver_->SetCurrent(1, rr_current);
 
+  roboteq_mock_->front_driver_->SetDriverFaultFlag(DriverFaultFlags::OVERHEAT);
+  roboteq_mock_->front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
+  roboteq_mock_->front_driver_->SetDriverRuntimeError(0, DriverRuntimeErrors::LOOP_ERROR);
+  roboteq_mock_->front_driver_->SetDriverRuntimeError(1, DriverRuntimeErrors::SAFETY_STOP_ACTIVE);
+
+  roboteq_mock_->rear_driver_->SetDriverFaultFlag(DriverFaultFlags::OVERVOLTAGE);
+  roboteq_mock_->rear_driver_->SetDriverScriptFlag(DriverScriptFlags::AMP_LIMITER);
+  roboteq_mock_->rear_driver_->SetDriverRuntimeError(
+    0, DriverRuntimeErrors::FORWARD_LIMIT_TRIGGERED);
+  roboteq_mock_->rear_driver_->SetDriverRuntimeError(
+    1, DriverRuntimeErrors::REVERSE_LIMIT_TRIGGERED);
+
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   panther_hardware_interfaces::RoboteqDriverFeedback f_fb =
@@ -141,13 +153,44 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
   ASSERT_EQ(r_fb.motor_1.pos, rr_pos);
   ASSERT_EQ(r_fb.motor_1.vel, rr_vel);
   ASSERT_EQ(r_fb.motor_1.current, rr_current);
+
+  ASSERT_EQ(f_fb.fault_flags, 0b00000001);
+  ASSERT_EQ(f_fb.script_flags, 0b00000010);
+  ASSERT_EQ(f_fb.runtime_stat_flag_motor_1, 0b00000100);
+  ASSERT_EQ(f_fb.runtime_stat_flag_motor_2, 0b00001000);
+
+  ASSERT_EQ(r_fb.fault_flags, 0b00000010);
+  ASSERT_EQ(r_fb.script_flags, 0b00000100);
+  ASSERT_EQ(r_fb.runtime_stat_flag_motor_1, 0b00010000);
+  ASSERT_EQ(r_fb.runtime_stat_flag_motor_2, 0b00100000);
 }
 
-// TODO
-TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_flags) {}
+TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
+{
+  std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-// TODO
-TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp) {}
+  panther_hardware_interfaces::RoboteqDriverFeedback f_fb1 =
+    can_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
+  panther_hardware_interfaces::RoboteqDriverFeedback r_fb1 =
+    can_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+
+  // TODO: based on publishing frequnecy in roboteq mock (100)
+  std::this_thread::sleep_for(std::chrono::milliseconds(110));
+
+  panther_hardware_interfaces::RoboteqDriverFeedback f_fb2 =
+    can_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
+  panther_hardware_interfaces::RoboteqDriverFeedback r_fb2 =
+    can_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+
+  // feedback is published with period 100ms, to check if timestamps are accurate, it is checked if
+  // consecutive messages will have timestamps 100ms + some threshold apart
+  ASSERT_LE(
+    lely::util::from_timespec(f_fb2.timestamp) - lely::util::from_timespec(f_fb1.timestamp),
+    std::chrono::milliseconds(102));
+  ASSERT_LE(
+    lely::util::from_timespec(r_fb2.timestamp) - lely::util::from_timespec(r_fb1.timestamp),
+    std::chrono::milliseconds(102));
+}
 
 TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
 {
@@ -227,12 +270,12 @@ TEST_F(TestRoboteqDriver, test_read_timeout)
 }
 
 // TODO
-TEST_F(TestRoboteqDriver, test_can_error)
-{
-  // roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
-  // ASSERT_THROW(can_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
-  // ASSERT_TRUE(can_controller_->GetFrontDriver()->get_can_error());
-}
+// TEST_F(TestRoboteqDriver, test_can_error)
+// {
+// roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
+// ASSERT_THROW(can_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
+// ASSERT_TRUE(can_controller_->GetFrontDriver()->get_can_error());
+// }
 
 int main(int argc, char ** argv)
 {
