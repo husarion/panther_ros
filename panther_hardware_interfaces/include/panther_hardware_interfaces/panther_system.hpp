@@ -158,6 +158,32 @@ private:
   }
 };
 
+/**
+ * @brief Attempts to run operation for max_attempts number of times.
+ * operation can throw std::runtime_error, which is caught, and on_error function
+ * is executed (for example deinitialization or some other clean up in case of 
+ * failure)
+ * @returns true if operation was successfully executed, false if it wasn't executed
+ * and number of attempts exceeded maximum allowed
+ */
+bool OperationWithAttempts(
+  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
+{
+  for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
+    try {
+      operation();
+      return true;
+    } catch (std::runtime_error & err) {
+      on_error();
+      RCLCPP_WARN_STREAM(
+        rclcpp::get_logger("PantherSystem"), "Operation failed: " << err.what() << ". Attempt "
+                                                                  << attempts_counter + 1 << " of "
+                                                                  << max_attempts);
+    }
+  }
+  return false;
+}
+
 class PantherSystem : public hardware_interface::SystemInterface
 {
 public:
@@ -189,6 +215,8 @@ protected:
   void ReadParametersAndCreateCanOpenErrorFilter();
 
   void UpdateHwStates();
+  void UpdateDriverState();
+  void UpdateSystemFeedback();
 
   static constexpr size_t kJointsSize = 4;
 
@@ -226,9 +254,6 @@ protected:
   unsigned max_roboteq_activation_attempts_;
 
   const unsigned max_safety_stop_attempts_ = 20;
-
-  bool OperationWithAttempts(
-    std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error);
 };
 
 }  // namespace panther_hardware_interfaces

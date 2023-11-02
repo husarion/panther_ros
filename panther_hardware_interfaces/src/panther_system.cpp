@@ -182,24 +182,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   return CallbackReturn::SUCCESS;
 }
 
-bool PantherSystem::OperationWithAttempts(
-  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
-{
-  for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
-    try {
-      operation();
-      return true;
-    } catch (std::runtime_error & err) {
-      on_error();
-      RCLCPP_WARN_STREAM(
-        rclcpp::get_logger("PantherSystem"), "Operation failed: " << err.what() << ". Attempt "
-                                                                  << attempts_counter + 1 << " of "
-                                                                  << max_attempts);
-    }
-  }
-  return false;
-}
-
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
@@ -353,7 +335,7 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
   return command_interfaces;
 }
 
-return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
+void PantherSystem::UpdateDriverState()
 {
   try {
     // Other feedback values are read through SDO - it requires more time, so instead of
@@ -377,7 +359,10 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       "Error when trying to read drivers feedback: " << err.what());
     canopen_error_filter_->UpdateReadSDOError(true);
   }
+}
 
+void PantherSystem::UpdateSystemFeedback()
+{
   try {
     roboteq_controller_->UpdateSystemFeedback();
     UpdateHwStates();
@@ -405,12 +390,18 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
   }
+}
 
+return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
+{
+  UpdateDriverState();
+  UpdateSystemFeedback();
   panther_system_node_.UpdateMsgErrors(
     canopen_error_filter_->IsError(), canopen_error_filter_->IsWriteSDOError(),
     canopen_error_filter_->IsReadSDOError(), canopen_error_filter_->IsReadPDOError(),
     roboteq_controller_->GetFrontData().GetOldData(),
     roboteq_controller_->GetRearData().GetOldData());
+
   panther_system_node_.PublishDriverState();
 
   return return_type::OK;
