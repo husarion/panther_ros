@@ -31,6 +31,133 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 using StateInterface = hardware_interface::StateInterface;
 using CommandInterface = hardware_interface::CommandInterface;
 
+class PantherSystemNode
+{
+public:
+  PantherSystemNode() {}
+
+  void UpdateMsgDriversErrorsState(const RoboteqData & front, const RoboteqData & rear)
+  {
+    auto & driver_state = realtime_driver_state_publisher_->msg_;
+
+    driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
+    driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
+    driver_state.front.left_motor.runtime_error = front.GetLeftRuntimeError().GetMessage();
+    driver_state.front.right_motor.runtime_error = front.GetRightRuntimeError().GetMessage();
+
+    driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
+    driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
+    driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
+    driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
+  }
+
+  void UpdateMsgDriversState(const DriverState & front, const DriverState & rear)
+  {
+    auto & driver_state = realtime_driver_state_publisher_->msg_;
+
+    driver_state.front.voltage = front.GetVoltage();
+    driver_state.front.current = front.GetCurrent();
+    driver_state.front.temperature = front.GetTemperature();
+
+    driver_state.rear.voltage = rear.GetVoltage();
+    driver_state.rear.current = rear.GetCurrent();
+    driver_state.rear.temperature = rear.GetTemperature();
+  }
+
+  void UpdateMsgErrors(
+    bool is_error, bool is_write_sdo_error, bool is_read_sdo_error, bool is_read_pdo_error,
+    bool front_old_data, bool rear_old_data)
+  {
+    realtime_driver_state_publisher_->msg_.error = is_error;
+    // TODO rename
+    realtime_driver_state_publisher_->msg_.write_error = is_write_sdo_error;
+    realtime_driver_state_publisher_->msg_.read_error_sdo = is_read_sdo_error;
+    realtime_driver_state_publisher_->msg_.read_error_pdo = is_read_pdo_error;
+
+    realtime_driver_state_publisher_->msg_.front.old_data = front_old_data;
+    realtime_driver_state_publisher_->msg_.rear.old_data = rear_old_data;
+  }
+
+  void PublishDriverState()
+  {
+    if (realtime_driver_state_publisher_->trylock()) {
+      realtime_driver_state_publisher_->unlockAndPublish();
+    }
+  }
+
+  void Configure()
+  {
+    node_ = std::make_shared<rclcpp::Node>("panther_system_node");
+    executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+    executor_->add_node(node_);
+
+    executor_thread_ = std::make_unique<std::thread>([this]() {
+      while (!stop_executor_) {
+        executor_->spin_some();
+      }
+    });
+  }
+
+  void Activate(std::function<void()> clear_errors)
+  {
+    clear_errors_ = clear_errors;
+
+    driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
+      "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
+    realtime_driver_state_publisher_ =
+      std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
+        driver_state_publisher_);
+
+    // TODO: Is it RT safe?
+    clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
+      "~/clear_errors",
+      std::bind(
+        &PantherSystemNode::ClearErrorsCb, this, std::placeholders::_1, std::placeholders::_2));
+  }
+
+  void ResetPublishers()
+  {
+    realtime_driver_state_publisher_.reset();
+    driver_state_publisher_.reset();
+    clear_errors_srv_.reset();
+  }
+
+  void DestroyNode()
+  {
+    stop_executor_.store(true);
+    // TODO: check
+    executor_thread_->join();
+    stop_executor_.store(false);
+
+    executor_.reset();
+    node_.reset();
+  }
+
+private:
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
+  std::unique_ptr<std::thread> executor_thread_;
+
+  std::atomic_bool stop_executor_ = false;
+
+  rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
+    realtime_driver_state_publisher_;
+
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
+
+  std::function<void()> clear_errors_;
+
+  void ClearErrorsCb(
+    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response)
+  {
+    RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
+    clear_errors_();
+    response->success = true;
+  }
+};
+
 class PantherSystem : public hardware_interface::SystemInterface
 {
 public:
@@ -62,10 +189,6 @@ protected:
   void ReadParametersAndCreateCanOpenErrorFilter();
 
   void UpdateHwStates();
-  void UpdateMsgDriversErrorsState();
-  void UpdateMsgDriversState();
-  void UpdateMsgErrors();
-  void PublishDriverState();
 
   static constexpr size_t kJointsSize = 4;
 
@@ -89,24 +212,12 @@ protected:
   std::unique_ptr<GPIOController> gpio_controller_;
   std::shared_ptr<PantherWheelsController> roboteq_controller_;
 
-  rclcpp::Node::SharedPtr node_;
-  rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
-  std::unique_ptr<std::thread> executor_thread_;
-
-  rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
-    realtime_driver_state_publisher_;
-
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
-
   DrivetrainSettings drivetrain_settings_;
   CanOpenSettings canopen_settings_;
 
-  void ResetPublishers();
-  void DestroyNode();
-  std::atomic_bool stop_executor_ = false;
+  std::shared_ptr<CanOpenErrorFilter> canopen_error_filter_;
 
-  std::unique_ptr<CanOpenErrorFilter> canopen_error_filter_;
+  PantherSystemNode panther_system_node_;
 
   // Sometimes SDO errors can happen during initialization and activation of roboteqs, in this cases it is better to retry
   // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out
@@ -115,10 +226,6 @@ protected:
   unsigned max_roboteq_activation_attempts_;
 
   const unsigned max_safety_stop_attempts_ = 20;
-
-  void ClearErrorsCb(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
 
   bool OperationWithAttempts(
     std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error);

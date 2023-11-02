@@ -142,7 +142,7 @@ void PantherSystem::ReadParametersAndCreateCanOpenErrorFilter()
   unsigned max_read_pdo_errors_count =
     std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
 
-  canopen_error_filter_ = std::make_unique<CanOpenErrorFilter>(
+  canopen_error_filter_ = std::make_shared<CanOpenErrorFilter>(
     max_write_sdo_errors_count, max_read_sdo_errors_count, max_read_pdo_errors_count);
 }
 
@@ -182,27 +182,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   return CallbackReturn::SUCCESS;
 }
 
-void PantherSystem::ResetPublishers()
-{
-  realtime_driver_state_publisher_.reset();
-  driver_state_publisher_.reset();
-  clear_errors_srv_.reset();
-}
-
-void PantherSystem::DestroyNode()
-{
-  roboteq_controller_->Deinitialize();
-
-  stop_executor_.store(true);
-  // TODO: check
-  executor_thread_->join();
-  stop_executor_.store(false);
-
-  executor_.reset();
-  node_.reset();
-  roboteq_controller_.reset();
-}
-
 bool PantherSystem::OperationWithAttempts(
   std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
 {
@@ -231,15 +210,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
 
-  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
-  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
-  executor_->add_node(node_);
-
-  executor_thread_ = std::make_unique<std::thread>([this]() {
-    while (!stop_executor_) {
-      executor_->spin_some();
-    }
-  });
+  panther_system_node_.Configure();
 
   // TODO: add tests
 
@@ -260,7 +231,11 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Cleaning up");
 
-  DestroyNode();
+  roboteq_controller_->Deinitialize();
+  roboteq_controller_.reset();
+
+  panther_system_node_.DestroyNode();
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -286,27 +261,11 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
-    "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
-  realtime_driver_state_publisher_ =
-    std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
-      driver_state_publisher_);
-
-  clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
-    "~/clear_errors",
-    std::bind(&PantherSystem::ClearErrorsCb, this, std::placeholders::_1, std::placeholders::_2));
+  panther_system_node_.Activate(
+    std::bind(&CanOpenErrorFilter::SetClearErrorsFlag, canopen_error_filter_));
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
   return CallbackReturn::SUCCESS;
-}
-
-void PantherSystem::ClearErrorsCb(
-  std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-  std_srvs::srv::Trigger::Response::SharedPtr response)
-{
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
-  canopen_error_filter_->SetClearErrorsFlag();
-  response->success = true;
 }
 
 CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
@@ -320,7 +279,8 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  ResetPublishers();
+  panther_system_node_.ResetPublishers();
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -333,8 +293,14 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
     return CallbackReturn::FAILURE;
   }
-  ResetPublishers();
-  DestroyNode();
+
+  panther_system_node_.ResetPublishers();
+
+  roboteq_controller_->Deinitialize();
+  roboteq_controller_.reset();
+
+  panther_system_node_.DestroyNode();
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -350,8 +316,13 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  ResetPublishers();
-  DestroyNode();
+  panther_system_node_.ResetPublishers();
+
+  roboteq_controller_->Deinitialize();
+  roboteq_controller_.reset();
+
+  panther_system_node_.DestroyNode();
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -393,7 +364,9 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
     if (finished_updates) {
       // TODO: locking???
-      UpdateMsgDriversState();
+      panther_system_node_.UpdateMsgDriversState(
+        roboteq_controller_->GetFrontData().GetDriverState(),
+        roboteq_controller_->GetRearData().GetDriverState());
     }
 
     canopen_error_filter_->UpdateReadSDOError(false);
@@ -408,16 +381,18 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   try {
     roboteq_controller_->UpdateSystemFeedback();
     UpdateHwStates();
-    UpdateMsgDriversErrorsState();
+    panther_system_node_.UpdateMsgDriversErrorsState(
+      roboteq_controller_->GetFrontData(), roboteq_controller_->GetRearData());
 
     if (
       roboteq_controller_->GetFrontData().IsError() ||
       roboteq_controller_->GetRearData().IsError()) {
-      RCLCPP_ERROR_STREAM_THROTTLE(
-        rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
-        "Error state on one of the drivers"
-          << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
-          << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
+      // TODO: fix
+      // RCLCPP_ERROR_STREAM_THROTTLE(
+      //   rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
+      //   "Error state on one of the drivers"
+      //     << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
+      //     << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
 
       // TODO: filter only on timeout errors
       canopen_error_filter_->UpdateReadPDOError(true);
@@ -431,8 +406,12 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
   }
 
-  UpdateMsgErrors();
-  PublishDriverState();
+  panther_system_node_.UpdateMsgErrors(
+    canopen_error_filter_->IsError(), canopen_error_filter_->IsWriteSDOError(),
+    canopen_error_filter_->IsReadSDOError(), canopen_error_filter_->IsReadPDOError(),
+    roboteq_controller_->GetFrontData().GetOldData(),
+    roboteq_controller_->GetRearData().GetOldData());
+  panther_system_node_.PublishDriverState();
 
   return return_type::OK;
 }
@@ -461,9 +440,10 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       }
     }
 
-    RCLCPP_ERROR_STREAM_THROTTLE(
-      rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
-      "Error detected, ignoring write commands");
+    // TODO: fix
+    // RCLCPP_ERROR_STREAM_THROTTLE(
+    //   rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
+    //   "Error detected, ignoring write commands");
     return return_type::OK;
   }
 
@@ -505,61 +485,6 @@ void PantherSystem::UpdateHwStates()
   hw_states_efforts_[1] = fr.GetTorque();
   hw_states_efforts_[2] = rl.GetTorque();
   hw_states_efforts_[3] = rr.GetTorque();
-}
-
-void PantherSystem::UpdateMsgDriversErrorsState()
-{
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-
-  auto front = roboteq_controller_->GetFrontData();
-  auto rear = roboteq_controller_->GetRearData();
-
-  driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
-  driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
-  driver_state.front.left_motor.runtime_error = front.GetLeftRuntimeError().GetMessage();
-  driver_state.front.right_motor.runtime_error = front.GetRightRuntimeError().GetMessage();
-
-  driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
-  driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
-  driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
-  driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
-}
-
-void PantherSystem::UpdateMsgDriversState()
-{
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-
-  auto front = roboteq_controller_->GetFrontData().GetDriverState();
-  auto rear = roboteq_controller_->GetRearData().GetDriverState();
-
-  driver_state.front.voltage = front.GetVoltage();
-  driver_state.front.current = front.GetCurrent();
-  driver_state.front.temperature = front.GetTemperature();
-
-  driver_state.rear.voltage = rear.GetVoltage();
-  driver_state.rear.current = rear.GetCurrent();
-  driver_state.rear.temperature = rear.GetTemperature();
-}
-
-void PantherSystem::UpdateMsgErrors()
-{
-  realtime_driver_state_publisher_->msg_.error = canopen_error_filter_->IsError();
-  // TODO rename
-  realtime_driver_state_publisher_->msg_.write_error = canopen_error_filter_->IsWriteSDOError();
-  realtime_driver_state_publisher_->msg_.read_error_sdo = canopen_error_filter_->IsReadSDOError();
-  realtime_driver_state_publisher_->msg_.read_error_pdo = canopen_error_filter_->IsReadPDOError();
-
-  realtime_driver_state_publisher_->msg_.front.old_data =
-    roboteq_controller_->GetFrontData().GetOldData();
-  realtime_driver_state_publisher_->msg_.rear.old_data =
-    roboteq_controller_->GetRearData().GetOldData();
-}
-
-void PantherSystem::PublishDriverState()
-{
-  if (realtime_driver_state_publisher_->trylock()) {
-    realtime_driver_state_publisher_->unlockAndPublish();
-  }
 }
 
 }  // namespace panther_hardware_interfaces
