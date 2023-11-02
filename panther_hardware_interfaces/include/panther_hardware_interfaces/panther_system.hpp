@@ -22,7 +22,7 @@
 
 #include <panther_hardware_interfaces/gpio_driver.hpp>
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
-#include <panther_hardware_interfaces/panther_system_error_handler.hpp>
+#include <panther_hardware_interfaces/canopen_error_filter.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -96,7 +96,7 @@ protected:
   void DestroyNode();
   std::atomic_bool stop_executor_ = false;
 
-  std::unique_ptr<PantherSystemErrorHandler> error_handler_;
+  std::unique_ptr<CanOpenErrorFilter> canopen_error_filter_;
 
   // Sometimes SDO errors can happen during initialization and activation of roboteqs, in this cases it is better to retry
   // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out

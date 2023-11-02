@@ -36,10 +36,10 @@ Feedback converters are combined in the `RoboteqData` class to provide full stat
 * 2 `RuntimeError` (for left and right motors)
 * `DriverState`
 
-### `panther_system_error_handler`
+### `canopen_error_filter`
 
-<!-- TODO more dateiled description -->
-Class that keeps track of different types of errors. It is necessary because sometimes Roboteq controllers can miss the SDO response, which results in timeout. In this case it is better to filter some of this errors, and escalate only when certain number of errors happen.
+Class that keeps track of different types of errors. In some rare cases Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in timeout. 
+As it usually are rare and singular occurences, it is better to filter some of this errors, and escalate only when certain number of errors happen.
 
 ### `gpio_driver`
 

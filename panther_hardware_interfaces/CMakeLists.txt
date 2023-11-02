@@ -83,9 +83,9 @@ install(DIRECTORY
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_system_error_handler test/test_panther_system_error_handler.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_canopen_error_filter test/test_canopen_error_filter.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_panther_system_error_handler
+    ${PROJECT_NAME}_test_canopen_error_filter
     PRIVATE
     include
   )

@@ -138,7 +138,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     unsigned max_read_pdo_errors_count =
       std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
 
-    error_handler_ = std::make_unique<PantherSystemErrorHandler>(
+    canopen_error_filter_ = std::make_unique<CanOpenErrorFilter>(
       max_write_sdo_errors_count, max_read_sdo_errors_count, max_read_pdo_errors_count);
 
   } catch (std::invalid_argument & err) {
@@ -274,7 +274,7 @@ void PantherSystem::ClearErrorsCb(
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
-  error_handler_->SetClearErrorFlag();
+  canopen_error_filter_->SetClearErrorsFlag();
   response->success = true;
 }
 
@@ -365,13 +365,13 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       UpdateMsgDriversState();
     }
 
-    error_handler_->UpdateReadSDOErrors(false);
+    canopen_error_filter_->UpdateReadSDOError(false);
 
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"),
       "Error when trying to read drivers feedback: " << err.what());
-    error_handler_->UpdateReadSDOErrors(true);
+    canopen_error_filter_->UpdateReadSDOError(true);
   }
 
   try {
@@ -387,13 +387,15 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
         "Error state on one of the drivers"
           << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
           << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
-      error_handler_->UpdateReadPDOErrors(true);
+
+      // TODO: filter only on timeout errors
+      canopen_error_filter_->UpdateReadPDOError(true);
     } else {
-      error_handler_->UpdateReadPDOErrors(false);
+      canopen_error_filter_->UpdateReadPDOError(false);
     }
 
   } catch (std::runtime_error & err) {
-    error_handler_->UpdateReadPDOErrors(true);
+    canopen_error_filter_->UpdateReadPDOError(true);
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
   }
@@ -409,7 +411,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // "soft" error - still there is a comunication over CAN with drivers, so publishing feedback is continued -
   // hardware interface's onError isn't triggered
   // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
-  if (error_handler_->IsError()) {
+  if (canopen_error_filter_->IsError()) {
     if (
       (roboteq_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
        roboteq_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
@@ -438,11 +440,11 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     roboteq_controller_->WriteSpeed(
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
       hw_commands_velocities_[3]);
-    error_handler_->UpdateWriteSDOErrors(false);
+    canopen_error_filter_->UpdateWriteSDOError(false);
   } catch (std::runtime_error & err) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
-    error_handler_->UpdateWriteSDOErrors(true);
+    canopen_error_filter_->UpdateWriteSDOError(true);
   }
 
   return return_type::OK;
@@ -510,11 +512,11 @@ void PantherSystem::UpdateMsgDriversState()
 
 void PantherSystem::UpdateMsgErrors()
 {
-  realtime_driver_state_publisher_->msg_.error = error_handler_->IsError();
+  realtime_driver_state_publisher_->msg_.error = canopen_error_filter_->IsError();
   // TODO rename
-  realtime_driver_state_publisher_->msg_.write_error = error_handler_->IsWriteSDOError();
-  realtime_driver_state_publisher_->msg_.read_error_sdo = error_handler_->IsReadSDOError();
-  realtime_driver_state_publisher_->msg_.read_error_pdo = error_handler_->IsReadPDOError();
+  realtime_driver_state_publisher_->msg_.write_error = canopen_error_filter_->IsWriteSDOError();
+  realtime_driver_state_publisher_->msg_.read_error_sdo = canopen_error_filter_->IsReadSDOError();
+  realtime_driver_state_publisher_->msg_.read_error_pdo = canopen_error_filter_->IsReadPDOError();
 
   realtime_driver_state_publisher_->msg_.front.old_data =
     roboteq_controller_->GetFrontData().GetOldData();
