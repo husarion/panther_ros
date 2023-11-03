@@ -6,9 +6,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(panther_msgs REQUIRED)
 find_package(panther_utils REQUIRED)
+find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 include_directories(
@@ -27,9 +27,9 @@ add_executable(battery_node
 )
 
 ament_target_dependencies(battery_node
-  rclcpp
   panther_msgs
   panther_utils
+  rclcpp
   sensor_msgs
 )
 
@@ -78,9 +78,9 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_battery
+    panther_msgs
     rclcpp
     sensor_msgs
-    panther_msgs
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_battery_publisher test/test_battery_publisher.cpp src/battery_publisher.cpp)
@@ -89,10 +89,10 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_battery_publisher
-    rclcpp
-    panther_utils
-    sensor_msgs
     panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_single_battery_publisher 
@@ -106,10 +106,10 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_single_battery_publisher
-    rclcpp
-    panther_utils
-    sensor_msgs
     panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_dual_battery_publisher 
@@ -123,9 +123,30 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_dual_battery_publisher
+    panther_msgs
+    panther_utils
     rclcpp
     sensor_msgs
+  )
+
+  ament_add_gtest(${PROJECT_NAME}_test_battery_node
+    test/test_battery_node.cpp 
+    src/adc_battery.cpp 
+    src/battery_node.cpp 
+    src/battery_publisher.cpp 
+    src/dual_battery_publisher.cpp
+    src/single_battery_publisher.cpp
+    src/roboteq_battery.cpp
+  )
+  target_include_directories(${PROJECT_NAME}_test_battery_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_battery_node
     panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_battery_node_roboteq 
@@ -142,10 +163,10 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_battery_node_roboteq
-    rclcpp
-    panther_utils
-    sensor_msgs
     panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_battery_node_dual_bat 
@@ -162,27 +183,10 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include>
   )
   ament_target_dependencies(${PROJECT_NAME}_test_battery_node_dual_bat
-    rclcpp
-    panther_utils
-    sensor_msgs
     panther_msgs
-  )
-
-  ament_add_gtest(${PROJECT_NAME}_test_dual_battery_publisher 
-    test/test_dual_battery_publisher.cpp 
-    src/adc_battery.cpp 
-    src/battery_publisher.cpp 
-    src/dual_battery_publisher.cpp
-  )
-  target_include_directories(${PROJECT_NAME}_test_dual_battery_publisher PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_dual_battery_publisher
-    rclcpp
     panther_utils
+    rclcpp
     sensor_msgs
-    panther_msgs
   )
 
 endif()
