@@ -86,8 +86,9 @@
         <!-- Depends on frequnecy of the controller -->
         <param name="pdo_feedback_timeout">15</param>
 
-        <param name="roboteq_initialization_attempts">5</param>
-        <param name="roboteq_activation_attempts">5</param>
+        <param name="max_roboteq_initialization_attempts">5</param>
+        <param name="max_roboteq_activation_attempts">5</param>
+        <param name="max_safety_stop_attempts">20</param>
 
         <param name="max_write_sdo_errors_count">2</param>
         <param name="max_read_sdo_errors_count">2</param>

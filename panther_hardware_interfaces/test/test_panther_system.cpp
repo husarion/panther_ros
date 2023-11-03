@@ -72,7 +72,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 
   try {
     configure_panther_system();
-  } catch (std::exception & err) {
+  } catch (const std::exception & err) {
     FAIL() << "Exception caught when trying to configure_panther_system: " << err.what();
     return;
   }
@@ -309,11 +309,11 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   ASSERT_EQ(state_msg->front.temperature, f_temp);
   ASSERT_EQ(state_msg->rear.temperature, r_temp);
 
-  ASSERT_EQ(state_msg->front.voltage, f_volt / 10);
-  ASSERT_EQ(state_msg->rear.voltage, r_volt / 10);
+  ASSERT_EQ(state_msg->front.voltage, f_volt / 10.0);
+  ASSERT_EQ(state_msg->rear.voltage, r_volt / 10.0);
 
-  ASSERT_EQ(state_msg->front.current, (f_bat_amps_1 + f_bat_amps_2) / 10);
-  ASSERT_EQ(state_msg->rear.current, (r_bat_amps_1 + r_bat_amps_2) / 10);
+  ASSERT_EQ(state_msg->front.current, (f_bat_amps_1 + f_bat_amps_2) / 10.0);
+  ASSERT_EQ(state_msg->rear.current, (r_bat_amps_1 + r_bat_amps_2) / 10.0);
 
   shutdown_panther_system();
 }
@@ -457,7 +457,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 //     }
 //   }
 
-//   ASSERT_FALSE(state_msg->write_error);
+//   ASSERT_FALSE(state_msg->write_sdo_error);
 
 //   state_msg.reset();
 
@@ -478,7 +478,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 //       break;
 //     }
 //   }
-//   ASSERT_FALSE(state_msg->write_error);
+//   ASSERT_FALSE(state_msg->write_sdo_error);
 //   state_msg.reset();
 
 //   rm_->write(TIME, PERIOD);
@@ -496,7 +496,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 //       break;
 //     }
 //   }
-//   ASSERT_TRUE(state_msg->write_error);
+//   ASSERT_TRUE(state_msg->write_sdo_error);
 
 //   shutdown_panther_system();
 // }

@@ -128,9 +128,10 @@ void PantherSystem::ReadCanOpenSettings()
 void PantherSystem::ReadInitializationActivationAttempts()
 {
   max_roboteq_initialization_attempts_ =
-    std::stoi(info_.hardware_parameters["roboteq_initialization_attempts"]);
+    std::stoi(info_.hardware_parameters["max_roboteq_initialization_attempts"]);
   max_roboteq_activation_attempts_ =
-    std::stoi(info_.hardware_parameters["roboteq_activation_attempts"]);
+    std::stoi(info_.hardware_parameters["max_roboteq_activation_attempts"]);
+  max_safety_stop_attempts_ = std::stoi(info_.hardware_parameters["max_safety_stop_attempts"]);
 }
 
 void PantherSystem::ReadParametersAndCreateCanOpenErrorFilter()

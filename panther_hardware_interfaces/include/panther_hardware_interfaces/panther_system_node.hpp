@@ -80,9 +80,7 @@ private:
     realtime_driver_state_publisher_;
 
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
-
   std::function<void()> clear_errors_;
-
   void ClearErrorsCb(
     std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
     std_srvs::srv::Trigger::Response::SharedPtr response);

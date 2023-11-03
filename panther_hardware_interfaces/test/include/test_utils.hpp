@@ -64,8 +64,9 @@ public:
       <param name="rear_driver_can_id">2</param>
       <param name="sdo_operation_timeout">4</param>
       <param name="pdo_feedback_timeout">15</param>
-      <param name="roboteq_initialization_attempts">3</param>
-      <param name="roboteq_activation_attempts">3</param>
+      <param name="max_roboteq_initialization_attempts">3</param>
+      <param name="max_roboteq_activation_attempts">3</param>
+      <param name="max_safety_stop_attempts">20</param>
       <param name="max_write_sdo_errors_count">2</param>
       <param name="max_read_sdo_errors_count">2</param>
       <param name="max_read_pdo_errors_count">1</param>
@@ -117,8 +118,9 @@ public:
       <param name="rear_driver_can_id">2</param>
       <param name="sdo_operation_timeout">4</param>
       <param name="pdo_feedback_timeout">15</param>
-      <param name="roboteq_initialization_attempts">3</param>
-      <param name="roboteq_activation_attempts">3</param>
+      <param name="max_roboteq_initialization_attempts">3</param>
+      <param name="max_roboteq_activation_attempts">3</param>
+      <param name="max_safety_stop_attempts">20</param>
       <param name="max_write_sdo_errors_count">2</param>
       <param name="max_read_sdo_errors_count">2</param>
       <param name="max_read_pdo_errors_count">1</param>

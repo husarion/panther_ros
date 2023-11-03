@@ -52,6 +52,9 @@ bool OperationWithAttempts(
   return false;
 }
 
+/**
+ * @brief Class that implements SystemInterface from ros2_control for Panther
+ */
 class PantherSystem : public hardware_interface::SystemInterface
 {
 public:
@@ -88,19 +91,18 @@ protected:
 
   static constexpr size_t kJointsSize = 4;
 
-  // consider adding position and torque mode after updating roboteq firmware to 2.1a
-  // In 2.1 both position and torque mode aren't really stable and safe
-  // in torque mode sometimes after killing software motor moves and it generally isn't well tuned
-  // position mode also isn't really stable (reacts abruptly to spikes, which we hope will be fixed
-  // in the new firmware)
-
+  // Currently only velocity command mode is supported - although roboteq driver support position
+  // and torque mode, in 2.1 firmware both modes aren't really stable and safe.
+  // In torque mode sometimes after killing software motor moves and it generally isn't well tuned.
+  // Position mode also isn't really stable (reacts abruptly to spikes).
+  // If updating firmware to 2.1a will solve this issues, it may be worth to support other modes.
   double hw_commands_velocities_[kJointsSize];
 
   double hw_states_positions_[kJointsSize];
   double hw_states_velocities_[kJointsSize];
   double hw_states_efforts_[kJointsSize];
 
-  // Define expected joint order, so that it doesn't mattter order defined in the panther_macro
+  // Define expected joint order, so that it doesn't mattter order defined in the URDF
   // it is expected that joint name should contain these specifiers
   std::string joint_order_[kJointsSize] = {"fl", "fr", "rl", "rr"};
   std::string joints_names_sorted_[kJointsSize];
@@ -115,13 +117,19 @@ protected:
 
   PantherSystemNode panther_system_node_;
 
-  // Sometimes SDO errors can happen during initialization and activation of roboteqs, in this cases it is better to retry
-  // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of object 1000 (Device type) to node 02: SDO protocol timed out
-  // [ros2_control_node-1] error: SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to node 02: SDO protocol timed out
-  unsigned max_roboteq_initialization_attempts_;
-  unsigned max_roboteq_activation_attempts_;
+  // Sometimes SDO errors can happen during initialization and activation of roboteq drivers,
+  // in this cases it is better to retry
+  // Example errors:
+  // SDO abort code 05040000 received on upload request of object 1000 (Device type) to
+  // node 02: SDO protocol timed out
+  // SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to
+  // node 02: SDO protocol timed out
+  unsigned max_roboteq_initialization_attempts_ = 2;
+  unsigned max_roboteq_activation_attempts_ = 2;
 
-  const unsigned max_safety_stop_attempts_ = 20;
+  // SDO error can happen also during setting safetry stop (it may be not necessary to do attempts
+  // once we have GPIO controller)
+  unsigned max_safety_stop_attempts_ = 20;
 };
 
 }  // namespace panther_hardware_interfaces

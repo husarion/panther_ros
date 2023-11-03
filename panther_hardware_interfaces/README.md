@@ -53,10 +53,6 @@ Class that takes care of additional ROS interface of panther system, such as pub
 
 Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documetation](https://control.ros.org/master/index.html)).
 
-Apart from usual ros2_control interface, it also creates node to provide additional functionalities:
-* publishing current drivers state
-* service for clearing errors
-
 <!-- TODO: when exception is thrown it is not RT safe -->
 
 ## ROS Nodes
@@ -86,8 +82,9 @@ CAN settings
  - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
  - `sdo_operation_timeout` [*int*, default: 4 [ms]] - it is set so that full controller loop takes up to required time. Each controller loop contains of two SDO operations (one write and one read). For example in 100Hz loop there is up to 10ms for every operation. This timeout should be set so that in worst case everything takes 10ms.
  - `pdo_feedback_timeout` [*int*, default: 15 [ms]]  - depends on frequnecy at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data, if it takes more than `pdo_feedback_timeout`, PDO read error is triggered
- - `roboteq_initialization_attempts` [*int*, default: 5] - in some cases SDO error happen during initialization, it is possible to configure more attempts, before escaliting to error
- - `roboteq_activation_attempts` [*int*, default: 5] - similat to initilizaiton, it is possible to allow some SDO errors before escaliting to error
+ - `max_roboteq_initialization_attempts` [*int*, default: 5] - in some cases SDO error happen during initialization, it is possible to configure more attempts, before escaliting to error
+ - `max_roboteq_activation_attempts` [*int*, default: 5] - similat to initilizaiton, it is possible to allow some SDO errors before escaliting to error
+ - `max_safety_stop_attempts` [*int*, default: 20] - TODO
  - `max_write_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
  - `max_read_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
  - `max_read_pdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
