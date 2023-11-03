@@ -51,8 +51,7 @@ void PantherSystemNode::Deinitialize()
   node_.reset();
 }
 
-void PantherSystemNode::UpdateMsgDriversErrorsState(
-  const RoboteqData & front, const RoboteqData & rear)
+void PantherSystemNode::UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
@@ -67,7 +66,8 @@ void PantherSystemNode::UpdateMsgDriversErrorsState(
   driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
-void PantherSystemNode::UpdateMsgDriversState(const DriverState & front, const DriverState & rear)
+void PantherSystemNode::UpdateMsgDriversParameters(
+  const DriverState & front, const DriverState & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 

@@ -47,7 +47,7 @@ WIP - it will handle reading/writing pins of the RPi GPIO.
 
 ### `panther_system_node`
 
-TODO
+Class that takes care of additional ROS interface of panther system, such as publishing driver state and providing service for clearing errors.
 
 ### `panther_system`
 

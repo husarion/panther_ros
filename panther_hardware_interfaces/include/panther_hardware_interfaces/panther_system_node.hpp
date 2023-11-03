@@ -17,25 +17,55 @@
 namespace panther_hardware_interfaces
 {
 
+// TODO Rename class
 /**
  * @brief Class that takes care of additional ROS interface of panther system, such as publishing 
- * driver state and providing services for clearing errors
+ * driver state and providing service for clearing errors
  */
 class PantherSystemNode
 {
 public:
   PantherSystemNode() {}
 
+  /**
+   * @brief Creates node and executor (in a separate thread)
+   */
   void Configure();
+
+  /**
+   * @brief Creates publishers, subscribers and services
+   * @param clear_errors - functions that should be called, when clear errors
+   * service is called
+   */
   void Activate(std::function<void()> clear_errors);
+
+  /**
+   * @brief Destroys publishers, subscribers and services
+   */
   void Deactivate();
+
+  /**
+   * @brief Stops executor thread and destroys the node
+   */
   void Deinitialize();
 
-  void UpdateMsgDriversErrorsState(const RoboteqData & front, const RoboteqData & rear);
-  void UpdateMsgDriversState(const DriverState & front, const DriverState & rear);
+  /**
+   * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
+   */
+  void UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear);
+
+  /**
+   * @brief Updates parameters of the drivers: voltage, current and temperature
+   */
+  void UpdateMsgDriversParameters(const DriverState & front, const DriverState & rear);
+
+  /**
+   * @brief Updates current state of communication errors and general error state
+   */
   void UpdateMsgErrors(
     bool is_error, bool is_write_sdo_error, bool is_read_sdo_error, bool is_read_pdo_error,
     bool front_old_data, bool rear_old_data);
+
   void PublishDriverState();
 
 private:

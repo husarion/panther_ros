@@ -346,7 +346,7 @@ void PantherSystem::UpdateDriverState()
 
     if (finished_updates) {
       // TODO: locking???
-      panther_system_node_.UpdateMsgDriversState(
+      panther_system_node_.UpdateMsgDriversParameters(
         roboteq_controller_->GetFrontData().GetDriverState(),
         roboteq_controller_->GetRearData().GetDriverState());
     }
@@ -366,7 +366,7 @@ void PantherSystem::UpdateSystemFeedback()
   try {
     roboteq_controller_->UpdateSystemFeedback();
     UpdateHwStates();
-    panther_system_node_.UpdateMsgDriversErrorsState(
+    panther_system_node_.UpdateMsgErrorFlags(
       roboteq_controller_->GetFrontData(), roboteq_controller_->GetRearData());
 
     if (
