@@ -3,7 +3,7 @@
 namespace panther_hardware_interfaces
 {
 
-void PantherSystemNode::Configure()
+void PantherSystemNode::Initialize()
 {
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
@@ -43,7 +43,6 @@ void PantherSystemNode::Deactivate()
 void PantherSystemNode::Deinitialize()
 {
   stop_executor_.store(true);
-  // TODO: check
   executor_thread_->join();
   stop_executor_.store(false);
 
@@ -84,11 +83,11 @@ void PantherSystemNode::UpdateMsgErrors(
   bool is_error, bool is_write_sdo_error, bool is_read_sdo_error, bool is_read_pdo_error,
   bool front_old_data, bool rear_old_data)
 {
+  // TODO is_error names
   realtime_driver_state_publisher_->msg_.error = is_error;
-  // TODO rename
-  realtime_driver_state_publisher_->msg_.write_error = is_write_sdo_error;
-  realtime_driver_state_publisher_->msg_.read_error_sdo = is_read_sdo_error;
-  realtime_driver_state_publisher_->msg_.read_error_pdo = is_read_pdo_error;
+  realtime_driver_state_publisher_->msg_.write_sdo_error = is_write_sdo_error;
+  realtime_driver_state_publisher_->msg_.read_sdo_error = is_read_sdo_error;
+  realtime_driver_state_publisher_->msg_.read_pdo_error = is_read_pdo_error;
 
   realtime_driver_state_publisher_->msg_.front.old_data = front_old_data;
   realtime_driver_state_publisher_->msg_.rear.old_data = rear_old_data;

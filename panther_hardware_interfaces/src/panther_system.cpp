@@ -192,7 +192,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
 
-  panther_system_node_.Configure();
+  panther_system_node_.Initialize();
 
   // TODO: add tests
 

@@ -30,7 +30,7 @@ public:
   /**
    * @brief Creates node and executor (in a separate thread)
    */
-  void Configure();
+  void Initialize();
 
   /**
    * @brief Creates publishers, subscribers and services

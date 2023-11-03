@@ -157,6 +157,23 @@ if(BUILD_TESTING)
   )
   target_link_libraries(${PROJECT_NAME}_test_panther_wheels_controller PkgConfig::LIBLELY_COAPP)
 
+  ament_add_gtest(${PROJECT_NAME}_test_panther_system_node
+    test/test_panther_system_node.cpp
+    src/panther_system_node.cpp
+    src/roboteq_data_converters.cpp
+  )
+  target_include_directories(
+    ${PROJECT_NAME}_test_panther_system_node
+    PRIVATE
+    include
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_system_node
+    rclcpp
+    panther_msgs
+    realtime_tools
+    std_srvs
+  )
+
   ament_add_gtest(${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp test/src/mock_roboteq.cpp)
   target_include_directories(${PROJECT_NAME}_test_panther_system PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
