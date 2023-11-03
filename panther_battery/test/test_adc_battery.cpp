@@ -136,20 +136,30 @@ TEST_F(TestADCBattery, BatteryMsgValues)
   const auto V_bat_full = 41.4;
   const auto V_bat_min = 32.0;
 
-  UpdateBattery(1.5, 0.01, 1.5, 0.5, false);
-  float expected_voltage = 1.5 * voltage_factor;
+  const float voltage_raw_1 = 1.5;
+  const float current_raw_1 = 0.01;
+  const float temp_raw_1 = 1.5;
+  const float charge_raw_1 = 0.5;
+  UpdateBattery(voltage_raw_1, current_raw_1, temp_raw_1, charge_raw_1, false);
+
+  float expected_voltage = voltage_raw_1 * voltage_factor;
   float expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   float expected_temp = 28.875206;
-  float expected_current = -(0.01 * current_factor) + (0.5 * charge_factor);
+  float expected_current = -(current_raw_1 * current_factor) + (charge_raw_1 * charge_factor);
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
   // check if values are smoothed out with moving average.
-  UpdateBattery(1.6, 0.02, 1.4, 0.4, false);
-  const float voltage_mean = (1.5 + 1.6) / 2.0;
-  const float current_mean = (0.01 + 0.02) / 2.0;
-  const float charge_mean = (0.5 + 0.4) / 2.0;
+  const float voltage_raw_2 = 1.6;
+  const float current_raw_2 = 0.02;
+  const float temp_raw_2 = 1.4;
+  const float charge_raw_2 = 0.4;
+  UpdateBattery(voltage_raw_2, current_raw_2, temp_raw_2, charge_raw_2, false);
+
+  const float voltage_mean = (voltage_raw_1 + voltage_raw_2) / 2.0;
+  const float current_mean = (current_raw_1 + current_raw_2) / 2.0;
+  const float charge_mean = (charge_raw_1 + charge_raw_2) / 2.0;
   expected_voltage = voltage_mean * voltage_factor;
   expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   expected_temp = 30.306725;
@@ -160,10 +170,10 @@ TEST_F(TestADCBattery, BatteryMsgValues)
 
   // Raw battery message should depend only on last readings
   battery_state_ = battery_->GetBatteryMsgRaw();
-  expected_voltage = 1.6 * voltage_factor;
+  expected_voltage = voltage_raw_2 * voltage_factor;
   expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
   expected_temp = 31.738245;
-  expected_current = -(0.02 * current_factor) + (0.4 * charge_factor);
+  expected_current = -(current_raw_2 * current_factor) + (charge_raw_2 * charge_factor);
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
