@@ -33,6 +33,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include DESTINATION
 # find dependencies
 set(PACKAGE_INCLUDE_DEPENDS
   ament_cmake
+  Boost
   controller_interface
   hardware_interface
   pluginlib
@@ -50,21 +51,21 @@ endforeach()
 pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 
 # #### Trash for testing purpose
-# include_directories(
-#   include
-#   ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
-# )
+include_directories(
+  include
+  ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
+)
 
-# add_executable(gpio_test
-#   src/gpio_driver.cpp
-#   src/gpio_test.cpp
-# )
+add_executable(gpio_test
+  src/gpio_driver.cpp
+  src/gpio_test.cpp
+)
 
-# target_link_libraries(gpio_test libgpiod)
+target_link_libraries(gpio_test libgpiod)
 
-# install(TARGETS gpio_test
-#   DESTINATION lib/${PROJECT_NAME}
-# )
+install(TARGETS gpio_test
+  DESTINATION lib/${PROJECT_NAME}
+)
 # #######
 
 add_library(

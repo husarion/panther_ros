@@ -3,10 +3,6 @@
 namespace panther_hardware_interfaces
 {
 
-void GPIOController::start() { watchdog_on(); }
-
-bool GPIOController::e_stop_trigger() { return watchdog_off(); }
-
 GPIOController::GPIOController()
 {
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
@@ -28,6 +24,44 @@ GPIOController::~GPIOController()
   gpio_monitor_off();
   watchdog_request_->release();
   controll_request_->release();
+}
+
+OperationResult GPIOController::e_stop_trigger()
+{
+  if (!watchdog_off()) {
+    return OperationResult{false, "Can't turn off the watchdog thread."};
+  }
+  return OperationResult{true, "E-STOP trigger successful"};
+}
+
+OperationResult GPIOController::e_stop_reset()
+{
+  // TODO: add cmd_vel timeout condition
+  // TODO: add CAN net err condition
+  // TODO: check what if GPIO active low setting is true
+  GPIOpins e_stop_pin = GPIOpins::E_STOP_RESET;
+  bool e_stop_state = !get_pin_value(e_stop_pin);
+
+  if (!e_stop_state) {
+    return OperationResult{true, "E-STOP is not active, reset is not needed"};
+  }
+
+  change_control_pin_direction(e_stop_pin, gpiod::line::direction::OUTPUT);
+  watchdog_on();
+  set_pin_value(e_stop_pin, true);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  change_control_pin_direction(e_stop_pin, gpiod::line::direction::INPUT);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  e_stop_state = !get_pin_value(e_stop_pin);
+
+  if (e_stop_state) {
+    watchdog_off();
+    return OperationResult{
+      false, "E-STOP reset failed, check for pressed E-STOP buttons or other triggers"};
+  }
+
+  return OperationResult{true, "E-STOP reset successful"};
 }
 
 std::unique_ptr<gpiod::line_request> GPIOController::create_line_request(
@@ -74,6 +108,23 @@ gpiod::line_settings GPIOController::generate_line_settings(const GPIOinfo & pin
   }
 
   return settings;
+}
+
+void GPIOController::change_control_pin_direction(GPIOpins pin, gpiod::line::direction direction)
+{
+  auto & pin_info = gpio_info_[pin];
+
+  if (pin_info.direction == direction) {
+    return;
+  }
+
+  pin_info.direction = direction;
+  gpiod::line_settings settings = generate_line_settings(pin_info);
+
+  auto line_config = gpiod::line_config();
+  line_config.add_line_settings(pin_info.offset, settings);
+
+  controll_request_->reconfigure_lines(line_config);
 }
 
 bool GPIOController::get_pin_value(GPIOpins pin)

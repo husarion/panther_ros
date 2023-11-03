@@ -25,6 +25,7 @@ int main()
 {
   auto pth_system = std::make_unique<PantherSystem>();
 
+  pth_system->gpio_controller->e_stop_reset();
   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
   pth_system->gpio_controller->motors_enable(true);

@@ -17,6 +17,7 @@ enum class GPIOpins {
   MOTOR_DRIVER_EN,
   VMOT_ON,
   FAN_SW,
+  LED,
   TEST_IN,
   UNKNOWN
 };
@@ -33,17 +34,24 @@ struct GPIOinfo
   gpiod::line::offset offset = -1;
 };
 
+struct OperationResult
+{
+  bool success;
+  std::string message = "";
+};
+
 class GPIOController
 {
 public:
   GPIOController();
   ~GPIOController();
 
-  void start();
+  bool start() { return watchdog_on(); };
   bool motors_enable(bool enable) { return set_pin_value(GPIOpins::VMOT_ON, enable); }
   bool fan_enable(bool enable) { return set_pin_value(GPIOpins::FAN_SW, enable); }
-  bool e_stop_trigger();
-  bool e_stop_reset();
+  bool led_enable(bool enable) { return set_pin_value(GPIOpins::LED, enable); }
+  OperationResult e_stop_trigger();
+  OperationResult e_stop_reset();
 
   boost::function<void(const GPIOinfo & gpio_info)> publish_gpio_state_callback;
 
@@ -56,16 +64,17 @@ private:
   gpiod::line_settings generate_line_settings(const GPIOinfo & pin_info);
   GPIOpins get_pin_from_offset(gpiod::line::offset offset) const;
 
+  void change_control_pin_direction(GPIOpins pin, gpiod::line::direction direction);
   bool get_pin_value(GPIOpins pin);
   bool set_pin_value(GPIOpins pin, bool value);
   bool watchdog_on();
   bool watchdog_off();
+  void watchdog_thread();
   bool is_watchdog_thread_running() const;
   void gpio_monitor_on();
   void gpio_monitor_off();
   void monitor_async_events();
   void handle_edge_event(const gpiod::edge_event & event);
-  void watchdog_thread();
 
   std::map<GPIOpins, GPIOinfo> gpio_info_{
     {GPIOpins::WATCHDOG, GPIOinfo{"TXD1", gpiod::line::direction::OUTPUT}},
