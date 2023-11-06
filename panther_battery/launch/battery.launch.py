@@ -16,9 +16,17 @@ def generate_launch_description():
         name='battery_node',
     )
 
+    adc_node = Node(
+        condition=IfCondition(PythonExpression([panther_version, '>= 1.2'])),
+        package='panther_battery',
+        executable='adc_node',
+        name='battery_node',
+    )
+
     actions = [
         declare_panther_version_arg,
         roboteq_republisher_node,
+        adc_node,
     ]
 
     return LaunchDescription(actions)

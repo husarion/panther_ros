@@ -21,14 +21,12 @@ public:
   ~TestRoboteqRepublisherNode();
 
 protected:
-  void CheckBatteryStateMsg(
+  void TestDefaultBatteryStateMsg(
     const uint8_t & power_supply_status, const uint8_t & power_supply_health);
-  void CheckBatteryStateMsg(
+  void TestBatteryStateMsg(
     const float & expected_voltage, const float & expected_current,
     const float & expected_percentage, const uint8_t & power_supply_status,
     const uint8_t & power_supply_health);
-
-  bool CheckNaNVector(const std::vector<float> & vector);
 
   BatteryStateMsg::SharedPtr battery_state_;
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_pub_;
@@ -38,7 +36,8 @@ protected:
 
 TestRoboteqRepublisherNode::TestRoboteqRepublisherNode()
 {
-  roboteq_republisher_node_ = std::make_shared<panther_battery::RoboteqRepublisherNode>();
+  roboteq_republisher_node_ =
+    std::make_shared<panther_battery::RoboteqRepublisherNode>("roboteq_republisher_node");
 
   driver_state_pub_ = roboteq_republisher_node_->create_publisher<DriverStateMsg>(
     "driver/motor_controllers_state", 1);
@@ -53,16 +52,16 @@ TestRoboteqRepublisherNode::~TestRoboteqRepublisherNode()
   battery_state_sub_.reset();
 }
 
-void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
+void TestRoboteqRepublisherNode::TestDefaultBatteryStateMsg(
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
   // const values
   EXPECT_TRUE(std::isnan(battery_state_->temperature));
   EXPECT_TRUE(std::isnan(battery_state_->capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
-  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
-  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_->power_supply_technology);
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_->cell_voltage));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_->cell_temperature));
   EXPECT_TRUE(battery_state_->present);
   EXPECT_EQ("user_compartment", battery_state_->location);
 
@@ -76,7 +75,7 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
 }
 
-void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
+void TestRoboteqRepublisherNode::TestBatteryStateMsg(
   const float & expected_voltage, const float & expected_current, const float & expected_percentage,
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
@@ -84,9 +83,9 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   EXPECT_TRUE(std::isnan(battery_state_->temperature));
   EXPECT_TRUE(std::isnan(battery_state_->capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_->design_capacity);
-  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LIPO, battery_state_->power_supply_technology);
-  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_voltage));
-  EXPECT_TRUE(CheckNaNVector(battery_state_->cell_temperature));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_->power_supply_technology);
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_->cell_voltage));
+  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector<float>(battery_state_->cell_temperature));
   EXPECT_TRUE(battery_state_->present);
   EXPECT_EQ("user_compartment", battery_state_->location);
 
@@ -100,18 +99,12 @@ void TestRoboteqRepublisherNode::CheckBatteryStateMsg(
   EXPECT_EQ(power_supply_health, battery_state_->power_supply_health);
 }
 
-bool TestRoboteqRepublisherNode::CheckNaNVector(const std::vector<float> & vector)
-{
-  return std::all_of(
-    vector.begin(), vector.end(), [](const float value) { return std::isnan(value); });
-}
-
 TEST_F(TestRoboteqRepublisherNode, BatteryMsgDefaultValues)
 {
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  CheckBatteryStateMsg(
+  TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
@@ -130,7 +123,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -146,7 +139,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
   expected_voltage = 36.0;
   expected_current = 0.1;
   expected_percentage = 0.425531915;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 }
@@ -166,7 +159,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = 0.0;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD);
 }
@@ -186,7 +179,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = 1.0;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE);
@@ -208,7 +201,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -217,7 +210,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  CheckBatteryStateMsg(
+  TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
@@ -237,7 +230,7 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -252,7 +245,7 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // voltage and current values should not be updated
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -266,7 +259,7 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
   }
 
   // check if timeout was reached and values have reset
-  CheckBatteryStateMsg(
+  TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
 }
 
@@ -285,7 +278,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = 1.0;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -306,7 +299,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
   expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   expected_percentage = 0.0;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -327,7 +320,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
   expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   expected_percentage = 1.0;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
@@ -348,7 +341,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
   expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
   expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   expected_percentage = 0.0;
-  CheckBatteryStateMsg(
+  TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 }
