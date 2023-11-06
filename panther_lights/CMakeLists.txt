@@ -32,32 +32,44 @@ include_directories(
   ${panther_utils_INCLUDE_DIRS}
 )
 
-add_executable(lights_driver_node 
+add_executable(driver_node 
   src/main.cpp
   src/driver_node.cpp
   src/apa102.cpp
 )
 
-target_link_libraries(lights_driver_node
+target_link_libraries(driver_node
   /usr/local/lib/libgpiodcxx.so
 )
 
-ament_target_dependencies(lights_driver_node
+ament_target_dependencies(driver_node
   image_transport
   panther_msgs
   rclcpp
   sensor_msgs
 )
 
+add_executable(controller_node 
+  src/controller_node_main.cpp
+  src/controller_node.cpp
+)
+
+ament_target_dependencies(controller_node
+  image_transport
+  rclcpp
+  sensor_msgs
+)
+
 install(TARGETS 
-  lights_driver_node
+  driver_node
+  controller_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# install(DIRECTORY
-#   launch
-#   DESTINATION share/${PROJECT_NAME}
-# )
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 # if(BUILD_TESTING)
 #   find_package(ament_lint_auto REQUIRED)
