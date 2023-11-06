@@ -121,7 +121,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -137,7 +137,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgValues)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   expected_voltage = 36.0;
-  expected_current = -0.1;
+  expected_current = 0.1;
   expected_percentage = 0.425531915;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -157,7 +157,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryDead)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = 0.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -177,7 +177,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgBatteryOvervoltage)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = 1.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -199,7 +199,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgTimoeut)
 
   // check if message was sent correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -228,7 +228,7 @@ TEST_F(TestRoboteqRepublisherNode, DriverStateMsgCANNetError)
 
   // check if message was sent correctly
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = (expected_voltage - 32.0) / (41.4 - 32.0);
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -276,7 +276,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   auto expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  auto expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  auto expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   auto expected_percentage = 1.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -297,7 +297,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   expected_percentage = 0.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -318,7 +318,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   expected_percentage = 1.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -339,7 +339,7 @@ TEST_F(TestRoboteqRepublisherNode, BatteryMsgEdgeCases)
     roboteq_republisher_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   expected_voltage = (driver_state_msg.front.voltage + driver_state_msg.rear.voltage) / 2.0;
-  expected_current = driver_state_msg.front.current + driver_state_msg.rear.current;
+  expected_current = -(driver_state_msg.front.current + driver_state_msg.rear.current);
   expected_percentage = 0.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:macro
+    name="panther_robot"
+    params="wheel_config_file
+            controller_config_file
+            battery_config_file
+            use_sim:=false
+            imu_pos_x:=0.168
+            imu_pos_y:=0.028
+            imu_pos_z:=0.083
+            imu_rot_r:=3.14
+            imu_rot_p:=-1.57
+            imu_rot_y:=0.0
+            simulation_engine:='ignition-gazebo'">
+
+    <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
+
+    <xacro:if value="${use_sim}">
+      <xacro:property name="battery_config" value="${xacro.load_yaml(battery_config_file)}" />
+      <xacro:property name="bat_initial_charge"
+        value="${20.0*battery_config['initial_charge_percentage']/100.0}" />
+      <xacro:property name="bat_charging_time" value="${battery_config['charging_time']}" />
+
+      <xacro:if value="${battery_config['simulate_discharging']}">
+        <xacro:property name="bat_power_load" value="${battery_config['power_load']}" />
+      </xacro:if>
+      <xacro:unless value="${battery_config['simulate_discharging']}">
+        <xacro:property name="bat_power_load" value="0.0" />
+      </xacro:unless>
+    </xacro:if>
+
+    <xacro:property name="wheel_separation_x" value="0.44" />
+
+    <!-- INCLUDE ROBOT PARTS DEFINITIONS -->
+    <xacro:include filename="$(find panther_description)/urdf/body.urdf.xacro" ns="body" />
+    <xacro:include filename="$(find panther_description)/urdf/wheel.urdf.xacro" ns="wheel" />
+
+    <!-- BODY DECLARATION -->
+    <xacro:body.body
+      wheel_radius="${wheel_config['wheel_radius']}"
+      imu_pos_x="${imu_pos_x}"
+      imu_pos_y="${imu_pos_y}"
+      imu_pos_z="${imu_pos_z}"
+      imu_rot_r="${imu_rot_r}"
+      imu_rot_p="${imu_rot_p}"
+      imu_rot_y="${imu_rot_y}" />
+
+    <!-- WHEEL DECLARATION -->
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="fl" />
+
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="fr" />
+
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="rl" />
+
+    <xacro:wheel.wheel
+      wheel_config="${wheel_config}"
+      wheel_separation_x="${wheel_separation_x}"
+      prefix="rr" />
+
+    <ros2_control name="wheels" type="system">
+      <hardware>
+        <xacro:if value="${use_sim}">
+          <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
+            <plugin>ign_ros2_control/IgnitionSystem</plugin>
+          </xacro:if>
+        </xacro:if>
+
+        <xacro:unless value="$(arg use_sim)">
+          <plugin>panther_hardware_interfaces/PantherSystem</plugin>
+
+          <param name="encoder_resolution">1600</param>
+
+          <param name="gear_ratio">30.08</param>
+          <param name="gearbox_efficiency">0.75</param>
+
+          <!-- Same as set in the Roboteq driver (TNM parameter) -->
+          <param name="motor_torque_constant">0.11</param>
+
+          <!-- Max RPM speed set in the Roboteq driver (MXRPM parameter) -->
+          <param name="max_rpm_motor_speed">3600.0</param>
+
+          <param name="master_can_id">3</param>
+          <param name="front_driver_can_id">1</param>
+          <param name="rear_driver_can_id">2</param>
+        </xacro:unless>
+      </hardware>
+
+      <joint name="fl_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+      <joint name="fr_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+      <joint name="rl_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+      <joint name="rr_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        <state_interface name="effort" />
+      </joint>
+
+      <xacro:if value="${use_sim}">
+        <sensor name="imu">
+          <state_interface name="orientation.x" />
+          <state_interface name="orientation.y" />
+          <state_interface name="orientation.z" />
+          <state_interface name="orientation.w" />
+          <state_interface name="angular_velocity.x" />
+          <state_interface name="angular_velocity.y" />
+          <state_interface name="angular_velocity.z" />
+          <state_interface name="linear_acceleration.x" />
+          <state_interface name="linear_acceleration.y" />
+          <state_interface name="linear_acceleration.z" />
+        </sensor>
+      </xacro:if>
+    </ros2_control>
+
+    <xacro:if value="${use_sim}">
+      <gazebo>
+        <plugin filename="ign_ros2_control-system"
+          name="ign_ros2_control::IgnitionROS2ControlPlugin">
+          <parameters>${controller_config_file}</parameters>
+          <ros>
+            <remapping>/panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          </ros>
+        </plugin>
+      </gazebo>
+      <gazebo>
+        <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+          name="gz::sim::systems::LinearBatteryPlugin">
+          <battery_name>panther_battery</battery_name>
+          <voltage>41.4</voltage>
+          <open_circuit_voltage_constant_coef>42.0</open_circuit_voltage_constant_coef>
+          <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
+          <initial_charge>${bat_initial_charge}</initial_charge>
+          <capacity>20.0</capacity>
+          <resistance>0.15</resistance>
+          <smooth_current_tau>2.0</smooth_current_tau>
+          <enable_recharge>true</enable_recharge>
+          <charging_time>${bat_charging_time}</charging_time>
+          <soc_threshold>2.0</soc_threshold>
+          <power_load>${bat_power_load}</power_load>
+          <start_on_motion>false</start_on_motion>
+          
+          <!-- https://github.com/gazebosim/gz-sim/issues/225 -->
+          <fix_issue_225>true</fix_issue_225>
+        </plugin>
+      </gazebo>
+      <gazebo reference="imu_link">
+        <sensor name="imu" type="imu">
+          <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu" />
+          <always_on>true</always_on>
+          <update_rate>100</update_rate>
+          <topic>imu/data_raw</topic>
+          <visualize>false</visualize>
+          <enable_metrics>false</enable_metrics>
+          <frame_id>imu_link</frame_id>
+          <ignition_frame_id>imu_link</ignition_frame_id>
+        </sensor>
+      </gazebo>
+    </xacro:if>
+  </xacro:macro>
+
+</robot>
