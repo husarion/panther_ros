@@ -20,8 +20,10 @@ struct DrivetrainSettings
   float max_rpm_motor_speed;
 };
 
-// TODO: unit tests
-
+/**
+ * @brief Class for storing and converting (between raw roboteq data and SI units) of motor
+ * state (position, velocity, torque)
+ */
 class MotorState
 {
 public:
@@ -47,6 +49,11 @@ private:
   RoboteqMotorState last_state_ = {0, 0, 0};
 };
 
+// TODO: Now it is only for velocity
+// TODO: fix roboteq naming
+/**
+ * @brief Class for converting velocity commands (between SI units and raw roboteq cmd)
+ */
 class RoboteqCommandConverter
 {
 public:
@@ -63,6 +70,9 @@ private:
   static constexpr int32_t max_roboteq_cmd_value_ = 1000;
 };
 
+/**
+ * @brief Base class for different errors that are based on setting bits of one byte
+ */
 class FlagError
 {
 public:
@@ -71,7 +81,13 @@ public:
 
   void SetData(uint8_t flags) { flags_ = flags; }
 
+  /**
+   * @brief Sets which flags should be ignored when checking if error occured, when converting
+   * to message true data still will be set
+   */
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
+
+  // TODO: iserror naming
   bool IsError() const { return (flags_ & surpressed_flags_) != 0; }
 
   std::string GetErrorLog() const;
@@ -138,6 +154,11 @@ public:
   panther_msgs::msg::RuntimeError GetMessage() const;
 };
 
+// TODO: maybe rename it - same name as msg
+/**
+ * @brief Class for storing and converting current state of the roboteq drivers (temperature, 
+ * voltage and battery current)
+ */
 class DriverState
 {
 public:
@@ -159,6 +180,9 @@ private:
   int16_t last_bat_amps_2_ = 0;
 };
 
+/**
+ * @brief Class that combines all the data that the one roboteq driver provides
+ */
 class RoboteqData
 {
 public:
