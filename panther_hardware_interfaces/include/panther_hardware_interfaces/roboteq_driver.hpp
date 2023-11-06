@@ -35,15 +35,9 @@ struct RoboteqDriverFeedback
   timespec timestamp;
 };
 
-// All ids and sub ids were read directly from eds file
-// lely canopen doesn't have option to parse them based on the ParameterName
-// additionally between version v60 and v80 ParameterName changed:
-// ParameterName=Cmd_ESTOP (old)
-// ParameterName=Cmd_ESTOP Emergency Shutdown (new)
-// which would require looking for substring
-// additionally as it is visible parameter names changed, but ids stayed the same, so
-// it will be better to just use ids directly
-
+/**
+ * @brief Implementation of FiberDriver for Roboteq drivers
+ */
 class RoboteqDriver : public lely::canopen::FiberDriver
 {
 public:
@@ -54,24 +48,41 @@ public:
     std::chrono::milliseconds sdo_operation_timeout);
 
   /**
-   * @brief ReadRoboteqDriverFeedback
-   *
-   * @exception std::runtime_error if any operation returns error
+   * @exception std::runtime_error if operation fails
+   * @return 
    */
-
   int16_t ReadTemperature();
+
+  /**
+   * @exception std::runtime_error if operation fails
+   * @return 
+   */
   uint16_t ReadVoltage();
+
+  /**
+   * @exception std::runtime_error if operation fails
+   * @return 
+   */
   int16_t ReadBatAmps1();
+
+  /**
+   * @exception std::runtime_error if operation fails
+   * @return 
+   */
   int16_t ReadBatAmps2();
 
+  /**
+   * @return 
+   */
+  // TODO: noexcept?
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
   // TODO: limiting cmd??
   /**
    * @brief Sends commands to Roboteq drivers
    *
-   * @param channel_1_cmd command value for first channel in rad/s
-   * @param channel_2_cmd command value for second channel in rad/s
+   * @param channel_1_cmd command value for first channel
+   * @param channel_2_cmd command value for second channel
    * @exception std::runtime_error if any operation returns error
    */
   void SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed);
@@ -90,6 +101,7 @@ public:
    */
   void TurnOnEstop();
 
+  // TODO: maybe separate it for channels
   /**
    * @brief Turns off Roboteq estop
    * 
@@ -107,8 +119,10 @@ public:
   bool wait_for_boot();
 
   bool is_booted() { return booted.load(); }
-  bool get_can_error() { return can_error.load(); }
   bool Boot();
+
+  // TODO: fix naming
+  bool get_can_error() { return can_error.load(); }
 
 private:
   // TODO: fix naming

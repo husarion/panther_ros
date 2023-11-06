@@ -4,6 +4,12 @@
 #include <future>
 
 #include <panther_hardware_interfaces/utils.hpp>
+
+// All ids and sub ids were read directly from eds file. Lely canopen doesn't have option to
+// parse them based on the ParameterName. Additionally between version v60 and v80 ParameterName
+// changed, for example: Cmd_ESTOP (old), Cmd_ESTOP Emergency Shutdown (new)
+// As parameter names changed, but ids stayed the same, it will be better to just use ids directly
+
 namespace panther_hardware_interfaces
 {
 
@@ -18,6 +24,7 @@ RoboteqDriver::RoboteqDriver(
 {
 }
 
+// TODO: class?
 template <class type>
 type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 {
@@ -243,7 +250,6 @@ void RoboteqDriver::TurnOffEstop()
 void RoboteqDriver::TurnOnSafetyStop()
 {
   // Cmd_SFT Safety Stop
-  // TODO use it instead of estop
   try {
     SyncSdoWrite<uint8_t>(0x202C, 0, 1);
     SyncSdoWrite<uint8_t>(0x202C, 0, 2);
@@ -259,6 +265,7 @@ bool RoboteqDriver::wait_for_boot()
     return true;
   }
   std::unique_lock<std::mutex> lck(boot_mtx);
+  // TODO: maybe timeout
   boot_cond.wait(lck);
   if (booted.load()) {
     return true;
