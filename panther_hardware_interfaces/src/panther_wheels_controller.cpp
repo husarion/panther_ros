@@ -16,7 +16,14 @@ PantherWheelsController::PantherWheelsController(
 {
 }
 
-void PantherWheelsController::Initialize() { canopen_controller_.Initialize(); }
+void PantherWheelsController::Initialize()
+{
+  try {
+    canopen_controller_.Initialize();
+  } catch (std::runtime_error & err) {
+    throw err;
+  }
+}
 
 void PantherWheelsController::Deinitialize() { canopen_controller_.Deinitialize(); }
 
@@ -160,11 +167,13 @@ void PantherWheelsController::WriteSpeed(
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
 
-  // TODO
-  if (
-    canopen_controller_.GetFrontDriver()->get_can_error() ||
-    canopen_controller_.GetRearDriver()->get_can_error()) {
-    throw std::runtime_error("CAN error detected when trying to write speed commands");
+  if (canopen_controller_.GetFrontDriver()->get_can_error()) {
+    throw std::runtime_error(
+      "CAN error detected on front driver when trying to write speed commands");
+  }
+  if (canopen_controller_.GetRearDriver()->get_can_error()) {
+    throw std::runtime_error(
+      "CAN error detected on rear driver when trying to write speed commands");
   }
 }
 
@@ -172,33 +181,47 @@ void PantherWheelsController::TurnOnEstop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOnEstop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error(
+      "Exception when trying to turn on estop on front driver: " + std::string(err.what()));
+  }
+  try {
     canopen_controller_.GetRearDriver()->TurnOnEstop();
   } catch (std::runtime_error & err) {
-    throw std::runtime_error("Exception when trying to turn on estop: " + std::string(err.what()));
+    throw std::runtime_error(
+      "Exception when trying to turn on estop on rear driver: " + std::string(err.what()));
   }
 }
 
 void PantherWheelsController::TurnOffEstop()
 {
-  // TODO: separate
   try {
     canopen_controller_.GetFrontDriver()->TurnOffEstop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error(
+      "Exception when trying to turn off estop  on front driver: " + std::string(err.what()));
+  }
+  try {
     canopen_controller_.GetRearDriver()->TurnOffEstop();
   } catch (std::runtime_error & err) {
-    throw std::runtime_error("Exception when trying to turn off estop: " + std::string(err.what()));
+    throw std::runtime_error(
+      "Exception when trying to turn off estop on rear driver: " + std::string(err.what()));
   }
 }
 
-// TODO: add this info to readme
-// Safety stop is turned off when 0 command is published
 void PantherWheelsController::TurnOnSafetyStop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOnSafetyStop();
+  } catch (std::runtime_error & err) {
+    throw std::runtime_error(
+      "Exception when trying to turn on safety stop on front driver: " + std::string(err.what()));
+  }
+  try {
     canopen_controller_.GetRearDriver()->TurnOnSafetyStop();
   } catch (std::runtime_error & err) {
     throw std::runtime_error(
-      "Exception when trying to turn on safety stop: " + std::string(err.what()));
+      "Exception when trying to turn on safety stop on rear driver: " + std::string(err.what()));
   }
 }
 
