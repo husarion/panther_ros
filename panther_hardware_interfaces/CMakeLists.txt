@@ -104,6 +104,15 @@ if(BUILD_TESTING)
     panther_msgs
   )
 
+  ament_add_gtest(${PROJECT_NAME}_test_utils
+    test/test_utils.cpp
+  )
+  target_include_directories(
+    ${PROJECT_NAME}_test_utils
+    PRIVATE
+    include
+  )
+
   ament_add_gtest(${PROJECT_NAME}_test_canopen_controller
     test/test_canopen_controller.cpp
     test/src/mock_roboteq.cpp

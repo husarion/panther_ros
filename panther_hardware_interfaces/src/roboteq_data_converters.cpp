@@ -49,7 +49,7 @@ std::string FlagError::GetErrorLog() const
 {
   std::string error_msg = "";
   for (size_t i = 0; i < flag_names_.size(); ++i) {
-    if (BitSet(flags_ & surpressed_flags_, i)) {
+    if (IsBitSet(flags_ & surpressed_flags_, i)) {
       error_msg += flag_names_[i] + " ";
     }
   }
@@ -60,14 +60,14 @@ panther_msgs::msg::FaultFlag FaultFlag::GetMessage() const
 {
   panther_msgs::msg::FaultFlag fault_flags_msg;
 
-  fault_flags_msg.overheat = BitSet(flags_, 0);
-  fault_flags_msg.overvoltage = BitSet(flags_, 1);
-  fault_flags_msg.undervoltage = BitSet(flags_, 2);
-  fault_flags_msg.short_circuit = BitSet(flags_, 3);
-  fault_flags_msg.emergency_stop = BitSet(flags_, 4);
-  fault_flags_msg.motor_or_sensor_setup_fault = BitSet(flags_, 5);
-  fault_flags_msg.mosfet_failure = BitSet(flags_, 6);
-  fault_flags_msg.default_config_loaded_at_startup = BitSet(flags_, 7);
+  fault_flags_msg.overheat = IsBitSet(flags_, 0);
+  fault_flags_msg.overvoltage = IsBitSet(flags_, 1);
+  fault_flags_msg.undervoltage = IsBitSet(flags_, 2);
+  fault_flags_msg.short_circuit = IsBitSet(flags_, 3);
+  fault_flags_msg.emergency_stop = IsBitSet(flags_, 4);
+  fault_flags_msg.motor_or_sensor_setup_fault = IsBitSet(flags_, 5);
+  fault_flags_msg.mosfet_failure = IsBitSet(flags_, 6);
+  fault_flags_msg.default_config_loaded_at_startup = IsBitSet(flags_, 7);
 
   fault_flags_msg.can_net_err = can_error_;
 
@@ -78,9 +78,9 @@ panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
 {
   panther_msgs::msg::ScriptFlag script_flags_msg;
 
-  script_flags_msg.loop_error = BitSet(flags_, 0);
-  script_flags_msg.encoder_disconected = BitSet(flags_, 1);
-  script_flags_msg.amp_limiter = BitSet(flags_, 2);
+  script_flags_msg.loop_error = IsBitSet(flags_, 0);
+  script_flags_msg.encoder_disconected = IsBitSet(flags_, 1);
+  script_flags_msg.amp_limiter = IsBitSet(flags_, 2);
 
   return script_flags_msg;
 }
@@ -89,13 +89,13 @@ panther_msgs::msg::RuntimeError RuntimeError::GetMessage() const
 {
   panther_msgs::msg::RuntimeError runtime_errors_msg;
 
-  runtime_errors_msg.amps_limit_active = BitSet(flags_, 0);
-  runtime_errors_msg.motor_stall = BitSet(flags_, 1);
-  runtime_errors_msg.loop_error = BitSet(flags_, 2);
-  runtime_errors_msg.safety_stop_active = BitSet(flags_, 3);
-  runtime_errors_msg.forward_limit_triggered = BitSet(flags_, 4);
-  runtime_errors_msg.reverse_limit_triggered = BitSet(flags_, 5);
-  runtime_errors_msg.amps_trigger_activated = BitSet(flags_, 6);
+  runtime_errors_msg.amps_limit_active = IsBitSet(flags_, 0);
+  runtime_errors_msg.motor_stall = IsBitSet(flags_, 1);
+  runtime_errors_msg.loop_error = IsBitSet(flags_, 2);
+  runtime_errors_msg.safety_stop_active = IsBitSet(flags_, 3);
+  runtime_errors_msg.forward_limit_triggered = IsBitSet(flags_, 4);
+  runtime_errors_msg.reverse_limit_triggered = IsBitSet(flags_, 5);
+  runtime_errors_msg.amps_trigger_activated = IsBitSet(flags_, 6);
 
   return runtime_errors_msg;
 }
