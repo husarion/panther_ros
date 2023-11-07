@@ -124,7 +124,7 @@ void DriverNode::SetPowerPin(const gpiod::line::value & value) const
   gpiod::line_settings settings;
   settings.set_direction(gpiod::line::direction::OUTPUT);
   settings.set_active_low(true);
-  settings.set_output_value(value);
+  // settings.set_output_value(value);
 
   auto power_pin_offset = chip.get_line_offset_from_name("LED_SBC_SEL");
 
@@ -133,10 +133,7 @@ void DriverNode::SetPowerPin(const gpiod::line::value & value) const
                    .add_line_settings(power_pin_offset, settings)
                    .do_request();
 
-  auto a = request.get_value(power_pin_offset);
-  RCLCPP_INFO(this->get_logger(), "value: %d", static_cast<int>(a));
-
-  request.set_value(power_pin_offset, gpiod::line::value::ACTIVE);
+  request.set_value(power_pin_offset, value);
   request.release();
 }
 

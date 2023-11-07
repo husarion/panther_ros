@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <fstream>
 #include <stdexcept>
 #include <string>
@@ -82,6 +83,7 @@ void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
   }
 
   struct spi_ioc_transfer tr;
+  memset(&tr, 0, sizeof(tr));
   tr.tx_buf = (unsigned long long)buffer;
   tr.rx_buf = 0;
   tr.len = (unsigned int)buffer_size;
