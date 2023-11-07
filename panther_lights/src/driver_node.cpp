@@ -23,25 +23,15 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options),
-  front_panel_("/dev/spidev0.0"),
-  rear_panel_("/dev/spidev0.1")
+: Node(node_name, options), front_panel_("/dev/spidev0.0"), rear_panel_("/dev/spidev0.1")
 {
+  rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
+
   this->declare_parameter<double>("global_brightness", 1.0);
   this->declare_parameter<double>("frame_timeout", 0.1);
   this->declare_parameter<int>("num_led", 46);
-  
+
   RCLCPP_INFO(this->get_logger(), "Node started");
-}
-
-DriverNode::~DriverNode()
-{
-  // clear LEDs
-  front_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
-  rear_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
-
-  // give back control over LEDs
-  SetPowerPin(gpiod::line::value::INACTIVE);
 }
 
 void DriverNode::Initialize()
@@ -79,6 +69,16 @@ void DriverNode::Initialize()
   RCLCPP_INFO(this->get_logger(), "LED panels initialised");
 }
 
+void DriverNode::OnShutdown()
+{
+  // clear LEDs
+  front_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  rear_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+
+  // give back control over LEDs
+  SetPowerPin(gpiod::line::value::INACTIVE);
+}
+
 void DriverNode::FrameCB(
   const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
   const rclcpp::Time & last_time, const std::string & panel_name)
@@ -94,7 +94,7 @@ void DriverNode::FrameCB(
     meessage = "Incorrect image encoding ('" + msg->encoding + "')";
   } else if (msg->height != 1) {
     meessage = "Incorrect image height " + std::to_string(msg->height);
-  } else if (msg->width != num_led_) {
+  } else if (msg->width != (uint32_t)num_led_) {
     meessage = "Incorrect image width " + std::to_string(msg->width);
   }
 

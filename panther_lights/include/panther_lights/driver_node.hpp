@@ -24,11 +24,11 @@ class DriverNode : public rclcpp::Node
 public:
   DriverNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-  ~DriverNode();
 
   void Initialize();
 
 private:
+  void OnShutdown();
   void FrameCB(
     const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
     const rclcpp::Time & last_time, const std::string & panel_name);
