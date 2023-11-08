@@ -14,7 +14,7 @@
   <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
   <author email="maciej.stepien@husarion.com">Maciej Stepien</author>
   <author email="krzysztof.wojciechowski@husarion.com">Krzysztof Wojciechowski</author>
-  
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>xacro</depend>

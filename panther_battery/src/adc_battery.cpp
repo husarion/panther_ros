@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <panther_battery/adc_battery.hpp>
 
 #include <chrono>
@@ -117,10 +131,10 @@ void ADCBattery::UpdateBatteryState(const rclcpp::Time & header_stamp, const boo
   battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
   battery_state_.design_capacity = kDesignedCapacity;
   battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
-  battery_state_.cell_voltage =
-    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
-  battery_state_.cell_temperature =
-    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_voltage = std::vector<float>(
+    kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_temperature = std::vector<float>(
+    kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_state_.present = true;
   battery_state_.location = kLocation;

@@ -6,13 +6,13 @@
   <description>Default launch files and configuration used to start Husarion Panther robot</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
-  
+
   <url type="website">https://husarion.com/</url>
   <url type="repository">https://github.com/husarion/panther_ros</url>
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
-  
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>imu_filter_madgwick</exec_depend>
