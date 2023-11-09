@@ -14,8 +14,6 @@ GPIOController::GPIOController()
 
   controll_request_ = create_line_request(gpio_chip, controll_pins);
   watchdog_request_ = create_line_request(gpio_chip, GPIOpins::WATCHDOG);
-
-  gpio_monitor_on();
 }
 
 GPIOController::~GPIOController()
@@ -38,9 +36,9 @@ OperationResult GPIOController::e_stop_reset()
 {
   // TODO: add cmd_vel timeout condition
   // TODO: add CAN net err condition
-  // TODO: check what if GPIO active low setting is true
+
   GPIOpins e_stop_pin = GPIOpins::E_STOP_RESET;
-  bool e_stop_state = !get_pin_value(e_stop_pin);
+  bool e_stop_state = !is_pin_active(e_stop_pin);
 
   if (!e_stop_state) {
     return OperationResult{true, "E-STOP is not active, reset is not needed"};
@@ -53,7 +51,8 @@ OperationResult GPIOController::e_stop_reset()
 
   change_control_pin_direction(e_stop_pin, gpiod::line::direction::INPUT);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  e_stop_state = !get_pin_value(e_stop_pin);
+  
+  e_stop_state = !is_pin_active(e_stop_pin);
 
   if (e_stop_state) {
     watchdog_off();
@@ -65,7 +64,7 @@ OperationResult GPIOController::e_stop_reset()
 }
 
 std::unique_ptr<gpiod::line_request> GPIOController::create_line_request(
-  gpiod::chip & chip, GPIOpins pin)
+  gpiod::chip & chip, const GPIOpins pin)
 {
   return create_line_request(chip, std::vector<GPIOpins>{pin});
 }
@@ -98,9 +97,10 @@ void GPIOController::configure_line_request(
 gpiod::line_settings GPIOController::generate_line_settings(const GPIOinfo & pin_info)
 {
   auto settings = gpiod::line_settings();
-  settings.set_output_value(pin_info.init_value);
   settings.set_direction(pin_info.direction);
+  settings.set_output_value(pin_info.init_value);
   settings.set_bias(pin_info.bias);
+  settings.set_active_low(pin_info.active_low);
 
   if (pin_info.direction == gpiod::line::direction::INPUT) {
     settings.set_edge_detection(gpiod::line::edge::BOTH);
@@ -114,20 +114,26 @@ void GPIOController::change_control_pin_direction(GPIOpins pin, gpiod::line::dir
 {
   auto & pin_info = gpio_info_[pin];
 
-  if (pin_info.direction == direction) {
+  if (pin_info.direction == direction || pin == GPIOpins::WATCHDOG) {
     return;
   }
 
   pin_info.direction = direction;
-  gpiod::line_settings settings = generate_line_settings(pin_info);
-
   auto line_config = gpiod::line_config();
-  line_config.add_line_settings(pin_info.offset, settings);
+
+  for (const auto & entry : gpio_info_) {
+    if (entry.first != GPIOpins::WATCHDOG) {
+      gpiod::line_settings settings = generate_line_settings(entry.second);
+      line_config.add_line_settings(entry.second.offset, settings);
+    }
+  }
 
   controll_request_->reconfigure_lines(line_config);
+
+  pin_info.value = controll_request_->get_value(pin_info.offset);
 }
 
-bool GPIOController::get_pin_value(GPIOpins pin)
+bool GPIOController::is_pin_active(GPIOpins pin)
 {
   return gpio_info_[pin].value == gpiod::line::value::ACTIVE;
 }
@@ -161,6 +167,12 @@ void GPIOController::gpio_monitor_on()
     gpio_info_[pin].value = controll_request_->get_value(gpio_info_[pin].offset);
   }
 
+  // for (const auto & entry : gpio_info_) {
+  //   if (entry.first != GPIOpins::WATCHDOG) {
+  //     gpio_info_[entry.first].value = controll_request_->get_value(gpio_info_[entry.first].offset);
+  //   }
+  // }
+
   gpio_monitor_thread_enabled_ = true;
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIOController::monitor_async_events, this);
 }
@@ -193,12 +205,11 @@ void GPIOController::handle_edge_event(const gpiod::edge_event & event)
 {
   auto pin = get_pin_from_offset(event.line_offset());
 
-  std::cout << "Event at pin" << gpio_info_[pin].name << std::endl;
-
   if (pin == GPIOpins::UNKNOWN) {
     return;
   }
 
+  auto & pin_info = gpio_info_[pin];
   gpiod::line::value new_value;
 
   if (event.type() == gpiod::edge_event::event_type::RISING_EDGE) {
@@ -207,7 +218,8 @@ void GPIOController::handle_edge_event(const gpiod::edge_event & event)
     new_value = gpiod::line::value::INACTIVE;
   }
 
-  gpio_info_[pin].value = new_value;
+  pin_info.value = new_value;
+  publish_gpio_state_callback(pin_info);
 }
 
 void GPIOController::gpio_monitor_off()

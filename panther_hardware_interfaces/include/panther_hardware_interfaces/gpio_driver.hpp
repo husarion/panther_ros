@@ -5,20 +5,28 @@
 #include <thread>
 #include <vector>
 #include <poll.h>
+#include <functional>
 
-#include <boost/function.hpp>
 #include <gpiod.hpp>
 
 namespace panther_hardware_interfaces
 {
 enum class GPIOpins {
   WATCHDOG = 0,
+  AUX_PW_EN,
+  CHRG_DISABLE,
+  CHRG_SENSE,
+  DRIVER_EN,
   E_STOP_RESET,
-  MOTOR_DRIVER_EN,
-  VMOT_ON,
   FAN_SW,
-  LED,
-  TEST_IN,
+  GPOUT1,
+  GPOUT2,
+  GPIN1,
+  GPIN2,
+  LED_SBC_SEL,
+  SHDN_INIT,
+  VDIG_OFF,
+  VMOT_ON,
   UNKNOWN
 };
 
@@ -28,6 +36,7 @@ struct GPIOinfo
 {
   std::string name;
   gpiod::line::direction direction;
+  bool active_low = false;
   gpiod::line::bias bias = gpiod::line::bias::AS_IS;
   gpiod::line::value init_value = gpiod::line::value::INACTIVE;
   gpiod::line::value value = gpiod::line::value::INACTIVE;
@@ -46,17 +55,28 @@ public:
   GPIOController();
   ~GPIOController();
 
-  bool start() { return watchdog_on(); };
-  bool motors_enable(bool enable) { return set_pin_value(GPIOpins::VMOT_ON, enable); }
+  void start()
+  {
+    gpio_monitor_on();
+    watchdog_on();
+  }
+
+  bool motors_enable(bool enable)
+  {
+    set_pin_value(GPIOpins::VMOT_ON, enable);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    return set_pin_value(GPIOpins::DRIVER_EN, enable);
+  }
+
   bool fan_enable(bool enable) { return set_pin_value(GPIOpins::FAN_SW, enable); }
-  bool led_enable(bool enable) { return set_pin_value(GPIOpins::LED, enable); }
+  bool led_enable(bool enable) { return set_pin_value(GPIOpins::LED_SBC_SEL, enable); }
   OperationResult e_stop_trigger();
   OperationResult e_stop_reset();
 
-  boost::function<void(const GPIOinfo & gpio_info)> publish_gpio_state_callback;
+  std::function<void(const GPIOinfo & gpio_info)> publish_gpio_state_callback;
 
 private:
-  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip, GPIOpins pins);
+  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip, const GPIOpins pins);
   std::unique_ptr<gpiod::line_request> create_line_request(
     gpiod::chip & chip, const std::vector<GPIOpins> & pins);
 
@@ -65,7 +85,7 @@ private:
   GPIOpins get_pin_from_offset(gpiod::line::offset offset) const;
 
   void change_control_pin_direction(GPIOpins pin, gpiod::line::direction direction);
-  bool get_pin_value(GPIOpins pin);
+  bool is_pin_active(GPIOpins pin);
   bool set_pin_value(GPIOpins pin, bool value);
   bool watchdog_on();
   bool watchdog_off();
@@ -77,12 +97,21 @@ private:
   void handle_edge_event(const gpiod::edge_event & event);
 
   std::map<GPIOpins, GPIOinfo> gpio_info_{
-    {GPIOpins::WATCHDOG, GPIOinfo{"TXD1", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::E_STOP_RESET, GPIOinfo{"GPIO18", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::MOTOR_DRIVER_EN, GPIOinfo{"GPIO23", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::VMOT_ON, GPIOinfo{"GPIO6", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::FAN_SW, GPIOinfo{"GPIO5", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::TEST_IN, GPIOinfo{"SDA1", gpiod::line::direction::INPUT}},
+    {GPIOpins::WATCHDOG, GPIOinfo{"WATCHDOG", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::AUX_PW_EN, GPIOinfo{"AUX_PW_EN", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::CHRG_DISABLE, GPIOinfo{"CHRG_DISABLE", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::CHRG_SENSE, GPIOinfo{"CHRG_SENSE", gpiod::line::direction::INPUT}},
+    {GPIOpins::DRIVER_EN, GPIOinfo{"DRIVER_EN", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::E_STOP_RESET, GPIOinfo{"E_STOP_RESET", gpiod::line::direction::INPUT}},
+    {GPIOpins::FAN_SW, GPIOinfo{"FAN_SW", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::GPOUT1, GPIOinfo{"GPOUT1", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::GPOUT2, GPIOinfo{"GPOUT2", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::GPIN1, GPIOinfo{"GPIN1", gpiod::line::direction::INPUT}},
+    {GPIOpins::GPIN2, GPIOinfo{"GPIN2", gpiod::line::direction::INPUT}},
+    {GPIOpins::LED_SBC_SEL, GPIOinfo{"LED_SBC_SEL", gpiod::line::direction::OUTPUT, true}},
+    {GPIOpins::SHDN_INIT, GPIOinfo{"SHDN_INIT", gpiod::line::direction::INPUT}},
+    {GPIOpins::VDIG_OFF, GPIOinfo{"VDIG_OFF", gpiod::line::direction::OUTPUT}},
+    {GPIOpins::VMOT_ON, GPIOinfo{"VMOT_ON", gpiod::line::direction::OUTPUT}},
   };
 
   std::unique_ptr<gpiod::line_request> watchdog_request_;

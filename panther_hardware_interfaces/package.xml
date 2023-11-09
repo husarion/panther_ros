@@ -26,7 +26,12 @@
   <depend>realtime_tools</depend>
 
   <build_depend>pluginlib</build_depend>
-  
+  <build_depend>autoconf</build_depend>
+  <build_depend>autoconf-archive</build_depend>
+  <build_depend>libtool</build_depend>
+  <build_depend>m4</build_depend>
+  <build_depend>pkg-config</build_depend>
+
   <test_depend>ament_cmake_gtest</test_depend>
 
   <export>
