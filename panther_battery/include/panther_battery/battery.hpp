@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PANTHER_BATTERY_BATTERY_HPP_
 #define PANTHER_BATTERY_BATTERY_HPP_
 
@@ -50,10 +64,10 @@ protected:
     battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
     battery_state_.design_capacity = kDesignedCapacity;
     battery_state_.charge = std::numeric_limits<float>::quiet_NaN();
-    battery_state_.cell_voltage =
-      std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
-    battery_state_.cell_temperature =
-      std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+    battery_state_.cell_voltage = std::vector<float>(
+      kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+    battery_state_.cell_temperature = std::vector<float>(
+      kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
     battery_state_.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN;
     battery_state_.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
     battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;

@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
 
-from ament_index_python.packages import get_package_share_directory
+# Copyright 2023 Husarion sp. z o.o.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -10,7 +23,6 @@ from launch.substitutions import (
     PathJoinSubstitution,
     PythonExpression,
 )
-
 from launch_ros.actions import Node, SetParameter
 
 
@@ -19,11 +31,13 @@ def generate_launch_description():
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",
-        description="Specify the type of wheel. If you select a value from the provided options "
-        "('WH01', 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and "
-        "'controller_config_path' parameters. If you have custom wheels, set this parameter to 'CUSTOM' "
-        "and provide the necessary configurations.",
-        choices=['WH01', 'WH02', 'WH04', 'CUSTOM'],
+        description=(
+            "Specify the type of wheel. If you select a value from the provided options ('WH01',"
+            " 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and"
+            " 'controller_config_path' parameters. If you have custom wheels, set this parameter"
+            " to 'CUSTOM' and provide the necessary configurations."
+        ),
+        choices=["WH01", "WH02", "WH04", "CUSTOM"],
     )
 
     wheel_config_path = LaunchConfiguration("wheel_config_path")
@@ -36,9 +50,11 @@ def generate_launch_description():
                 PythonExpression(["'", wheel_type, ".yaml'"]),
             ]
         ),
-        description="Path to wheel configuration file. By default, it is located in "
-        "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-        "to your custom wheel configuration file here. ",
+        description=(
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
+        ),
     )
 
     controller_config_path = LaunchConfiguration("controller_config_path")
@@ -51,9 +67,11 @@ def generate_launch_description():
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
         ),
-        description="Path to controller configuration file. By default, it is located in "
-        "'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify the path "
-        "to your custom controller configuration file here. ",
+        description=(
+            "Path to controller configuration file. By default, it is located in"
+            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " the path to your custom controller configuration file here. "
+        ),
     )
 
     battery_config_path = LaunchConfiguration("battery_config_path")
@@ -66,8 +84,10 @@ def generate_launch_description():
                 "battery_plugin_config.yaml",
             ]
         ),
-        description="Path to the Ignition LinearBatteryPlugin configuration file. "
-        "This configuration is intended for use in simulations only.",
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
     )
 
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
@@ -129,8 +149,10 @@ def generate_launch_description():
     declare_publish_robot_state_arg = DeclareLaunchArgument(
         "publish_robot_state",
         default_value="True",
-        description="Whether to launch the robot_state_publisher node."
-        "When set to False, users should publish their own robot description.",
+        description=(
+            "Whether to launch the robot_state_publisher node."
+            "When set to False, users should publish their own robot description."
+        ),
     )
 
     gz_sim = IncludeLaunchDescription(
@@ -172,7 +194,7 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="gz_bridge",
-        parameters=[{'config_file': gz_bridge_config_path}],
+        parameters=[{"config_file": gz_bridge_config_path}],
         output="screen",
     )
 
