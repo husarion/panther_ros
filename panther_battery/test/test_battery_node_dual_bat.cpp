@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <include/test_battery_node.hpp>
 
 #include <chrono>
@@ -33,7 +47,7 @@ TEST_F(TestBatteryNodeDualBattery, BatteryValues)
   EXPECT_FLOAT_EQ(battery_1_state_->percentage, battery_2_state_->percentage);
   EXPECT_FLOAT_EQ(battery_1_state_->charge, battery_2_state_->charge);
 
-  // change value of battery 2 reading one by one and check if coresponding values in battery 1
+  // change value of battery 2 reading one by one and check if corresponding values in battery 1
   // stops matching
   WriteNumberToFile<int>(1600, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
