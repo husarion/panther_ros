@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2020 ros2_control Development Team
-# Copyright 2023 Husarion
+# Copyright 2023 Husarion sp. z o.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
@@ -53,8 +52,10 @@ def generate_launch_description():
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
-        description="Path to the Ignition LinearBatteryPlugin configuration file. "
-        "This configuration is intended for use in simulations only.",
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
         condition=IfCondition(use_sim),
     )
 
@@ -69,8 +70,10 @@ def generate_launch_description():
     declare_publish_robot_state_arg = DeclareLaunchArgument(
         "publish_robot_state",
         default_value="True",
-        description="Whether to launch the robot_state_publisher node."
-        "When set to False, users should publish their own robot description.",
+        description=(
+            "Whether to launch the robot_state_publisher node."
+            "When set to False, users should publish their own robot description."
+        ),
     )
 
     # Get URDF via xacro

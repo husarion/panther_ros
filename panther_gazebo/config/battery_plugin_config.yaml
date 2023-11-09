@@ -1,6 +1,6 @@
 # Parameters for the Ignition LinearBatteryPlugin
 
-# Enables battery simulation. If set to true, the battery will discharge, 
+# Enables battery simulation. If set to true, the battery will discharge,
 # and if it depletes completely, the robot will stop moving.
 simulate_discharging: false
 
@@ -14,6 +14,6 @@ charging_time: 6.0 # [h]
 # With the default power load of 120W, the robot can operate for up to 8 hours.
 # When the 'simulate_discharging' parameter is set to false, this value defaults to 0.
 # Users are encouraged to customize this value to match their specific needs.
-# For more information on Panther power consumption, please refer to: 
+# For more information on Panther power consumption, please refer to:
 # https://husarion.com/manuals/panther/#battery--charging
 power_load: 120.0 # [W]
