@@ -28,7 +28,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   EXPECT_TRUE(std::isnan(battery_state_->percentage));
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
-  
+
   DriverStateMsg driver_state;
   driver_state.header.stamp = battery_node_->get_clock()->now();
   driver_state.front.voltage = 35.0f;

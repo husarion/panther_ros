@@ -4,8 +4,8 @@
 #include <functional>
 #include <limits>
 #include <memory>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -86,8 +86,8 @@ void BatteryNode::InitializeWithADCBattery()
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 2, kADCCurrentOffset),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
-    battery_publisher_ =
-      std::make_shared<DualBatteryPublisher>(this->shared_from_this(), battery_1_, battery_2_);
+    battery_publisher_ = std::make_shared<DualBatteryPublisher>(
+      this->shared_from_this(), battery_1_, battery_2_);
   } else {
     battery_2_.reset();
     battery_1_ = std::make_shared<ADCBattery>(
@@ -98,8 +98,8 @@ void BatteryNode::InitializeWithADCBattery()
       },
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
-    battery_publisher_ =
-      std::make_shared<SingleBatteryPublisher>(this->shared_from_this(), battery_1_);
+    battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
+      this->shared_from_this(), battery_1_);
   }
 }
 
@@ -119,11 +119,10 @@ void BatteryNode::InitializeWithRoboteqBattery()
     "driver/motor_controllers_state", 5,
     [&](const DriverStateMsg::SharedPtr msg) { driver_state_ = msg; });
 
-  battery_1_ =
-    std::make_shared<RoboteqBattery>([&]() { return driver_state_; }, battery_params);
+  battery_1_ = std::make_shared<RoboteqBattery>([&]() { return driver_state_; }, battery_params);
 
-  battery_publisher_ =
-    std::make_shared<SingleBatteryPublisher>(this->shared_from_this(), battery_1_);
+  battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
+    this->shared_from_this(), battery_1_);
 }
 
 void BatteryNode::BatteryPubTimerCB()

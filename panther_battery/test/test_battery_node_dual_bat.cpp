@@ -18,8 +18,8 @@ TEST_F(TestBatteryNodeDualBattery, BatteryValues)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
 
-  // This is done to check if channels of ADC readers were assigned correctly, not to verify calculations.
-  // If any test performing calculations fails this test will most likely fail too.
+  // This is done to check if channels of ADC readers were assigned correctly, not to verify
+  // calculations. If any test performing calculations fails this test will most likely fail too.
   EXPECT_FLOAT_EQ(35.05957, battery_state_->voltage);
   EXPECT_FLOAT_EQ(2.02, battery_state_->current);
   EXPECT_FLOAT_EQ(26.094543, battery_state_->temperature);
@@ -33,7 +33,8 @@ TEST_F(TestBatteryNodeDualBattery, BatteryValues)
   EXPECT_FLOAT_EQ(battery_1_state_->percentage, battery_2_state_->percentage);
   EXPECT_FLOAT_EQ(battery_1_state_->charge, battery_2_state_->charge);
 
-  // change value of battery 2 reading one by one and check if coresponding values in battery 1 stops matching
+  // change value of battery 2 reading one by one and check if coresponding values in battery 1
+  // stops matching
   WriteNumberToFile<int>(1600, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_2_state_, std::chrono::milliseconds(1000)));
@@ -100,7 +101,7 @@ TEST_F(TestBatteryNodeDualBattery, BatteryCharging)
   // Wait for node to initialize
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
-    
+
   // Publish charger connected state
   IOStateMsg io_state;
   io_state.charger_connected = true;

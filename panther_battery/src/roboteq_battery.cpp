@@ -13,7 +13,8 @@ namespace panther_battery
 {
 
 RoboteqBattery::RoboteqBattery(
-  const std::function<DriverStateMsg::SharedPtr()> & get_driver_state, const RoboteqBatteryParams & params)
+  const std::function<DriverStateMsg::SharedPtr()> & get_driver_state,
+  const RoboteqBatteryParams & params)
 : GetDriverState(get_driver_state), driver_state_timeout_(params.driver_state_timeout)
 {
   voltage_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
@@ -81,10 +82,10 @@ void RoboteqBattery::UpdateBatteryState(const rclcpp::Time & header_stamp)
   battery_state_.capacity = std::numeric_limits<float>::quiet_NaN();
   battery_state_.design_capacity = kDesignedCapacity;
   battery_state_.charge = battery_state_.percentage * battery_state_.design_capacity;
-  battery_state_.cell_voltage =
-    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
-  battery_state_.cell_temperature =
-    std::vector<float>(kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_voltage = std::vector<float>(
+    kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
+  battery_state_.cell_temperature = std::vector<float>(
+    kNumberOfCells, std::numeric_limits<float>::quiet_NaN());
   battery_state_.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_state_.present = true;
   battery_state_.location = kLocation;

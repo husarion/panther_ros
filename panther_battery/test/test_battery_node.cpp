@@ -17,8 +17,8 @@ TEST_F(TestBatteryNode, BatteryValues)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
 
-  // This is done to check if channels of ADC readers were assigned correctly, not to verify calculations.
-  // If any test performing calculations fails this test will most likely fail too.
+  // This is done to check if channels of ADC readers were assigned correctly, not to verify
+  // calculations. If any test performing calculations fails this test will most likely fail too.
   EXPECT_FLOAT_EQ(35.05957, battery_state_->voltage);
   EXPECT_FLOAT_EQ(2.01, battery_state_->current);
   EXPECT_FLOAT_EQ(26.094543, battery_state_->temperature);
@@ -67,7 +67,7 @@ TEST_F(TestBatteryNode, BatteryCharging)
   // Wait for node to initialize
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
-    
+
   // Publish charger connected state
   IOStateMsg io_state;
   io_state.charger_connected = true;
@@ -89,7 +89,7 @@ TEST_F(TestBatteryNode, RoboteqInitOnADCFail)
 
   // battery state status should be UNKNOWN
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
-  
+
   // publish driver state that should update the battery message
   DriverStateMsg driver_state;
   driver_state.header.stamp = battery_node_->get_clock()->now();
