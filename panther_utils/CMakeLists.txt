@@ -6,6 +6,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp)
+find_package(std_srvs)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -23,6 +25,13 @@ if(BUILD_TESTING)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
   )
+
+  ament_add_gtest(${PROJECT_NAME}_test_ros_sync_client test/test_ros_sync_client.cpp)
+  target_include_directories(${PROJECT_NAME}_test_ros_sync_client PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_ros_sync_client rclcpp std_srvs)
 endif()
 
 ament_package()
