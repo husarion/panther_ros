@@ -1,12 +1,14 @@
 #include <panther_lights/driver_node.hpp>
 
-#include <filesystem>
+#include <chrono>
+#include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <gpiod.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <image_transport/image_transport.hpp>
@@ -15,6 +17,7 @@
 #include <panther_msgs/srv/set_led_brightness.hpp>
 
 #include <panther_lights/apa102.hpp>
+#include <panther_utils/ros_sync_client.hpp>
 
 namespace panther_lights
 {
@@ -36,14 +39,14 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
 
 void DriverNode::Initialize()
 {
+  set_led_power_pin_client_ = std::make_shared<panther_utils::RosSyncClient<SetBoolService>>(
+    this->shared_from_this(), "hardware/set_led_power_pin");
+
   it_ = std::make_shared<image_transport::ImageTransport>(this->shared_from_this());
 
   const double global_brightness = this->get_parameter("global_brightness").as_double();
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
-
-  // is this neccessary?
-  SetPowerPin(gpiod::line::value::INACTIVE);
 
   front_panel_ts_ = this->get_clock()->now();
   rear_panel_ts_ = this->get_clock()->now();
@@ -76,7 +79,10 @@ void DriverNode::OnShutdown()
   rear_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
 
   // give back control over LEDs
-  SetPowerPin(gpiod::line::value::INACTIVE);
+  CallSetLedPowerPinService(false);
+
+  it_.reset();
+  set_led_power_pin_client_.reset();
 }
 
 void DriverNode::FrameCB(
@@ -107,45 +113,24 @@ void DriverNode::FrameCB(
         this->get_logger(), *this->get_clock(), 5000, "%s on rear panel!", meessage.c_str());
     }
   } else {
-    if (!panels_initialised_) {
+    // try to take control over LEDs
+    if (!panels_initialised_ && CallSetLedPowerPinService(true)) {
       panels_initialised_ = true;
-
-      // take control over LEDs
-      SetPowerPin(gpiod::line::value::ACTIVE);
     }
     panel.SetPanel(msg->data);
   }
 }
 
-void DriverNode::SetPowerPin(const gpiod::line::value & value) const
-{
-  gpiod::chip chip("/dev/gpiochip0");
-
-  gpiod::line_settings settings;
-  settings.set_direction(gpiod::line::direction::OUTPUT);
-  settings.set_active_low(true);
-  // settings.set_output_value(value);
-
-  auto power_pin_offset = chip.get_line_offset_from_name("LED_SBC_SEL");
-
-  auto request = chip.prepare_request()
-                   .set_consumer(this->get_name())
-                   .add_line_settings(power_pin_offset, settings)
-                   .do_request();
-
-  request.set_value(power_pin_offset, value);
-  request.release();
-}
-
 void DriverNode::SetBrightnessCB(
-  const SetLEDBrightnessSrv::Request::SharedPtr & req, SetLEDBrightnessSrv::Response::SharedPtr res)
+  const SetLEDBrightnessSrv::Request::SharedPtr & request,
+  SetLEDBrightnessSrv::Response::SharedPtr response)
 {
-  const float brightness = req->data;
+  const float brightness = request->data;
   if (
     brightness < 0.0f - std::numeric_limits<float>::epsilon() ||
     brightness > 1.0f - std::numeric_limits<float>::epsilon()) {
-    res->success = false;
-    res->message = "Brightness out of range <0,1>";
+    response->success = false;
+    response->message = "Brightness out of range <0,1>";
     return;
   }
   front_panel_.SetGlobalBrightness(brightness);
@@ -154,8 +139,37 @@ void DriverNode::SetBrightnessCB(
 
   // round string to two decimal places
   str_bright = str_bright.substr(0, str_bright.find(".") + 3);
-  res->success = true;
-  res->message = "Changed brightness to " + str_bright;
+  response->success = true;
+  response->message = "Changed brightness to " + str_bright;
+}
+
+bool DriverNode::CallSetLedPowerPinService(const bool state)
+{
+  auto request = std::make_shared<SetBoolService::Request>();
+  request->data = state;
+
+  SetBoolService::Response::SharedPtr response;
+  try {
+    response = set_led_power_pin_client_->Call(
+      request, std::chrono::milliseconds(5000), std::chrono::milliseconds(1000));
+  } catch (std::runtime_error & err) {
+    RCLCPP_ERROR(
+      this->get_logger(), "Failed to call service %s: %s",
+      set_led_power_pin_client_->GetServiceName(), err.what());
+    return false;
+  }
+
+  if (!response->success) {
+    RCLCPP_ERROR(
+      this->get_logger(), "Failed to set LED power pin. %s service response: %s",
+      set_led_power_pin_client_->GetServiceName(), response->message.c_str());
+    return false;
+  }
+
+  RCLCPP_INFO(
+    this->get_logger(), "Successfuly called service %s.",
+    set_led_power_pin_client_->GetServiceName());
+  return true;
 }
 
 }  // namespace panther_lights
