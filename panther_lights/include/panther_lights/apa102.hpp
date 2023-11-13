@@ -19,6 +19,11 @@ public:
   void SetGlobalBrightness(const double brightness);
   void SetPanel(const std::vector<std::uint8_t> & frame) const;
 
+protected:
+  std::uint8_t * RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const;
+
+  std::uint16_t global_brightness_;
+
 private:
   static constexpr std::uint8_t kBits = 8;
 
@@ -30,7 +35,6 @@ private:
   const int fd_;
   const std::string device_;
   const std::uint32_t speed_;
-  std::uint16_t global_brightness_;
 };
 
 }  // namespace panther_lights::apa102

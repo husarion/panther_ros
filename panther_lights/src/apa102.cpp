@@ -56,10 +56,31 @@ void APA102::SetGlobalBrightness(const std::uint8_t brightness)
 
 void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
 {
-  if (frame.size() % 4 != 0) {
-    throw std::runtime_error("Incorrect number of bytes to transfer to LEDs");
+  auto buffer = RGBAFrameToBGRBuffer(frame);
+
+  struct spi_ioc_transfer tr;
+  memset(&tr, 0, sizeof(tr));
+  tr.tx_buf = (unsigned long long)buffer;
+  tr.rx_buf = 0;
+  tr.len = sizeof(buffer);
+  tr.speed_hz = speed_;
+  tr.delay_usecs = 0;
+  tr.bits_per_word = kBits;
+
+  int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
+  delete[] buffer;
+
+  if (ret < 1) {
+    throw std::ios_base::failure(std::string("Failed to send data over SPI ") + device_);
   }
-  // init buffer with start and end frames
+}
+
+std::uint8_t * APA102::RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const
+{
+  if (frame.size() % 4 != 0) {
+    throw std::runtime_error("Incorrect number of bytes to convert frame");
+  }
+
   std::size_t buffer_size = (4 * sizeof(std::uint8_t)) + frame.size() + (4 * sizeof(std::uint8_t));
   std::uint8_t * buffer = new std::uint8_t[buffer_size];
 
@@ -71,32 +92,17 @@ void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
 
   // copy frame from vector to sending buffer
   for (std::size_t i = 0; i < frame.size() / 4; i++) {
-    // padding
-    std::size_t pad = i * 4;
+    std::size_t padding = i * 4;
     // header with brightness
-    std::uint8_t brightness = (std::uint16_t(frame[pad + 3]) * global_brightness_) / 255;
-    buffer[4 + pad] = 0xE0 | brightness;
+    std::uint8_t brightness = (std::uint16_t(frame[padding + 3]) * global_brightness_) / 255;
+    buffer[4 + padding] = 0xE0 | brightness;
     // convert rgb to bgr with collor correction
-    buffer[4 + pad + 1] = std::uint8_t((std::uint16_t(frame[pad + 2]) * kCorrBlue) / 255);
-    buffer[4 + pad + 2] = std::uint8_t((std::uint16_t(frame[pad + 1]) * kCorrGreen) / 255);
-    buffer[4 + pad + 3] = std::uint8_t((std::uint16_t(frame[pad + 0]) * kCorrRed) / 255);
+    buffer[4 + padding + 1] = std::uint8_t((std::uint16_t(frame[padding + 2]) * kCorrBlue) / 255);
+    buffer[4 + padding + 2] = std::uint8_t((std::uint16_t(frame[padding + 1]) * kCorrGreen) / 255);
+    buffer[4 + padding + 3] = std::uint8_t((std::uint16_t(frame[padding + 0]) * kCorrRed) / 255);
   }
 
-  struct spi_ioc_transfer tr;
-  memset(&tr, 0, sizeof(tr));
-  tr.tx_buf = (unsigned long long)buffer;
-  tr.rx_buf = 0;
-  tr.len = (unsigned int)buffer_size;
-  tr.speed_hz = speed_;
-  tr.delay_usecs = 0;
-  tr.bits_per_word = 8;
-
-  int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
-  delete[] buffer;
-
-  if (ret < 1) {
-    throw std::ios_base::failure(std::string("Failed to send data over SPI ") + device_);
-  }
+  return buffer;
 }
 
-}  // namespace panther_lights
+}  // namespace panther_lights::apa102
