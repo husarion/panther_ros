@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <panther_battery/roboteq_republisher_node.hpp>
 
 #include <chrono>
@@ -17,7 +31,9 @@ namespace panther_battery
 {
 using std::placeholders::_1;
 
-RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_node")
+RoboteqRepublisherNode::RoboteqRepublisherNode(
+  const std::string & node_name, const rclcpp::NodeOptions & options)
+: Node(node_name, options)
 {
   this->declare_parameter<float>("battery_timeout", 1.0);
   this->declare_parameter<int>("batery_voltage_window_len", 10);
@@ -45,29 +61,29 @@ RoboteqRepublisherNode::RoboteqRepublisherNode() : Node("roboteq_republisher_nod
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
-void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg & msg)
+void RoboteqRepublisherNode::MotorControllersStateSubCB(const DriverStateMsg::SharedPtr msg)
 {
-  if (msg.front.fault_flag.can_net_err || msg.rear.fault_flag.can_net_err) {
+  if (msg->front.fault_flag.can_net_err || msg->rear.fault_flag.can_net_err) {
     return;
   }
 
   last_battery_info_time_ = this->get_clock()->now();
-  battery_voltage_ma_->Roll((msg.front.voltage + msg.rear.voltage) / 2.0);
-  battery_current_ma_->Roll(-(msg.front.current + msg.rear.current));
+  battery_voltage_ma_->Roll((msg->front.voltage + msg->rear.voltage) / 2.0);
+  battery_current_ma_->Roll(-(msg->front.current + msg->rear.current));
 }
 
 void RoboteqRepublisherNode::BatteryPubTimerCB()
 {
   auto battery_msg = BatteryStateMsg();
   battery_msg.header.stamp = this->get_clock()->now();
-  battery_msg.capacity = std::numeric_limits<float>::quiet_NaN();
-  battery_msg.design_capacity = bat_designed_capacity_;
+  battery_msg.capacity = std::numeric_limits<double>::quiet_NaN();
+  battery_msg.design_capacity = kBatDesignedCapacity;
   battery_msg.temperature = std::numeric_limits<float>::quiet_NaN();
   battery_msg.power_supply_technology = BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION;
   battery_msg.present = true;
   battery_msg.cell_voltage = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
   battery_msg.cell_temperature = std::vector<float>(10, std::numeric_limits<float>::quiet_NaN());
-  battery_msg.location = location_;
+  battery_msg.location = kLocation;
 
   auto battery_voltage = battery_voltage_ma_->GetAverage();
   auto battery_current = battery_current_ma_->GetAverage();
@@ -88,11 +104,11 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
     battery_msg.power_supply_status = BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING;
 
     // check battery health
-    if (battery_voltage < v_bat_fatal_min_) {
+    if (battery_voltage < kVBatFatalMin) {
       battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD;
       RCLCPP_ERROR_THROTTLE(
         this->get_logger(), *this->get_clock(), 10000, "Battery voltage is critically low!");
-    } else if (battery_voltage > v_bat_fatal_max_) {
+    } else if (battery_voltage > kVBatFatalMax) {
       battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE;
       RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 10000, "Battery overvoltage!");
     } else {
@@ -102,8 +118,8 @@ void RoboteqRepublisherNode::BatteryPubTimerCB()
 
   battery_msg.voltage = battery_voltage;
   battery_msg.current = battery_current;
-  battery_msg.percentage =
-    std::clamp((battery_voltage - v_bat_min_) / (v_bat_full_ - v_bat_min_), 0.0, 1.0);
+  battery_msg.percentage = std::clamp(
+    (battery_voltage - kVBatMin) / (kVBatFull - kVBatMin), 0.0, 1.0);
   battery_msg.charge = battery_msg.percentage * battery_msg.design_capacity;
 
   battery_pub_->publish(battery_msg);

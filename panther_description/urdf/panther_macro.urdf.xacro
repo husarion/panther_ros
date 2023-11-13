@@ -163,7 +163,7 @@
           <soc_threshold>2.0</soc_threshold>
           <power_load>${bat_power_load}</power_load>
           <start_on_motion>false</start_on_motion>
-          
+
           <!-- https://github.com/gazebosim/gz-sim/issues/225 -->
           <fix_issue_225>true</fix_issue_225>
         </plugin>

@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <gtest/gtest.h>
 
 #include <panther_utils/moving_average.hpp>
@@ -45,7 +59,7 @@ TEST(TestMovingAverage, TestHighOverload)
   const std::size_t window_len = 1000;
   panther_utils::MovingAverage<double> ma(window_len);
 
-  double sum;
+  double sum = 0.0;
   for (std::size_t i = 1; i <= window_len * 10; i++) {
     sum += double(i);
     ma.Roll(double(i));

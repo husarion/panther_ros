@@ -14,7 +14,7 @@ imu_broadcaster:
   ros__parameters:
     sensor_name: "imu"
     frame_id: "imu_link"
-    
+
 panther_base_controller:
   ros__parameters:
     front_left_wheel_name: fl_wheel_joint
