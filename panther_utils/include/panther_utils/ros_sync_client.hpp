@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PANTHER_UTILS_ROS_SYNC_CLIENT_HPP_
 #define PANTHER_UTILS_ROS_SYNC_CLIENT_HPP_
 
@@ -14,9 +28,9 @@ namespace panther_utils
 {
 
 /**
-   * @brief ROS service client that mimics synchronous behavior. When using inside a rclcpp::Node 
-   * class, you must spin the node using MultiThreadExecutor to avoid a deadlock.
-   */
+ * @brief ROS service client that mimics synchronous behavior. When using inside a rclcpp::Node
+ * class, you must spin the node using MultiThreadExecutor to avoid a deadlock.
+ */
 template <typename ServiceT, typename DurationT = std::chrono::milliseconds>
 class RosSyncClient
 {
@@ -42,7 +56,7 @@ public:
 
   /**
    * @brief call ROS serviece and wait for response
-   * 
+   *
    * @returns shared pointer to a response from the server
    *
    * @exception std::runtime_error if timeout is reached waiting for service or response, or when
