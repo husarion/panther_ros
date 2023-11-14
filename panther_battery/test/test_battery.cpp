@@ -39,10 +39,10 @@ public:
 
   void SetErrorMsg(const std::string error_msg) { return Battery::SetErrorMsg(error_msg); }
 
-  // mock up methods to make wrapper a valid subclass
+  // Mock up methods to make wrapper a valid subclass
   bool Present() { return true; }
-  void Update(const rclcpp::Time &, bool) {}
-  void Reset(const rclcpp::Time &) {}
+  void Update(const rclcpp::Time & /* header_stamp */, bool /* charger_connected */) {}
+  void Reset(const rclcpp::Time & /* header_stamp */) {}
 };
 
 class TestBattery : public testing::Test
@@ -64,7 +64,7 @@ TestBattery::TestBattery() { battery_ = std::make_unique<BatteryWrapper>(); }
 void TestBattery::TestDefaultBatteryStateMsg(
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
-  // const values
+  // Const values
   EXPECT_TRUE(std::isnan(battery_state_.temperature));
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
@@ -74,7 +74,7 @@ void TestBattery::TestDefaultBatteryStateMsg(
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
-  // variable values
+  // Variable values
   EXPECT_TRUE(std::isnan(battery_state_.voltage));
   EXPECT_TRUE(std::isnan(battery_state_.current));
   EXPECT_TRUE(std::isnan(battery_state_.percentage));
@@ -106,7 +106,7 @@ TEST_F(TestBattery, GetBatteryPercent)
 
 TEST_F(TestBattery, ResetBatteryMsgs)
 {
-  // expect empty message at the beginning
+  // Expect empty message at the beginning
   EXPECT_EQ(BatteryStateMsg(), battery_->GetBatteryMsg());
   EXPECT_EQ(BatteryStateMsg(), battery_->GetBatteryMsgRaw());
 

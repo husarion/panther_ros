@@ -61,9 +61,8 @@ private:
   uint8_t GetBatteryStatus(const float charge, const bool charger_connected);
   uint8_t GetBatteryHealth(const float voltage, const float temp);
 
-  // ADC conversion parameters. Values were determined based on
-  // voltage divider resistance values or
-  // differential amplifier gain and resistance values
+  // ADC conversion parameters. Values were determined based on voltage divider
+  // resistance values or differential amplifier gain and resistance values
   static constexpr float kBatVoltageFactor = 25.04255;
   static constexpr float kBatCurrentFactor = 20.0;
   static constexpr float kBatChargeFactor = 2.5;

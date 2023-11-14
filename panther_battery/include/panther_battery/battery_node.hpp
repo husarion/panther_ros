@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_ADC_NODE_HPP_
-#define PANTHER_BATTERY_ADC_NODE_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_NODE_HPP_
+#define PANTHER_BATTERY_BATTERY_NODE_HPP_
 
 #include <memory>
 #include <string>
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <sensor_msgs/msg/battery_state.hpp>
+#include <panther_msgs/msg/driver_state.hpp>
 
 #include <panther_battery/adc_data_reader.hpp>
 #include <panther_battery/battery.hpp>
@@ -29,17 +29,22 @@
 namespace panther_battery
 {
 
-class ADCNode : public rclcpp::Node
+using DriverStateMsg = panther_msgs::msg::DriverState;
+
+class BatteryNode : public rclcpp::Node
 {
 public:
-  ADCNode(
+  BatteryNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
   void BatteryPubTimerCB();
   void Initialize();
+  void InitializeWithADCBattery();
+  void InitializeWithRoboteqBattery();
 
-  static constexpr int kADCCurrentOffest = 625;
+  static constexpr int kADCCurrentOffset = 625;
+  DriverStateMsg::SharedPtr driver_state_;
 
   std::shared_ptr<ADCDataReader> adc0_reader_;
   std::shared_ptr<ADCDataReader> adc1_reader_;
@@ -47,9 +52,10 @@ private:
   std::shared_ptr<Battery> battery_2_;
   std::shared_ptr<BatteryPublisher> battery_publisher_;
 
+  rclcpp::Subscription<DriverStateMsg>::SharedPtr driver_state_sub_;
   rclcpp::TimerBase::SharedPtr battery_pub_timer_;
 };
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_ADC_NODE_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_NODE_HPP_

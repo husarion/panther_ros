@@ -12,41 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <include/test_adc_node.hpp>
+#include <include/test_battery_node.hpp>
 
 #include <chrono>
 
 #include <gtest/gtest.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include <panther_utils/test/test_utils.hpp>
 
-class TestADCNodeDualBattery : public TestADCNode
+class TestBatteryNodeDualBattery : public TestBatteryNode
 {
 public:
-  TestADCNodeDualBattery() : TestADCNode(true) {}
-
-protected:
+  TestBatteryNodeDualBattery() : TestBatteryNode(1.2, true) {}
 };
 
-TEST_F(TestADCNodeDualBattery, BatteryTopicsPublished)
+TEST_F(TestBatteryNodeDualBattery, BatteryValues)
 {
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_state_, std::chrono::milliseconds(1000)));
-  EXPECT_TRUE(battery_state_ != nullptr);
-
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_1_state_, std::chrono::milliseconds(1000)));
-  EXPECT_TRUE(battery_1_state_ != nullptr);
-
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_2_state_, std::chrono::milliseconds(1000)));
-  EXPECT_TRUE(battery_2_state_ != nullptr);
-}
-
-TEST_F(TestADCNodeDualBattery, BatteryMsgValues)
-{
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // This is done to check if channels of ADC readers were assigned correctly, not to verify
   // calculations. If any test performing calculations fails this test will most likely fail too.
@@ -63,11 +47,11 @@ TEST_F(TestADCNodeDualBattery, BatteryMsgValues)
   EXPECT_FLOAT_EQ(battery_1_state_->percentage, battery_2_state_->percentage);
   EXPECT_FLOAT_EQ(battery_1_state_->charge, battery_2_state_->charge);
 
-  // change value of battery 2 reading one by one and check if corresponding values in battery 1
+  // Change value of battery 2 reading one by one and check if corresponding values in battery 1
   // stops matching
   WriteNumberToFile<int>(1600, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_2_state_, std::chrono::milliseconds(1000)));
+    battery_node_, battery_2_state_, std::chrono::milliseconds(1000)));
   EXPECT_FALSE(
     fabs(battery_1_state_->voltage - battery_2_state_->voltage) <
     std::numeric_limits<float>::epsilon());
@@ -83,7 +67,7 @@ TEST_F(TestADCNodeDualBattery, BatteryMsgValues)
   WriteNumberToFile<int>(900, std::filesystem::path(device1_path_ / "in_voltage1_raw"));
   WriteNumberToFile<int>(100, std::filesystem::path(device0_path_ / "in_voltage2_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_2_state_, std::chrono::milliseconds(1000)));
+    battery_node_, battery_2_state_, std::chrono::milliseconds(1000)));
   EXPECT_FALSE(
     fabs(battery_1_state_->current - battery_2_state_->current) <
     std::numeric_limits<float>::epsilon());
@@ -91,10 +75,55 @@ TEST_F(TestADCNodeDualBattery, BatteryMsgValues)
 
   WriteNumberToFile<int>(1000, std::filesystem::path(device0_path_ / "in_voltage0_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    adc_node_, battery_2_state_, std::chrono::milliseconds(1000)));
+    battery_node_, battery_2_state_, std::chrono::milliseconds(1000)));
   EXPECT_FALSE(
     fabs(battery_1_state_->temperature - battery_2_state_->temperature) <
     std::numeric_limits<float>::epsilon());
+}
+
+TEST_F(TestBatteryNodeDualBattery, BatteryTimeout)
+{
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+
+  // Battery state msg should have some values
+  EXPECT_FALSE(std::isnan(battery_state_->voltage));
+  EXPECT_FALSE(std::isnan(battery_state_->temperature));
+  EXPECT_FALSE(std::isnan(battery_state_->current));
+  EXPECT_FALSE(std::isnan(battery_state_->charge));
+  EXPECT_FALSE(std::isnan(battery_state_->percentage));
+
+  // Force error and wait for timeout
+  std::filesystem::remove(std::filesystem::path(device0_path_ / "in_voltage2_raw"));
+  std::filesystem::remove(std::filesystem::path(device1_path_ / "in_voltage2_raw"));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  // Battery state msg values should be NaN
+  EXPECT_TRUE(std::isnan(battery_state_->voltage));
+  EXPECT_TRUE(std::isnan(battery_state_->temperature));
+  EXPECT_TRUE(std::isnan(battery_state_->current));
+  EXPECT_TRUE(std::isnan(battery_state_->charge));
+  EXPECT_TRUE(std::isnan(battery_state_->percentage));
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
+  EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
+}
+
+TEST_F(TestBatteryNodeDualBattery, BatteryCharging)
+{
+  // Wait for node to initialize
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+
+  // Publish charger connected state
+  IOStateMsg io_state;
+  io_state.charger_connected = true;
+  io_state_pub_->publish(io_state);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+
+  EXPECT_NE(battery_state_->power_supply_status, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING);
 }
 
 int main(int argc, char ** argv)
