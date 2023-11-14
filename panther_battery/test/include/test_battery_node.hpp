@@ -75,7 +75,7 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
     std::filesystem::create_directory(device0_path_);
     std::filesystem::create_directory(device1_path_);
 
-    // create only files that are required for adc_node to start
+    // Create only files that are required for adc_node to start
     int dual_bat_volt = dual_battery ? 800 : 1600;
     WriteNumberToFile<int>(dual_bat_volt, std::filesystem::path(device0_path_ / "in_voltage0_raw"));
     WriteNumberToFile<int>(800, std::filesystem::path(device0_path_ / "in_voltage1_raw"));

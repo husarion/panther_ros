@@ -35,7 +35,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
 
-  // battery state msg values should be NaN
+  // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
   EXPECT_TRUE(std::isnan(battery_state_->current));
   EXPECT_TRUE(std::isnan(battery_state_->charge));
@@ -54,7 +54,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  // This is done to check if values were read correctly, not to verify calculations
+  // This is done to check if values were read correctly, not to verify calculations.
   // If any test performing calculations fails this test will most likely fail too.
   EXPECT_FLOAT_EQ(35.0, battery_state_->voltage);
   EXPECT_FLOAT_EQ(0.2, battery_state_->current);
@@ -72,7 +72,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
 
-  // battery state msg values should be NaN
+  // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
   EXPECT_TRUE(std::isnan(battery_state_->current));
   EXPECT_TRUE(std::isnan(battery_state_->charge));
@@ -92,7 +92,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  // battery state msg should have some values
+  // Battery state msg should have some values
   EXPECT_FALSE(std::isnan(battery_state_->voltage));
   EXPECT_FALSE(std::isnan(battery_state_->current));
   EXPECT_FALSE(std::isnan(battery_state_->charge));
@@ -103,7 +103,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  // battery state msg values should be NaN
+  // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
   EXPECT_TRUE(std::isnan(battery_state_->current));
   EXPECT_TRUE(std::isnan(battery_state_->charge));

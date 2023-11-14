@@ -77,7 +77,7 @@ void TestADCBattery::UpdateBattery(
 void TestADCBattery::TestDefaultBatteryStateMsg(
   const uint8_t & power_supply_status, const uint8_t & power_supply_health)
 {
-  // const values
+  // Const values
   EXPECT_TRUE(std::isnan(battery_state_.temperature));
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
@@ -87,7 +87,7 @@ void TestADCBattery::TestDefaultBatteryStateMsg(
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
-  // variable values
+  // Variable values
   EXPECT_TRUE(std::isnan(battery_state_.voltage));
   EXPECT_TRUE(std::isnan(battery_state_.current));
   EXPECT_TRUE(std::isnan(battery_state_.percentage));
@@ -102,7 +102,7 @@ void TestADCBattery::TestBatteryStateMsg(
   const float & expected_percentage, const uint8_t & power_supply_status,
   const uint8_t & power_supply_health)
 {
-  // const values
+  // Const values
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
   EXPECT_FLOAT_EQ(expected_temp, battery_state_.temperature);
@@ -111,7 +111,7 @@ void TestADCBattery::TestBatteryStateMsg(
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
-  // variable values
+  // Variable values
   EXPECT_FLOAT_EQ(expected_voltage, battery_state_.voltage);
   EXPECT_FLOAT_EQ(expected_current, battery_state_.current);
   EXPECT_FLOAT_EQ(expected_percentage, battery_state_.percentage);
@@ -164,7 +164,7 @@ TEST_F(TestADCBattery, BatteryMsgValues)
     expected_voltage, expected_current, expected_temp, expected_percentage,
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
-  // check if values are smoothed out with moving average.
+  // Check if values are smoothed out with moving average.
   const float voltage_raw_2 = 1.6;
   const float current_raw_2 = 0.02;
   const float temp_raw_2 = 1.4;
@@ -257,7 +257,7 @@ TEST_F(TestADCBattery, GetErrorMsg)
   EXPECT_FALSE(battery_->HasErrorMsg());
   EXPECT_EQ("", battery_->GetErrorMsg());
 
-  // send overvoltage
+  // Send overvoltage
   UpdateBattery(1.72, 0.01, 1.5, 0.5, false);
 
   ASSERT_TRUE(battery_->HasErrorMsg());

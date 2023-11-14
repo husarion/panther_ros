@@ -45,7 +45,7 @@ public:
 
   bool ChargerConnected() const { return BatteryPublisher::ChargerConnected(); }
 
-  // mock up methods to make wrapper a valid subclass
+  // Mock up methods to make wrapper a valid subclass
   void Update(){};
   void Reset(){};
   void PublishBatteryState(){};
@@ -80,7 +80,7 @@ TestBatteryPublisher::TestBatteryPublisher()
 
 TEST_F(TestBatteryPublisher, TimeoutReached)
 {
-  // reset battery info time
+  // Reset battery info time
   battery_publisher_->Publish();
   EXPECT_FALSE(battery_publisher_->TimeoutReached());
 

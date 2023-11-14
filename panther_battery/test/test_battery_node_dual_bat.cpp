@@ -47,7 +47,7 @@ TEST_F(TestBatteryNodeDualBattery, BatteryValues)
   EXPECT_FLOAT_EQ(battery_1_state_->percentage, battery_2_state_->percentage);
   EXPECT_FLOAT_EQ(battery_1_state_->charge, battery_2_state_->charge);
 
-  // change value of battery 2 reading one by one and check if corresponding values in battery 1
+  // Change value of battery 2 reading one by one and check if corresponding values in battery 1
   // stops matching
   WriteNumberToFile<int>(1600, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
@@ -86,7 +86,7 @@ TEST_F(TestBatteryNodeDualBattery, BatteryTimeout)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(5000)));
 
-  // battery state msg should have some values
+  // Battery state msg should have some values
   EXPECT_FALSE(std::isnan(battery_state_->voltage));
   EXPECT_FALSE(std::isnan(battery_state_->temperature));
   EXPECT_FALSE(std::isnan(battery_state_->current));
@@ -100,7 +100,7 @@ TEST_F(TestBatteryNodeDualBattery, BatteryTimeout)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
     battery_node_, battery_state_, std::chrono::milliseconds(1000)));
 
-  // battery state msg values should be NaN
+  // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
   EXPECT_TRUE(std::isnan(battery_state_->temperature));
   EXPECT_TRUE(std::isnan(battery_state_->current));

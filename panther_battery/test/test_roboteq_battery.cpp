@@ -95,7 +95,7 @@ void TestRoboteqBattery::UpdateBattery(const float voltage, const float current)
 void TestRoboteqBattery::TestDefaultBatteryStateMsg(
   const uint8_t power_supply_status, const uint8_t power_supply_health)
 {
-  // const values
+  // Const values
   EXPECT_TRUE(std::isnan(battery_state_.temperature));
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
@@ -105,7 +105,7 @@ void TestRoboteqBattery::TestDefaultBatteryStateMsg(
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
-  // variable values
+  // Variable values
   EXPECT_TRUE(std::isnan(battery_state_.voltage));
   EXPECT_TRUE(std::isnan(battery_state_.current));
   EXPECT_TRUE(std::isnan(battery_state_.percentage));
@@ -119,7 +119,7 @@ void TestRoboteqBattery::TestBatteryStateMsg(
   const float expected_voltage, const float expected_current, const float expected_percentage,
   const uint8_t power_supply_status, const uint8_t power_supply_health)
 {
-  // const values
+  // Const values
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_TRUE(std::isnan(battery_state_.temperature));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
@@ -128,7 +128,7 @@ void TestRoboteqBattery::TestBatteryStateMsg(
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
-  // variable values
+  // Variable values
   EXPECT_FLOAT_EQ(expected_voltage, battery_state_.voltage);
   EXPECT_FLOAT_EQ(expected_current, battery_state_.current);
   EXPECT_FLOAT_EQ(expected_percentage, battery_state_.percentage);
@@ -214,7 +214,7 @@ TEST_F(TestRoboteqBattery, GetErrorMsg)
   EXPECT_FALSE(battery_->HasErrorMsg());
   EXPECT_EQ("", battery_->GetErrorMsg());
 
-  // send overvoltage
+  // Send overvoltage
   UpdateBattery(44.0, 0.1);
 
   ASSERT_TRUE(battery_->HasErrorMsg());
@@ -225,22 +225,22 @@ TEST_F(TestRoboteqBattery, ValidateDriverStateMsg)
 {
   auto stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
 
-  // check empty driver_state msg
+  // Check empty driver_state msg
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
 
   UpdateBattery(35.0f, 0.1f);
   EXPECT_NO_THROW(battery_->ValidateDriverStateMsg(stamp));
 
-  // check timeout
+  // Check timeout
   const uint32_t timeout_nanoseconds = (kDriverStateTimeout + 0.05) * 1e9;
   stamp = rclcpp::Time(0, timeout_nanoseconds, RCL_ROS_TIME);
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
 
-  // reset error
+  // Reset error
   stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
   EXPECT_NO_THROW(battery_->ValidateDriverStateMsg(stamp));
 
-  // check can net error throw
+  // Check can net error throw
   driver_state_->front.fault_flag.can_net_err = true;
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
   driver_state_->front.fault_flag.can_net_err = false;

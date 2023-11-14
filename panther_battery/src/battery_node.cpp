@@ -41,7 +41,7 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
   this->declare_parameter<int>("ma_window_len/voltage", 10);
   this->declare_parameter<int>("ma_window_len/current", 10);
 
-  // running at 10 Hz
+  // Running at 10 Hz
   battery_pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(100), std::bind(&BatteryNode::BatteryPubTimerCB, this));
 
@@ -51,7 +51,7 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
 void BatteryNode::Initialize()
 {
   const float panther_version = this->get_parameter("panther_version").as_double();
-  if (panther_version >= 1.2f - std::numeric_limits<float>::epsilon()) {
+  if (panther_version >= (1.2f - std::numeric_limits<float>::epsilon())) {
     try {
       InitializeWithADCBattery();
       return;
