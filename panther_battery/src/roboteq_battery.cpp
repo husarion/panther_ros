@@ -41,7 +41,7 @@ RoboteqBattery::RoboteqBattery(
 
 bool RoboteqBattery::Present() { return true; }
 
-void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool)
+void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool /* charger_connected */)
 {
   driver_state_ = GetDriverState();
   ValidateDriverStateMsg(header_stamp);

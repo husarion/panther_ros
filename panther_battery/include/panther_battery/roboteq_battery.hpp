@@ -48,7 +48,7 @@ public:
   ~RoboteqBattery() {}
 
   bool Present() override;
-  void Update(const rclcpp::Time & header_stamp, const bool) override;
+  void Update(const rclcpp::Time & header_stamp, const bool /* charger_connected */) override;
   void Reset(const rclcpp::Time & header_stamp) override;
 
 protected:
