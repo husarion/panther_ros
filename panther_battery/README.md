@@ -6,7 +6,7 @@
 [//]: # (ROS_API_PACKAGE_NAME_END)
 [//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
 
-Package containing nodes monitoring and publishing internal battery state of the Husarion Panther robot.
+Package containing nodes monitoring and publishing the internal battery state of the Husarion Panther robot.
 
 [//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
 
