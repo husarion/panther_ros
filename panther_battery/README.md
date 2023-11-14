@@ -48,7 +48,7 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
 
-- `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If node fails to read battery data exceeding this duration, the node will publish an unknown battery state.
+- `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If the node fails to read battery data exceeding this duration, the node will publish an unknown battery state.
 - `~ma_window_len/voltage` [*int*, default: **10**]: window length of a moving average, used to smooth out battery voltage readings.
 - `~ma_window_len/current` [*int*, default: **10**]: window length of a moving average, used to smooth out battery current readings.
 - `~panther_version` [*float*, default: **1.2**]: Panther robot version. Used to initialize correct Battery node interface.
