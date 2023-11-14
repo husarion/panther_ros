@@ -14,8 +14,10 @@
 
 #include <panther_battery/roboteq_battery.hpp>
 
+#include <cstdint>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 

@@ -50,32 +50,30 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
 
 void BatteryNode::Initialize()
 {
-  auto panther_version = this->get_parameter("panther_version").as_double();
-  if (panther_version < 1.2 - std::numeric_limits<float>::epsilon()) {
-    InitializeWithRoboteqBattery();
-  } else {
+  const float panther_version = this->get_parameter("panther_version").as_double();
+  if (panther_version >= 1.2f - std::numeric_limits<float>::epsilon()) {
     try {
       InitializeWithADCBattery();
+      return;
     } catch (std::runtime_error & err) {
       RCLCPP_WARN(this->get_logger(), "Failed to initialize ADC Battery: %s", err.what());
       RCLCPP_INFO(this->get_logger(), "Using Roboteq drivers to publish battery data.");
-      InitializeWithRoboteqBattery();
     }
   }
-  RCLCPP_INFO(this->get_logger(), "Battery publishers initialized");
+  InitializeWithRoboteqBattery();
 }
 
 void BatteryNode::InitializeWithADCBattery()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing battery node using ADC data");
 
-  this->declare_parameter<std::string>("adc0_device", "/home/ros/ros2_ws/src/device0");
-  this->declare_parameter<std::string>("adc1_device", "/home/ros/ros2_ws/src/device1");
-  this->declare_parameter<int>("ma_window_len/temp", 10);
-  this->declare_parameter<int>("ma_window_len/charge", 10);
+  this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
+  this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
+  this->declare_parameter<int>("adc/ma_window_len/temp", 10);
+  this->declare_parameter<int>("adc/ma_window_len/charge", 10);
 
-  const std::string adc0_device = this->get_parameter("adc0_device").as_string();
-  const std::string adc1_device = this->get_parameter("adc1_device").as_string();
+  const std::string adc0_device = this->get_parameter("adc/device0").as_string();
+  const std::string adc1_device = this->get_parameter("adc/device1").as_string();
 
   adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
   adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
@@ -83,8 +81,8 @@ void BatteryNode::InitializeWithADCBattery()
   const ADCBatteryParams battery_params = {
     static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/current").as_int()),
-    static_cast<std::size_t>(this->get_parameter("ma_window_len/temp").as_int()),
-    static_cast<std::size_t>(this->get_parameter("ma_window_len/charge").as_int()),
+    static_cast<std::size_t>(this->get_parameter("adc/ma_window_len/temp").as_int()),
+    static_cast<std::size_t>(this->get_parameter("adc/ma_window_len/charge").as_int()),
   };
 
   battery_2_ = std::make_shared<ADCBattery>(
@@ -121,10 +119,10 @@ void BatteryNode::InitializeWithRoboteqBattery()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing battery node using motor controllers data");
 
-  this->declare_parameter<float>("driver_state_timeout", 0.2);
+  this->declare_parameter<float>("roboteq/driver_state_timeout", 0.2);
 
   const RoboteqBatteryParams battery_params = {
-    static_cast<float>(this->get_parameter("driver_state_timeout").as_double()),
+    static_cast<float>(this->get_parameter("roboteq/driver_state_timeout").as_double()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
     static_cast<std::size_t>(this->get_parameter("ma_window_len/current").as_int()),
   };
@@ -143,6 +141,7 @@ void BatteryNode::BatteryPubTimerCB()
 {
   if (!battery_publisher_) {
     Initialize();
+    RCLCPP_INFO(this->get_logger(), "Battery publishers initialized");
     return;
   }
   battery_publisher_->Publish();

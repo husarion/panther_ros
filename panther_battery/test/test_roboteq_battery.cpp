@@ -153,8 +153,8 @@ TEST_F(TestRoboteqBattery, BatteryMsgUnknown)
 
 TEST_F(TestRoboteqBattery, BatteryMsgValues)
 {
-  const auto V_bat_full = 41.4;
-  const auto V_bat_min = 32.0;
+  const float V_bat_full = 41.4;
+  const float V_bat_min = 32.0;
 
   const float voltage_1 = 35.0;
   const float current_1 = 0.1;

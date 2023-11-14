@@ -68,8 +68,8 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
     device0_path_ = std::filesystem::path(testing::TempDir()) / "device0";
     device1_path_ = std::filesystem::path(testing::TempDir()) / "device1";
 
-    params.push_back(rclcpp::Parameter("adc0_device", device0_path_));
-    params.push_back(rclcpp::Parameter("adc1_device", device1_path_));
+    params.push_back(rclcpp::Parameter("adc/device0", device0_path_));
+    params.push_back(rclcpp::Parameter("adc/device1", device1_path_));
 
     // Create the device0 and device1 directories if they do not exist
     std::filesystem::create_directory(device0_path_);

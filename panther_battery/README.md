@@ -48,21 +48,15 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
 
+- `~adc/device0` [*string*, default: **/sys/bus/iio/devices/iio:device0**]: ADC nr 0 device IIO path. Used with Panther version 1.2 and above.
+- `~adc/device1` [*string*, default: **/sys/bus/iio/devices/iio:device1**]: ADC nr 1 device IIO path. Used with Panther version 1.2 and above.
+- `~adc/ma_window_len/charge` [*int*, default: **10**]: window length of a moving average, used to smooth out battery charge readings. Used with Panther version 1.2 and above.
+- `~adc/ma_window_len/temp` [*int*, default: **10**]: window length of a moving average, used to smooth out battery temperature readings. Used with Panther version 1.2 and above.
 - `~battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If the node fails to read battery data exceeding this duration, the node will publish an unknown battery state.
 - `~ma_window_len/voltage` [*int*, default: **10**]: window length of a moving average, used to smooth out battery voltage readings.
 - `~ma_window_len/current` [*int*, default: **10**]: window length of a moving average, used to smooth out battery current readings.
 - `~panther_version` [*float*, default: **1.2**]: Panther robot version. Used to initialize correct Battery node interface.
-
-**ADC Battery Additional Parameters**
-
-- `~adc0_device` [*string*, default: **/sys/bus/iio/devices/iio:device0**]: ADC nr 0 device IIO path.
-- `~adc1_device` [*string*, default: **/sys/bus/iio/devices/iio:device1**]: ADC nr 1 device IIO path.
-- `~ma_window_len/charge` [*int*, default: **10**]: window length of a moving average, used to smooth out battery charge readings.
-- `~ma_window_len/temp` [*int*, default: **10**]: window length of a moving average, used to smooth out battery temperature readings.
-
-**Roboteq Battery Additional Parameters**
-
-- `~driver_state_timeout` [*float*, default: **0.2**]: specifies timeout in seconds after which driver state messages will be considered old.
+- `~roboteq/driver_state_timeout` [*float*, default: **0.2**]: specifies timeout in seconds after which driver state messages will be considered old. Used with Panther version 1.06 and earlier.
 
 [//]: # (ROS_API_NODE_PARAMETERS_END)
 [//]: # (ROS_API_NODE_END)
