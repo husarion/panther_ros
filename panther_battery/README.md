@@ -22,7 +22,7 @@ Package containing nodes monitoring and publishing the internal battery state of
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers data for earlier versions of the robot.
+Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier versions of the robot.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
