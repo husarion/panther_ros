@@ -64,19 +64,20 @@ void APA102::SetGlobalBrightness(const double brightness)
 
 void APA102::SetGlobalBrightness(const std::uint8_t brightness)
 {
-  // clamp values to be at max 31
+  // Clamp values to be at max 31
   global_brightness_ = std::uint16_t(brightness) & 0x1F;
 }
 
 void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
 {
-  auto buffer = RGBAFrameToBGRBuffer(frame);
+  std::uint8_t * buffer;
+  auto buffer_size = RGBAFrameToBGRBuffer(frame, buffer);
 
   struct spi_ioc_transfer tr;
   memset(&tr, 0, sizeof(tr));
   tr.tx_buf = (unsigned long long)buffer;
   tr.rx_buf = 0;
-  tr.len = sizeof(buffer);
+  tr.len = (unsigned int)buffer_size;
   tr.speed_hz = speed_;
   tr.delay_usecs = 0;
   tr.bits_per_word = kBits;
@@ -89,34 +90,35 @@ void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
   }
 }
 
-std::uint8_t * APA102::RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const
+std::size_t APA102::RGBAFrameToBGRBuffer(
+  const std::vector<std::uint8_t> & frame, std::uint8_t *& buffer) const
 {
   if (frame.size() % 4 != 0) {
     throw std::runtime_error("Incorrect number of bytes to convert frame");
   }
 
   std::size_t buffer_size = (4 * sizeof(std::uint8_t)) + frame.size() + (4 * sizeof(std::uint8_t));
-  std::uint8_t * buffer = new std::uint8_t[buffer_size];
+  buffer = new std::uint8_t[buffer_size];
 
-  // init start and end frames
+  // Init start and end frames
   for (std::size_t i = 0; i < 4; i++) {
     buffer[i] = 0x00;
     buffer[buffer_size - i - 1] = 0xFF;
   }
 
-  // copy frame from vector to sending buffer
+  // Copy frame from vector to sending buffer
   for (std::size_t i = 0; i < frame.size() / 4; i++) {
     std::size_t padding = i * 4;
-    // header with brightness
+    // Header with brightness
     std::uint8_t brightness = (std::uint16_t(frame[padding + 3]) * global_brightness_) / 255;
     buffer[4 + padding] = 0xE0 | brightness;
-    // convert rgb to bgr with collor correction
+    // Convert rgb to bgr with collor correction
     buffer[4 + padding + 1] = std::uint8_t((std::uint16_t(frame[padding + 2]) * kCorrBlue) / 255);
     buffer[4 + padding + 2] = std::uint8_t((std::uint16_t(frame[padding + 1]) * kCorrGreen) / 255);
     buffer[4 + padding + 3] = std::uint8_t((std::uint16_t(frame[padding + 0]) * kCorrRed) / 255);
   }
 
-  return buffer;
+  return buffer_size;
 }
 
 }  // namespace panther_lights::apa102

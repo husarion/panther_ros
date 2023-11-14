@@ -14,6 +14,7 @@
 
 #include <panther_lights/driver_node.hpp>
 
+#include <cstdint>
 #include <filesystem>
 #include <limits>
 #include <memory>
@@ -56,7 +57,7 @@ void DriverNode::Initialize()
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
 
-  // is this necessary?
+  // Is this necessary?
   SetPowerPin(gpiod::line::value::INACTIVE);
 
   front_panel_ts_ = this->get_clock()->now();
@@ -85,11 +86,11 @@ void DriverNode::Initialize()
 
 void DriverNode::OnShutdown()
 {
-  // clear LEDs
+  // Clear LEDs
   front_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
   rear_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
 
-  // give back control over LEDs
+  // Give back control over LEDs
   SetPowerPin(gpiod::line::value::INACTIVE);
 }
 
@@ -124,7 +125,7 @@ void DriverNode::FrameCB(
     if (!panels_initialised_) {
       panels_initialised_ = true;
 
-      // take control over LEDs
+      // Take control over LEDs
       SetPowerPin(gpiod::line::value::ACTIVE);
     }
     panel.SetPanel(msg->data);
@@ -138,7 +139,6 @@ void DriverNode::SetPowerPin(const gpiod::line::value & value) const
   gpiod::line_settings settings;
   settings.set_direction(gpiod::line::direction::OUTPUT);
   settings.set_active_low(true);
-  // settings.set_output_value(value);
 
   auto power_pin_offset = chip.get_line_offset_from_name("LED_SBC_SEL");
 
@@ -166,7 +166,7 @@ void DriverNode::SetBrightnessCB(
   rear_panel_.SetGlobalBrightness(brightness);
   auto str_bright = std::to_string(brightness);
 
-  // round string to two decimal places
+  // Round string to two decimal points
   str_bright = str_bright.substr(0, str_bright.find(".") + 3);
   res->success = true;
   res->message = "Changed brightness to " + str_bright;

@@ -14,6 +14,7 @@
 
 #include <panther_lights/controller_node.hpp>
 
+#include <chrono>
 #include <memory>
 #include <string>
 

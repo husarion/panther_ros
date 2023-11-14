@@ -34,14 +34,15 @@ public:
   void SetPanel(const std::vector<std::uint8_t> & frame) const;
 
 protected:
-  std::uint8_t * RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const;
+  std::size_t RGBAFrameToBGRBuffer(
+    const std::vector<std::uint8_t> & frame, std::uint8_t *& buffer) const;
 
   std::uint16_t global_brightness_;
 
 private:
   static constexpr std::uint8_t kBits = 8;
 
-  // color correction constants
+  // Color correction constants
   static constexpr std::uint16_t kCorrRed = 255;
   static constexpr std::uint16_t kCorrGreen = 200;
   static constexpr std::uint16_t kCorrBlue = 62;

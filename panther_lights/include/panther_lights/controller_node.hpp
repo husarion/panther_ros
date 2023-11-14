@@ -21,10 +21,8 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <image_transport/image_transport.hpp>
-
-#include <std_msgs/msg/bool.hpp>
-
 #include <sensor_msgs/msg/battery_state.hpp>
+#include <std_msgs/msg/bool.hpp>
 
 namespace panther_lights
 {
@@ -56,8 +54,8 @@ private:
   static constexpr RGBAColor kColorGreen = {0, 255, 0, 255};
   static constexpr RGBAColor kColorOrange = {255, 165, 0, 255};
 
+  bool e_stop_state_ = true;
   int num_led_;
-  bool e_stop_state_;
   float battery_percentage_;
 
   rclcpp::TimerBase::SharedPtr controller_timer_;
