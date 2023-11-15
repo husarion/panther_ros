@@ -11,23 +11,45 @@ find_package(panther_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-# find_library(LIBGPIOD libgpiod PATHS
-# /home/husarion/ros2_ws/build/panther_lights/libgpiod-prefix/lib) if(NOT
-# LIBGPIOD) message(WARNING "libgpiod not found. Building from source")
-# include(ExternalProject)
+# install libgpiod
+include(ExternalProject)
 
-# ExternalProject_Add(libgpiod GIT_REPOSITORY
-# git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git GIT_TAG v2.0.2 PREFIX
-# ${CATKIN_DEVEL_PREFIX} CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh
-# --prefix=<INSTALL_DIR> --enable-tools=no --enable-bindings-cxx BUILD_COMMAND
-# make INSTALL_COMMAND make install
-# INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/libgpiod BUILD_IN_SOURCE 1 ) endif()
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+
+ExternalProject_Add(
+  libgpiod-build
+  GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+  GIT_TAG v2.0.2
+  # EXCLUDE_FROM_ALL TRUE
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
+  CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh --prefix=<INSTALL_DIR>
+                    --enable-tools=no --enable-bindings-cxx
+  BUILD_COMMAND make -j ${N}
+  INSTALL_COMMAND make install
+                  INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
+  BUILD_IN_SOURCE 1)
+
+add_library(libgpiod STATIC IMPORTED GLOBAL)
+add_dependencies(libgpiod libgpiod-build)
+
+set_target_properties(
+  libgpiod
+  PROPERTIES IMPORTED_LOCATION
+             ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib/libgpiodcxx.so)
+set_target_properties(
+  libgpiod PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                      ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib
+        DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
+        DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 include_directories(include ${panther_utils_INCLUDE_DIRS})
 
 add_executable(driver_node src/main.cpp src/driver_node.cpp src/apa102.cpp)
 
-target_link_libraries(driver_node /usr/local/lib/libgpiodcxx.so)
+target_link_libraries(driver_node libgpiod)
 
 ament_target_dependencies(driver_node image_transport panther_msgs rclcpp
                           sensor_msgs)
