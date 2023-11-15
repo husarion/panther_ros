@@ -58,7 +58,7 @@ void DriverNode::Initialize()
   num_led_ = this->get_parameter("num_led").as_int();
 
   // Is this necessary?
-  SetPowerPin(gpiod::line::value::INACTIVE);
+  SetPowerPin(false);
 
   front_panel_ts_ = this->get_clock()->now();
   rear_panel_ts_ = this->get_clock()->now();
@@ -91,7 +91,7 @@ void DriverNode::OnShutdown()
   rear_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
 
   // Give back control over LEDs
-  SetPowerPin(gpiod::line::value::INACTIVE);
+  SetPowerPin(false);
 }
 
 void DriverNode::FrameCB(
@@ -126,15 +126,16 @@ void DriverNode::FrameCB(
       panels_initialised_ = true;
 
       // Take control over LEDs
-      SetPowerPin(gpiod::line::value::ACTIVE);
+      SetPowerPin(true);
     }
     panel.SetPanel(msg->data);
   }
 }
 
-void DriverNode::SetPowerPin(const gpiod::line::value & value) const
+void DriverNode::SetPowerPin(const bool value) const
 {
   gpiod::chip chip("/dev/gpiochip0");
+  gpiod::line::value gpio_value = value ? gpiod::line::value::ACTIVE : gpiod::line::value::INACTIVE;
 
   gpiod::line_settings settings;
   settings.set_direction(gpiod::line::direction::OUTPUT);
@@ -147,7 +148,7 @@ void DriverNode::SetPowerPin(const gpiod::line::value & value) const
                    .add_line_settings(power_pin_offset, settings)
                    .do_request();
 
-  request.set_value(power_pin_offset, value);
+  request.set_value(power_pin_offset, gpio_value);
   request.release();
 }
 
