@@ -47,19 +47,22 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
 
 include_directories(include ${panther_utils_INCLUDE_DIRS})
 
-add_executable(driver_node src/main.cpp src/driver_node.cpp src/apa102.cpp)
+add_executable(driver_node src/driver_node_main.cpp src/driver_node.cpp
+                           src/apa102.cpp)
 
 target_link_libraries(driver_node libgpiod)
 
 ament_target_dependencies(driver_node image_transport panther_msgs rclcpp
                           sensor_msgs)
 
-add_executable(controller_node src/controller_node_main.cpp
-                               src/controller_node.cpp)
+add_executable(dummy_scheduler_node src/dummy_scheduler_node_main.cpp
+                                    src/dummy_scheduler_node.cpp)
 
-ament_target_dependencies(controller_node image_transport rclcpp sensor_msgs)
+ament_target_dependencies(dummy_scheduler_node image_transport rclcpp
+                          sensor_msgs)
 
-install(TARGETS driver_node controller_node DESTINATION lib/${PROJECT_NAME})
+install(TARGETS driver_node dummy_scheduler_node
+        DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 

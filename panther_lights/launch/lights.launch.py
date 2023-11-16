@@ -16,6 +16,7 @@
 # limitations under the License.
 
 from launch import LaunchDescription
+from launch.actions import Shutdown
 from launch_ros.actions import Node
 
 
@@ -24,17 +25,18 @@ def generate_launch_description():
         package="panther_lights",
         executable="driver_node",
         name="lights_driver_node",
+        on_exit=Shutdown(),
     )
 
-    lights_controller_node = Node(
+    dummy_scheduler_node = Node(
         package="panther_lights",
-        executable="controller_node",
-        name="lights_controller_node",
+        executable="dummy_scheduler_node",
+        name="dummy_scheduler_node",
     )
 
     actions = [
         lights_driver_node,
-        lights_controller_node,
+        dummy_scheduler_node,
     ]
 
     return LaunchDescription(actions)
