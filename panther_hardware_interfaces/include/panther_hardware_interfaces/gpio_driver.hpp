@@ -2,16 +2,17 @@
 #define PANTHER_HARDWARE_INTERFACES__GPIO_CONTROLLER_HPP_
 
 #include <atomic>
+#include <functional>
+#include <gpiod.hpp>
+#include <mutex>
+#include <poll.h>
+#include <shared_mutex>
 #include <thread>
 #include <vector>
-#include <poll.h>
-#include <functional>
-
-#include <gpiod.hpp>
 
 namespace panther_hardware_interfaces
 {
-enum class GPIOpins {
+enum class GPIOpin {
   WATCHDOG = 0,
   AUX_PW_EN,
   CHRG_DISABLE,
@@ -27,13 +28,13 @@ enum class GPIOpins {
   SHDN_INIT,
   VDIG_OFF,
   VMOT_ON,
+  STAGE2_INPUT,
   UNKNOWN
 };
 
-GPIOpins operator+(const GPIOpins & pin, int int_val);
-
 struct GPIOinfo
 {
+  GPIOpin pin;
   std::string name;
   gpiod::line::direction direction;
   bool active_low = false;
@@ -43,77 +44,39 @@ struct GPIOinfo
   gpiod::line::offset offset = -1;
 };
 
-struct OperationResult
-{
-  bool success;
-  std::string message = "";
-};
-
-class GPIOController
+class GPIODriver
 {
 public:
-  GPIOController();
-  ~GPIOController();
+  GPIODriver(std::vector<GPIOinfo> gpio_info, bool init_watchdog);
+  ~GPIODriver();
 
-  void start()
-  {
-    gpio_monitor_on();
-    watchdog_on();
-  }
-
-  bool motors_enable(bool enable)
-  {
-    set_pin_value(GPIOpins::VMOT_ON, enable);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    return set_pin_value(GPIOpins::DRIVER_EN, enable);
-  }
-
-  bool fan_enable(bool enable) { return set_pin_value(GPIOpins::FAN_SW, enable); }
-  bool led_enable(bool enable) { return set_pin_value(GPIOpins::LED_SBC_SEL, enable); }
-  OperationResult e_stop_trigger();
-  OperationResult e_stop_reset();
+  bool is_pin_active(GPIOpin pin);
+  bool set_pin_value(GPIOpin pin, bool value);
+  void change_control_pin_direction(GPIOpin pin, gpiod::line::direction direction);
+  bool watchdog_on();
+  bool watchdog_off();
+  void gpio_monitor_on();
+  void gpio_monitor_off();
 
   std::function<void(const GPIOinfo & gpio_info)> publish_gpio_state_callback;
 
 private:
-  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip, const GPIOpins pins);
+  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip, const GPIOpin pin);
   std::unique_ptr<gpiod::line_request> create_line_request(
-    gpiod::chip & chip, const std::vector<GPIOpins> & pins);
+    gpiod::chip & chip, const std::vector<GPIOpin> & pins);
 
-  void configure_line_request(gpiod::chip & chip, gpiod::request_builder & builder, GPIOpins pin);
+  void configure_line_request(gpiod::chip & chip, gpiod::request_builder & builder, GPIOpin pin);
   gpiod::line_settings generate_line_settings(const GPIOinfo & pin_info);
-  GPIOpins get_pin_from_offset(gpiod::line::offset offset) const;
-
-  void change_control_pin_direction(GPIOpins pin, gpiod::line::direction direction);
-  bool is_pin_active(GPIOpins pin);
-  bool set_pin_value(GPIOpins pin, bool value);
-  bool watchdog_on();
-  bool watchdog_off();
+  GPIOpin get_pin_from_offset(gpiod::line::offset offset) const;
   void watchdog_thread();
   bool is_watchdog_thread_running() const;
-  void gpio_monitor_on();
-  void gpio_monitor_off();
+  bool is_gpio_monitor_thread_running() const;
   void monitor_async_events();
   void handle_edge_event(const gpiod::edge_event & event);
+  GPIOinfo & get_pin_info_ref(GPIOpin pin);
 
-  std::map<GPIOpins, GPIOinfo> gpio_info_{
-    {GPIOpins::WATCHDOG, GPIOinfo{"WATCHDOG", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::AUX_PW_EN, GPIOinfo{"AUX_PW_EN", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::CHRG_DISABLE, GPIOinfo{"CHRG_DISABLE", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::CHRG_SENSE, GPIOinfo{"CHRG_SENSE", gpiod::line::direction::INPUT}},
-    {GPIOpins::DRIVER_EN, GPIOinfo{"DRIVER_EN", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::E_STOP_RESET, GPIOinfo{"E_STOP_RESET", gpiod::line::direction::INPUT}},
-    {GPIOpins::FAN_SW, GPIOinfo{"FAN_SW", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::GPOUT1, GPIOinfo{"GPOUT1", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::GPOUT2, GPIOinfo{"GPOUT2", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::GPIN1, GPIOinfo{"GPIN1", gpiod::line::direction::INPUT}},
-    {GPIOpins::GPIN2, GPIOinfo{"GPIN2", gpiod::line::direction::INPUT}},
-    {GPIOpins::LED_SBC_SEL, GPIOinfo{"LED_SBC_SEL", gpiod::line::direction::OUTPUT, true}},
-    {GPIOpins::SHDN_INIT, GPIOinfo{"SHDN_INIT", gpiod::line::direction::INPUT}},
-    {GPIOpins::VDIG_OFF, GPIOinfo{"VDIG_OFF", gpiod::line::direction::OUTPUT}},
-    {GPIOpins::VMOT_ON, GPIOinfo{"VMOT_ON", gpiod::line::direction::OUTPUT}},
-  };
-
+  std::vector<GPIOinfo> gpio_info_;
+  mutable std::shared_mutex gpio_info_mutex_;
   std::unique_ptr<gpiod::line_request> watchdog_request_;
   std::unique_ptr<gpiod::line_request> controll_request_;
   std::unique_ptr<std::thread> gpio_monitor_thread_;
