@@ -71,7 +71,7 @@ void SchedulerNode::ControllerTimerCB()
   }
 }
 
-void SchedulerNode::PublishColor(const RGBAColor color)
+void SchedulerNode::PublishColor(const RGBAColor & color)
 {
   sensor_msgs::msg::Image image_msg;
   image_msg.header.stamp = this->get_clock()->now();

@@ -34,23 +34,23 @@ APA102::APA102(const std::string & device, const std::uint32_t speed, const bool
 : fd_(open(device.c_str(), O_WRONLY)), device_(device), speed_(speed)
 {
   if (fd_ < 0) {
-    throw std::ios_base::failure(std::string("Failed to open ") + device_);
+    throw std::ios_base::failure("Failed to open " + device_);
   }
 
   static std::uint8_t mode = cs_high ? SPI_MODE_3 : SPI_MODE_3 | SPI_CS_HIGH;
   if (ioctl(fd_, SPI_IOC_WR_MODE32, &mode) == -1) {
     close(fd_);
-    throw std::ios_base::failure(std::string("Failed to set mode for ") + device_);
+    throw std::ios_base::failure("Failed to set mode for " + device_);
   }
 
   if (ioctl(fd_, SPI_IOC_WR_BITS_PER_WORD, &kBits) == -1) {
     close(fd_);
-    throw std::ios_base::failure(std::string("Can't set bits per word for ") + device_);
+    throw std::ios_base::failure("Can't set bits per word for " + device_);
   }
 
   if (ioctl(fd_, SPI_IOC_WR_MAX_SPEED_HZ, &speed_) == -1) {
     close(fd_);
-    throw std::ios_base::failure(std::string("Can't set speed for ") + device_);
+    throw std::ios_base::failure("Can't set speed for " + device_);
   }
 }
 
@@ -86,7 +86,7 @@ void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
   delete[] buffer;
 
   if (ret < 1) {
-    throw std::ios_base::failure(std::string("Failed to send data over SPI ") + device_);
+    throw std::ios_base::failure("Failed to send data over SPI " + device_);
   }
 }
 

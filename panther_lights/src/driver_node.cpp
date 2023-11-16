@@ -57,7 +57,6 @@ void DriverNode::Initialize()
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
 
-  // Is this necessary?
   SetPowerPin(false);
 
   front_panel_ts_ = this->get_clock()->now();
@@ -121,15 +120,16 @@ void DriverNode::FrameCB(
       RCLCPP_WARN_THROTTLE(
         this->get_logger(), *this->get_clock(), 5000, "%s on rear panel!", meessage.c_str());
     }
-  } else {
-    if (!panels_initialised_) {
-      panels_initialised_ = true;
-
-      // Take control over LEDs
-      SetPowerPin(true);
-    }
-    panel.SetPanel(msg->data);
+    return;
   }
+
+  if (!panels_initialised_) {
+    // Take control over LEDs
+    SetPowerPin(true);
+    panels_initialised_ = true;
+  }
+
+  panel.SetPanel(msg->data);
 }
 
 void DriverNode::SetPowerPin(const bool value) const
@@ -158,7 +158,7 @@ void DriverNode::SetBrightnessCB(
   const float brightness = req->data;
   if (
     brightness < 0.0f - std::numeric_limits<float>::epsilon() ||
-    brightness > 1.0f - std::numeric_limits<float>::epsilon()) {
+    brightness > 1.0f + std::numeric_limits<float>::epsilon()) {
     res->success = false;
     res->message = "Brightness out of range <0,1>";
     return;

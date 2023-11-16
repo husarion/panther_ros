@@ -48,7 +48,7 @@ public:
 
 private:
   void ControllerTimerCB();
-  void PublishColor(const RGBAColor color);
+  void PublishColor(const RGBAColor & color);
 
   static constexpr RGBAColor kColorRed = {255, 0, 0, 255};
   static constexpr RGBAColor kColorGreen = {0, 255, 0, 255};
