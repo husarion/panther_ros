@@ -109,7 +109,7 @@ void DriverNode::FrameCB(
     meessage = "Incorrect image encoding ('" + msg->encoding + "')";
   } else if (msg->height != 1) {
     meessage = "Incorrect image height " + std::to_string(msg->height);
-  } else if (msg->width != (uint32_t)num_led_) {
+  } else if (msg->width != (std::uint32_t)num_led_) {
     meessage = "Incorrect image width " + std::to_string(msg->width);
   }
 

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
-#define PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
+#ifndef PANTHER_LIGHTS_DUMMY_SCHEDULER_NODE_HPP_
+#define PANTHER_LIGHTS_DUMMY_SCHEDULER_NODE_HPP_
 
 #include <memory>
 #include <string>
@@ -38,10 +38,10 @@ struct RGBAColor
   uint8_t a;
 };
 
-class ControllerNode : public rclcpp::Node
+class SchedulerNode : public rclcpp::Node
 {
 public:
-  ControllerNode(
+  SchedulerNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
   void Initialize();
@@ -52,7 +52,7 @@ private:
 
   static constexpr RGBAColor kColorRed = {255, 0, 0, 255};
   static constexpr RGBAColor kColorGreen = {0, 255, 0, 255};
-  static constexpr RGBAColor kColorOrange = {255, 165, 0, 255};
+  static constexpr RGBAColor kColorOrange = {255, 140, 0, 255};
 
   bool e_stop_state_ = true;
   int num_led_;
@@ -69,4 +69,4 @@ private:
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
+#endif  // PANTHER_LIGHTS_DUMMY_SCHEDULER_NODE_HPP_

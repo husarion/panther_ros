@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/controller_node.hpp>
+#include <panther_lights/dummy_scheduler_node.hpp>
 
 #include <iostream>
 #include <memory>
@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto lights_controller_node =
-    std::make_shared<panther_lights::ControllerNode>("lights_controller_node");
+    std::make_shared<panther_lights::SchedulerNode>("lights_controller_node");
 
   try {
     rclcpp::spin(lights_controller_node);

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/controller_node.hpp>
+#include <panther_lights/dummy_scheduler_node.hpp>
 
 #include <chrono>
 #include <memory>
@@ -26,19 +26,19 @@
 namespace panther_lights
 {
 
-ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
+SchedulerNode::SchedulerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
   this->declare_parameter<int>("num_led", 46);
   num_led_ = this->get_parameter("num_led").as_int();
 
   controller_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(50), std::bind(&ControllerNode::ControllerTimerCB, this));
+    std::chrono::milliseconds(50), std::bind(&SchedulerNode::ControllerTimerCB, this));
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
-void ControllerNode::Initialize()
+void SchedulerNode::Initialize()
 {
   it_ = std::make_shared<image_transport::ImageTransport>(this->shared_from_this());
 
@@ -56,7 +56,7 @@ void ControllerNode::Initialize()
   RCLCPP_INFO(this->get_logger(), "Controller initialised");
 }
 
-void ControllerNode::ControllerTimerCB()
+void SchedulerNode::ControllerTimerCB()
 {
   if (!it_) {
     Initialize();
@@ -71,7 +71,7 @@ void ControllerNode::ControllerTimerCB()
   }
 }
 
-void ControllerNode::PublishColor(const RGBAColor color)
+void SchedulerNode::PublishColor(const RGBAColor color)
 {
   sensor_msgs::msg::Image image_msg;
   image_msg.header.stamp = this->get_clock()->now();
