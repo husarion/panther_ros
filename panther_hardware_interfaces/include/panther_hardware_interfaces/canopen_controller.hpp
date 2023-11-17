@@ -52,7 +52,7 @@ public:
   std::shared_ptr<RoboteqDriver> GetRearDriver() { return rear_driver_; }
 
 private:
-  std::atomic<bool> canopen_communication_started_ = false;
+  std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;
   std::mutex canopen_communication_started_mtx_;
 
@@ -72,8 +72,8 @@ private:
 
   CanOpenSettings canopen_settings_;
 
-  // TODO decide priority
-  int const kCanOpenThreadSchedPriority = 55;
+  // Priority set to be higher than priority of the main ros2 control node (50)
+  int const kCanOpenThreadSchedPriority = 60;
 
   // TODO: rename
   void InitializeCanCommunication();

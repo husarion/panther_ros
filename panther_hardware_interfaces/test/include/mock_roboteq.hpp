@@ -130,7 +130,7 @@ private:
 
   std::thread canopen_communication_thread_;
 
-  std::atomic<bool> canopen_communication_started_ = false;
+  std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;
   std::mutex canopen_communication_started_mtx_;
 };

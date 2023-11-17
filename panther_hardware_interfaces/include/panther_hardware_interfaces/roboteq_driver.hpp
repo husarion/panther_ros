@@ -126,13 +126,13 @@ public:
 
 private:
   // TODO: fix naming
-  std::atomic<bool> booted = false;
+  std::atomic_bool booted = false;
   std::condition_variable boot_cond;
   std::mutex boot_mtx;
   std::string boot_what;
 
   std::mutex can_error_mtx;
-  std::atomic<bool> can_error;
+  std::atomic_bool can_error;
   lely::io::CanError can_error_code;
 
   std::mutex rpdo_timestamp_mtx_;
