@@ -34,6 +34,14 @@ public:
   void SetPanel(const std::vector<std::uint8_t> & frame) const;
 
 protected:
+  /**
+   * @brief Modifies provided buffer to BGR format with structure appropriate for
+   * the SPI transfer based on a given RGBA frame
+   *
+   * @returns buffer length.
+   *
+   * @exception std::runtime_error if frame has incorrect number of bytes
+   */
   std::size_t RGBAFrameToBGRBuffer(
     const std::vector<std::uint8_t> & frame, std::uint8_t *& buffer) const;
 
