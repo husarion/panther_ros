@@ -162,10 +162,8 @@ class TestPantherSystem : public ::testing::Test
 public:
   PantherSystemTestUtils pth_test_;
 
-  //  TODO: move to constructor
-  void SetUp() override { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
-
-  void TearDown() override { pth_test_.Stop(); }
+  TestPantherSystem() { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
+  ~TestPantherSystem() { pth_test_.Stop(); }
 
   // 100 Hz
   const double period_ = 0.01;
