@@ -422,6 +422,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   pth_test_.shutdown_panther_system();
 }
 
+// TODO
 // ERROR HANDLING
 
 // TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
@@ -439,7 +440,72 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 //     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 // }
 
-// TODO wrong order urdf
+// WRONG ORDER URDF
+TEST(TestPantherSystemOthers, wrong_order_urdf)
+{
+  using hardware_interface::LoanedCommandInterface;
+  const double period_ = 0.01;
+
+  PantherSystemTestUtils pth_test_;
+
+  std::vector<std::string> joints = {
+    "rr_wheel_joint", "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint"};
+
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(pth_test_.param_map_, joints);
+
+  pth_test_.Start(panther_system_urdf_);
+
+  const double fl_v = 0.1;
+  const double fr_v = 0.2;
+  const double rl_v = 0.3;
+  const double rr_v = 0.4;
+
+  pth_test_.configure_activate_panther_system();
+
+  // loaned command interfaces have to be destroyed before running Stop
+  {
+    LoanedCommandInterface fl_c_v =
+      pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
+    LoanedCommandInterface fr_c_v =
+      pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
+    LoanedCommandInterface rl_c_v =
+      pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
+    LoanedCommandInterface rr_c_v =
+      pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
+
+    fl_c_v.set_value(fl_v);
+    fr_c_v.set_value(fr_v);
+    rl_c_v.set_value(rl_v);
+    rr_c_v.set_value(rr_v);
+
+    ASSERT_EQ(fl_v, fl_c_v.get_value());
+    ASSERT_EQ(fr_v, fr_c_v.get_value());
+    ASSERT_EQ(rl_v, rl_c_v.get_value());
+    ASSERT_EQ(rr_v, rr_c_v.get_value());
+
+    const auto TIME = rclcpp::Time(0);
+    const auto PERIOD = rclcpp::Duration::from_seconds(period_);
+
+    pth_test_.rm_->write(TIME, PERIOD);
+
+    ASSERT_EQ(
+      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(2),
+      int32_t(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    ASSERT_EQ(
+      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(1),
+      int32_t(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    ASSERT_EQ(
+      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(2),
+      int32_t(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    ASSERT_EQ(
+      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(1),
+      int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+  }
+
+  pth_test_.shutdown_panther_system();
+
+  pth_test_.Stop();
+}
 
 // TIMEOUT TESTS
 
@@ -658,7 +724,7 @@ int main(int argc, char ** argv)
   testing::InitGoogleTest(&argc, argv);
 
   // For testing individual tests:
-  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.pdo_read_timeout_test";
+  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.wrong_order_urdf";
 
   return RUN_ALL_TESTS();
 }
