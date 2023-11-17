@@ -422,23 +422,44 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   pth_test_.shutdown_panther_system();
 }
 
-// TODO
 // ERROR HANDLING
+TEST(TestPantherSystemOthers, test_error_state)
+{
+  PantherSystemTestUtils pth_test_;
 
-// TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
-// {
-//   using hardware_interface::LoanedStateInterface;
+  pth_test_.param_map_["max_read_pdo_errors_count"] = "1";
+  pth_test_.param_map_["max_read_sdo_errors_count"] = "1";
+  pth_test_.param_map_["max_write_sdo_errors_count"] = "1";
 
-//   pth_test_.configure_panther_system();
-//   pth_test_.activate_panther_system();
+  const std::string panther_system_urdf_ =
+    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const double period_ = 0.01;
 
-//   pth_test_.roboteq_mock_->Stop();
+  pth_test_.Start(panther_system_urdf_);
 
-//   auto status_map = pth_test_.rm_->get_components_status();
-//   ASSERT_EQ(
-//     status_map[pth_test_.panther_system_name_].state.label(),
-//     hardware_interface::lifecycle_state_names::UNCONFIGURED);
-// }
+  pth_test_.configure_activate_panther_system();
+
+  pth_test_.roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 5001);
+  pth_test_.roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 5001);
+
+  auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
+  const auto PERIOD = rclcpp::Duration::from_seconds(period_);
+
+  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.rm_->write(TIME, PERIOD);
+
+  TIME += PERIOD;
+
+  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.rm_->write(TIME, PERIOD);
+
+  auto status_map = pth_test_.rm_->get_components_status();
+  ASSERT_EQ(
+    status_map[pth_test_.panther_system_name_].state.label(),
+    hardware_interface::lifecycle_state_names::UNCONFIGURED);
+
+  pth_test_.Stop();
+}
 
 // WRONG ORDER URDF
 TEST(TestPantherSystemOthers, wrong_order_urdf)
@@ -717,14 +738,14 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   pth_test_.Stop();
 }
 
-// TODO estops
+// TODO estop tests - it will the best to add them along with GPIO, as it will change the estop procedure
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
   // For testing individual tests:
-  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.wrong_order_urdf";
+  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.test_error_state";
 
   return RUN_ALL_TESTS();
 }
