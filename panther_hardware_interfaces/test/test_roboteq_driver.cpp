@@ -28,7 +28,7 @@ public:
       std::make_unique<panther_hardware_interfaces::CanOpenController>(canopen_settings_);
 
     roboteq_mock_ = std::make_unique<RoboteqMock>();
-    roboteq_mock_->Start();
+    roboteq_mock_->Start(std::chrono::milliseconds(100));
     canopen_controller_->Initialize();
   }
 
@@ -271,12 +271,7 @@ TEST_F(TestRoboteqDriver, test_read_timeout)
 }
 
 // TODO
-// TEST_F(TestRoboteqDriver, test_can_error)
-// {
-// roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
-// ASSERT_THROW(canopen_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
-// ASSERT_TRUE(canopen_controller_->GetFrontDriver()->get_can_error());
-// }
+// OnCanError isn't tested, because it reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
 int main(int argc, char ** argv)
 {

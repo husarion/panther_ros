@@ -102,12 +102,12 @@ void RoboteqSlave::SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors fl
   (*this)[0x2106][8] = current_data;
 }
 
-void RoboteqMock::Start()
+void RoboteqMock::Start(std::chrono::milliseconds pdo_period)
 {
   canopen_communication_started_.store(false);
   ctx_ = std::make_shared<lely::io::Context>();
 
-  canopen_communication_thread_ = std::thread([this]() {
+  canopen_communication_thread_ = std::thread([this, pdo_period]() {
     std::string slave_eds_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                    "panther_hardware_interfaces")) /
                                  "config" / "roboteq_motor_controllers_v80_21.eds";
@@ -145,8 +145,8 @@ void RoboteqMock::Start()
     rear_driver_->Reset();
     front_driver_->InitializeValues();
     rear_driver_->InitializeValues();
-    front_driver_->StartPublishing();
-    rear_driver_->StartPublishing();
+    front_driver_->StartPublishing(pdo_period);
+    rear_driver_->StartPublishing(pdo_period);
 
     {
       std::lock_guard lk(canopen_communication_started_mtx_);

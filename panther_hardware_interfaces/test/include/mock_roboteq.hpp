@@ -120,7 +120,7 @@ public:
   RoboteqMock() {}
   ~RoboteqMock() {}
 
-  void Start();
+  void Start(std::chrono::milliseconds pdo_period = std::chrono::milliseconds(10));
   void Stop();
 
   std::unique_ptr<RoboteqSlave> front_driver_;
