@@ -439,8 +439,8 @@ TEST(TestPantherSystemOthers, test_error_state)
 
   pth_test_.configure_activate_panther_system();
 
-  pth_test_.roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 5001);
-  pth_test_.roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 5001);
+  pth_test_.roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
+  pth_test_.roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
 
   auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
