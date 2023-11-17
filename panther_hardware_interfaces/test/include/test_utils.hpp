@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <string>
+#include <iostream>
 
 #include <lifecycle_msgs/msg/state.hpp>
 
@@ -11,7 +12,7 @@
 
 #include <mock_roboteq.hpp>
 
-class TestPantherSystem : public ::testing::Test
+class PantherSystemTestUtils
 {
 public:
   std::unique_ptr<RoboteqMock> roboteq_mock_;
@@ -23,136 +24,78 @@ public:
   double rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
 
   // 100 Hz
-  const double period_ = 0.01;
-
-  const double assert_near_abs_error_ = 0.0001;
-
-  //  TODO: move to constructor
-  void SetUp() override
-  {
-    roboteq_mock_ = std::make_unique<RoboteqMock>();
-    roboteq_mock_->Start();
-    rclcpp::init(0, nullptr);
-
-    rm_ = std::make_unique<hardware_interface::ResourceManager>(panther_system_urdf_);
-  }
-
-  void TearDown() override
-  {
-    rclcpp::shutdown();
-    roboteq_mock_->Stop();
-    roboteq_mock_.reset();
-    rm_.reset();
-  }
 
   const std::string panther_system_name_ = "wheels";
 
-  const std::string panther_system_urdf_ =
-    R"(
-<?xml version="1.0" encoding="utf-8"?>
+  const std::string urdf_header_ = R"(<?xml version="1.0" encoding="utf-8"?>
 <robot name="Panther">
-  <ros2_control name="wheels" type="system">
-    <hardware>
-      <plugin>panther_hardware_interfaces/PantherSystem</plugin>
-      <param name="encoder_resolution">1600</param>
-      <param name="gear_ratio">30.08</param>
-      <param name="gearbox_efficiency">0.75</param>
-      <param name="motor_torque_constant">0.11</param>
-      <param name="max_rpm_motor_speed">3600.0</param>
-      <param name="master_can_id">3</param>
-      <param name="front_driver_can_id">1</param>
-      <param name="rear_driver_can_id">2</param>
-      <param name="sdo_operation_timeout">4</param>
-      <param name="pdo_feedback_timeout">15</param>
-      <param name="max_roboteq_initialization_attempts">3</param>
-      <param name="max_roboteq_activation_attempts">3</param>
-      <param name="max_safety_stop_attempts">20</param>
-      <param name="max_write_sdo_errors_count">2</param>
-      <param name="max_read_sdo_errors_count">2</param>
-      <param name="max_read_pdo_errors_count">1</param>
-    </hardware>
+<ros2_control name="wheels" type="system">
+)";
 
-    <joint name="fl_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-    <joint name="fr_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-    <joint name="rl_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-    <joint name="rr_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-  </ros2_control>
+  const std::string urdf_footer_ = R"(</ros2_control>
 </robot>
 )";
 
-  // TODO: add test
-  const std::string panther_system_urdf_changed_order_ =
-    R"(
-<?xml version="1.0" encoding="utf-8"?>
-<robot name="Panther">
-  <ros2_control name="wheels" type="system">
-    <hardware>
-      <plugin>panther_hardware_interfaces/PantherSystem</plugin>
-      <param name="encoder_resolution">1600</param>
-      <param name="gear_ratio">30.08</param>
-      <param name="gearbox_efficiency">0.75</param>
-      <param name="motor_torque_constant">0.11</param>
-      <param name="max_rpm_motor_speed">3600.0</param>
-      <param name="master_can_id">3</param>
-      <param name="front_driver_can_id">1</param>
-      <param name="rear_driver_can_id">2</param>
-      <param name="sdo_operation_timeout">4</param>
-      <param name="pdo_feedback_timeout">15</param>
-      <param name="max_roboteq_initialization_attempts">3</param>
-      <param name="max_roboteq_activation_attempts">3</param>
-      <param name="max_safety_stop_attempts">20</param>
-      <param name="max_write_sdo_errors_count">2</param>
-      <param name="max_read_sdo_errors_count">2</param>
-      <param name="max_read_pdo_errors_count">1</param>
-    </hardware>
-    
-    <joint name="rl_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-    <joint name="fr_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-    <joint name="rr_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-    <joint name="fl_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-      <state_interface name="effort" />
-    </joint>
-  </ros2_control>
-</robot>
+  const std::string joint_interfaces_ =
+    R"(<command_interface name="velocity" />
+<state_interface name="position" />
+<state_interface name="velocity" />
+<state_interface name="effort" />
 )";
+
+  std::string BuildUrdf(
+    std::map<std::string, std::string> param_map, std::vector<std::string> joints)
+  {
+    std::stringstream urdf;
+
+    urdf << urdf_header_ << R"(<hardware>
+<plugin>panther_hardware_interfaces/PantherSystem</plugin>
+)";
+
+    for (auto const & [key, val] : param_map) {
+      urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
+    }
+
+    urdf << R"(</hardware>
+)";
+
+    for (auto const & joint : joints) {
+      urdf << "<joint name=\"" << joint << "\">" << std::endl
+           << joint_interfaces_ << "</joint>" << std::endl;
+    }
+
+    urdf << urdf_footer_;
+
+    std::cerr << urdf.str();
+
+    return urdf.str();
+  }
+
+  std::string panther_system_urdf_;
+
+  std::map<std::string, std::string> param_map_ = {
+    {"encoder_resolution", "1600"},
+    {"gear_ratio", "30.08"},
+    {"gearbox_efficiency", "0.75"},
+    {"motor_torque_constant", "0.11"},
+    {"max_rpm_motor_speed", "3600.0"},
+    {"master_can_id", "3"},
+    {"front_driver_can_id", "1"},
+    {"rear_driver_can_id", "2"},
+    {"sdo_operation_timeout", "4"},
+    {"pdo_feedback_timeout", "15"},
+    {"max_roboteq_initialization_attempts", "3"},
+    {"max_roboteq_activation_attempts", "3"},
+    {"max_safety_stop_attempts", "20"},
+    {"max_write_sdo_errors_count", "2"},
+    {"max_read_sdo_errors_count", "2"},
+    {"max_read_pdo_errors_count", "1"},
+  };
+
+  std::vector<std::string> joints_ = {
+    "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"};
+
+  PantherSystemTestUtils() { panther_system_urdf_ = BuildUrdf(param_map_, joints_); }
 
   void set_state(const uint8_t state_id, const std::string & state_name)
   {
@@ -195,30 +138,65 @@ public:
       hardware_interface::lifecycle_state_names::FINALIZED);
   }
 
+  void configure_activate_panther_system()
+  {
+    configure_panther_system();
+    activate_panther_system();
+  }
+};
+
+class TestPantherSystem : public ::testing::Test
+{
+public:
+  PantherSystemTestUtils pth_test_;
+
+  //  TODO: move to constructor
+  void SetUp() override
+  {
+    pth_test_.roboteq_mock_ = std::make_unique<RoboteqMock>();
+    pth_test_.roboteq_mock_->Start();
+    rclcpp::init(0, nullptr);
+
+    pth_test_.rm_ =
+      std::make_unique<hardware_interface::ResourceManager>(pth_test_.panther_system_urdf_);
+  }
+
+  void TearDown() override
+  {
+    rclcpp::shutdown();
+    pth_test_.roboteq_mock_->Stop();
+    pth_test_.roboteq_mock_.reset();
+    pth_test_.rm_.reset();
+  }
+
+  const double period_ = 0.01;
+
+  const double assert_near_abs_error_ = 0.0001;
+
   void check_interfaces()
   {
-    EXPECT_EQ(1u, rm_->system_components_size());
-    ASSERT_EQ(12u, rm_->state_interface_keys().size());
-    EXPECT_TRUE(rm_->state_interface_exists("fl_wheel_joint/position"));
-    EXPECT_TRUE(rm_->state_interface_exists("fr_wheel_joint/position"));
-    EXPECT_TRUE(rm_->state_interface_exists("rl_wheel_joint/position"));
-    EXPECT_TRUE(rm_->state_interface_exists("rr_wheel_joint/position"));
+    EXPECT_EQ(1u, pth_test_.rm_->system_components_size());
+    ASSERT_EQ(12u, pth_test_.rm_->state_interface_keys().size());
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/position"));
 
-    EXPECT_TRUE(rm_->state_interface_exists("fl_wheel_joint/velocity"));
-    EXPECT_TRUE(rm_->state_interface_exists("fr_wheel_joint/velocity"));
-    EXPECT_TRUE(rm_->state_interface_exists("rl_wheel_joint/velocity"));
-    EXPECT_TRUE(rm_->state_interface_exists("rr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/velocity"));
 
-    EXPECT_TRUE(rm_->state_interface_exists("fl_wheel_joint/effort"));
-    EXPECT_TRUE(rm_->state_interface_exists("fr_wheel_joint/effort"));
-    EXPECT_TRUE(rm_->state_interface_exists("rl_wheel_joint/effort"));
-    EXPECT_TRUE(rm_->state_interface_exists("rr_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/effort"));
 
-    ASSERT_EQ(4u, rm_->command_interface_keys().size());
-    EXPECT_TRUE(rm_->command_interface_exists("fl_wheel_joint/velocity"));
-    EXPECT_TRUE(rm_->command_interface_exists("fr_wheel_joint/velocity"));
-    EXPECT_TRUE(rm_->command_interface_exists("rl_wheel_joint/velocity"));
-    EXPECT_TRUE(rm_->command_interface_exists("rr_wheel_joint/velocity"));
+    ASSERT_EQ(4u, pth_test_.rm_->command_interface_keys().size());
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rr_wheel_joint/velocity"));
   }
 
   void check_initial_values()
@@ -226,25 +204,29 @@ public:
     using hardware_interface::LoanedCommandInterface;
     using hardware_interface::LoanedStateInterface;
 
-    LoanedStateInterface fl_s_p = rm_->claim_state_interface("fl_wheel_joint/position");
-    LoanedStateInterface fr_s_p = rm_->claim_state_interface("fr_wheel_joint/position");
-    LoanedStateInterface rl_s_p = rm_->claim_state_interface("rl_wheel_joint/position");
-    LoanedStateInterface rr_s_p = rm_->claim_state_interface("rr_wheel_joint/position");
+    LoanedStateInterface fl_s_p = pth_test_.rm_->claim_state_interface("fl_wheel_joint/position");
+    LoanedStateInterface fr_s_p = pth_test_.rm_->claim_state_interface("fr_wheel_joint/position");
+    LoanedStateInterface rl_s_p = pth_test_.rm_->claim_state_interface("rl_wheel_joint/position");
+    LoanedStateInterface rr_s_p = pth_test_.rm_->claim_state_interface("rr_wheel_joint/position");
 
-    LoanedStateInterface fl_s_v = rm_->claim_state_interface("fl_wheel_joint/velocity");
-    LoanedStateInterface fr_s_v = rm_->claim_state_interface("fr_wheel_joint/velocity");
-    LoanedStateInterface rl_s_v = rm_->claim_state_interface("rl_wheel_joint/velocity");
-    LoanedStateInterface rr_s_v = rm_->claim_state_interface("rr_wheel_joint/velocity");
+    LoanedStateInterface fl_s_v = pth_test_.rm_->claim_state_interface("fl_wheel_joint/velocity");
+    LoanedStateInterface fr_s_v = pth_test_.rm_->claim_state_interface("fr_wheel_joint/velocity");
+    LoanedStateInterface rl_s_v = pth_test_.rm_->claim_state_interface("rl_wheel_joint/velocity");
+    LoanedStateInterface rr_s_v = pth_test_.rm_->claim_state_interface("rr_wheel_joint/velocity");
 
-    LoanedStateInterface fl_s_e = rm_->claim_state_interface("fl_wheel_joint/effort");
-    LoanedStateInterface fr_s_e = rm_->claim_state_interface("fr_wheel_joint/effort");
-    LoanedStateInterface rl_s_e = rm_->claim_state_interface("rl_wheel_joint/effort");
-    LoanedStateInterface rr_s_e = rm_->claim_state_interface("rr_wheel_joint/effort");
+    LoanedStateInterface fl_s_e = pth_test_.rm_->claim_state_interface("fl_wheel_joint/effort");
+    LoanedStateInterface fr_s_e = pth_test_.rm_->claim_state_interface("fr_wheel_joint/effort");
+    LoanedStateInterface rl_s_e = pth_test_.rm_->claim_state_interface("rl_wheel_joint/effort");
+    LoanedStateInterface rr_s_e = pth_test_.rm_->claim_state_interface("rr_wheel_joint/effort");
 
-    LoanedCommandInterface fl_c_v = rm_->claim_command_interface("fl_wheel_joint/velocity");
-    LoanedCommandInterface fr_c_v = rm_->claim_command_interface("fr_wheel_joint/velocity");
-    LoanedCommandInterface rl_c_v = rm_->claim_command_interface("rl_wheel_joint/velocity");
-    LoanedCommandInterface rr_c_v = rm_->claim_command_interface("rr_wheel_joint/velocity");
+    LoanedCommandInterface fl_c_v =
+      pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
+    LoanedCommandInterface fr_c_v =
+      pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
+    LoanedCommandInterface rl_c_v =
+      pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
+    LoanedCommandInterface rr_c_v =
+      pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
 
     ASSERT_EQ(0.0, fl_s_p.get_value());
     ASSERT_EQ(0.0, fr_s_p.get_value());
