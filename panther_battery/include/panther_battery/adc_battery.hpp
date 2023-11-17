@@ -66,7 +66,6 @@ private:
   static constexpr float kBatVoltageFactor = 25.04255;
   static constexpr float kBatCurrentFactor = 20.0;
   static constexpr float kBatChargeFactor = 2.5;
-  static constexpr float kBatTempFactor = 1.0;
 
   // Temperature conversion parameters
   static constexpr float kTempCoeffA = 298.15;
