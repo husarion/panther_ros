@@ -23,8 +23,6 @@ public:
   double rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
   double rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
 
-  // 100 Hz
-
   const std::string panther_system_name_ = "wheels";
 
   const std::string urdf_header_ = R"(<?xml version="1.0" encoding="utf-8"?>
@@ -71,7 +69,7 @@ public:
     return urdf.str();
   }
 
-  std::string panther_system_urdf_;
+  std::string default_panther_system_urdf_;
 
   std::map<std::string, std::string> param_map_ = {
     {"encoder_resolution", "1600"},
@@ -95,7 +93,7 @@ public:
   std::vector<std::string> joints_ = {
     "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"};
 
-  PantherSystemTestUtils() { panther_system_urdf_ = BuildUrdf(param_map_, joints_); }
+  PantherSystemTestUtils() { default_panther_system_urdf_ = BuildUrdf(param_map_, joints_); }
 
   void set_state(const uint8_t state_id, const std::string & state_name)
   {
@@ -143,6 +141,23 @@ public:
     configure_panther_system();
     activate_panther_system();
   }
+
+  void Start(std::string urdf)
+  {
+    roboteq_mock_ = std::make_unique<RoboteqMock>();
+    roboteq_mock_->Start();
+    rclcpp::init(0, nullptr);
+
+    rm_ = std::make_unique<hardware_interface::ResourceManager>(urdf);
+  }
+
+  void Stop()
+  {
+    rclcpp::shutdown();
+    roboteq_mock_->Stop();
+    roboteq_mock_.reset();
+    rm_.reset();
+  }
 };
 
 class TestPantherSystem : public ::testing::Test
@@ -151,24 +166,11 @@ public:
   PantherSystemTestUtils pth_test_;
 
   //  TODO: move to constructor
-  void SetUp() override
-  {
-    pth_test_.roboteq_mock_ = std::make_unique<RoboteqMock>();
-    pth_test_.roboteq_mock_->Start();
-    rclcpp::init(0, nullptr);
+  void SetUp() override { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
 
-    pth_test_.rm_ =
-      std::make_unique<hardware_interface::ResourceManager>(pth_test_.panther_system_urdf_);
-  }
+  void TearDown() override { pth_test_.Stop(); }
 
-  void TearDown() override
-  {
-    rclcpp::shutdown();
-    pth_test_.roboteq_mock_->Stop();
-    pth_test_.roboteq_mock_.reset();
-    pth_test_.rm_.reset();
-  }
-
+  // 100 Hz
   const double period_ = 0.01;
 
   const double assert_near_abs_error_ = 0.0001;

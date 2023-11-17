@@ -14,6 +14,18 @@
 #include <mock_roboteq.hpp>
 #include <test_utils.hpp>
 
+void WaitForDriverStateMsg(
+  rclcpp::Node::SharedPtr node, panther_msgs::msg::DriverState::SharedPtr state_msg)
+{
+  rclcpp::Time start = node->now();
+  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
+    rclcpp::spin_some(node);
+    if (state_msg) {
+      break;
+    }
+  }
+}
+
 // TRANSITIONS
 TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
 {
@@ -302,6 +314,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
     simulated_time += PERIOD;
   }
 
+  // TODO
   rclcpp::Time start = node->now();
   while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
     rclcpp::spin_some(node);
@@ -351,14 +364,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 
   pth_test_.rm_->read(TIME, PERIOD);
 
-  rclcpp::Time start = node->now();
-  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(node);
-    if (state_msg) {
-      break;
-    }
-  }
-
+  WaitForDriverStateMsg(node, state_msg);
   ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
 
   // writing should be blocked - error
@@ -450,11 +456,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
     pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
   const double period_ = 0.01;
 
-  pth_test_.roboteq_mock_ = std::make_unique<RoboteqMock>();
-  pth_test_.roboteq_mock_->Start();
-  rclcpp::init(0, nullptr);
-
-  pth_test_.rm_ = std::make_unique<hardware_interface::ResourceManager>(panther_system_urdf_);
+  pth_test_.Start(panther_system_urdf_);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
   pth_test_.configure_activate_panther_system();
@@ -471,13 +473,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
   pth_test_.rm_->read(TIME, PERIOD);
 
-  rclcpp::Time start = node->now();
-  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(node);
-    if (state_msg) {
-      break;
-    }
-  }
+  WaitForDriverStateMsg(node, state_msg);
 
   ASSERT_FALSE(state_msg->write_sdo_error);
 
@@ -487,45 +483,28 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   pth_test_.roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 5001);
   pth_test_.rm_->write(TIME, PERIOD);
 
-  // std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  start = node->now();
-  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(node);
-    if (state_msg) {
-      break;
-    }
-  }
+  WaitForDriverStateMsg(node, state_msg);
   ASSERT_FALSE(state_msg->write_sdo_error);
   state_msg.reset();
 
   pth_test_.rm_->write(TIME, PERIOD);
 
-  // std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  start = node->now();
-  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(node);
-    if (state_msg) {
-      break;
-    }
-  }
+  WaitForDriverStateMsg(node, state_msg);
   ASSERT_TRUE(state_msg->write_sdo_error);
 
   pth_test_.shutdown_panther_system();
 
-  rclcpp::shutdown();
-  pth_test_.roboteq_mock_->Stop();
-  pth_test_.roboteq_mock_.reset();
-  pth_test_.rm_.reset();
+  pth_test_.Stop();
 }
 
 // TODO sdo read timeout
