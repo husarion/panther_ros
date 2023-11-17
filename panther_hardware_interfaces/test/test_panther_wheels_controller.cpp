@@ -10,6 +10,8 @@
 #include <iostream>
 #include <cmath>
 
+// TODO: sometimes fails
+
 class TestPantherWheelsControllerInitialization : public ::testing::Test
 {
 public:
@@ -274,9 +276,7 @@ TEST_F(TestPantherWheelsController, test_update_system_pdo_feedback_timeout)
 }
 
 // TODO
-// TEST_F(TestPantherWheelsController, test_update_system_feedback_can_error)
-// {
-// }
+// Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested ,because it reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
 TEST_F(TestPantherWheelsController, test_update_drivers_state)
 {
@@ -401,9 +401,7 @@ TEST_F(TestPantherWheelsController, test_write_speed_sdo_timeout)
 }
 
 // TODO
-// TEST_F(TestPantherWheelsController, test_write_speed_can_error)
-// {
-// }
+// Similar to test_roboteq_driver, can_error in write speed isn't tested ,because it reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
 TEST_F(TestPantherWheelsController, test_turn_on_estop)
 {

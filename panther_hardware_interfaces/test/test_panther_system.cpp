@@ -441,6 +441,8 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 
 // TODO wrong order urdf
 
+// TIMEOUT TESTS
+
 TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 {
   PantherSystemTestUtils pth_test_;

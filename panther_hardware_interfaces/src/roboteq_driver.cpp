@@ -53,6 +53,8 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
         // TODO check std::system_error
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
+
+        // TODO in timweout it won't be reached
         if (is_sdo_read_timeout_) {
           is_sdo_read_timeout_.store(false);
           return;

@@ -26,12 +26,13 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 using StateInterface = hardware_interface::StateInterface;
 using CommandInterface = hardware_interface::CommandInterface;
 
+// TODO: move it somewhere
 /**
  * @brief Attempts to run operation for max_attempts number of times.
  * operation can throw std::runtime_error, which is caught, and on_error function
  * is executed (for example deinitialization or some other clean up in case of 
  * failure)
- * @returns true if operation was successfully executed, false if it wasn't executed
+ * @return true if operation was successfully executed, false if it wasn't executed
  * and number of attempts exceeded maximum allowed
  */
 bool OperationWithAttempts(

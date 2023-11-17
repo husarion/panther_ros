@@ -89,6 +89,8 @@ CAN settings
  - `max_read_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
  - `max_read_pdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
 
+<!-- TODO: safety critical parameters -->
+
 ## Generating CAN config
 
 Adjust your configuration and generate new `master.dcf` using:
