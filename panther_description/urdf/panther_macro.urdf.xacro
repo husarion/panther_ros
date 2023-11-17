@@ -92,7 +92,7 @@
 
         <param name="max_write_sdo_errors_count">2</param>
         <param name="max_read_sdo_errors_count">2</param>
-        <!-- TODO: check when tuning parameters -->
+        <!-- TODO check when tuning parameters -->
         <!-- Set to 2 because, sometimes timeout happens, PDO that should be sent every 10ms
          exceeded pdo_feedback_timeout, to be investigated during parameter tuning -->
         <param name="max_read_pdo_errors_count">2</param>
