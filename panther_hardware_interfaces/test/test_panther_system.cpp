@@ -439,9 +439,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 //     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 // }
 
-// TODO estops
 // TODO wrong order urdf
-// TODO PDO timeout
 
 TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 {
@@ -451,6 +449,8 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   // adding wait time to roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
   pth_test_.param_map_["max_read_pdo_errors_count"] = "100";
+  pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
+  pth_test_.param_map_["max_write_sdo_errors_count"] = "2";
 
   const std::string panther_system_urdf_ =
     pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
@@ -507,14 +507,156 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   pth_test_.Stop();
 }
 
-// TODO sdo read timeout
+TEST(TestPantherSystemOthers, sdo_read_timeout_test)
+{
+  PantherSystemTestUtils pth_test_;
+
+  // It is necessary to set max_read_pdo_errors_count to some higher value, because
+  // adding wait time to roboteq mock block all communication (also PDO), and PDO timeouts
+  // happen
+  pth_test_.param_map_["max_read_pdo_errors_count"] = "100";
+  pth_test_.param_map_["max_read_sdo_errors_count"] = "2";
+  pth_test_.param_map_["max_write_sdo_errors_count"] = "100";
+
+  const std::string panther_system_urdf_ =
+    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const double period_ = 0.01;
+
+  pth_test_.Start(panther_system_urdf_);
+
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
+  pth_test_.configure_activate_panther_system();
+
+  panther_msgs::msg::DriverState::SharedPtr state_msg;
+  auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
+    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
+  const auto PERIOD = rclcpp::Duration::from_seconds(period_);
+
+  pth_test_.rm_->read(TIME, PERIOD);
+
+  WaitForDriverStateMsg(node, state_msg);
+
+  ASSERT_FALSE(state_msg->read_sdo_error);
+
+  state_msg.reset();
+
+  // More than sdo_operation_wait_timeout_
+  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
+  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
+  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
+  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
+  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
+  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
+  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
+  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
+
+  pth_test_.rm_->write(TIME, PERIOD);
+
+  std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
+
+  TIME += PERIOD;
+  pth_test_.rm_->read(TIME, PERIOD);
+
+  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_FALSE(state_msg->read_sdo_error);
+  state_msg.reset();
+
+  pth_test_.rm_->write(TIME, PERIOD);
+
+  std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
+
+  TIME += PERIOD;
+  pth_test_.rm_->read(TIME, PERIOD);
+
+  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(state_msg->read_sdo_error);
+
+  pth_test_.shutdown_panther_system();
+
+  pth_test_.Stop();
+}
+
+TEST(TestPantherSystemOthers, pdo_read_timeout_test)
+{
+  PantherSystemTestUtils pth_test_;
+
+  // It is necessary to set max_read_pdo_errors_count to some higher value, because
+  // adding wait time to roboteq mock block all communication (also PDO), and PDO timeouts
+  // happen
+  pth_test_.param_map_["pdo_feedback_timeout"] = "15";
+  pth_test_.param_map_["max_read_pdo_errors_count"] = "2";
+  pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
+  pth_test_.param_map_["max_write_sdo_errors_count"] = "100";
+
+  const std::string panther_system_urdf_ =
+    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const double period_ = 0.01;
+
+  pth_test_.Start(panther_system_urdf_);
+
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
+  pth_test_.configure_activate_panther_system();
+
+  panther_msgs::msg::DriverState::SharedPtr state_msg;
+  auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
+    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
+  const auto PERIOD = rclcpp::Duration::from_seconds(period_);
+
+  pth_test_.rm_->read(TIME, PERIOD);
+
+  WaitForDriverStateMsg(node, state_msg);
+
+  ASSERT_FALSE(state_msg->read_pdo_error);
+
+  state_msg.reset();
+
+  pth_test_.roboteq_mock_->front_driver_->StopPublishing();
+  pth_test_.roboteq_mock_->rear_driver_->StopPublishing();
+
+  pth_test_.rm_->write(TIME, PERIOD);
+
+  std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
+
+  TIME += PERIOD;
+  pth_test_.rm_->read(TIME, PERIOD);
+
+  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_FALSE(state_msg->read_pdo_error);
+  state_msg.reset();
+
+  pth_test_.rm_->write(TIME, PERIOD);
+
+  std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
+
+  TIME += PERIOD;
+  pth_test_.rm_->read(TIME, PERIOD);
+
+  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(state_msg->read_pdo_error);
+
+  pth_test_.shutdown_panther_system();
+
+  pth_test_.Stop();
+}
+
+// TODO estops
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
   // For testing individual tests:
-  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.sdo_write_timeout_test";
+  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.pdo_read_timeout_test";
 
   return RUN_ALL_TESTS();
 }

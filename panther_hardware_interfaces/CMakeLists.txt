@@ -184,6 +184,7 @@ if(BUILD_TESTING)
   )
 
   ament_add_gtest(${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp test/src/mock_roboteq.cpp)
+  set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT 120) 
   target_include_directories(${PROJECT_NAME}_test_panther_system PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
   )

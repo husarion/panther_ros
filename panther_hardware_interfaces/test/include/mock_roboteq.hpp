@@ -81,7 +81,8 @@ public:
 
   void InitializeValues();
 
-  void StartPublishing(std::chrono::milliseconds period = std::chrono::milliseconds(100));
+  // TODO
+  void StartPublishing(std::chrono::milliseconds period = std::chrono::milliseconds(10));
   void StopPublishing();
 
   void TriggerPDOPublish();

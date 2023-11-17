@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <string>
-#include <iostream>
 
 #include <lifecycle_msgs/msg/state.hpp>
 
@@ -63,8 +62,6 @@ public:
     }
 
     urdf << urdf_footer_;
-
-    std::cerr << urdf.str();
 
     return urdf.str();
   }
