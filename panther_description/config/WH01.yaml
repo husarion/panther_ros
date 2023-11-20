@@ -5,4 +5,6 @@ inertia: { ixx: 0.022510, iyy: 0.034850, izz: 0.022510 }
 inertia_y_offset: 0.0
 mesh_package: panther_description
 folder_path: meshes/WH01
-kinematics: differential
+
+# Values measured experimentally
+odom_stderr: { vel_x: 3.2e-3, vel_y: 1.4e-3, vel_yaw: 8.5e-3 }

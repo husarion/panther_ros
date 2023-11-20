@@ -5,10 +5,6 @@
     params="parent_link xyz rpy
             tf_prefix:=None
             frame_id:=gps
-            topic:=gps
-            initial_latitude:=53.1978
-            initial_longitude:=18.3735
-            initial_altitude:=89.0
             simulation_engine:=ignition-gazebo">
 
     <xacro:if value="${tf_prefix == 'None'}">
@@ -29,7 +25,7 @@
       <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
-          <mesh filename="file://$(find panther_description)/meshes/components/external_antenna.dae" />
+          <mesh filename="package://panther_description/meshes/components/external_antenna.dae" />
         </geometry>
       </visual>
 
@@ -37,16 +33,16 @@
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
           <mesh
-            filename="file://$(find panther_description)/meshes/components/external_antenna_collision.stl" />
+            filename="package://panther_description/meshes/components/external_antenna_collision.stl" />
         </geometry>
       </collision>
 
       <inertial>
         <origin xyz="0.045 0.0 0.0058" rpy="0.0 0.0 0.0" />
         <mass value="0.59" />
-        <inertia ixx="0.003964" ixy="0.0" ixz="0.0"
-          iyy="0.0003964" iyz="0.0"
-          izz="0.0004177" />
+        <inertia ixx="0.003964" ixy="0.0000000" ixz="0.0"
+                                iyy="0.0003964" iyz="0.0"
+                                                izz="0.0004177" />
       </inertial>
     </link>
 
@@ -60,6 +56,14 @@
 
     <link name="${tf_prefix_ext}${frame_id}" />
 
-
+    <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
+      <gazebo reference="${tf_prefix_ext}${frame_id}">
+        <sensor name="navsat" type="navsat">
+          <plugin filename="ignition-gazebo-navsat-system" name="ignition::gazebo::systems::NavSat" />
+          <always_on>1</always_on>
+          <update_rate>5</update_rate>
+        </sensor>
+      </gazebo>
+    </xacro:if>
   </xacro:macro>
 </robot>
