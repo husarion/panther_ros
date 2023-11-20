@@ -197,8 +197,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   panther_system_node_.Initialize();
 
-  // TODO: add tests
-
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing roboteqs");
 
   if (!OperationWithAttempts(
@@ -239,11 +237,9 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating roboteqs");
 
-  // TODO: waiting?
   if (!OperationWithAttempts(
         std::bind(&PantherWheelsController::Activate, roboteq_controller_),
-        max_roboteq_activation_attempts_,
-        []() { std::this_thread::sleep_for(std::chrono::milliseconds(2000)); })) {
+        max_roboteq_activation_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed");
     return CallbackReturn::FAILURE;
   }
