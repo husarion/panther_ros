@@ -145,6 +145,7 @@ def generate_launch_description():
                 [get_package_share_directory("panther_bringup"), "config", "imu_config.yaml"]
             ),
         }.items(),
+        condition=IfCondition(not use_sim),
     )
 
     robot_localization_node = Node(

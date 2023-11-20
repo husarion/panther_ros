@@ -111,7 +111,7 @@ def generate_launch_description():
             " imu_rot_p:=",
             os.environ.get("PANTHER_IMU_ORIENTATION_P", -1.57),
             " imu_rot_y:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_Y", 3.0),
+            os.environ.get("PANTHER_IMU_ORIENTATION_Y", 0.0),
         ]
     )
     robot_description = {"robot_description": robot_description_content}
