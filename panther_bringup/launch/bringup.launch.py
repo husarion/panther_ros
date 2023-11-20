@@ -130,6 +130,23 @@ def generate_launch_description():
         }.items(),
     )
 
+    imu_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    get_package_share_directory("panther_bringup"),
+                    "launch",
+                    "imu.launch.py",
+                ]
+            )
+        ),
+        launch_arguments={
+            "imu_config_file": PathJoinSubstitution(
+                [get_package_share_directory("panther_bringup"), "config", "imu_config.yaml"]
+            ),
+        }.items(),
+    )
+
     robot_localization_node = Node(
         package="robot_localization",
         executable="ekf_node",
@@ -152,6 +169,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
+        imu_launch,
         robot_localization_node,
     ]
 
