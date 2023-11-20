@@ -91,18 +91,4 @@ ament_export_dependencies(
   realtime_tools
 )
 
-# Trash for testing purpose
-find_package(panther_gpiod REQUIRED)
-
-add_executable(gpio_test
-  src/gpio_test.cpp
-)
-
-target_link_libraries(gpio_test PRIVATE panther_gpiod)
-
-install(TARGETS gpio_test
-  DESTINATION lib/${PROJECT_NAME}
-)
-### 
-
 ament_package()

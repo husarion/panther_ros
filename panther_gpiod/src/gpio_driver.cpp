@@ -1,38 +1,43 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "panther_gpiod/gpio_driver.hpp"
 
 namespace panther_gpiod
 {
 
-GPIODriver::GPIODriver(std::vector<GPIOinfo> gpio_info, bool init_watchdog)
+GPIODriver::GPIODriver(std::vector<GPIOinfo> gpio_info)
 {
+  if (gpio_info.empty()) {
+    throw std::runtime_error("Empty GPIO info vector provided");
+  }
+
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
   gpio_info_ = std::move(gpio_info);
 
-  bool watchdog_initialized = false;
-
   std::vector<GPIOpin> controll_pins;
   for (const auto & info : gpio_info) {
-    if (info.pin == GPIOpin::WATCHDOG && init_watchdog) {
-      watchdog_request_ = create_line_request(gpio_chip, GPIOpin::WATCHDOG);
-      watchdog_initialized = true;
-    } else {
-      controll_pins.push_back(info.pin);
-    }
+    controll_pins.push_back(info.pin);
   }
 
-  if (init_watchdog && !watchdog_initialized) {
-    throw std::runtime_error("WATCHDOG pin is not described in GPIO info structure.");
-  }
-
-  controll_request_ = create_line_request(gpio_chip, controll_pins);
+  line_request_ = create_line_request(gpio_chip, controll_pins);
 }
 
 GPIODriver::~GPIODriver()
 {
-  watchdog_off();
   gpio_monitor_off();
-  watchdog_request_->release();
-  controll_request_->release();
+  line_request_->release();
 }
 
 std::unique_ptr<gpiod::line_request> GPIODriver::create_line_request(
@@ -45,7 +50,7 @@ std::unique_ptr<gpiod::line_request> GPIODriver::create_line_request(
   gpiod::chip & chip, const std::vector<GPIOpin> & pins)
 {
   auto request_builder = chip.prepare_request();
-  request_builder.set_consumer("panther_control");
+  request_builder.set_consumer("panther_gpiod");
 
   for (const GPIOpin & pin : pins) {
     configure_line_request(chip, request_builder, pin);
@@ -58,9 +63,16 @@ void GPIODriver::configure_line_request(
   gpiod::chip & chip, gpiod::request_builder & builder, GPIOpin pin)
 {
   GPIOinfo & pin_info = get_pin_info_ref(pin);
-
   gpiod::line_settings settings = generate_line_settings(pin_info);
-  gpiod::line::offset offset = chip.get_line_offset_from_name(pin_info.name);
+
+  std::string pin_name;
+  try {
+    pin_name = pin_names_.at(pin);
+  } catch (const std::out_of_range & e) {
+    std::cout << "No name defined for this pin: " << e.what() << std::endl;
+  }
+
+  gpiod::line::offset offset = chip.get_line_offset_from_name(pin_name);
 
   builder.add_line_settings(offset, settings);
   pin_info.offset = offset;
@@ -82,14 +94,10 @@ gpiod::line_settings GPIODriver::generate_line_settings(const GPIOinfo & pin_inf
   return settings;
 }
 
-void GPIODriver::change_control_pin_direction(GPIOpin pin, gpiod::line::direction direction)
+void GPIODriver::change_pin_direction(GPIOpin pin, gpiod::line::direction direction)
 {
   std::unique_lock lock(gpio_info_mutex_);
   GPIOinfo & pin_info = get_pin_info_ref(pin);
-
-  if (pin == GPIOpin::WATCHDOG) {
-    throw std::invalid_argument("Cannot change direction for WATCHDOG pin.");
-  }
 
   if (pin_info.direction == direction) {
     return;
@@ -101,15 +109,13 @@ void GPIODriver::change_control_pin_direction(GPIOpin pin, gpiod::line::directio
   auto line_config = gpiod::line_config();
 
   for (const auto & gpio_info : gpio_info_) {
-    if (gpio_info.pin != GPIOpin::WATCHDOG) {
-      gpiod::line_settings settings = generate_line_settings(gpio_info);
-      line_config.add_line_settings(gpio_info.offset, settings);
-    }
+    gpiod::line_settings settings = generate_line_settings(gpio_info);
+    line_config.add_line_settings(gpio_info.offset, settings);
   }
 
   try {
-    controll_request_->reconfigure_lines(line_config);
-    pin_info.value = controll_request_->get_value(pin_info.offset);
+    line_request_->reconfigure_lines(line_config);
+    pin_info.value = line_request_->get_value(pin_info.offset);
   } catch (const std::exception & e) {
     std::cerr << "Error while changing GPIO pin direction: " << e.what() << std::endl;
     pin_info.direction = previous_direction;
@@ -126,10 +132,6 @@ bool GPIODriver::set_pin_value(GPIOpin pin, bool value)
 {
   GPIOinfo & pin_info = get_pin_info_ref(pin);
 
-  if (pin == GPIOpin::WATCHDOG) {
-    throw std::invalid_argument("Cannot set value for WATCHDOG pin.");
-  }
-
   if (pin_info.direction == gpiod::line::direction::INPUT) {
     throw std::invalid_argument("Cannot set value for INPUT pin.");
   }
@@ -138,14 +140,14 @@ bool GPIODriver::set_pin_value(GPIOpin pin, bool value)
 
   std::unique_lock lock(gpio_info_mutex_);
   try {
-    controll_request_->set_value(pin_info.offset, gpio_value);
+    line_request_->set_value(pin_info.offset, gpio_value);
 
-    if (controll_request_->get_value(pin_info.offset) != gpio_value) {
+    if (line_request_->get_value(pin_info.offset) != gpio_value) {
       throw std::runtime_error("Failed to change GPIO state.");
     }
 
     pin_info.value = gpio_value;
-    publish_gpio_state_callback(pin_info);
+    gpio_edge_event_callback(pin_info);
 
     return true;
   } catch (const std::exception & e) {
@@ -162,9 +164,7 @@ void GPIODriver::gpio_monitor_on()
 
   std::unique_lock lock(gpio_info_mutex_);
   for (auto & info : gpio_info_) {
-    if (info.pin != GPIOpin::WATCHDOG) {
-      info.value = controll_request_->get_value(info.offset);
-    }
+    info.value = line_request_->get_value(info.offset);
   }
   lock.unlock();
 
@@ -177,7 +177,7 @@ void GPIODriver::monitor_async_events()
   auto edge_event_buffer = gpiod::edge_event_buffer(edge_event_buffer_size_);
 
   struct pollfd pollfd;
-  pollfd.fd = controll_request_->fd();
+  pollfd.fd = line_request_->fd();
   pollfd.events = POLLIN;
 
   while (gpio_monitor_thread_enabled_) {
@@ -188,7 +188,7 @@ void GPIODriver::monitor_async_events()
       return;
     }
 
-    controll_request_->read_edge_events(edge_event_buffer);
+    line_request_->read_edge_events(edge_event_buffer);
 
     for (const auto & event : edge_event_buffer) {
       handle_edge_event(event);
@@ -199,10 +199,11 @@ void GPIODriver::monitor_async_events()
 void GPIODriver::handle_edge_event(const gpiod::edge_event & event)
 {
   std::unique_lock lock(gpio_info_mutex_);
-
-  auto pin = get_pin_from_offset(event.line_offset());
-
-  if (pin == GPIOpin::UNKNOWN) {
+  GPIOpin pin;
+  try {
+    pin = get_pin_from_offset(event.line_offset());
+  } catch (const std::runtime_error & e) {
+    std::cerr << "An edge event occurred with an unknown pin: " << e.what() << std::endl;
     return;
   }
 
@@ -217,7 +218,7 @@ void GPIODriver::handle_edge_event(const gpiod::edge_event & event)
 
   pin_info.value = new_value;
 
-  publish_gpio_state_callback(pin_info);
+  gpio_edge_event_callback(pin_info);
 }
 
 void GPIODriver::gpio_monitor_off()
@@ -229,52 +230,9 @@ void GPIODriver::gpio_monitor_off()
   }
 }
 
-bool GPIODriver::watchdog_on()
-{
-  if (is_watchdog_thread_running()) {
-    return true;
-  }
-
-  watchdog_thread_enabled_ = true;
-  watchdog_thread_ = std::make_unique<std::thread>(&GPIODriver::watchdog_thread, this);
-
-  return is_watchdog_thread_running();
-}
-
-void GPIODriver::watchdog_thread()
-{
-  std::shared_lock lock(gpio_info_mutex_);
-
-  const GPIOinfo watchdog_info = get_pin_info_ref(GPIOpin::WATCHDOG);
-  lock.unlock();
-
-  while (watchdog_thread_enabled_) {
-    auto value = watchdog_request_->get_value(watchdog_info.offset);
-
-    watchdog_request_->set_value(watchdog_info.offset, toggle_value(value));
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-}
-
-bool GPIODriver::watchdog_off()
-{
-  watchdog_thread_enabled_ = false;
-
-  if (is_watchdog_thread_running()) {
-    watchdog_thread_->join();
-  }
-
-  return !is_watchdog_thread_running();
-}
-
 bool GPIODriver::is_gpio_monitor_thread_running() const
 {
   return gpio_monitor_thread_ && gpio_monitor_thread_->joinable();
-}
-
-bool GPIODriver::is_watchdog_thread_running() const
-{
-  return watchdog_thread_ && watchdog_thread_->joinable();
 }
 
 GPIOinfo & GPIODriver::get_pin_info_ref(GPIOpin pin)
@@ -300,10 +258,4 @@ GPIOpin GPIODriver::get_pin_from_offset(gpiod::line::offset offset) const
     "Pin with offset " + std::to_string(offset) + " not found in GPIO info storage");
 }
 
-gpiod::line::value GPIODriver::toggle_value(gpiod::line::value & value)
-{
-  return (value == gpiod::line::value::ACTIVE) ? gpiod::line::value::INACTIVE
-                                               : gpiod::line::value::ACTIVE;
-}
-
-}  // namespace panther_hardware_interfaces
+}  // namespace panther_gpiod
