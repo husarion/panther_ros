@@ -63,12 +63,14 @@ void PantherWheelsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   try {
-    canopen_controller_.GetFrontDriver()->SendRoboteqCmd(0, 0);
+    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel1(0);
+    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel2(0);
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver send 0 command exception: " + std::string(err.what()));
   }
   try {
-    canopen_controller_.GetRearDriver()->SendRoboteqCmd(0, 0);
+    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(0);
+    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(0);
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver send 0 command exception: " + std::string(err.what()));
   }
@@ -169,14 +171,18 @@ void PantherWheelsController::WriteSpeed(
 {
   // Channel 1 - right, Channel 2 - left
   try {
-    canopen_controller_.GetFrontDriver()->SendRoboteqCmd(
-      roboteq_command_converter_.Convert(speed_fr), roboteq_command_converter_.Convert(speed_fl));
+    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel1(
+      roboteq_command_converter_.Convert(speed_fr));
+    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel2(
+      roboteq_command_converter_.Convert(speed_fl));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
   }
   try {
-    canopen_controller_.GetRearDriver()->SendRoboteqCmd(
-      roboteq_command_converter_.Convert(speed_rr), roboteq_command_converter_.Convert(speed_rl));
+    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(
+      roboteq_command_converter_.Convert(speed_rr));
+    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(
+      roboteq_command_converter_.Convert(speed_rl));
   } catch (std::runtime_error & err) {
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
@@ -226,13 +232,15 @@ void PantherWheelsController::TurnOffEstop()
 void PantherWheelsController::TurnOnSafetyStop()
 {
   try {
-    canopen_controller_.GetFrontDriver()->TurnOnSafetyStop();
+    canopen_controller_.GetFrontDriver()->TurnOnSafetyStopChannel1();
+    canopen_controller_.GetFrontDriver()->TurnOnSafetyStopChannel2();
   } catch (std::runtime_error & err) {
     throw std::runtime_error(
       "Exception when trying to turn on safety stop on front driver: " + std::string(err.what()));
   }
   try {
-    canopen_controller_.GetRearDriver()->TurnOnSafetyStop();
+    canopen_controller_.GetRearDriver()->TurnOnSafetyStopChannel1();
+    canopen_controller_.GetRearDriver()->TurnOnSafetyStopChannel2();
   } catch (std::runtime_error & err) {
     throw std::runtime_error(
       "Exception when trying to turn on safety stop on rear driver: " + std::string(err.what()));

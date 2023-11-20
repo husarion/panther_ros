@@ -64,11 +64,10 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
       index, subindex,
       [&is_sdo_read_timeout_ = is_sdo_read_timeout_, &mtx, &cv, &err_code, &data](
         uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
-        // TODO check std::system_error
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
 
-        // TODO in timweout it won't be reached
+        // TODO in timeout it won't be reached
         if (is_sdo_read_timeout_) {
           is_sdo_read_timeout_.store(false);
           return;
@@ -126,7 +125,6 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
       index, subindex, data,
       [&is_sdo_write_timeout_ = is_sdo_write_timeout_, &mtx, &cv, &err_code](
         uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
-        // TODO check std::system_error
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
         if (is_sdo_write_timeout_) {
@@ -222,16 +220,25 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   return fb;
 }
 
-void RoboteqDriver::SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed)
+// TODO check what happens what publishing is stopped
+void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
 {
   try {
-    SyncSdoWrite<int32_t>(0x2000, 1, channel_1_speed);
-    SyncSdoWrite<int32_t>(0x2000, 2, channel_2_speed);
+    SyncSdoWrite<int32_t>(0x2000, 1, cmd);
   } catch (std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to send roboteq command: " + std::string(e.what()));
+    throw std::runtime_error(
+      "Error when trying to send channel 1 roboteq command: " + std::string(e.what()));
   }
+}
 
-  // TODO check what happens what publishing is stopped
+void RoboteqDriver::SendRoboteqCmdChannel2(int32_t cmd)
+{
+  try {
+    SyncSdoWrite<int32_t>(0x2000, 2, cmd);
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error(
+      "Error when trying to send channel 2 roboteq command: " + std::string(e.what()));
+  }
 }
 
 void RoboteqDriver::ResetRoboteqScript()
@@ -263,15 +270,25 @@ void RoboteqDriver::TurnOffEstop()
   }
 }
 
-void RoboteqDriver::TurnOnSafetyStop()
+void RoboteqDriver::TurnOnSafetyStopChannel1()
 {
   // Cmd_SFT Safety Stop
   try {
     SyncSdoWrite<uint8_t>(0x202C, 0, 1);
-    SyncSdoWrite<uint8_t>(0x202C, 0, 2);
-
   } catch (std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to turn on safety stop: " + std::string(e.what()));
+    throw std::runtime_error(
+      "Error when trying to turn on safety stop on channel 1: " + std::string(e.what()));
+  }
+}
+
+void RoboteqDriver::TurnOnSafetyStopChannel2()
+{
+  // Cmd_SFT Safety Stop
+  try {
+    SyncSdoWrite<uint8_t>(0x202C, 0, 2);
+  } catch (std::runtime_error & e) {
+    throw std::runtime_error(
+      "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
   }
 }
 

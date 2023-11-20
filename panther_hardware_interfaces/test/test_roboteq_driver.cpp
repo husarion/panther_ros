@@ -214,8 +214,10 @@ TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
   const int32_t rl_v = 30;
   const int32_t rr_v = 40;
 
-  canopen_controller_->GetFrontDriver()->SendRoboteqCmd(fr_v, fl_v);
-  canopen_controller_->GetRearDriver()->SendRoboteqCmd(rr_v, rl_v);
+  canopen_controller_->GetFrontDriver()->SendRoboteqCmdChannel1(fr_v);
+  canopen_controller_->GetFrontDriver()->SendRoboteqCmdChannel2(fl_v);
+  canopen_controller_->GetRearDriver()->SendRoboteqCmdChannel1(rr_v);
+  canopen_controller_->GetRearDriver()->SendRoboteqCmdChannel2(rl_v);
 
   ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(2), fl_v);
   ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(1), fr_v);
@@ -259,15 +261,26 @@ TEST_F(TestRoboteqDriver, test_turn_off_estop)
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOffEstop(), 1);
 }
 
-TEST_F(TestRoboteqDriver, test_turn_on_safety_stop)
+TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_1)
+{
+  roboteq_mock_->front_driver_->SetTurnOnSafetyStop(67);
+  roboteq_mock_->rear_driver_->SetTurnOnSafetyStop(21);
+
+  canopen_controller_->GetFrontDriver()->TurnOnSafetyStopChannel1();
+  canopen_controller_->GetRearDriver()->TurnOnSafetyStopChannel1();
+
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnSafetyStop(), 1);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnSafetyStop(), 1);
+}
+
+TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_2)
 {
   roboteq_mock_->front_driver_->SetTurnOnSafetyStop(65);
   roboteq_mock_->rear_driver_->SetTurnOnSafetyStop(23);
 
-  canopen_controller_->GetFrontDriver()->TurnOnSafetyStop();
-  canopen_controller_->GetRearDriver()->TurnOnSafetyStop();
+  canopen_controller_->GetFrontDriver()->TurnOnSafetyStopChannel2();
+  canopen_controller_->GetRearDriver()->TurnOnSafetyStopChannel2();
 
-  // TODO: somehow check is first channel was also set
   ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnSafetyStop(), 2);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnSafetyStop(), 2);
 }
@@ -275,7 +288,8 @@ TEST_F(TestRoboteqDriver, test_turn_on_safety_stop)
 TEST_F(TestRoboteqDriver, test_write_timeout)
 {
   roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
-  ASSERT_THROW(canopen_controller_->GetFrontDriver()->SendRoboteqCmd(0, 0), std::runtime_error);
+  ASSERT_THROW(
+    canopen_controller_->GetFrontDriver()->SendRoboteqCmdChannel1(0), std::runtime_error);
 }
 
 TEST_F(TestRoboteqDriver, test_read_timeout)

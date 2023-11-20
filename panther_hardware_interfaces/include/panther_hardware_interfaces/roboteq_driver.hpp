@@ -63,67 +63,63 @@ public:
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return
    */
   int16_t ReadTemperature();
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return
    */
   uint16_t ReadVoltage();
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return
    */
   int16_t ReadBatAmps1();
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return
    */
   int16_t ReadBatAmps2();
 
-  /**
-   * @return
-   */
-  // TODO: noexcept?
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
   // TODO: limiting cmd??
   /**
-   * @brief Sends commands to Roboteq drivers
-   *
-   * @param channel_1_cmd command value for first channel
-   * @param channel_2_cmd command value for second channel
-   * @exception std::runtime_error if any operation returns error
+   * @param cmd command value for first channel
+   * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmd(int32_t channel_1_speed, int32_t channel_2_speed);
+  void SendRoboteqCmdChannel1(int32_t cmd);
 
   /**
-   * @brief Sends commands to reset script on the Roboteq drivers
-   *
+   * @param cmd command value for first channel
+   * @exception std::runtime_error if operation fails
+   */
+  void SendRoboteqCmdChannel2(int32_t cmd);
+
+  /**
    * @exception std::runtime_error if any operation returns error
    */
   void ResetRoboteqScript();
 
   /**
-   * @brief Turns on Roboteq estop
-   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOnEstop();
 
-  // TODO: maybe separate it for channels
   /**
-   * @brief Turns off Roboteq estop
-   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOffEstop();
 
-  void TurnOnSafetyStop();
+  /**
+   * @exception std::runtime_error if any operation returns error
+   */
+  void TurnOnSafetyStopChannel1();
+
+  /**
+   * @exception std::runtime_error if any operation returns error
+   */
+  void TurnOnSafetyStopChannel2();
 
   /**
    * @brief Waits until booting procedure finishes

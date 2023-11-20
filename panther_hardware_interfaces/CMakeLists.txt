@@ -79,7 +79,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
-    test/test_roboteq_data_converters.cpp src/roboteq_data_converters.cpp)
+    test/test_roboteq_data_converters.cpp src/roboteq_data_converters.cpp
+    src/utils.cpp)
   target_include_directories(${PROJECT_NAME}_test_roboteq_data_converters
                              PRIVATE include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
@@ -90,7 +91,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller test/test_canopen_controller.cpp
-    test/src/mock_roboteq.cpp src/canopen_controller.cpp src/roboteq_driver.cpp)
+    test/src/mock_roboteq.cpp src/canopen_controller.cpp src/roboteq_driver.cpp
+    src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_canopen_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -101,7 +103,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver test/test_roboteq_driver.cpp
-    test/src/mock_roboteq.cpp src/canopen_controller.cpp src/roboteq_driver.cpp)
+    test/src/mock_roboteq.cpp src/canopen_controller.cpp src/roboteq_driver.cpp
+    src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_driver
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -117,7 +120,8 @@ if(BUILD_TESTING)
     src/canopen_controller.cpp
     src/roboteq_driver.cpp
     src/roboteq_data_converters.cpp
-    src/panther_wheels_controller.cpp)
+    src/panther_wheels_controller.cpp
+    src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_wheels_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -128,7 +132,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system_node test/test_panther_system_node.cpp
-    src/panther_system_node.cpp src/roboteq_data_converters.cpp)
+    src/panther_system_node.cpp src/roboteq_data_converters.cpp src/utils.cpp)
   target_include_directories(${PROJECT_NAME}_test_panther_system_node
                              PRIVATE include)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_system_node rclcpp
