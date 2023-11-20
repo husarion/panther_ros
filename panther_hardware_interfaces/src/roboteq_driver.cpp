@@ -38,121 +38,24 @@ RoboteqDriver::RoboteqDriver(
 {
 }
 
-// TODO: class?
-template <class type>
-type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
+bool RoboteqDriver::Boot()
 {
-  // TODO: describe edge case
-  std::unique_lock<std::mutex> sdo_read_lk(sdo_read_mtx_, std::defer_lock);
-  if (!sdo_read_lk.try_lock()) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - previous one is still being processed");
-  }
-
-  std::mutex mtx;
-  std::condition_variable cv;
-  type data;
-  std::error_code err_code;
-
-  if (is_sdo_read_timeout_) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - previous one that timed out is still in queue");
-  }
-
-  try {
-    this->SubmitRead<type>(
-      index, subindex,
-      [&is_sdo_read_timeout_ = is_sdo_read_timeout_, &mtx, &cv, &err_code, &data](
-        uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
-        // In this case function already finished, and other variables doesn't exist
-        // and we have to end
-
-        // TODO in timeout it won't be reached
-        if (is_sdo_read_timeout_) {
-          is_sdo_read_timeout_.store(false);
-          return;
-        }
-        {
-          std::lock_guard lck(mtx);
-          if (ec) {
-            err_code = ec;
-          } else {
-            data = value;
-          }
-        }
-        cv.notify_one();
-      },
-      sdo_operation_timeout_);
-  } catch (lely::canopen::SdoError & e) {
-    throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
-  }
-
-  std::unique_lock lk(mtx);
-  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
-    is_sdo_read_timeout_.store(true);
-    throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
-  }
-
-  if (err_code) {
-    throw std::runtime_error("Error msg: " + err_code.message());
-  }
-
-  return data;
+  booted_.store(false);
+  return FiberDriver::Boot();
 }
 
-template <class type>
-void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
+bool RoboteqDriver::wait_for_boot()
 {
-  std::unique_lock<std::mutex> sdo_write_lk(sdo_write_mtx_, std::defer_lock);
-  if (!sdo_write_lk.try_lock()) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - previous one is still being processed");
+  if (booted_.load()) {
+    return true;
   }
-
-  std::mutex mtx;
-  std::condition_variable cv;
-  std::error_code err_code;
-
-  // TODO: what happens on read/write timeout
-
-  if (is_sdo_write_timeout_) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - previous one that timed out is still in queue");
-  }
-
-  try {
-    this->SubmitWrite(
-      index, subindex, data,
-      [&is_sdo_write_timeout_ = is_sdo_write_timeout_, &mtx, &cv, &err_code](
-        uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
-        // In this case function already finished, and other variables doesn't exist
-        // and we have to end
-        if (is_sdo_write_timeout_) {
-          is_sdo_write_timeout_.store(false);
-          return;
-        }
-        {
-          std::lock_guard lck(mtx);
-          if (ec) {
-            err_code = ec;
-          }
-        }
-        cv.notify_one();
-      },
-      sdo_operation_timeout_);
-  } catch (lely::canopen::SdoError & e) {
-    throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
-  }
-
-  std::unique_lock lk(mtx);
-
-  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
-    is_sdo_write_timeout_.store(true);
-    throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
-  }
-
-  if (err_code) {
-    throw std::runtime_error("Error msg: " + err_code.message());
+  std::unique_lock<std::mutex> lck(boot_mtx_);
+  // TODO: maybe timeout
+  boot_cond_var_.wait(lck);
+  if (booted_.load()) {
+    return true;
+  } else {
+    throw std::runtime_error(boot_error_str_);
   }
 }
 
@@ -292,44 +195,135 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
   }
 }
 
-bool RoboteqDriver::wait_for_boot()
+// TODO: class?
+template <class type>
+type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 {
-  if (booted.load()) {
-    return true;
+  // TODO: describe edge case
+  std::unique_lock<std::mutex> sdo_read_lk(sdo_read_mtx_, std::defer_lock);
+  if (!sdo_read_lk.try_lock()) {
+    throw std::runtime_error(
+      "Can't submit new SDO read operation - previous one is still being processed");
   }
-  std::unique_lock<std::mutex> lck(boot_mtx);
-  // TODO: maybe timeout
-  boot_cond.wait(lck);
-  if (booted.load()) {
-    return true;
-  } else {
-    throw std::runtime_error(boot_what);
+
+  std::mutex mtx;
+  std::condition_variable cv;
+  type data;
+  std::error_code err_code;
+
+  if (is_sdo_read_timeout_) {
+    throw std::runtime_error(
+      "Can't submit new SDO read operation - previous one that timed out is still in queue");
   }
+
+  try {
+    this->SubmitRead<type>(
+      index, subindex,
+      [&is_sdo_read_timeout_ = is_sdo_read_timeout_, &mtx, &cv, &err_code, &data](
+        uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
+        // In this case function already finished, and other variables doesn't exist
+        // and we have to end
+
+        // TODO in timeout it won't be reached
+        if (is_sdo_read_timeout_) {
+          is_sdo_read_timeout_.store(false);
+          return;
+        }
+        {
+          std::lock_guard lck(mtx);
+          if (ec) {
+            err_code = ec;
+          } else {
+            data = value;
+          }
+        }
+        cv.notify_one();
+      },
+      sdo_operation_timeout_);
+  } catch (lely::canopen::SdoError & e) {
+    throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
+  }
+
+  std::unique_lock lk(mtx);
+  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
+    is_sdo_read_timeout_.store(true);
+    throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
+  }
+
+  if (err_code) {
+    throw std::runtime_error("Error msg: " + err_code.message());
+  }
+
+  return data;
 }
 
-bool RoboteqDriver::Boot()
+template <class type>
+void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 {
-  booted.store(false);
-  return FiberDriver::Boot();
+  std::unique_lock<std::mutex> sdo_write_lk(sdo_write_mtx_, std::defer_lock);
+  if (!sdo_write_lk.try_lock()) {
+    throw std::runtime_error(
+      "Can't submit new SDO write operation - previous one is still being processed");
+  }
+
+  std::mutex mtx;
+  std::condition_variable cv;
+  std::error_code err_code;
+
+  // TODO: what happens on read/write timeout
+
+  if (is_sdo_write_timeout_) {
+    throw std::runtime_error(
+      "Can't submit new SDO write operation - previous one that timed out is still in queue");
+  }
+
+  try {
+    this->SubmitWrite(
+      index, subindex, data,
+      [&is_sdo_write_timeout_ = is_sdo_write_timeout_, &mtx, &cv, &err_code](
+        uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
+        // In this case function already finished, and other variables doesn't exist
+        // and we have to end
+        if (is_sdo_write_timeout_) {
+          is_sdo_write_timeout_.store(false);
+          return;
+        }
+        {
+          std::lock_guard lck(mtx);
+          if (ec) {
+            err_code = ec;
+          }
+        }
+        cv.notify_one();
+      },
+      sdo_operation_timeout_);
+  } catch (lely::canopen::SdoError & e) {
+    throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
+  }
+
+  std::unique_lock lk(mtx);
+
+  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
+    is_sdo_write_timeout_.store(true);
+    throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
+  }
+
+  if (err_code) {
+    throw std::runtime_error("Error msg: " + err_code.message());
+  }
 }
 
 void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept
 {
   FiberDriver::OnBoot(st, es, what);
 
-  // TODO add handling error
   if (!es || es == 'L') {
-    booted.store(true);
+    booted_.store(true);
   }
 
-  // [ros2_control_node - 1] OnBoot es : D[ros2_control_node - 1] OnBoot what
-  // : Value of object 1018 sub -
-  //   index 01 from CANopen device is different to value in object 1F85(Vendor - ID)
-  //     .
-
-  std::unique_lock<std::mutex> lck(boot_mtx);
-  this->boot_what = what;
-  boot_cond.notify_all();
+  std::unique_lock<std::mutex> lck(boot_mtx_);
+  this->boot_error_str_ = what;
+  boot_cond_var_.notify_all();
 }
 
 void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
@@ -338,13 +332,6 @@ void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
     std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
     clock_gettime(CLOCK_MONOTONIC, &last_rpdo_write_timestamp_);
   }
-}
-
-void RoboteqDriver::OnCanError(lely::io::CanError error) noexcept
-{
-  std::unique_lock<std::mutex> lck(can_error_mtx);
-  can_error.store(true);
-  can_error_code = error;
 }
 
 }  // namespace panther_hardware_interfaces

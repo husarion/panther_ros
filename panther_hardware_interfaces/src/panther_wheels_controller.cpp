@@ -102,8 +102,8 @@ void PantherWheelsController::UpdateSystemFeedback()
   rear_data_.SetMotorStates(
     rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_too_old);
 
-  bool front_can_error = canopen_controller_.GetFrontDriver()->get_can_error();
-  bool rear_can_error = canopen_controller_.GetRearDriver()->get_can_error();
+  bool front_can_error = canopen_controller_.GetFrontDriver()->is_can_error();
+  bool rear_can_error = canopen_controller_.GetRearDriver()->is_can_error();
 
   front_data_.SetFlags(
     front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
@@ -187,11 +187,11 @@ void PantherWheelsController::WriteSpeed(
     throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
   }
 
-  if (canopen_controller_.GetFrontDriver()->get_can_error()) {
+  if (canopen_controller_.GetFrontDriver()->is_can_error()) {
     throw std::runtime_error(
       "CAN error detected on front driver when trying to write speed commands");
   }
-  if (canopen_controller_.GetRearDriver()->get_can_error()) {
+  if (canopen_controller_.GetRearDriver()->is_can_error()) {
     throw std::runtime_error(
       "CAN error detected on rear driver when trying to write speed commands");
   }

@@ -62,6 +62,22 @@ public:
     std::chrono::milliseconds sdo_operation_timeout);
 
   /**
+   * @brief Trigger boot operations
+   */
+  bool Boot();
+
+  /**
+   * @brief Waits until booting procedure finishes
+   *
+   * @exception std::runtime_error if boot fails
+   */
+  bool wait_for_boot();
+
+  bool is_booted() { return booted_.load(); }
+
+  bool is_can_error() { return can_error_.load(); }
+
+  /**
    * @exception std::runtime_error if operation fails
    */
   int16_t ReadTemperature();
@@ -81,17 +97,20 @@ public:
    */
   int16_t ReadBatAmps2();
 
+  /**
+   * @brief Reads all the PDO data returned from Roboteq (motors feedback, error flags) and saves
+   * current timestamp
+   */
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
-  // TODO: limiting cmd??
   /**
-   * @param cmd command value for first channel
+   * @param cmd command value in range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel1(int32_t cmd);
 
   /**
-   * @param cmd command value for first channel
+   * @param cmd command value in range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel2(int32_t cmd);
@@ -121,34 +140,27 @@ public:
    */
   void TurnOnSafetyStopChannel2();
 
-  /**
-   * @brief Waits until booting procedure finishes
-   *
-   * @exception std::runtime_error if boot fails
-   */
-  bool wait_for_boot();
-
-  bool is_booted() { return booted.load(); }
-  bool Boot();
-
-  // TODO: fix naming
-  bool get_can_error() { return can_error.load(); }
-
 private:
   // TODO: fix naming
-  std::atomic_bool booted = false;
-  std::condition_variable boot_cond;
-  std::mutex boot_mtx;
-  std::string boot_what;
+  std::atomic_bool booted_ = false;
+  std::condition_variable boot_cond_var_;
+  std::mutex boot_mtx_;
+  std::string boot_error_str_;
 
-  std::mutex can_error_mtx;
-  std::atomic_bool can_error;
-  lely::io::CanError can_error_code;
+  std::atomic_bool can_error_;
 
+  timespec last_rpdo_write_timestamp_;
   std::mutex rpdo_timestamp_mtx_;
 
+  // TODO: rename timeout and is_ variables
   const std::chrono::milliseconds sdo_operation_timeout_;
   const std::chrono::milliseconds sdo_operation_wait_timeout_;
+
+  std::atomic_bool is_sdo_read_timeout_ = false;
+  std::atomic_bool is_sdo_write_timeout_ = false;
+
+  std::mutex sdo_read_mtx_;
+  std::mutex sdo_write_mtx_;
 
   template <class type>
   type SyncSdoRead(uint16_t index, uint8_t subindex);
@@ -164,25 +176,17 @@ private:
   void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
   // void OnTpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
 
-  timespec last_rpdo_write_timestamp_;
-
   // emcy - emergency - I don't think that it is used by roboteq - haven't found any information
   // about it while ros2_canopen has ability to read it, I didn't see any attempts to handle it void
   // OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
 
-  void OnCanError(lely::io::CanError error) noexcept override;
+  void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
   // virtual void OnConfig(
   //   ::std::function<void(::std::error_code ec)> res) noexcept = 0;
   // virtual void OnDeconfig(
   //   ::std::function<void(::std::error_code ec)> res) noexcept = 0;
   // void
   // Error()
-
-  std::atomic_bool is_sdo_read_timeout_ = false;
-  std::atomic_bool is_sdo_write_timeout_ = false;
-
-  std::mutex sdo_read_mtx_;
-  std::mutex sdo_write_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces
