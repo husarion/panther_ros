@@ -195,8 +195,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
   }
 }
 
-// TODO: class?
-template <class type>
+template <typename type>
 type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 {
   // TODO: describe edge case
@@ -257,7 +256,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   return data;
 }
 
-template <class type>
+template <typename type>
 void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 {
   std::unique_lock<std::mutex> sdo_write_lk(sdo_write_mtx_, std::defer_lock);

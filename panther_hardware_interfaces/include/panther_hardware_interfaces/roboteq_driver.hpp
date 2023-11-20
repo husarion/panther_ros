@@ -162,10 +162,10 @@ private:
   std::mutex sdo_read_mtx_;
   std::mutex sdo_write_mtx_;
 
-  template <class type>
+  template <typename type>
   type SyncSdoRead(uint16_t index, uint8_t subindex);
 
-  template <class type>
+  template <typename type>
   void SyncSdoWrite(uint16_t index, uint8_t subindex, type data);
 
   // TODO

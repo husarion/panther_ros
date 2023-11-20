@@ -101,7 +101,7 @@ public:
 
   void TriggerPDOPublish();
 
-  template <class type>
+  template <typename type>
   void SetOnWriteWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
   {
     OnWrite<type>(
@@ -113,7 +113,7 @@ public:
       });
   }
 
-  template <class type>
+  template <typename type>
   void SetOnReadWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
   {
     OnRead<type>(
