@@ -124,7 +124,7 @@ void GPIODriver::change_pin_direction(GPIOpin pin, gpiod::line::direction direct
 
 bool GPIODriver::is_pin_active(GPIOpin pin)
 {
-  std::shared_lock lock(gpio_info_mutex_);
+  std::unique_lock lock(gpio_info_mutex_);
   return get_pin_info_ref(pin).value == gpiod::line::value::ACTIVE;
 }
 

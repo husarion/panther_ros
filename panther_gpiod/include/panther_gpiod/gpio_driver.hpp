@@ -27,6 +27,7 @@
 #define PANTHER_HARDWARE_INTERFACES__GPIO_CONTROLLER_HPP_
 
 #include <poll.h>
+
 #include <atomic>
 #include <functional>
 #include <gpiod.hpp>
