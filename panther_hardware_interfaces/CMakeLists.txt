@@ -40,6 +40,7 @@ add_library(
   src/canopen_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
+  src/utils.cpp
 )
 target_include_directories(
   ${PROJECT_NAME}
@@ -106,6 +107,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_utils
     test/test_utils.cpp
+    src/utils.cpp
   )
   target_include_directories(
     ${PROJECT_NAME}_test_utils

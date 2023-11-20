@@ -44,6 +44,44 @@ TEST(TestUtils, test_bit_set_out_of_range)
   ASSERT_THROW(IsBitSet(0b01101001, -1), std::runtime_error);
 }
 
+TEST(TestUtils, operation_with_attempts_fail_test)
+{
+  unsigned max_attempts = 5;
+  unsigned attempts_counter = 0;
+  unsigned on_error_counter = 0;
+
+  ASSERT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
+    [&attempts_counter]() {
+      ++attempts_counter;
+      throw std::runtime_error("");
+    },
+    max_attempts, [&on_error_counter]() { ++on_error_counter; }));
+  ASSERT_EQ(attempts_counter, max_attempts);
+  ASSERT_EQ(on_error_counter, max_attempts);
+}
+
+TEST(TestUtils, operation_with_attempts_success_test)
+{
+  unsigned max_attempts = 5;
+  unsigned attempts_counter = 0;
+
+  ASSERT_TRUE(panther_hardware_interfaces::OperationWithAttempts(
+    [&attempts_counter, &max_attempts]() {
+      ++attempts_counter;
+      if (attempts_counter < max_attempts) {
+        throw std::runtime_error("");
+      }
+    },
+    max_attempts, []() {}));
+  ASSERT_EQ(attempts_counter, max_attempts);
+}
+
+TEST(TestUtils, operation_with_attempts_on_error_throw_test)
+{
+  ASSERT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
+    []() { throw std::runtime_error(""); }, 5, []() { throw std::runtime_error(""); }));
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

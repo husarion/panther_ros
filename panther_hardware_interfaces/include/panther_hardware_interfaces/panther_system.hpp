@@ -26,33 +26,6 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 using StateInterface = hardware_interface::StateInterface;
 using CommandInterface = hardware_interface::CommandInterface;
 
-// TODO: move it somewhere
-/**
- * @brief Attempts to run operation for max_attempts number of times.
- * operation can throw std::runtime_error, which is caught, and on_error function
- * is executed (for example deinitialization or some other clean up in case of 
- * failure)
- * @return true if operation was successfully executed, false if it wasn't executed
- * and number of attempts exceeded maximum allowed
- */
-bool OperationWithAttempts(
-  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
-{
-  for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
-    try {
-      operation();
-      return true;
-    } catch (std::runtime_error & err) {
-      on_error();
-      RCLCPP_WARN_STREAM(
-        rclcpp::get_logger("PantherSystem"), "Operation failed: " << err.what() << ". Attempt "
-                                                                  << attempts_counter + 1 << " of "
-                                                                  << max_attempts);
-    }
-  }
-  return false;
-}
-
 /**
  * @brief Class that implements SystemInterface from ros2_control for Panther
  */

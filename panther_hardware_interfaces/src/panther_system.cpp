@@ -4,6 +4,8 @@
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
+#include <panther_hardware_interfaces/utils.hpp>
+
 // TODO: add user variable to script that will trigger DOUT4 instead of safety stop
 
 namespace panther_hardware_interfaces
@@ -237,9 +239,11 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating roboteqs");
 
+  // TODO: waiting?
   if (!OperationWithAttempts(
         std::bind(&PantherWheelsController::Activate, roboteq_controller_),
-        max_roboteq_activation_attempts_, []() {})) {
+        max_roboteq_activation_attempts_,
+        []() { std::this_thread::sleep_for(std::chrono::milliseconds(2000)); })) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed");
     return CallbackReturn::FAILURE;
   }
@@ -311,7 +315,6 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
 std::vector<StateInterface> PantherSystem::export_state_interfaces()
 {
-  // TODO: check order
   std::vector<StateInterface> state_interfaces;
   for (std::size_t i = 0; i < kJointsSize; i++) {
     state_interfaces.emplace_back(StateInterface(
@@ -346,7 +349,6 @@ void PantherSystem::UpdateDriverState()
     bool finished_updates = roboteq_controller_->UpdateDriversState();
 
     if (finished_updates) {
-      // TODO: locking???
       panther_system_node_.UpdateMsgDriversParameters(
         roboteq_controller_->GetFrontData().GetDriverState(),
         roboteq_controller_->GetRearData().GetDriverState());
@@ -379,6 +381,12 @@ void PantherSystem::UpdateSystemFeedback()
       //   "Error state on one of the drivers"
       //     << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
       //     << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
+
+      RCLCPP_ERROR_STREAM(
+        rclcpp::get_logger("PantherSystem"),
+        "Error state on one of the drivers"
+          << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
+          << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
 
       // TODO: filter only on timeout errors
       canopen_error_filter_->UpdateReadPDOError(true);
@@ -449,6 +457,8 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
     canopen_error_filter_->UpdateWriteSDOError(true);
   }
+
+  // TODO: move setting safety stop here
 
   return return_type::OK;
 }
