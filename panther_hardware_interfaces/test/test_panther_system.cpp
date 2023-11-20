@@ -51,8 +51,8 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
 
   try {
     pth_test_.configure_panther_system();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to configure_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to configure_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -62,8 +62,8 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
 
   try {
     pth_test_.activate_panther_system();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to activate_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to activate_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -79,8 +79,8 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
 
   try {
     pth_test_.shutdown_panther_system();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to shutdown_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to shutdown_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -98,8 +98,8 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 
   try {
     pth_test_.configure_panther_system();
-  } catch (const std::exception & err) {
-    FAIL() << "Exception caught when trying to configure_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to configure_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -109,8 +109,8 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 
   try {
     pth_test_.activate_panther_system();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to activate_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to activate_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -126,8 +126,8 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 
   try {
     pth_test_.deactivate_panther_system();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to deactivate_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to deactivate_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -137,8 +137,8 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 
   try {
     pth_test_.unconfigure_panther_system();
-  } catch (std::exception & err) {
-    FAIL() << "Exception caught when trying to unconfigure_panther_system: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception caught when trying to unconfigure_panther_system: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -241,8 +241,8 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
   try {
     pth_test_.rm_->read(TIME, PERIOD);
-  } catch (std::exception & err) {
-    FAIL() << "Exception: " << err.what();
+  } catch (const std::exception & e) {
+    FAIL() << "Exception: " << e.what();
     return;
   }
 
@@ -321,8 +321,8 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   for (int i = 0; i < 8; ++i) {
     try {
       pth_test_.rm_->read(simulated_time, PERIOD);
-    } catch (std::exception & err) {
-      FAIL() << "Exception: " << err.what();
+    } catch (const std::exception & e) {
+      FAIL() << "Exception: " << e.what();
       return;
     }
 

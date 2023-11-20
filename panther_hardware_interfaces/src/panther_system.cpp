@@ -177,9 +177,9 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     CheckJointNames();
     SetInitialValues();
     CheckInterfaces();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     RCLCPP_FATAL_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Exception during initialization: " << err.what());
+      rclcpp::get_logger("PantherSystem"), "Exception during initialization: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -189,7 +189,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     ReadInitializationActivationAttempts();
     ReadParametersAndCreateCanOpenErrorFilter();
 
-  } catch (std::invalid_argument & err) {
+  } catch (const std::invalid_argument & e) {
     RCLCPP_FATAL(
       rclcpp::get_logger("PantherSystem"),
       "One of the required hardware parameters was not defined");
@@ -271,8 +271,8 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 
   try {
     roboteq_controller_->TurnOnSafetyStop();
-  } catch (std::runtime_error & err) {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
+  } catch (const std::runtime_error & e) {
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << e.what());
     return CallbackReturn::FAILURE;
   }
 
@@ -286,8 +286,8 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
   try {
     roboteq_controller_->TurnOnSafetyStop();
-  } catch (std::runtime_error & err) {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << err.what());
+  } catch (const std::runtime_error & e) {
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << e.what());
     return CallbackReturn::FAILURE;
   }
 
@@ -366,10 +366,10 @@ void PantherSystem::UpdateDriverState()
 
     canopen_error_filter_->UpdateReadSDOError(false);
 
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(
       rclcpp::get_logger("PantherSystem"),
-      "Error when trying to read drivers feedback: " << err.what());
+      "Error when trying to read drivers feedback: " << e.what());
     canopen_error_filter_->UpdateReadSDOError(true);
   }
 }
@@ -404,10 +404,10 @@ void PantherSystem::UpdateSystemFeedback()
       canopen_error_filter_->UpdateReadPDOError(false);
     }
 
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     canopen_error_filter_->UpdateReadPDOError(true);
     RCLCPP_ERROR_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << err.what());
+      rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << e.what());
   }
 }
 
@@ -442,10 +442,10 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       // 0 command is set with safety stop
       try {
         roboteq_controller_->TurnOnSafetyStop();
-      } catch (std::runtime_error & err) {
+      } catch (const std::runtime_error & e) {
         RCLCPP_FATAL_STREAM(
           rclcpp::get_logger("PantherSystem"),
-          "Error when trying to turn on safety stop: " << err.what());
+          "Error when trying to turn on safety stop: " << e.what());
         return return_type::ERROR;
       }
     }
@@ -462,9 +462,9 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
       hw_commands_velocities_[3]);
     canopen_error_filter_->UpdateWriteSDOError(false);
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << err.what());
+      rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << e.what());
     canopen_error_filter_->UpdateWriteSDOError(true);
   }
 

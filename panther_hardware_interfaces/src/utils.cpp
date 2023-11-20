@@ -45,13 +45,13 @@ bool OperationWithAttempts(
     try {
       operation();
       return true;
-    } catch (std::runtime_error & err) {
-      std::cerr << "Operation failed: " << err.what() << ". Attempt " << attempts_counter + 1
+    } catch (const std::runtime_error & e) {
+      std::cerr << "Operation failed: " << e.what() << ". Attempt " << attempts_counter + 1
                 << " of " << max_attempts << std::endl;
       try {
         on_error();
-      } catch (std::runtime_error & on_error_err) {
-        std::cerr << "on_error function failed: " << on_error_err.what() << std::endl;
+      } catch (const std::runtime_error & on_error_e) {
+        std::cerr << "on_error function failed: " << on_error_e.what() << std::endl;
         return false;
       }
     }

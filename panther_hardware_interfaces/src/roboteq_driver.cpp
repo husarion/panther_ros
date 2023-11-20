@@ -63,7 +63,7 @@ int16_t RoboteqDriver::ReadTemperature()
 {
   try {
     return SyncSdoRead<int8_t>(0x210F, 1);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
   }
 }
@@ -72,7 +72,7 @@ uint16_t RoboteqDriver::ReadVoltage()
 {
   try {
     return SyncSdoRead<uint16_t>(0x210D, 2);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
   }
 }
@@ -81,7 +81,7 @@ int16_t RoboteqDriver::ReadBatAmps1()
 {
   try {
     return SyncSdoRead<int16_t>(0x210C, 1);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
   }
 }
@@ -90,7 +90,7 @@ int16_t RoboteqDriver::ReadBatAmps2()
 {
   try {
     return SyncSdoRead<int16_t>(0x210C, 2);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
   }
 }
@@ -128,7 +128,7 @@ void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
 {
   try {
     SyncSdoWrite<int32_t>(0x2000, 1, cmd);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to send channel 1 roboteq command: " + std::string(e.what()));
   }
@@ -138,7 +138,7 @@ void RoboteqDriver::SendRoboteqCmdChannel2(int32_t cmd)
 {
   try {
     SyncSdoWrite<int32_t>(0x2000, 2, cmd);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to send channel 2 roboteq command: " + std::string(e.what()));
   }
@@ -148,7 +148,7 @@ void RoboteqDriver::ResetRoboteqScript()
 {
   try {
     SyncSdoWrite<uint8_t>(0x2018, 0, 2);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to reset roboteq script: " + std::string(e.what()));
   }
 }
@@ -158,7 +158,7 @@ void RoboteqDriver::TurnOnEstop()
   // Cmd_ESTOP
   try {
     SyncSdoWrite<uint8_t>(0x200C, 0, 1);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
   }
 }
@@ -168,7 +168,7 @@ void RoboteqDriver::TurnOffEstop()
   // Cmd_MGO
   try {
     SyncSdoWrite<uint8_t>(0x200D, 0, 1);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
   }
 }
@@ -178,7 +178,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel1()
   // Cmd_SFT Safety Stop
   try {
     SyncSdoWrite<uint8_t>(0x202C, 0, 1);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 1: " + std::string(e.what()));
   }
@@ -189,7 +189,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
   // Cmd_SFT Safety Stop
   try {
     SyncSdoWrite<uint8_t>(0x202C, 0, 2);
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
   }
@@ -239,7 +239,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
         cv.notify_one();
       },
       sdo_operation_timeout_);
-  } catch (lely::canopen::SdoError & e) {
+  } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
@@ -296,7 +296,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
         cv.notify_one();
       },
       sdo_operation_timeout_);
-  } catch (lely::canopen::SdoError & e) {
+  } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
   }
 

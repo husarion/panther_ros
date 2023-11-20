@@ -141,7 +141,6 @@ public:
   void TurnOnSafetyStopChannel2();
 
 private:
-  // TODO: fix naming
   std::atomic_bool booted_ = false;
   std::condition_variable boot_cond_var_;
   std::mutex boot_mtx_;

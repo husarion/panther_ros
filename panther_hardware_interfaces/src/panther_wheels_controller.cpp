@@ -34,8 +34,8 @@ void PantherWheelsController::Initialize()
 {
   try {
     canopen_controller_.Initialize();
-  } catch (std::runtime_error & err) {
-    throw err;
+  } catch (const std::runtime_error & e) {
+    throw e;
   }
 }
 
@@ -48,16 +48,16 @@ void PantherWheelsController::Activate()
 
   try {
     canopen_controller_.GetFrontDriver()->ResetRoboteqScript();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Front driver reset roboteq script exception: " + std::string(err.what()));
+      "Front driver reset roboteq script exception: " + std::string(e.what()));
   }
 
   try {
     canopen_controller_.GetRearDriver()->ResetRoboteqScript();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Rear driver reset roboteq script exception: " + std::string(err.what()));
+      "Rear driver reset roboteq script exception: " + std::string(e.what()));
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -65,14 +65,14 @@ void PantherWheelsController::Activate()
   try {
     canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel1(0);
     canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel2(0);
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Front driver send 0 command exception: " + std::string(err.what()));
+  } catch (const std::runtime_error & e) {
+    throw std::runtime_error("Front driver send 0 command exception: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(0);
     canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(0);
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Rear driver send 0 command exception: " + std::string(err.what()));
+  } catch (const std::runtime_error & e) {
+    throw std::runtime_error("Rear driver send 0 command exception: " + std::string(e.what()));
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
@@ -160,7 +160,7 @@ bool PantherWheelsController::UpdateDriversState()
 
     return false;
 
-  } catch (std::runtime_error & e) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to read roboteq drivers feedback: " + std::string(e.what()));
   }
@@ -175,16 +175,16 @@ void PantherWheelsController::WriteSpeed(
       roboteq_command_converter_.Convert(speed_fr));
     canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel2(
       roboteq_command_converter_.Convert(speed_fl));
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(err.what()));
+  } catch (const std::runtime_error & e) {
+    throw std::runtime_error("Front driver send roboteq cmd failed: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(
       roboteq_command_converter_.Convert(speed_rr));
     canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(
       roboteq_command_converter_.Convert(speed_rl));
-  } catch (std::runtime_error & err) {
-    throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(err.what()));
+  } catch (const std::runtime_error & e) {
+    throw std::runtime_error("Rear driver send roboteq cmd failed: " + std::string(e.what()));
   }
 
   if (canopen_controller_.GetFrontDriver()->is_can_error()) {
@@ -201,15 +201,15 @@ void PantherWheelsController::TurnOnEstop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOnEstop();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on estop on front driver: " + std::string(err.what()));
+      "Exception when trying to turn on estop on front driver: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->TurnOnEstop();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on estop on rear driver: " + std::string(err.what()));
+      "Exception when trying to turn on estop on rear driver: " + std::string(e.what()));
   }
 }
 
@@ -217,15 +217,15 @@ void PantherWheelsController::TurnOffEstop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOffEstop();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn off estop  on front driver: " + std::string(err.what()));
+      "Exception when trying to turn off estop  on front driver: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->TurnOffEstop();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn off estop on rear driver: " + std::string(err.what()));
+      "Exception when trying to turn off estop on rear driver: " + std::string(e.what()));
   }
 }
 
@@ -234,16 +234,16 @@ void PantherWheelsController::TurnOnSafetyStop()
   try {
     canopen_controller_.GetFrontDriver()->TurnOnSafetyStopChannel1();
     canopen_controller_.GetFrontDriver()->TurnOnSafetyStopChannel2();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on safety stop on front driver: " + std::string(err.what()));
+      "Exception when trying to turn on safety stop on front driver: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->TurnOnSafetyStopChannel1();
     canopen_controller_.GetRearDriver()->TurnOnSafetyStopChannel2();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on safety stop on rear driver: " + std::string(err.what()));
+      "Exception when trying to turn on safety stop on rear driver: " + std::string(e.what()));
   }
 }
 

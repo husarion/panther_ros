@@ -94,29 +94,27 @@ void CanOpenController::Boot()
 {
   try {
     front_driver_->Boot();
-  } catch (std::system_error & err) {
+  } catch (const std::system_error & e) {
     throw std::runtime_error(
-      "Exception caught when trying to Boot front driver" + std::string(err.what()));
+      "Exception caught when trying to Boot front driver" + std::string(e.what()));
   }
 
   try {
     rear_driver_->Boot();
-  } catch (std::system_error & err) {
+  } catch (const std::system_error & e) {
     throw std::runtime_error(
-      "Exception caught when trying to Boot rear driver" + std::string(err.what()));
+      "Exception caught when trying to Boot rear driver" + std::string(e.what()));
   }
 
-  // TODO combine try-catch
   try {
     front_driver_->wait_for_boot();
-    // TODO change exceptions to const
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver boot failed");
   }
 
   try {
     rear_driver_->wait_for_boot();
-  } catch (std::runtime_error & err) {
+  } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver boot failed");
   }
 }
@@ -130,8 +128,8 @@ void CanOpenController::Initialize()
 
     try {
       InitializeCanCommunication();
-    } catch (std::system_error & err) {
-      std::cerr << "Exception caught during CAN initialization: " << err.what() << std::endl;
+    } catch (const std::system_error & e) {
+      std::cerr << "Exception caught during CAN initialization: " << e.what() << std::endl;
 
       NotifyCanCommunication(false);
       return;
@@ -141,9 +139,9 @@ void CanOpenController::Initialize()
 
     try {
       loop_->run();
-    } catch (std::system_error & err) {
+    } catch (const std::system_error & e) {
       // TODO: error state
-      std::cerr << "Exception caught in loop run: " << err.what() << std::endl;
+      std::cerr << "Exception caught in loop run: " << e.what() << std::endl;
     }
   });
 
