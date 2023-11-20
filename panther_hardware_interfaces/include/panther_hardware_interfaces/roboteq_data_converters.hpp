@@ -35,7 +35,26 @@ struct DrivetrainSettings
 };
 
 /**
- * @brief Class for storing and converting (between raw roboteq data and SI units) of motor
+ * @brief Class for converting velocity commands (between SI units and raw Roboteq cmd)
+ */
+class RoboteqVeloctiyCommandConverter
+{
+public:
+  RoboteqVeloctiyCommandConverter(DrivetrainSettings drivetrain_settings);
+  int32_t Convert(double cmd) const { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
+
+private:
+  inline int32_t LimitCmd(int32_t cmd) const
+  {
+    return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
+  }
+
+  float radians_per_second_to_roboteq_cmd_;
+  static constexpr int32_t max_roboteq_cmd_value_ = 1000;
+};
+
+/**
+ * @brief Class for storing and converting (between raw Roboteq data and SI units) of motor
  * state (position, velocity, torque)
  */
 class MotorState
@@ -61,27 +80,6 @@ private:
   float roboteq_current_feedback_to_newton_meters_;
 
   RoboteqMotorState last_state_ = {0, 0, 0};
-};
-
-// TODO: Now it is only for velocity
-// TODO: fix roboteq naming
-/**
- * @brief Class for converting velocity commands (between SI units and raw roboteq cmd)
- */
-class RoboteqCommandConverter
-{
-public:
-  RoboteqCommandConverter(DrivetrainSettings drivetrain_settings);
-  int32_t Convert(double cmd) const { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
-
-private:
-  inline int32_t LimitCmd(int32_t cmd) const
-  {
-    return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
-  }
-
-  float radians_per_second_to_roboteq_cmd_;
-  static constexpr int32_t max_roboteq_cmd_value_ = 1000;
 };
 
 /**
@@ -170,7 +168,7 @@ public:
 
 // TODO: maybe rename it - same name as msg
 /**
- * @brief Class for storing and converting current state of the roboteq drivers (temperature,
+ * @brief Class for storing and converting current state of the Roboteq drivers (temperature,
  * voltage and battery current)
  */
 class DriverState
@@ -195,7 +193,7 @@ private:
 };
 
 /**
- * @brief Class that combines all the data that the one roboteq driver provides
+ * @brief Class that combines all the data that the one Roboteq driver provides
  */
 class RoboteqData
 {

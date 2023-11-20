@@ -27,7 +27,7 @@ TEST(TestRoboteqDataConverters, test_command_converter)
   settings.encoder_resolution = 1600;
   settings.max_rpm_motor_speed = 3600.0;
 
-  panther_hardware_interfaces::RoboteqCommandConverter cmd_converter(settings);
+  panther_hardware_interfaces::RoboteqVeloctiyCommandConverter cmd_converter(settings);
 
   // radians_per_second_to_roboteq_cmd = 79.789678137
 

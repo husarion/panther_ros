@@ -93,7 +93,7 @@
           <param name="master_can_id">3</param>
           <param name="front_driver_can_id">1</param>
           <param name="rear_driver_can_id">2</param>
-          <!-- Shouldn't but can depend on frequencies of publishing PDO (set on roboteq) and
+          <!-- Shouldn't but can depend on frequencies of publishing PDO (set on Roboteq) and
             frequency of controller (frequency of publishing commands) -->
           <param name="sdo_operation_timeout">4</param>
           <!-- Depends on frequnecy of the controller -->

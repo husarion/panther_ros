@@ -23,7 +23,7 @@ It abstract usage of two Roboteq controllers:
 ### `roboteq_data_converters`
 
 Provides a few classes for converting data in raw Roboteq formats read from Roboteq drivers into appropriate units or message formats. It can be divided into two types, command and data feedback. Command provides one utility function that converts command in rad/s into Roboteq command and returns it:
-* `RoboteqCommandConverter`
+* `RoboteqVeloctiyCommandConverter`
 
 Data feedback converters also store data (it is passed using Set methods, and later converted data can be read using Get data).
 * `MotorState` - converts position, velocity and torque feedback
@@ -171,7 +171,7 @@ Remove master.dcf
   // 2. Convert motor Nm ideal torque to motor Nm real torque (multiplication by (1.0/gearbox_efficiency))
   // 3. Convert motor Nm real torque to motor A current (multiplication by (1.0/motor_torque_constant))
   // 4. Convert motor A current to Roboteq GO command - permille of the Amps limit current
-  //    set in the roboteq driver (ALIM parameter) - multiplication by 1000.0/max_amps_motor_current
+  //    set in the Roboteq driver (ALIM parameter) - multiplication by 1000.0/max_amps_motor_current
   newton_meter_to_roboteq_cmd_ = (1.0 / drivetrain_settings.gear_ratio) *
                                  (1.0 / drivetrain_settings.gearbox_efficiency) *
                                  (1.0 / drivetrain_settings.motor_torque_constant) *

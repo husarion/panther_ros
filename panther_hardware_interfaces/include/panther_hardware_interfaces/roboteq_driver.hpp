@@ -175,7 +175,7 @@ private:
   void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
   // void OnTpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
 
-  // emcy - emergency - I don't think that it is used by roboteq - haven't found any information
+  // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
   // about it while ros2_canopen has ability to read it, I didn't see any attempts to handle it void
   // OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
 

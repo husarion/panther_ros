@@ -130,7 +130,7 @@ void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
     SyncSdoWrite<int32_t>(0x2000, 1, cmd);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Error when trying to send channel 1 roboteq command: " + std::string(e.what()));
+      "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
   }
 }
 
@@ -140,7 +140,7 @@ void RoboteqDriver::SendRoboteqCmdChannel2(int32_t cmd)
     SyncSdoWrite<int32_t>(0x2000, 2, cmd);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Error when trying to send channel 2 roboteq command: " + std::string(e.what()));
+      "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
   }
 }
 
@@ -149,7 +149,7 @@ void RoboteqDriver::ResetRoboteqScript()
   try {
     SyncSdoWrite<uint8_t>(0x2018, 0, 2);
   } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to reset roboteq script: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to reset Roboteq script: " + std::string(e.what()));
   }
 }
 

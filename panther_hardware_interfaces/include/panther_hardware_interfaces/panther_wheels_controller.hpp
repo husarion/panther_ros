@@ -49,7 +49,7 @@ public:
   void Deinitialize();
 
   /**
-   * @brief Activate procedure for roboteq drivers - reset scripts and send 0 command on both
+   * @brief Activate procedure for Roboteq drivers - reset scripts and send 0 command on both
    * channels. Blocking function, takes around 2 seconds to finish
    *
    * @exception std::runtime_error if any procedure step fails
@@ -57,15 +57,15 @@ public:
   void Activate();
 
   /**
-   * @brief Updates current roboteq feedback state (position, velocity, current, flags).
+   * @brief Updates current Roboteq feedback state (position, velocity, current, flags).
    *
-   * @exception std::runtime_error if current data is too old or any error flag on roboteq
+   * @exception std::runtime_error if current data is too old or any error flag on Roboteq
    * driver was set or can error was detected
    */
   void UpdateSystemFeedback();
 
   /**
-   * @brief Updates one of current roboteq driver feedback state (temperature, voltage,
+   * @brief Updates one of current Roboteq driver feedback state (temperature, voltage,
    * battery current). It has to be called 8 times to update all values. It was separated
    * to allow higher frequencies of the controller - reading all the values at ones takes
    * some time. By reading values one by one, required time won't be as long. This values
@@ -120,7 +120,7 @@ private:
   RoboteqData front_data_;
   RoboteqData rear_data_;
 
-  RoboteqCommandConverter roboteq_command_converter_;
+  RoboteqVeloctiyCommandConverter roboteq_vel_cmd_converter_;
 
   const std::chrono::milliseconds pdo_feedback_timeout_;
 

@@ -550,7 +550,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   PantherSystemTestUtils pth_test_;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
-  // adding wait time to roboteq mock block all communication (also PDO), and PDO timeouts
+  // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
   pth_test_.param_map_["max_read_pdo_errors_count"] = "100";
   pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
@@ -616,7 +616,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   PantherSystemTestUtils pth_test_;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
-  // adding wait time to roboteq mock block all communication (also PDO), and PDO timeouts
+  // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
   pth_test_.param_map_["max_read_pdo_errors_count"] = "100";
   pth_test_.param_map_["max_read_sdo_errors_count"] = "2";
@@ -690,7 +690,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   PantherSystemTestUtils pth_test_;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
-  // adding wait time to roboteq mock block all communication (also PDO), and PDO timeouts
+  // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
   pth_test_.param_map_["pdo_feedback_timeout"] = "15";
   pth_test_.param_map_["max_read_pdo_errors_count"] = "2";

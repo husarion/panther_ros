@@ -79,7 +79,7 @@ protected:
 
   static constexpr size_t kJointsSize = 4;
 
-  // Currently only velocity command mode is supported - although roboteq driver support position
+  // Currently only velocity command mode is supported - although Roboteq driver support position
   // and torque mode, in 2.1 firmware both modes aren't really stable and safe.
   // In torque mode sometimes after killing software motor moves and it generally isn't well tuned.
   // Position mode also isn't really stable (reacts abruptly to spikes).
@@ -105,7 +105,7 @@ protected:
 
   PantherSystemNode panther_system_node_;
 
-  // Sometimes SDO errors can happen during initialization and activation of roboteq drivers,
+  // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in this cases it is better to retry
   // Example errors:
   // SDO abort code 05040000 received on upload request of object 1000 (Device type) to

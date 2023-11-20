@@ -51,7 +51,8 @@ MotorState::MotorState(DrivetrainSettings drivetrain_settings)
     drivetrain_settings.gearbox_efficiency;
 }
 
-RoboteqCommandConverter::RoboteqCommandConverter(DrivetrainSettings drivetrain_settings)
+RoboteqVeloctiyCommandConverter::RoboteqVeloctiyCommandConverter(
+  DrivetrainSettings drivetrain_settings)
 {
   // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
   // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)

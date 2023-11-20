@@ -211,7 +211,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   panther_system_node_.Initialize();
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing roboteqs");
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing Roboteq drivers");
 
   if (!OperationWithAttempts(
         std::bind(&PantherWheelsController::Initialize, roboteq_controller_),
@@ -249,7 +249,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   // gpio_controller_->start();
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating roboteqs");
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating Roboteq drivers");
 
   if (!OperationWithAttempts(
         std::bind(&PantherWheelsController::Activate, roboteq_controller_),
