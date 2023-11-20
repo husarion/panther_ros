@@ -1,11 +1,25 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PANTHER_HARDWARE_INTERFACES__ROBOTEQ_DATA_CONVERTERS_HPP_
 #define PANTHER_HARDWARE_INTERFACES__ROBOTEQ_DATA_CONVERTERS_HPP_
 
 #include <vector>
 
 #include <panther_msgs/msg/fault_flag.hpp>
-#include <panther_msgs/msg/script_flag.hpp>
 #include <panther_msgs/msg/runtime_error.hpp>
+#include <panther_msgs/msg/script_flag.hpp>
 
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
@@ -82,7 +96,7 @@ public:
   void SetData(uint8_t flags) { flags_ = flags; }
 
   /**
-   * @brief Sets which flags should be ignored when checking if error occured, when converting
+   * @brief Sets which flags should be ignored when checking if error occurred, when converting
    * to message true data still will be set
    */
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
@@ -156,7 +170,7 @@ public:
 
 // TODO: maybe rename it - same name as msg
 /**
- * @brief Class for storing and converting current state of the roboteq drivers (temperature, 
+ * @brief Class for storing and converting current state of the roboteq drivers (temperature,
  * voltage and battery current)
  */
 class DriverState
@@ -224,7 +238,7 @@ public:
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
-  // TOOD: rename
+  // TODO: rename
   bool GetOldData() const { return old_data_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }

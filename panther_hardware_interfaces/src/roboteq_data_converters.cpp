@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 #include <cmath>
@@ -9,19 +23,23 @@ namespace panther_hardware_interfaces
 
 MotorState::MotorState(DrivetrainSettings drivetrain_settings)
 {
-  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in radians. Steps:
-  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by (1.0/encoder_resolution))
+  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in
+  // radians. Steps:
+  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by
+  //    (1.0/encoder_resolution))
   // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
   // 3. Convert wheel rotation to wheel position in radians (multiplication by 2.0*pi)
   roboteq_pos_feedback_to_radians_ = (1.0 / drivetrain_settings.encoder_resolution) *
                                      (1.0 / drivetrain_settings.gear_ratio) * (2.0 * M_PI);
 
   // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
-  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed (multiplication by (1.0/gear_ratio))
-  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication by (1.0/60.0))
+  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed
+  //    (multiplication by (1.0/gear_ratio))
+  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication
+  //    by (1.0/60.0))
   // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
-  roboteq_vel_feedback_to_radians_per_second_ =
-    (1.0 / drivetrain_settings.gear_ratio) * (1.0 / 60.0) * (2.0 * M_PI);
+  roboteq_vel_feedback_to_radians_per_second_ = (1.0 / drivetrain_settings.gear_ratio) *
+                                                (1.0 / 60.0) * (2.0 * M_PI);
 
   // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
   // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
@@ -37,10 +55,13 @@ RoboteqCommandConverter::RoboteqCommandConverter(DrivetrainSettings drivetrain_s
 {
   // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
   // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)
-  // 2. Convert motor rad/s speed to motor rotation per second speed (multiplication by 1.0/(2.0*pi))
-  // 3. Convert motor rotation per second speed to motor rotation per minute speed (multiplication by 60.0)
-  // 4. Convert motor rotation per minute speed to Roboteq GO command - permille of the max rotation per minute
-  //    speed set in the Roboteq driver (MXRPM parameter) - multiplication by 1000.0/max_rpm_motor_speed
+  // 2. Convert motor rad/s speed to motor rotation per second speed (multiplication
+  //    by 1.0/(2.0*pi))
+  // 3. Convert motor rotation per second speed to motor rotation per minute speed (multiplication
+  //    by 60.0)
+  // 4. Convert motor rotation per minute speed to Roboteq GO command - permille of the max rotation
+  //    per minute speed set in the Roboteq driver (MXRPM parameter) - multiplication by
+  //    1000.0/max_rpm_motor_speed
   radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0 / (2.0 * M_PI)) *
                                        60.0 * (1000.0 / drivetrain_settings.max_rpm_motor_speed);
 }

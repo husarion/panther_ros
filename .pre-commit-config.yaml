@@ -3,7 +3,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
-      # mesh files has to be taken into account
+        # mesh files has to be taken into account
         args: ["--maxkb=2000"]
       - id: check-ast
       - id: check-json
@@ -44,7 +44,7 @@ repos:
       - id: codespell
         name: codespell
         description: Checks for common misspellings in text files.
-        entry: codespell  *
+        entry: codespell --exclude-file=panther_hardware_interfaces/config/roboteq_motor_controllers_v80_21.eds *
         language: python
         types: [text]
 

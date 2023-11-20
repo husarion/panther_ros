@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <string>
 
 #include <gtest/gtest.h>
@@ -302,7 +316,8 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   auto simulated_time = node->get_clock()->now();
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  // Every read call one value is updated - has to be called 8 times to update all of them and send new values
+  // Every read call one value is updated - has to be called 8 times to update all of them and send
+  // new values
   for (int i = 0; i < 8; ++i) {
     try {
       pth_test_.rm_->read(simulated_time, PERIOD);
@@ -431,8 +446,8 @@ TEST(TestPantherSystemOthers, test_error_state)
   pth_test_.param_map_["max_read_sdo_errors_count"] = "1";
   pth_test_.param_map_["max_write_sdo_errors_count"] = "1";
 
-  const std::string panther_system_urdf_ =
-    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
+    pth_test_.param_map_, pth_test_.joints_);
   const double period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -541,8 +556,8 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
   pth_test_.param_map_["max_write_sdo_errors_count"] = "2";
 
-  const std::string panther_system_urdf_ =
-    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
+    pth_test_.param_map_, pth_test_.joints_);
   const double period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -607,8 +622,8 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   pth_test_.param_map_["max_read_sdo_errors_count"] = "2";
   pth_test_.param_map_["max_write_sdo_errors_count"] = "100";
 
-  const std::string panther_system_urdf_ =
-    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
+    pth_test_.param_map_, pth_test_.joints_);
   const double period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -682,8 +697,8 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
   pth_test_.param_map_["max_write_sdo_errors_count"] = "100";
 
-  const std::string panther_system_urdf_ =
-    pth_test_.BuildUrdf(pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
+    pth_test_.param_map_, pth_test_.joints_);
   const double period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -738,7 +753,8 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   pth_test_.Stop();
 }
 
-// TODO estop tests - it will the best to add them along with GPIO, as it will change the estop procedure
+// TODO estop tests - it will the best to add them along with GPIO, as it will change the estop
+// procedure
 
 int main(int argc, char ** argv)
 {

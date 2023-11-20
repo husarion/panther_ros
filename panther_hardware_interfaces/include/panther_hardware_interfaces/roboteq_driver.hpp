@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PANTHER_HARDWARE_INTERFACES__ROBOTEQ_DRIVER_HPP_
 #define PANTHER_HARDWARE_INTERFACES__ROBOTEQ_DRIVER_HPP_
 
@@ -8,8 +22,8 @@
 #include <lely/coapp/fiber_driver.hpp>
 
 #include <panther_msgs/msg/fault_flag.hpp>
-#include <panther_msgs/msg/script_flag.hpp>
 #include <panther_msgs/msg/runtime_error.hpp>
+#include <panther_msgs/msg/script_flag.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -49,30 +63,30 @@ public:
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return 
+   * @return
    */
   int16_t ReadTemperature();
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return 
+   * @return
    */
   uint16_t ReadVoltage();
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return 
+   * @return
    */
   int16_t ReadBatAmps1();
 
   /**
    * @exception std::runtime_error if operation fails
-   * @return 
+   * @return
    */
   int16_t ReadBatAmps2();
 
   /**
-   * @return 
+   * @return
    */
   // TODO: noexcept?
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
@@ -104,7 +118,7 @@ public:
   // TODO: maybe separate it for channels
   /**
    * @brief Turns off Roboteq estop
-   * 
+   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOffEstop();
@@ -156,9 +170,9 @@ private:
 
   timespec last_rpdo_write_timestamp_;
 
-  // emcy - emergency - I don't think that it is used by roboteq - haven't found any information about it
-  // while ros2_canopen has ability to read it, I didn't see any attempts to handle it
-  // void OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
+  // emcy - emergency - I don't think that it is used by roboteq - haven't found any information
+  // about it while ros2_canopen has ability to read it, I didn't see any attempts to handle it void
+  // OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
 
   void OnCanError(lely::io::CanError error) noexcept override;
   // virtual void OnConfig(

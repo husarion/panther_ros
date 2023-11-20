@@ -1,11 +1,25 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_
 #define PANTHER_HARDWARE_INTERFACES__PANTHER_WHEELS_CONTROLLER_HPP_
 
 #include <chrono>
 
-#include <panther_hardware_interfaces/roboteq_driver.hpp>
 #include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+#include <panther_hardware_interfaces/roboteq_driver.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -14,7 +28,7 @@ namespace panther_hardware_interfaces
  * @brief It abstract usage of two Roboteq controllers:
  * uses canopen_controller for communication with Roboteq controllers
  * implements activate procedure for controllers - resets script and sends initial 0 command
- * provides methods to get data feedback and send commands. Data is converted between raw 
+ * provides methods to get data feedback and send commands. Data is converted between raw
  * Roboteq formats and SI units using roboteq_data_converters
  */
 class PantherWheelsController
@@ -45,7 +59,7 @@ public:
   /**
    * @brief Updates current roboteq feedback state (position, velocity, current, flags).
    *
-   * @exception std::runtime_error if current data is too old or any error flag on roboteq 
+   * @exception std::runtime_error if current data is too old or any error flag on roboteq
    * driver was set or can error was detected
    */
   void UpdateSystemFeedback();
@@ -87,7 +101,7 @@ public:
 
   /**
    * @brief Turns off Roboteq estop
-   * 
+   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOffEstop();

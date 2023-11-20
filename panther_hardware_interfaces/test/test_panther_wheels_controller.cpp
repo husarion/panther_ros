@@ -1,14 +1,28 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <string>
 
 #include <gtest/gtest.h>
 
 #include <mock_roboteq.hpp>
 #include <panther_hardware_interfaces/canopen_controller.hpp>
-#include <panther_hardware_interfaces/roboteq_driver.hpp>
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
+#include <panther_hardware_interfaces/roboteq_driver.hpp>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 // TODO: sometimes fails
 
@@ -276,7 +290,9 @@ TEST_F(TestPantherWheelsController, test_update_system_pdo_feedback_timeout)
 }
 
 // TODO
-// Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested ,because it reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
+// Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested ,because it
+// reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add
+// it
 
 TEST_F(TestPantherWheelsController, test_update_drivers_state)
 {
@@ -401,7 +417,8 @@ TEST_F(TestPantherWheelsController, test_write_speed_sdo_timeout)
 }
 
 // TODO
-// Similar to test_roboteq_driver, can_error in write speed isn't tested ,because it reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
+// Similar to test_roboteq_driver, can_error in write speed isn't tested ,because it reacts to lower
+// level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
 TEST_F(TestPantherWheelsController, test_turn_on_estop)
 {

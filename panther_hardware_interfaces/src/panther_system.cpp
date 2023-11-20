@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <panther_hardware_interfaces/panther_system.hpp>
 
 #include <rclcpp/logging.hpp>
@@ -49,8 +63,8 @@ void PantherSystem::CheckJointNames()
 
 void PantherSystem::SetInitialValues()
 {
-  // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it shouldn't)
-  // In case of velocity, I think that setting initial value to 0.0 is the best option
+  // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it
+  // shouldn't) In case of velocity, I think that setting initial value to 0.0 is the best option
   for (std::size_t i = 0; i < kJointsSize; i++) {
     hw_commands_velocities_[i] = 0.0;
     hw_states_positions_[i] = std::numeric_limits<double>::quiet_NaN();
@@ -189,8 +203,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
-  roboteq_controller_ =
-    std::make_shared<PantherWheelsController>(canopen_settings_, drivetrain_settings_);
+  roboteq_controller_ = std::make_shared<PantherWheelsController>(
+    canopen_settings_, drivetrain_settings_);
 
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
@@ -414,9 +428,9 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // "soft" error - still there is a comunication over CAN with drivers, so publishing feedback is continued -
-  // hardware interface's onError isn't triggered
-  // estop is handled similarly - at the time of writing there wasn't better approach to handle estop
+  // "soft" error - still there is a communication over CAN with drivers, so publishing feedback is
+  // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
+  // time of writing there wasn't better approach to handle estop
   if (canopen_error_filter_->IsError()) {
     if (
       (roboteq_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&

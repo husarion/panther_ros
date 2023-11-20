@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PANTHER_HARDWARE_INTERFACES__UTILS_HPP_
 #define PANTHER_HARDWARE_INTERFACES__UTILS_HPP_
 
@@ -22,9 +36,9 @@ bool IsBitSet(uint8_t flags, uint8_t bit_no);
 /**
  * @brief Attempts to run operation for max_attempts number of times.
  * operation can throw std::runtime_error, which is caught, and on_error function
- * is executed (for example deinitialization or some other clean up in case of 
+ * is executed (for example deinitialization or some other clean up in case of
  * failure)
- * @return true if operation was successfully executed, false if it wasn't successfuly executed
+ * @return true if operation was successfully executed, false if it wasn't successfully executed
  * and number of attempts exceeded maximum allowed or on_error function threw std::runtime_error
  */
 bool OperationWithAttempts(

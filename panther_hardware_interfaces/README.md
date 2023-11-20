@@ -4,14 +4,14 @@ Package that implements SystemInterface from ros2_control for Panther.
 
 ## Structure
 
-A brief introduction on code structure of panther system. 
+A brief introduction on code structure of panther system.
 
 ### `roboteq_driver`
 
 Low level CANopen driver implementing FiberDriver from [Lely](https://opensource.lely.com/canopen/) ([here](https://en.wikipedia.org/wiki/Fiber_%28computer_science%29) you can read more about fibers). It takes care of translating CANopen indexes into meaningful data. It handles PDO and SDO communication and provides methods for sending commands and reading all the useful parameters from the Roboteq drivers. It saves timestamp of last RPDO, which can be later used to detect timeout errors.
 
 ### `canopen_controller`
-Takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - intializaiton. For handling CANopen communication separate thread is created.  
+Takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - intializaiton. For handling CANopen communication separate thread is created.
 
 ### `panther_wheels_controller`
 
@@ -22,7 +22,7 @@ It abstract usage of two Roboteq controllers:
 
 ### `roboteq_data_converters`
 
-Provides a few classes for converting data in raw Roboteq formats read from Roboteq drivers into appropriate units or message formats. It can be divided into two types, command and data feedback. Command provides one utlity function that converts command in rad/s into Roboteq command and returns it:
+Provides a few classes for converting data in raw Roboteq formats read from Roboteq drivers into appropriate units or message formats. It can be divided into two types, command and data feedback. Command provides one utility function that converts command in rad/s into Roboteq command and returns it:
 * `RoboteqCommandConverter`
 
 Data feedback converters also store data (it is passed using Set methods, and later converted data can be read using Get data).
@@ -30,7 +30,7 @@ Data feedback converters also store data (it is passed using Set methods, and la
 * `FaultFlag`, `ScriptFlag`, `RuntimeError` - converts flag error data into messages
 * `DriverState` - temperature, voltage and current
 
-Feedback converters are combined in the `RoboteqData` class to provide full state of one controller. It consists of 
+Feedback converters are combined in the `RoboteqData` class to provide full state of one controller. It consists of
 * 2 `MotorState` (left and right)
 * `FaultFlag`, `ScriptFlag`
 * 2 `RuntimeError` (for left and right motors)
@@ -38,8 +38,8 @@ Feedback converters are combined in the `RoboteqData` class to provide full stat
 
 ### `canopen_error_filter`
 
-Class that keeps track of different types of errors. In some rare cases Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in timeout. 
-As it usually are rare and singular occurences, it is better to filter some of this errors, and escalate only when certain number of errors happen.
+Class that keeps track of different types of errors. In some rare cases Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in timeout.
+As it usually are rare and singular occurrences, it is better to filter some of this errors, and escalate only when certain number of errors happen.
 
 ### `gpio_driver`
 
@@ -51,7 +51,7 @@ Class that takes care of additional ROS interface of panther system, such as pub
 
 ### `panther_system`
 
-Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documetation](https://control.ros.org/master/index.html)).
+Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
 
 <!-- TODO: when exception is thrown it is not RT safe -->
 
@@ -72,7 +72,7 @@ Parameters that are required, they are defined when including interface in URDF 
 Physical properties
  - `encoder_resolution` [*int*, default: 1600] - property of the encoder used, shouldn't be changed
  - `gear_ratio` [*float*, default: 30.08] - property of the gearbox used, shouldn't be changed
- - `motor_torque_constant` [*float*, default: 0.11] - same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor 
+ - `motor_torque_constant` [*float*, default: 0.11] - same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor
  - `max_rpm_motor_speed` [*float*, default: 3600.0] - max RPM speed set in the Roboteq driver (MXRPM parameter)
  - `gearbox_efficiency` [*float*, default: 0.75] - measured efficiency, used for converting read current to torque, can very depending on different factors such as temperature and wear
 
@@ -83,7 +83,7 @@ CAN settings
  - `sdo_operation_timeout` [*int*, default: 4 [ms]] - it is set so that full controller loop takes up to required time. Each controller loop contains of two SDO operations (one write and one read). For example in 100Hz loop there is up to 10ms for every operation. This timeout should be set so that in worst case everything takes 10ms.
  - `pdo_feedback_timeout` [*int*, default: 15 [ms]]  - depends on frequnecy at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data, if it takes more than `pdo_feedback_timeout`, PDO read error is triggered
  - `max_roboteq_initialization_attempts` [*int*, default: 5] - in some cases SDO error happen during initialization, it is possible to configure more attempts, before escaliting to error
- - `max_roboteq_activation_attempts` [*int*, default: 5] - similat to initilizaiton, it is possible to allow some SDO errors before escaliting to error
+ - `max_roboteq_activation_attempts` [*int*, default: 5] - similar to initilizaiton, it is possible to allow some SDO errors before escaliting to error
  - `max_safety_stop_attempts` [*int*, default: 20] - TODO
  - `max_write_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
  - `max_read_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escaliting to general error
@@ -149,7 +149,7 @@ sudo ip link set panther_can txqueuelen 1000
 sudo ip link set panther_can up
 ```
 
-### Runing tests
+### Running tests
 
 ```
 colcon build --packages-select panther_hardware_interfaces --symlink-install
@@ -161,7 +161,7 @@ TODO comment
 --parallel-workers 1
 
 ### Updating config
-Copy eds file to config and run 
+Copy eds file to config and run
 `dcfgen panther_can.yaml -r`
 Remove master.dcf
 

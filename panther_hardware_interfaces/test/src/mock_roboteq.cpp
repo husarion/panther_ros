@@ -1,3 +1,17 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <mock_roboteq.hpp>
 
 void RoboteqSlave::SetPosition(uint8_t channel, int32_t value)
@@ -132,14 +146,14 @@ void RoboteqMock::Start(std::chrono::milliseconds pdo_period)
     lely::io::CanChannel chan1(poll, exec);
     chan1.open(ctrl);
     lely::io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
-    front_driver_ =
-      std::make_unique<RoboteqSlave>(timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
+    front_driver_ = std::make_unique<RoboteqSlave>(
+      timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
     lely::io::CanChannel chan2(poll, exec);
     chan2.open(ctrl);
     lely::io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
-    rear_driver_ =
-      std::make_unique<RoboteqSlave>(timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
+    rear_driver_ = std::make_unique<RoboteqSlave>(
+      timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
 
     front_driver_->Reset();
     rear_driver_->Reset();
