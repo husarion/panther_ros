@@ -119,32 +119,34 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
   const int32_t rr_vel = 402;
   const int32_t rr_current = 403;
 
-  roboteq_mock_->front_driver_->SetPosition(2, fl_pos);
-  roboteq_mock_->front_driver_->SetPosition(1, fr_pos);
-  roboteq_mock_->rear_driver_->SetPosition(2, rl_pos);
-  roboteq_mock_->rear_driver_->SetPosition(1, rr_pos);
+  roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_pos);
+  roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_pos);
+  roboteq_mock_->rear_driver_->SetPosition(DriverChannel::CHANNEL2, rl_pos);
+  roboteq_mock_->rear_driver_->SetPosition(DriverChannel::CHANNEL1, rr_pos);
 
-  roboteq_mock_->front_driver_->SetVelocity(2, fl_vel);
-  roboteq_mock_->front_driver_->SetVelocity(1, fr_vel);
-  roboteq_mock_->rear_driver_->SetVelocity(2, rl_vel);
-  roboteq_mock_->rear_driver_->SetVelocity(1, rr_vel);
+  roboteq_mock_->front_driver_->SetVelocity(DriverChannel::CHANNEL2, fl_vel);
+  roboteq_mock_->front_driver_->SetVelocity(DriverChannel::CHANNEL1, fr_vel);
+  roboteq_mock_->rear_driver_->SetVelocity(DriverChannel::CHANNEL2, rl_vel);
+  roboteq_mock_->rear_driver_->SetVelocity(DriverChannel::CHANNEL1, rr_vel);
 
-  roboteq_mock_->front_driver_->SetCurrent(2, fl_current);
-  roboteq_mock_->front_driver_->SetCurrent(1, fr_current);
-  roboteq_mock_->rear_driver_->SetCurrent(2, rl_current);
-  roboteq_mock_->rear_driver_->SetCurrent(1, rr_current);
+  roboteq_mock_->front_driver_->SetCurrent(DriverChannel::CHANNEL2, fl_current);
+  roboteq_mock_->front_driver_->SetCurrent(DriverChannel::CHANNEL1, fr_current);
+  roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL2, rl_current);
+  roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL1, rr_current);
 
   roboteq_mock_->front_driver_->SetDriverFaultFlag(DriverFaultFlags::OVERHEAT);
   roboteq_mock_->front_driver_->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
-  roboteq_mock_->front_driver_->SetDriverRuntimeError(0, DriverRuntimeErrors::LOOP_ERROR);
-  roboteq_mock_->front_driver_->SetDriverRuntimeError(1, DriverRuntimeErrors::SAFETY_STOP_ACTIVE);
+  roboteq_mock_->front_driver_->SetDriverRuntimeError(
+    DriverChannel::CHANNEL1, DriverRuntimeErrors::LOOP_ERROR);
+  roboteq_mock_->front_driver_->SetDriverRuntimeError(
+    DriverChannel::CHANNEL2, DriverRuntimeErrors::SAFETY_STOP_ACTIVE);
 
   roboteq_mock_->rear_driver_->SetDriverFaultFlag(DriverFaultFlags::OVERVOLTAGE);
   roboteq_mock_->rear_driver_->SetDriverScriptFlag(DriverScriptFlags::AMP_LIMITER);
   roboteq_mock_->rear_driver_->SetDriverRuntimeError(
-    0, DriverRuntimeErrors::FORWARD_LIMIT_TRIGGERED);
+    DriverChannel::CHANNEL1, DriverRuntimeErrors::FORWARD_LIMIT_TRIGGERED);
   roboteq_mock_->rear_driver_->SetDriverRuntimeError(
-    1, DriverRuntimeErrors::REVERSE_LIMIT_TRIGGERED);
+    DriverChannel::CHANNEL2, DriverRuntimeErrors::REVERSE_LIMIT_TRIGGERED);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -189,7 +191,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
   panther_hardware_interfaces::RoboteqDriverFeedback r_fb1 =
     canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
 
-  // TODO: based on publishing frequnecy in roboteq mock (100)
+  // based on publishing frequnecy in roboteq mock (100)
   std::this_thread::sleep_for(std::chrono::milliseconds(110));
 
   panther_hardware_interfaces::RoboteqDriverFeedback f_fb2 =
@@ -219,10 +221,10 @@ TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
   canopen_controller_->GetRearDriver()->SendRoboteqCmdChannel1(rr_v);
   canopen_controller_->GetRearDriver()->SendRoboteqCmdChannel2(rl_v);
 
-  ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(2), fl_v);
-  ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(1), fr_v);
-  ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(2), rl_v);
-  ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(1), rr_v);
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), fl_v);
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), fr_v);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), rl_v);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), rr_v);
 }
 
 TEST_F(TestRoboteqDriver, test_reset_roboteq_script)
@@ -298,7 +300,6 @@ TEST_F(TestRoboteqDriver, test_read_timeout)
   ASSERT_THROW(canopen_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
 }
 
-// TODO
 // OnCanError isn't tested, because it reacts to lower level CAN errors (CRC), which are hard to
 // simulate, but it would be nice to add it
 

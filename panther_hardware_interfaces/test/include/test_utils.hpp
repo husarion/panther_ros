@@ -156,7 +156,8 @@ public:
   void Start(std::string urdf)
   {
     roboteq_mock_ = std::make_unique<RoboteqMock>();
-    roboteq_mock_->Start();
+    // PDO running on 100Hz
+    roboteq_mock_->Start(std::chrono::milliseconds(10));
     rclcpp::init(0, nullptr);
 
     rm_ = std::make_unique<hardware_interface::ResourceManager>(urdf);

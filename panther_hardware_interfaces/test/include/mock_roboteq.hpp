@@ -58,34 +58,42 @@ enum class DriverScriptFlags {
   AMP_LIMITER,
 };
 
+enum class DriverChannel : uint8_t {
+  CHANNEL1 = 1,
+  CHANNEL2 = 2,
+};
+
 class RoboteqSlave : public lely::canopen::BasicSlave
 {
 public:
   using BasicSlave::BasicSlave;
 
-  // TODO channel
-
-  void SetPosition(uint8_t channel, int32_t value);
-  void SetVelocity(uint8_t channel, int32_t value);
-  void SetCurrent(uint8_t channel, int32_t value);
+  void SetPosition(DriverChannel channel, int32_t value);
+  void SetVelocity(DriverChannel channel, int32_t value);
+  void SetCurrent(DriverChannel channel, int32_t value);
   void SetDriverFaultFlag(DriverFaultFlags flag);
   void SetDriverScriptFlag(DriverScriptFlags flag);
 
-  // TODO: channel 0,1 or 1,2
-  void SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors flag);
+  void SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag);
   void SetTemperature(int8_t value) { (*this)[0x210F][1] = value; }
   void SetVoltage(uint16_t value) { (*this)[0x210D][2] = value; }
   void SetBatAmps1(int16_t value) { (*this)[0x210C][1] = value; }
   void SetBatAmps2(int16_t value) { (*this)[0x210C][2] = value; }
 
-  void SetRoboteqCmd(uint8_t channel, int32_t value) { (*this)[0x2000][channel] = value; }
+  void SetRoboteqCmd(DriverChannel channel, int32_t value)
+  {
+    (*this)[0x2000][static_cast<uint8_t>(channel)] = value;
+  }
   void SetResetRoboteqScript(uint8_t value) { (*this)[0x2018][0] = value; }
 
   void SetTurnOnEstop(uint8_t value) { (*this)[0x200C][0] = value; }
   void SetTurnOffEstop(uint8_t value) { (*this)[0x200D][0] = value; }
   void SetTurnOnSafetyStop(uint8_t value) { (*this)[0x202C][0] = value; }
 
-  int32_t GetRoboteqCmd(uint8_t channel) { return (*this)[0x2000][channel]; }
+  int32_t GetRoboteqCmd(DriverChannel channel)
+  {
+    return (*this)[0x2000][static_cast<uint8_t>(channel)];
+  }
   uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
   uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
   uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
@@ -95,8 +103,7 @@ public:
 
   void InitializeValues();
 
-  // TODO
-  void StartPublishing(std::chrono::milliseconds period = std::chrono::milliseconds(10));
+  void StartPublishing(std::chrono::milliseconds period);
   void StopPublishing();
 
   void TriggerPDOPublish();
@@ -106,8 +113,9 @@ public:
   {
     OnWrite<type>(
       idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, type &, type) -> std::error_code {
-        // TODO add comment
-        // Blocks whole communication
+        // Blocks whole communication - blocks executor, so if this sleep is executed also other SDO
+        // and PDO calls will be stopped. I haven't found better approach to testing timeouts
+        // though, and it should be sufficient
         usleep(wait_time_microseconds);
         return std::error_code();
       });
@@ -134,7 +142,7 @@ public:
   RoboteqMock() {}
   ~RoboteqMock() {}
 
-  void Start(std::chrono::milliseconds pdo_period = std::chrono::milliseconds(10));
+  void Start(std::chrono::milliseconds pdo_period);
   void Stop();
 
   std::unique_ptr<RoboteqSlave> front_driver_;

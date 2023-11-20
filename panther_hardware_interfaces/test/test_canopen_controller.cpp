@@ -41,7 +41,8 @@ public:
       std::make_unique<panther_hardware_interfaces::CanOpenController>(canopen_settings_);
 
     roboteq_mock_ = std::make_unique<RoboteqMock>();
-    roboteq_mock_->Start();
+    // PDO running on 100Hz
+    roboteq_mock_->Start(std::chrono::milliseconds(10));
   }
 
   ~TestCanOpenController()

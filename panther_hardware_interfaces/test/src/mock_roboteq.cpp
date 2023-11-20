@@ -14,31 +14,19 @@
 
 #include <mock_roboteq.hpp>
 
-void RoboteqSlave::SetPosition(uint8_t channel, int32_t value)
+void RoboteqSlave::SetPosition(DriverChannel channel, int32_t value)
 {
-  if (channel == 1) {
-    (*this)[0x2106][1] = value;
-  } else if (channel == 2) {
-    (*this)[0x2106][2] = value;
-  }
+  (*this)[0x2106][static_cast<uint8_t>(channel)] = value;
 }
 
-void RoboteqSlave::SetVelocity(uint8_t channel, int32_t value)
+void RoboteqSlave::SetVelocity(DriverChannel channel, int32_t value)
 {
-  if (channel == 1) {
-    (*this)[0x2106][3] = value;
-  } else if (channel == 2) {
-    (*this)[0x2106][4] = value;
-  }
+  (*this)[0x2106][static_cast<uint8_t>(channel) + 2] = value;
 }
 
-void RoboteqSlave::SetCurrent(uint8_t channel, int32_t value)
+void RoboteqSlave::SetCurrent(DriverChannel channel, int32_t value)
 {
-  if (channel == 1) {
-    (*this)[0x2106][5] = value;
-  } else if (channel == 2) {
-    (*this)[0x2106][6] = value;
-  }
+  (*this)[0x2106][static_cast<uint8_t>(channel) + 4] = value;
 }
 
 void RoboteqSlave::ClearErrorFlags()
@@ -54,12 +42,12 @@ void RoboteqSlave::InitializeValues()
   SetBatAmps1(0);
   SetBatAmps2(0);
 
-  SetPosition(1, 0);
-  SetPosition(2, 0);
-  SetVelocity(1, 0);
-  SetVelocity(2, 0);
-  SetCurrent(1, 0);
-  SetCurrent(2, 0);
+  SetPosition(DriverChannel::CHANNEL1, 0);
+  SetPosition(DriverChannel::CHANNEL2, 0);
+  SetVelocity(DriverChannel::CHANNEL1, 0);
+  SetVelocity(DriverChannel::CHANNEL2, 0);
+  SetCurrent(DriverChannel::CHANNEL1, 0);
+  SetCurrent(DriverChannel::CHANNEL2, 0);
 
   ClearErrorFlags();
 };
@@ -109,10 +97,10 @@ void RoboteqSlave::SetDriverScriptFlag(DriverScriptFlags flag)
   (*this)[0x2106][7] = current_data;
 }
 
-void RoboteqSlave::SetDriverRuntimeError(uint8_t channel, DriverRuntimeErrors flag)
+void RoboteqSlave::SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag)
 {
   int32_t current_data = (*this)[0x2106][8];
-  current_data |= int32_t(0b00000001 << uint8_t(flag)) << channel * 8;
+  current_data |= int32_t(0b00000001 << uint8_t(flag)) << (static_cast<uint8_t>(channel) - 1) * 8;
   (*this)[0x2106][8] = current_data;
 }
 
@@ -194,12 +182,3 @@ void RoboteqMock::Stop()
 
   canopen_communication_started_.store(false);
 }
-
-// int main()
-// {
-//   RoboteqMock roboteq_mock;
-//   roboteq_mock.Start();
-//   std::this_thread::sleep_for(std::chrono::seconds(30));
-//   roboteq_mock.Stop();
-//   return 0;
-// }

@@ -180,16 +180,16 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
   pth_test_.rm_->write(TIME, PERIOD);
 
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(2),
+    pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
     int32_t(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(1),
+    pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
     int32_t(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(2),
+    pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
     int32_t(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(1),
+    pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
     int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
 
   pth_test_.shutdown_panther_system();
@@ -205,20 +205,20 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   const int32_t rl_val = 300;
   const int32_t rr_val = 400;
 
-  pth_test_.roboteq_mock_->front_driver_->SetPosition(2, fl_val);
-  pth_test_.roboteq_mock_->front_driver_->SetPosition(1, fr_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetPosition(2, rl_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetPosition(1, rr_val);
+  pth_test_.roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_val);
+  pth_test_.roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_val);
+  pth_test_.roboteq_mock_->rear_driver_->SetPosition(DriverChannel::CHANNEL2, rl_val);
+  pth_test_.roboteq_mock_->rear_driver_->SetPosition(DriverChannel::CHANNEL1, rr_val);
 
-  pth_test_.roboteq_mock_->front_driver_->SetVelocity(2, fl_val);
-  pth_test_.roboteq_mock_->front_driver_->SetVelocity(1, fr_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetVelocity(2, rl_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetVelocity(1, rr_val);
+  pth_test_.roboteq_mock_->front_driver_->SetVelocity(DriverChannel::CHANNEL2, fl_val);
+  pth_test_.roboteq_mock_->front_driver_->SetVelocity(DriverChannel::CHANNEL1, fr_val);
+  pth_test_.roboteq_mock_->rear_driver_->SetVelocity(DriverChannel::CHANNEL2, rl_val);
+  pth_test_.roboteq_mock_->rear_driver_->SetVelocity(DriverChannel::CHANNEL1, rr_val);
 
-  pth_test_.roboteq_mock_->front_driver_->SetCurrent(2, fl_val);
-  pth_test_.roboteq_mock_->front_driver_->SetCurrent(1, fr_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetCurrent(2, rl_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetCurrent(1, rr_val);
+  pth_test_.roboteq_mock_->front_driver_->SetCurrent(DriverChannel::CHANNEL2, fl_val);
+  pth_test_.roboteq_mock_->front_driver_->SetCurrent(DriverChannel::CHANNEL1, fr_val);
+  pth_test_.roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL2, rl_val);
+  pth_test_.roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL1, rr_val);
 
   pth_test_.configure_activate_panther_system();
 
@@ -401,10 +401,10 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 
   pth_test_.rm_->write(TIME, PERIOD);
 
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(2), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(2), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
 
   pth_test_.shutdown_panther_system();
 }
@@ -414,10 +414,10 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
 
-  pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(1, 234);
-  pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(2, 32);
-  pth_test_.roboteq_mock_->rear_driver_->SetRoboteqCmd(1, 54);
-  pth_test_.roboteq_mock_->rear_driver_->SetRoboteqCmd(2, 12);
+  pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 234);
+  pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 32);
+  pth_test_.roboteq_mock_->rear_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 54);
+  pth_test_.roboteq_mock_->rear_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 12);
 
   pth_test_.roboteq_mock_->front_driver_->SetResetRoboteqScript(65);
   pth_test_.roboteq_mock_->rear_driver_->SetResetRoboteqScript(23);
@@ -429,10 +429,10 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
   ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
 
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(2), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(2), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
 
   pth_test_.shutdown_panther_system();
 }
@@ -525,16 +525,16 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
     pth_test_.rm_->write(TIME, PERIOD);
 
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(2),
+      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
       int32_t(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(1),
+      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
       int32_t(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(2),
+      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
       int32_t(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(1),
+      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
       int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   }
 
