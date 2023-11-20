@@ -157,8 +157,7 @@ colcon test --event-handlers console_direct+ --packages-select panther_hardware_
 colcon test-result --verbose --all
 ```
 
-TODO comment
---parallel-workers 1
+As some of tests are accessing virtual CAN interface, they can't be executed in parallel (that's why `--parallel-workers 1` flag).
 
 ### Updating config
 Copy eds file to config and run
