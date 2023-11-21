@@ -77,8 +77,8 @@ public:
    * @brief Updates current state of communication errors and general error state
    */
   void UpdateMsgErrors(
-    bool is_error, bool is_write_sdo_error, bool is_read_sdo_error, bool is_read_pdo_error,
-    bool front_old_data, bool rear_old_data);
+    bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,
+    bool front_data_timed_out, bool rear_data_timed_out);
 
   void PublishDriverState();
 

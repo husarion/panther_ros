@@ -418,8 +418,8 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   panther_system_node_.UpdateMsgErrors(
     canopen_error_filter_->IsError(), canopen_error_filter_->IsWriteSDOError(),
     canopen_error_filter_->IsReadSDOError(), canopen_error_filter_->IsReadPDOError(),
-    roboteq_controller_->GetFrontData().GetOldData(),
-    roboteq_controller_->GetRearData().GetOldData());
+    roboteq_controller_->GetFrontData().IsDataTimedOut(),
+    roboteq_controller_->GetRearData().IsDataTimedOut());
 
   panther_system_node_.PublishDriverState();
 

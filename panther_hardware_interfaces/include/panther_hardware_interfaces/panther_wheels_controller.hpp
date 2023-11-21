@@ -59,7 +59,7 @@ public:
   /**
    * @brief Updates current Roboteq feedback state (position, velocity, current, flags).
    *
-   * @exception std::runtime_error if current data is too old or any error flag on Roboteq
+   * @exception std::runtime_error if current data is timed out or any error flag on Roboteq
    * driver was set or can error was detected
    */
   void UpdateSystemFeedback();

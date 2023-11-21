@@ -301,8 +301,8 @@ TEST(TestPantherSystemNode, test_errors)
   ASSERT_FALSE(state_msg->read_sdo_error);
   ASSERT_FALSE(state_msg->read_pdo_error);
 
-  ASSERT_TRUE(state_msg->front.old_data);
-  ASSERT_FALSE(state_msg->rear.old_data);
+  ASSERT_TRUE(state_msg->front.data_timed_out);
+  ASSERT_FALSE(state_msg->rear.data_timed_out);
 
   panther_system_node.Deactivate();
   panther_system_node.Deinitialize();

@@ -276,7 +276,7 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
   roboteq_data.SetMotorStates(left_state, right_state, true);
 
   ASSERT_TRUE(roboteq_data.IsError());
-  ASSERT_TRUE(roboteq_data.GetOldData());
+  ASSERT_TRUE(roboteq_data.IsDataTimedOut());
 
   roboteq_data.SetMotorStates(left_state, right_state, false);
   ASSERT_FALSE(roboteq_data.IsError());

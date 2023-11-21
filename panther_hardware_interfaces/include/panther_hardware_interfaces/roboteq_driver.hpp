@@ -71,11 +71,11 @@ public:
    *
    * @exception std::runtime_error if boot fails
    */
-  bool wait_for_boot();
+  bool WaitForBoot();
 
-  bool is_booted() { return booted_.load(); }
+  bool IsBooted() { return booted_.load(); }
 
-  bool is_can_error() { return can_error_.load(); }
+  bool IsCanError() { return can_error_.load(); }
 
   /**
    * @exception std::runtime_error if operation fails

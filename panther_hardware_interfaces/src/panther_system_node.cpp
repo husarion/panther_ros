@@ -94,17 +94,16 @@ void PantherSystemNode::UpdateMsgDriversParameters(
 }
 
 void PantherSystemNode::UpdateMsgErrors(
-  bool is_error, bool is_write_sdo_error, bool is_read_sdo_error, bool is_read_pdo_error,
-  bool front_old_data, bool rear_old_data)
+  bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,
+  bool front_data_timed_out, bool rear_data_timed_out)
 {
-  // TODO is_error names
-  realtime_driver_state_publisher_->msg_.error = is_error;
-  realtime_driver_state_publisher_->msg_.write_sdo_error = is_write_sdo_error;
-  realtime_driver_state_publisher_->msg_.read_sdo_error = is_read_sdo_error;
-  realtime_driver_state_publisher_->msg_.read_pdo_error = is_read_pdo_error;
+  realtime_driver_state_publisher_->msg_.error = error;
+  realtime_driver_state_publisher_->msg_.write_sdo_error = write_sdo_error;
+  realtime_driver_state_publisher_->msg_.read_sdo_error = read_sdo_error;
+  realtime_driver_state_publisher_->msg_.read_pdo_error = read_pdo_error;
 
-  realtime_driver_state_publisher_->msg_.front.old_data = front_old_data;
-  realtime_driver_state_publisher_->msg_.rear.old_data = rear_old_data;
+  realtime_driver_state_publisher_->msg_.front.data_timed_out = front_data_timed_out;
+  realtime_driver_state_publisher_->msg_.rear.data_timed_out = rear_data_timed_out;
 }
 
 void PantherSystemNode::PublishDriverState()

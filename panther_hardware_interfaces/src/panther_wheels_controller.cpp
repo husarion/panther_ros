@@ -89,21 +89,21 @@ void PantherWheelsController::UpdateSystemFeedback()
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  bool front_data_too_old =
+  bool front_data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
      pdo_feedback_timeout_);
-  bool rear_data_too_old =
+  bool rear_data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
      pdo_feedback_timeout_);
 
   // Channel 1 - right, Channel 2 - left
   front_data_.SetMotorStates(
-    front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_too_old);
+    front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_timed_out);
   rear_data_.SetMotorStates(
-    rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_too_old);
+    rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_timed_out);
 
-  bool front_can_error = canopen_controller_.GetFrontDriver()->is_can_error();
-  bool rear_can_error = canopen_controller_.GetRearDriver()->is_can_error();
+  bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
+  bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
 
   front_data_.SetFlags(
     front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
@@ -187,11 +187,11 @@ void PantherWheelsController::WriteSpeed(
     throw std::runtime_error("Rear driver send Roboteq cmd failed: " + std::string(e.what()));
   }
 
-  if (canopen_controller_.GetFrontDriver()->is_can_error()) {
+  if (canopen_controller_.GetFrontDriver()->IsCanError()) {
     throw std::runtime_error(
       "CAN error detected on front driver when trying to write speed commands");
   }
-  if (canopen_controller_.GetRearDriver()->is_can_error()) {
+  if (canopen_controller_.GetRearDriver()->IsCanError()) {
     throw std::runtime_error(
       "CAN error detected on rear driver when trying to write speed commands");
   }

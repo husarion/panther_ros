@@ -88,7 +88,6 @@ private:
 class FlagError
 {
 public:
-  // TODO: reference?
   FlagError(const std::vector<std::string> & flag_names) : flag_names_(flag_names) {}
 
   void SetData(uint8_t flags) { flags_ = flags; }
@@ -99,7 +98,6 @@ public:
    */
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
 
-  // TODO: iserror naming
   bool IsError() const { return (flags_ & surpressed_flags_) != 0; }
 
   std::string GetErrorLog() const;
@@ -205,11 +203,12 @@ public:
     right_runtime_error_.SetSurpressedFlags(suppressed_runtime_errors_);
   }
 
-  void SetMotorStates(RoboteqMotorState left_state, RoboteqMotorState right_state, bool old_data)
+  void SetMotorStates(
+    RoboteqMotorState left_state, RoboteqMotorState right_state, bool data_timed_out)
   {
     left_state_.SetData(left_state);
     right_state_.SetData(right_state);
-    old_data_ = old_data;
+    data_timed_out_ = data_timed_out;
   }
 
   void SetFlags(
@@ -230,14 +229,14 @@ public:
   bool IsError() const
   {
     return fault_flags_.IsError() || script_flags_.IsError() || left_runtime_error_.IsError() ||
-           right_runtime_error_.IsError() || old_data_;
+           right_runtime_error_.IsError() || data_timed_out_;
   }
 
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
-  // TODO: rename
-  bool GetOldData() const { return old_data_; }
+
+  bool IsDataTimedOut() const { return data_timed_out_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }
@@ -250,7 +249,7 @@ public:
            "Script flags: " + script_flags_.GetErrorLog() +
            "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
            "Right motor runtime flags: " + right_runtime_error_.GetErrorLog() +
-           "Old data: " + (old_data_ ? "true" : "false");
+           "Data timed out: " + (data_timed_out_ ? "true" : "false");
   }
 
 private:
@@ -264,7 +263,7 @@ private:
   RuntimeError left_runtime_error_;
   RuntimeError right_runtime_error_;
 
-  bool old_data_ = false;
+  bool data_timed_out_ = false;
 
   // TODO: to parameter
 

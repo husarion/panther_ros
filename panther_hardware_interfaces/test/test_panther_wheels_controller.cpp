@@ -267,8 +267,8 @@ TEST_F(TestPantherWheelsController, test_update_system_feedback_timestamps)
 
   panther_wheels_controller_->UpdateSystemFeedback();
 
-  ASSERT_FALSE(panther_wheels_controller_->GetFrontData().GetOldData());
-  ASSERT_FALSE(panther_wheels_controller_->GetRearData().GetOldData());
+  ASSERT_FALSE(panther_wheels_controller_->GetFrontData().IsDataTimedOut());
+  ASSERT_FALSE(panther_wheels_controller_->GetRearData().IsDataTimedOut());
 }
 
 TEST_F(TestPantherWheelsController, test_update_system_pdo_feedback_timeout)
@@ -286,8 +286,8 @@ TEST_F(TestPantherWheelsController, test_update_system_pdo_feedback_timeout)
 
   panther_wheels_controller_->UpdateSystemFeedback();
 
-  ASSERT_TRUE(panther_wheels_controller_->GetFrontData().GetOldData());
-  ASSERT_TRUE(panther_wheels_controller_->GetRearData().GetOldData());
+  ASSERT_TRUE(panther_wheels_controller_->GetFrontData().IsDataTimedOut());
+  ASSERT_TRUE(panther_wheels_controller_->GetRearData().IsDataTimedOut());
   ASSERT_TRUE(panther_wheels_controller_->GetFrontData().IsError());
   ASSERT_TRUE(panther_wheels_controller_->GetRearData().IsError());
 }

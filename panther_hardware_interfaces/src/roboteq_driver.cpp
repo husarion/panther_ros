@@ -44,7 +44,7 @@ bool RoboteqDriver::Boot()
   return FiberDriver::Boot();
 }
 
-bool RoboteqDriver::wait_for_boot()
+bool RoboteqDriver::WaitForBoot()
 {
   if (booted_.load()) {
     return true;

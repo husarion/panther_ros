@@ -29,6 +29,64 @@ CanOpenController::CanOpenController(CanOpenSettings canopen_settings)
   canopen_settings_ = canopen_settings;
 }
 
+void CanOpenController::Initialize()
+{
+  canopen_communication_started_.store(false);
+
+  canopen_communication_thread_ = std::thread([this]() {
+    ConfigureRT();
+
+    try {
+      InitializeCanCommunication();
+    } catch (const std::system_error & e) {
+      std::cerr << "Exception caught during CAN initialization: " << e.what() << std::endl;
+
+      NotifyCanCommunicationStarted(false);
+      return;
+    }
+
+    NotifyCanCommunicationStarted(true);
+
+    try {
+      loop_->run();
+    } catch (const std::system_error & e) {
+      // TODO: error state
+      std::cerr << "Exception caught in loop run: " << e.what() << std::endl;
+    }
+  });
+
+  if (!canopen_communication_started_.load()) {
+    std::unique_lock lck(canopen_communication_started_mtx_);
+    canopen_communication_started_cond_.wait(lck);
+  }
+
+  if (!canopen_communication_started_.load()) {
+    throw std::runtime_error("CAN communication not initialized");
+  }
+
+  BootDrivers();
+}
+
+void CanOpenController::Deinitialize()
+{
+  if (master_) {
+    master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
+  }
+  canopen_communication_thread_.join();
+  canopen_communication_started_.store(false);
+
+  rear_driver_.reset();
+  front_driver_.reset();
+  master_.reset();
+  chan_.reset();
+  ctrl_.reset();
+  timer_.reset();
+  exec_.reset();
+  loop_.reset();
+  poll_.reset();
+  ctx_.reset();
+}
+
 void CanOpenController::InitializeCanCommunication()
 {
   lely::io::IoGuard io_guard;
@@ -81,7 +139,7 @@ void CanOpenController::ConfigureRT()
   }
 }
 
-void CanOpenController::NotifyCanCommunication(bool result)
+void CanOpenController::NotifyCanCommunicationStarted(bool result)
 {
   {
     std::lock_guard lk(canopen_communication_started_mtx_);
@@ -90,7 +148,7 @@ void CanOpenController::NotifyCanCommunication(bool result)
   canopen_communication_started_cond_.notify_all();
 }
 
-void CanOpenController::Boot()
+void CanOpenController::BootDrivers()
 {
   try {
     front_driver_->Boot();
@@ -107,74 +165,16 @@ void CanOpenController::Boot()
   }
 
   try {
-    front_driver_->wait_for_boot();
+    front_driver_->WaitForBoot();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver boot failed");
   }
 
   try {
-    rear_driver_->wait_for_boot();
+    rear_driver_->WaitForBoot();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver boot failed");
   }
-}
-
-void CanOpenController::Initialize()
-{
-  canopen_communication_started_.store(false);
-
-  canopen_communication_thread_ = std::thread([this]() {
-    ConfigureRT();
-
-    try {
-      InitializeCanCommunication();
-    } catch (const std::system_error & e) {
-      std::cerr << "Exception caught during CAN initialization: " << e.what() << std::endl;
-
-      NotifyCanCommunication(false);
-      return;
-    }
-
-    NotifyCanCommunication(true);
-
-    try {
-      loop_->run();
-    } catch (const std::system_error & e) {
-      // TODO: error state
-      std::cerr << "Exception caught in loop run: " << e.what() << std::endl;
-    }
-  });
-
-  if (!canopen_communication_started_.load()) {
-    std::unique_lock lck(canopen_communication_started_mtx_);
-    canopen_communication_started_cond_.wait(lck);
-  }
-
-  if (!canopen_communication_started_.load()) {
-    throw std::runtime_error("CAN communication not initialized");
-  }
-
-  Boot();
-}
-
-void CanOpenController::Deinitialize()
-{
-  if (master_) {
-    master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
-  }
-  canopen_communication_thread_.join();
-  canopen_communication_started_.store(false);
-
-  rear_driver_.reset();
-  front_driver_.reset();
-  master_.reset();
-  chan_.reset();
-  ctrl_.reset();
-  timer_.reset();
-  exec_.reset();
-  loop_.reset();
-  poll_.reset();
-  ctx_.reset();
 }
 
 }  // namespace panther_hardware_interfaces

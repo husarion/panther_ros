@@ -89,11 +89,27 @@ private:
   // Priority set to be higher than priority of the main ros2 control node (50)
   int const kCanOpenThreadSchedPriority = 60;
 
-  // TODO: rename
   void InitializeCanCommunication();
+
+  /**
+   * @brief When RT kernel is used configures thread to have kCanOpenThreadSchedPriority priority
+   */
   void ConfigureRT();
-  void NotifyCanCommunication(bool result);
-  void Boot();
+
+  /**
+   * @brief Sets CAN communication started status and notifies other thread through condition
+   * variable
+   *
+   * @param result status of CAN communication started
+   */
+  void NotifyCanCommunicationStarted(bool result);
+
+  /**
+   * @brief Triggers boot on front and rear Roboteq drivers and waits for finish
+   *
+   * @exception std::runtime_error if boot fails
+   */
+  void BootDrivers();
 };
 
 }  // namespace panther_hardware_interfaces
