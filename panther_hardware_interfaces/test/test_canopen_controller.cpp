@@ -16,8 +16,8 @@
 
 #include <gtest/gtest.h>
 
-#include <mock_roboteq.hpp>
 #include <panther_hardware_interfaces/canopen_controller.hpp>
+#include <roboteq_mock.hpp>
 
 #include <iostream>
 
@@ -35,7 +35,7 @@ public:
     canopen_controller_ =
       std::make_unique<panther_hardware_interfaces::CanOpenController>(canopen_settings_);
 
-    roboteq_mock_ = std::make_unique<RoboteqMock>();
+    roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     // PDO running on 100Hz
     roboteq_mock_->Start(std::chrono::milliseconds(10));
   }
@@ -46,7 +46,7 @@ public:
     roboteq_mock_.reset();
   }
 
-  std::unique_ptr<RoboteqMock> roboteq_mock_;
+  std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
   panther_hardware_interfaces::CanOpenSettings canopen_settings_;
 
   std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;

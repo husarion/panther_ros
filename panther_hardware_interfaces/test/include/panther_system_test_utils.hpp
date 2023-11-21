@@ -25,9 +25,10 @@
 
 #include <hardware_interface/resource_manager.hpp>
 
-#include <mock_roboteq.hpp>
+#include <roboteq_mock.hpp>
 
-// TODO namespace
+namespace panther_hardware_interfaces_test
+{
 
 class PantherSystemTestUtils
 {
@@ -98,21 +99,6 @@ public:
     "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"};
 };
 
-class TestPantherSystem : public ::testing::Test
-{
-public:
-  TestPantherSystem() { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
-  ~TestPantherSystem() { pth_test_.Stop(); }
-
-  void CheckInterfaces();
-  void CheckInitialValues();
-
-  // 100 Hz
-  const double period_ = 0.01;
-
-  const double assert_near_abs_error_ = 0.0001;
-
-  PantherSystemTestUtils pth_test_;
-};
+}  // namespace panther_hardware_interfaces_test
 
 #endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_TEST_UTILS_HPP_

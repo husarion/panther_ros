@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_MOCK_ROBOTEQ_HPP_
-#define PANTHER_HARDWARE_INTERFACES_MOCK_ROBOTEQ_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_MOCK_HPP_
+#define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_MOCK_HPP_
 
 #include <atomic>
 #include <condition_variable>
@@ -30,6 +30,9 @@
 #include <lely/io2/sys/io.hpp>
 #include <lely/io2/sys/sigset.hpp>
 #include <lely/io2/sys/timer.hpp>
+
+namespace panther_hardware_interfaces_test
+{
 
 enum class DriverFaultFlags {
   OVERHEAT = 0,
@@ -158,4 +161,6 @@ private:
   std::mutex canopen_communication_started_mtx_;
 };
 
-#endif
+}  // namespace panther_hardware_interfaces_test
+
+#endif  // PANTHER_HARDWARE_INTERFACES_ROBOTEQ_MOCK_HPP_

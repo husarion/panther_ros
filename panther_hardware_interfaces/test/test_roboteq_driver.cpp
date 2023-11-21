@@ -16,9 +16,9 @@
 
 #include <gtest/gtest.h>
 
-#include <mock_roboteq.hpp>
 #include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
+#include <roboteq_mock.hpp>
 
 #include <iostream>
 
@@ -36,7 +36,7 @@ public:
     canopen_controller_ =
       std::make_unique<panther_hardware_interfaces::CanOpenController>(canopen_settings_);
 
-    roboteq_mock_ = std::make_unique<RoboteqMock>();
+    roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     roboteq_mock_->Start(std::chrono::milliseconds(100));
     canopen_controller_->Initialize();
   }
@@ -48,7 +48,7 @@ public:
     roboteq_mock_.reset();
   }
 
-  std::unique_ptr<RoboteqMock> roboteq_mock_;
+  std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
   panther_hardware_interfaces::CanOpenSettings canopen_settings_;
 
   std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
@@ -106,6 +106,11 @@ TEST_F(TestRoboteqDriver, test_read_bat_amps2)
 
 TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
 {
+  using panther_hardware_interfaces_test::DriverChannel;
+  using panther_hardware_interfaces_test::DriverFaultFlags;
+  using panther_hardware_interfaces_test::DriverRuntimeErrors;
+  using panther_hardware_interfaces_test::DriverScriptFlags;
+
   const int32_t fl_pos = 101;
   const int32_t fl_vel = 102;
   const int32_t fl_current = 103;
@@ -211,6 +216,8 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
 
 TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
 {
+  using panther_hardware_interfaces_test::DriverChannel;
+
   const int32_t fl_v = 10;
   const int32_t fr_v = 20;
   const int32_t rl_v = 30;

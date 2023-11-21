@@ -25,8 +25,98 @@
 
 #include <panther_msgs/msg/driver_state.hpp>
 
-#include <mock_roboteq.hpp>
 #include <panther_system_test_utils.hpp>
+#include <roboteq_mock.hpp>
+
+class TestPantherSystem : public ::testing::Test
+{
+public:
+  TestPantherSystem() { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
+  ~TestPantherSystem() { pth_test_.Stop(); }
+
+  void CheckInterfaces()
+  {
+    EXPECT_EQ(1u, pth_test_.rm_->system_components_size());
+    ASSERT_EQ(12u, pth_test_.rm_->state_interface_keys().size());
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/position"));
+
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/velocity"));
+
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/effort"));
+
+    ASSERT_EQ(4u, pth_test_.rm_->command_interface_keys().size());
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rr_wheel_joint/velocity"));
+  }
+
+  void CheckInitialValues()
+  {
+    using hardware_interface::LoanedCommandInterface;
+    using hardware_interface::LoanedStateInterface;
+
+    LoanedStateInterface fl_s_p = pth_test_.rm_->claim_state_interface("fl_wheel_joint/position");
+    LoanedStateInterface fr_s_p = pth_test_.rm_->claim_state_interface("fr_wheel_joint/position");
+    LoanedStateInterface rl_s_p = pth_test_.rm_->claim_state_interface("rl_wheel_joint/position");
+    LoanedStateInterface rr_s_p = pth_test_.rm_->claim_state_interface("rr_wheel_joint/position");
+
+    LoanedStateInterface fl_s_v = pth_test_.rm_->claim_state_interface("fl_wheel_joint/velocity");
+    LoanedStateInterface fr_s_v = pth_test_.rm_->claim_state_interface("fr_wheel_joint/velocity");
+    LoanedStateInterface rl_s_v = pth_test_.rm_->claim_state_interface("rl_wheel_joint/velocity");
+    LoanedStateInterface rr_s_v = pth_test_.rm_->claim_state_interface("rr_wheel_joint/velocity");
+
+    LoanedStateInterface fl_s_e = pth_test_.rm_->claim_state_interface("fl_wheel_joint/effort");
+    LoanedStateInterface fr_s_e = pth_test_.rm_->claim_state_interface("fr_wheel_joint/effort");
+    LoanedStateInterface rl_s_e = pth_test_.rm_->claim_state_interface("rl_wheel_joint/effort");
+    LoanedStateInterface rr_s_e = pth_test_.rm_->claim_state_interface("rr_wheel_joint/effort");
+
+    LoanedCommandInterface fl_c_v =
+      pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
+    LoanedCommandInterface fr_c_v =
+      pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
+    LoanedCommandInterface rl_c_v =
+      pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
+    LoanedCommandInterface rr_c_v =
+      pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
+
+    ASSERT_EQ(0.0, fl_s_p.get_value());
+    ASSERT_EQ(0.0, fr_s_p.get_value());
+    ASSERT_EQ(0.0, rl_s_p.get_value());
+    ASSERT_EQ(0.0, rr_s_p.get_value());
+
+    ASSERT_EQ(0.0, fl_s_v.get_value());
+    ASSERT_EQ(0.0, fr_s_v.get_value());
+    ASSERT_EQ(0.0, rl_s_v.get_value());
+    ASSERT_EQ(0.0, rr_s_v.get_value());
+
+    ASSERT_EQ(0.0, fl_s_e.get_value());
+    ASSERT_EQ(0.0, fr_s_e.get_value());
+    ASSERT_EQ(0.0, rl_s_e.get_value());
+    ASSERT_EQ(0.0, rr_s_e.get_value());
+
+    ASSERT_EQ(0.0, fl_c_v.get_value());
+    ASSERT_EQ(0.0, fr_c_v.get_value());
+    ASSERT_EQ(0.0, rl_c_v.get_value());
+    ASSERT_EQ(0.0, rr_c_v.get_value());
+  }
+
+  // 100 Hz
+  const double period_ = 0.01;
+
+  const double assert_near_abs_error_ = 0.0001;
+
+  panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
+};
 
 void WaitForDriverStateMsg(
   rclcpp::Node::SharedPtr node, panther_msgs::msg::DriverState::SharedPtr state_msg)
@@ -150,6 +240,8 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem
 // WRITING
 TEST_F(TestPantherSystem, write_commands_panther_system)
 {
+  using panther_hardware_interfaces_test::DriverChannel;
+
   using hardware_interface::LoanedCommandInterface;
 
   const double fl_v = 0.1;
@@ -199,6 +291,7 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 TEST_F(TestPantherSystem, read_feedback_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
+  using panther_hardware_interfaces_test::DriverChannel;
 
   const int32_t fl_val = 100;
   const int32_t fr_val = 200;
@@ -359,6 +452,8 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 {
   using hardware_interface::LoanedCommandInterface;
+  using panther_hardware_interfaces_test::DriverChannel;
+  using panther_hardware_interfaces_test::DriverScriptFlags;
 
   pth_test_.roboteq_mock_->front_driver_->SetDriverScriptFlag(
     DriverScriptFlags::ENCODER_DISCONNECTED);
@@ -413,6 +508,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
+  using panther_hardware_interfaces_test::DriverChannel;
 
   pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 234);
   pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 32);
@@ -440,7 +536,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 // ERROR HANDLING
 TEST(TestPantherSystemOthers, test_error_state)
 {
-  PantherSystemTestUtils pth_test_;
+  panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
   pth_test_.param_map_["max_read_pdo_errors_count"] = "1";
   pth_test_.param_map_["max_read_sdo_errors_count"] = "1";
@@ -480,9 +576,11 @@ TEST(TestPantherSystemOthers, test_error_state)
 TEST(TestPantherSystemOthers, wrong_order_urdf)
 {
   using hardware_interface::LoanedCommandInterface;
+  using panther_hardware_interfaces_test::DriverChannel;
+
   const double period_ = 0.01;
 
-  PantherSystemTestUtils pth_test_;
+  panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
   std::vector<std::string> joints = {
     "rr_wheel_joint", "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint"};
@@ -547,7 +645,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
 TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 {
-  PantherSystemTestUtils pth_test_;
+  panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
@@ -613,7 +711,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
 TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 {
-  PantherSystemTestUtils pth_test_;
+  panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
@@ -687,7 +785,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 
 TEST(TestPantherSystemOthers, pdo_read_timeout_test)
 {
-  PantherSystemTestUtils pth_test_;
+  panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
@@ -761,7 +859,8 @@ int main(int argc, char ** argv)
   testing::InitGoogleTest(&argc, argv);
 
   // For testing individual tests:
-  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.test_error_state";
+  // testing::GTEST_FLAG(filter) =
+  // "TestPantherSystemOthers.test_error_state";
 
   return RUN_ALL_TESTS();
 }

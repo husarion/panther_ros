@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mock_roboteq.hpp>
+#include <roboteq_mock.hpp>
+
+namespace panther_hardware_interfaces_test
+{
 
 void RoboteqSlave::SetPosition(DriverChannel channel, int32_t value)
 {
@@ -182,3 +185,5 @@ void RoboteqMock::Stop()
 
   canopen_communication_started_.store(false);
 }
+
+}  // namespace panther_hardware_interfaces_test
