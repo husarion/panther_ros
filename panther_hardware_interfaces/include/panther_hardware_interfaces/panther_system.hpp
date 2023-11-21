@@ -118,6 +118,9 @@ protected:
   // SDO error can happen also during setting safety stop (it may be not necessary to use attempts
   // once we have GPIO controller)
   unsigned max_safety_stop_attempts_ = 20;
+
+  rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
+  rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 };
 
 }  // namespace panther_hardware_interfaces

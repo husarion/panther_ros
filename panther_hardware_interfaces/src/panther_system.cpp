@@ -166,7 +166,7 @@ void PantherSystem::ReadParametersAndCreateCanOpenErrorFilter()
 
 CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing");
+  RCLCPP_INFO(logger_, "Initializing");
 
   if (hardware_interface::SystemInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -179,8 +179,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     SetInitialValues();
     CheckInterfaces();
   } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Exception during initialization: " << e.what());
+    RCLCPP_FATAL_STREAM(logger_, "Exception during initialization: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -191,9 +190,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     ReadParametersAndCreateCanOpenErrorFilter();
 
   } catch (const std::invalid_argument & e) {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("PantherSystem"),
-      "One of the required hardware parameters was not defined");
+    RCLCPP_FATAL(logger_, "One of the required hardware parameters was not defined");
     return CallbackReturn::ERROR;
   }
 
@@ -202,7 +199,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
+  RCLCPP_INFO(logger_, "Configuring");
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
@@ -211,13 +208,13 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_.Initialize();
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing Roboteq drivers");
+  RCLCPP_INFO(logger_, "Initializing Roboteq drivers");
 
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Initialize, motors_controller_),
         max_roboteq_initialization_attempts_,
         std::bind(&MotorsController::Deinitialize, motors_controller_))) {
-    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Initialization failed");
+    RCLCPP_FATAL_STREAM(logger_, "Initialization failed");
     return CallbackReturn::FAILURE;
   }
 
@@ -226,7 +223,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Cleaning up");
+  RCLCPP_INFO(logger_, "Cleaning up");
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
@@ -238,7 +235,7 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating");
+  RCLCPP_INFO(logger_, "Activating");
 
   for (std::size_t i = 0; i < kJointsSize; i++) {
     hw_commands_velocities_[i] = 0.0;
@@ -249,30 +246,30 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   // gpio_controller_->start();
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating Roboteq drivers");
+  RCLCPP_INFO(logger_, "Activating Roboteq drivers");
 
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Activate, motors_controller_),
         max_roboteq_activation_attempts_, []() {})) {
-    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed");
+    RCLCPP_FATAL_STREAM(logger_, "Activation failed");
     return CallbackReturn::FAILURE;
   }
 
   panther_system_ros_interface_.Activate(
     std::bind(&CanOpenErrorFilter::SetClearErrorsFlag, canopen_error_filter_));
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
+  RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Deactivating");
+  RCLCPP_INFO(logger_, "Deactivating");
 
   try {
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "on_error failure " << e.what());
     return CallbackReturn::FAILURE;
   }
 
@@ -283,11 +280,11 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
+  RCLCPP_INFO(logger_, "Shutting down");
   try {
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "on_error failure " << e.what());
     return CallbackReturn::FAILURE;
   }
 
@@ -303,13 +300,13 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Handling error");
+  RCLCPP_INFO(logger_, "Handling error");
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Setting safe stop");
+  RCLCPP_INFO(logger_, "Setting safe stop");
   if (!OperationWithAttempts(
         std::bind(&MotorsController::TurnOnSafetyStop, motors_controller_),
         max_safety_stop_attempts_, []() {})) {
-    RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "safety stop failed");
+    RCLCPP_FATAL_STREAM(logger_, "safety stop failed");
     return CallbackReturn::FAILURE;
   }
 
@@ -367,9 +364,7 @@ void PantherSystem::UpdateDriverState()
     canopen_error_filter_->UpdateReadSDOError(false);
 
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(
-      rclcpp::get_logger("PantherSystem"),
-      "Error when trying to read drivers feedback: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to read drivers feedback: " << e.what());
     canopen_error_filter_->UpdateReadSDOError(true);
   }
 }
@@ -384,15 +379,8 @@ void PantherSystem::UpdateSystemFeedback()
 
     if (
       motors_controller_->GetFrontData().IsError() || motors_controller_->GetRearData().IsError()) {
-      // TODO: fix
-      // RCLCPP_ERROR_STREAM_THROTTLE(
-      //   rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
-      //   "Error state on one of the drivers"
-      //     << "\nFront: " << motors_controller_->GetFrontData().GetErrorLog()
-      //     << "\nRear: " << motors_controller_->GetRearData().GetErrorLog());
-
-      RCLCPP_ERROR_STREAM(
-        rclcpp::get_logger("PantherSystem"),
+      RCLCPP_ERROR_STREAM_THROTTLE(
+        logger_, steady_clock_, 5000,
         "Error state on one of the drivers"
           << "\nFront: " << motors_controller_->GetFrontData().GetErrorLog()
           << "\nRear: " << motors_controller_->GetRearData().GetErrorLog());
@@ -405,8 +393,7 @@ void PantherSystem::UpdateSystemFeedback()
 
   } catch (const std::runtime_error & e) {
     canopen_error_filter_->UpdateReadPDOError(true);
-    RCLCPP_ERROR_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Error when trying to read feedback: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to read feedback: " << e.what());
   }
 }
 
@@ -437,22 +424,18 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
        motors_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
        motors_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active) ==
       false) {
-      RCLCPP_ERROR(rclcpp::get_logger("PantherSystem"), "Sending safety stop request");
+      RCLCPP_ERROR(logger_, "Sending safety stop request");
       // 0 command is set with safety stop
       try {
         motors_controller_->TurnOnSafetyStop();
       } catch (const std::runtime_error & e) {
-        RCLCPP_FATAL_STREAM(
-          rclcpp::get_logger("PantherSystem"),
-          "Error when trying to turn on safety stop: " << e.what());
+        RCLCPP_FATAL_STREAM(logger_, "Error when trying to turn on safety stop: " << e.what());
         return return_type::ERROR;
       }
     }
 
-    // TODO: fix
-    // RCLCPP_WARN_STREAM_THROTTLE(
-    //   rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
-    //   "Error detected, ignoring write commands");
+    RCLCPP_WARN_STREAM_THROTTLE(
+      logger_, steady_clock_, 5000, "Error detected, ignoring write commands");
     return return_type::OK;
   }
 
@@ -462,8 +445,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       hw_commands_velocities_[3]);
     canopen_error_filter_->UpdateWriteSDOError(false);
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Error when trying to write commands: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to write commands: " << e.what());
     canopen_error_filter_->UpdateWriteSDOError(true);
   }
 
