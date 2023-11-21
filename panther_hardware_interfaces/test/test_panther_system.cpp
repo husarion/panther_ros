@@ -36,8 +36,9 @@ public:
 
   void CheckInterfaces()
   {
-    EXPECT_EQ(1u, pth_test_.rm_->system_components_size());
-    ASSERT_EQ(12u, pth_test_.rm_->state_interface_keys().size());
+    EXPECT_EQ(pth_test_.rm_->system_components_size(), 1u);
+    ASSERT_EQ(pth_test_.rm_->state_interface_keys().size(), 12u);
+
     EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/position"));
     EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/position"));
     EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/position"));
@@ -53,7 +54,8 @@ public:
     EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/effort"));
     EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/effort"));
 
-    ASSERT_EQ(4u, pth_test_.rm_->command_interface_keys().size());
+    ASSERT_EQ(pth_test_.rm_->command_interface_keys().size(), 4u);
+
     EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fl_wheel_joint/velocity"));
     EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fr_wheel_joint/velocity"));
     EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rl_wheel_joint/velocity"));
@@ -89,31 +91,29 @@ public:
     LoanedCommandInterface rr_c_v =
       pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
 
-    ASSERT_EQ(0.0, fl_s_p.get_value());
-    ASSERT_EQ(0.0, fr_s_p.get_value());
-    ASSERT_EQ(0.0, rl_s_p.get_value());
-    ASSERT_EQ(0.0, rr_s_p.get_value());
+    ASSERT_FLOAT_EQ(fl_s_p.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(fr_s_p.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rl_s_p.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rr_s_p.get_value(), 0.0);
 
-    ASSERT_EQ(0.0, fl_s_v.get_value());
-    ASSERT_EQ(0.0, fr_s_v.get_value());
-    ASSERT_EQ(0.0, rl_s_v.get_value());
-    ASSERT_EQ(0.0, rr_s_v.get_value());
+    ASSERT_FLOAT_EQ(fl_s_v.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(fr_s_v.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rl_s_v.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rr_s_v.get_value(), 0.0);
 
-    ASSERT_EQ(0.0, fl_s_e.get_value());
-    ASSERT_EQ(0.0, fr_s_e.get_value());
-    ASSERT_EQ(0.0, rl_s_e.get_value());
-    ASSERT_EQ(0.0, rr_s_e.get_value());
+    ASSERT_FLOAT_EQ(fl_s_e.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(fr_s_e.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rl_s_e.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rr_s_e.get_value(), 0.0);
 
-    ASSERT_EQ(0.0, fl_c_v.get_value());
-    ASSERT_EQ(0.0, fr_c_v.get_value());
-    ASSERT_EQ(0.0, rl_c_v.get_value());
-    ASSERT_EQ(0.0, rr_c_v.get_value());
+    ASSERT_FLOAT_EQ(fl_c_v.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(fr_c_v.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rl_c_v.get_value(), 0.0);
+    ASSERT_FLOAT_EQ(rr_c_v.get_value(), 0.0);
   }
 
   // 100 Hz
-  const double period_ = 0.01;
-
-  const double assert_near_abs_error_ = 0.0001;
+  const float period_ = 0.01;
 
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 };
@@ -244,10 +244,10 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 
   using hardware_interface::LoanedCommandInterface;
 
-  const double fl_v = 0.1;
-  const double fr_v = 0.2;
-  const double rl_v = 0.3;
-  const double rr_v = 0.4;
+  const float fl_v = 0.1;
+  const float fr_v = 0.2;
+  const float rl_v = 0.3;
+  const float rr_v = 0.4;
 
   pth_test_.ConfigureActivatePantherSystem();
 
@@ -261,10 +261,10 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
   rl_c_v.set_value(rl_v);
   rr_c_v.set_value(rr_v);
 
-  ASSERT_EQ(fl_v, fl_c_v.get_value());
-  ASSERT_EQ(fr_v, fr_c_v.get_value());
-  ASSERT_EQ(rl_v, rl_c_v.get_value());
-  ASSERT_EQ(rr_v, rr_c_v.get_value());
+  ASSERT_FLOAT_EQ(fl_c_v.get_value(), fl_v);
+  ASSERT_FLOAT_EQ(fr_c_v.get_value(), fr_v);
+  ASSERT_FLOAT_EQ(rl_c_v.get_value(), rl_v);
+  ASSERT_FLOAT_EQ(rr_c_v.get_value(), rr_v);
 
   const auto TIME = rclcpp::Time(0);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
@@ -273,16 +273,16 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 
   ASSERT_EQ(
     pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    int32_t(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
     pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    int32_t(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
     pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    int32_t(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
     pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -339,32 +339,20 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
     return;
   }
 
-  ASSERT_NEAR(fl_s_p.get_value(), fl_val * pth_test_.rbtq_pos_fb_to_rad_, assert_near_abs_error_);
-  ASSERT_NEAR(fr_s_p.get_value(), fr_val * pth_test_.rbtq_pos_fb_to_rad_, assert_near_abs_error_);
-  ASSERT_NEAR(rl_s_p.get_value(), rl_val * pth_test_.rbtq_pos_fb_to_rad_, assert_near_abs_error_);
-  ASSERT_NEAR(rr_s_p.get_value(), rr_val * pth_test_.rbtq_pos_fb_to_rad_, assert_near_abs_error_);
+  ASSERT_FLOAT_EQ(fl_s_p.get_value(), fl_val * pth_test_.rbtq_pos_fb_to_rad_);
+  ASSERT_FLOAT_EQ(fr_s_p.get_value(), fr_val * pth_test_.rbtq_pos_fb_to_rad_);
+  ASSERT_FLOAT_EQ(rl_s_p.get_value(), rl_val * pth_test_.rbtq_pos_fb_to_rad_);
+  ASSERT_FLOAT_EQ(rr_s_p.get_value(), rr_val * pth_test_.rbtq_pos_fb_to_rad_);
 
-  ASSERT_NEAR(
-    fl_s_v.get_value(), fl_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
-  ASSERT_NEAR(
-    fr_s_v.get_value(), fr_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
-  ASSERT_NEAR(
-    rl_s_v.get_value(), rl_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
-  ASSERT_NEAR(
-    rr_s_v.get_value(), rr_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_, assert_near_abs_error_);
+  ASSERT_FLOAT_EQ(fl_s_v.get_value(), fl_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_);
+  ASSERT_FLOAT_EQ(fr_s_v.get_value(), fr_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_);
+  ASSERT_FLOAT_EQ(rl_s_v.get_value(), rl_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_);
+  ASSERT_FLOAT_EQ(rr_s_v.get_value(), rr_val * pth_test_.rbtq_vel_fb_to_rad_per_sec_);
 
-  ASSERT_NEAR(
-    fl_s_e.get_value(), fl_val * pth_test_.rbtq_current_fb_to_newton_meters_,
-    assert_near_abs_error_);
-  ASSERT_NEAR(
-    fr_s_e.get_value(), fr_val * pth_test_.rbtq_current_fb_to_newton_meters_,
-    assert_near_abs_error_);
-  ASSERT_NEAR(
-    rl_s_e.get_value(), rl_val * pth_test_.rbtq_current_fb_to_newton_meters_,
-    assert_near_abs_error_);
-  ASSERT_NEAR(
-    rr_s_e.get_value(), rr_val * pth_test_.rbtq_current_fb_to_newton_meters_,
-    assert_near_abs_error_);
+  ASSERT_FLOAT_EQ(fl_s_e.get_value(), fl_val * pth_test_.rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(fr_s_e.get_value(), fr_val * pth_test_.rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(rl_s_e.get_value(), rl_val * pth_test_.rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(rr_s_e.get_value(), rr_val * pth_test_.rbtq_current_fb_to_newton_meters_);
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -435,15 +423,14 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 
   ASSERT_TRUE(state_msg);
 
-  // TODO: float
-  ASSERT_EQ(state_msg->front.temperature, f_temp);
-  ASSERT_EQ(state_msg->rear.temperature, r_temp);
+  ASSERT_EQ(static_cast<int16_t>(state_msg->front.temperature), f_temp);
+  ASSERT_EQ(static_cast<int16_t>(state_msg->rear.temperature), r_temp);
 
-  ASSERT_EQ(state_msg->front.voltage, f_volt / 10.0);
-  ASSERT_EQ(state_msg->rear.voltage, r_volt / 10.0);
+  ASSERT_EQ(static_cast<uint16_t>(state_msg->front.voltage * 10.0), f_volt);
+  ASSERT_EQ(static_cast<uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
-  ASSERT_EQ(state_msg->front.current, (f_bat_amps_1 + f_bat_amps_2) / 10.0);
-  ASSERT_EQ(state_msg->rear.current, (r_bat_amps_1 + r_bat_amps_2) / 10.0);
+  ASSERT_EQ(static_cast<int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+  ASSERT_EQ(static_cast<int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -489,10 +476,10 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   rl_c_v.set_value(0.1);
   rr_c_v.set_value(0.1);
 
-  ASSERT_EQ(0.1, fl_c_v.get_value());
-  ASSERT_EQ(0.1, fr_c_v.get_value());
-  ASSERT_EQ(0.1, rl_c_v.get_value());
-  ASSERT_EQ(0.1, rr_c_v.get_value());
+  ASSERT_FLOAT_EQ(fl_c_v.get_value(), 0.1);
+  ASSERT_FLOAT_EQ(fr_c_v.get_value(), 0.1);
+  ASSERT_FLOAT_EQ(rl_c_v.get_value(), 0.1);
+  ASSERT_FLOAT_EQ(rr_c_v.get_value(), 0.1);
 
   pth_test_.rm_->write(TIME, PERIOD);
 
@@ -544,7 +531,7 @@ TEST(TestPantherSystemOthers, test_error_state)
 
   const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
     pth_test_.param_map_, pth_test_.joints_);
-  const double period_ = 0.01;
+  const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
 
@@ -578,7 +565,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
   using hardware_interface::LoanedCommandInterface;
   using panther_hardware_interfaces_test::DriverChannel;
 
-  const double period_ = 0.01;
+  const float period_ = 0.01;
 
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
@@ -589,10 +576,10 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
   pth_test_.Start(panther_system_urdf_);
 
-  const double fl_v = 0.1;
-  const double fr_v = 0.2;
-  const double rl_v = 0.3;
-  const double rr_v = 0.4;
+  const float fl_v = 0.1;
+  const float fr_v = 0.2;
+  const float rl_v = 0.3;
+  const float rr_v = 0.4;
 
   pth_test_.ConfigureActivatePantherSystem();
 
@@ -612,10 +599,10 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
     rl_c_v.set_value(rl_v);
     rr_c_v.set_value(rr_v);
 
-    ASSERT_EQ(fl_v, fl_c_v.get_value());
-    ASSERT_EQ(fr_v, fr_c_v.get_value());
-    ASSERT_EQ(rl_v, rl_c_v.get_value());
-    ASSERT_EQ(rr_v, rr_c_v.get_value());
+    ASSERT_FLOAT_EQ(fl_c_v.get_value(), fl_v);
+    ASSERT_FLOAT_EQ(fr_c_v.get_value(), fr_v);
+    ASSERT_FLOAT_EQ(rl_c_v.get_value(), rl_v);
+    ASSERT_FLOAT_EQ(rr_c_v.get_value(), rr_v);
 
     const auto TIME = rclcpp::Time(0);
     const auto PERIOD = rclcpp::Duration::from_seconds(period_);
@@ -624,16 +611,16 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
     ASSERT_EQ(
       pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-      int32_t(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(fl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
     ASSERT_EQ(
       pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-      int32_t(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(fr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
     ASSERT_EQ(
       pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-      int32_t(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(rl_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
     ASSERT_EQ(
       pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-      int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   }
 
   pth_test_.ShutdownPantherSystem();
@@ -656,7 +643,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
   const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
     pth_test_.param_map_, pth_test_.joints_);
-  const double period_ = 0.01;
+  const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
 
@@ -722,7 +709,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 
   const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
     pth_test_.param_map_, pth_test_.joints_);
-  const double period_ = 0.01;
+  const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
 
@@ -797,7 +784,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
 
   const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
     pth_test_.param_map_, pth_test_.joints_);
-  const double period_ = 0.01;
+  const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
 

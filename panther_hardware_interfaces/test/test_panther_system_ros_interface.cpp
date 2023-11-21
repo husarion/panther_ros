@@ -253,14 +253,16 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
 
   ASSERT_TRUE(state_msg);
 
-  ASSERT_FLOAT_EQ(state_msg->front.temperature, f_temp);
-  ASSERT_FLOAT_EQ(state_msg->rear.temperature, r_temp);
+  ASSERT_FLOAT_EQ(static_cast<int16_t>(state_msg->front.temperature), f_temp);
+  ASSERT_FLOAT_EQ(static_cast<int16_t>(state_msg->rear.temperature), r_temp);
 
-  ASSERT_FLOAT_EQ(state_msg->front.voltage, f_volt / 10.0);
-  ASSERT_FLOAT_EQ(state_msg->rear.voltage, r_volt / 10.0);
+  ASSERT_FLOAT_EQ(static_cast<uint16_t>(state_msg->front.voltage * 10.0), f_volt);
+  ASSERT_FLOAT_EQ(static_cast<uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
-  ASSERT_FLOAT_EQ(state_msg->front.current, (f_bat_amps_1 + f_bat_amps_2) / 10.0);
-  ASSERT_FLOAT_EQ(state_msg->rear.current, (r_bat_amps_1 + r_bat_amps_2) / 10.0);
+  ASSERT_FLOAT_EQ(
+    static_cast<int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+  ASSERT_FLOAT_EQ(
+    static_cast<int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();

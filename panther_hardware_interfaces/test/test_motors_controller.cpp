@@ -149,17 +149,11 @@ class TestMotorsController : public TestMotorsControllerInitialization
 public:
   TestMotorsController()
   {
-    // TODO fix
-    // TestMotorsControllerInitialization::TestMotorsControllerInitialization();
     motors_controller_->Initialize();
     motors_controller_->Activate();
   }
 
-  ~TestMotorsController()
-  {
-    // TestMotorsControllerInitialization::~TestMotorsControllerInitialization();
-    motors_controller_->Deinitialize();
-  }
+  ~TestMotorsController() { motors_controller_->Deinitialize(); }
 };
 
 TEST_F(TestMotorsController, test_update_system_feedback)
@@ -169,9 +163,9 @@ TEST_F(TestMotorsController, test_update_system_feedback)
   using panther_hardware_interfaces_test::DriverRuntimeErrors;
   using panther_hardware_interfaces_test::DriverScriptFlags;
 
-  double rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
-  double rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
-  double rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
+  float rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
+  float rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
+  float rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
 
   const int32_t fl_pos = 101;
   const int32_t fl_vel = 102;
@@ -314,36 +308,45 @@ TEST_F(TestMotorsController, test_update_drivers_state)
   roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
   roboteq_mock_->rear_driver_->SetBatAmps2(r_bat_amps_2);
 
-  // TODO: types casting
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetFrontData().GetDriverState().GetTemperature(), f_temp);
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
+    f_temp);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0, f_volt);
+  ASSERT_EQ(
+    static_cast<uint16_t>(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
+    f_volt);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(
-    motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0,
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
     f_bat_amps_1 + f_bat_amps_2);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetRearData().GetDriverState().GetTemperature(), r_temp);
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetRearData().GetDriverState().GetTemperature()),
+    r_temp);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetRearData().GetDriverState().GetVoltage() * 10.0, r_volt);
+  ASSERT_EQ(
+    static_cast<uint16_t>(motors_controller_->GetRearData().GetDriverState().GetVoltage() * 10.0),
+    r_volt);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_TRUE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(
-    motors_controller_->GetRearData().GetDriverState().GetCurrent() * 10.0,
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetRearData().GetDriverState().GetCurrent() * 10.0),
     r_bat_amps_1 + r_bat_amps_2);
 
   const int16_t f_temp_2 = 29;
   roboteq_mock_->front_driver_->SetTemperature(f_temp_2);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetFrontData().GetDriverState().GetTemperature(), f_temp_2);
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
+    f_temp_2);
 }
 
 TEST_F(TestMotorsController, test_update_drivers_state_sdo_timeout)
@@ -359,24 +362,30 @@ TEST_F(TestMotorsController, test_update_drivers_state_sdo_timeout)
   roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetFrontData().GetDriverState().GetTemperature(), f_temp);
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
+    f_temp);
 
   roboteq_mock_->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 100000);
 
   ASSERT_THROW(motors_controller_->UpdateDriversState(), std::runtime_error);
-  ASSERT_FLOAT_EQ(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0, 0.0);
+  ASSERT_EQ(
+    static_cast<uint16_t>(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
+    0.0);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   roboteq_mock_->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 0);
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0, f_volt);
+  ASSERT_EQ(
+    static_cast<uint16_t>(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
+    f_volt);
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
-  ASSERT_FLOAT_EQ(
-    motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0,
+  ASSERT_EQ(
+    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
     f_bat_amps_1 + f_bat_amps_2);
 }
 
@@ -385,27 +394,27 @@ TEST_F(TestMotorsController, test_write_speed)
   using panther_hardware_interfaces_test::DriverChannel;
 
   // TODO: move it somewhere
-  double rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
+  float rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
 
-  const double fl_v = 0.1;
-  const double fr_v = 0.2;
-  const double rl_v = 0.3;
-  const double rr_v = 0.4;
+  const float fl_v = 0.1;
+  const float fr_v = 0.2;
+  const float rl_v = 0.3;
+  const float rr_v = 0.4;
 
   ASSERT_NO_THROW(motors_controller_->WriteSpeed(fl_v, fr_v, rl_v, rr_v));
 
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    int32_t(fl_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fl_v * rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    int32_t(fr_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fr_v * rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
     roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    int32_t(rl_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rl_v * rad_per_sec_to_rbtq_cmd_));
   ASSERT_EQ(
     roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    int32_t(rr_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rr_v * rad_per_sec_to_rbtq_cmd_));
 }
 
 TEST_F(TestMotorsController, test_write_speed_sdo_timeout)
