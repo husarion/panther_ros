@@ -119,8 +119,6 @@ void MotorsController::UpdateSystemFeedback()
 
 bool MotorsController::UpdateDriversState()
 {
-  // TODO: bat_amps 1 and 2 are read in separate iterations and in the result reading
-  // is not correct for one iteration
   try {
     switch (current_update_) {
       case 0:
@@ -163,8 +161,7 @@ bool MotorsController::UpdateDriversState()
   }
 }
 
-void MotorsController::WriteSpeed(
-  double speed_fl, double speed_fr, double speed_rl, double speed_rr)
+void MotorsController::WriteSpeed(float speed_fl, float speed_fr, float speed_rl, float speed_rr)
 {
   // Channel 1 - right, Channel 2 - left
   try {

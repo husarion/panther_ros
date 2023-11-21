@@ -41,7 +41,7 @@ class RoboteqVeloctiyCommandConverter
 {
 public:
   RoboteqVeloctiyCommandConverter(DrivetrainSettings drivetrain_settings);
-  int32_t Convert(double cmd) const { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
+  int32_t Convert(float cmd) const { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
 
 private:
   inline int32_t LimitCmd(int32_t cmd) const
@@ -164,7 +164,6 @@ public:
   panther_msgs::msg::RuntimeError GetMessage() const;
 };
 
-// TODO: maybe rename it - the same name as msg
 /**
  * @brief Class for storing and converting the current state of the Roboteq drivers (temperature,
  * voltage and battery current)

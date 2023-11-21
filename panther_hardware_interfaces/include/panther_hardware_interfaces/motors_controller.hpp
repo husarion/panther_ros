@@ -90,7 +90,7 @@ public:
    * @param speed_rr rear right motor speed in rad/s
    * @exception std::runtime_error if send command fails or CAN error was detected
    */
-  void WriteSpeed(double speed_fl, double speed_fr, double speed_rl, double speed_rr);
+  void WriteSpeed(float speed_fl, float speed_fr, float speed_rl, float speed_rr);
 
   /**
    * @brief Turns on Roboteq estop
