@@ -17,14 +17,13 @@
 namespace panther_gpiod
 {
 
-GPIODriver::GPIODriver(std::vector<GPIOinfo> gpio_info)
+GPIODriver::GPIODriver(std::vector<GPIOinfo> gpio_info) : gpio_info_(std::move(gpio_info))
 {
-  if (gpio_info.empty()) {
+  if (gpio_info_.empty()) {
     throw std::runtime_error("Empty GPIO info vector provided");
   }
 
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
-  gpio_info_ = std::move(gpio_info);
 
   std::vector<GPIOpin> controll_pins;
   for (const auto & info : gpio_info) {
