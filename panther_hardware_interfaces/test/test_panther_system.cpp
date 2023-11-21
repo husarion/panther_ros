@@ -26,7 +26,7 @@
 #include <panther_msgs/msg/driver_state.hpp>
 
 #include <mock_roboteq.hpp>
-#include <test_utils.hpp>
+#include <panther_system_test_utils.hpp>
 
 void WaitForDriverStateMsg(
   rclcpp::Node::SharedPtr node, panther_msgs::msg::DriverState::SharedPtr state_msg)
@@ -50,9 +50,9 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 
   try {
-    pth_test_.configure_panther_system();
+    pth_test_.ConfigurePantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to configure_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to ConfigurePantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -61,9 +61,9 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::INACTIVE);
 
   try {
-    pth_test_.activate_panther_system();
+    pth_test_.ActivatePantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to activate_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to ActivatePantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -72,15 +72,15 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::ACTIVE);
 
   // Check interfaces
-  check_interfaces();
+  CheckInterfaces();
 
   // Check initial values
-  check_initial_values();
+  CheckInitialValues();
 
   try {
-    pth_test_.shutdown_panther_system();
+    pth_test_.ShutdownPantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to shutdown_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to ShutdownPantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -89,7 +89,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
-TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system)
+TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem)
 {
   auto status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
@@ -97,9 +97,9 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 
   try {
-    pth_test_.configure_panther_system();
+    pth_test_.ConfigurePantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to configure_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to ConfigurePantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -108,9 +108,9 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     hardware_interface::lifecycle_state_names::INACTIVE);
 
   try {
-    pth_test_.activate_panther_system();
+    pth_test_.ActivatePantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to activate_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to ActivatePantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -119,15 +119,15 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     hardware_interface::lifecycle_state_names::ACTIVE);
 
   // Check interfaces
-  check_interfaces();
+  CheckInterfaces();
 
   // Check initial values
-  check_initial_values();
+  CheckInitialValues();
 
   try {
-    pth_test_.deactivate_panther_system();
+    pth_test_.DeactivatePantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to deactivate_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to DeactivatePantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -136,9 +136,9 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     hardware_interface::lifecycle_state_names::INACTIVE);
 
   try {
-    pth_test_.unconfigure_panther_system();
+    pth_test_.UnconfigurePantherSystem();
   } catch (const std::exception & e) {
-    FAIL() << "Exception caught when trying to unconfigure_panther_system: " << e.what();
+    FAIL() << "Exception caught when trying to UnconfigurePantherSystem: " << e.what();
     return;
   }
   status_map = pth_test_.rm_->get_components_status();
@@ -157,7 +157,7 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
   const double rl_v = 0.3;
   const double rr_v = 0.4;
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   LoanedCommandInterface fl_c_v = pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
   LoanedCommandInterface fr_c_v = pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
@@ -192,7 +192,7 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
     pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
     int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 }
 
 // READING
@@ -220,7 +220,7 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   pth_test_.roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL2, rl_val);
   pth_test_.roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL1, rr_val);
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   LoanedStateInterface fl_s_p = pth_test_.rm_->claim_state_interface("fl_wheel_joint/position");
   LoanedStateInterface fr_s_p = pth_test_.rm_->claim_state_interface("fr_wheel_joint/position");
@@ -273,7 +273,7 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
     rr_s_e.get_value(), rr_val * pth_test_.rbtq_current_fb_to_newton_meters_,
     assert_near_abs_error_);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 }
 
 TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
@@ -300,7 +300,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   unsigned state_msg_count = 0;
@@ -352,7 +352,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   ASSERT_EQ(state_msg->front.current, (f_bat_amps_1 + f_bat_amps_2) / 10.0);
   ASSERT_EQ(state_msg->rear.current, (r_bat_amps_1 + r_bat_amps_2) / 10.0);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 }
 
 // ENCODER DISCONNECTED
@@ -365,7 +365,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
@@ -406,7 +406,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
   ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 }
 
 // INITIAL PROCEDURE
@@ -422,7 +422,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   pth_test_.roboteq_mock_->front_driver_->SetResetRoboteqScript(65);
   pth_test_.roboteq_mock_->rear_driver_->SetResetRoboteqScript(23);
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   // TODO check timing
 
@@ -434,7 +434,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
   ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 }
 
 // ERROR HANDLING
@@ -452,7 +452,7 @@ TEST(TestPantherSystemOthers, test_error_state)
 
   pth_test_.Start(panther_system_urdf_);
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   pth_test_.roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
   pth_test_.roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
@@ -496,7 +496,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
   const double rl_v = 0.3;
   const double rr_v = 0.4;
 
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   // loaned command interfaces have to be destroyed before running Stop
   {
@@ -538,7 +538,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
       int32_t(rr_v * pth_test_.rad_per_sec_to_rbtq_cmd_));
   }
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 
   pth_test_.Stop();
 }
@@ -563,7 +563,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   pth_test_.Start(panther_system_urdf_);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
@@ -606,7 +606,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   WaitForDriverStateMsg(node, state_msg);
   ASSERT_TRUE(state_msg->write_sdo_error);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 
   pth_test_.Stop();
 }
@@ -629,7 +629,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   pth_test_.Start(panther_system_urdf_);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
@@ -680,7 +680,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   WaitForDriverStateMsg(node, state_msg);
   ASSERT_TRUE(state_msg->read_sdo_error);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 
   pth_test_.Stop();
 }
@@ -704,7 +704,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   pth_test_.Start(panther_system_urdf_);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
-  pth_test_.configure_activate_panther_system();
+  pth_test_.ConfigureActivatePantherSystem();
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
@@ -748,7 +748,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   WaitForDriverStateMsg(node, state_msg);
   ASSERT_TRUE(state_msg->read_pdo_error);
 
-  pth_test_.shutdown_panther_system();
+  pth_test_.ShutdownPantherSystem();
 
   pth_test_.Stop();
 }

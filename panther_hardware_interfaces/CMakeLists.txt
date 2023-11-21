@@ -141,8 +141,9 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_system_ros_interface
                             rclcpp panther_msgs realtime_tools std_srvs)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_system
-                  test/test_panther_system.cpp test/src/mock_roboteq.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp
+    test/src/mock_roboteq.cpp test/src/panther_system_test_utils.cpp)
   set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
                                                                       120)
   target_include_directories(
