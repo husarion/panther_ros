@@ -17,9 +17,6 @@
 namespace panther_hardware_interfaces
 {
 
-// TODO
-int const kSchedPriority = 55;
-
 PantherWheelsController::PantherWheelsController(
   CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings)
 : canopen_controller_(canopen_settings),
