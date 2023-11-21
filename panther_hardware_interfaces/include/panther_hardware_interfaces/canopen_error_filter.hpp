@@ -23,8 +23,8 @@ namespace panther_hardware_interfaces
 /**
  * @brief Class that keeps track of different types of errors. In some rare cases Roboteq
  * controllers can miss for example the SDO response, or PDO can be received a bit later, which
- * results in timeout. As it usually are rare and singular occurrences, it is better to filter
- * some of this errors, and escalate only when certain number of errors happen.
+ * results in a timeout. As they usually are rare and singular occurrences, it is better to filter
+ * some of these errors, and escalate only when a certain number of errors happen.
  */
 class CanOpenErrorFilter
 {
@@ -45,8 +45,8 @@ public:
   bool IsReadPDOError() const { return read_pdo_error_; };
 
   /**
-   * @brief Update read SDO error count, if number of consecutive errors exceed the max threshold
-   * error is set
+   * @brief Update read SDO error count, if the number of consecutive errors exceeds the max
+   * threshold error is set
    */
   void UpdateReadSDOError(bool current_error)
   {
@@ -55,8 +55,8 @@ public:
   }
 
   /**
-   * @brief Update read PDO error count, if number of consecutive errors exceed the max threshold
-   * error is set
+   * @brief Update read PDO error count, if the number of consecutive errors exceeds the max
+   * threshold error is set
    */
   void UpdateReadPDOError(bool current_error)
   {
@@ -65,8 +65,8 @@ public:
   }
 
   /**
-   * @brief Update write SDO error count, if number of consecutive errors exceed the max threshold
-   * error is set
+   * @brief Update write SDO error count, if the number of consecutive errors exceeds the max
+   * threshold error is set
    */
   void UpdateWriteSDOError(bool current_error)
   {
@@ -75,8 +75,8 @@ public:
   }
 
   /**
-   * @brief Sets clear errors flag - errors will be cleared upon next Update (any) method
-   * this makes sure that operation is multithread safe
+   * @brief Sets clear errors flag - errors will be cleared upon the next Update (any) method.
+   * This makes sure that the operation is multithread-safe.
    */
   void SetClearErrorsFlag() { clear_errors_.store(true); }
 

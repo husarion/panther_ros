@@ -73,7 +73,7 @@ public:
   void UpdateMsgDriversParameters(const DriverState & front, const DriverState & rear);
 
   /**
-   * @brief Updates current state of communication errors and general error state
+   * @brief Updates the current state of communication errors and general error state
    */
   void UpdateMsgErrors(
     bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,

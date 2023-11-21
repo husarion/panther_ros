@@ -37,7 +37,7 @@ public:
   MotorsController(CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings);
 
   /**
-   * @brief Start can communication and waits for boot to finish
+   * @brief Starts CAN communication and waits for boot to finish
    *
    * @exception std::runtime_error if boot fails
    */
@@ -49,7 +49,7 @@ public:
   void Deinitialize();
 
   /**
-   * @brief Activate procedure for Roboteq drivers - reset scripts and send 0 command on both
+   * @brief Activate procedure for Roboteq drivers - reset scripts and send 0 commands on both
    * channels. Blocking function, takes around 2 seconds to finish
    *
    * @exception std::runtime_error if any procedure step fails
@@ -60,20 +60,20 @@ public:
    * @brief Updates current Roboteq feedback state (position, velocity, current, flags).
    *
    * @exception std::runtime_error if current data is timed out or any error flag on Roboteq
-   * driver was set or can error was detected
+   * driver was set or CAN error was detected
    */
   void UpdateSystemFeedback();
 
   /**
-   * @brief Updates one of current Roboteq driver feedback state (temperature, voltage,
+   * @brief Updates one of current Roboteq driver feedback states (temperature, voltage,
    * battery current). It has to be called 8 times to update all values. It was separated
-   * to allow higher frequencies of the controller - reading all the values at ones takes
-   * some time. By reading values one by one, required time won't be as long. This values
-   * don't have to be updated that frequently, so having frequency of controller_frequency/8
+   * to allow higher frequencies of the controller - reading all the values at once takes
+   * some time. By reading values one by one, the required time won't be as long. This values
+   * don't have to be updated that frequently, so having a frequency of controller_frequency/8
    * shouldn't be a problem.
    *
-   * @exception std::runtime_error if there was error
-   * @return whether all updates were finished - only one is read every iterations
+   * @exception std::runtime_error if there was an error
+   * @return whether all updates were finished - only one is read every iteration
    * once it is ready driver state values can be accessed
    */
   bool UpdateDriversState();
@@ -88,7 +88,7 @@ public:
    * @param speed_fr front right motor speed in rad/s
    * @param speed_rl rear left motor speed in rad/s
    * @param speed_rr rear right motor speed in rad/s
-   * @exception std::runtime_error if send command fails or can error was detected
+   * @exception std::runtime_error if send command fails or CAN error was detected
    */
   void WriteSpeed(double speed_fl, double speed_fr, double speed_rl, double speed_rr);
 

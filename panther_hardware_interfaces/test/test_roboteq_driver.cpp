@@ -54,7 +54,7 @@ public:
   std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
 };
 
-// These tests are related to canopen_controller tests, were boot should be already tested
+// These tests are related to canopen_controller tests, where boot should be already tested
 
 TEST_F(TestRoboteqDriver, test_read_temperature)
 {
@@ -196,7 +196,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
   panther_hardware_interfaces::RoboteqDriverFeedback r_fb1 =
     canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
 
-  // based on publishing frequnecy in roboteq mock (100)
+  // based on publishing frequency in the Roboteq mock (100)
   std::this_thread::sleep_for(std::chrono::milliseconds(110));
 
   panther_hardware_interfaces::RoboteqDriverFeedback f_fb2 =
@@ -204,8 +204,8 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
   panther_hardware_interfaces::RoboteqDriverFeedback r_fb2 =
     canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
 
-  // feedback is published with period 100ms, to check if timestamps are accurate, it is checked if
-  // consecutive messages will have timestamps 100ms + some threshold apart
+  // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
+  // if consecutive messages will have timestamps 100ms + some threshold apart
   ASSERT_LE(
     lely::util::from_timespec(f_fb2.timestamp) - lely::util::from_timespec(f_fb1.timestamp),
     std::chrono::milliseconds(102));
@@ -307,7 +307,7 @@ TEST_F(TestRoboteqDriver, test_read_timeout)
   ASSERT_THROW(canopen_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
 }
 
-// OnCanError isn't tested, because it reacts to lower level CAN errors (CRC), which are hard to
+// OnCanError isn't tested, because it reacts to lower-level CAN errors (CRC), which are hard to
 // simulate, but it would be nice to add it
 
 int main(int argc, char ** argv)

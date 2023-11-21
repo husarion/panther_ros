@@ -157,7 +157,7 @@ TEST(TestRoboteqDataConverters, test_fault_flag)
 
   fault_flag.SetSurpressedFlags(0b11111110);
   fault_flag.SetData(0b00000001, false);
-  // fault flag still should be set, it just won't be treated as error
+  // fault flag still should be set, it just won't be treated as an error
   TestFaultFlagMsg(
     fault_flag.GetMessage(), {true, false, false, false, false, false, false, false, false});
 }
@@ -191,7 +191,7 @@ TEST(TestRoboteqDataConverters, test_script_flag)
 
   script_flag.SetSurpressedFlags(0b11111101);
   script_flag.SetData(0b00000010);
-  // fault flag still should be set, it just won't be treated as error
+  // fault flag still should be set, it just won't be treated as an error
   TestScriptFlagMsg(script_flag.GetMessage(), {false, true, false});
 }
 
@@ -236,7 +236,7 @@ TEST(TestRoboteqDataConverters, test_runtime_error)
 
   runtime_error.SetSurpressedFlags(0b11111011);
   runtime_error.SetData(0b00000100);
-  // fault flag still should be set, it just won't be treated as error
+  // fault flag still should be set, it just won't be treated as an error
   TestRuntimeErrorMsg(runtime_error.GetMessage(), {false, false, true, false, false, false, false});
 }
 

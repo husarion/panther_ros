@@ -67,7 +67,7 @@ public:
   bool Boot();
 
   /**
-   * @brief Waits until booting procedure finishes
+   * @brief Waits until the booting procedure finishes
    *
    * @exception std::runtime_error if boot fails
    */
@@ -104,13 +104,13 @@ public:
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
   /**
-   * @param cmd command value in range [-1000, 1000]
+   * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel1(int32_t cmd);
 
   /**
-   * @param cmd command value in range [-1000, 1000]
+   * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel2(int32_t cmd);
@@ -162,8 +162,8 @@ private:
   void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
 
   // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
-  // about it while ros2_canopen has ability to read it, I didn't see any attempts to handle it void
-  // OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
+  // about it while ros2_canopen has the ability to read it, I didn't see any attempts to handle it
+  // void OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
 
   std::atomic_bool booted_ = false;
   std::condition_variable boot_cond_var_;

@@ -20,7 +20,7 @@
 
 #include <panther_hardware_interfaces/utils.hpp>
 
-// TODO: add user variable to script that will trigger DOUT4 instead of safety stop
+// TODO: add user variable to the script that will trigger DOUT4 instead of safety stop
 
 namespace panther_hardware_interfaces
 {
@@ -64,7 +64,8 @@ void PantherSystem::CheckJointNames()
 void PantherSystem::SetInitialValues()
 {
   // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it
-  // shouldn't) In case of velocity, I think that setting initial value to 0.0 is the best option
+  // shouldn't). In case of velocity, I think that setting the initial value to 0.0 is the best
+  // option.
   for (std::size_t i = 0; i < kJointsSize; i++) {
     hw_commands_velocities_[i] = 0.0;
     hw_states_positions_[i] = std::numeric_limits<double>::quiet_NaN();
@@ -205,8 +206,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
-  // Waiting for final GPIO implementation, current one doesn't work due to permission issues
-  // gpio_controller_ = std::make_unique<GPIOController>();
+  // Waiting for the final GPIO implementation, the current one doesn't work due to permission
+  // issues gpio_controller_ = std::make_unique<GPIOController>();
 
   panther_system_ros_interface_.Initialize();
 
@@ -353,8 +354,8 @@ void PantherSystem::UpdateDriverState()
   try {
     // Other feedback values are read through SDO - it requires more time, so instead of
     // reading all of them at once, every read cycle one value is updated, once all of them
-    // were read, sent feedback message is updated. As there are 8 values, frequency of updates will
-    // be controller_frequency / 8
+    // were read, sent feedback message is updated. As there are 8 values, the frequency of updates
+    // will be controller_frequency / 8
     bool finished_updates = motors_controller_->UpdateDriversState();
 
     if (finished_updates) {
@@ -426,9 +427,9 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // "soft" error - still there is a communication over CAN with drivers, so publishing feedback is
+  // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
-  // time of writing there wasn't better approach to handle estop
+  // time of writing there wasn't a better approach to handling estop
   if (canopen_error_filter_->IsError()) {
     if (
       (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&

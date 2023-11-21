@@ -117,7 +117,7 @@ public:
     OnWrite<type>(
       idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, type &, type) -> std::error_code {
         // Blocks whole communication - blocks executor, so if this sleep is executed also other SDO
-        // and PDO calls will be stopped. I haven't found better approach to testing timeouts
+        // and PDO calls will be stopped. I haven't found a better approach to testing timeouts
         // though, and it should be sufficient
         usleep(wait_time_microseconds);
         return std::error_code();

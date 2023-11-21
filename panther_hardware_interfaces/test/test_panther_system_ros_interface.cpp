@@ -42,7 +42,7 @@ TEST(TestPantherSystemRosInterface, test_initialization)
   ASSERT_FALSE(
     std::find(node_names.begin(), node_names.end(), panther_system_node_name) != node_names.end());
 
-  // Check if it is possible to create node once again (if everything was cleaned up properly)
+  // Check if it is possible to create a node once again (if everything was cleaned up properly)
   panther_system_ros_interface.Initialize();
   node_names = test_node->get_node_names();
   ASSERT_TRUE(

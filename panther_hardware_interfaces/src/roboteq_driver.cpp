@@ -19,7 +19,7 @@
 
 #include <panther_hardware_interfaces/utils.hpp>
 
-// All ids and sub ids were read directly from eds file. Lely canopen doesn't have option to
+// All ids and sub ids were read directly from the eds file. Lely CANopen doesn't have the option to
 // parse them based on the ParameterName. Additionally between version v60 and v80 ParameterName
 // changed, for example: Cmd_ESTOP (old), Cmd_ESTOP Emergency Shutdown (new)
 // As parameter names changed, but ids stayed the same, it will be better to just use ids directly
@@ -123,7 +123,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   return fb;
 }
 
-// TODO check what happens what publishing is stopped
+// TODO check what happens when publishing is stopped
 void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
 {
   try {
@@ -202,7 +202,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   std::unique_lock<std::mutex> sdo_read_lk(sdo_read_mtx_, std::defer_lock);
   if (!sdo_read_lk.try_lock()) {
     throw std::runtime_error(
-      "Can't submit new SDO read operation - previous one is still being processed");
+      "Can't submit new SDO read operation - the previous one is still being processed");
   }
 
   std::mutex mtx;
@@ -220,7 +220,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
       index, subindex,
       [&sdo_read_timed_out_ = sdo_read_timed_out_, &mtx, &cv, &err_code, &data](
         uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
-        // In this case function already finished, and other variables doesn't exist
+        // In this case function has already finished, and other variables don't exist
         // and we have to end
 
         // TODO in timeout it won't be reached
@@ -262,7 +262,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   std::unique_lock<std::mutex> sdo_write_lk(sdo_write_mtx_, std::defer_lock);
   if (!sdo_write_lk.try_lock()) {
     throw std::runtime_error(
-      "Can't submit new SDO write operation - previous one is still being processed");
+      "Can't submit new SDO write operation - the previous one is still being processed");
   }
 
   std::mutex mtx;
@@ -281,7 +281,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
       index, subindex, data,
       [&sdo_write_timed_out_ = sdo_write_timed_out_, &mtx, &cv, &err_code](
         uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
-        // In this case function already finished, and other variables doesn't exist
+        // In this case function has already finished, and other variables don't exist
         // and we have to end
         if (sdo_write_timed_out_) {
           sdo_write_timed_out_.store(false);

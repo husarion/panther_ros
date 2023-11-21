@@ -36,10 +36,11 @@ bool IsBitSet(uint8_t flags, uint8_t bit_no);
 /**
  * @brief Attempts to run operation for max_attempts number of times.
  * operation can throw std::runtime_error, which is caught, and on_error function
- * is executed (for example deinitialization or some other clean up in case of
+ * is executed (for example deinitialization or some other cleanup in case of
  * failure)
- * @return true if operation was successfully executed, false if it wasn't successfully executed
- * and number of attempts exceeded maximum allowed or on_error function threw std::runtime_error
+ * @return true if the operation was successfully executed, false if it wasn't successfully executed
+ * and the number of attempts exceeded the maximum allowed or on_error function threw
+ * std::runtime_error
  */
 bool OperationWithAttempts(
   std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error);

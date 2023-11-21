@@ -54,7 +54,7 @@ private:
 };
 
 /**
- * @brief Class for storing and converting (between raw Roboteq data and SI units) of motor
+ * @brief Class for storing and converting (between raw Roboteq data and SI units) motor
  * state (position, velocity, torque)
  */
 class MotorState
@@ -93,7 +93,7 @@ public:
   void SetData(uint8_t flags) { flags_ = flags; }
 
   /**
-   * @brief Sets which flags should be ignored when checking if error occurred, when converting
+   * @brief Sets which flags should be ignored when checking if an error occurred when converting
    * to message true data still will be set
    */
   void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
@@ -164,9 +164,9 @@ public:
   panther_msgs::msg::RuntimeError GetMessage() const;
 };
 
-// TODO: maybe rename it - same name as msg
+// TODO: maybe rename it - the same name as msg
 /**
- * @brief Class for storing and converting current state of the Roboteq drivers (temperature,
+ * @brief Class for storing and converting the current state of the Roboteq drivers (temperature,
  * voltage and battery current)
  */
 class DriverState

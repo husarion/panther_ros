@@ -120,7 +120,7 @@ void MotorsController::UpdateSystemFeedback()
 bool MotorsController::UpdateDriversState()
 {
   // TODO: bat_amps 1 and 2 are read in separate iterations and in the result reading
-  // is not correct for one iteraction
+  // is not correct for one iteration
   try {
     switch (current_update_) {
       case 0:
@@ -186,11 +186,11 @@ void MotorsController::WriteSpeed(
 
   if (canopen_controller_.GetFrontDriver()->IsCanError()) {
     throw std::runtime_error(
-      "CAN error detected on front driver when trying to write speed commands");
+      "CAN error detected on the front driver when trying to write speed commands");
   }
   if (canopen_controller_.GetRearDriver()->IsCanError()) {
     throw std::runtime_error(
-      "CAN error detected on rear driver when trying to write speed commands");
+      "CAN error detected on the rear driver when trying to write speed commands");
   }
 }
 
@@ -200,13 +200,13 @@ void MotorsController::TurnOnEstop()
     canopen_controller_.GetFrontDriver()->TurnOnEstop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on estop on front driver: " + std::string(e.what()));
+      "Exception when trying to turn on estop on the front driver: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->TurnOnEstop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on estop on rear driver: " + std::string(e.what()));
+      "Exception when trying to turn on estop on the rear driver: " + std::string(e.what()));
   }
 }
 
@@ -216,13 +216,13 @@ void MotorsController::TurnOffEstop()
     canopen_controller_.GetFrontDriver()->TurnOffEstop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn off estop  on front driver: " + std::string(e.what()));
+      "Exception when trying to turn off estop on the front driver: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->TurnOffEstop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn off estop on rear driver: " + std::string(e.what()));
+      "Exception when trying to turn off estop on the rear driver: " + std::string(e.what()));
   }
 }
 
@@ -233,14 +233,14 @@ void MotorsController::TurnOnSafetyStop()
     canopen_controller_.GetFrontDriver()->TurnOnSafetyStopChannel2();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on safety stop on front driver: " + std::string(e.what()));
+      "Exception when trying to turn on safety stop on the front driver: " + std::string(e.what()));
   }
   try {
     canopen_controller_.GetRearDriver()->TurnOnSafetyStopChannel1();
     canopen_controller_.GetRearDriver()->TurnOnSafetyStopChannel2();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
-      "Exception when trying to turn on safety stop on rear driver: " + std::string(e.what()));
+      "Exception when trying to turn on safety stop on the rear driver: " + std::string(e.what()));
   }
 }
 

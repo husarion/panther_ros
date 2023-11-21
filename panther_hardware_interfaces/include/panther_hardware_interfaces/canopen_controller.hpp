@@ -51,7 +51,7 @@ public:
   CanOpenController(CanOpenSettings canopen_settings);
 
   /**
-   * @brief Start CANopen communication (in a new thread) and waits for boot to finish
+   * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
    *
    * @exception std::runtime_error if boot fails
    */
@@ -74,7 +74,7 @@ private:
   void ConfigureRT();
 
   /**
-   * @brief Sets CAN communication started status and notifies other thread through condition
+   * @brief Sets CAN communication started status and notifies other thread through the condition
    * variable
    *
    * @param result status of CAN communication started
@@ -88,7 +88,7 @@ private:
    */
   void BootDrivers();
 
-  // Priority set to be higher than priority of the main ros2 control node (50)
+  // Priority set to be higher than the priority of the main ros2 control node (50)
   int const kCanOpenThreadSchedPriority = 60;
 
   std::atomic_bool canopen_communication_started_ = false;

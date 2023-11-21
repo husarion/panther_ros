@@ -79,7 +79,7 @@ void RoboteqSlave::StopPublishing()
 
 void RoboteqSlave::TriggerPDOPublish()
 {
-  // Every PDO holds two values - it is enough to send event to just one and both will be sent
+  // Every PDO holds two values - it is enough to send an event to just one and both will be sent
   this->WriteEvent(0x2106, 1);
   this->WriteEvent(0x2106, 3);
   this->WriteEvent(0x2106, 5);

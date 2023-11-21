@@ -65,7 +65,7 @@ public:
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
 };
 
-// These tests are related to canopen_controller tests, were boot should be already tested
+// These tests are related to canopen_controller tests, where boot should be already tested
 
 TEST_F(TestMotorsControllerInitialization, test_initialize)
 {
@@ -290,8 +290,8 @@ TEST_F(TestMotorsController, test_update_system_pdo_feedback_timeout)
   ASSERT_TRUE(motors_controller_->GetRearData().IsError());
 }
 
-// Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested ,because it
-// reacts to lower level CAN errors (CRC), which are hard to simulate, but it would be nice to add
+// Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested, because it
+// reacts to lower-level CAN errors (CRC), which are hard to simulate, but it would be nice to add
 // it
 
 TEST_F(TestMotorsController, test_update_drivers_state)
@@ -414,7 +414,7 @@ TEST_F(TestMotorsController, test_write_speed_sdo_timeout)
   ASSERT_THROW(motors_controller_->WriteSpeed(0.0, 0.0, 0.0, 0.0), std::runtime_error);
 }
 
-// Similar to test_roboteq_driver, can_error in write speed isn't tested ,because it reacts to lower
+// Similar to test_roboteq_driver, can_error in write speed isn't tested, because it reacts to lower
 // level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
 TEST_F(TestMotorsController, test_turn_on_estop)
@@ -458,7 +458,7 @@ TEST_F(TestMotorsController, test_safety_stop)
 
   ASSERT_NO_THROW(motors_controller_->TurnOnSafetyStop());
 
-  // TODO: somehow check is first channel was also set
+  // TODO: somehow check if first channel was also set
   ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnSafetyStop(), 2);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnSafetyStop(), 2);
 }
