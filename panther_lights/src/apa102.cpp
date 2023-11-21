@@ -110,7 +110,7 @@ std::size_t APA102::RGBAFrameToBGRBuffer(
   for (std::size_t i = 0; i < frame.size() / 4; i++) {
     const std::size_t padding = i * 4;
     // Header with brightness
-    std::uint8_t brightness = (std::uint16_t(frame[padding + 3]) * global_brightness_) / 255;
+    const std::uint8_t brightness = (std::uint16_t(frame[padding + 3]) * global_brightness_) / 255;
     buffer[4 + padding] = 0xE0 | brightness;
     // Convert rgb to bgr with collor correction
     buffer[4 + padding + 1] = std::uint8_t((std::uint16_t(frame[padding + 2]) * kCorrBlue) / 255);
