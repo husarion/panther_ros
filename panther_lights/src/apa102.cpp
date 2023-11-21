@@ -108,7 +108,7 @@ std::size_t APA102::RGBAFrameToBGRBuffer(
 
   // Copy frame from vector to sending buffer
   for (std::size_t i = 0; i < frame.size() / 4; i++) {
-    std::size_t padding = i * 4;
+    const std::size_t padding = i * 4;
     // Header with brightness
     std::uint8_t brightness = (std::uint16_t(frame[padding + 3]) * global_brightness_) / 255;
     buffer[4 + padding] = 0xE0 | brightness;
