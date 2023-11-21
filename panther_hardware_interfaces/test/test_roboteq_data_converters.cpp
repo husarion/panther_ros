@@ -20,6 +20,7 @@
 
 TEST(TestRoboteqDataConverters, test_command_converter)
 {
+  // TODO move it
   panther_hardware_interfaces::DrivetrainSettings settings;
   settings.motor_torque_constant = 0.11;
   settings.gear_ratio = 30.08;
@@ -40,6 +41,8 @@ TEST(TestRoboteqDataConverters, test_command_converter)
 
 TEST(TestRoboteqDataConverters, test_motor_state)
 {
+  // TODO move it
+
   panther_hardware_interfaces::DrivetrainSettings settings;
   settings.motor_torque_constant = 0.11;
   settings.gear_ratio = 30.08;
@@ -260,6 +263,7 @@ TEST(TestRoboteqDataConverters, test_driver_state)
 
 TEST(TestRoboteqDataConverters, test_roboteq_data)
 {
+  // TODO move it
   panther_hardware_interfaces::DrivetrainSettings settings;
   settings.motor_torque_constant = 0.11;
   settings.gear_ratio = 30.08;

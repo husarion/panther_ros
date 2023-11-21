@@ -19,10 +19,9 @@
 #include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
-#include <roboteq_mock.hpp>
 
-#include <cmath>
-#include <iostream>
+#include <roboteq_mock.hpp>
+#include <test_constants.hpp>
 
 // TODO: sometimes fails
 
@@ -31,6 +30,7 @@ class TestMotorsControllerInitialization : public ::testing::Test
 public:
   TestMotorsControllerInitialization()
   {
+    // TODO: move it
     canopen_settings_.master_can_id = 3;
     canopen_settings_.front_driver_can_id = 1;
     canopen_settings_.rear_driver_can_id = 2;
@@ -163,9 +163,9 @@ TEST_F(TestMotorsController, test_update_system_feedback)
   using panther_hardware_interfaces_test::DriverRuntimeErrors;
   using panther_hardware_interfaces_test::DriverScriptFlags;
 
-  float rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
-  float rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
-  float rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
+  using panther_hardware_interfaces_test::rbtq_current_fb_to_newton_meters_;
+  using panther_hardware_interfaces_test::rbtq_pos_fb_to_rad_;
+  using panther_hardware_interfaces_test::rbtq_vel_fb_to_rad_per_sec_;
 
   const int32_t fl_pos = 101;
   const int32_t fl_vel = 102;
@@ -393,8 +393,7 @@ TEST_F(TestMotorsController, test_write_speed)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
-  // TODO: move it somewhere
-  float rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
+  using panther_hardware_interfaces_test::rad_per_sec_to_rbtq_cmd_;
 
   const float fl_v = 0.1;
   const float fr_v = 0.2;

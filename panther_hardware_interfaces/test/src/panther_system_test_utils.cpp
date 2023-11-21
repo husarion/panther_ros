@@ -91,6 +91,7 @@ std::string PantherSystemTestUtils::BuildUrdf(
 {
   std::stringstream urdf;
 
+  // TODO: to constants
   urdf << urdf_header_ << R"(<hardware>
 <plugin>panther_hardware_interfaces/PantherSystem</plugin>
 )";
