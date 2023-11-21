@@ -28,82 +28,6 @@
 class PantherSystemTestUtils
 {
 public:
-  std::unique_ptr<RoboteqMock> roboteq_mock_;
-  std::unique_ptr<hardware_interface::ResourceManager> rm_;
-
-  double rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
-  double rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
-  double rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
-  double rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
-
-  const std::string panther_system_name_ = "wheels";
-
-  const std::string urdf_header_ = R"(<?xml version="1.0" encoding="utf-8"?>
-<robot name="Panther">
-<ros2_control name="wheels" type="system">
-)";
-
-  const std::string urdf_footer_ = R"(</ros2_control>
-</robot>
-)";
-
-  const std::string joint_interfaces_ =
-    R"(<command_interface name="velocity" />
-<state_interface name="position" />
-<state_interface name="velocity" />
-<state_interface name="effort" />
-)";
-
-  std::string BuildUrdf(
-    std::map<std::string, std::string> param_map, std::vector<std::string> joints)
-  {
-    std::stringstream urdf;
-
-    urdf << urdf_header_ << R"(<hardware>
-<plugin>panther_hardware_interfaces/PantherSystem</plugin>
-)";
-
-    for (auto const & [key, val] : param_map) {
-      urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
-    }
-
-    urdf << R"(</hardware>
-)";
-
-    for (auto const & joint : joints) {
-      urdf << "<joint name=\"" << joint << "\">" << std::endl
-           << joint_interfaces_ << "</joint>" << std::endl;
-    }
-
-    urdf << urdf_footer_;
-
-    return urdf.str();
-  }
-
-  std::string default_panther_system_urdf_;
-
-  std::map<std::string, std::string> param_map_ = {
-    {"encoder_resolution", "1600"},
-    {"gear_ratio", "30.08"},
-    {"gearbox_efficiency", "0.75"},
-    {"motor_torque_constant", "0.11"},
-    {"max_rpm_motor_speed", "3600.0"},
-    {"master_can_id", "3"},
-    {"front_driver_can_id", "1"},
-    {"rear_driver_can_id", "2"},
-    {"sdo_operation_timeout", "4"},
-    {"pdo_feedback_timeout", "15"},
-    {"max_roboteq_initialization_attempts", "3"},
-    {"max_roboteq_activation_attempts", "3"},
-    {"max_safety_stop_attempts", "20"},
-    {"max_write_sdo_errors_count", "2"},
-    {"max_read_sdo_errors_count", "2"},
-    {"max_read_pdo_errors_count", "1"},
-  };
-
-  std::vector<std::string> joints_ = {
-    "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"};
-
   PantherSystemTestUtils() { default_panther_system_urdf_ = BuildUrdf(param_map_, joints_); }
 
   void set_state(const uint8_t state_id, const std::string & state_name)
@@ -170,20 +94,90 @@ public:
     roboteq_mock_.reset();
     rm_.reset();
   }
+
+  std::string BuildUrdf(
+    std::map<std::string, std::string> param_map, std::vector<std::string> joints)
+  {
+    std::stringstream urdf;
+
+    urdf << urdf_header_ << R"(<hardware>
+<plugin>panther_hardware_interfaces/PantherSystem</plugin>
+)";
+
+    for (auto const & [key, val] : param_map) {
+      urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
+    }
+
+    urdf << R"(</hardware>
+)";
+
+    for (auto const & joint : joints) {
+      urdf << "<joint name=\"" << joint << "\">" << std::endl
+           << joint_interfaces_ << "</joint>" << std::endl;
+    }
+
+    urdf << urdf_footer_;
+
+    return urdf.str();
+  }
+
+  std::unique_ptr<RoboteqMock> roboteq_mock_;
+  std::unique_ptr<hardware_interface::ResourceManager> rm_;
+
+  // TODO
+  double rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
+  double rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
+  double rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
+  double rbtq_current_fb_to_newton_meters_ = (1. / 10.) * 0.11 * 30.08 * 0.75;
+
+  const std::string panther_system_name_ = "wheels";
+
+  const std::string urdf_header_ = R"(<?xml version="1.0" encoding="utf-8"?>
+<robot name="Panther">
+<ros2_control name="wheels" type="system">
+)";
+
+  const std::string urdf_footer_ = R"(</ros2_control>
+</robot>
+)";
+
+  const std::string joint_interfaces_ =
+    R"(<command_interface name="velocity" />
+<state_interface name="position" />
+<state_interface name="velocity" />
+<state_interface name="effort" />
+)";
+
+  std::string default_panther_system_urdf_;
+
+  std::map<std::string, std::string> param_map_ = {
+    {"encoder_resolution", "1600"},
+    {"gear_ratio", "30.08"},
+    {"gearbox_efficiency", "0.75"},
+    {"motor_torque_constant", "0.11"},
+    {"max_rpm_motor_speed", "3600.0"},
+    {"master_can_id", "3"},
+    {"front_driver_can_id", "1"},
+    {"rear_driver_can_id", "2"},
+    {"sdo_operation_timeout", "4"},
+    {"pdo_feedback_timeout", "15"},
+    {"max_roboteq_initialization_attempts", "3"},
+    {"max_roboteq_activation_attempts", "3"},
+    {"max_safety_stop_attempts", "20"},
+    {"max_write_sdo_errors_count", "2"},
+    {"max_read_sdo_errors_count", "2"},
+    {"max_read_pdo_errors_count", "1"},
+  };
+
+  std::vector<std::string> joints_ = {
+    "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"};
 };
 
 class TestPantherSystem : public ::testing::Test
 {
 public:
-  PantherSystemTestUtils pth_test_;
-
   TestPantherSystem() { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
   ~TestPantherSystem() { pth_test_.Stop(); }
-
-  // 100 Hz
-  const double period_ = 0.01;
-
-  const double assert_near_abs_error_ = 0.0001;
 
   void check_interfaces()
   {
@@ -260,6 +254,13 @@ public:
     ASSERT_EQ(0.0, rl_c_v.get_value());
     ASSERT_EQ(0.0, rr_c_v.get_value());
   }
+
+  // 100 Hz
+  const double period_ = 0.01;
+
+  const double assert_near_abs_error_ = 0.0001;
+
+  PantherSystemTestUtils pth_test_;
 };
 
 #endif

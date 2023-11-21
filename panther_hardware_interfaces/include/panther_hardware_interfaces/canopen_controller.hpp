@@ -66,29 +66,6 @@ public:
   std::shared_ptr<RoboteqDriver> GetRearDriver() { return rear_driver_; }
 
 private:
-  std::atomic_bool canopen_communication_started_ = false;
-  std::condition_variable canopen_communication_started_cond_;
-  std::mutex canopen_communication_started_mtx_;
-
-  std::thread canopen_communication_thread_;
-
-  std::shared_ptr<lely::io::Context> ctx_;
-  std::shared_ptr<lely::ev::Loop> loop_;
-  std::shared_ptr<lely::io::Poll> poll_;
-  std::shared_ptr<lely::ev::Executor> exec_;
-  std::shared_ptr<lely::io::Timer> timer_;
-  std::shared_ptr<lely::io::CanController> ctrl_;
-  std::shared_ptr<lely::io::CanChannel> chan_;
-  std::shared_ptr<lely::canopen::AsyncMaster> master_;
-
-  std::shared_ptr<RoboteqDriver> front_driver_;
-  std::shared_ptr<RoboteqDriver> rear_driver_;
-
-  CanOpenSettings canopen_settings_;
-
-  // Priority set to be higher than priority of the main ros2 control node (50)
-  int const kCanOpenThreadSchedPriority = 60;
-
   void InitializeCanCommunication();
 
   /**
@@ -110,6 +87,29 @@ private:
    * @exception std::runtime_error if boot fails
    */
   void BootDrivers();
+
+  // Priority set to be higher than priority of the main ros2 control node (50)
+  int const kCanOpenThreadSchedPriority = 60;
+
+  std::atomic_bool canopen_communication_started_ = false;
+  std::condition_variable canopen_communication_started_cond_;
+  std::mutex canopen_communication_started_mtx_;
+
+  std::thread canopen_communication_thread_;
+
+  std::shared_ptr<lely::io::Context> ctx_;
+  std::shared_ptr<lely::ev::Loop> loop_;
+  std::shared_ptr<lely::io::Poll> poll_;
+  std::shared_ptr<lely::ev::Executor> exec_;
+  std::shared_ptr<lely::io::Timer> timer_;
+  std::shared_ptr<lely::io::CanController> ctrl_;
+  std::shared_ptr<lely::io::CanChannel> chan_;
+  std::shared_ptr<lely::canopen::AsyncMaster> master_;
+
+  std::shared_ptr<RoboteqDriver> front_driver_;
+  std::shared_ptr<RoboteqDriver> rear_driver_;
+
+  CanOpenSettings canopen_settings_;
 };
 
 }  // namespace panther_hardware_interfaces

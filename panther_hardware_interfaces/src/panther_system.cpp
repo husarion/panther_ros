@@ -203,8 +203,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Configuring");
 
-  roboteq_controller_ = std::make_shared<PantherWheelsController>(
-    canopen_settings_, drivetrain_settings_);
+  motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
@@ -214,9 +213,9 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing Roboteq drivers");
 
   if (!OperationWithAttempts(
-        std::bind(&PantherWheelsController::Initialize, roboteq_controller_),
+        std::bind(&MotorsController::Initialize, motors_controller_),
         max_roboteq_initialization_attempts_,
-        std::bind(&PantherWheelsController::Deinitialize, roboteq_controller_))) {
+        std::bind(&MotorsController::Deinitialize, motors_controller_))) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Initialization failed");
     return CallbackReturn::FAILURE;
   }
@@ -228,8 +227,8 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Cleaning up");
 
-  roboteq_controller_->Deinitialize();
-  roboteq_controller_.reset();
+  motors_controller_->Deinitialize();
+  motors_controller_.reset();
 
   panther_system_ros_interface_.Deinitialize();
 
@@ -252,7 +251,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activating Roboteq drivers");
 
   if (!OperationWithAttempts(
-        std::bind(&PantherWheelsController::Activate, roboteq_controller_),
+        std::bind(&MotorsController::Activate, motors_controller_),
         max_roboteq_activation_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "Activation failed");
     return CallbackReturn::FAILURE;
@@ -270,7 +269,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Deactivating");
 
   try {
-    roboteq_controller_->TurnOnSafetyStop();
+    motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << e.what());
     return CallbackReturn::FAILURE;
@@ -285,7 +284,7 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Shutting down");
   try {
-    roboteq_controller_->TurnOnSafetyStop();
+    motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("PantherSystem"), "on_error failure " << e.what());
     return CallbackReturn::FAILURE;
@@ -293,8 +292,8 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_.Deactivate();
 
-  roboteq_controller_->Deinitialize();
-  roboteq_controller_.reset();
+  motors_controller_->Deinitialize();
+  motors_controller_.reset();
 
   panther_system_ros_interface_.Deinitialize();
 
@@ -307,7 +306,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Setting safe stop");
   if (!OperationWithAttempts(
-        std::bind(&PantherWheelsController::TurnOnSafetyStop, roboteq_controller_),
+        std::bind(&MotorsController::TurnOnSafetyStop, motors_controller_),
         max_safety_stop_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(rclcpp::get_logger("PantherSystem"), "safety stop failed");
     return CallbackReturn::FAILURE;
@@ -315,8 +314,8 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_.Deactivate();
 
-  roboteq_controller_->Deinitialize();
-  roboteq_controller_.reset();
+  motors_controller_->Deinitialize();
+  motors_controller_.reset();
 
   panther_system_ros_interface_.Deinitialize();
 
@@ -356,12 +355,12 @@ void PantherSystem::UpdateDriverState()
     // reading all of them at once, every read cycle one value is updated, once all of them
     // were read, sent feedback message is updated. As there are 8 values, frequency of updates will
     // be controller_frequency / 8
-    bool finished_updates = roboteq_controller_->UpdateDriversState();
+    bool finished_updates = motors_controller_->UpdateDriversState();
 
     if (finished_updates) {
       panther_system_ros_interface_.UpdateMsgDriversParameters(
-        roboteq_controller_->GetFrontData().GetDriverState(),
-        roboteq_controller_->GetRearData().GetDriverState());
+        motors_controller_->GetFrontData().GetDriverState(),
+        motors_controller_->GetRearData().GetDriverState());
     }
 
     canopen_error_filter_->UpdateReadSDOError(false);
@@ -377,26 +376,25 @@ void PantherSystem::UpdateDriverState()
 void PantherSystem::UpdateSystemFeedback()
 {
   try {
-    roboteq_controller_->UpdateSystemFeedback();
+    motors_controller_->UpdateSystemFeedback();
     UpdateHwStates();
     panther_system_ros_interface_.UpdateMsgErrorFlags(
-      roboteq_controller_->GetFrontData(), roboteq_controller_->GetRearData());
+      motors_controller_->GetFrontData(), motors_controller_->GetRearData());
 
     if (
-      roboteq_controller_->GetFrontData().IsError() ||
-      roboteq_controller_->GetRearData().IsError()) {
+      motors_controller_->GetFrontData().IsError() || motors_controller_->GetRearData().IsError()) {
       // TODO: fix
       // RCLCPP_ERROR_STREAM_THROTTLE(
       //   rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
       //   "Error state on one of the drivers"
-      //     << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
-      //     << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
+      //     << "\nFront: " << motors_controller_->GetFrontData().GetErrorLog()
+      //     << "\nRear: " << motors_controller_->GetRearData().GetErrorLog());
 
       RCLCPP_ERROR_STREAM(
         rclcpp::get_logger("PantherSystem"),
         "Error state on one of the drivers"
-          << "\nFront: " << roboteq_controller_->GetFrontData().GetErrorLog()
-          << "\nRear: " << roboteq_controller_->GetRearData().GetErrorLog());
+          << "\nFront: " << motors_controller_->GetFrontData().GetErrorLog()
+          << "\nRear: " << motors_controller_->GetRearData().GetErrorLog());
 
       // TODO: filter only on timeout errors
       canopen_error_filter_->UpdateReadPDOError(true);
@@ -418,8 +416,8 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   panther_system_ros_interface_.UpdateMsgErrors(
     canopen_error_filter_->IsError(), canopen_error_filter_->IsWriteSDOError(),
     canopen_error_filter_->IsReadSDOError(), canopen_error_filter_->IsReadPDOError(),
-    roboteq_controller_->GetFrontData().IsDataTimedOut(),
-    roboteq_controller_->GetRearData().IsDataTimedOut());
+    motors_controller_->GetFrontData().IsDataTimedOut(),
+    motors_controller_->GetRearData().IsDataTimedOut());
 
   panther_system_ros_interface_.PublishDriverState();
 
@@ -433,15 +431,15 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // time of writing there wasn't better approach to handle estop
   if (canopen_error_filter_->IsError()) {
     if (
-      (roboteq_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
-       roboteq_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
-       roboteq_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
-       roboteq_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active) ==
+      (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
+       motors_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
+       motors_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
+       motors_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active) ==
       false) {
       RCLCPP_ERROR(rclcpp::get_logger("PantherSystem"), "Sending safety stop request");
       // 0 command is set with safety stop
       try {
-        roboteq_controller_->TurnOnSafetyStop();
+        motors_controller_->TurnOnSafetyStop();
       } catch (const std::runtime_error & e) {
         RCLCPP_FATAL_STREAM(
           rclcpp::get_logger("PantherSystem"),
@@ -458,7 +456,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   }
 
   try {
-    roboteq_controller_->WriteSpeed(
+    motors_controller_->WriteSpeed(
       hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
       hw_commands_velocities_[3]);
     canopen_error_filter_->UpdateWriteSDOError(false);
@@ -475,8 +473,8 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 
 void PantherSystem::UpdateHwStates()
 {
-  auto front = roboteq_controller_->GetFrontData();
-  auto rear = roboteq_controller_->GetRearData();
+  auto front = motors_controller_->GetFrontData();
+  auto rear = motors_controller_->GetRearData();
 
   auto fl = front.GetLeftMotorState();
   auto fr = front.GetRightMotorState();

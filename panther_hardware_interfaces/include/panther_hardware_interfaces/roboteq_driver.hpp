@@ -141,25 +141,6 @@ public:
   void TurnOnSafetyStopChannel2();
 
 private:
-  std::atomic_bool booted_ = false;
-  std::condition_variable boot_cond_var_;
-  std::mutex boot_mtx_;
-  std::string boot_error_str_;
-
-  std::atomic_bool can_error_;
-
-  timespec last_rpdo_write_timestamp_;
-  std::mutex rpdo_timestamp_mtx_;
-
-  const std::chrono::milliseconds sdo_operation_timeout_;
-  const std::chrono::milliseconds sdo_operation_wait_timeout_;
-
-  std::atomic_bool sdo_read_timed_out_ = false;
-  std::atomic_bool sdo_write_timed_out_ = false;
-
-  std::mutex sdo_read_mtx_;
-  std::mutex sdo_write_mtx_;
-
   /**
    * @brief Blocking SDO read operation
    *
@@ -183,6 +164,25 @@ private:
   // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
   // about it while ros2_canopen has ability to read it, I didn't see any attempts to handle it void
   // OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
+
+  std::atomic_bool booted_ = false;
+  std::condition_variable boot_cond_var_;
+  std::mutex boot_mtx_;
+  std::string boot_error_str_;
+
+  std::atomic_bool can_error_;
+
+  timespec last_rpdo_write_timestamp_;
+  std::mutex rpdo_timestamp_mtx_;
+
+  const std::chrono::milliseconds sdo_operation_timeout_;
+  const std::chrono::milliseconds sdo_operation_wait_timeout_;
+
+  std::atomic_bool sdo_read_timed_out_ = false;
+  std::atomic_bool sdo_write_timed_out_ = false;
+
+  std::mutex sdo_read_mtx_;
+  std::mutex sdo_write_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces

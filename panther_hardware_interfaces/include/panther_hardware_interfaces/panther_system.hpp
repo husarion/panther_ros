@@ -30,8 +30,8 @@
 
 #include <panther_hardware_interfaces/canopen_error_filter.hpp>
 #include <panther_hardware_interfaces/gpio_driver.hpp>
+#include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
-#include <panther_hardware_interfaces/panther_wheels_controller.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -96,7 +96,7 @@ protected:
   std::string joints_names_sorted_[kJointsSize];
 
   std::unique_ptr<GPIOController> gpio_controller_;
-  std::shared_ptr<PantherWheelsController> roboteq_controller_;
+  std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
   CanOpenSettings canopen_settings_;

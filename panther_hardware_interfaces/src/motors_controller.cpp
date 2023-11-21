@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/panther_wheels_controller.hpp>
+#include <panther_hardware_interfaces/motors_controller.hpp>
 
 namespace panther_hardware_interfaces
 {
 
-PantherWheelsController::PantherWheelsController(
+MotorsController::MotorsController(
   CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings)
 : canopen_controller_(canopen_settings),
   front_data_(drivetrain_settings),
@@ -27,7 +27,7 @@ PantherWheelsController::PantherWheelsController(
 {
 }
 
-void PantherWheelsController::Initialize()
+void MotorsController::Initialize()
 {
   try {
     canopen_controller_.Initialize();
@@ -36,9 +36,9 @@ void PantherWheelsController::Initialize()
   }
 }
 
-void PantherWheelsController::Deinitialize() { canopen_controller_.Deinitialize(); }
+void MotorsController::Deinitialize() { canopen_controller_.Deinitialize(); }
 
-void PantherWheelsController::Activate()
+void MotorsController::Activate()
 {
   // Activation procedure - it is necessary to first reset scripts, wait for a bit (1 second)
   // and then send 0 commands for some time (also 1 second)
@@ -74,7 +74,7 @@ void PantherWheelsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-void PantherWheelsController::UpdateSystemFeedback()
+void MotorsController::UpdateSystemFeedback()
 {
   RoboteqDriverFeedback front_driver_feedback =
     canopen_controller_.GetFrontDriver()->ReadRoboteqDriverFeedback();
@@ -117,7 +117,7 @@ void PantherWheelsController::UpdateSystemFeedback()
   }
 }
 
-bool PantherWheelsController::UpdateDriversState()
+bool MotorsController::UpdateDriversState()
 {
   // TODO: bat_amps 1 and 2 are read in separate iterations and in the result reading
   // is not correct for one iteraction
@@ -163,7 +163,7 @@ bool PantherWheelsController::UpdateDriversState()
   }
 }
 
-void PantherWheelsController::WriteSpeed(
+void MotorsController::WriteSpeed(
   double speed_fl, double speed_fr, double speed_rl, double speed_rr)
 {
   // Channel 1 - right, Channel 2 - left
@@ -194,7 +194,7 @@ void PantherWheelsController::WriteSpeed(
   }
 }
 
-void PantherWheelsController::TurnOnEstop()
+void MotorsController::TurnOnEstop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOnEstop();
@@ -210,7 +210,7 @@ void PantherWheelsController::TurnOnEstop()
   }
 }
 
-void PantherWheelsController::TurnOffEstop()
+void MotorsController::TurnOffEstop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOffEstop();
@@ -226,7 +226,7 @@ void PantherWheelsController::TurnOffEstop()
   }
 }
 
-void PantherWheelsController::TurnOnSafetyStop()
+void MotorsController::TurnOnSafetyStop()
 {
   try {
     canopen_controller_.GetFrontDriver()->TurnOnSafetyStopChannel1();

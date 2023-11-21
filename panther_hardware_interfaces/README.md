@@ -13,7 +13,7 @@ Low level CANopen driver implementing FiberDriver from [Lely](https://opensource
 ### `canopen_controller`
 Takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - intializaiton. For handling CANopen communication separate thread is created.
 
-### `panther_wheels_controller`
+### `motors_controller`
 
 It abstract usage of two Roboteq controllers:
 * uses `canopen_controller` for communication with Roboteq controllers

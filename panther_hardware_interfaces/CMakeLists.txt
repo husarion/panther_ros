@@ -33,7 +33,7 @@ add_library(
   ${PROJECT_NAME} SHARED
   src/panther_system.cpp
   src/panther_system_ros_interface.cpp
-  src/panther_wheels_controller.cpp
+  src/motors_controller.cpp
   src/canopen_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
@@ -114,20 +114,20 @@ if(BUILD_TESTING)
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_panther_wheels_controller
-    test/test_panther_wheels_controller.cpp
+    ${PROJECT_NAME}_test_motors_controller
+    test/test_motors_controller.cpp
     test/src/mock_roboteq.cpp
     src/canopen_controller.cpp
     src/roboteq_driver.cpp
     src/roboteq_data_converters.cpp
-    src/panther_wheels_controller.cpp
+    src/motors_controller.cpp
     src/utils.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_panther_wheels_controller
+    ${PROJECT_NAME}_test_motors_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
-  ament_target_dependencies(${PROJECT_NAME}_test_panther_wheels_controller
-                            rclcpp panther_msgs realtime_tools)
-  target_link_libraries(${PROJECT_NAME}_test_panther_wheels_controller
+  ament_target_dependencies(${PROJECT_NAME}_test_motors_controller rclcpp
+                            panther_msgs realtime_tools)
+  target_link_libraries(${PROJECT_NAME}_test_motors_controller
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(

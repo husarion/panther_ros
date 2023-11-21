@@ -24,11 +24,6 @@
 class TestCanOpenController : public ::testing::Test
 {
 public:
-  std::unique_ptr<RoboteqMock> roboteq_mock_;
-  panther_hardware_interfaces::CanOpenSettings canopen_settings_;
-
-  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
-
   TestCanOpenController()
   {
     canopen_settings_.master_can_id = 3;
@@ -50,6 +45,11 @@ public:
     roboteq_mock_->Stop();
     roboteq_mock_.reset();
   }
+
+  std::unique_ptr<RoboteqMock> roboteq_mock_;
+  panther_hardware_interfaces::CanOpenSettings canopen_settings_;
+
+  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
 };
 
 TEST_F(TestCanOpenController, test_canopen_controller)

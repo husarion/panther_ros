@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_WHEELS_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_WHEELS_CONTROLLER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_MOTORS_CONTROLLER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_MOTORS_CONTROLLER_HPP_
 
 #include <chrono>
 
@@ -31,10 +31,10 @@ namespace panther_hardware_interfaces
  * provides methods to get data feedback and send commands. Data is converted between raw
  * Roboteq formats and SI units using roboteq_data_converters
  */
-class PantherWheelsController
+class MotorsController
 {
 public:
-  PantherWheelsController(CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings);
+  MotorsController(CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings);
 
   /**
    * @brief Start can communication and waits for boot to finish
@@ -129,4 +129,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_WHEELS_CONTROLLER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_MOTORS_CONTROLLER_HPP_

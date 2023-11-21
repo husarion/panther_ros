@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO: change to single _
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
@@ -83,6 +82,10 @@ public:
   void PublishDriverState();
 
 private:
+  void ClearErrorsCb(
+    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
+
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
@@ -95,10 +98,6 @@ private:
 
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;
-
-  void ClearErrorsCb(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
 };
 
 }  // namespace panther_hardware_interfaces
