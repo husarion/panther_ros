@@ -35,7 +35,6 @@ struct RoboteqMotorState
   int32_t current;
 };
 
-// TODO rename
 struct RoboteqDriverFeedback
 {
   RoboteqMotorState motor_1;

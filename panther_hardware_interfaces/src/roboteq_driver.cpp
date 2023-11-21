@@ -110,7 +110,6 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   fb.motor_1.current = rpdo_mapped[0x2106][5];
   fb.motor_2.current = rpdo_mapped[0x2106][6];
 
-  // TODO endians
   fb.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
   fb.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
 
