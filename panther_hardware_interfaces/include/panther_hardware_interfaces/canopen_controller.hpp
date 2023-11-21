@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES__CANOPEN_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES__CANOPEN_CONTROLLER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 
 #include <condition_variable>
 #include <thread>
@@ -114,4 +114,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES__CANOPEN_CONTROLLER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_

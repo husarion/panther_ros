@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES__UTILS_HPP_
-#define PANTHER_HARDWARE_INTERFACES__UTILS_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
+#define PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 
 #include <cstdint>
 #include <functional>
@@ -46,4 +46,4 @@ bool OperationWithAttempts(
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES__UTILS_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_UTILS_HPP_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES__MOCK_ROBOTEQ_HPP_
-#define PANTHER_HARDWARE_INTERFACES__MOCK_ROBOTEQ_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_MOCK_ROBOTEQ_HPP_
+#define PANTHER_HARDWARE_INTERFACES_MOCK_ROBOTEQ_HPP_
 
 #include <atomic>
 #include <condition_variable>

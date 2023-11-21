@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES__TEST_UTILS_HPP_
-#define PANTHER_HARDWARE_INTERFACES__TEST_UTILS_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_TEST_UTILS_HPP_
+#define PANTHER_HARDWARE_INTERFACES_TEST_UTILS_HPP_
 
 #include <cmath>
 #include <string>

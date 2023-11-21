@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_HPP_
-#define PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 
 #include <memory>
 #include <string>
@@ -122,4 +122,4 @@ protected:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_

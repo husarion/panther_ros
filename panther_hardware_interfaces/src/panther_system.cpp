@@ -451,7 +451,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     }
 
     // TODO: fix
-    // RCLCPP_ERROR_STREAM_THROTTLE(
+    // RCLCPP_WARN_STREAM_THROTTLE(
     //   rclcpp::get_logger("PantherSystem"), *node_->get_clock(), 5000,
     //   "Error detected, ignoring write commands");
     return return_type::OK;
