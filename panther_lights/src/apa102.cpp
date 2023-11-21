@@ -82,7 +82,7 @@ void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
   tr.delay_usecs = 0;
   tr.bits_per_word = kBits;
 
-  int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
+  const int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
   delete[] buffer;
 
   if (ret < 1) {
