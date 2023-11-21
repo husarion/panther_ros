@@ -45,7 +45,7 @@ As it usually are rare and singular occurrences, it is better to filter some of 
 
 WIP - it will handle reading/writing pins of the RPi GPIO.
 
-### `panther_system_node`
+### `panther_system_ros_interface`
 
 Class that takes care of additional ROS interface of panther system, such as publishing driver state and providing service for clearing errors.
 

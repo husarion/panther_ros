@@ -32,7 +32,7 @@ pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 add_library(
   ${PROJECT_NAME} SHARED
   src/panther_system.cpp
-  src/panther_system_node.cpp
+  src/panther_system_ros_interface.cpp
   src/panther_wheels_controller.cpp
   src/canopen_controller.cpp
   src/roboteq_driver.cpp
@@ -131,12 +131,15 @@ if(BUILD_TESTING)
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_panther_system_node test/test_panther_system_node.cpp
-    src/panther_system_node.cpp src/roboteq_data_converters.cpp src/utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_panther_system_node
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    test/test_panther_system_ros_interface.cpp
+    src/panther_system_ros_interface.cpp
+    src/roboteq_data_converters.cpp
+    src/utils.cpp)
+  target_include_directories(${PROJECT_NAME}_test_panther_system_ros_interface
                              PRIVATE include)
-  ament_target_dependencies(${PROJECT_NAME}_test_panther_system_node rclcpp
-                            panther_msgs realtime_tools std_srvs)
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_system_ros_interface
+                            rclcpp panther_msgs realtime_tools std_srvs)
 
   ament_add_gtest(${PROJECT_NAME}_test_panther_system
                   test/test_panther_system.cpp test/src/mock_roboteq.cpp)

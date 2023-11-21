@@ -30,7 +30,7 @@
 
 #include <panther_hardware_interfaces/canopen_error_filter.hpp>
 #include <panther_hardware_interfaces/gpio_driver.hpp>
-#include <panther_hardware_interfaces/panther_system_node.hpp>
+#include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 #include <panther_hardware_interfaces/panther_wheels_controller.hpp>
 
 namespace panther_hardware_interfaces
@@ -103,7 +103,7 @@ protected:
 
   std::shared_ptr<CanOpenErrorFilter> canopen_error_filter_;
 
-  PantherSystemNode panther_system_node_;
+  PantherSystemRosInterface panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in this cases it is better to retry

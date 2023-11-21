@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_NODE_HPP_
-#define PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_NODE_HPP_
+// TODO: change to single _
+#ifndef PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_ROS_INTERFACE_HPP_
+#define PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
 #include <memory>
 #include <thread>
@@ -31,15 +32,14 @@
 namespace panther_hardware_interfaces
 {
 
-// TODO Rename class
 /**
  * @brief Class that takes care of additional ROS interface of panther system, such as publishing
  * driver state and providing service for clearing errors
  */
-class PantherSystemNode
+class PantherSystemRosInterface
 {
 public:
-  PantherSystemNode() {}
+  PantherSystemRosInterface() {}
 
   /**
    * @brief Creates node and executor (in a separate thread)
@@ -95,6 +95,7 @@ private:
 
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;
+
   void ClearErrorsCb(
     std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
     std_srvs::srv::Trigger::Response::SharedPtr response);
@@ -102,4 +103,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_NODE_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES__PANTHER_SYSTEM_ROS_INTERFACE_HPP_

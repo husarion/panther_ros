@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/panther_system_node.hpp>
+#include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
 namespace panther_hardware_interfaces
 {
 
-void PantherSystemNode::Initialize()
+void PantherSystemRosInterface::Initialize()
 {
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
@@ -30,7 +30,7 @@ void PantherSystemNode::Initialize()
   });
 }
 
-void PantherSystemNode::Activate(std::function<void()> clear_errors)
+void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
 {
   clear_errors_ = clear_errors;
 
@@ -42,19 +42,19 @@ void PantherSystemNode::Activate(std::function<void()> clear_errors)
 
   // TODO: Is it RT safe?
   clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
-    "~/clear_errors",
-    std::bind(
-      &PantherSystemNode::ClearErrorsCb, this, std::placeholders::_1, std::placeholders::_2));
+    "~/clear_errors", std::bind(
+                        &PantherSystemRosInterface::ClearErrorsCb, this, std::placeholders::_1,
+                        std::placeholders::_2));
 }
 
-void PantherSystemNode::Deactivate()
+void PantherSystemRosInterface::Deactivate()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
   clear_errors_srv_.reset();
 }
 
-void PantherSystemNode::Deinitialize()
+void PantherSystemRosInterface::Deinitialize()
 {
   stop_executor_.store(true);
   executor_thread_->join();
@@ -64,7 +64,8 @@ void PantherSystemNode::Deinitialize()
   node_.reset();
 }
 
-void PantherSystemNode::UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear)
+void PantherSystemRosInterface::UpdateMsgErrorFlags(
+  const RoboteqData & front, const RoboteqData & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
@@ -79,7 +80,7 @@ void PantherSystemNode::UpdateMsgErrorFlags(const RoboteqData & front, const Rob
   driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
-void PantherSystemNode::UpdateMsgDriversParameters(
+void PantherSystemRosInterface::UpdateMsgDriversParameters(
   const DriverState & front, const DriverState & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
@@ -93,7 +94,7 @@ void PantherSystemNode::UpdateMsgDriversParameters(
   driver_state.rear.temperature = rear.GetTemperature();
 }
 
-void PantherSystemNode::UpdateMsgErrors(
+void PantherSystemRosInterface::UpdateMsgErrors(
   bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,
   bool front_data_timed_out, bool rear_data_timed_out)
 {
@@ -106,14 +107,14 @@ void PantherSystemNode::UpdateMsgErrors(
   realtime_driver_state_publisher_->msg_.rear.data_timed_out = rear_data_timed_out;
 }
 
-void PantherSystemNode::PublishDriverState()
+void PantherSystemRosInterface::PublishDriverState()
 {
   if (realtime_driver_state_publisher_->trylock()) {
     realtime_driver_state_publisher_->unlockAndPublish();
   }
 }
 
-void PantherSystemNode::ClearErrorsCb(
+void PantherSystemRosInterface::ClearErrorsCb(
   std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {

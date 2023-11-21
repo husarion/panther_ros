@@ -209,7 +209,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   // Waiting for final GPIO implementation, current one doesn't work due to permission issues
   // gpio_controller_ = std::make_unique<GPIOController>();
 
-  panther_system_node_.Initialize();
+  panther_system_ros_interface_.Initialize();
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Initializing Roboteq drivers");
 
@@ -231,7 +231,7 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
   roboteq_controller_->Deinitialize();
   roboteq_controller_.reset();
 
-  panther_system_node_.Deinitialize();
+  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -258,7 +258,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.Activate(
+  panther_system_ros_interface_.Activate(
     std::bind(&CanOpenErrorFilter::SetClearErrorsFlag, canopen_error_filter_));
 
   RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Activation finished");
@@ -276,7 +276,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.Deactivate();
+  panther_system_ros_interface_.Deactivate();
 
   return CallbackReturn::SUCCESS;
 }
@@ -291,12 +291,12 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.Deactivate();
+  panther_system_ros_interface_.Deactivate();
 
   roboteq_controller_->Deinitialize();
   roboteq_controller_.reset();
 
-  panther_system_node_.Deinitialize();
+  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -313,12 +313,12 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_node_.Deactivate();
+  panther_system_ros_interface_.Deactivate();
 
   roboteq_controller_->Deinitialize();
   roboteq_controller_.reset();
 
-  panther_system_node_.Deinitialize();
+  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -359,7 +359,7 @@ void PantherSystem::UpdateDriverState()
     bool finished_updates = roboteq_controller_->UpdateDriversState();
 
     if (finished_updates) {
-      panther_system_node_.UpdateMsgDriversParameters(
+      panther_system_ros_interface_.UpdateMsgDriversParameters(
         roboteq_controller_->GetFrontData().GetDriverState(),
         roboteq_controller_->GetRearData().GetDriverState());
     }
@@ -379,7 +379,7 @@ void PantherSystem::UpdateSystemFeedback()
   try {
     roboteq_controller_->UpdateSystemFeedback();
     UpdateHwStates();
-    panther_system_node_.UpdateMsgErrorFlags(
+    panther_system_ros_interface_.UpdateMsgErrorFlags(
       roboteq_controller_->GetFrontData(), roboteq_controller_->GetRearData());
 
     if (
@@ -415,13 +415,13 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
   UpdateDriverState();
   UpdateSystemFeedback();
-  panther_system_node_.UpdateMsgErrors(
+  panther_system_ros_interface_.UpdateMsgErrors(
     canopen_error_filter_->IsError(), canopen_error_filter_->IsWriteSDOError(),
     canopen_error_filter_->IsReadSDOError(), canopen_error_filter_->IsReadPDOError(),
     roboteq_controller_->GetFrontData().IsDataTimedOut(),
     roboteq_controller_->GetRearData().IsDataTimedOut());
 
-  panther_system_node_.PublishDriverState();
+  panther_system_ros_interface_.PublishDriverState();
 
   return return_type::OK;
 }
