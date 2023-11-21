@@ -160,31 +160,29 @@ private:
   std::mutex sdo_read_mtx_;
   std::mutex sdo_write_mtx_;
 
+  /**
+   * @brief Blocking SDO read operation
+   *
+   * @exception std::runtime_error if operation fails
+   */
   template <typename type>
   type SyncSdoRead(uint16_t index, uint8_t subindex);
 
+  /**
+   * @brief Blocking SDO write operation
+   *
+   * @exception std::runtime_error if operation fails
+   */
   template <typename type>
   void SyncSdoWrite(uint16_t index, uint8_t subindex, type data);
 
-  // TODO
-  // void OnState(lely::canopen::NmtState state) noexcept override;
-
   void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
-
   void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
-  // void OnTpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
+  void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
 
   // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
   // about it while ros2_canopen has ability to read it, I didn't see any attempts to handle it void
   // OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
-
-  void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
-  // virtual void OnConfig(
-  //   ::std::function<void(::std::error_code ec)> res) noexcept = 0;
-  // virtual void OnDeconfig(
-  //   ::std::function<void(::std::error_code ec)> res) noexcept = 0;
-  // void
-  // Error()
 };
 
 }  // namespace panther_hardware_interfaces
