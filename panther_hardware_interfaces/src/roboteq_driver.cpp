@@ -210,7 +210,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   type data;
   std::error_code err_code;
 
-  if (is_sdo_read_timeout_) {
+  if (sdo_read_timed_out_) {
     throw std::runtime_error(
       "Can't submit new SDO read operation - previous one that timed out is still in queue");
   }
@@ -218,14 +218,14 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   try {
     this->SubmitRead<type>(
       index, subindex,
-      [&is_sdo_read_timeout_ = is_sdo_read_timeout_, &mtx, &cv, &err_code, &data](
+      [&sdo_read_timed_out_ = sdo_read_timed_out_, &mtx, &cv, &err_code, &data](
         uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
 
         // TODO in timeout it won't be reached
-        if (is_sdo_read_timeout_) {
-          is_sdo_read_timeout_.store(false);
+        if (sdo_read_timed_out_) {
+          sdo_read_timed_out_.store(false);
           return;
         }
         {
@@ -245,7 +245,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 
   std::unique_lock lk(mtx);
   if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
-    is_sdo_read_timeout_.store(true);
+    sdo_read_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
   }
 
@@ -271,7 +271,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 
   // TODO: what happens on read/write timeout
 
-  if (is_sdo_write_timeout_) {
+  if (sdo_write_timed_out_) {
     throw std::runtime_error(
       "Can't submit new SDO write operation - previous one that timed out is still in queue");
   }
@@ -279,12 +279,12 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   try {
     this->SubmitWrite(
       index, subindex, data,
-      [&is_sdo_write_timeout_ = is_sdo_write_timeout_, &mtx, &cv, &err_code](
+      [&sdo_write_timed_out_ = sdo_write_timed_out_, &mtx, &cv, &err_code](
         uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
         // In this case function already finished, and other variables doesn't exist
         // and we have to end
-        if (is_sdo_write_timeout_) {
-          is_sdo_write_timeout_.store(false);
+        if (sdo_write_timed_out_) {
+          sdo_write_timed_out_.store(false);
           return;
         }
         {
@@ -303,7 +303,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   std::unique_lock lk(mtx);
 
   if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
-    is_sdo_write_timeout_.store(true);
+    sdo_write_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
   }
 

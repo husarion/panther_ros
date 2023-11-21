@@ -151,12 +151,11 @@ private:
   timespec last_rpdo_write_timestamp_;
   std::mutex rpdo_timestamp_mtx_;
 
-  // TODO: rename timeout and is_ variables
   const std::chrono::milliseconds sdo_operation_timeout_;
   const std::chrono::milliseconds sdo_operation_wait_timeout_;
 
-  std::atomic_bool is_sdo_read_timeout_ = false;
-  std::atomic_bool is_sdo_write_timeout_ = false;
+  std::atomic_bool sdo_read_timed_out_ = false;
+  std::atomic_bool sdo_write_timed_out_ = false;
 
   std::mutex sdo_read_mtx_;
   std::mutex sdo_write_mtx_;
