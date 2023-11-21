@@ -23,8 +23,8 @@
  * change pin directions, monitor pin events, and more.
  */
 
-#ifndef PANTHER_HARDWARE_INTERFACES__GPIO_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES__GPIO_CONTROLLER_HPP_
+#ifndef PANTHER_GPIOD__GPIO_DRIVER_HPP_
+#define PANTHER_GPIOD__GPIO_DRIVER_HPP_
 
 #include <poll.h>
 
