@@ -75,7 +75,6 @@ gpiod::line_settings GPIODriver::generate_line_settings(const GPIOInfo & gpio_in
   auto settings = gpiod::line_settings();
   settings.set_direction(gpio_info.direction);
   settings.set_output_value(gpio_info.init_value);
-  settings.set_bias(gpio_info.bias);
   settings.set_active_low(gpio_info.active_low);
 
   if (gpio_info.direction == gpiod::line::direction::INPUT) {

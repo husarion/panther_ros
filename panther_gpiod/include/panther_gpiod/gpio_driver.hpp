@@ -75,7 +75,6 @@ struct GPIOInfo
   gpiod::line::direction direction;
   bool active_low = false;
   gpiod::line::value init_value = gpiod::line::value::INACTIVE;
-  gpiod::line::bias bias = gpiod::line::bias::AS_IS;
   gpiod::line::value value = gpiod::line::value::INACTIVE;
   gpiod::line::offset offset = -1;
 };
