@@ -156,9 +156,7 @@ void DriverNode::SetBrightnessCB(
   const SetLEDBrightnessSrv::Request::SharedPtr & req, SetLEDBrightnessSrv::Response::SharedPtr res)
 {
   const float brightness = req->data;
-  if (
-    brightness < 0.0f - std::numeric_limits<float>::epsilon() ||
-    brightness > 1.0f + std::numeric_limits<float>::epsilon()) {
+  if (brightness < 0.0f || brightness > 1.0f) {
     res->success = false;
     res->message = "Brightness out of range <0,1>";
     return;
