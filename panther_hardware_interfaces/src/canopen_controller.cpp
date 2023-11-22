@@ -142,7 +142,7 @@ void CanOpenController::ConfigureRT()
 void CanOpenController::NotifyCanCommunicationStarted(bool result)
 {
   {
-    std::lock_guard lk(canopen_communication_started_mtx_);
+    std::lock_guard lck_g(canopen_communication_started_mtx_);
     canopen_communication_started_.store(result);
   }
   canopen_communication_started_cond_.notify_all();

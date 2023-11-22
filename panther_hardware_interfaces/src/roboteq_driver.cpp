@@ -202,8 +202,8 @@ template <typename type>
 type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 {
   // TODO: describe edge case
-  std::unique_lock<std::mutex> sdo_read_lk(sdo_read_mtx_, std::defer_lock);
-  if (!sdo_read_lk.try_lock()) {
+  std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
+  if (!sdo_read_lck.try_lock()) {
     throw std::runtime_error(
       "Can't submit new SDO read operation - the previous one is still being processed");
   }
@@ -232,7 +232,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
           return;
         }
         {
-          std::lock_guard lck(mtx);
+          std::lock_guard lck_g(mtx);
           if (ec) {
             err_code = ec;
           } else {
@@ -246,9 +246,8 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
-  // TODO: lk vs lck
-  std::unique_lock lk(mtx);
-  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
+  std::unique_lock lck(mtx);
+  if (cv.wait_for(lck, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
   }
@@ -263,8 +262,8 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 template <typename type>
 void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
 {
-  std::unique_lock<std::mutex> sdo_write_lk(sdo_write_mtx_, std::defer_lock);
-  if (!sdo_write_lk.try_lock()) {
+  std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
+  if (!sdo_write_lck.try_lock()) {
     throw std::runtime_error(
       "Can't submit new SDO write operation - the previous one is still being processed");
   }
@@ -290,7 +289,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
           return;
         }
         {
-          std::lock_guard lck(mtx);
+          std::lock_guard lck_g(mtx);
           if (ec) {
             err_code = ec;
           }
@@ -302,9 +301,9 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
     throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
   }
 
-  std::unique_lock lk(mtx);
+  std::unique_lock lck(mtx);
 
-  if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
+  if (cv.wait_for(lck, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     sdo_write_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
   }
