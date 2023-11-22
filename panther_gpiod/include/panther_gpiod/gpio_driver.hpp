@@ -108,7 +108,7 @@ public:
    * GPIODriver gpio_driver(gpio_configurations);
    * @endcode
    */
-  GPIODriver(std::vector<GPIOInfo> gpio_info);
+  GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority = 55);
 
   /**
    * @brief Destructor for GPIODriver.
@@ -188,6 +188,7 @@ private:
   void configure_line_request(
     gpiod::chip & chip, gpiod::request_builder & builder, GPIOInfo & gpio_info);
   void monitor_async_events();
+  void configure_rt();
   void handle_edge_event(const gpiod::edge_event & event);
   bool is_gpio_monitor_thread_running() const;
 
@@ -250,6 +251,7 @@ private:
    * This unique pointer manages the thread responsible for monitoring GPIO events asynchronously.
    */
   std::unique_ptr<std::thread> gpio_monitor_thread_;
+  int gpio_monit_thread_sched_priority_;
   std::atomic<bool> gpio_monitor_thread_enabled_{false};
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;

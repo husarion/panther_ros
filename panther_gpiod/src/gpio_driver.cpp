@@ -21,10 +21,14 @@
 
 #include <poll.h>
 
+#include <realtime_tools/thread_priority.hpp>
+
 namespace panther_gpiod
 {
 
-GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info) : gpio_info_storage_(std::move(gpio_info))
+GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority)
+: gpio_info_storage_(std::move(gpio_info)),
+  gpio_monit_thread_sched_priority_(gpio_monit_thread_sched_priority)
 {
   if (gpio_info_storage_.empty()) {
     throw std::runtime_error("Empty GPIO info vector provided");
@@ -165,6 +169,8 @@ void GPIODriver::gpio_monitor_on()
 
 void GPIODriver::monitor_async_events()
 {
+  configure_rt();
+
   auto edge_event_buffer = gpiod::edge_event_buffer(edge_event_buffer_size_);
 
   struct pollfd pollfd;
@@ -183,6 +189,21 @@ void GPIODriver::monitor_async_events()
     for (const auto & event : edge_event_buffer) {
       handle_edge_event(event);
     }
+  }
+}
+
+void GPIODriver::configure_rt()
+{
+  if (realtime_tools::has_realtime_kernel()) {
+    if (!realtime_tools::configure_sched_fifo(gpio_monit_thread_sched_priority_)) {
+      std::cerr << "Could not enable FIFO RT scheduling policy (GPIO monitor thread)" << std::endl;
+    } else {
+      std::cerr << "FIFO RT scheduling policy with priority " << gpio_monit_thread_sched_priority_
+                << " set (GPIO monitor thread) " << std::endl;
+    }
+  } else {
+    std::cerr << "RT kernel is recommended for better performance (GPIO monitor thread)"
+              << std::endl;
   }
 }
 
