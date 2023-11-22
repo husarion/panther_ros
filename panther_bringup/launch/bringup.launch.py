@@ -17,7 +17,7 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
@@ -145,7 +145,7 @@ def generate_launch_description():
                 [get_package_share_directory("panther_bringup"), "config", "imu_config.yaml"]
             ),
         }.items(),
-        condition=IfCondition(not use_sim),
+        condition=UnlessCondition(use_sim),
     )
 
     robot_localization_node = Node(
