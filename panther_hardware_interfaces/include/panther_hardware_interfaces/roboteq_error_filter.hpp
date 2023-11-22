@@ -55,8 +55,6 @@ private:
   bool error_ = false;
 };
 
-// TODO refactor
-
 /**
  * @brief Class that keeps track of different types of errors. In some rare cases Roboteq
  * controllers can miss for example the SDO response, or PDO can be received a bit later, which
