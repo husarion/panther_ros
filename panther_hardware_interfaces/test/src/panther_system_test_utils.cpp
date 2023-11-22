@@ -91,17 +91,13 @@ std::string PantherSystemTestUtils::BuildUrdf(
 {
   std::stringstream urdf;
 
-  // TODO: to constants
-  urdf << kUrdfHeader << R"(<hardware>
-<plugin>panther_hardware_interfaces/PantherSystem</plugin>
-)";
+  urdf << kUrdfHeader << "<hardware>" << std::endl << kPluginName;
 
   for (auto const & [key, val] : param_map) {
     urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
   }
 
-  urdf << R"(</hardware>
-)";
+  urdf << "</hardware>" << std::endl;
 
   for (auto const & joint : joints) {
     urdf << "<joint name=\"" << joint << "\">" << std::endl

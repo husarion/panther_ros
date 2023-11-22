@@ -56,6 +56,10 @@ const std::string kJointInterfaces =
 <state_interface name="effort" />
 )";
 
+const std::string kPluginName =
+  R"(<plugin>panther_hardware_interfaces/PantherSystem</plugin>
+)";
+
 const std::map<std::string, std::string> kDefaultParamMap = {
   {"encoder_resolution", "1600"},
   {"gear_ratio", "30.08"},
