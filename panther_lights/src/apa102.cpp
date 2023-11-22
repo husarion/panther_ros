@@ -109,7 +109,7 @@ void APA102::SPISendBuffer(const std::vector<std::uint8_t> & buffer) const
 {
   struct spi_ioc_transfer tr;
   memset(&tr, 0, sizeof(tr));
-  tr.tx_buf = static_cast<std::uint64_t>(*buffer.data());
+  tr.tx_buf = reinterpret_cast<std::uint64_t>(buffer.data());
   tr.rx_buf = 0;
   tr.len = static_cast<std::uint32_t>(buffer.size());
   tr.speed_hz = speed_;
