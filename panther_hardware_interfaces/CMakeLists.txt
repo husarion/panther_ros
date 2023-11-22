@@ -81,8 +81,9 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_roboteq_data_converters
     test/test_roboteq_data_converters.cpp src/roboteq_data_converters.cpp
     src/utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_roboteq_data_converters
-                             PRIVATE include)
+  target_include_directories(
+    ${PROJECT_NAME}_test_roboteq_data_converters
+    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
                             panther_msgs)
 
@@ -136,8 +137,9 @@ if(BUILD_TESTING)
     src/panther_system_ros_interface.cpp
     src/roboteq_data_converters.cpp
     src/utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_panther_system_ros_interface
-                             PRIVATE include)
+  target_include_directories(
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_system_ros_interface
                             rclcpp panther_msgs realtime_tools std_srvs)
 
@@ -148,7 +150,7 @@ if(BUILD_TESTING)
                                                                       120)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_system
                             hardware_interface rclcpp panther_msgs)
   target_link_libraries(${PROJECT_NAME}_test_panther_system

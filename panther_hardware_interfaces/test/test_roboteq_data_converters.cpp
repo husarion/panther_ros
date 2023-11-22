@@ -18,17 +18,12 @@
 
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
+#include <test_constants.hpp>
+
 TEST(TestRoboteqDataConverters, test_command_converter)
 {
-  // TODO move it
-  panther_hardware_interfaces::DrivetrainSettings settings;
-  settings.motor_torque_constant = 0.11;
-  settings.gear_ratio = 30.08;
-  settings.gearbox_efficiency = 0.75;
-  settings.encoder_resolution = 1600;
-  settings.max_rpm_motor_speed = 3600.0;
-
-  panther_hardware_interfaces::RoboteqVeloctiyCommandConverter cmd_converter(settings);
+  panther_hardware_interfaces::RoboteqVeloctiyCommandConverter cmd_converter(
+    panther_hardware_interfaces_test::drivetrain_settings_);
 
   // radians_per_second_to_roboteq_cmd = 79.789678137
 
@@ -41,16 +36,8 @@ TEST(TestRoboteqDataConverters, test_command_converter)
 
 TEST(TestRoboteqDataConverters, test_motor_state)
 {
-  // TODO move it
-
-  panther_hardware_interfaces::DrivetrainSettings settings;
-  settings.motor_torque_constant = 0.11;
-  settings.gear_ratio = 30.08;
-  settings.gearbox_efficiency = 0.75;
-  settings.encoder_resolution = 1600;
-  settings.max_rpm_motor_speed = 3600.0;
-
-  panther_hardware_interfaces::MotorState motor_state(settings);
+  panther_hardware_interfaces::MotorState motor_state(
+    panther_hardware_interfaces_test::drivetrain_settings_);
 
   ASSERT_FLOAT_EQ(motor_state.GetPosition(), 0.0);
   ASSERT_FLOAT_EQ(motor_state.GetVelocity(), 0.0);
@@ -263,15 +250,8 @@ TEST(TestRoboteqDataConverters, test_driver_state)
 
 TEST(TestRoboteqDataConverters, test_roboteq_data)
 {
-  // TODO move it
-  panther_hardware_interfaces::DrivetrainSettings settings;
-  settings.motor_torque_constant = 0.11;
-  settings.gear_ratio = 30.08;
-  settings.gearbox_efficiency = 0.75;
-  settings.encoder_resolution = 1600;
-  settings.max_rpm_motor_speed = 3600.0;
-
-  panther_hardware_interfaces::RoboteqData roboteq_data(settings);
+  panther_hardware_interfaces::RoboteqData roboteq_data(
+    panther_hardware_interfaces_test::drivetrain_settings_);
 
   ASSERT_FALSE(roboteq_data.IsError());
 

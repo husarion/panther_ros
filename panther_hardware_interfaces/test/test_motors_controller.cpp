@@ -30,22 +30,9 @@ class TestMotorsControllerInitialization : public ::testing::Test
 public:
   TestMotorsControllerInitialization()
   {
-    // TODO: move it
-    canopen_settings_.master_can_id = 3;
-    canopen_settings_.front_driver_can_id = 1;
-    canopen_settings_.rear_driver_can_id = 2;
-
-    canopen_settings_.pdo_feedback_timeout = std::chrono::milliseconds(15);
-    canopen_settings_.sdo_operation_timeout = std::chrono::milliseconds(4);
-
-    drivetrain_settings_.motor_torque_constant = 0.11;
-    drivetrain_settings_.gear_ratio = 30.08;
-    drivetrain_settings_.gearbox_efficiency = 0.75;
-    drivetrain_settings_.encoder_resolution = 1600.0;
-    drivetrain_settings_.max_rpm_motor_speed = 3600.0;
-
     motors_controller_ = std::make_unique<panther_hardware_interfaces::MotorsController>(
-      canopen_settings_, drivetrain_settings_);
+      panther_hardware_interfaces_test::canopen_settings_,
+      panther_hardware_interfaces_test::drivetrain_settings_);
 
     roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     // PDO running on 100Hz
@@ -59,8 +46,6 @@ public:
   }
 
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
-  panther_hardware_interfaces::CanOpenSettings canopen_settings_;
-  panther_hardware_interfaces::DrivetrainSettings drivetrain_settings_;
 
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
 };
@@ -255,7 +240,8 @@ TEST_F(TestMotorsController, test_update_system_feedback_timestamps)
   motors_controller_->UpdateSystemFeedback();
 
   std::this_thread::sleep_for(
-    canopen_settings_.pdo_feedback_timeout + std::chrono::milliseconds(10));
+    panther_hardware_interfaces_test::canopen_settings_.pdo_feedback_timeout +
+    std::chrono::milliseconds(10));
 
   motors_controller_->UpdateSystemFeedback();
 
@@ -274,7 +260,8 @@ TEST_F(TestMotorsController, test_update_system_pdo_feedback_timeout)
   motors_controller_->UpdateSystemFeedback();
 
   std::this_thread::sleep_for(
-    canopen_settings_.pdo_feedback_timeout + std::chrono::milliseconds(10));
+    panther_hardware_interfaces_test::canopen_settings_.pdo_feedback_timeout +
+    std::chrono::milliseconds(10));
 
   motors_controller_->UpdateSystemFeedback();
 

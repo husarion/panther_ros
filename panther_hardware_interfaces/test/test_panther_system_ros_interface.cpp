@@ -22,6 +22,8 @@
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
+#include <test_constants.hpp>
+
 TEST(TestPantherSystemRosInterface, test_initialization)
 {
   std::vector<std::string> node_names;
@@ -162,10 +164,10 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   panther_system_ros_interface.Initialize();
   panther_system_ros_interface.Activate([]() {});
 
-  panther_hardware_interfaces::DrivetrainSettings drivetrain_settings;
-
-  panther_hardware_interfaces::RoboteqData front(drivetrain_settings);
-  panther_hardware_interfaces::RoboteqData rear(drivetrain_settings);
+  panther_hardware_interfaces::RoboteqData front(
+    panther_hardware_interfaces_test::drivetrain_settings_);
+  panther_hardware_interfaces::RoboteqData rear(
+    panther_hardware_interfaces_test::drivetrain_settings_);
 
   front.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00001000, true);
   rear.SetFlags(0b00000010, 0b00000001, 0b00010000, 0b00100000, false);

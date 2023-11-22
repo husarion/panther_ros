@@ -18,7 +18,9 @@
 
 #include <panther_hardware_interfaces/canopen_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
+
 #include <roboteq_mock.hpp>
+#include <test_constants.hpp>
 
 #include <iostream>
 
@@ -27,14 +29,8 @@ class TestRoboteqDriver : public ::testing::Test
 public:
   TestRoboteqDriver()
   {
-    canopen_settings_.master_can_id = 3;
-    canopen_settings_.front_driver_can_id = 1;
-    canopen_settings_.rear_driver_can_id = 2;
-    canopen_settings_.pdo_feedback_timeout = std::chrono::milliseconds(15);
-    canopen_settings_.sdo_operation_timeout = std::chrono::milliseconds(4);
-
-    canopen_controller_ =
-      std::make_unique<panther_hardware_interfaces::CanOpenController>(canopen_settings_);
+    canopen_controller_ = std::make_unique<panther_hardware_interfaces::CanOpenController>(
+      panther_hardware_interfaces_test::canopen_settings_);
 
     roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     roboteq_mock_->Start(std::chrono::milliseconds(100));
@@ -49,7 +45,6 @@ public:
   }
 
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
-  panther_hardware_interfaces::CanOpenSettings canopen_settings_;
 
   std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
 };
@@ -306,6 +301,9 @@ TEST_F(TestRoboteqDriver, test_read_timeout)
   roboteq_mock_->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 100000);
   ASSERT_THROW(canopen_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
 }
+
+// TODO
+// TEST_F(TestRoboteqDriver, test_boot_timeout) {}
 
 // OnCanError isn't tested, because it reacts to lower-level CAN errors (CRC), which are hard to
 // simulate, but it would be nice to add it

@@ -15,14 +15,25 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_TEST_CONSTANTS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_TEST_CONSTANTS_HPP_
 
+#include <chrono>
 #include <cmath>
 #include <map>
 #include <string>
 #include <vector>
 
+#include <panther_hardware_interfaces/canopen_controller.hpp>
+#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+
 namespace panther_hardware_interfaces_test
 {
 
+const panther_hardware_interfaces::CanOpenSettings canopen_settings_{
+  3, 1, 2, std::chrono::milliseconds(15), std::chrono::milliseconds(4)};
+
+const panther_hardware_interfaces::DrivetrainSettings drivetrain_settings_{
+  0.11, 30.08, 0.75, 1600.0, 3600.0};
+
+// TODO: rename
 constexpr float rad_per_sec_to_rbtq_cmd_ = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
 constexpr float rbtq_pos_fb_to_rad_ = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
 constexpr float rbtq_vel_fb_to_rad_per_sec_ = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
