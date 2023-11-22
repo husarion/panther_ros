@@ -225,11 +225,13 @@ public:
   void SetBatAmps1(int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
   void SetBatAmps2(int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
 
-  bool IsError() const
+  bool IsFlagError() const
   {
     return fault_flags_.IsError() || script_flags_.IsError() || left_runtime_error_.IsError() ||
-           right_runtime_error_.IsError() || data_timed_out_;
+           right_runtime_error_.IsError();
   }
+
+  bool IsError() const { return IsFlagError() || data_timed_out_; }
 
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
@@ -242,13 +244,12 @@ public:
   const RuntimeError & GetLeftRuntimeError() const { return left_runtime_error_; }
   const RuntimeError & GetRightRuntimeError() const { return right_runtime_error_; }
 
-  std::string GetErrorLog() const
+  std::string GetFlagErrorLog() const
   {
     return "Fault flags: " + fault_flags_.GetErrorLog() +
            "Script flags: " + script_flags_.GetErrorLog() +
            "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
-           "Right motor runtime flags: " + right_runtime_error_.GetErrorLog() +
-           "Data timed out: " + (data_timed_out_ ? "true" : "false");
+           "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
   }
 
 private:

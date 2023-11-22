@@ -28,10 +28,10 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
-#include <panther_hardware_interfaces/canopen_error_filter.hpp>
 #include <panther_hardware_interfaces/gpio_driver.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
+#include <panther_hardware_interfaces/roboteq_error_filter.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -71,7 +71,7 @@ protected:
   void ReadDrivetrainSettings();
   void ReadCanOpenSettings();
   void ReadInitializationActivationAttempts();
-  void ReadParametersAndCreateCanOpenErrorFilter();
+  void ReadParametersAndCreateRoboteqErrorFilter();
 
   void UpdateHwStates();
   void UpdateDriverState();
@@ -101,7 +101,7 @@ protected:
   DrivetrainSettings drivetrain_settings_;
   CanOpenSettings canopen_settings_;
 
-  std::shared_ptr<CanOpenErrorFilter> canopen_error_filter_;
+  std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
 
   PantherSystemRosInterface panther_system_ros_interface_;
 
@@ -121,6 +121,12 @@ protected:
 
   rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
+
+  // TODO: refactor
+  std::size_t read_sdo_errors_filter_id_;
+  std::size_t write_sdo_errors_filter_id_;
+  std::size_t read_pdo_errors_filter_id_;
+  std::size_t roboteq_driver_errors_filter_id_;
 };
 
 }  // namespace panther_hardware_interfaces

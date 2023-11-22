@@ -36,7 +36,7 @@ Feedback converters are combined in the `RoboteqData` class to provide the full 
 * 2 `RuntimeError` (for left and right motors)
 * `DriverState`
 
-### `canopen_error_filter`
+### `roboteq_error_filter`
 
 A class that keeps track of different types of errors. In some rare cases, Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in a timeout.
 As they usually are rare and singular occurrences, it is better to filter some of these errors and escalate only when a certain number of errors happen.

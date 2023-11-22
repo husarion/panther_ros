@@ -151,7 +151,7 @@ void PantherSystem::ReadInitializationActivationAttempts()
   max_safety_stop_attempts_ = std::stoi(info_.hardware_parameters["max_safety_stop_attempts"]);
 }
 
-void PantherSystem::ReadParametersAndCreateCanOpenErrorFilter()
+void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()
 {
   unsigned max_write_sdo_errors_count =
     std::stoi(info_.hardware_parameters["max_write_sdo_errors_count"]);
@@ -160,8 +160,14 @@ void PantherSystem::ReadParametersAndCreateCanOpenErrorFilter()
   unsigned max_read_pdo_errors_count =
     std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
 
-  canopen_error_filter_ = std::make_shared<CanOpenErrorFilter>(
-    max_write_sdo_errors_count, max_read_sdo_errors_count, max_read_pdo_errors_count);
+  roboteq_error_filter_ = std::make_shared<RoboteqErrorFilter>(std::vector<ErrorFilter>{
+    ErrorFilter(max_read_sdo_errors_count), ErrorFilter(max_write_sdo_errors_count),
+    ErrorFilter(max_read_pdo_errors_count), ErrorFilter(1)});
+
+  read_sdo_errors_filter_id_ = 0;
+  write_sdo_errors_filter_id_ = 1;
+  read_pdo_errors_filter_id_ = 2;
+  roboteq_driver_errors_filter_id_ = 3;
 }
 
 CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
@@ -187,7 +193,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     ReadDrivetrainSettings();
     ReadCanOpenSettings();
     ReadInitializationActivationAttempts();
-    ReadParametersAndCreateCanOpenErrorFilter();
+    ReadParametersAndCreateRoboteqErrorFilter();
 
   } catch (const std::invalid_argument & e) {
     RCLCPP_FATAL(logger_, "One of the required hardware parameters was not defined");
@@ -256,7 +262,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   panther_system_ros_interface_.Activate(
-    std::bind(&CanOpenErrorFilter::SetClearErrorsFlag, canopen_error_filter_));
+    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
 
   RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;
@@ -361,11 +367,11 @@ void PantherSystem::UpdateDriverState()
         motors_controller_->GetRearData().GetDriverState());
     }
 
-    canopen_error_filter_->UpdateReadSDOError(false);
+    roboteq_error_filter_->UpdateError(read_sdo_errors_filter_id_, false);
 
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Error when trying to read drivers feedback: " << e.what());
-    canopen_error_filter_->UpdateReadSDOError(true);
+    roboteq_error_filter_->UpdateError(read_sdo_errors_filter_id_, true);
   }
 }
 
@@ -378,21 +384,32 @@ void PantherSystem::UpdateSystemFeedback()
       motors_controller_->GetFrontData(), motors_controller_->GetRearData());
 
     if (
-      motors_controller_->GetFrontData().IsError() || motors_controller_->GetRearData().IsError()) {
+      motors_controller_->GetFrontData().IsFlagError() ||
+      motors_controller_->GetRearData().IsFlagError()) {
       RCLCPP_ERROR_STREAM_THROTTLE(
         logger_, steady_clock_, 5000,
         "Error state on one of the drivers"
-          << "\nFront: " << motors_controller_->GetFrontData().GetErrorLog()
-          << "\nRear: " << motors_controller_->GetRearData().GetErrorLog());
-
-      // TODO: filter only on timeout errors
-      canopen_error_filter_->UpdateReadPDOError(true);
+          << "\nFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
+          << "\nRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
+      roboteq_error_filter_->UpdateError(roboteq_driver_errors_filter_id_, true);
     } else {
-      canopen_error_filter_->UpdateReadPDOError(false);
+      roboteq_error_filter_->UpdateError(roboteq_driver_errors_filter_id_, false);
+    }
+
+    if (
+      motors_controller_->GetFrontData().IsDataTimedOut() ||
+      motors_controller_->GetRearData().IsDataTimedOut()) {
+      RCLCPP_ERROR_STREAM(
+        logger_, "PDO data timeout: "
+                   << (motors_controller_->GetFrontData().IsDataTimedOut() ? "front " : "")
+                   << (motors_controller_->GetRearData().IsDataTimedOut() ? "rear" : ""));
+      roboteq_error_filter_->UpdateError(read_pdo_errors_filter_id_, true);
+    } else {
+      roboteq_error_filter_->UpdateError(read_pdo_errors_filter_id_, false);
     }
 
   } catch (const std::runtime_error & e) {
-    canopen_error_filter_->UpdateReadPDOError(true);
+    roboteq_error_filter_->UpdateError(read_pdo_errors_filter_id_, true);
     RCLCPP_ERROR_STREAM(logger_, "Error when trying to read feedback: " << e.what());
   }
 }
@@ -402,8 +419,9 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   UpdateDriverState();
   UpdateSystemFeedback();
   panther_system_ros_interface_.UpdateMsgErrors(
-    canopen_error_filter_->IsError(), canopen_error_filter_->IsWriteSDOError(),
-    canopen_error_filter_->IsReadSDOError(), canopen_error_filter_->IsReadPDOError(),
+    roboteq_error_filter_->IsError(), roboteq_error_filter_->IsError(write_sdo_errors_filter_id_),
+    roboteq_error_filter_->IsError(read_sdo_errors_filter_id_),
+    roboteq_error_filter_->IsError(read_pdo_errors_filter_id_),
     motors_controller_->GetFrontData().IsDataTimedOut(),
     motors_controller_->GetRearData().IsDataTimedOut());
 
@@ -414,15 +432,15 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  if (!canopen_error_filter_->IsError()) {
+  if (!roboteq_error_filter_->IsError()) {
     try {
       motors_controller_->WriteSpeed(
         hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
         hw_commands_velocities_[3]);
-      canopen_error_filter_->UpdateWriteSDOError(false);
+      roboteq_error_filter_->UpdateError(write_sdo_errors_filter_id_, false);
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(logger_, "Error when trying to write commands: " << e.what());
-      canopen_error_filter_->UpdateWriteSDOError(true);
+      roboteq_error_filter_->UpdateError(write_sdo_errors_filter_id_, true);
     }
   }
 
@@ -430,7 +448,7 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
   // time of writing there wasn't a better approach to handling estop. Moved after WriteSpeed, so
   // that safety stop can be set just after write error happens.
-  if (canopen_error_filter_->IsError()) {
+  if (roboteq_error_filter_->IsError()) {
     if (
       (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
        motors_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&

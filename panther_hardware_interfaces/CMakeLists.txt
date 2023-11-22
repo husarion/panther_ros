@@ -72,9 +72,9 @@ install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_canopen_error_filter
-                  test/test_canopen_error_filter.cpp)
-  target_include_directories(${PROJECT_NAME}_test_canopen_error_filter
+  ament_add_gtest(${PROJECT_NAME}_test_roboteq_error_filter
+                  test/test_roboteq_error_filter.cpp)
+  target_include_directories(${PROJECT_NAME}_test_roboteq_error_filter
                              PRIVATE include)
 
   ament_add_gtest(
