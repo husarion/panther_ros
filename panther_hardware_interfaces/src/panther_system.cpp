@@ -414,9 +414,22 @@ return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
 return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
+  if (!canopen_error_filter_->IsError()) {
+    try {
+      motors_controller_->WriteSpeed(
+        hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
+        hw_commands_velocities_[3]);
+      canopen_error_filter_->UpdateWriteSDOError(false);
+    } catch (const std::runtime_error & e) {
+      RCLCPP_ERROR_STREAM(logger_, "Error when trying to write commands: " << e.what());
+      canopen_error_filter_->UpdateWriteSDOError(true);
+    }
+  }
+
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
-  // time of writing there wasn't a better approach to handling estop
+  // time of writing there wasn't a better approach to handling estop. Moved after WriteSpeed, so
+  // that safety stop can be set just after write error happens.
   if (canopen_error_filter_->IsError()) {
     if (
       (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
@@ -438,18 +451,6 @@ return_type PantherSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       logger_, steady_clock_, 5000, "Error detected, ignoring write commands");
     return return_type::OK;
   }
-
-  try {
-    motors_controller_->WriteSpeed(
-      hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
-      hw_commands_velocities_[3]);
-    canopen_error_filter_->UpdateWriteSDOError(false);
-  } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to write commands: " << e.what());
-    canopen_error_filter_->UpdateWriteSDOError(true);
-  }
-
-  // TODO: move setting safety stop here
 
   return return_type::OK;
 }
