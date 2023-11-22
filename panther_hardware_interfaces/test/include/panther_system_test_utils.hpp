@@ -34,7 +34,7 @@ namespace panther_hardware_interfaces_test
 class PantherSystemTestUtils
 {
 public:
-  PantherSystemTestUtils() : param_map_(default_param_map_), joints_(default_joints_)
+  PantherSystemTestUtils() : param_map_(kDefaultParamMap), joints_(kDefaultJoints)
   {
     default_panther_system_urdf_ = BuildUrdf(param_map_, joints_);
   }

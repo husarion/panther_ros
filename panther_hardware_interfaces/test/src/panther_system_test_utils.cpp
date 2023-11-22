@@ -24,7 +24,7 @@ namespace panther_hardware_interfaces_test
 void PantherSystemTestUtils::SetState(const uint8_t state_id, const std::string & state_name)
 {
   rclcpp_lifecycle::State state(state_id, state_name);
-  rm_->set_component_state(panther_system_name_, state);
+  rm_->set_component_state(kPantherSystemName, state);
 }
 
 void PantherSystemTestUtils::ConfigurePantherSystem()
@@ -92,7 +92,7 @@ std::string PantherSystemTestUtils::BuildUrdf(
   std::stringstream urdf;
 
   // TODO: to constants
-  urdf << urdf_header_ << R"(<hardware>
+  urdf << kUrdfHeader << R"(<hardware>
 <plugin>panther_hardware_interfaces/PantherSystem</plugin>
 )";
 
@@ -105,10 +105,10 @@ std::string PantherSystemTestUtils::BuildUrdf(
 
   for (auto const & joint : joints) {
     urdf << "<joint name=\"" << joint << "\">" << std::endl
-         << joint_interfaces_ << "</joint>" << std::endl;
+         << kJointInterfaces << "</joint>" << std::endl;
   }
 
-  urdf << urdf_footer_;
+  urdf << kUrdfFooter;
 
   return urdf.str();
 }

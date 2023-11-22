@@ -31,8 +31,8 @@ public:
   TestMotorsControllerInitialization()
   {
     motors_controller_ = std::make_unique<panther_hardware_interfaces::MotorsController>(
-      panther_hardware_interfaces_test::canopen_settings_,
-      panther_hardware_interfaces_test::drivetrain_settings_);
+      panther_hardware_interfaces_test::kCanopenSettings,
+      panther_hardware_interfaces_test::kDrivetrainSettings);
 
     roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     // PDO running on 100Hz
@@ -148,9 +148,9 @@ TEST_F(TestMotorsController, test_update_system_feedback)
   using panther_hardware_interfaces_test::DriverRuntimeErrors;
   using panther_hardware_interfaces_test::DriverScriptFlags;
 
-  using panther_hardware_interfaces_test::rbtq_current_fb_to_newton_meters_;
-  using panther_hardware_interfaces_test::rbtq_pos_fb_to_rad_;
-  using panther_hardware_interfaces_test::rbtq_vel_fb_to_rad_per_sec_;
+  using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
+  using panther_hardware_interfaces_test::kRbtqPosFbToRad;
+  using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
 
   const int32_t fl_pos = 101;
   const int32_t fl_vel = 102;
@@ -205,21 +205,21 @@ TEST_F(TestMotorsController, test_update_system_feedback)
   const auto & rl = motors_controller_->GetRearData().GetLeftMotorState();
   const auto & rr = motors_controller_->GetRearData().GetRightMotorState();
 
-  ASSERT_FLOAT_EQ(fl.GetPosition(), fl_pos * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(fl.GetVelocity(), fl_vel * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(fl.GetTorque(), fl_current * rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(fl.GetPosition(), fl_pos * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(fl.GetVelocity(), fl_vel * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(fl.GetTorque(), fl_current * kRbtqCurrentFbToNewtonMeters);
 
-  ASSERT_FLOAT_EQ(fr.GetPosition(), fr_pos * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(fr.GetVelocity(), fr_vel * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(fr.GetTorque(), fr_current * rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(fr.GetPosition(), fr_pos * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(fr.GetVelocity(), fr_vel * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(fr.GetTorque(), fr_current * kRbtqCurrentFbToNewtonMeters);
 
-  ASSERT_FLOAT_EQ(rl.GetPosition(), rl_pos * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(rl.GetVelocity(), rl_vel * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(rl.GetTorque(), rl_current * rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(rl.GetPosition(), rl_pos * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(rl.GetVelocity(), rl_vel * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(rl.GetTorque(), rl_current * kRbtqCurrentFbToNewtonMeters);
 
-  ASSERT_FLOAT_EQ(rr.GetPosition(), rr_pos * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(rr.GetVelocity(), rr_vel * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(rr.GetTorque(), rr_current * rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(rr.GetPosition(), rr_pos * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(rr.GetVelocity(), rr_vel * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(rr.GetTorque(), rr_current * kRbtqCurrentFbToNewtonMeters);
 
   ASSERT_TRUE(motors_controller_->GetFrontData().GetFaultFlag().GetMessage().overheat);
   ASSERT_TRUE(motors_controller_->GetFrontData().GetScriptFlag().GetMessage().encoder_disconected);
@@ -240,7 +240,7 @@ TEST_F(TestMotorsController, test_update_system_feedback_timestamps)
   motors_controller_->UpdateSystemFeedback();
 
   std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::canopen_settings_.pdo_feedback_timeout +
+    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
     std::chrono::milliseconds(10));
 
   motors_controller_->UpdateSystemFeedback();
@@ -260,7 +260,7 @@ TEST_F(TestMotorsController, test_update_system_pdo_feedback_timeout)
   motors_controller_->UpdateSystemFeedback();
 
   std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::canopen_settings_.pdo_feedback_timeout +
+    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
     std::chrono::milliseconds(10));
 
   motors_controller_->UpdateSystemFeedback();
@@ -380,7 +380,7 @@ TEST_F(TestMotorsController, test_write_speed)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
-  using panther_hardware_interfaces_test::rad_per_sec_to_rbtq_cmd_;
+  using panther_hardware_interfaces_test::kRadPerSecToRbtqCmd;
 
   const float fl_v = 0.1;
   const float fr_v = 0.2;
@@ -391,16 +391,16 @@ TEST_F(TestMotorsController, test_write_speed)
 
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(fl_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(fr_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(rl_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(rr_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
 }
 
 TEST_F(TestMotorsController, test_write_speed_sdo_timeout)

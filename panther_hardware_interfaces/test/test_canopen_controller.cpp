@@ -29,7 +29,7 @@ public:
   TestCanOpenController()
   {
     canopen_controller_ = std::make_unique<panther_hardware_interfaces::CanOpenController>(
-      panther_hardware_interfaces_test::canopen_settings_);
+      panther_hardware_interfaces_test::kCanopenSettings);
 
     roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     // PDO running on 100Hz

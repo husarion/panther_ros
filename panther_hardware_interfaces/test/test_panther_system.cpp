@@ -133,12 +133,12 @@ void WaitForDriverStateMsg(
 // TRANSITIONS
 TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
 {
-  using panther_hardware_interfaces_test::panther_system_name_;
+  using panther_hardware_interfaces_test::kPantherSystemName;
 
   // check if hardware is configured
   auto status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 
   try {
@@ -149,7 +149,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::INACTIVE);
 
   try {
@@ -160,7 +160,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::ACTIVE);
 
   // Check interfaces
@@ -177,17 +177,17 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
 TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem)
 {
-  using panther_hardware_interfaces_test::panther_system_name_;
+  using panther_hardware_interfaces_test::kPantherSystemName;
 
   auto status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 
   try {
@@ -198,7 +198,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::INACTIVE);
 
   try {
@@ -209,7 +209,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::ACTIVE);
 
   // Check interfaces
@@ -226,7 +226,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::INACTIVE);
 
   try {
@@ -237,7 +237,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem
   }
   status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 }
 
@@ -248,7 +248,7 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 
   using panther_hardware_interfaces_test::DriverChannel;
 
-  using panther_hardware_interfaces_test::rad_per_sec_to_rbtq_cmd_;
+  using panther_hardware_interfaces_test::kRadPerSecToRbtqCmd;
 
   const float fl_v = 0.1;
   const float fr_v = 0.2;
@@ -279,16 +279,16 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 
   ASSERT_EQ(
     pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(fl_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(fr_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(rl_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(rr_v * rad_per_sec_to_rbtq_cmd_));
+    static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -300,9 +300,9 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
 
   using panther_hardware_interfaces_test::DriverChannel;
 
-  using panther_hardware_interfaces_test::rbtq_current_fb_to_newton_meters_;
-  using panther_hardware_interfaces_test::rbtq_pos_fb_to_rad_;
-  using panther_hardware_interfaces_test::rbtq_vel_fb_to_rad_per_sec_;
+  using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
+  using panther_hardware_interfaces_test::kRbtqPosFbToRad;
+  using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
 
   const int32_t fl_val = 100;
   const int32_t fr_val = 200;
@@ -350,20 +350,20 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
     return;
   }
 
-  ASSERT_FLOAT_EQ(fl_s_p.get_value(), fl_val * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(fr_s_p.get_value(), fr_val * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(rl_s_p.get_value(), rl_val * rbtq_pos_fb_to_rad_);
-  ASSERT_FLOAT_EQ(rr_s_p.get_value(), rr_val * rbtq_pos_fb_to_rad_);
+  ASSERT_FLOAT_EQ(fl_s_p.get_value(), fl_val * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(fr_s_p.get_value(), fr_val * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(rl_s_p.get_value(), rl_val * kRbtqPosFbToRad);
+  ASSERT_FLOAT_EQ(rr_s_p.get_value(), rr_val * kRbtqPosFbToRad);
 
-  ASSERT_FLOAT_EQ(fl_s_v.get_value(), fl_val * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(fr_s_v.get_value(), fr_val * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(rl_s_v.get_value(), rl_val * rbtq_vel_fb_to_rad_per_sec_);
-  ASSERT_FLOAT_EQ(rr_s_v.get_value(), rr_val * rbtq_vel_fb_to_rad_per_sec_);
+  ASSERT_FLOAT_EQ(fl_s_v.get_value(), fl_val * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(fr_s_v.get_value(), fr_val * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(rl_s_v.get_value(), rl_val * kRbtqVelFbToRadPerSec);
+  ASSERT_FLOAT_EQ(rr_s_v.get_value(), rr_val * kRbtqVelFbToRadPerSec);
 
-  ASSERT_FLOAT_EQ(fl_s_e.get_value(), fl_val * rbtq_current_fb_to_newton_meters_);
-  ASSERT_FLOAT_EQ(fr_s_e.get_value(), fr_val * rbtq_current_fb_to_newton_meters_);
-  ASSERT_FLOAT_EQ(rl_s_e.get_value(), rl_val * rbtq_current_fb_to_newton_meters_);
-  ASSERT_FLOAT_EQ(rr_s_e.get_value(), rr_val * rbtq_current_fb_to_newton_meters_);
+  ASSERT_FLOAT_EQ(fl_s_e.get_value(), fl_val * kRbtqCurrentFbToNewtonMeters);
+  ASSERT_FLOAT_EQ(fr_s_e.get_value(), fr_val * kRbtqCurrentFbToNewtonMeters);
+  ASSERT_FLOAT_EQ(rl_s_e.get_value(), rl_val * kRbtqCurrentFbToNewtonMeters);
+  ASSERT_FLOAT_EQ(rr_s_e.get_value(), rr_val * kRbtqCurrentFbToNewtonMeters);
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -534,7 +534,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 // ERROR HANDLING
 TEST(TestPantherSystemOthers, test_error_state)
 {
-  using panther_hardware_interfaces_test::panther_system_name_;
+  using panther_hardware_interfaces_test::kPantherSystemName;
 
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
@@ -561,7 +561,7 @@ TEST(TestPantherSystemOthers, test_error_state)
 
   auto status_map = pth_test_.rm_->get_components_status();
   ASSERT_EQ(
-    status_map[panther_system_name_].state.label(),
+    status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 
   pth_test_.Stop();
@@ -574,7 +574,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
   using panther_hardware_interfaces_test::DriverChannel;
 
-  using panther_hardware_interfaces_test::rad_per_sec_to_rbtq_cmd_;
+  using panther_hardware_interfaces_test::kRadPerSecToRbtqCmd;
 
   const float period_ = 0.01;
 
@@ -622,16 +622,16 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
     ASSERT_EQ(
       pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-      static_cast<int32_t>(fl_v * rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
       pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-      static_cast<int32_t>(fr_v * rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
       pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-      static_cast<int32_t>(rl_v * rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
       pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-      static_cast<int32_t>(rr_v * rad_per_sec_to_rbtq_cmd_));
+      static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
   }
 
   pth_test_.ShutdownPantherSystem();

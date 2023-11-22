@@ -23,7 +23,7 @@
 TEST(TestRoboteqDataConverters, test_command_converter)
 {
   panther_hardware_interfaces::RoboteqVeloctiyCommandConverter cmd_converter(
-    panther_hardware_interfaces_test::drivetrain_settings_);
+    panther_hardware_interfaces_test::kDrivetrainSettings);
 
   // radians_per_second_to_roboteq_cmd = 79.789678137
 
@@ -37,7 +37,7 @@ TEST(TestRoboteqDataConverters, test_command_converter)
 TEST(TestRoboteqDataConverters, test_motor_state)
 {
   panther_hardware_interfaces::MotorState motor_state(
-    panther_hardware_interfaces_test::drivetrain_settings_);
+    panther_hardware_interfaces_test::kDrivetrainSettings);
 
   ASSERT_FLOAT_EQ(motor_state.GetPosition(), 0.0);
   ASSERT_FLOAT_EQ(motor_state.GetVelocity(), 0.0);
@@ -251,7 +251,7 @@ TEST(TestRoboteqDataConverters, test_driver_state)
 TEST(TestRoboteqDataConverters, test_roboteq_data)
 {
   panther_hardware_interfaces::RoboteqData roboteq_data(
-    panther_hardware_interfaces_test::drivetrain_settings_);
+    panther_hardware_interfaces_test::kDrivetrainSettings);
 
   ASSERT_FALSE(roboteq_data.IsError());
 
