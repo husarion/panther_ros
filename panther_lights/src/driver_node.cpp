@@ -53,7 +53,7 @@ void DriverNode::Initialize()
 {
   it_ = std::make_shared<image_transport::ImageTransport>(this->shared_from_this());
 
-  const double global_brightness = this->get_parameter("global_brightness").as_double();
+  const float global_brightness = this->get_parameter("global_brightness").as_double();
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
 

@@ -56,7 +56,7 @@ APA102::APA102(const std::string & device, const std::uint32_t speed, const bool
 
 APA102::~APA102() { close(fd_); }
 
-void APA102::SetGlobalBrightness(const double brightness)
+void APA102::SetGlobalBrightness(const float brightness)
 {
   std::uint8_t val = brightness > 0.0f ? ceil(brightness * 31.0f) : 0;
   SetGlobalBrightness(val);
@@ -70,35 +70,19 @@ void APA102::SetGlobalBrightness(const std::uint8_t brightness)
 
 void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
 {
-  std::uint8_t * buffer;
-  auto buffer_size = RGBAFrameToBGRBuffer(frame, buffer);
-
-  struct spi_ioc_transfer tr;
-  memset(&tr, 0, sizeof(tr));
-  tr.tx_buf = (unsigned long long)buffer;
-  tr.rx_buf = 0;
-  tr.len = (unsigned int)buffer_size;
-  tr.speed_hz = speed_;
-  tr.delay_usecs = 0;
-  tr.bits_per_word = kBits;
-
-  const int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
-  delete[] buffer;
-
-  if (ret < 1) {
-    throw std::ios_base::failure("Failed to send data over SPI " + device_);
-  }
+  std::vector<std::uint8_t> buffer = RGBAFrameToBGRBuffer(frame);
+  SPISendBuffer(buffer);
 }
 
-std::size_t APA102::RGBAFrameToBGRBuffer(
-  const std::vector<std::uint8_t> & frame, std::uint8_t *& buffer) const
+std::vector<std::uint8_t> APA102::RGBAFrameToBGRBuffer(
+  const std::vector<std::uint8_t> & frame) const
 {
   if (frame.size() % 4 != 0) {
     throw std::runtime_error("Incorrect number of bytes to convert frame");
   }
 
   std::size_t buffer_size = (4 * sizeof(std::uint8_t)) + frame.size() + (4 * sizeof(std::uint8_t));
-  buffer = new std::uint8_t[buffer_size];
+  std::vector<std::uint8_t> buffer(buffer_size);
 
   // Init start and end frames
   for (std::size_t i = 0; i < 4; i++) {
@@ -118,7 +102,25 @@ std::size_t APA102::RGBAFrameToBGRBuffer(
     buffer[4 + padding + 3] = std::uint8_t((std::uint16_t(frame[padding + 0]) * kCorrRed) / 255);
   }
 
-  return buffer_size;
+  return buffer;
+}
+
+void APA102::SPISendBuffer(const std::vector<std::uint8_t> & buffer) const
+{
+  struct spi_ioc_transfer tr;
+  memset(&tr, 0, sizeof(tr));
+  tr.tx_buf = static_cast<std::uint64_t>(*buffer.data());
+  tr.rx_buf = 0;
+  tr.len = static_cast<std::uint32_t>(buffer.size());
+  tr.speed_hz = speed_;
+  tr.delay_usecs = 0;
+  tr.bits_per_word = kBits;
+
+  const int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
+
+  if (ret < 1) {
+    throw std::ios_base::failure("Failed to send data over SPI " + device_);
+  }
 }
 
 }  // namespace panther_lights::apa102

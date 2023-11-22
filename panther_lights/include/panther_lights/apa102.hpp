@@ -30,20 +30,26 @@ public:
   ~APA102();
 
   void SetGlobalBrightness(const std::uint8_t brightness);
-  void SetGlobalBrightness(const double brightness);
+  void SetGlobalBrightness(const float brightness);
   void SetPanel(const std::vector<std::uint8_t> & frame) const;
 
 protected:
   /**
-   * @brief Modifies provided buffer to BGR format with structure appropriate for
+   * @brief Creates buffer with BGR format with structure appropriate for
    * the SPI transfer based on a given RGBA frame
    *
-   * @returns buffer length.
+   * @returns buffer vector.
    *
    * @exception std::runtime_error if frame has incorrect number of bytes
    */
-  std::size_t RGBAFrameToBGRBuffer(
-    const std::vector<std::uint8_t> & frame, std::uint8_t *& buffer) const;
+  std::vector<std::uint8_t> RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const;
+
+  /**
+   * @brief create transfer object based on buffer and send data over SPI
+   *
+   * @exception std::ios_base::failure if failed to send data over SPI
+   */
+  void SPISendBuffer(const std::vector<std::uint8_t> & buffer) const;
 
   std::uint16_t global_brightness_;
 
