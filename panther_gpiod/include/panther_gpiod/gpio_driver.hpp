@@ -32,6 +32,7 @@
 #include <memory>
 #include <shared_mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <gpiod.hpp>
@@ -42,7 +43,7 @@ namespace panther_gpiod
 /**
  * @brief Enumeration representing available GPIO pins in the Panther system.
  */
-enum class GPIOpin {
+enum class GPIOPin {
   AUX_PW_EN,
   CHRG_DISABLE,
   CHRG_SENSE,
@@ -68,9 +69,9 @@ enum class GPIOpin {
  * direction, value, etc. This information is required during the
  * initialization process.
  */
-struct GPIOinfo
+struct GPIOInfo
 {
-  GPIOpin pin;
+  GPIOPin pin;
   gpiod::line::direction direction;
   bool active_low = false;
   gpiod::line::value init_value = gpiod::line::value::INACTIVE;
@@ -99,16 +100,16 @@ public:
    * @par Example
    * An example of constructing the GPIODriver object by providing GPIO pin information:
    * @code{.cpp}
-   * std::vector<GPIOinfo> gpio_configurations = {
-   *   {GPIOpin::CHRG_SENSE, gpiod::line::direction::INPUT},
-   *   {GPIOpin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-   *   {GPIOpin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true, gpiod::line::value::ACTIVE}
+   * std::vector<GPIOInfo> gpio_configurations = {
+   *   {GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
+   *   {GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
+   *   {GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true, gpiod::line::value::ACTIVE}
    *   // ... additional GPIO pin configurations
    * };
    * GPIODriver gpio_driver(gpio_configurations);
    * @endcode
    */
-  GPIODriver(std::vector<GPIOinfo> gpio_info);
+  GPIODriver(std::vector<GPIOInfo> gpio_info);
 
   /**
    * @brief Destructor for GPIODriver.
@@ -128,7 +129,7 @@ public:
    * @code{.cpp}
    * class MyClass {
    * public:
-   *   void handle_gpio_event(const GPIOinfo & gpio_info) {
+   *   void handle_gpio_event(const GPIOInfo & gpio_info) {
    *     // Handle GPIO event here, i.e:
    *     std::cout << gpio_info.offset << ":    " << gpio_info.value << std::endl;
    *   }
@@ -140,38 +141,35 @@ public:
    *     std::bind(&MyClass::handle_gpio_event, &my_obj, std::placeholders::_1));
    * @endcode
    */
-  void configure_edge_event_callback(const std::function<void(const GPIOinfo &)> & callback)
-  {
-    gpio_edge_event_callback = callback;
-  }
+  void configure_edge_event_callback(const std::function<void(const GPIOInfo &)> & callback);
 
   /**
    * @brief Checks if a specific GPIO pin is active.
    *
    * This method returns the value stored in the class read during the last edge event.
    *
-   * @param pin GPIOpin to check.
+   * @param pin GPIOPin to check.
    * @return True if the pin is active, false otherwise.
    */
-  bool is_pin_active(GPIOpin pin);
+  bool is_pin_active(const GPIOPin pin);
 
   /**
    * @brief Sets the value for a specific GPIO pin.
    *
-   * @param pin GPIOpin to set the value for.
+   * @param pin GPIOPin to set the value for.
    * @param value New value to set for the pin.
    * @return True if the value is set successfully, false otherwise.
    */
-  bool set_pin_value(GPIOpin pin, bool value);
+  bool set_pin_value(const GPIOPin pin, const bool value);
 
   /**
    * @brief Changes the direction of a specific GPIO pin.
    *
-   * @param pin GPIOpin to change the direction for.
+   * @param pin GPIOPin to change the direction for.
    * @param direction New direction for the pin.
    * @throws std::runtime_error if there is an error while setting the GPIO pin value.
    */
-  void change_pin_direction(GPIOpin pin, gpiod::line::direction direction);
+  void change_pin_direction(const GPIOPin pin, const gpiod::line::direction direction);
 
   /**
    * @brief Enables asynchronous monitoring of GPIO pin events.
@@ -184,13 +182,12 @@ public:
   void gpio_monitor_off();
 
 private:
-  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip, const GPIOpin pin);
-  std::unique_ptr<gpiod::line_request> create_line_request(
-    gpiod::chip & chip, const std::vector<GPIOpin> & pins);
-  gpiod::line_settings generate_line_settings(const GPIOinfo & pin_info);
-  GPIOpin get_pin_from_offset(gpiod::line::offset offset) const;
-  GPIOinfo & get_pin_info_ref(GPIOpin pin);
-  void configure_line_request(gpiod::chip & chip, gpiod::request_builder & builder, GPIOpin pin);
+  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip);
+  gpiod::line_settings generate_line_settings(const GPIOInfo & pin_info);
+  GPIOPin get_pin_from_offset(const gpiod::line::offset & offset) const;
+  GPIOInfo & get_gpio_info_ref(const GPIOPin pin);
+  void configure_line_request(
+    gpiod::chip & chip, gpiod::request_builder & builder, GPIOInfo & gpio_info);
   void monitor_async_events();
   void handle_edge_event(const gpiod::edge_event & event);
   bool is_gpio_monitor_thread_running() const;
@@ -201,29 +198,29 @@ private:
    * @param gpio_info Information related to the state of the GPIO pin for which the event took
    * place.
    */
-  std::function<void(const GPIOinfo & gpio_info)> gpio_edge_event_callback;
+  std::function<void(const GPIOInfo & gpio_info)> gpio_edge_event_callback;
 
   /**
    * @brief Mapping of GPIO pins to their respective names.
    *
    * This map contains the names associated with different GPIO pins.
    */
-  const std::map<GPIOpin, std::string> pin_names_{
-    {GPIOpin::WATCHDOG, "WATCHDOG"},
-    {GPIOpin::AUX_PW_EN, "AUX_PW_EN"},
-    {GPIOpin::CHRG_DISABLE, "CHRG_DISABLE"},
-    {GPIOpin::CHRG_SENSE, "CHRG_SENSE"},
-    {GPIOpin::DRIVER_EN, "DRIVER_EN"},
-    {GPIOpin::E_STOP_RESET, "E_STOP_RESET"},
-    {GPIOpin::FAN_SW, "FAN_SW"},
-    {GPIOpin::GPOUT1, "GPOUT1"},
-    {GPIOpin::GPOUT2, "GPOUT2"},
-    {GPIOpin::GPIN1, "GPIN1"},
-    {GPIOpin::GPIN2, "GPIN2"},
-    {GPIOpin::LED_SBC_SEL, "LED_SBC_SEL"},
-    {GPIOpin::SHDN_INIT, "SHDN_INIT"},
-    {GPIOpin::VDIG_OFF, "VDIG_OFF"},
-    {GPIOpin::VMOT_ON, "VMOT_ON"},
+  const std::map<GPIOPin, std::string> pin_names_{
+    {GPIOPin::WATCHDOG, "WATCHDOG"},
+    {GPIOPin::AUX_PW_EN, "AUX_PW_EN"},
+    {GPIOPin::CHRG_DISABLE, "CHRG_DISABLE"},
+    {GPIOPin::CHRG_SENSE, "CHRG_SENSE"},
+    {GPIOPin::DRIVER_EN, "DRIVER_EN"},
+    {GPIOPin::E_STOP_RESET, "E_STOP_RESET"},
+    {GPIOPin::FAN_SW, "FAN_SW"},
+    {GPIOPin::GPOUT1, "GPOUT1"},
+    {GPIOPin::GPOUT2, "GPOUT2"},
+    {GPIOPin::GPIN1, "GPIN1"},
+    {GPIOPin::GPIN2, "GPIN2"},
+    {GPIOPin::LED_SBC_SEL, "LED_SBC_SEL"},
+    {GPIOPin::SHDN_INIT, "SHDN_INIT"},
+    {GPIOPin::VDIG_OFF, "VDIG_OFF"},
+    {GPIOPin::VMOT_ON, "VMOT_ON"},
   };
 
   /**
@@ -232,14 +229,14 @@ private:
    * This vector stores information related to GPIO pins such as pin configuration,
    * direction, value, etc.
    */
-  std::vector<GPIOinfo> gpio_info_;
+  std::vector<GPIOInfo> gpio_info_storage_;
 
   /**
    * @brief Mutex for managing access to GPIO pin information.
    *
    * This shared mutex allows controlling access to GPIO pin information to prevent race conditions.
    */
-  mutable std::shared_mutex gpio_info_mutex_;
+  mutable std::shared_mutex gpio_info_storage_mutex_;
 
   /**
    * @brief Request object for controlling GPIO lines.
