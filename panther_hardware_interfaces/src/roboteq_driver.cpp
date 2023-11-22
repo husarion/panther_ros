@@ -50,8 +50,12 @@ bool RoboteqDriver::WaitForBoot()
     return true;
   }
   std::unique_lock<std::mutex> lck(boot_mtx_);
-  // TODO: maybe timeout
-  boot_cond_var_.wait(lck);
+
+  // TODO: test timeout
+  if (boot_cond_var_.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
+    throw std::runtime_error("Timeout while waiting for boot");
+  }
+
   if (booted_.load()) {
     return true;
   } else {
@@ -242,6 +246,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
+  // TODO: lk vs lck
   std::unique_lock lk(mtx);
   if (cv.wait_for(lk, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
@@ -267,8 +272,6 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   std::mutex mtx;
   std::condition_variable cv;
   std::error_code err_code;
-
-  // TODO: what happens on read/write timeout
 
   if (sdo_write_timed_out_) {
     throw std::runtime_error(
