@@ -71,6 +71,7 @@ install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(panther_utils REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_roboteq_error_filter
                   test/test_roboteq_error_filter.cpp)
@@ -151,8 +152,9 @@ if(BUILD_TESTING)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
-  ament_target_dependencies(${PROJECT_NAME}_test_panther_system
-                            hardware_interface rclcpp panther_msgs)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
+    panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_panther_system
                         PkgConfig::LIBLELY_COAPP)
 

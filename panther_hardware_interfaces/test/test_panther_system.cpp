@@ -25,6 +25,8 @@
 
 #include <panther_msgs/msg/driver_state.hpp>
 
+#include <panther_utils/test/test_utils.hpp>
+
 #include <panther_system_test_utils.hpp>
 #include <roboteq_mock.hpp>
 
@@ -117,18 +119,6 @@ public:
 
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 };
-
-void WaitForDriverStateMsg(
-  rclcpp::Node::SharedPtr node, panther_msgs::msg::DriverState::SharedPtr state_msg)
-{
-  rclcpp::Time start = node->now();
-  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(node);
-    if (state_msg) {
-      break;
-    }
-  }
-}
 
 // TRANSITIONS
 TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
@@ -472,7 +462,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
 
   // writing should be blocked - error
@@ -674,8 +664,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
-
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->write_sdo_error);
 
   state_msg.reset();
@@ -689,7 +678,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->write_sdo_error);
   state_msg.reset();
 
@@ -700,7 +689,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->write_sdo_error);
 
   pth_test_.ShutdownPantherSystem();
@@ -740,7 +729,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_FALSE(state_msg->read_sdo_error);
 
@@ -763,7 +752,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->read_sdo_error);
   state_msg.reset();
 
@@ -774,7 +763,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->read_sdo_error);
 
   pth_test_.ShutdownPantherSystem();
@@ -815,7 +804,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
 
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_FALSE(state_msg->read_pdo_error);
 
@@ -831,7 +820,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->read_pdo_error);
   state_msg.reset();
 
@@ -842,7 +831,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   TIME += PERIOD;
   pth_test_.rm_->read(TIME, PERIOD);
 
-  WaitForDriverStateMsg(node, state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->read_pdo_error);
 
   pth_test_.ShutdownPantherSystem();
