@@ -31,6 +31,15 @@ public:
 
   void SetGlobalBrightness(const std::uint8_t brightness);
   void SetGlobalBrightness(const float brightness);
+
+  /**
+   * @brief Set APA102 LED panel based on given frame
+   *
+   * @param frame vector in the RGBA format where alpha represents brightness of a given LED
+   *
+   * @exception std::ios_base::failure if failed to send data over SPI
+   * or std::runtime_error if frame is invalid
+   */
   void SetPanel(const std::vector<std::uint8_t> & frame) const;
 
 protected:
@@ -45,7 +54,7 @@ protected:
   std::vector<std::uint8_t> RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const;
 
   /**
-   * @brief create transfer object based on buffer and send data over SPI
+   * @brief Create transfer object based on buffer and send data over SPI
    *
    * @exception std::ios_base::failure if failed to send data over SPI
    */
