@@ -95,6 +95,9 @@ public:
    * This information is necessary for initializing the GPIO functionality.
    *
    * @param gpio_info Vector containing information about GPIO pin configurations.
+   * @param gpio_monit_thread_sched_priority Priority for the GPIO monitoring thread.
+   *        Set within the range of 0-99 to enable and configure the FIFO RT scheduling policy
+   *        for the monitor thread.
    *
    * @par Example
    * An example of constructing the GPIODriver object by providing GPIO pin information:
@@ -108,7 +111,7 @@ public:
    * GPIODriver gpio_driver(gpio_configurations);
    * @endcode
    */
-  GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority = 60);
+  GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority = -1);
 
   /**
    * @brief Destructor for GPIODriver.

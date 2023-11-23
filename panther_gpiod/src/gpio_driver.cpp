@@ -42,8 +42,12 @@ GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sc
 
 GPIODriver::~GPIODriver()
 {
-  gpio_monitor_off();
+  for (GPIOInfo & gpio_info : gpio_info_storage_) {
+    line_request_->set_value(gpio_info.offset, gpio_info.init_value);
+  }
+
   line_request_->release();
+  gpio_monitor_off();
 }
 
 std::unique_ptr<gpiod::line_request> GPIODriver::create_line_request(gpiod::chip & chip)
@@ -196,6 +200,16 @@ void GPIODriver::monitor_async_events()
 
 void GPIODriver::configure_rt()
 {
+  if (gpio_monit_thread_sched_priority_ == -1) {
+    return;
+  }
+
+  if (gpio_monit_thread_sched_priority_ <= 0 && gpio_monit_thread_sched_priority_ >= 99) {
+    throw std::runtime_error(
+      "Invalid priority value. Please set a value between 0 and 99 for RT scheduling (GPIO monitor "
+      "thread)");
+  }
+
   if (realtime_tools::has_realtime_kernel()) {
     if (!realtime_tools::configure_sched_fifo(gpio_monit_thread_sched_priority_)) {
       std::cerr << "Could not enable FIFO RT scheduling policy (GPIO monitor thread)" << std::endl;
@@ -204,8 +218,7 @@ void GPIODriver::configure_rt()
                 << " set (GPIO monitor thread) " << std::endl;
     }
   } else {
-    std::cerr << "RT kernel is recommended for better performance (GPIO monitor thread)"
-              << std::endl;
+    throw std::runtime_error("Real-time kernel is not available (GPIO monitor thread)");
   }
 }
 
