@@ -36,6 +36,8 @@ GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sc
 
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
   line_request_ = create_line_request(gpio_chip);
+
+  gpio_monitor_on();
 }
 
 GPIODriver::~GPIODriver()

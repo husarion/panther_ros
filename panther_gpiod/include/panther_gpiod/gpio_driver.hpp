@@ -108,7 +108,7 @@ public:
    * GPIODriver gpio_driver(gpio_configurations);
    * @endcode
    */
-  GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority = 55);
+  GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority = 60);
 
   /**
    * @brief Destructor for GPIODriver.
