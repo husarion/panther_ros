@@ -23,8 +23,8 @@
  * change pin directions, monitor pin events, and more.
  */
 
-#ifndef PANTHER_GPIOD__GPIO_DRIVER_HPP_
-#define PANTHER_GPIOD__GPIO_DRIVER_HPP_
+#ifndef PANTHER_GPIOD_GPIO_DRIVER_HPP_
+#define PANTHER_GPIOD_GPIO_DRIVER_HPP_
 
 #include <atomic>
 #include <filesystem>
@@ -260,4 +260,4 @@ private:
 
 }  // namespace panther_gpiod
 
-#endif  // PANTHER_HARDWARE_INTERFACES__GPIO_CONTROLLER_HPP_
+#endif  // PANTHER_GPIOD_GPIO_DRIVER_HPP_

@@ -200,7 +200,7 @@ void GPIODriver::configure_rt()
     if (!realtime_tools::configure_sched_fifo(gpio_monit_thread_sched_priority_)) {
       std::cerr << "Could not enable FIFO RT scheduling policy (GPIO monitor thread)" << std::endl;
     } else {
-      std::cerr << "FIFO RT scheduling policy with priority " << gpio_monit_thread_sched_priority_
+      std::cout << "FIFO RT scheduling policy with priority " << gpio_monit_thread_sched_priority_
                 << " set (GPIO monitor thread) " << std::endl;
     }
   } else {
