@@ -14,20 +14,27 @@
 
 #include "panther_gpiod/gpio_driver.hpp"
 
+#include <chrono>
+#include <functional>
+#include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <poll.h>
 
+#include <gpiod.hpp>
 #include <realtime_tools/thread_priority.hpp>
 
 namespace panther_gpiod
 {
 
-GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority)
-: gpio_info_storage_(std::move(gpio_info)),
+GPIODriver::GPIODriver(
+  std::vector<GPIOInfo> gpio_info_storage, const int gpio_monit_thread_sched_priority)
+: gpio_info_storage_(std::move(gpio_info_storage)),
   gpio_monit_thread_sched_priority_(gpio_monit_thread_sched_priority)
 {
   if (gpio_info_storage_.empty()) {

@@ -29,6 +29,7 @@
 #include <atomic>
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <memory>
 #include <shared_mutex>
 #include <string>
@@ -94,7 +95,7 @@ public:
    * Constructs the GPIODriver object with information about GPIO pin configurations.
    * This information is necessary for initializing the GPIO functionality.
    *
-   * @param gpio_info Vector containing information about GPIO pin configurations.
+   * @param gpio_info_storage Vector containing information about GPIO pin configurations.
    * @param gpio_monit_thread_sched_priority Priority for the GPIO monitoring thread.
    *        Set within the range of 0-99 to enable and configure the FIFO RT scheduling policy
    *        for the monitor thread.
@@ -111,7 +112,7 @@ public:
    * GPIODriver gpio_driver(gpio_configurations);
    * @endcode
    */
-  GPIODriver(std::vector<GPIOInfo> gpio_info, int gpio_monit_thread_sched_priority = -1);
+  GPIODriver(std::vector<GPIOInfo> gpio_info_storage, int gpio_monit_thread_sched_priority = -1);
 
   /**
    * @brief Destructor for GPIODriver.
@@ -160,7 +161,9 @@ public:
    *
    * @param pin GPIOPin to set the value for.
    * @param value New value to set for the pin.
-   * @return True if the value is set successfully, false otherwise.
+   * @return Returns true if the value is set successfully; otherwise, returns false.
+   * @throw std::invalid_argument if the pin is set to INPUT direction.
+   * @throw std::runtime_error if an error occurs while setting the GPIO pin value.
    */
   bool set_pin_value(const GPIOPin pin, const bool value);
 
@@ -169,7 +172,6 @@ public:
    *
    * @param pin GPIOPin to change the direction for.
    * @param direction New direction for the pin.
-   * @throws std::runtime_error if there is an error while setting the GPIO pin value.
    */
   void change_pin_direction(const GPIOPin pin, const gpiod::line::direction direction);
 
@@ -254,7 +256,7 @@ private:
    * This unique pointer manages the thread responsible for monitoring GPIO events asynchronously.
    */
   std::unique_ptr<std::thread> gpio_monitor_thread_;
-  int gpio_monit_thread_sched_priority_;
+  const int gpio_monit_thread_sched_priority_;
   std::atomic<bool> gpio_monitor_thread_enabled_{false};
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
