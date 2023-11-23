@@ -142,7 +142,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "imu_config_file": PathJoinSubstitution(
-                [get_package_share_directory("panther_bringup"), "config", "imu_config.yaml"]
+                [get_package_share_directory("panther_bringup"), "config", "imu.yaml"]
             ),
         }.items(),
         condition=UnlessCondition(use_sim),
