@@ -13,38 +13,43 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 # install libgpiod
-include(ExternalProject)
+find_library(LIBGPIOD_INSTALLED libgpiod)
+if(NOT LIBGPIOD_INSTALLED)
+  message(WARNING "libgpiod is not installed. Installing...")
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+  include(ExternalProject)
 
-ExternalProject_Add(
-  libgpiod-build
-  GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
-  GIT_TAG v2.0.2
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
-  CONFIGURE_COMMAND
-    sh -c
-    "<SOURCE_DIR>/autogen.sh --prefix=<INSTALL_DIR> --enable-tools=no --enable-bindings-cxx"
-  BUILD_COMMAND make -j ${N}
-  INSTALL_COMMAND make install
-                  INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
-  BUILD_IN_SOURCE 1)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
 
-add_library(libgpiod STATIC IMPORTED GLOBAL)
-add_dependencies(libgpiod libgpiod-build)
+  ExternalProject_Add(
+    libgpiod-build
+    GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+    GIT_TAG v2.0.2
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
+    CONFIGURE_COMMAND
+      sh -c
+      "<SOURCE_DIR>/autogen.sh --prefix=<INSTALL_DIR> --enable-tools=no --enable-bindings-cxx"
+    BUILD_COMMAND make -j ${N}
+    INSTALL_COMMAND make install
+                    INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build
+    BUILD_IN_SOURCE 1)
 
-set_target_properties(
-  libgpiod
-  PROPERTIES IMPORTED_LOCATION
-             ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib/libgpiodcxx.so)
-set_target_properties(
-  libgpiod PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-                      ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+  add_library(libgpiod STATIC IMPORTED GLOBAL)
+  add_dependencies(libgpiod libgpiod-build)
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib
-        DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
-        DESTINATION ${CMAKE_INSTALL_PREFIX})
+  set_target_properties(
+    libgpiod
+    PROPERTIES IMPORTED_LOCATION
+               ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib/libgpiodcxx.so)
+  set_target_properties(
+    libgpiod PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                        ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
+
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/lib
+          DESTINATION ${CMAKE_INSTALL_PREFIX})
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
+          DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
 
 # find dependencies
 set(PACKAGE_INCLUDE_DEPENDS ament_cmake PkgConfig realtime_tools)

@@ -64,11 +64,8 @@ enum class GPIOPin {
 };
 
 /**
- * @brief Structure representing GPIO pin configuration.
- *
- * Structure containing information related to GPIO pins such as pin configuration,
- * direction, value, etc. This information is required during the
- * initialization process.
+ * @brief Structure containing information related to GPIO pins such as pin configuration,
+ * direction, value, etc. This information is required during the initialization process.
  */
 struct GPIOInfo
 {
@@ -81,24 +78,23 @@ struct GPIOInfo
 };
 
 /**
- * @brief Class managing GPIO pins.
- *
- * Class responsible for managing GPIO pins on Panther robots, handling tasks such as setting pin
- * values, changing pin directions, monitoring pin events, and more.
+ * @brief Class responsible for managing GPIO pins on Panther robots, handling tasks such as
+ * setting pin values, changing pin directions, monitoring pin events, and more.
  */
 class GPIODriver
 {
 public:
   /**
-   * @brief Constructor for GPIODriver.
-   *
-   * Constructs the GPIODriver object with information about GPIO pin configurations.
+   * @brief Constructs the GPIODriver object with information about GPIO pin configurations.
    * This information is necessary for initializing the GPIO functionality.
    *
    * @param gpio_info_storage Vector containing information about GPIO pin configurations.
+   * @param use_rt Whether to configure RT FIFO scheduling policy for the monitor thread.
+   *               Default is set to false.
    * @param gpio_monit_thread_sched_priority Priority for the GPIO monitoring thread.
    *        Set within the range of 0-99 to enable and configure the FIFO RT scheduling policy
-   *        for the monitor thread.
+   *        for the monitor thread. This parameter is considered only if `use_rt` is set to true.
+   *        The default priority is 60.
    *
    * @par Example
    * An example of constructing the GPIODriver object by providing GPIO pin information:
@@ -112,17 +108,18 @@ public:
    * GPIODriver gpio_driver(gpio_configurations);
    * @endcode
    */
-  GPIODriver(std::vector<GPIOInfo> gpio_info_storage, int gpio_monit_thread_sched_priority = -1);
+  GPIODriver(
+    std::vector<GPIOInfo> gpio_info_storage, const bool use_rt = false,
+    const int gpio_monit_thread_sched_priority = 60);
 
   /**
-   * @brief Destructor for GPIODriver.
+   * @brief The destructor sets the GPIO pin values back to their initial values to ensure proper
+   * cleanup. It then releases the line request and turns off the GPIO monitoring thread.
    */
   ~GPIODriver();
 
   /**
-   * @brief Configures the callback function for GPIO edge events.
-   *
-   * Allows configuring a callback function to handle GPIO edge events.
+   * @brief Allows configuring a callback function to handle GPIO edge events.
    * This method sets the provided callback function to be executed upon GPIO edge events.
    *
    * @param callback The callback function to handle GPIO edge events.
@@ -132,7 +129,7 @@ public:
    * @code{.cpp}
    * class MyClass {
    * public:
-   *   void handle_gpio_event(const GPIOInfo & gpio_info) {
+   *   void HandleGPIOEvent(const GPIOInfo & gpio_info) {
    *     // Handle GPIO event here, i.e:
    *     std::cout << gpio_info.offset << ":    " << gpio_info.value << std::endl;
    *   }
@@ -140,21 +137,20 @@ public:
    *
    * MyClass my_obj;
    * GPIODriver gpio_driver;
-   * gpio_driver.configure_edge_event_callback(
-   *     std::bind(&MyClass::handle_gpio_event, &my_obj, std::placeholders::_1));
+   * gpio_driver.ConfigureEdgeEventCallback(
+   *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
    */
-  void configure_edge_event_callback(const std::function<void(const GPIOInfo &)> & callback);
+  void ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback);
 
   /**
-   * @brief Checks if a specific GPIO pin is active.
-   *
-   * This method returns the value stored in the class read during the last edge event.
+   * @brief Checks if a specific GPIO pin is active. This method returns the value stored in the
+   * class read during the last edge event.
    *
    * @param pin GPIOPin to check.
    * @return True if the pin is active, false otherwise.
    */
-  bool is_pin_active(const GPIOPin pin);
+  bool IsPinActive(const GPIOPin pin);
 
   /**
    * @brief Sets the value for a specific GPIO pin.
@@ -165,7 +161,7 @@ public:
    * @throw std::invalid_argument if the pin is set to INPUT direction.
    * @throw std::runtime_error if an error occurs while setting the GPIO pin value.
    */
-  bool set_pin_value(const GPIOPin pin, const bool value);
+  bool SetPinValue(const GPIOPin pin, const bool value);
 
   /**
    * @brief Changes the direction of a specific GPIO pin.
@@ -173,29 +169,29 @@ public:
    * @param pin GPIOPin to change the direction for.
    * @param direction New direction for the pin.
    */
-  void change_pin_direction(const GPIOPin pin, const gpiod::line::direction direction);
+  void ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction);
 
   /**
    * @brief Enables asynchronous monitoring of GPIO pin events.
    */
-  void gpio_monitor_on();
+  void GPIOMonitorOn();
 
   /**
    * @brief Disables asynchronous monitoring of GPIO pin events.
    */
-  void gpio_monitor_off();
+  void GPIOMonitorOff();
 
 private:
-  std::unique_ptr<gpiod::line_request> create_line_request(gpiod::chip & chip);
-  gpiod::line_settings generate_line_settings(const GPIOInfo & pin_info);
-  GPIOPin get_pin_from_offset(const gpiod::line::offset & offset) const;
-  GPIOInfo & get_gpio_info_ref(const GPIOPin pin);
-  void configure_line_request(
+  std::unique_ptr<gpiod::line_request> CreateLineRequest(gpiod::chip & chip);
+  gpiod::line_settings GenerateLineSettings(const GPIOInfo & pin_info);
+  GPIOPin GetPinFromOffset(const gpiod::line::offset & offset) const;
+  GPIOInfo & GetGPIOInfoRef(const GPIOPin pin);
+  void ConfigureLineRequest(
     gpiod::chip & chip, gpiod::request_builder & builder, GPIOInfo & gpio_info);
-  void monitor_async_events();
-  void configure_rt();
-  void handle_edge_event(const gpiod::edge_event & event);
-  bool is_gpio_monitor_thread_running() const;
+  void MonitorAsyncEvents();
+  void ConfigureRt();
+  void HandleEdgeEvent(const gpiod::edge_event & event);
+  bool IsGPIOMonitorThreadRunning() const;
 
   /**
    * @brief Callback function for GPIO edge events.
@@ -203,12 +199,10 @@ private:
    * @param gpio_info Information related to the state of the GPIO pin for which the event took
    * place.
    */
-  std::function<void(const GPIOInfo & gpio_info)> gpio_edge_event_callback;
+  std::function<void(const GPIOInfo & gpio_info)> GPIOEdgeEventCallback;
 
   /**
    * @brief Mapping of GPIO pins to their respective names.
-   *
-   * This map contains the names associated with different GPIO pins.
    */
   const std::map<GPIOPin, std::string> pin_names_{
     {GPIOPin::WATCHDOG, "WATCHDOG"},
@@ -229,35 +223,38 @@ private:
   };
 
   /**
-   * @brief Vector containing GPIO pin configuration information.
-   *
-   * This vector stores information related to GPIO pins such as pin configuration,
-   * direction, value, etc.
+   * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
    */
   std::vector<GPIOInfo> gpio_info_storage_;
 
   /**
    * @brief Mutex for managing access to GPIO pin information.
-   *
-   * This shared mutex allows controlling access to GPIO pin information to prevent race conditions.
    */
   mutable std::shared_mutex gpio_info_storage_mutex_;
 
   /**
    * @brief Request object for controlling GPIO lines.
-   *
-   * This unique pointer manages the request for controlling GPIO lines.
    */
   std::unique_ptr<gpiod::line_request> line_request_;
 
   /**
-   * @brief Thread object for monitoring GPIO events.
-   *
-   * This unique pointer manages the thread responsible for monitoring GPIO events asynchronously.
+   * @brief Thread object for monitoring GPIO events asynchronously.
    */
   std::unique_ptr<std::thread> gpio_monitor_thread_;
+
+  /**
+   * @brief When enabled, the GPIODriver object will initiate the GPIO monitor
+   * thread with real-time scheduling if a valid priority is provided.
+   */
+  const bool use_rt_;
+
+  /**
+   * @brief Priority for the GPIO monitoring thread. The value ranges from 0 to 99, inclusive,
+   * and is used to configure the FIFO real-time scheduling policy for the monitor thread
+   * if real-time monitoring is enabled.
+   */
   const int gpio_monit_thread_sched_priority_;
-  std::atomic<bool> gpio_monitor_thread_enabled_{false};
+  std::atomic_bool gpio_monitor_thread_enabled_{false};
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
   const std::filesystem::path gpio_chip_path_ = "/dev/gpiochip0";
