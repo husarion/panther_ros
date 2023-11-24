@@ -107,7 +107,6 @@ float ADCBattery::ADCToBatteryTemp(const float adc_data) const
   const float R_therm = (adc_data * kR1) / (kUSupply - adc_data);
   return (kTempCoeffA * kTempCoeffB / (kTempCoeffA * logf(R_therm / kR0) + kTempCoeffB)) -
          kKelvinToCelciusOffset;
-  return adc_data * kBatTempFactor;
 }
 
 void ADCBattery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp, const bool charger_connected)
