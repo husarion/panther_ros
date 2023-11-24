@@ -212,7 +212,7 @@ void GPIODriver::MonitorAsyncEvents()
 
 void GPIODriver::ConfigureRt()
 {
-  if (gpio_monit_thread_sched_priority_ <= 0 || gpio_monit_thread_sched_priority_ >= 99) {
+  if (gpio_monit_thread_sched_priority_ < 0 || gpio_monit_thread_sched_priority_ > 99) {
     throw std::runtime_error(
       "Invalid priority value. Please set a value between 0 and 99 for RT scheduling (GPIO monitor "
       "thread)");
