@@ -70,7 +70,7 @@ void APA102::SetGlobalBrightness(const std::uint8_t brightness)
 
 void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
 {
-  std::vector<std::uint8_t> buffer = RGBAFrameToBGRBuffer(frame);
+  const auto buffer = RGBAFrameToBGRBuffer(frame);
   SPISendBuffer(buffer);
 }
 
