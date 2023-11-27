@@ -29,7 +29,22 @@ public:
     const std::string & device, const std::uint32_t speed = 800000, const bool cs_high = false);
   ~APA102();
 
+  /**
+   * @brief Set APA102 LED global brightness
+   *
+   * @param brightness value in range from 0 to 31
+   *
+   * @exception std::out_of_range if brightness value is out of defined range
+   */
   void SetGlobalBrightness(const std::uint8_t brightness);
+
+  /**
+   * @brief Set APA102 LED global brightness
+   *
+   * @param brightness value in range from 0.0 to 1.0
+   *
+   * @exception std::out_of_range if brightness value is out of defined range
+   */
   void SetGlobalBrightness(const float brightness);
 
   /**

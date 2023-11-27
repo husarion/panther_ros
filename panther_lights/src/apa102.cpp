@@ -58,14 +58,18 @@ APA102::~APA102() { close(fd_); }
 
 void APA102::SetGlobalBrightness(const float brightness)
 {
-  const std::uint8_t val = brightness > 0.0f ? ceil(brightness * 31.0f) : 0;
-  SetGlobalBrightness(val);
+  if (brightness < 0.0f || brightness > 1.0f) {
+    throw std::out_of_range("Brightness out of range <0.0,1.0>");
+  }
+  SetGlobalBrightness(std::uint8_t(ceil(brightness * 31.0f)));
 }
 
 void APA102::SetGlobalBrightness(const std::uint8_t brightness)
 {
-  // Clamp values to be at max 31
-  global_brightness_ = std::uint16_t(brightness) & 0x1F;
+  if (brightness > 31) {
+    throw std::out_of_range("Brightness out of range <0,31>");
+  }
+  global_brightness_ = std::uint16_t(brightness);
 }
 
 void APA102::SetPanel(const std::vector<std::uint8_t> & frame) const
@@ -85,10 +89,8 @@ std::vector<std::uint8_t> APA102::RGBAFrameToBGRBuffer(
   std::vector<std::uint8_t> buffer(buffer_size);
 
   // Init start and end frames
-  for (std::size_t i = 0; i < 4; i++) {
-    buffer[i] = 0x00;
-    buffer[buffer_size - i - 1] = 0xFF;
-  }
+  std::fill(buffer.begin(), buffer.begin() + 4, 0x00);
+  std::fill(buffer.end() - 4, buffer.end(), 0xFF);
 
   // Copy frame from vector to sending buffer
   for (std::size_t i = 0; i < frame.size() / 4; i++) {
