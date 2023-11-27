@@ -58,7 +58,7 @@ APA102::~APA102() { close(fd_); }
 
 void APA102::SetGlobalBrightness(const float brightness)
 {
-  std::uint8_t val = brightness > 0.0f ? ceil(brightness * 31.0f) : 0;
+  const std::uint8_t val = brightness > 0.0f ? ceil(brightness * 31.0f) : 0;
   SetGlobalBrightness(val);
 }
 
