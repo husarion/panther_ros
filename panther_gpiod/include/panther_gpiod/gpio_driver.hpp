@@ -100,9 +100,9 @@ public:
    * An example of constructing the GPIODriver object by providing GPIO pin information:
    * @code{.cpp}
    * std::vector<GPIOInfo> gpio_configurations = {
-   *   {GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
-   *   {GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-   *   {GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true, gpiod::line::value::ACTIVE}
+   *   GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
+   *   GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
+   *   GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true, gpiod::line::value::ACTIVE}
    *   // ... additional GPIO pin configurations
    * };
    * GPIODriver gpio_driver(gpio_configurations);
