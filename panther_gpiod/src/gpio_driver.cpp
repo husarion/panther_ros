@@ -35,7 +35,7 @@ namespace panther_gpiod
 
 GPIODriver::GPIODriver(
   std::vector<GPIOInfo> gpio_info_storage, const bool use_rt,
-  const int gpio_monit_thread_sched_priority)
+  const int gpio_monit_thread_sched_priority, const bool enable_gpio_monitoring)
 : gpio_info_storage_(std::move(gpio_info_storage)),
   use_rt_(use_rt),
   gpio_monit_thread_sched_priority_(gpio_monit_thread_sched_priority)
@@ -47,7 +47,9 @@ GPIODriver::GPIODriver(
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
   line_request_ = CreateLineRequest(gpio_chip);
 
-  GPIOMonitorOn();
+  if (enable_gpio_monitoring) {
+    GPIOMonitorOn();
+  }
 }
 
 GPIODriver::~GPIODriver()
@@ -129,8 +131,13 @@ void GPIODriver::ChangePinDirection(const GPIOPin pin, const gpiod::line::direct
 
 bool GPIODriver::IsPinActive(const GPIOPin pin)
 {
+  if (!IsGPIOMonitorThreadRunning()) {
+    throw std::runtime_error("GPIO monitor thread is not running!");
+  }
+
   std::unique_lock lock(gpio_info_storage_mutex_);
-  return GetGPIOInfoRef(pin).value == gpiod::line::value::ACTIVE;
+  const GPIOInfo & pin_info = GetGPIOInfoRef(pin);
+  return pin_info.value == gpiod::line::value::ACTIVE;
 }
 
 bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)

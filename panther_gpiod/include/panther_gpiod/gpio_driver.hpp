@@ -102,7 +102,8 @@ public:
    * std::vector<GPIOInfo> gpio_configurations = {
    *   GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
    *   GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-   *   GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true, gpiod::line::value::ACTIVE}
+   *   GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true,
+   * gpiod::line::value::ACTIVE}
    *   // ... additional GPIO pin configurations
    * };
    * GPIODriver gpio_driver(gpio_configurations);
@@ -110,7 +111,7 @@ public:
    */
   GPIODriver(
     std::vector<GPIOInfo> gpio_info_storage, const bool use_rt = false,
-    const int gpio_monit_thread_sched_priority = 60);
+    const int gpio_monit_thread_sched_priority = 60, const bool enable_gpio_monitoring = true);
 
   /**
    * @brief The destructor sets the GPIO pin values back to their initial values to ensure proper
