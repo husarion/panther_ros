@@ -35,7 +35,7 @@ namespace panther_gpiod
 
 GPIODriver::GPIODriver(
   std::vector<GPIOInfo> gpio_info_storage, const bool use_rt,
-  const int gpio_monit_thread_sched_priority, const bool enable_gpio_monitoring)
+  const unsigned gpio_monit_thread_sched_priority, const bool enable_gpio_monitoring)
 : gpio_info_storage_(std::move(gpio_info_storage)),
   use_rt_(use_rt),
   gpio_monit_thread_sched_priority_(gpio_monit_thread_sched_priority)
@@ -55,7 +55,9 @@ GPIODriver::GPIODriver(
 GPIODriver::~GPIODriver()
 {
   for (GPIOInfo & gpio_info : gpio_info_storage_) {
-    line_request_->set_value(gpio_info.offset, gpio_info.init_value);
+    if (gpio_info.direction == gpiod::line::direction::OUTPUT) {
+      line_request_->set_value(gpio_info.offset, gpio_info.init_value);
+    }
   }
 
   line_request_->release();
@@ -155,7 +157,7 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
     line_request_->set_value(gpio_info.offset, gpio_value);
 
     if (line_request_->get_value(gpio_info.offset) != gpio_value) {
-      throw std::runtime_error("Failed to change GPIO stat");
+      throw std::runtime_error("Failed to change GPIO state");
     }
 
     gpio_info.value = gpio_value;
@@ -188,6 +190,9 @@ void GPIODriver::GPIOMonitorOn()
 
   gpio_monitor_thread_enabled_ = true;
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIODriver::MonitorAsyncEvents, this);
+
+  // Wait for thread to initialize
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 void GPIODriver::MonitorAsyncEvents()

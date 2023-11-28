@@ -90,11 +90,14 @@ public:
    *
    * @param gpio_info_storage Vector containing information about GPIO pin configurations.
    * @param use_rt Whether to configure RT FIFO scheduling policy for the monitor thread.
-   *               Default is set to false.
+   *        Default is set to false.
    * @param gpio_monit_thread_sched_priority Priority for the GPIO monitoring thread.
    *        Set within the range of 0-99 to enable and configure the FIFO RT scheduling policy
    *        for the monitor thread. This parameter is considered only if `use_rt` is set to true.
    *        The default priority is 60.
+   * @param enable_gpio_monitoring Indicates whether to initiate the GPIO state asynchronous
+   *        monitoring thread. When no GPIO is configured as input, there might be a need to disable
+   *        the GPIO monitor. By default, it is set to true.
    *
    * @par Example
    * An example of constructing the GPIODriver object by providing GPIO pin information:
@@ -111,7 +114,7 @@ public:
    */
   GPIODriver(
     std::vector<GPIOInfo> gpio_info_storage, const bool use_rt = false,
-    const int gpio_monit_thread_sched_priority = 60, const bool enable_gpio_monitoring = true);
+    const unsigned gpio_monit_thread_sched_priority = 60, const bool enable_gpio_monitoring = true);
 
   /**
    * @brief The destructor sets the GPIO pin values back to their initial values to ensure proper
@@ -255,7 +258,7 @@ private:
    * if real-time monitoring is enabled.
    */
   const int gpio_monit_thread_sched_priority_;
-  std::atomic_bool gpio_monitor_thread_enabled_{false};
+  std::atomic_bool gpio_monitor_thread_enabled_ = false;
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
   const std::filesystem::path gpio_chip_path_ = "/dev/gpiochip0";
