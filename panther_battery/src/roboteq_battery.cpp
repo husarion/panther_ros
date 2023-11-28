@@ -74,7 +74,7 @@ void RoboteqBattery::ValidateDriverStateMsg(const rclcpp::Time & header_stamp)
     throw std::runtime_error("Driver state message timeout");
   }
 
-  if (driver_state_->front.fault_flag.can_net_err || driver_state_->rear.fault_flag.can_net_err) {
+  if (driver_state_->front.can_net_err || driver_state_->rear.can_net_err) {
     throw std::runtime_error("Motor controller CAN network error");
   }
 }
