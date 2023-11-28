@@ -27,10 +27,12 @@
 #define PANTHER_GPIOD_GPIO_DRIVER_HPP_
 
 #include <atomic>
+#include <condition_variable>
 #include <filesystem>
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <string>
 #include <thread>
@@ -259,6 +261,8 @@ private:
    */
   const unsigned gpio_monit_thread_sched_priority_;
   std::atomic_bool gpio_monitor_thread_enabled_ = false;
+  std::condition_variable monitor_init_cond_var_;
+  std::mutex monitor_init_mtx_;
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
   const std::filesystem::path gpio_chip_path_ = "/dev/gpiochip0";

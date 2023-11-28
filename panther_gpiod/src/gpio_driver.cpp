@@ -15,6 +15,7 @@
 #include "panther_gpiod/gpio_driver.hpp"
 
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -161,7 +162,9 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
     }
 
     gpio_info.value = gpio_value;
-    GPIOEdgeEventCallback(gpio_info);
+    if (GPIOEdgeEventCallback) {
+      GPIOEdgeEventCallback(gpio_info);
+    }
 
     return true;
   } catch (const std::exception & err) {
@@ -188,11 +191,16 @@ void GPIODriver::GPIOMonitorOn()
     }
   }
 
+  std::unique_lock<std::mutex> lck(monitor_init_mtx_);
+
   gpio_monitor_thread_enabled_ = true;
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIODriver::MonitorAsyncEvents, this);
 
-  // Wait for thread to initialize
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  if (
+    monitor_init_cond_var_.wait_for(lck, std::chrono::milliseconds(50)) ==
+    std::cv_status::timeout) {
+    throw std::runtime_error("Timeout while waiting for GPIO monitor thread");
+  }
 }
 
 void GPIODriver::MonitorAsyncEvents()
@@ -206,6 +214,11 @@ void GPIODriver::MonitorAsyncEvents()
   struct pollfd pollfd;
   pollfd.fd = line_request_->fd();
   pollfd.events = POLLIN;
+
+  {
+    std::unique_lock<std::mutex> lck(monitor_init_mtx_);
+    monitor_init_cond_var_.notify_all();
+  }
 
   while (gpio_monitor_thread_enabled_) {
     auto ret = poll(&pollfd, 1, -1);
@@ -224,7 +237,7 @@ void GPIODriver::MonitorAsyncEvents()
 
 void GPIODriver::ConfigureRt()
 {
-  if (gpio_monit_thread_sched_priority_ < 0 || gpio_monit_thread_sched_priority_ > 99) {
+  if (gpio_monit_thread_sched_priority_ > 99) {
     throw std::runtime_error(
       "Invalid priority value. Please set a value between 0 and 99 for RT scheduling (GPIO monitor "
       "thread)");
@@ -264,7 +277,9 @@ void GPIODriver::HandleEdgeEvent(const gpiod::edge_event & event)
 
   gpio_info.value = new_value;
 
-  GPIOEdgeEventCallback(gpio_info);
+  if (GPIOEdgeEventCallback) {
+    GPIOEdgeEventCallback(gpio_info);
+  }
 }
 
 void GPIODriver::GPIOMonitorOff()
