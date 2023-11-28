@@ -91,8 +91,6 @@ panther_msgs::msg::FaultFlag FaultFlag::GetMessage() const
   fault_flags_msg.mosfet_failure = IsBitSet(flags_, 6);
   fault_flags_msg.default_config_loaded_at_startup = IsBitSet(flags_, 7);
 
-  fault_flags_msg.can_net_err = can_error_;
-
   return fault_flags_msg;
 }
 

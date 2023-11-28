@@ -96,7 +96,8 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
 
 void PantherSystemRosInterface::UpdateMsgErrors(
   bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,
-  bool front_data_timed_out, bool rear_data_timed_out)
+  bool front_data_timed_out, bool rear_data_timed_out, bool front_can_net_err,
+  bool rear_can_net_err)
 {
   realtime_driver_state_publisher_->msg_.error = error;
   realtime_driver_state_publisher_->msg_.write_sdo_error = write_sdo_error;
@@ -105,6 +106,9 @@ void PantherSystemRosInterface::UpdateMsgErrors(
 
   realtime_driver_state_publisher_->msg_.front.data_timed_out = front_data_timed_out;
   realtime_driver_state_publisher_->msg_.rear.data_timed_out = rear_data_timed_out;
+
+  realtime_driver_state_publisher_->msg_.front.can_net_err = front_can_net_err;
+  realtime_driver_state_publisher_->msg_.rear.can_net_err = rear_can_net_err;
 }
 
 void PantherSystemRosInterface::PublishDriverState()

@@ -128,14 +128,6 @@ public:
   }
 
   panther_msgs::msg::FaultFlag GetMessage() const;
-  void SetData(uint8_t flags, bool can_error)
-  {
-    FlagError::SetData(flags);
-    can_error_ = can_error;
-  }
-
-private:
-  bool can_error_ = false;
 };
 
 class ScriptFlag : public FlagError
@@ -203,18 +195,20 @@ public:
   }
 
   void SetMotorStates(
-    RoboteqMotorState left_state, RoboteqMotorState right_state, bool data_timed_out)
+    RoboteqMotorState left_state, RoboteqMotorState right_state, bool data_timed_out,
+    bool can_net_err)
   {
     left_state_.SetData(left_state);
     right_state_.SetData(right_state);
     data_timed_out_ = data_timed_out;
+    can_net_err_ = can_net_err;
   }
 
   void SetFlags(
     uint8_t fault_flags, uint8_t script_flags, uint8_t left_runtime_errors_flags,
-    uint8_t right_runtime_errors_flags, bool can_error)
+    uint8_t right_runtime_errors_flags)
   {
-    fault_flags_.SetData(fault_flags, can_error);
+    fault_flags_.SetData(fault_flags);
     script_flags_.SetData(script_flags);
     left_runtime_error_.SetData(left_runtime_errors_flags);
     right_runtime_error_.SetData(right_runtime_errors_flags);
@@ -231,13 +225,14 @@ public:
            right_runtime_error_.IsError();
   }
 
-  bool IsError() const { return IsFlagError() || data_timed_out_; }
+  bool IsError() const { return IsFlagError() || data_timed_out_ || can_net_err_; }
 
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
 
   bool IsDataTimedOut() const { return data_timed_out_; }
+  bool IsCanNetErr() const { return can_net_err_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }
@@ -252,6 +247,8 @@ public:
            "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
   }
 
+  // TODO: get message
+
 private:
   MotorState left_state_;
   MotorState right_state_;
@@ -264,6 +261,7 @@ private:
   RuntimeError right_runtime_error_;
 
   bool data_timed_out_ = false;
+  bool can_net_err_ = false;
 
   // TODO: to parameter
 

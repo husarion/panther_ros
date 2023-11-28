@@ -93,7 +93,7 @@ TEST(TestRoboteqDataConverters, test_flag_error)
 void TestFaultFlagMsg(
   const panther_msgs::msg::FaultFlag & msg, const std::vector<bool> & expected_values)
 {
-  if (expected_values.size() != 9) {
+  if (expected_values.size() != 8) {
     throw std::runtime_error("Wrong size of expected_values in TestFaultFlagMsg");
   }
 
@@ -105,7 +105,6 @@ void TestFaultFlagMsg(
   ASSERT_EQ(msg.motor_or_sensor_setup_fault, expected_values[5]);
   ASSERT_EQ(msg.mosfet_failure, expected_values[6]);
   ASSERT_EQ(msg.default_config_loaded_at_startup, expected_values[7]);
-  ASSERT_EQ(msg.can_net_err, expected_values[8]);
 }
 
 TEST(TestRoboteqDataConverters, test_fault_flag)
@@ -113,43 +112,39 @@ TEST(TestRoboteqDataConverters, test_fault_flag)
   panther_hardware_interfaces::FaultFlag fault_flag;
   panther_msgs::msg::FaultFlag msg;
 
-  fault_flag.SetData(0b00000001, false);
+  fault_flag.SetData(0b00000001);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {true, false, false, false, false, false, false, false, false});
-  fault_flag.SetData(0b00000010, false);
+    fault_flag.GetMessage(), {true, false, false, false, false, false, false, false});
+  fault_flag.SetData(0b00000010);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, true, false, false, false, false, false, false, false});
-  fault_flag.SetData(0b00000100, false);
+    fault_flag.GetMessage(), {false, true, false, false, false, false, false, false});
+  fault_flag.SetData(0b00000100);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, true, false, false, false, false, false, false});
-  fault_flag.SetData(0b00001000, false);
+    fault_flag.GetMessage(), {false, false, true, false, false, false, false, false});
+  fault_flag.SetData(0b00001000);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, false, true, false, false, false, false, false});
-  fault_flag.SetData(0b00010000, false);
+    fault_flag.GetMessage(), {false, false, false, true, false, false, false, false});
+  fault_flag.SetData(0b00010000);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, false, false, true, false, false, false, false});
-  fault_flag.SetData(0b00100000, false);
+    fault_flag.GetMessage(), {false, false, false, false, true, false, false, false});
+  fault_flag.SetData(0b00100000);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, false, false, false, true, false, false, false});
-  fault_flag.SetData(0b01000000, false);
+    fault_flag.GetMessage(), {false, false, false, false, false, true, false, false});
+  fault_flag.SetData(0b01000000);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, false, false, false, false, true, false, false});
-  fault_flag.SetData(0b10000000, false);
+    fault_flag.GetMessage(), {false, false, false, false, false, false, true, false});
+  fault_flag.SetData(0b10000000);
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, false, false, false, false, false, true, false});
-  fault_flag.SetData(0b00000000, true);
-  TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, false, false, false, false, false, false, false, true});
+    fault_flag.GetMessage(), {false, false, false, false, false, false, false, true});
 
-  fault_flag.SetData(0b00100010, true);
-  TestFaultFlagMsg(
-    fault_flag.GetMessage(), {false, true, false, false, false, true, false, false, true});
+  fault_flag.SetData(0b00100010);
+  TestFaultFlagMsg(fault_flag.GetMessage(), {false, true, false, false, false, true, false, false});
 
   fault_flag.SetSurpressedFlags(0b11111110);
-  fault_flag.SetData(0b00000001, false);
+  fault_flag.SetData(0b00000001);
   // fault flag still should be set, it just won't be treated as an error
   TestFaultFlagMsg(
-    fault_flag.GetMessage(), {true, false, false, false, false, false, false, false, false});
+    fault_flag.GetMessage(), {true, false, false, false, false, false, false, false});
 }
 
 void TestScriptFlagMsg(
@@ -257,12 +252,21 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
 
   panther_hardware_interfaces::RoboteqMotorState left_state = {48128, 1000, 1};
   panther_hardware_interfaces::RoboteqMotorState right_state = {0, 0, 0};
-  roboteq_data.SetMotorStates(left_state, right_state, true);
+  roboteq_data.SetMotorStates(left_state, right_state, true, false);
 
   ASSERT_TRUE(roboteq_data.IsError());
   ASSERT_TRUE(roboteq_data.IsDataTimedOut());
 
-  roboteq_data.SetMotorStates(left_state, right_state, false);
+  roboteq_data.SetMotorStates(left_state, right_state, false, false);
+
+  ASSERT_FALSE(roboteq_data.IsError());
+
+  roboteq_data.SetMotorStates(left_state, right_state, false, true);
+
+  ASSERT_TRUE(roboteq_data.IsError());
+  ASSERT_TRUE(roboteq_data.IsCanNetErr());
+
+  roboteq_data.SetMotorStates(left_state, right_state, false, false);
   ASSERT_FALSE(roboteq_data.IsError());
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetPosition(), 0.0);
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetVelocity(), 0.0);
@@ -271,11 +275,10 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
   ASSERT_FLOAT_EQ(roboteq_data.GetLeftMotorState().GetVelocity(), 3.481375);
   ASSERT_FLOAT_EQ(roboteq_data.GetLeftMotorState().GetTorque(), 0.24816);
 
-  roboteq_data.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00010000, true);
+  roboteq_data.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00010000);
   ASSERT_TRUE(roboteq_data.IsError());
 
   ASSERT_TRUE(roboteq_data.GetFaultFlag().GetMessage().overheat);
-  ASSERT_TRUE(roboteq_data.GetFaultFlag().GetMessage().can_net_err);
   ASSERT_TRUE(roboteq_data.GetScriptFlag().GetMessage().encoder_disconected);
   ASSERT_TRUE(roboteq_data.GetLeftRuntimeError().GetMessage().loop_error);
   ASSERT_TRUE(roboteq_data.GetRightRuntimeError().GetMessage().forward_limit_triggered);

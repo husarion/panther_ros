@@ -169,8 +169,8 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   panther_hardware_interfaces::RoboteqData rear(
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
-  front.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00001000, true);
-  rear.SetFlags(0b00000010, 0b00000001, 0b00010000, 0b00100000, false);
+  front.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00001000);
+  rear.SetFlags(0b00000010, 0b00000001, 0b00010000, 0b00100000);
 
   panther_system_ros_interface.UpdateMsgErrorFlags(front, rear);
   panther_system_ros_interface.PublishDriverState();
@@ -187,7 +187,6 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
 
   ASSERT_TRUE(state_msg);
 
-  ASSERT_TRUE(state_msg->front.fault_flag.can_net_err);
   ASSERT_TRUE(state_msg->front.fault_flag.overheat);
   ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
   ASSERT_TRUE(state_msg->front.left_motor.runtime_error.loop_error);
@@ -287,7 +286,7 @@ TEST(TestPantherSystemRosInterface, test_errors)
   panther_system_ros_interface.Initialize();
   panther_system_ros_interface.Activate([]() {});
 
-  panther_system_ros_interface.UpdateMsgErrors(true, true, false, false, true, false);
+  panther_system_ros_interface.UpdateMsgErrors(true, true, false, false, true, false, false, true);
   panther_system_ros_interface.PublishDriverState();
 
   rclcpp::Time start = test_node->now();
@@ -307,6 +306,9 @@ TEST(TestPantherSystemRosInterface, test_errors)
 
   ASSERT_TRUE(state_msg->front.data_timed_out);
   ASSERT_FALSE(state_msg->rear.data_timed_out);
+
+  ASSERT_FALSE(state_msg->front.can_net_err);
+  ASSERT_TRUE(state_msg->rear.can_net_err);
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();

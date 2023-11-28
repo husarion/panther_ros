@@ -48,6 +48,7 @@ struct RoboteqDriverFeedback
   timespec timestamp;
 };
 
+// TODO: heartbeat timeout
 /**
  * @brief Implementation of FiberDriver for Roboteq drivers
  */

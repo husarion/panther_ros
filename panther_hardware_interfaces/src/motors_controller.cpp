@@ -93,24 +93,25 @@ void MotorsController::UpdateSystemFeedback()
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
      pdo_feedback_timeout_);
 
-  // Channel 1 - right, Channel 2 - left
-  front_data_.SetMotorStates(
-    front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_timed_out);
-  rear_data_.SetMotorStates(
-    rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_timed_out);
-
   bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
   bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
+
+  // Channel 1 - right, Channel 2 - left
+  front_data_.SetMotorStates(
+    front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_timed_out,
+    front_can_error);
+  rear_data_.SetMotorStates(
+    rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_timed_out,
+    rear_can_error);
 
   front_data_.SetFlags(
     front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
     front_driver_feedback.runtime_stat_flag_motor_2,
-    front_driver_feedback.runtime_stat_flag_motor_1, front_can_error);
+    front_driver_feedback.runtime_stat_flag_motor_1);
 
   rear_data_.SetFlags(
     rear_driver_feedback.fault_flags, rear_driver_feedback.script_flags,
-    rear_driver_feedback.runtime_stat_flag_motor_2, rear_driver_feedback.runtime_stat_flag_motor_1,
-    rear_can_error);
+    rear_driver_feedback.runtime_stat_flag_motor_2, rear_driver_feedback.runtime_stat_flag_motor_1);
 
   if (front_can_error || rear_can_error) {
     throw std::runtime_error("CAN error detected when trying to read Roboteq feedback");

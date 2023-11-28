@@ -72,12 +72,14 @@ public:
    */
   void UpdateMsgDriversParameters(const DriverState & front, const DriverState & rear);
 
+  // TODO: refactor
   /**
    * @brief Updates the current state of communication errors and general error state
    */
   void UpdateMsgErrors(
     bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,
-    bool front_data_timed_out, bool rear_data_timed_out);
+    bool front_data_timed_out, bool rear_data_timed_out, bool front_can_net_err,
+    bool rear_can_net_err);
 
   void PublishDriverState();
 
