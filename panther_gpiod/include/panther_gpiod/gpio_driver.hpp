@@ -257,7 +257,7 @@ private:
    * and is used to configure the FIFO real-time scheduling policy for the monitor thread
    * if real-time monitoring is enabled.
    */
-  const int gpio_monit_thread_sched_priority_;
+  const unsigned gpio_monit_thread_sched_priority_;
   std::atomic_bool gpio_monitor_thread_enabled_ = false;
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
