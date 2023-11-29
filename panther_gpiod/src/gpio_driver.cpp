@@ -34,12 +34,8 @@
 namespace panther_gpiod
 {
 
-GPIODriver::GPIODriver(
-  std::vector<GPIOInfo> gpio_info_storage, const bool use_rt,
-  const unsigned gpio_monit_thread_sched_priority, const bool enable_gpio_monitoring)
-: gpio_info_storage_(std::move(gpio_info_storage)),
-  use_rt_(use_rt),
-  gpio_monit_thread_sched_priority_(gpio_monit_thread_sched_priority)
+GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info_storage)
+: gpio_info_storage_(std::move(gpio_info_storage))
 {
   if (gpio_info_storage_.empty()) {
     throw std::runtime_error("Empty GPIO info vector provided");
@@ -47,10 +43,6 @@ GPIODriver::GPIODriver(
 
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
   line_request_ = CreateLineRequest(gpio_chip);
-
-  if (enable_gpio_monitoring) {
-    GPIOMonitorOn();
-  }
 }
 
 GPIODriver::~GPIODriver()
@@ -63,6 +55,20 @@ GPIODriver::~GPIODriver()
 
   line_request_->release();
   GPIOMonitorOff();
+}
+
+void GPIODriver::GPIOMonitorEnable(
+  const bool use_rt, const unsigned gpio_monit_thread_sched_priority)
+{
+  use_rt_ = use_rt;
+  gpio_monit_thread_sched_priority_ = gpio_monit_thread_sched_priority;
+
+  GPIOMonitorOn();
+}
+
+void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback)
+{
+  GPIOEdgeEventCallback = callback;
 }
 
 std::unique_ptr<gpiod::line_request> GPIODriver::CreateLineRequest(gpiod::chip & chip)
@@ -171,11 +177,6 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
     std::cerr << "Error while setting GPIO pin value: " << err.what() << std::endl;
     return false;
   }
-}
-
-void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback)
-{
-  GPIOEdgeEventCallback = callback;
 }
 
 void GPIODriver::GPIOMonitorOn()
