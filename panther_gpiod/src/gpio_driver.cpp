@@ -217,7 +217,7 @@ void GPIODriver::MonitorAsyncEvents()
   pollfd.events = POLLIN;
 
   {
-    std::unique_lock<std::mutex> lck(monitor_init_mtx_);
+    std::lock_guard<std::mutex> lck(monitor_init_mtx_);
     monitor_init_cond_var_.notify_all();
   }
 
