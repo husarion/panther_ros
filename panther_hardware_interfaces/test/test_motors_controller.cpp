@@ -34,7 +34,7 @@ public:
       panther_hardware_interfaces_test::kCanopenSettings,
       panther_hardware_interfaces_test::kDrivetrainSettings);
 
-    roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
+    roboteq_mock_ = std::make_shared<panther_hardware_interfaces_test::RoboteqMock>();
     // PDO running on 100Hz
     roboteq_mock_->Start(std::chrono::milliseconds(10));
   }
@@ -45,8 +45,7 @@ public:
     roboteq_mock_.reset();
   }
 
-  std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
-
+  std::shared_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
 };
 
@@ -99,8 +98,6 @@ TEST_F(TestMotorsControllerInitialization, test_activate)
   roboteq_mock_->rear_driver_->SetResetRoboteqScript(23);
 
   ASSERT_NO_THROW(motors_controller_->Activate());
-
-  // TODO check timing
 
   ASSERT_EQ(roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
@@ -197,8 +194,6 @@ TEST_F(TestMotorsController, test_update_system_feedback)
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   motors_controller_->UpdateSystemFeedback();
-
-  // TODO flags
 
   const auto & fl = motors_controller_->GetFrontData().GetLeftMotorState();
   const auto & fr = motors_controller_->GetFrontData().GetRightMotorState();
@@ -451,9 +446,46 @@ TEST_F(TestMotorsController, test_safety_stop)
   roboteq_mock_->front_driver_->SetTurnOnSafetyStop(65);
   roboteq_mock_->rear_driver_->SetTurnOnSafetyStop(23);
 
+  bool front_driver_channel1_safety_stop = false;
+  bool rear_driver_channel1_safety_stop = false;
+
+  std::atomic_bool finish_test = false;
+
+  // Check if first channel was set in the meantime - not sure how robust this test will be - as
+  // safety stops for channel 1 and 2 are set just after one another, it is necessary to check value
+  // of the current channel set frequently (and performance can vary on different machines)
+  auto channel1_test_thread = std::thread([roboteq_mock = roboteq_mock_, &finish_test,
+                                           &front_driver_channel1_safety_stop,
+                                           &rear_driver_channel1_safety_stop]() {
+    while (true) {
+      if (
+        front_driver_channel1_safety_stop == false &&
+        roboteq_mock->front_driver_->GetTurnOnSafetyStop() == 1) {
+        front_driver_channel1_safety_stop = true;
+      }
+
+      if (
+        rear_driver_channel1_safety_stop == false &&
+        roboteq_mock->rear_driver_->GetTurnOnSafetyStop() == 1) {
+        rear_driver_channel1_safety_stop = true;
+      }
+
+      if (finish_test || (front_driver_channel1_safety_stop && rear_driver_channel1_safety_stop)) {
+        break;
+      }
+
+      std::this_thread::sleep_for(std::chrono::microseconds(10));
+    }
+  });
+
   ASSERT_NO_THROW(motors_controller_->TurnOnSafetyStop());
 
-  // TODO: somehow check if first channel was also set
+  finish_test = true;
+  channel1_test_thread.join();
+
+  ASSERT_TRUE(front_driver_channel1_safety_stop);
+  ASSERT_TRUE(rear_driver_channel1_safety_stop);
+
   ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnSafetyStop(), 2);
   ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnSafetyStop(), 2);
 }
