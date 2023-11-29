@@ -175,6 +175,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   panther_system_ros_interface.UpdateMsgErrorFlags(front, rear);
   panther_system_ros_interface.PublishDriverState();
 
+  // TODO
   rclcpp::Time start = test_node->now();
   while (test_node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
     rclcpp::spin_some(test_node);
@@ -182,8 +183,6 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
       break;
     }
   }
-
-  // TODO: motor_joint_name
 
   ASSERT_TRUE(state_msg);
 

@@ -171,6 +171,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
+// TODO
 TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem)
 {
   using panther_hardware_interfaces_test::kPantherSystemName;

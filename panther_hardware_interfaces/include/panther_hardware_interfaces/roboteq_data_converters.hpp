@@ -109,7 +109,6 @@ protected:
   const std::vector<std::string> flag_names_;
 };
 
-// TODO restructure panther_msgs
 class FaultFlag : public FlagError
 {
 public:
@@ -246,8 +245,6 @@ public:
            "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
            "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
   }
-
-  // TODO: get message
 
 private:
   MotorState left_state_;
