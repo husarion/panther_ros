@@ -302,9 +302,6 @@ TEST_F(TestRoboteqDriver, test_read_timeout)
   ASSERT_THROW(canopen_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
 }
 
-// TODO
-// TEST_F(TestRoboteqDriver, test_boot_timeout) {}
-
 // OnCanError isn't tested, because it reacts to lower-level CAN errors (CRC), which are hard to
 // simulate, but it would be nice to add it
 

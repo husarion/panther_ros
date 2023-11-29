@@ -79,6 +79,20 @@ TEST_F(TestCanOpenController, test_canopen_controller_error_vendor_id)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
+TEST(TestCanOpenControllerOthers, test_boot_timeout)
+{
+  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
+
+  canopen_controller_ = std::make_unique<panther_hardware_interfaces::CanOpenController>(
+    panther_hardware_interfaces_test::kCanopenSettings);
+
+  // No roboteq mock, so it won't be possible to boot - here is checked if after some time it will
+  // finish with exception
+  ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
+
+  canopen_controller_->Deinitialize();
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

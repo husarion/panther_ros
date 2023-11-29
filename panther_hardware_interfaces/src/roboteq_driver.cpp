@@ -51,7 +51,6 @@ bool RoboteqDriver::WaitForBoot()
   }
   std::unique_lock<std::mutex> lck(boot_mtx_);
 
-  // TODO: test timeout
   if (boot_cond_var_.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
     throw std::runtime_error("Timeout while waiting for boot");
   }
@@ -126,7 +125,8 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   return fb;
 }
 
-// TODO check what happens when publishing is stopped
+// todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
+// PDO)
 void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
 {
   try {
