@@ -154,7 +154,7 @@ void RoboteqMock::Start(std::chrono::milliseconds pdo_period)
     rear_driver_->StartPublishing(pdo_period);
 
     {
-      std::lock_guard lck_g(canopen_communication_started_mtx_);
+      std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);
       canopen_communication_started_.store(true);
     }
     canopen_communication_started_cond_.notify_all();

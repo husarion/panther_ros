@@ -56,7 +56,7 @@ void CanOpenController::Initialize()
   });
 
   if (!canopen_communication_started_.load()) {
-    std::unique_lock lck(canopen_communication_started_mtx_);
+    std::unique_lock<std::mutex> lck(canopen_communication_started_mtx_);
     canopen_communication_started_cond_.wait(lck);
   }
 
@@ -142,7 +142,7 @@ void CanOpenController::ConfigureRT()
 void CanOpenController::NotifyCanCommunicationStarted(bool result)
 {
   {
-    std::lock_guard lck_g(canopen_communication_started_mtx_);
+    std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);
     canopen_communication_started_.store(result);
   }
   canopen_communication_started_cond_.notify_all();

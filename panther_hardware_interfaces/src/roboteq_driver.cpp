@@ -232,7 +232,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
           return;
         }
         {
-          std::lock_guard lck_g(mtx);
+          std::lock_guard<std::mutex> lck_g(mtx);
           if (ec) {
             err_code = ec;
           } else {
@@ -246,7 +246,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
-  std::unique_lock lck(mtx);
+  std::unique_lock<std::mutex> lck(mtx);
   if (cv.wait_for(lck, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
@@ -289,7 +289,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
           return;
         }
         {
-          std::lock_guard lck_g(mtx);
+          std::lock_guard<std::mutex> lck_g(mtx);
           if (ec) {
             err_code = ec;
           }
@@ -301,7 +301,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
     throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
   }
 
-  std::unique_lock lck(mtx);
+  std::unique_lock<std::mutex> lck(mtx);
 
   if (cv.wait_for(lck, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
     sdo_write_timed_out_.store(true);
@@ -321,9 +321,11 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
     booted_.store(true);
   }
 
-  std::unique_lock<std::mutex> lck(boot_mtx_);
-  this->boot_error_str_ = what;
-  boot_cond_var_.notify_all();
+  {
+    std::lock_guard<std::mutex> lck(boot_mtx_);
+    this->boot_error_str_ = what;
+    boot_cond_var_.notify_all();
+  }
 }
 
 void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
