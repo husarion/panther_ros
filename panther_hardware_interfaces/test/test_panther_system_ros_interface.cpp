@@ -188,13 +188,13 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
 
   ASSERT_TRUE(state_msg->front.fault_flag.overheat);
   ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
-  ASSERT_TRUE(state_msg->front.left_motor.runtime_error.loop_error);
-  ASSERT_TRUE(state_msg->front.right_motor.runtime_error.safety_stop_active);
+  ASSERT_TRUE(state_msg->front.left_motor_runtime_error.loop_error);
+  ASSERT_TRUE(state_msg->front.right_motor_runtime_error.safety_stop_active);
 
   ASSERT_TRUE(state_msg->rear.fault_flag.overvoltage);
   ASSERT_TRUE(state_msg->rear.script_flag.loop_error);
-  ASSERT_TRUE(state_msg->rear.left_motor.runtime_error.forward_limit_triggered);
-  ASSERT_TRUE(state_msg->rear.right_motor.runtime_error.reverse_limit_triggered);
+  ASSERT_TRUE(state_msg->rear.left_motor_runtime_error.forward_limit_triggered);
+  ASSERT_TRUE(state_msg->rear.right_motor_runtime_error.reverse_limit_triggered);
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();

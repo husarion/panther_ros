@@ -71,13 +71,13 @@ void PantherSystemRosInterface::UpdateMsgErrorFlags(
 
   driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
   driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
-  driver_state.front.left_motor.runtime_error = front.GetLeftRuntimeError().GetMessage();
-  driver_state.front.right_motor.runtime_error = front.GetRightRuntimeError().GetMessage();
+  driver_state.front.left_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
+  driver_state.front.right_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
 
   driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
   driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
-  driver_state.rear.left_motor.runtime_error = rear.GetLeftRuntimeError().GetMessage();
-  driver_state.rear.right_motor.runtime_error = rear.GetRightRuntimeError().GetMessage();
+  driver_state.rear.left_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
+  driver_state.rear.right_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
 void PantherSystemRosInterface::UpdateMsgDriversParameters(
