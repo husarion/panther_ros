@@ -94,6 +94,9 @@ public:
    *
    * @throws std::runtime_error if the provided `gpio_info_storage` vector is empty.
    *
+   * @note To enable reading pin values, it is required to enable GPIO monitoring.
+   * See GPIOMonitorEnable method for more info.
+   *
    * @par Example
    * An example of constructing the GPIODriver object by providing GPIO pin information:
    * @code{.cpp}
