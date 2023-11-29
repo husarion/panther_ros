@@ -154,26 +154,26 @@ void CanOpenController::BootDrivers()
     front_driver_->Boot();
   } catch (const std::system_error & e) {
     throw std::runtime_error(
-      "Exception caught when trying to Boot front driver" + std::string(e.what()));
+      "Exception caught when trying to Boot front driver " + std::string(e.what()));
   }
 
   try {
     rear_driver_->Boot();
   } catch (const std::system_error & e) {
     throw std::runtime_error(
-      "Exception caught when trying to Boot rear driver" + std::string(e.what()));
+      "Exception caught when trying to Boot rear driver " + std::string(e.what()));
   }
 
   try {
     front_driver_->WaitForBoot();
   } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Front driver boot failed");
+    throw std::runtime_error("Front driver boot failed " + std::string(e.what()));
   }
 
   try {
     rear_driver_->WaitForBoot();
   } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Rear driver boot failed");
+    throw std::runtime_error("Rear driver boot failed " + std::string(e.what()));
   }
 }
 
