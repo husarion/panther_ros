@@ -244,13 +244,21 @@ TEST_F(TestMotorsController, test_update_system_feedback_timestamps)
   ASSERT_FALSE(motors_controller_->GetRearData().IsDataTimedOut());
 }
 
-TEST_F(TestMotorsController, test_update_system_pdo_feedback_timeout)
+TEST(TestMotorsControllerOthers, test_update_system_pdo_feedback_timeout)
 {
-  // TODO: maybe something nicer
-  roboteq_mock_->front_driver_->StopPublishing();
-  roboteq_mock_->rear_driver_->StopPublishing();
-  roboteq_mock_->front_driver_->StartPublishing(std::chrono::milliseconds(200));
-  roboteq_mock_->rear_driver_->StartPublishing(std::chrono::milliseconds(200));
+  std::shared_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
+  std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
+
+  motors_controller_ = std::make_unique<panther_hardware_interfaces::MotorsController>(
+    panther_hardware_interfaces_test::kCanopenSettings,
+    panther_hardware_interfaces_test::kDrivetrainSettings);
+
+  roboteq_mock_ = std::make_shared<panther_hardware_interfaces_test::RoboteqMock>();
+
+  roboteq_mock_->Start(std::chrono::milliseconds(200));
+
+  motors_controller_->Initialize();
+  motors_controller_->Activate();
 
   motors_controller_->UpdateSystemFeedback();
 
@@ -264,6 +272,11 @@ TEST_F(TestMotorsController, test_update_system_pdo_feedback_timeout)
   ASSERT_TRUE(motors_controller_->GetRearData().IsDataTimedOut());
   ASSERT_TRUE(motors_controller_->GetFrontData().IsError());
   ASSERT_TRUE(motors_controller_->GetRearData().IsError());
+
+  motors_controller_->Deinitialize();
+
+  roboteq_mock_->Stop();
+  roboteq_mock_.reset();
 }
 
 // Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested, because it
