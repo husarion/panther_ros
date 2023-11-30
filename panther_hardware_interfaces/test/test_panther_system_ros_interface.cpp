@@ -59,13 +59,11 @@ TEST(TestPantherSystemRosInterface, test_initialization)
 
 TEST(TestPantherSystemRosInterface, test_activation)
 {
+  using panther_hardware_interfaces_test::kClearErrorsService;
   using panther_hardware_interfaces_test::kMotorControllersStateTopic;
 
   std::map<std::string, std::vector<std::string>> service_names_and_types;
   std::map<std::string, std::vector<std::string>> topic_names_and_types;
-
-  // TODO
-  const std::string clear_errors_srv_name = "/panther_system_node/clear_errors";
 
   rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
@@ -81,7 +79,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
 
-  ASSERT_TRUE(service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
+  ASSERT_TRUE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_TRUE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
@@ -92,8 +90,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
 
-  ASSERT_FALSE(
-    service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
+  ASSERT_FALSE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_FALSE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
@@ -104,7 +101,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
 
-  ASSERT_TRUE(service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
+  ASSERT_TRUE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_TRUE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
@@ -117,7 +114,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
 
-  ASSERT_TRUE(service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
+  ASSERT_TRUE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_TRUE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
@@ -139,8 +136,8 @@ TEST(TestPantherSystemRosInterface, test_clear_errors_srv)
   panther_system_ros_interface.Initialize();
   panther_system_ros_interface.Activate([&clear_errors]() { clear_errors = true; });
 
-  auto clear_errors_client =
-    test_node->create_client<std_srvs::srv::Trigger>("/panther_system_node/clear_errors");
+  auto clear_errors_client = test_node->create_client<std_srvs::srv::Trigger>(
+    panther_hardware_interfaces_test::kClearErrorsService);
 
   clear_errors_client->wait_for_service();
   auto result =
