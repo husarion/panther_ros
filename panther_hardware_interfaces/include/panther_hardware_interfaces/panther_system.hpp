@@ -76,6 +76,7 @@ protected:
   void UpdateHwStates();
   void UpdateDriverState();
   void UpdateSystemFeedback();
+  void UpdateMsgErrors();
 
   static constexpr size_t kJointsSize = 4;
 

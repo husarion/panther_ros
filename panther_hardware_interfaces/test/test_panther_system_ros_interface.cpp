@@ -271,7 +271,18 @@ TEST(TestPantherSystemRosInterface, test_errors)
   panther_system_ros_interface.Initialize();
   panther_system_ros_interface.Activate([]() {});
 
-  panther_system_ros_interface.UpdateMsgErrors(true, true, false, false, true, false, false, true);
+  panther_hardware_interfaces::CanErrors can_errors;
+  can_errors.error = true;
+  can_errors.write_sdo_error = true;
+  can_errors.read_sdo_error = false;
+  can_errors.read_pdo_error = false;
+  can_errors.front_data_timed_out = true;
+  can_errors.rear_data_timed_out = false;
+  can_errors.front_can_net_err = false;
+  can_errors.rear_can_net_err = true;
+
+  panther_system_ros_interface.UpdateMsgErrors(can_errors);
+
   panther_system_ros_interface.PublishDriverState();
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));

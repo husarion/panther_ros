@@ -93,23 +93,20 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
   driver_state.rear.temperature = rear.GetTemperature();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrors(
-  bool error, bool write_sdo_error, bool read_sdo_error, bool read_pdo_error,
-  bool front_data_timed_out, bool rear_data_timed_out, bool front_can_net_err,
-  bool rear_can_net_err)
+void PantherSystemRosInterface::UpdateMsgErrors(const CanErrors & can_errors)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
-  driver_state.error = error;
-  driver_state.write_sdo_error = write_sdo_error;
-  driver_state.read_sdo_error = read_sdo_error;
-  driver_state.read_pdo_error = read_pdo_error;
+  driver_state.error = can_errors.error;
+  driver_state.write_sdo_error = can_errors.write_sdo_error;
+  driver_state.read_sdo_error = can_errors.read_sdo_error;
+  driver_state.read_pdo_error = can_errors.read_pdo_error;
 
-  driver_state.front.data_timed_out = front_data_timed_out;
-  driver_state.rear.data_timed_out = rear_data_timed_out;
+  driver_state.front.data_timed_out = can_errors.front_data_timed_out;
+  driver_state.rear.data_timed_out = can_errors.rear_data_timed_out;
 
-  driver_state.front.can_net_err = front_can_net_err;
-  driver_state.rear.can_net_err = rear_can_net_err;
+  driver_state.front.can_net_err = can_errors.front_can_net_err;
+  driver_state.rear.can_net_err = can_errors.rear_can_net_err;
 }
 
 void PantherSystemRosInterface::PublishDriverState()

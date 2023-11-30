@@ -414,18 +414,26 @@ void PantherSystem::UpdateSystemFeedback()
   }
 }
 
+void PantherSystem::UpdateMsgErrors()
+{
+  CanErrors can_errors;
+  can_errors.error = roboteq_error_filter_->IsError();
+  can_errors.write_sdo_error = roboteq_error_filter_->IsError(write_sdo_errors_filter_id_);
+  can_errors.read_sdo_error = roboteq_error_filter_->IsError(read_sdo_errors_filter_id_);
+  can_errors.read_pdo_error = roboteq_error_filter_->IsError(read_pdo_errors_filter_id_);
+  can_errors.front_data_timed_out = motors_controller_->GetFrontData().IsDataTimedOut();
+  can_errors.rear_data_timed_out = motors_controller_->GetRearData().IsDataTimedOut();
+  can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCanNetErr();
+  can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCanNetErr();
+
+  panther_system_ros_interface_.UpdateMsgErrors(can_errors);
+}
+
 return_type PantherSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 {
   UpdateDriverState();
   UpdateSystemFeedback();
-  panther_system_ros_interface_.UpdateMsgErrors(
-    roboteq_error_filter_->IsError(), roboteq_error_filter_->IsError(write_sdo_errors_filter_id_),
-    roboteq_error_filter_->IsError(read_sdo_errors_filter_id_),
-    roboteq_error_filter_->IsError(read_pdo_errors_filter_id_),
-    motors_controller_->GetFrontData().IsDataTimedOut(),
-    motors_controller_->GetRearData().IsDataTimedOut(),
-    motors_controller_->GetFrontData().IsCanNetErr(),
-    motors_controller_->GetRearData().IsCanNetErr());
+  UpdateMsgErrors();
 
   panther_system_ros_interface_.PublishDriverState();
 
