@@ -171,8 +171,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
-// TODO
-TEST_F(TestPantherSystem, configure_activate_deactivate_deConfigurePantherSystem)
+TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system)
 {
   using panther_hardware_interfaces_test::kPantherSystemName;
 
@@ -404,6 +403,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   for (int i = 0; i < 8; ++i) {
     try {
       pth_test_.rm_->read(simulated_time, PERIOD);
+      ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
     } catch (const std::exception & e) {
       FAIL() << "Exception: " << e.what();
       return;
@@ -411,17 +411,6 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 
     simulated_time += PERIOD;
   }
-
-  // TODO
-  rclcpp::Time start = node->now();
-  while (node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(node);
-    if (state_msg && state_msg_count == 8) {
-      break;
-    }
-  }
-
-  sub.reset();
 
   ASSERT_TRUE(state_msg);
 
@@ -508,8 +497,6 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   pth_test_.roboteq_mock_->rear_driver_->SetResetRoboteqScript(23);
 
   pth_test_.ConfigureActivatePantherSystem();
-
-  // TODO check timing
 
   ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
   ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
@@ -848,7 +835,7 @@ int main(int argc, char ** argv)
   testing::InitGoogleTest(&argc, argv);
 
   // For testing individual tests:
-  // testing::GTEST_FLAG(filter) = "TestPantherSystemOthers.sdo_write_timeout_test";
+  // testing::GTEST_FLAG(filter) = "TestPantherSystem.read_other_roboteq_params_panther_system";
 
   return RUN_ALL_TESTS();
 }

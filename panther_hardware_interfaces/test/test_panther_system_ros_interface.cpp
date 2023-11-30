@@ -20,6 +20,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <panther_utils/test/test_utils.hpp>
+
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
 #include <test_constants.hpp>
@@ -175,16 +177,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   panther_system_ros_interface.UpdateMsgErrorFlags(front, rear);
   panther_system_ros_interface.PublishDriverState();
 
-  // TODO
-  rclcpp::Time start = test_node->now();
-  while (test_node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(test_node);
-    if (state_msg) {
-      break;
-    }
-  }
-
-  ASSERT_TRUE(state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_TRUE(state_msg->front.fault_flag.overheat);
   ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
@@ -243,15 +236,7 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   panther_system_ros_interface.UpdateMsgDriversParameters(front, rear);
   panther_system_ros_interface.PublishDriverState();
 
-  rclcpp::Time start = test_node->now();
-  while (test_node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(test_node);
-    if (state_msg) {
-      break;
-    }
-  }
-
-  ASSERT_TRUE(state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_FLOAT_EQ(static_cast<int16_t>(state_msg->front.temperature), f_temp);
   ASSERT_FLOAT_EQ(static_cast<int16_t>(state_msg->rear.temperature), r_temp);
@@ -288,15 +273,7 @@ TEST(TestPantherSystemRosInterface, test_errors)
   panther_system_ros_interface.UpdateMsgErrors(true, true, false, false, true, false, false, true);
   panther_system_ros_interface.PublishDriverState();
 
-  rclcpp::Time start = test_node->now();
-  while (test_node->now() - start < rclcpp::Duration(std::chrono::seconds(5))) {
-    rclcpp::spin_some(test_node);
-    if (state_msg) {
-      break;
-    }
-  }
-
-  ASSERT_TRUE(state_msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_TRUE(state_msg->error);
   ASSERT_TRUE(state_msg->write_sdo_error);
