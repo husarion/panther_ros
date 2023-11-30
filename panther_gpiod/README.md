@@ -26,7 +26,6 @@ int main() {
     // Enable GPIO monitoring with Real-Time (RT) configuration and a specific thread priority value
     gpio_driver.GPIOMonitorEnable(/* use_rt = */ true, /* gpio_monit_thread_sched_priority = */ 50);
 
-
     // Set callback function for GPIO edge events (optional)
     gpio_driver.ConfigureEdgeEventCallback(your_callback_function);
 
