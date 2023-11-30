@@ -59,12 +59,13 @@ TEST(TestPantherSystemRosInterface, test_initialization)
 
 TEST(TestPantherSystemRosInterface, test_activation)
 {
+  using panther_hardware_interfaces_test::kMotorControllersStateTopic;
+
   std::map<std::string, std::vector<std::string>> service_names_and_types;
   std::map<std::string, std::vector<std::string>> topic_names_and_types;
 
+  // TODO
   const std::string clear_errors_srv_name = "/panther_system_node/clear_errors";
-  const std::string roboteq_state_topic_name =
-    "/panther_system_node/driver/motor_controllers_state";
 
   rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
@@ -81,7 +82,8 @@ TEST(TestPantherSystemRosInterface, test_activation)
   topic_names_and_types = test_node->get_topic_names_and_types();
 
   ASSERT_TRUE(service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
-  ASSERT_TRUE(topic_names_and_types.find(roboteq_state_topic_name) != topic_names_and_types.end());
+  ASSERT_TRUE(
+    topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
   panther_system_ros_interface.Deactivate();
 
@@ -92,7 +94,8 @@ TEST(TestPantherSystemRosInterface, test_activation)
 
   ASSERT_FALSE(
     service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
-  ASSERT_FALSE(topic_names_and_types.find(roboteq_state_topic_name) != topic_names_and_types.end());
+  ASSERT_FALSE(
+    topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
   panther_system_ros_interface.Activate([]() {});
 
@@ -102,7 +105,8 @@ TEST(TestPantherSystemRosInterface, test_activation)
   topic_names_and_types = test_node->get_topic_names_and_types();
 
   ASSERT_TRUE(service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
-  ASSERT_TRUE(topic_names_and_types.find(roboteq_state_topic_name) != topic_names_and_types.end());
+  ASSERT_TRUE(
+    topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();
@@ -114,7 +118,8 @@ TEST(TestPantherSystemRosInterface, test_activation)
   topic_names_and_types = test_node->get_topic_names_and_types();
 
   ASSERT_TRUE(service_names_and_types.find(clear_errors_srv_name) != service_names_and_types.end());
-  ASSERT_TRUE(topic_names_and_types.find(roboteq_state_topic_name) != topic_names_and_types.end());
+  ASSERT_TRUE(
+    topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();
@@ -158,7 +163,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = test_node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;
@@ -200,10 +205,9 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
-  // TODO: use common function for tests
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = test_node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;
@@ -262,7 +266,7 @@ TEST(TestPantherSystemRosInterface, test_errors)
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = test_node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;

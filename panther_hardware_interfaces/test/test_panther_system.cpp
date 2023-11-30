@@ -387,7 +387,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   unsigned state_msg_count = 0;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) {
       state_msg = msg;
       ++state_msg_count;
@@ -442,7 +442,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -642,7 +642,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -707,7 +707,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -782,7 +782,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    "/panther_system_node/driver/motor_controllers_state", rclcpp::SensorDataQoS(),
+    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
