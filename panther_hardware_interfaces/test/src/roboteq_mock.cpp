@@ -71,7 +71,6 @@ void RoboteqSlave::StartPublishing(std::chrono::milliseconds period)
 void RoboteqSlave::StopPublishing()
 {
   stop_publishing_.store(true);
-  // TODO: joinable
   if (pdo_publishing_thread_.joinable()) {
     pdo_publishing_thread_.join();
   }

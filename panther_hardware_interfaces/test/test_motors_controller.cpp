@@ -23,8 +23,6 @@
 #include <roboteq_mock.hpp>
 #include <test_constants.hpp>
 
-// TODO: sometimes fails
-
 class TestMotorsControllerInitialization : public ::testing::Test
 {
 public:

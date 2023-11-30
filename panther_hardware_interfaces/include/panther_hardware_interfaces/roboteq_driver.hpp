@@ -48,7 +48,7 @@ struct RoboteqDriverFeedback
   timespec timestamp;
 };
 
-// TODO: heartbeat timeout
+// todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
 /**
  * @brief Implementation of FiberDriver for Roboteq drivers
  */

@@ -40,7 +40,6 @@ void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
     std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
       driver_state_publisher_);
 
-  // TODO: Is it RT safe?
   clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
     "~/clear_errors", std::bind(
                         &PantherSystemRosInterface::ClearErrorsCb, this, std::placeholders::_1,
