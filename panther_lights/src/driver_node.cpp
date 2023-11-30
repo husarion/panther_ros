@@ -29,6 +29,7 @@
 
 #include <panther_msgs/srv/set_led_brightness.hpp>
 
+#include <panther_gpiod/gpio_driver.hpp>
 #include <panther_lights/apa102.hpp>
 
 namespace panther_lights
@@ -57,6 +58,9 @@ void DriverNode::Initialize()
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
 
+  std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
+    panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
+  gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
   SetPowerPin(false);
 
   front_panel_ts_ = this->get_clock()->now();
@@ -134,22 +138,7 @@ void DriverNode::FrameCB(
 
 void DriverNode::SetPowerPin(const bool value) const
 {
-  gpiod::chip chip("/dev/gpiochip0");
-  gpiod::line::value gpio_value = value ? gpiod::line::value::ACTIVE : gpiod::line::value::INACTIVE;
-
-  gpiod::line_settings settings;
-  settings.set_direction(gpiod::line::direction::OUTPUT);
-  settings.set_active_low(true);
-
-  auto power_pin_offset = chip.get_line_offset_from_name("LED_SBC_SEL");
-
-  auto request = chip.prepare_request()
-                   .set_consumer(this->get_name())
-                   .add_line_settings(power_pin_offset, settings)
-                   .do_request();
-
-  request.set_value(power_pin_offset, gpio_value);
-  request.release();
+  gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::LED_SBC_SEL, value);
 }
 
 void DriverNode::SetBrightnessCB(

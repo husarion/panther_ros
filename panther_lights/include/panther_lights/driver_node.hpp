@@ -18,13 +18,13 @@
 #include <memory>
 #include <string>
 
-#include <gpiod.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <image_transport/image_transport.hpp>
 
 #include <panther_msgs/srv/set_led_brightness.hpp>
 
+#include <panther_gpiod/gpio_driver.hpp>
 #include <panther_lights/apa102.hpp>
 
 namespace panther_lights
@@ -64,6 +64,7 @@ private:
   std::shared_ptr<image_transport::ImageTransport> it_;
   std::shared_ptr<image_transport::Subscriber> rear_light_sub_;
   std::shared_ptr<image_transport::Subscriber> front_light_sub_;
+  std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
 };
 
 }  // namespace panther_lights
