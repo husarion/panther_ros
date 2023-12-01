@@ -102,8 +102,6 @@ protected:
   DrivetrainSettings drivetrain_settings_;
   CanOpenSettings canopen_settings_;
 
-  std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-
   PantherSystemRosInterface panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
@@ -123,11 +121,14 @@ protected:
   rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
-  // TODO: refactor
-  std::size_t read_sdo_errors_filter_id_;
-  std::size_t write_sdo_errors_filter_id_;
-  std::size_t read_pdo_errors_filter_id_;
-  std::size_t roboteq_driver_errors_filter_id_;
+  std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
+  struct ErrorsFilterIds
+  {
+    std::size_t read_sdo;
+    std::size_t write_sdo;
+    std::size_t read_pdo;
+    std::size_t roboteq_driver;
+  } errors_filter_ids_;
 };
 
 }  // namespace panther_hardware_interfaces
