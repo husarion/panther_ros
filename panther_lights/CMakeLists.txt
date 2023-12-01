@@ -12,6 +12,8 @@ find_package(panther_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
+include_directories(include)
+
 add_executable(driver_node src/driver_node_main.cpp src/driver_node.cpp
                            src/apa102.cpp)
 
