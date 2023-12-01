@@ -50,7 +50,8 @@ void CanOpenController::Initialize()
     try {
       loop_->run();
     } catch (const std::system_error & e) {
-      // TODO: error state
+      // If the error happens and loop stops SDO and PDO operations will timeout and in result
+      // system will switch to error state
       std::cerr << "Exception caught in loop run: " << e.what() << std::endl;
     }
   });
