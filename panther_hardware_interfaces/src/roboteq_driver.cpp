@@ -201,7 +201,6 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 template <typename type>
 type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 {
-  // TODO: describe edge case
   std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
   if (!sdo_read_lck.try_lock()) {
     throw std::runtime_error(
@@ -213,6 +212,10 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   type data;
   std::error_code err_code;
 
+  // In some cases (especially with frequencies higher than 100Hz, mostly during activation)
+  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
+  // set to false in result. Solution currently on hold - switching to PDO will also solve this
+  // issue
   if (sdo_read_timed_out_) {
     throw std::runtime_error(
       "Can't submit new SDO read operation - previous one that timed out is still in queue");
@@ -226,7 +229,6 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
         // In this case function has already finished, and other variables don't exist
         // and we have to end
 
-        // TODO in timeout it won't be reached
         if (sdo_read_timed_out_) {
           sdo_read_timed_out_.store(false);
           return;
@@ -272,6 +274,10 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   std::condition_variable cv;
   std::error_code err_code;
 
+  // In some cases (especially with frequencies higher than 100Hz, mostly during activation)
+  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
+  // set to false in result. Solution currently on hold - switching to PDO will also solve this
+  // issue
   if (sdo_write_timed_out_) {
     throw std::runtime_error(
       "Can't submit new SDO write operation - previous one that timed out is still in queue");
