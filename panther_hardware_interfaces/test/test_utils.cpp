@@ -36,7 +36,7 @@ TEST(TestUtils, test_get_byte_out_of_range)
   ASSERT_THROW(GetByte(0xFA3B4186, -1), std::runtime_error);
 }
 
-TEST(TestUtils, test_bit_set)
+TEST(TestUtils, test_is_bit_set)
 {
   using panther_hardware_interfaces::IsBitSet;
 
@@ -50,12 +50,29 @@ TEST(TestUtils, test_bit_set)
   ASSERT_EQ(IsBitSet(0b01101001, 7), false);
 }
 
-TEST(TestUtils, test_bit_set_out_of_range)
+TEST(TestUtils, test_is_bit_set_out_of_range)
 {
   using panther_hardware_interfaces::IsBitSet;
 
   ASSERT_THROW(IsBitSet(0b01101001, 8), std::runtime_error);
   ASSERT_THROW(IsBitSet(0b01101001, -1), std::runtime_error);
+}
+
+TEST(TestUtils, test_set_bit)
+{
+  using panther_hardware_interfaces::SetBit;
+
+  ASSERT_EQ(SetBit(0b01101001, 0), 0b01101001);
+  ASSERT_EQ(SetBit(0b01101001, 1), 0b01101011);
+  ASSERT_EQ(SetBit(0b01101001, 7), 0b11101001);
+}
+
+TEST(TestUtils, test_set_bit_out_of_range)
+{
+  using panther_hardware_interfaces::SetBit;
+
+  ASSERT_THROW(SetBit(0b01101001, 8), std::runtime_error);
+  ASSERT_THROW(SetBit(0b01101001, -1), std::runtime_error);
 }
 
 TEST(TestUtils, operation_with_attempts_fail_test)

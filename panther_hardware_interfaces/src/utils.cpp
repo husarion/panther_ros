@@ -29,13 +29,22 @@ uint8_t GetByte(uint32_t data, uint8_t byte_no)
   return (data >> (byte_no * 8)) & 0xFF;
 }
 
-bool IsBitSet(uint8_t flags, uint8_t bit_no)
+bool IsBitSet(uint8_t data, uint8_t bit_no)
 {
   if (bit_no > 7) {
     throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
   }
 
-  return flags & (0b00000001 << bit_no);
+  return data & (0b00000001 << bit_no);
+}
+
+uint8_t SetBit(uint8_t data, uint8_t bit_no)
+{
+  if (bit_no > 7) {
+    throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
+  }
+
+  return data | (0b00000001 << bit_no);
 }
 
 bool OperationWithAttempts(
