@@ -95,9 +95,9 @@
           <param name="rear_driver_can_id">2</param>
           <!-- Shouldn't but can depend on frequencies of publishing PDO (set on Roboteq) and
             frequency of controller (frequency of publishing commands) -->
-          <param name="sdo_operation_timeout">4</param>
-          <!-- Depends on frequnecy of the controller -->
-          <param name="pdo_feedback_timeout">15</param>
+          <param name="sdo_operation_timeout">3</param>
+          <!-- Depends on frequency of the controller -->
+          <param name="pdo_feedback_timeout">30</param>
 
           <param name="max_roboteq_initialization_attempts">5</param>
           <param name="max_roboteq_activation_attempts">5</param>
@@ -105,9 +105,6 @@
 
           <param name="max_write_sdo_errors_count">2</param>
           <param name="max_read_sdo_errors_count">2</param>
-          <!-- TODO check when tuning parameters -->
-          <!-- Set to 2 because, sometimes timeout happens, PDO that should be sent every 10ms
-          exceeded pdo_feedback_timeout, to be investigated during parameter tuning -->
           <param name="max_read_pdo_errors_count">2</param>
         </xacro:unless>
       </hardware>
