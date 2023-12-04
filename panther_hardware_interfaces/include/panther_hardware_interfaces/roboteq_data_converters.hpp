@@ -22,6 +22,7 @@
 #include <panther_msgs/msg/script_flag.hpp>
 
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
+#include <panther_hardware_interfaces/utils.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -88,25 +89,35 @@ private:
 class FlagError
 {
 public:
-  FlagError(const std::vector<std::string> & flag_names) : flag_names_(flag_names) {}
-
-  void SetData(uint8_t flags) { flags_ = flags; }
-
   /**
    * @brief Sets which flags should be ignored when checking if an error occurred when converting
    * to message true data still will be set
    */
-  void SetSurpressedFlags(uint8_t surpressed_flags) { surpressed_flags_ = surpressed_flags; }
+  FlagError(
+    const std::vector<std::string> & flag_names,
+    const std::vector<std::string> & surpressed_flags_names = {})
+  : flag_names_(flag_names)
+  {
+    for (size_t i = 0; i < surpressed_flags_names.size(); ++i) {
+      for (size_t j = 0; j < flag_names_.size(); ++j) {
+        if (surpressed_flags_names[i] == flag_names_[j]) {
+          surpressed_flags_ = SetBit(surpressed_flags_, j);
+        }
+      }
+    }
+  }
 
-  bool IsError() const { return (flags_ & surpressed_flags_) != 0; }
+  void SetData(uint8_t flags) { flags_ = flags; }
+
+  bool IsError() const { return (flags_ & (~surpressed_flags_)) != 0; }
 
   std::string GetErrorLog() const;
 
 protected:
-  uint8_t surpressed_flags_ = 0b11111111;
-  uint8_t flags_ = 0b00000000;
-
   const std::vector<std::string> flag_names_;
+
+  uint8_t surpressed_flags_ = 0b00000000;
+  uint8_t flags_ = 0b00000000;
 };
 
 class FaultFlag : public FlagError
@@ -140,15 +151,17 @@ class RuntimeError : public FlagError
 {
 public:
   RuntimeError()
-  : FlagError({
-      "amps_limit_active",
-      "motor_stall",
-      "loop_error",
-      "safety_stop_active",
-      "forward_limit_triggered",
-      "reverse_limit_triggered",
-      "amps_trigger_activated",
-    })
+  : FlagError(
+      {
+        "amps_limit_active",
+        "motor_stall",
+        "loop_error",
+        "safety_stop_active",
+        "forward_limit_triggered",
+        "reverse_limit_triggered",
+        "amps_trigger_activated",
+      },
+      {"safety_stop_active", "amps_limit_active"})
   {
   }
 
@@ -189,8 +202,6 @@ public:
   RoboteqData(DrivetrainSettings drivetrain_settings)
   : left_state_(drivetrain_settings), right_state_(drivetrain_settings)
   {
-    left_runtime_error_.SetSurpressedFlags(suppressed_runtime_errors_);
-    right_runtime_error_.SetSurpressedFlags(suppressed_runtime_errors_);
   }
 
   void SetMotorStates(
@@ -259,13 +270,6 @@ private:
 
   bool data_timed_out_ = false;
   bool can_net_err_ = false;
-
-  // TODO: to parameter
-
-  // Suppress flags:
-  // safety_stop_active
-  // amps_limit_active
-  uint8_t suppressed_runtime_errors_ = 0b11110110;
 };
 
 }  // namespace panther_hardware_interfaces

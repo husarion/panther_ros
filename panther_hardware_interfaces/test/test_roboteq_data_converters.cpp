@@ -71,12 +71,12 @@ TEST(TestRoboteqDataConverters, test_motor_state)
 TEST(TestRoboteqDataConverters, test_flag_error)
 {
   panther_hardware_interfaces::FlagError flag_error(
-    {"error1", "error2", "error3", "error4", "error5", "error6", "error7", "error8"});
+    {"error1", "error2", "error3", "error4", "error5", "error6", "error7", "error8"},
+    {"error2", "error6"});
 
   ASSERT_FALSE(flag_error.IsError());
   ASSERT_EQ(flag_error.GetErrorLog(), "");
 
-  flag_error.SetSurpressedFlags(0b11011101);
   flag_error.SetData(0b00000001);
   ASSERT_TRUE(flag_error.IsError());
   ASSERT_EQ(flag_error.GetErrorLog(), "error1 ");
@@ -139,12 +139,6 @@ TEST(TestRoboteqDataConverters, test_fault_flag)
 
   fault_flag.SetData(0b00100010);
   TestFaultFlagMsg(fault_flag.GetMessage(), {false, true, false, false, false, true, false, false});
-
-  fault_flag.SetSurpressedFlags(0b11111110);
-  fault_flag.SetData(0b00000001);
-  // fault flag still should be set, it just won't be treated as an error
-  TestFaultFlagMsg(
-    fault_flag.GetMessage(), {true, false, false, false, false, false, false, false});
 }
 
 void TestScriptFlagMsg(
@@ -173,11 +167,6 @@ TEST(TestRoboteqDataConverters, test_script_flag)
 
   script_flag.SetData(0b00100110);
   TestScriptFlagMsg(script_flag.GetMessage(), {false, true, true});
-
-  script_flag.SetSurpressedFlags(0b11111101);
-  script_flag.SetData(0b00000010);
-  // fault flag still should be set, it just won't be treated as an error
-  TestScriptFlagMsg(script_flag.GetMessage(), {false, true, false});
 }
 
 void TestRuntimeErrorMsg(
@@ -219,10 +208,9 @@ TEST(TestRoboteqDataConverters, test_runtime_error)
   runtime_error.SetData(0b00100010);
   TestRuntimeErrorMsg(runtime_error.GetMessage(), {false, true, false, false, false, true, false});
 
-  runtime_error.SetSurpressedFlags(0b11111011);
-  runtime_error.SetData(0b00000100);
+  runtime_error.SetData(0b00001000);
   // fault flag still should be set, it just won't be treated as an error
-  TestRuntimeErrorMsg(runtime_error.GetMessage(), {false, false, true, false, false, false, false});
+  TestRuntimeErrorMsg(runtime_error.GetMessage(), {false, false, false, true, false, false, false});
 }
 
 TEST(TestRoboteqDataConverters, test_driver_state)

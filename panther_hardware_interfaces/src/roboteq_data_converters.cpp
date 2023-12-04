@@ -71,7 +71,7 @@ std::string FlagError::GetErrorLog() const
 {
   std::string error_msg = "";
   for (size_t i = 0; i < flag_names_.size(); ++i) {
-    if (IsBitSet(flags_ & surpressed_flags_, i)) {
+    if (IsBitSet(flags_ & (~surpressed_flags_), i)) {
       error_msg += flag_names_[i] + " ";
     }
   }
