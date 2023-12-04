@@ -176,7 +176,7 @@ private:
   std::mutex rpdo_timestamp_mtx_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
-  const std::chrono::milliseconds sdo_operation_wait_timeout_;
+  const std::chrono::microseconds sdo_operation_wait_timeout_;
 
   std::atomic_bool sdo_read_timed_out_ = false;
   std::atomic_bool sdo_write_timed_out_ = false;

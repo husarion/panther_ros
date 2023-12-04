@@ -34,7 +34,7 @@ RoboteqDriver::RoboteqDriver(
   sdo_operation_timeout_(sdo_operation_timeout),
   // Wait timeout has to be longer - first we want to give a chance for lely to cancel
   // operation
-  sdo_operation_wait_timeout_(sdo_operation_timeout + std::chrono::milliseconds(1))
+  sdo_operation_wait_timeout_(sdo_operation_timeout + std::chrono::microseconds(750))
 {
 }
 
@@ -212,7 +212,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   type data;
   std::error_code err_code;
 
-  // In some cases (especially with frequencies higher than 100Hz, mostly during activation)
+  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
   // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
   // set to false in result. Solution currently on hold - switching to PDO will also solve this
   // issue
@@ -274,7 +274,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   std::condition_variable cv;
   std::error_code err_code;
 
-  // In some cases (especially with frequencies higher than 100Hz, mostly during activation)
+  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
   // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
   // set to false in result. Solution currently on hold - switching to PDO will also solve this
   // issue
