@@ -45,7 +45,7 @@ def generate_launch_description():
             " parameters. For custom wheels, please define these parameters to point to files that"
             " accurately describe the custom wheels."
         ),
-        choices=["WH01", "WH02", "WH04", "CUSTOM"],
+        choices=["WH01", "WH02", "WH04", "custom"],
     )
 
     wheel_config_path = LaunchConfiguration("wheel_config_path")
