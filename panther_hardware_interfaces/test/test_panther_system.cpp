@@ -33,35 +33,39 @@
 class TestPantherSystem : public ::testing::Test
 {
 public:
-  TestPantherSystem() { pth_test_.Start(pth_test_.default_panther_system_urdf_); }
+  TestPantherSystem() { pth_test_.Start(pth_test_.GetDefaultPantherSystemUrdf()); }
   ~TestPantherSystem() { pth_test_.Stop(); }
 
   void CheckInterfaces()
   {
-    EXPECT_EQ(pth_test_.rm_->system_components_size(), 1u);
-    ASSERT_EQ(pth_test_.rm_->state_interface_keys().size(), 12u);
+    EXPECT_EQ(pth_test_.GetResourceManager()->system_components_size(), 1u);
+    ASSERT_EQ(pth_test_.GetResourceManager()->state_interface_keys().size(), 12u);
 
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/position"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/position"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/position"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("fl_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("fr_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("rl_wheel_joint/position"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("rr_wheel_joint/position"));
 
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/velocity"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/velocity"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/velocity"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("rr_wheel_joint/velocity"));
 
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fl_wheel_joint/effort"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("fr_wheel_joint/effort"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rl_wheel_joint/effort"));
-    EXPECT_TRUE(pth_test_.rm_->state_interface_exists("rr_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("fl_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("fr_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("rl_wheel_joint/effort"));
+    EXPECT_TRUE(pth_test_.GetResourceManager()->state_interface_exists("rr_wheel_joint/effort"));
 
-    ASSERT_EQ(pth_test_.rm_->command_interface_keys().size(), 4u);
+    ASSERT_EQ(pth_test_.GetResourceManager()->command_interface_keys().size(), 4u);
 
-    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fl_wheel_joint/velocity"));
-    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("fr_wheel_joint/velocity"));
-    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rl_wheel_joint/velocity"));
-    EXPECT_TRUE(pth_test_.rm_->command_interface_exists("rr_wheel_joint/velocity"));
+    EXPECT_TRUE(
+      pth_test_.GetResourceManager()->command_interface_exists("fl_wheel_joint/velocity"));
+    EXPECT_TRUE(
+      pth_test_.GetResourceManager()->command_interface_exists("fr_wheel_joint/velocity"));
+    EXPECT_TRUE(
+      pth_test_.GetResourceManager()->command_interface_exists("rl_wheel_joint/velocity"));
+    EXPECT_TRUE(
+      pth_test_.GetResourceManager()->command_interface_exists("rr_wheel_joint/velocity"));
   }
 
   void CheckInitialValues()
@@ -69,29 +73,41 @@ public:
     using hardware_interface::LoanedCommandInterface;
     using hardware_interface::LoanedStateInterface;
 
-    LoanedStateInterface fl_s_p = pth_test_.rm_->claim_state_interface("fl_wheel_joint/position");
-    LoanedStateInterface fr_s_p = pth_test_.rm_->claim_state_interface("fr_wheel_joint/position");
-    LoanedStateInterface rl_s_p = pth_test_.rm_->claim_state_interface("rl_wheel_joint/position");
-    LoanedStateInterface rr_s_p = pth_test_.rm_->claim_state_interface("rr_wheel_joint/position");
+    LoanedStateInterface fl_s_p =
+      pth_test_.GetResourceManager()->claim_state_interface("fl_wheel_joint/position");
+    LoanedStateInterface fr_s_p =
+      pth_test_.GetResourceManager()->claim_state_interface("fr_wheel_joint/position");
+    LoanedStateInterface rl_s_p =
+      pth_test_.GetResourceManager()->claim_state_interface("rl_wheel_joint/position");
+    LoanedStateInterface rr_s_p =
+      pth_test_.GetResourceManager()->claim_state_interface("rr_wheel_joint/position");
 
-    LoanedStateInterface fl_s_v = pth_test_.rm_->claim_state_interface("fl_wheel_joint/velocity");
-    LoanedStateInterface fr_s_v = pth_test_.rm_->claim_state_interface("fr_wheel_joint/velocity");
-    LoanedStateInterface rl_s_v = pth_test_.rm_->claim_state_interface("rl_wheel_joint/velocity");
-    LoanedStateInterface rr_s_v = pth_test_.rm_->claim_state_interface("rr_wheel_joint/velocity");
+    LoanedStateInterface fl_s_v =
+      pth_test_.GetResourceManager()->claim_state_interface("fl_wheel_joint/velocity");
+    LoanedStateInterface fr_s_v =
+      pth_test_.GetResourceManager()->claim_state_interface("fr_wheel_joint/velocity");
+    LoanedStateInterface rl_s_v =
+      pth_test_.GetResourceManager()->claim_state_interface("rl_wheel_joint/velocity");
+    LoanedStateInterface rr_s_v =
+      pth_test_.GetResourceManager()->claim_state_interface("rr_wheel_joint/velocity");
 
-    LoanedStateInterface fl_s_e = pth_test_.rm_->claim_state_interface("fl_wheel_joint/effort");
-    LoanedStateInterface fr_s_e = pth_test_.rm_->claim_state_interface("fr_wheel_joint/effort");
-    LoanedStateInterface rl_s_e = pth_test_.rm_->claim_state_interface("rl_wheel_joint/effort");
-    LoanedStateInterface rr_s_e = pth_test_.rm_->claim_state_interface("rr_wheel_joint/effort");
+    LoanedStateInterface fl_s_e =
+      pth_test_.GetResourceManager()->claim_state_interface("fl_wheel_joint/effort");
+    LoanedStateInterface fr_s_e =
+      pth_test_.GetResourceManager()->claim_state_interface("fr_wheel_joint/effort");
+    LoanedStateInterface rl_s_e =
+      pth_test_.GetResourceManager()->claim_state_interface("rl_wheel_joint/effort");
+    LoanedStateInterface rr_s_e =
+      pth_test_.GetResourceManager()->claim_state_interface("rr_wheel_joint/effort");
 
     LoanedCommandInterface fl_c_v =
-      pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("fl_wheel_joint/velocity");
     LoanedCommandInterface fr_c_v =
-      pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("fr_wheel_joint/velocity");
     LoanedCommandInterface rl_c_v =
-      pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("rl_wheel_joint/velocity");
     LoanedCommandInterface rr_c_v =
-      pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("rr_wheel_joint/velocity");
 
     ASSERT_FLOAT_EQ(fl_s_p.get_value(), 0.0);
     ASSERT_FLOAT_EQ(fr_s_p.get_value(), 0.0);
@@ -126,7 +142,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
   using panther_hardware_interfaces_test::kPantherSystemName;
 
   // check if hardware is configured
-  auto status_map = pth_test_.rm_->get_components_status();
+  auto status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
@@ -137,7 +153,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     FAIL() << "Exception caught when trying to ConfigurePantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::INACTIVE);
@@ -148,7 +164,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     FAIL() << "Exception caught when trying to ActivatePantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::ACTIVE);
@@ -165,7 +181,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     FAIL() << "Exception caught when trying to ShutdownPantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::FINALIZED);
@@ -175,7 +191,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 {
   using panther_hardware_interfaces_test::kPantherSystemName;
 
-  auto status_map = pth_test_.rm_->get_components_status();
+  auto status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
@@ -186,7 +202,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     FAIL() << "Exception caught when trying to ConfigurePantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::INACTIVE);
@@ -197,7 +213,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     FAIL() << "Exception caught when trying to ActivatePantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::ACTIVE);
@@ -214,7 +230,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     FAIL() << "Exception caught when trying to DeactivatePantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::INACTIVE);
@@ -225,7 +241,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
     FAIL() << "Exception caught when trying to UnconfigurePantherSystem: " << e.what();
     return;
   }
-  status_map = pth_test_.rm_->get_components_status();
+  status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
@@ -247,10 +263,14 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  LoanedCommandInterface fl_c_v = pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
-  LoanedCommandInterface fr_c_v = pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
-  LoanedCommandInterface rl_c_v = pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
-  LoanedCommandInterface rr_c_v = pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
+  LoanedCommandInterface fl_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("fl_wheel_joint/velocity");
+  LoanedCommandInterface fr_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("fr_wheel_joint/velocity");
+  LoanedCommandInterface rl_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("rl_wheel_joint/velocity");
+  LoanedCommandInterface rr_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("rr_wheel_joint/velocity");
 
   fl_c_v.set_value(fl_v);
   fr_c_v.set_value(fr_v);
@@ -265,19 +285,19 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
   const auto TIME = rclcpp::Time(0);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
+    pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
     static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
+    pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
     static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
+    pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
     static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
-    pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
+    pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
     static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
 
   pth_test_.ShutdownPantherSystem();
@@ -299,42 +319,54 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   const int32_t rl_val = 300;
   const int32_t rr_val = 400;
 
-  pth_test_.roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_val);
-  pth_test_.roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetPosition(DriverChannel::CHANNEL2, rl_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetPosition(DriverChannel::CHANNEL1, rr_val);
+  pth_test_.GetRoboteqMock()->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_val);
+  pth_test_.GetRoboteqMock()->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_val);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetPosition(DriverChannel::CHANNEL2, rl_val);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetPosition(DriverChannel::CHANNEL1, rr_val);
 
-  pth_test_.roboteq_mock_->front_driver_->SetVelocity(DriverChannel::CHANNEL2, fl_val);
-  pth_test_.roboteq_mock_->front_driver_->SetVelocity(DriverChannel::CHANNEL1, fr_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetVelocity(DriverChannel::CHANNEL2, rl_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetVelocity(DriverChannel::CHANNEL1, rr_val);
+  pth_test_.GetRoboteqMock()->front_driver_->SetVelocity(DriverChannel::CHANNEL2, fl_val);
+  pth_test_.GetRoboteqMock()->front_driver_->SetVelocity(DriverChannel::CHANNEL1, fr_val);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetVelocity(DriverChannel::CHANNEL2, rl_val);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetVelocity(DriverChannel::CHANNEL1, rr_val);
 
-  pth_test_.roboteq_mock_->front_driver_->SetCurrent(DriverChannel::CHANNEL2, fl_val);
-  pth_test_.roboteq_mock_->front_driver_->SetCurrent(DriverChannel::CHANNEL1, fr_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL2, rl_val);
-  pth_test_.roboteq_mock_->rear_driver_->SetCurrent(DriverChannel::CHANNEL1, rr_val);
+  pth_test_.GetRoboteqMock()->front_driver_->SetCurrent(DriverChannel::CHANNEL2, fl_val);
+  pth_test_.GetRoboteqMock()->front_driver_->SetCurrent(DriverChannel::CHANNEL1, fr_val);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetCurrent(DriverChannel::CHANNEL2, rl_val);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetCurrent(DriverChannel::CHANNEL1, rr_val);
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  LoanedStateInterface fl_s_p = pth_test_.rm_->claim_state_interface("fl_wheel_joint/position");
-  LoanedStateInterface fr_s_p = pth_test_.rm_->claim_state_interface("fr_wheel_joint/position");
-  LoanedStateInterface rl_s_p = pth_test_.rm_->claim_state_interface("rl_wheel_joint/position");
-  LoanedStateInterface rr_s_p = pth_test_.rm_->claim_state_interface("rr_wheel_joint/position");
+  LoanedStateInterface fl_s_p =
+    pth_test_.GetResourceManager()->claim_state_interface("fl_wheel_joint/position");
+  LoanedStateInterface fr_s_p =
+    pth_test_.GetResourceManager()->claim_state_interface("fr_wheel_joint/position");
+  LoanedStateInterface rl_s_p =
+    pth_test_.GetResourceManager()->claim_state_interface("rl_wheel_joint/position");
+  LoanedStateInterface rr_s_p =
+    pth_test_.GetResourceManager()->claim_state_interface("rr_wheel_joint/position");
 
-  LoanedStateInterface fl_s_v = pth_test_.rm_->claim_state_interface("fl_wheel_joint/velocity");
-  LoanedStateInterface fr_s_v = pth_test_.rm_->claim_state_interface("fr_wheel_joint/velocity");
-  LoanedStateInterface rl_s_v = pth_test_.rm_->claim_state_interface("rl_wheel_joint/velocity");
-  LoanedStateInterface rr_s_v = pth_test_.rm_->claim_state_interface("rr_wheel_joint/velocity");
+  LoanedStateInterface fl_s_v =
+    pth_test_.GetResourceManager()->claim_state_interface("fl_wheel_joint/velocity");
+  LoanedStateInterface fr_s_v =
+    pth_test_.GetResourceManager()->claim_state_interface("fr_wheel_joint/velocity");
+  LoanedStateInterface rl_s_v =
+    pth_test_.GetResourceManager()->claim_state_interface("rl_wheel_joint/velocity");
+  LoanedStateInterface rr_s_v =
+    pth_test_.GetResourceManager()->claim_state_interface("rr_wheel_joint/velocity");
 
-  LoanedStateInterface fl_s_e = pth_test_.rm_->claim_state_interface("fl_wheel_joint/effort");
-  LoanedStateInterface fr_s_e = pth_test_.rm_->claim_state_interface("fr_wheel_joint/effort");
-  LoanedStateInterface rl_s_e = pth_test_.rm_->claim_state_interface("rl_wheel_joint/effort");
-  LoanedStateInterface rr_s_e = pth_test_.rm_->claim_state_interface("rr_wheel_joint/effort");
+  LoanedStateInterface fl_s_e =
+    pth_test_.GetResourceManager()->claim_state_interface("fl_wheel_joint/effort");
+  LoanedStateInterface fr_s_e =
+    pth_test_.GetResourceManager()->claim_state_interface("fr_wheel_joint/effort");
+  LoanedStateInterface rl_s_e =
+    pth_test_.GetResourceManager()->claim_state_interface("rl_wheel_joint/effort");
+  LoanedStateInterface rr_s_e =
+    pth_test_.GetResourceManager()->claim_state_interface("rr_wheel_joint/effort");
 
   const auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
   try {
-    pth_test_.rm_->read(TIME, PERIOD);
+    pth_test_.GetResourceManager()->read(TIME, PERIOD);
   } catch (const std::exception & e) {
     FAIL() << "Exception: " << e.what();
     return;
@@ -371,14 +403,14 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   const int16_t f_bat_amps_2 = 30;
   const int16_t r_bat_amps_2 = 40;
 
-  pth_test_.roboteq_mock_->front_driver_->SetTemperature(f_temp);
-  pth_test_.roboteq_mock_->rear_driver_->SetTemperature(r_temp);
-  pth_test_.roboteq_mock_->front_driver_->SetVoltage(f_volt);
-  pth_test_.roboteq_mock_->rear_driver_->SetVoltage(r_volt);
-  pth_test_.roboteq_mock_->front_driver_->SetBatAmps1(f_bat_amps_1);
-  pth_test_.roboteq_mock_->rear_driver_->SetBatAmps1(r_bat_amps_1);
-  pth_test_.roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
-  pth_test_.roboteq_mock_->rear_driver_->SetBatAmps2(r_bat_amps_2);
+  pth_test_.GetRoboteqMock()->front_driver_->SetTemperature(f_temp);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetTemperature(r_temp);
+  pth_test_.GetRoboteqMock()->front_driver_->SetVoltage(f_volt);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetVoltage(r_volt);
+  pth_test_.GetRoboteqMock()->front_driver_->SetBatAmps1(f_bat_amps_1);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetBatAmps1(r_bat_amps_1);
+  pth_test_.GetRoboteqMock()->front_driver_->SetBatAmps2(f_bat_amps_2);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetBatAmps2(r_bat_amps_2);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
 
@@ -402,7 +434,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   // new values
   for (int i = 0; i < 8; ++i) {
     try {
-      pth_test_.rm_->read(simulated_time, PERIOD);
+      pth_test_.GetResourceManager()->read(simulated_time, PERIOD);
       ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
     } catch (const std::exception & e) {
       FAIL() << "Exception: " << e.what();
@@ -433,7 +465,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   using panther_hardware_interfaces_test::DriverChannel;
   using panther_hardware_interfaces_test::DriverScriptFlags;
 
-  pth_test_.roboteq_mock_->front_driver_->SetDriverScriptFlag(
+  pth_test_.GetRoboteqMock()->front_driver_->SetDriverScriptFlag(
     DriverScriptFlags::ENCODER_DISCONNECTED);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
@@ -450,17 +482,21 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   const auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
 
   // writing should be blocked - error
 
-  LoanedCommandInterface fl_c_v = pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
-  LoanedCommandInterface fr_c_v = pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
-  LoanedCommandInterface rl_c_v = pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
-  LoanedCommandInterface rr_c_v = pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
+  LoanedCommandInterface fl_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("fl_wheel_joint/velocity");
+  LoanedCommandInterface fr_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("fr_wheel_joint/velocity");
+  LoanedCommandInterface rl_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("rl_wheel_joint/velocity");
+  LoanedCommandInterface rr_c_v =
+    pth_test_.GetResourceManager()->claim_command_interface("rr_wheel_joint/velocity");
 
   fl_c_v.set_value(0.1);
   fr_c_v.set_value(0.1);
@@ -472,12 +508,12 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   ASSERT_FLOAT_EQ(rl_c_v.get_value(), 0.1);
   ASSERT_FLOAT_EQ(rr_c_v.get_value(), 0.1);
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -488,23 +524,23 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
   using hardware_interface::LoanedStateInterface;
   using panther_hardware_interfaces_test::DriverChannel;
 
-  pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 234);
-  pth_test_.roboteq_mock_->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 32);
-  pth_test_.roboteq_mock_->rear_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 54);
-  pth_test_.roboteq_mock_->rear_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 12);
+  pth_test_.GetRoboteqMock()->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 234);
+  pth_test_.GetRoboteqMock()->front_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 32);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetRoboteqCmd(DriverChannel::CHANNEL1, 54);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetRoboteqCmd(DriverChannel::CHANNEL2, 12);
 
-  pth_test_.roboteq_mock_->front_driver_->SetResetRoboteqScript(65);
-  pth_test_.roboteq_mock_->rear_driver_->SetResetRoboteqScript(23);
+  pth_test_.GetRoboteqMock()->front_driver_->SetResetRoboteqScript(65);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetResetRoboteqScript(23);
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetResetRoboteqScript(), 2);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetResetRoboteqScript(), 2);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->front_driver_->GetResetRoboteqScript(), 2);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->rear_driver_->GetResetRoboteqScript(), 2);
 
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
-  ASSERT_EQ(pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1), 0);
+  ASSERT_EQ(pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2), 0);
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -512,32 +548,35 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 // ERROR HANDLING
 TEST(TestPantherSystemOthers, test_error_state)
 {
+  using panther_hardware_interfaces_test::kDefaultJoints;
+  using panther_hardware_interfaces_test::kDefaultParamMap;
   using panther_hardware_interfaces_test::kPantherSystemName;
 
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
 
-  pth_test_.param_map_["max_read_pdo_errors_count"] = "1";
-  pth_test_.param_map_["max_read_sdo_errors_count"] = "1";
-  pth_test_.param_map_["max_write_sdo_errors_count"] = "1";
+  auto param_map = kDefaultParamMap;
 
-  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
-    pth_test_.param_map_, pth_test_.joints_);
+  param_map["max_read_pdo_errors_count"] = "1";
+  param_map["max_read_sdo_errors_count"] = "1";
+  param_map["max_write_sdo_errors_count"] = "1";
+
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(param_map, kDefaultJoints);
   const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  pth_test_.roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
-  pth_test_.roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
 
   auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  pth_test_.rm_->read(TIME, PERIOD);
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
-  auto status_map = pth_test_.rm_->get_components_status();
+  auto status_map = pth_test_.GetResourceManager()->get_components_status();
   ASSERT_EQ(
     status_map[kPantherSystemName].state.label(),
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
@@ -552,6 +591,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
   using panther_hardware_interfaces_test::DriverChannel;
 
+  using panther_hardware_interfaces_test::kDefaultParamMap;
   using panther_hardware_interfaces_test::kRadPerSecToRbtqCmd;
 
   const float period_ = 0.01;
@@ -561,7 +601,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
   std::vector<std::string> joints = {
     "rr_wheel_joint", "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint"};
 
-  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(pth_test_.param_map_, joints);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(kDefaultParamMap, joints);
 
   pth_test_.Start(panther_system_urdf_);
 
@@ -575,13 +615,13 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
   // loaned command interfaces have to be destroyed before running Stop
   {
     LoanedCommandInterface fl_c_v =
-      pth_test_.rm_->claim_command_interface("fl_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("fl_wheel_joint/velocity");
     LoanedCommandInterface fr_c_v =
-      pth_test_.rm_->claim_command_interface("fr_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("fr_wheel_joint/velocity");
     LoanedCommandInterface rl_c_v =
-      pth_test_.rm_->claim_command_interface("rl_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("rl_wheel_joint/velocity");
     LoanedCommandInterface rr_c_v =
-      pth_test_.rm_->claim_command_interface("rr_wheel_joint/velocity");
+      pth_test_.GetResourceManager()->claim_command_interface("rr_wheel_joint/velocity");
 
     fl_c_v.set_value(fl_v);
     fr_c_v.set_value(fr_v);
@@ -596,19 +636,19 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
     const auto TIME = rclcpp::Time(0);
     const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-    pth_test_.rm_->write(TIME, PERIOD);
+    pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
+      pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
       static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
+      pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
       static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
+      pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
       static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
-      pth_test_.roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
+      pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
       static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
   }
 
@@ -621,18 +661,22 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
 TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 {
+  using panther_hardware_interfaces_test::kDefaultJoints;
+  using panther_hardware_interfaces_test::kDefaultParamMap;
+
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
+
+  auto param_map = kDefaultParamMap;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
-  pth_test_.param_map_["max_read_pdo_errors_count"] = "100";
-  pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
-  pth_test_.param_map_["max_write_sdo_errors_count"] = "2";
-  pth_test_.param_map_["sdo_operation_timeout"] = "4";
+  param_map["max_read_pdo_errors_count"] = "100";
+  param_map["max_read_sdo_errors_count"] = "100";
+  param_map["max_write_sdo_errors_count"] = "2";
+  param_map["sdo_operation_timeout"] = "4";
 
-  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
-    pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(param_map, kDefaultJoints);
   const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -650,7 +694,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->write_sdo_error);
@@ -658,24 +702,24 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   state_msg.reset();
 
   // More than sdo_operation_wait_timeout_
-  pth_test_.roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 4500);
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 4500);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->write_sdo_error);
   state_msg.reset();
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->write_sdo_error);
@@ -687,17 +731,21 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
 TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 {
+  using panther_hardware_interfaces_test::kDefaultJoints;
+  using panther_hardware_interfaces_test::kDefaultParamMap;
+
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
+
+  auto param_map = kDefaultParamMap;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
-  pth_test_.param_map_["max_read_pdo_errors_count"] = "100";
-  pth_test_.param_map_["max_read_sdo_errors_count"] = "2";
-  pth_test_.param_map_["max_write_sdo_errors_count"] = "100";
+  param_map["max_read_pdo_errors_count"] = "100";
+  param_map["max_read_sdo_errors_count"] = "2";
+  param_map["max_write_sdo_errors_count"] = "100";
 
-  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
-    pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(param_map, kDefaultJoints);
   const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -715,7 +763,7 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
 
@@ -724,32 +772,32 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   state_msg.reset();
 
   // More than sdo_operation_wait_timeout_
-  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
-  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
-  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
-  pth_test_.roboteq_mock_->front_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
-  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
-  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
-  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
-  pth_test_.roboteq_mock_->rear_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->read_sdo_error);
   state_msg.reset();
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->read_sdo_error);
@@ -761,18 +809,22 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 
 TEST(TestPantherSystemOthers, pdo_read_timeout_test)
 {
+  using panther_hardware_interfaces_test::kDefaultJoints;
+  using panther_hardware_interfaces_test::kDefaultParamMap;
+
   panther_hardware_interfaces_test::PantherSystemTestUtils pth_test_;
+
+  auto param_map = kDefaultParamMap;
 
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
-  pth_test_.param_map_["pdo_feedback_timeout"] = "15";
-  pth_test_.param_map_["max_read_pdo_errors_count"] = "2";
-  pth_test_.param_map_["max_read_sdo_errors_count"] = "100";
-  pth_test_.param_map_["max_write_sdo_errors_count"] = "100";
+  param_map["pdo_feedback_timeout"] = "15";
+  param_map["max_read_pdo_errors_count"] = "2";
+  param_map["max_read_sdo_errors_count"] = "100";
+  param_map["max_write_sdo_errors_count"] = "100";
 
-  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(
-    pth_test_.param_map_, pth_test_.joints_);
+  const std::string panther_system_urdf_ = pth_test_.BuildUrdf(param_map, kDefaultJoints);
   const float period_ = 0.01;
 
   pth_test_.Start(panther_system_urdf_);
@@ -790,7 +842,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
 
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
 
@@ -798,26 +850,26 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
 
   state_msg.reset();
 
-  pth_test_.roboteq_mock_->front_driver_->StopPublishing();
-  pth_test_.roboteq_mock_->rear_driver_->StopPublishing();
+  pth_test_.GetRoboteqMock()->front_driver_->StopPublishing();
+  pth_test_.GetRoboteqMock()->rear_driver_->StopPublishing();
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_FALSE(state_msg->read_pdo_error);
   state_msg.reset();
 
-  pth_test_.rm_->write(TIME, PERIOD);
+  pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
 
   TIME += PERIOD;
-  pth_test_.rm_->read(TIME, PERIOD);
+  pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
   ASSERT_TRUE(state_msg->read_pdo_error);
@@ -827,7 +879,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   pth_test_.Stop();
 }
 
-// TODO estop tests - it will the best to add them along with GPIO, as it will change the estop
+// todo estop tests - it will the best to add them along with GPIO, as it will change the estop
 // procedure
 
 int main(int argc, char ** argv)

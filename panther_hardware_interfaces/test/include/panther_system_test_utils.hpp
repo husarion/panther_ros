@@ -31,32 +31,61 @@
 namespace panther_hardware_interfaces_test
 {
 
+/**
+ * @brief Utility class for testing Panther System
+ */
 class PantherSystemTestUtils
 {
 public:
-  PantherSystemTestUtils() : param_map_(kDefaultParamMap), joints_(kDefaultJoints)
+  PantherSystemTestUtils()
   {
-    default_panther_system_urdf_ = BuildUrdf(param_map_, joints_);
+    default_panther_system_urdf_ = BuildUrdf(kDefaultParamMap, kDefaultJoints);
   }
 
-  void SetState(const uint8_t state_id, const std::string & state_name);
+  /**
+   * @brief Starts Roboteq Mock, initializes rclcpp and creates resource manager
+   * @param urdf urdf used to create resource manager
+   */
+  void Start(std::string urdf);
+
+  /**
+   * @brief Shuts down rclcpp, stops Roboteq mock and destroys resource manager
+   */
+  void Stop();
+
+  /**
+   * @brief Creates and returns URDF as a string
+   * @param param_map map with hardware parameters
+   * @param joints vector of joint names
+   */
+  std::string BuildUrdf(
+    std::map<std::string, std::string> param_map, std::vector<std::string> joints);
+
   void ConfigurePantherSystem();
   void UnconfigurePantherSystem();
   void ActivatePantherSystem();
   void DeactivatePantherSystem();
   void ShutdownPantherSystem();
   void ConfigureActivatePantherSystem();
-  void Start(std::string urdf);
-  void Stop();
-  std::string BuildUrdf(
-    std::map<std::string, std::string> param_map, std::vector<std::string> joints);
 
-  std::unique_ptr<RoboteqMock> roboteq_mock_;
-  std::unique_ptr<hardware_interface::ResourceManager> rm_;
+  std::shared_ptr<hardware_interface::ResourceManager> GetResourceManager() { return rm_; }
+  std::shared_ptr<RoboteqMock> GetRoboteqMock() { return roboteq_mock_; }
+
+  std::string GetDefaultPantherSystemUrdf() const { return default_panther_system_urdf_; }
+
+private:
+  /**
+   * @brief Changes current state of the resource manager to the one set in parameters. It is
+   * recommended to use wrapper functions
+   * @param state_id
+   * @param state_name
+   */
+  void SetState(const uint8_t state_id, const std::string & state_name);
+
+  std::shared_ptr<RoboteqMock> roboteq_mock_;
+  std::shared_ptr<hardware_interface::ResourceManager> rm_;
 
   std::string default_panther_system_urdf_;
-  std::map<std::string, std::string> param_map_;
-  std::vector<std::string> joints_;
 };
 
 }  // namespace panther_hardware_interfaces_test

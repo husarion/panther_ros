@@ -21,10 +21,45 @@
 namespace panther_hardware_interfaces_test
 {
 
-void PantherSystemTestUtils::SetState(const uint8_t state_id, const std::string & state_name)
+void PantherSystemTestUtils::Start(std::string urdf)
 {
-  rclcpp_lifecycle::State state(state_id, state_name);
-  rm_->set_component_state(kPantherSystemName, state);
+  roboteq_mock_ = std::make_unique<RoboteqMock>();
+  // PDO running on 100Hz
+  roboteq_mock_->Start(std::chrono::milliseconds(10));
+  rclcpp::init(0, nullptr);
+
+  rm_ = std::make_shared<hardware_interface::ResourceManager>(urdf);
+}
+
+void PantherSystemTestUtils::Stop()
+{
+  rclcpp::shutdown();
+  roboteq_mock_->Stop();
+  roboteq_mock_.reset();
+  rm_.reset();
+}
+
+std::string PantherSystemTestUtils::BuildUrdf(
+  std::map<std::string, std::string> param_map, std::vector<std::string> joints)
+{
+  std::stringstream urdf;
+
+  urdf << kUrdfHeader << "<hardware>" << std::endl << kPluginName;
+
+  for (auto const & [key, val] : param_map) {
+    urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
+  }
+
+  urdf << "</hardware>" << std::endl;
+
+  for (auto const & joint : joints) {
+    urdf << "<joint name=\"" << joint << "\">" << std::endl
+         << kJointInterfaces << "</joint>" << std::endl;
+  }
+
+  urdf << kUrdfFooter;
+
+  return urdf.str();
 }
 
 void PantherSystemTestUtils::ConfigurePantherSystem()
@@ -68,45 +103,10 @@ void PantherSystemTestUtils::ConfigureActivatePantherSystem()
   ActivatePantherSystem();
 }
 
-void PantherSystemTestUtils::Start(std::string urdf)
+void PantherSystemTestUtils::SetState(const uint8_t state_id, const std::string & state_name)
 {
-  roboteq_mock_ = std::make_unique<RoboteqMock>();
-  // PDO running on 100Hz
-  roboteq_mock_->Start(std::chrono::milliseconds(10));
-  rclcpp::init(0, nullptr);
-
-  rm_ = std::make_unique<hardware_interface::ResourceManager>(urdf);
-}
-
-void PantherSystemTestUtils::Stop()
-{
-  rclcpp::shutdown();
-  roboteq_mock_->Stop();
-  roboteq_mock_.reset();
-  rm_.reset();
-}
-
-std::string PantherSystemTestUtils::BuildUrdf(
-  std::map<std::string, std::string> param_map, std::vector<std::string> joints)
-{
-  std::stringstream urdf;
-
-  urdf << kUrdfHeader << "<hardware>" << std::endl << kPluginName;
-
-  for (auto const & [key, val] : param_map) {
-    urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
-  }
-
-  urdf << "</hardware>" << std::endl;
-
-  for (auto const & joint : joints) {
-    urdf << "<joint name=\"" << joint << "\">" << std::endl
-         << kJointInterfaces << "</joint>" << std::endl;
-  }
-
-  urdf << kUrdfFooter;
-
-  return urdf.str();
+  rclcpp_lifecycle::State state(state_id, state_name);
+  rm_->set_component_state(kPantherSystemName, state);
 }
 
 }  // namespace panther_hardware_interfaces_test
