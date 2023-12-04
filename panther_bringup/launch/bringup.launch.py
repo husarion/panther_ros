@@ -109,6 +109,23 @@ def generate_launch_description():
         ),
     )
 
+    use_ekf = LaunchConfiguration("use_ekf")
+    declare_use_ekf_arg = DeclareLaunchArgument(
+        "use_ekf",
+        default_value="True",
+        description="Enable or disable EKF",
+    )
+
+    ekf_config_path = LaunchConfiguration("ekf_config_path")
+    declare_ekf_config_path_arg = DeclareLaunchArgument(
+        "ekf_config_path",
+        default_value=PathJoinSubstitution(
+            [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
+        ),
+        description="Path to the EKF config file",
+        condition=IfCondition(use_ekf),
+    )
+
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -153,11 +170,8 @@ def generate_launch_description():
         executable="ekf_node",
         name="ekf_node",
         output="screen",
-        parameters=[
-            PathJoinSubstitution(
-                [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
-            )
-        ],
+        parameters=[ekf_config_path],
+        condition=IfCondition(use_ekf),
     )
 
     actions = [
@@ -168,6 +182,8 @@ def generate_launch_description():
         declare_battery_config_path_arg,
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
+        declare_use_ekf_arg,
+        declare_ekf_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
         imu_launch,
