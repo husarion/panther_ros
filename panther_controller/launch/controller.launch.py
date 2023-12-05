@@ -108,6 +108,7 @@ def generate_launch_description():
         parameters=[robot_description, controller_config_path],
         remappings=[
             ("panther_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+            ("panther_base_controller/odom", "odom/wheels"),
         ],
         condition=UnlessCondition(use_sim),
     )
