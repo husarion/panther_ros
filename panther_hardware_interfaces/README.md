@@ -31,12 +31,14 @@ CAN settings
  - `pdo_feedback_timeout` [*int*, default: 15 [ms]]  - depends on the frequency at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data if it takes more than `pdo_feedback_timeout`, a PDO read error is triggered
  - `max_roboteq_initialization_attempts` [*int*, default: 5] - in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to general error
  - `max_roboteq_activation_attempts` [*int*, default: 5] - similar to initialization, it is possible to allow some SDO errors before escalating to error
- - `max_safety_stop_attempts` [*int*, default: 20] - TODO
+ - `max_safety_stop_attempts` [*int*, default: 20] - how many attempts to activate safety stop will be taken before failing
  - `max_write_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
  - `max_read_sdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
  - `max_read_pdo_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
 
-<!-- TODO: safety-critical parameters -->
+
+> [!CAUTION]
+> `max_write_sdo_errors_count`, `max_read_sdo_errors_count`, `max_read_pdo_errors_count`, `max_safety_stop_attempts`. `sdo_operation_timeout` and `pdo_feedback_timeout` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
 
 ## Code structure
 
@@ -49,7 +51,7 @@ Adjust your configuration and generate a new `master.dcf` using:
 
 ## Setup
 
-<!-- TODO: automate and move it to CMakeLists -->
+<!-- todo: automate and move it to CMakeLists -->
 
 ### Lely CANopen installation
 sudo apt-get update && \
@@ -89,7 +91,7 @@ The limits will be applied after you log out and in again.
 
 First, it is necessary to set up a virtual CAN:
 
-<!-- TODO move setup somewhere so the test can be run more easily -->
+<!-- todo move setup somewhere so the test can be run more easily -->
 
 ```
 sudo modprobe vcan
@@ -114,16 +116,3 @@ As some of the tests are accessing the virtual CAN interface, they can't be exec
 Copy eds file to config and run
 `dcfgen panther_can.yaml -r`
 Remove master.dcf
-
-
-<!-- TODO torque control, not used currently, move it to some other place -->
-  <!-- // Converts desired wheel torque in Nm to Roboteq motor command. Steps:
-  // 1. Convert desired wheel Nm torque to motor Nm ideal torque (multiplication by (1.0/gear_ratio))
-  // 2. Convert motor Nm ideal torque to motor Nm real torque (multiplication by (1.0/gearbox_efficiency))
-  // 3. Convert motor Nm real torque to motor A current (multiplication by (1.0/motor_torque_constant))
-  // 4. Convert motor A current to Roboteq GO command - permille of the Amps limit current
-  //    set in the Roboteq driver (ALIM parameter) - multiplication by 1000.0/max_amps_motor_current
-  newton_meter_to_roboteq_cmd_ = (1.0 / drivetrain_settings.gear_ratio) *
-                                 (1.0 / drivetrain_settings.gearbox_efficiency) *
-                                 (1.0 / drivetrain_settings.motor_torque_constant) *
-                                 (1000.0 / drivetrain_settings.max_amps_motor_current); -->
