@@ -50,4 +50,4 @@ A class that takes care of additional ROS interface of panther system, such as p
 
 Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
 
-<!-- TODO: when an exception is thrown it is not RT safe -->
+<!-- todo: when an exception is thrown it is not RT safe (situation may change when we switch to PDO - on hold) -->
