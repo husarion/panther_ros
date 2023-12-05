@@ -49,7 +49,7 @@ private:
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
-  void SetPowerPin(const bool value) const;
+  void SetPowerPin(const bool value);
 
   int num_led_;
   double frame_timeout_;

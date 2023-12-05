@@ -61,7 +61,6 @@ void DriverNode::Initialize()
   std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
     panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
-  SetPowerPin(false);
 
   front_panel_ts_ = this->get_clock()->now();
   rear_panel_ts_ = this->get_clock()->now();
@@ -136,7 +135,7 @@ void DriverNode::FrameCB(
   panel.SetPanel(msg->data);
 }
 
-void DriverNode::SetPowerPin(const bool value) const
+void DriverNode::SetPowerPin(const bool value)
 {
   gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::LED_SBC_SEL, value);
 }
