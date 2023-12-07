@@ -24,7 +24,7 @@
 namespace panther_hardware_interfaces
 {
 
-CanOpenController::CanOpenController(CanOpenSettings canopen_settings)
+CanOpenController::CanOpenController(const CanOpenSettings & canopen_settings)
 {
   canopen_settings_ = canopen_settings;
 }
@@ -140,7 +140,7 @@ void CanOpenController::ConfigureRT()
   }
 }
 
-void CanOpenController::NotifyCanCommunicationStarted(bool result)
+void CanOpenController::NotifyCanCommunicationStarted(const bool result)
 {
   {
     std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);

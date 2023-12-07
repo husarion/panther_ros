@@ -73,9 +73,9 @@ public:
    */
   bool WaitForBoot();
 
-  bool IsBooted() { return booted_.load(); }
+  bool IsBooted() const { return booted_.load(); }
 
-  bool IsCanError() { return can_error_.load(); }
+  bool IsCanError() const { return can_error_.load(); }
 
   /**
    * @exception std::runtime_error if operation fails
@@ -107,13 +107,13 @@ public:
    * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmdChannel1(int32_t cmd);
+  void SendRoboteqCmdChannel1(const int32_t cmd);
 
   /**
    * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmdChannel2(int32_t cmd);
+  void SendRoboteqCmdChannel2(const int32_t cmd);
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -146,16 +146,16 @@ private:
    *
    * @exception std::runtime_error if operation fails
    */
-  template <typename type>
-  type SyncSdoRead(uint16_t index, uint8_t subindex);
+  template <typename T>
+  T SyncSdoRead(const uint16_t index, const uint8_t subindex);
 
   /**
    * @brief Blocking SDO write operation
    *
    * @exception std::runtime_error if operation fails
    */
-  template <typename type>
-  void SyncSdoWrite(uint16_t index, uint8_t subindex, type data);
+  template <typename T>
+  void SyncSdoWrite(const uint16_t index, const uint8_t subindex, T data);
 
   void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
   void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;

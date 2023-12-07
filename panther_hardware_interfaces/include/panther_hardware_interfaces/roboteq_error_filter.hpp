@@ -23,7 +23,7 @@ namespace panther_hardware_interfaces
 class ErrorFilter
 {
 public:
-  ErrorFilter(unsigned max_error_count) : max_error_count_(max_error_count) {}
+  ErrorFilter(const unsigned max_error_count) : max_error_count_(max_error_count) {}
 
   bool IsError() const { return error_; };
 
@@ -31,7 +31,7 @@ public:
    * @brief Updates the error count, if the number of consecutive errors exceeds the max
    * threshold error is set
    */
-  void UpdateError(bool current_error)
+  void UpdateError(const bool current_error)
   {
     if (current_error) {
       ++current_error_count_;
@@ -64,7 +64,9 @@ private:
 class RoboteqErrorFilter
 {
 public:
-  RoboteqErrorFilter(std::vector<ErrorFilter> error_filters) : error_filters_(error_filters) {}
+  RoboteqErrorFilter(const std::vector<ErrorFilter> & error_filters) : error_filters_(error_filters)
+  {
+  }
 
   bool IsError() const
   {
@@ -76,13 +78,13 @@ public:
     return false;
   };
 
-  bool IsError(std::size_t id) const { return error_filters_[id].IsError(); };
+  bool IsError(const std::size_t id) const { return error_filters_[id].IsError(); };
 
   /**
    * @brief Updates error count, if the number of consecutive errors exceeds the max
    * threshold error is set
    */
-  void UpdateError(std::size_t id, bool current_error)
+  void UpdateError(const std::size_t id, const bool current_error)
   {
     ClearErrorsIfFlagSet();
     error_filters_[id].UpdateError(current_error);

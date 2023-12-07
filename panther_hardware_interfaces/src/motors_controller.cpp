@@ -18,7 +18,7 @@ namespace panther_hardware_interfaces
 {
 
 MotorsController::MotorsController(
-  CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings)
+  const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
 : canopen_controller_(canopen_settings),
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
@@ -76,25 +76,25 @@ void MotorsController::Activate()
 
 void MotorsController::UpdateSystemFeedback()
 {
-  RoboteqDriverFeedback front_driver_feedback =
+  const RoboteqDriverFeedback front_driver_feedback =
     canopen_controller_.GetFrontDriver()->ReadRoboteqDriverFeedback();
-  RoboteqDriverFeedback rear_driver_feedback =
+  const RoboteqDriverFeedback rear_driver_feedback =
     canopen_controller_.GetRearDriver()->ReadRoboteqDriverFeedback();
 
-  timespec front_driver_ts = front_driver_feedback.timestamp;
-  timespec rear_driver_ts = rear_driver_feedback.timestamp;
+  const timespec front_driver_ts = front_driver_feedback.timestamp;
+  const timespec rear_driver_ts = rear_driver_feedback.timestamp;
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  bool front_data_timed_out =
+  const bool front_data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
      pdo_feedback_timeout_);
-  bool rear_data_timed_out =
+  const bool rear_data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
      pdo_feedback_timeout_);
 
-  bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
-  bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
+  const bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
+  const bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
 
   // Channel 1 - right, Channel 2 - left
   front_data_.SetMotorStates(
@@ -162,7 +162,8 @@ bool MotorsController::UpdateDriversState()
   }
 }
 
-void MotorsController::WriteSpeed(float speed_fl, float speed_fr, float speed_rl, float speed_rr)
+void MotorsController::WriteSpeed(
+  const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr)
 {
   // Channel 1 - right, Channel 2 - left
   try {

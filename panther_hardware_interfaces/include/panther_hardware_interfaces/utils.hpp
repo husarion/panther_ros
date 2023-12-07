@@ -49,7 +49,8 @@ uint8_t SetBit(uint8_t data, uint8_t bit_no);
  * std::runtime_error
  */
 bool OperationWithAttempts(
-  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error);
+  const std::function<void()> operation, const unsigned max_attempts,
+  const std::function<void()> on_error);
 
 }  // namespace panther_hardware_interfaces
 

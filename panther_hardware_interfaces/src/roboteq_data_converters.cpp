@@ -21,38 +21,8 @@
 namespace panther_hardware_interfaces
 {
 
-MotorState::MotorState(DrivetrainSettings drivetrain_settings)
-{
-  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in
-  // radians. Steps:
-  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by
-  //    (1.0/encoder_resolution))
-  // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
-  // 3. Convert wheel rotation to wheel position in radians (multiplication by 2.0*pi)
-  roboteq_pos_feedback_to_radians_ = (1.0 / drivetrain_settings.encoder_resolution) *
-                                     (1.0 / drivetrain_settings.gear_ratio) * (2.0 * M_PI);
-
-  // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
-  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed
-  //    (multiplication by (1.0/gear_ratio))
-  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication
-  //    by (1.0/60.0))
-  // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
-  roboteq_vel_feedback_to_radians_per_second_ = (1.0 / drivetrain_settings.gear_ratio) *
-                                                (1.0 / 60.0) * (2.0 * M_PI);
-
-  // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
-  // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
-  // 2. Convert motor A current to motor Nm torque (multiplication by motor_torque_constant)
-  // 3. Convert motor Nm torque to wheel ideal Nm torque (multiplication by gear_ratio)
-  // 4. Convert wheel ideal Nm torque to wheel real Nm torque (multiplication by gearbox_efficiency)
-  roboteq_current_feedback_to_newton_meters_ =
-    (1.0 / 10.0) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
-    drivetrain_settings.gearbox_efficiency;
-}
-
 RoboteqVeloctiyCommandConverter::RoboteqVeloctiyCommandConverter(
-  DrivetrainSettings drivetrain_settings)
+  const DrivetrainSettings & drivetrain_settings)
 {
   // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
   // 1. Convert desired wheel rad/s speed to motor rad/s speed (multiplication by gear_ratio)
@@ -63,14 +33,44 @@ RoboteqVeloctiyCommandConverter::RoboteqVeloctiyCommandConverter(
   // 4. Convert motor rotation per minute speed to Roboteq GO command - permille of the max rotation
   //    per minute speed set in the Roboteq driver (MXRPM parameter) - multiplication by
   //    1000.0/max_rpm_motor_speed
-  radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0 / (2.0 * M_PI)) *
-                                       60.0 * (1000.0 / drivetrain_settings.max_rpm_motor_speed);
+  radians_per_second_to_roboteq_cmd_ = drivetrain_settings.gear_ratio * (1.0f / (2.0f * M_PI)) *
+                                       60.0f * (1000.0f / drivetrain_settings.max_rpm_motor_speed);
+}
+
+MotorState::MotorState(const DrivetrainSettings & drivetrain_settings)
+{
+  // Convert motor position feedback from Roboteq (encoder ticks count) to wheel position in
+  // radians. Steps:
+  // 1. Convert motor encoder ticks count feedback to motor rotation (multiplication by
+  //    (1.0/encoder_resolution))
+  // 2. Convert motor rotation to wheel rotation (multiplication by (1.0/gear_ratio))
+  // 3. Convert wheel rotation to wheel position in radians (multiplication by 2.0*pi)
+  roboteq_pos_feedback_to_radians_ = (1.0f / drivetrain_settings.encoder_resolution) *
+                                     (1.0f / drivetrain_settings.gear_ratio) * (2.0f * M_PI);
+
+  // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
+  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed
+  //    (multiplication by (1.0/gear_ratio))
+  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication
+  //    by (1.0/60.0))
+  // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
+  roboteq_vel_feedback_to_radians_per_second_ = (1.0f / drivetrain_settings.gear_ratio) *
+                                                (1.0f / 60.0f) * (2.0f * M_PI);
+
+  // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
+  // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
+  // 2. Convert motor A current to motor Nm torque (multiplication by motor_torque_constant)
+  // 3. Convert motor Nm torque to wheel ideal Nm torque (multiplication by gear_ratio)
+  // 4. Convert wheel ideal Nm torque to wheel real Nm torque (multiplication by gearbox_efficiency)
+  roboteq_current_feedback_to_newton_meters_ =
+    (1.0f / 10.0f) * drivetrain_settings.motor_torque_constant * drivetrain_settings.gear_ratio *
+    drivetrain_settings.gearbox_efficiency;
 }
 
 std::string FlagError::GetErrorLog() const
 {
   std::string error_msg = "";
-  for (size_t i = 0; i < flag_names_.size(); ++i) {
+  for (std::size_t i = 0; i < flag_names_.size(); i++) {
     if (IsBitSet(flags_ & (~surpressed_flags_), i)) {
       error_msg += flag_names_[i] + " ";
     }

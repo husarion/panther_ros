@@ -34,7 +34,8 @@ namespace panther_hardware_interfaces
 class MotorsController
 {
 public:
-  MotorsController(CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings);
+  MotorsController(
+    const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
 
   /**
    * @brief Starts CAN communication and waits for boot to finish
@@ -90,7 +91,8 @@ public:
    * @param speed_rr rear right motor speed in rad/s
    * @exception std::runtime_error if send command fails or CAN error was detected
    */
-  void WriteSpeed(float speed_fl, float speed_fr, float speed_rl, float speed_rr);
+  void WriteSpeed(
+    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr);
 
   /**
    * @brief Turns on Roboteq estop

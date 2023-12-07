@@ -59,15 +59,16 @@ public:
   std::vector<StateInterface> export_state_interfaces() override;
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
+  return_type write(
+    const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
 protected:
-  void CheckJointSize();
+  void CheckJointSize() const;
   void SortJointNames();
-  void CheckJointNames();
+  void CheckJointNames() const;
   void SetInitialValues();
-  void CheckInterfaces();
+  void CheckInterfaces() const;
   void ReadDrivetrainSettings();
   void ReadCanOpenSettings();
   void ReadInitializationActivationAttempts();
@@ -122,13 +123,7 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-  struct ErrorsFilterIds
-  {
-    std::size_t read_sdo;
-    std::size_t write_sdo;
-    std::size_t read_pdo;
-    std::size_t roboteq_driver;
-  } errors_filter_ids_;
+  enum class ErrorsFilterIds { READ_SDO = 0, WRITE_SDO = 1, READ_PDO = 2, ROBOTEQ_DRIVER = 3 };
 };
 
 }  // namespace panther_hardware_interfaces

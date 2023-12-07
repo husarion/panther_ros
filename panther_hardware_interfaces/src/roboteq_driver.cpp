@@ -127,7 +127,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 
 // todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
 // PDO)
-void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
+void RoboteqDriver::SendRoboteqCmdChannel1(const int32_t cmd)
 {
   try {
     SyncSdoWrite<int32_t>(0x2000, 1, cmd);
@@ -137,7 +137,7 @@ void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
   }
 }
 
-void RoboteqDriver::SendRoboteqCmdChannel2(int32_t cmd)
+void RoboteqDriver::SendRoboteqCmdChannel2(const int32_t cmd)
 {
   try {
     SyncSdoWrite<int32_t>(0x2000, 2, cmd);
@@ -198,8 +198,8 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
   }
 }
 
-template <typename type>
-type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
+template <typename T>
+T RoboteqDriver::SyncSdoRead(const uint16_t index, const uint8_t subindex)
 {
   std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
   if (!sdo_read_lck.try_lock()) {
@@ -209,7 +209,7 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 
   std::mutex mtx;
   std::condition_variable cv;
-  type data;
+  T data;
   std::error_code err_code;
 
   // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
@@ -222,10 +222,10 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   }
 
   try {
-    this->SubmitRead<type>(
+    SubmitRead<T>(
       index, subindex,
       [&sdo_read_timed_out_ = sdo_read_timed_out_, &mtx, &cv, &err_code, &data](
-        uint8_t, uint16_t, uint8_t, std::error_code ec, type value) mutable {
+        uint8_t, uint16_t, uint8_t, std::error_code ec, T value) mutable {
         // In this case function has already finished, and other variables don't exist
         // and we have to end
 
@@ -261,8 +261,8 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
   return data;
 }
 
-template <typename type>
-void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
+template <typename T>
+void RoboteqDriver::SyncSdoWrite(const uint16_t index, const uint8_t subindex, T data)
 {
   std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
   if (!sdo_write_lck.try_lock()) {
@@ -284,7 +284,7 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
   }
 
   try {
-    this->SubmitWrite(
+    SubmitWrite(
       index, subindex, data,
       [&sdo_write_timed_out_ = sdo_write_timed_out_, &mtx, &cv, &err_code](
         uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
@@ -329,7 +329,7 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
 
   {
     std::lock_guard<std::mutex> lck(boot_mtx_);
-    this->boot_error_str_ = what;
+    boot_error_str_ = what;
     boot_cond_var_.notify_all();
   }
 }

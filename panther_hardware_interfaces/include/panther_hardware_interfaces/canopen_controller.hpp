@@ -48,7 +48,7 @@ struct CanOpenSettings
 class CanOpenController
 {
 public:
-  CanOpenController(CanOpenSettings canopen_settings);
+  CanOpenController(const CanOpenSettings & canopen_settings);
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
@@ -79,7 +79,7 @@ private:
    *
    * @param result status of CAN communication started
    */
-  void NotifyCanCommunicationStarted(bool result);
+  void NotifyCanCommunicationStarted(const bool result);
 
   /**
    * @brief Triggers boot on front and rear Roboteq drivers and waits for finish
@@ -89,7 +89,7 @@ private:
   void BootDrivers();
 
   // Priority set to be higher than the priority of the main ros2 control node (50)
-  int const kCanOpenThreadSchedPriority = 60;
+  static constexpr unsigned kCanOpenThreadSchedPriority = 60;
 
   std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;

@@ -34,6 +34,8 @@
 namespace panther_hardware_interfaces_test
 {
 
+// TODO: documentation
+
 enum class DriverFaultFlags {
   OVERHEAT = 0,
   OVERVOLTAGE,
@@ -111,27 +113,25 @@ public:
 
   void TriggerPDOPublish();
 
-  template <typename type>
+  template <typename T>
   void SetOnWriteWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
   {
-    OnWrite<type>(
-      idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, type &, type) -> std::error_code {
-        // Blocks whole communication - blocks executor, so if this sleep is executed also other SDO
-        // and PDO calls will be stopped. I haven't found a better approach to testing timeouts
-        // though, and it should be sufficient
-        usleep(wait_time_microseconds);
-        return std::error_code();
-      });
+    OnWrite<T>(idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, T &, T) -> std::error_code {
+      // Blocks whole communication - blocks executor, so if this sleep is executed also other SDO
+      // and PDO calls will be stopped. I haven't found a better approach to testing timeouts
+      // though, and it should be sufficient
+      usleep(wait_time_microseconds);
+      return std::error_code();
+    });
   }
 
-  template <typename type>
+  template <typename T>
   void SetOnReadWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
   {
-    OnRead<type>(
-      idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, type &) -> std::error_code {
-        usleep(wait_time_microseconds);
-        return std::error_code();
-      });
+    OnRead<T>(idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, T &) -> std::error_code {
+      usleep(wait_time_microseconds);
+      return std::error_code();
+    });
   }
 
 private:

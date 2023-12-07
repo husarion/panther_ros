@@ -48,7 +48,8 @@ uint8_t SetBit(uint8_t data, uint8_t bit_no)
 }
 
 bool OperationWithAttempts(
-  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
+  const std::function<void()> operation, const unsigned max_attempts,
+  const std::function<void()> on_error)
 {
   for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
     try {
