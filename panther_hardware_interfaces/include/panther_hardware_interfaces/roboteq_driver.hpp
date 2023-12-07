@@ -32,7 +32,7 @@ struct RoboteqMotorState
 {
   int32_t pos;
   int32_t vel;
-  int32_t current;
+  int16_t current;
 };
 
 struct RoboteqDriverFeedback
@@ -147,7 +147,8 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename type>
-  type SyncSdoRead(uint16_t index, uint8_t subindex);
+  type SyncSdoRead(
+    uint16_t index, uint8_t subindex, const std::chrono::milliseconds sdo_operation_timeout);
 
   /**
    * @brief Blocking SDO write operation
@@ -155,7 +156,9 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename type>
-  void SyncSdoWrite(uint16_t index, uint8_t subindex, type data);
+  void SyncSdoWrite(
+    uint16_t index, uint8_t subindex, type data,
+    const std::chrono::milliseconds sdo_operation_timeout);
 
   void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
   void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;

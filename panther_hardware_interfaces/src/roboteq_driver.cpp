@@ -65,7 +65,7 @@ bool RoboteqDriver::WaitForBoot()
 int16_t RoboteqDriver::ReadTemperature()
 {
   try {
-    return SyncSdoRead<int8_t>(0x210F, 1);
+    return SyncSdoRead<int8_t>(0x210F, 1, sdo_operation_timeout_);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
   }
@@ -74,7 +74,7 @@ int16_t RoboteqDriver::ReadTemperature()
 uint16_t RoboteqDriver::ReadVoltage()
 {
   try {
-    return SyncSdoRead<uint16_t>(0x210D, 2);
+    return SyncSdoRead<uint16_t>(0x210D, 2, sdo_operation_timeout_);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
   }
@@ -83,7 +83,7 @@ uint16_t RoboteqDriver::ReadVoltage()
 int16_t RoboteqDriver::ReadBatAmps1()
 {
   try {
-    return SyncSdoRead<int16_t>(0x210C, 1);
+    return SyncSdoRead<int16_t>(0x210C, 1, sdo_operation_timeout_);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
   }
@@ -92,7 +92,7 @@ int16_t RoboteqDriver::ReadBatAmps1()
 int16_t RoboteqDriver::ReadBatAmps2()
 {
   try {
-    return SyncSdoRead<int16_t>(0x210C, 2);
+    return SyncSdoRead<int16_t>(0x210C, 2, sdo_operation_timeout_);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
   }
@@ -113,11 +113,18 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   fb.motor_1.current = rpdo_mapped[0x2106][5];
   fb.motor_2.current = rpdo_mapped[0x2106][6];
 
-  fb.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
-  fb.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
+  fb.fault_flags = 0;
+  // fb.script_flags = 0;
+  fb.script_flags = GetByte(uint32_t(rpdo_mapped[0x2106][20]), 2);
 
-  fb.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
-  fb.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
+  fb.runtime_stat_flag_motor_1 = 0;
+  fb.runtime_stat_flag_motor_2 = 0;
+
+  // fb.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
+  // fb.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
+
+  // fb.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
+  // fb.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
 
   std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
   fb.timestamp = last_rpdo_write_timestamp_;
@@ -129,28 +136,36 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 // PDO)
 void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
 {
-  try {
-    SyncSdoWrite<int32_t>(0x2000, 1, cmd);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
-  }
+  // try {
+  //   SyncSdoWrite<int32_t>(0x2000, 1, cmd);
+  // } catch (const std::runtime_error & e) {
+  //   throw std::runtime_error(
+  //     "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
+  // }
+
+  tpdo_mapped[0x2005][9] = cmd;
+  // tpdo_mapped[0x2005][9].WriteEvent();
+  // master.WriteEvent(0x2005, 0x0A);
 }
 
 void RoboteqDriver::SendRoboteqCmdChannel2(int32_t cmd)
 {
-  try {
-    SyncSdoWrite<int32_t>(0x2000, 2, cmd);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
-  }
+  // try {
+  //   SyncSdoWrite<int32_t>(0x2000, 2, cmd);
+  // } catch (const std::runtime_error & e) {
+  //   throw std::runtime_error(
+  //     "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
+  // }
+
+  tpdo_mapped[0x2005][10] = cmd;
+  tpdo_mapped[0x2005][10].WriteEvent();
+  // master.WriteEvent(0x2005, 2);
 }
 
 void RoboteqDriver::ResetRoboteqScript()
 {
   try {
-    SyncSdoWrite<uint8_t>(0x2018, 0, 2);
+    SyncSdoWrite<uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(20));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to reset Roboteq script: " + std::string(e.what()));
   }
@@ -160,7 +175,7 @@ void RoboteqDriver::TurnOnEstop()
 {
   // Cmd_ESTOP
   try {
-    SyncSdoWrite<uint8_t>(0x200C, 0, 1);
+    SyncSdoWrite<uint8_t>(0x200C, 0, 1, std::chrono::milliseconds(20));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
   }
@@ -170,7 +185,7 @@ void RoboteqDriver::TurnOffEstop()
 {
   // Cmd_MGO
   try {
-    SyncSdoWrite<uint8_t>(0x200D, 0, 1);
+    SyncSdoWrite<uint8_t>(0x200D, 0, 1, std::chrono::milliseconds(20));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
   }
@@ -180,7 +195,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel1()
 {
   // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<uint8_t>(0x202C, 0, 1);
+    SyncSdoWrite<uint8_t>(0x202C, 0, 1, std::chrono::milliseconds(20));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 1: " + std::string(e.what()));
@@ -191,7 +206,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 {
   // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<uint8_t>(0x202C, 0, 2);
+    SyncSdoWrite<uint8_t>(0x202C, 0, 2, std::chrono::milliseconds(20));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
@@ -199,7 +214,8 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 }
 
 template <typename type>
-type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
+type RoboteqDriver::SyncSdoRead(
+  uint16_t index, uint8_t subindex, const std::chrono::milliseconds sdo_operation_timeout)
 {
   std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
   if (!sdo_read_lck.try_lock()) {
@@ -243,13 +259,15 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
         }
         cv.notify_one();
       },
-      sdo_operation_timeout_);
+      sdo_operation_timeout);
   } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
   std::unique_lock<std::mutex> lck(mtx);
-  if (cv.wait_for(lck, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
+  if (
+    cv.wait_for(lck, sdo_operation_timeout + std::chrono::microseconds(750)) ==
+    std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
   }
@@ -262,7 +280,9 @@ type RoboteqDriver::SyncSdoRead(uint16_t index, uint8_t subindex)
 }
 
 template <typename type>
-void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
+void RoboteqDriver::SyncSdoWrite(
+  uint16_t index, uint8_t subindex, type data,
+  const std::chrono::milliseconds sdo_operation_timeout)
 {
   std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
   if (!sdo_write_lck.try_lock()) {
@@ -302,14 +322,16 @@ void RoboteqDriver::SyncSdoWrite(uint16_t index, uint8_t subindex, type data)
         }
         cv.notify_one();
       },
-      sdo_operation_timeout_);
+      sdo_operation_timeout);
   } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
   }
 
   std::unique_lock<std::mutex> lck(mtx);
 
-  if (cv.wait_for(lck, sdo_operation_wait_timeout_) == std::cv_status::timeout) {
+  if (
+    cv.wait_for(lck, sdo_operation_timeout + std::chrono::microseconds(750)) ==
+    std::cv_status::timeout) {
     sdo_write_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
   }
