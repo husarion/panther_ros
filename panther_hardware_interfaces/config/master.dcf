@@ -641,12 +641,13 @@ ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [1602Value]
-NrOfEntries=2
-1=0x20020120
-2=0x20020220
+NrOfEntries=3
+1=0x20020110
+2=0x20020210
+3=0x20020320
 
 [1603]
 ParameterName=RPDO mapping parameter
@@ -689,12 +690,13 @@ ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [1606Value]
-NrOfEntries=2
-1=0x20060120
-2=0x20060220
+NrOfEntries=3
+1=0x20060110
+2=0x20060210
+3=0x20060320
 
 [1607]
 ParameterName=RPDO mapping parameter
@@ -1322,7 +1324,7 @@ AccessType=rww
 PDOMapping=1
 
 [2002]
-SubNumber=3
+SubNumber=4
 ParameterName=Mapped application objects for RPDO 3
 ObjectType=0x09
 
@@ -1330,17 +1332,23 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=3
 
 [2002sub1]
 ParameterName=slave_1: User Integer Variable 5
-DataType=0x0004
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2002sub2]
 ParameterName=slave_1: User Integer Variable 6
-DataType=0x0004
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2002sub3]
+ParameterName=slave_1: User Integer Variable 33
+DataType=0x0007
 AccessType=rww
 PDOMapping=1
 
@@ -1414,7 +1422,7 @@ AccessType=rww
 PDOMapping=1
 
 [2006]
-SubNumber=3
+SubNumber=4
 ParameterName=Mapped application objects for RPDO 7
 ObjectType=0x09
 
@@ -1422,17 +1430,23 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=3
 
 [2006sub1]
 ParameterName=slave_2: User Integer Variable 5
-DataType=0x0004
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2006sub2]
 ParameterName=slave_2: User Integer Variable 6
-DataType=0x0004
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2006sub3]
+ParameterName=slave_2: User Integer Variable 33
+DataType=0x0007
 AccessType=rww
 PDOMapping=1
 
@@ -1720,12 +1734,13 @@ ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [5A02Value]
-NrOfEntries=2
-1=0x21060520
-2=0x21060620
+NrOfEntries=3
+1=0x21060510
+2=0x21060610
+3=0x21062120
 
 [5A03]
 ParameterName=Remote TPDO mapping parameter
@@ -1768,12 +1783,13 @@ ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [5A06Value]
-NrOfEntries=2
-1=0x21060520
-2=0x21060620
+NrOfEntries=3
+1=0x21060510
+2=0x21060610
+3=0x21062120
 
 [5A07]
 ParameterName=Remote TPDO mapping parameter
