@@ -913,24 +913,24 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1600sub1]
-ParameterName=PDO Mapping Entry - Cmd_VAR 9
+ParameterName=PDO Mapping Entry - command 1
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x20050920
+DefaultValue=0x20000120
 PDOMapping=0
 ObjFlags=0x0
 
 [1600sub2]
-ParameterName=PDO Mapping Entry - Cmd_VAR 10
+ParameterName=PDO Mapping Entry - command 2
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x20050A20
+DefaultValue=0x20000220
 PDOMapping=0
 ObjFlags=0x0
 
@@ -1463,7 +1463,7 @@ DataType=0x0007
 LowLimit=0x00000000
 HighLimit=0xFFFFFFFF
 AccessType=rw
-DefaultValue=0xC0000000
+DefaultValue=$NODEID+0x40000510
 PDOMapping=0
 ObjFlags=0x0
 
@@ -1697,7 +1697,7 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1A00sub1]
-ParameterName=PDO Mapping Entry - Qry_VAR 1
+ParameterName=PDO Mapping Entry - position 1
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
@@ -1708,7 +1708,7 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1A00sub2]
-ParameterName=PDO Mapping Entry - Qry_VAR 2
+ParameterName=PDO Mapping Entry - position 2
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
@@ -1735,7 +1735,7 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1A01sub1]
-ParameterName=PDO Mapping Entry - Qry_VAR 3
+ParameterName=PDO Mapping Entry - velocity 1
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
@@ -1746,7 +1746,7 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1A01sub2]
-ParameterName=PDO Mapping Entry - Qry_VAR 4
+ParameterName=PDO Mapping Entry - velocity 2
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
@@ -1773,56 +1773,29 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1A02sub1]
-ParameterName=PDO Mapping Entry - Qry_VAR 5
+ParameterName=PDO Mapping Entry - current 1
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x21060510
+DefaultValue=0x21000110
 PDOMapping=0
 ObjFlags=0x0
 
 [1A02sub2]
-ParameterName=PDO Mapping Entry - Qry_VAR 6
+ParameterName=PDO Mapping Entry - current 2
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x21060610
+DefaultValue=0x21000210
 PDOMapping=0
 ObjFlags=0x0
 
 [1A02sub3]
-ParameterName=PDO Mapping Entry - Qry_VAR 69
-ObjectType=0x7
-DataType=0x0007
-LowLimit=
-HighLimit=
-AccessType=rw
-DefaultValue=0x21062120
-PDOMapping=0
-ObjFlags=0x0
-
-[1A03]
-ParameterName=TPDO4 Mapping Parameter
-SubNumber=3
-ObjectType=0x9
-
-[1A03sub0]
-ParameterName=Number of entries
-ObjectType=0x7
-DataType=0x0005
-LowLimit=
-HighLimit=
-AccessType=rw
-DefaultValue=0x02
-PDOMapping=0
-ObjFlags=0x0
-
-[1A03sub1]
-ParameterName=PDO Mapping Entry - Qry_VAR 7
+ParameterName=PDO Mapping Entry - flags
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
@@ -1832,14 +1805,63 @@ DefaultValue=0x21060720
 PDOMapping=0
 ObjFlags=0x0
 
-[1A03sub2]
-ParameterName=PDO Mapping Entry - Qry_VAR 8
+[1A03]
+ParameterName=TPDO4 Mapping Parameter
+SubNumber=5
+ObjectType=0x9
+
+[1A03sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+LowLimit=
+HighLimit=
+AccessType=rw
+DefaultValue=0x04
+PDOMapping=0
+ObjFlags=0x0
+
+[1A03sub1]
+ParameterName=PDO Mapping Entry - MCU temperature
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x21060820
+DefaultValue=0x210F0110
+PDOMapping=0
+ObjFlags=0x0
+
+[1A03sub2]
+ParameterName=PDO Mapping Entry - Battery Voltage
+ObjectType=0x7
+DataType=0x0007
+LowLimit=
+HighLimit=
+AccessType=rw
+DefaultValue=0x210D0210
+PDOMapping=0
+ObjFlags=0x0
+
+[1A03sub3]
+ParameterName=PDO Mapping Entry - Battery Amps 1
+ObjectType=0x7
+DataType=0x0007
+LowLimit=
+HighLimit=
+AccessType=rw
+DefaultValue=0x210C0110
+PDOMapping=0
+ObjFlags=0x0
+
+[1A03sub4]
+ParameterName=PDO Mapping Entry - Battery Amps 2
+ObjectType=0x7
+DataType=0x0007
+LowLimit=
+HighLimit=
+AccessType=rw
+DefaultValue=0x210C0210
 PDOMapping=0
 ObjFlags=0x0
 
@@ -1860,24 +1882,24 @@ PDOMapping=0
 ObjFlags=0x0
 
 [1A04sub1]
-ParameterName=PDO Mapping Entry - Qry_VAR 25
+ParameterName=PDO Mapping Entry - channel 1 temperature
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x21061920
+DefaultValue=0x210F0210
 PDOMapping=0
 ObjFlags=0x0
 
 [1A04sub2]
-ParameterName=PDO Mapping Entry - Qry_VAR 26
+ParameterName=PDO Mapping Entry - channel 2 temperature
 ObjectType=0x7
 DataType=0x0007
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0x21061A20
+DefaultValue=0x210F0310
 PDOMapping=0
 ObjFlags=0x0
 
@@ -6156,7 +6178,7 @@ ObjFlags=0x0
 [2106sub5]
 ParameterName=User Integer Variable 5
 ObjectType=0x7
-DataType=0x0003
+DataType=0x0004
 LowLimit=
 HighLimit=
 AccessType=ro
@@ -6167,7 +6189,7 @@ ObjFlags=0x0
 [2106sub6]
 ParameterName=User Integer Variable 6
 ObjectType=0x7
-DataType=0x0003
+DataType=0x0004
 LowLimit=
 HighLimit=
 AccessType=ro
@@ -6464,7 +6486,7 @@ ObjFlags=0x0
 [2106sub21]
 ParameterName=User Integer Variable 33
 ObjectType=0x7
-DataType=0x0007
+DataType=0x0004
 LowLimit=
 HighLimit=
 AccessType=ro

@@ -48,6 +48,18 @@ struct RoboteqDriverFeedback
   timespec timestamp;
 };
 
+struct RoboteqDriverState
+{
+  int16_t mcu_temp;
+  uint16_t battery_voltage;
+  int16_t bat_amps_1;
+  int16_t bat_amps_2;
+  int16_t channel_1_temp;
+  int16_t channel_2_temp;
+
+  timespec timestamp;
+};
+
 // todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
 /**
  * @brief Implementation of FiberDriver for Roboteq drivers
@@ -78,42 +90,18 @@ public:
   bool IsCanError() { return can_error_.load(); }
 
   /**
-   * @exception std::runtime_error if operation fails
-   */
-  int16_t ReadTemperature();
-
-  /**
-   * @exception std::runtime_error if operation fails
-   */
-  uint16_t ReadVoltage();
-
-  /**
-   * @exception std::runtime_error if operation fails
-   */
-  int16_t ReadBatAmps1();
-
-  /**
-   * @exception std::runtime_error if operation fails
-   */
-  int16_t ReadBatAmps2();
-
-  /**
    * @brief Reads all the PDO data returned from Roboteq (motors feedback, error flags) and saves
    * current timestamp
    */
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
-  /**
-   * @param cmd command value in the range [-1000, 1000]
-   * @exception std::runtime_error if operation fails
-   */
-  void SendRoboteqCmdChannel1(int32_t cmd);
+  RoboteqDriverState ReadRoboteqDriverState();
 
   /**
    * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmdChannel2(int32_t cmd);
+  void SendRoboteqCmd(int32_t cmd_channel_1, int32_t cmd_channel_2);
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -175,8 +163,11 @@ private:
 
   std::atomic_bool can_error_;
 
-  timespec last_rpdo_write_timestamp_;
-  std::mutex rpdo_timestamp_mtx_;
+  std::mutex feedback_timestamp_mtx_;
+  timespec last_feedback_write_timestamp_;
+
+  std::mutex state_timestamp_mtx_;
+  timespec last_state_write_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
   const std::chrono::microseconds sdo_operation_wait_timeout_;

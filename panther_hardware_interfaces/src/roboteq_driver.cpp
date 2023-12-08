@@ -62,104 +62,58 @@ bool RoboteqDriver::WaitForBoot()
   }
 }
 
-int16_t RoboteqDriver::ReadTemperature()
-{
-  try {
-    return SyncSdoRead<int8_t>(0x210F, 1, sdo_operation_timeout_);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
-  }
-}
-
-uint16_t RoboteqDriver::ReadVoltage()
-{
-  try {
-    return SyncSdoRead<uint16_t>(0x210D, 2, sdo_operation_timeout_);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
-  }
-}
-
-int16_t RoboteqDriver::ReadBatAmps1()
-{
-  try {
-    return SyncSdoRead<int16_t>(0x210C, 1, sdo_operation_timeout_);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
-  }
-}
-
-int16_t RoboteqDriver::ReadBatAmps2()
-{
-  try {
-    return SyncSdoRead<int16_t>(0x210C, 2, sdo_operation_timeout_);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
-  }
-}
-
 RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
   RoboteqDriverFeedback fb;
 
   // uint32_t
   // already does locking when accessing rpdo
+
+  // TODO: change remapping
   fb.motor_1.pos = rpdo_mapped[0x2106][1];
   fb.motor_2.pos = rpdo_mapped[0x2106][2];
 
   fb.motor_1.vel = rpdo_mapped[0x2106][3];
   fb.motor_2.vel = rpdo_mapped[0x2106][4];
 
-  fb.motor_1.current = rpdo_mapped[0x2106][5];
-  fb.motor_2.current = rpdo_mapped[0x2106][6];
+  fb.motor_1.current = rpdo_mapped[0x2100][1];
+  fb.motor_2.current = rpdo_mapped[0x2100][2];
 
-  fb.fault_flags = 0;
-  // fb.script_flags = 0;
-  fb.script_flags = GetByte(uint32_t(rpdo_mapped[0x2106][20]), 2);
+  fb.fault_flags = GetByte(int32_t(rpdo_mapped[0x2106][7]), 0);
+  fb.runtime_stat_flag_motor_1 = GetByte(int32_t(rpdo_mapped[0x2106][7]), 1);
+  fb.runtime_stat_flag_motor_2 = GetByte(int32_t(rpdo_mapped[0x2106][7]), 2);
+  fb.script_flags = GetByte(int32_t(rpdo_mapped[0x2106][7]), 3);
 
-  fb.runtime_stat_flag_motor_1 = 0;
-  fb.runtime_stat_flag_motor_2 = 0;
-
-  // fb.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
-  // fb.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
-
-  // fb.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
-  // fb.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
-
-  std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
-  fb.timestamp = last_rpdo_write_timestamp_;
+  std::unique_lock<std::mutex> lck(feedback_timestamp_mtx_);
+  fb.timestamp = last_feedback_write_timestamp_;
 
   return fb;
 }
 
-// todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
-// PDO)
-void RoboteqDriver::SendRoboteqCmdChannel1(int32_t cmd)
+RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
 {
-  // try {
-  //   SyncSdoWrite<int32_t>(0x2000, 1, cmd);
-  // } catch (const std::runtime_error & e) {
-  //   throw std::runtime_error(
-  //     "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
-  // }
+  RoboteqDriverState state;
 
-  tpdo_mapped[0x2005][9] = cmd;
-  // tpdo_mapped[0x2005][9].WriteEvent();
-  // master.WriteEvent(0x2005, 0x0A);
+  state.mcu_temp = rpdo_mapped[0x210F][1];
+  state.battery_voltage = rpdo_mapped[0x210D][2];
+  state.bat_amps_1 = rpdo_mapped[0x210C][1];
+  state.bat_amps_2 = rpdo_mapped[0x210C][2];
+  state.channel_1_temp = rpdo_mapped[0x210F][2];
+  state.channel_2_temp = rpdo_mapped[0x210F][3];
+
+  std::unique_lock<std::mutex> lck(state_timestamp_mtx_);
+  state.timestamp = last_state_write_timestamp_;
+
+  return state;
 }
 
-void RoboteqDriver::SendRoboteqCmdChannel2(int32_t cmd)
+// todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
+// PDO)
+void RoboteqDriver::SendRoboteqCmd(int32_t cmd_channel_1, int32_t cmd_channel_2)
 {
-  // try {
-  //   SyncSdoWrite<int32_t>(0x2000, 2, cmd);
-  // } catch (const std::runtime_error & e) {
-  //   throw std::runtime_error(
-  //     "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
-  // }
-
-  tpdo_mapped[0x2005][10] = cmd;
-  tpdo_mapped[0x2005][10].WriteEvent();
-  // master.WriteEvent(0x2005, 2);
+  tpdo_mapped[0x2000][1] = cmd_channel_1;
+  tpdo_mapped[0x2000][2] = cmd_channel_2;
+  tpdo_mapped[0x2000][2].WriteEvent();
 }
 
 void RoboteqDriver::ResetRoboteqScript()
@@ -359,8 +313,11 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
 void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
 {
   if (idx == 0x2106 && subidx == 1) {
-    std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
-    clock_gettime(CLOCK_MONOTONIC, &last_rpdo_write_timestamp_);
+    std::unique_lock<std::mutex> lck(feedback_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_feedback_write_timestamp_);
+  } else if (idx == 0x210F && subidx == 1) {
+    std::unique_lock<std::mutex> lck(state_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_state_write_timestamp_);
   }
 }
 
