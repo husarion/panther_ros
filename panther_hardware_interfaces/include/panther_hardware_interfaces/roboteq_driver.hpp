@@ -59,8 +59,9 @@ public:
   using FiberDriver::FiberDriver;
 
   RoboteqDriver(
-    ev_exec_t * exec, lely::canopen::AsyncMaster & master, std::uint8_t id,
-    std::chrono::milliseconds sdo_operation_timeout);
+    const std::shared_ptr<lely::ev::Executor> & exec,
+    const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
+    const std::chrono::milliseconds & sdo_operation_timeout);
 
   /**
    * @brief Trigger boot operations
