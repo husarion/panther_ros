@@ -15,6 +15,7 @@
 #ifndef PANTHER_LIGHTS_DUMMY_SCHEDULER_NODE_HPP_
 #define PANTHER_LIGHTS_DUMMY_SCHEDULER_NODE_HPP_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -32,10 +33,10 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
 struct RGBAColor
 {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-  uint8_t a;
+  std::uint8_t r;
+  std::uint8_t g;
+  std::uint8_t b;
+  std::uint8_t a;
 };
 
 class SchedulerNode : public rclcpp::Node
