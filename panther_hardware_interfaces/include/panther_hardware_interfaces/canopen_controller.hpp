@@ -35,9 +35,12 @@ namespace panther_hardware_interfaces
 
 struct CanOpenSettings
 {
+  std::string can_interface_name;
+
   std::uint8_t master_can_id;
   std::uint8_t front_driver_can_id;
   std::uint8_t rear_driver_can_id;
+
   std::chrono::milliseconds pdo_feedback_timeout;
   std::chrono::milliseconds sdo_operation_timeout;
 };

@@ -28,7 +28,7 @@ namespace panther_hardware_interfaces_test
 {
 
 const panther_hardware_interfaces::CanOpenSettings kCanopenSettings{
-  3, 1, 2, std::chrono::milliseconds(15), std::chrono::milliseconds(4)};
+  "panther_can", 3, 1, 2, std::chrono::milliseconds(15), std::chrono::milliseconds(4)};
 
 const panther_hardware_interfaces::DrivetrainSettings kDrivetrainSettings{
   0.11, 30.08, 0.75, 1600.0, 3600.0};
@@ -66,6 +66,7 @@ const std::map<std::string, std::string> kDefaultParamMap = {
   {"gearbox_efficiency", "0.75"},
   {"motor_torque_constant", "0.11"},
   {"max_rpm_motor_speed", "3600.0"},
+  {"can_interface_name", "panther_can"},
   {"master_can_id", "3"},
   {"front_driver_can_id", "1"},
   {"rear_driver_can_id", "2"},

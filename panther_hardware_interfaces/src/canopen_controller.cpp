@@ -99,7 +99,7 @@ void CanOpenController::InitializeCanCommunication()
 
   timer_ = std::make_shared<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
 
-  ctrl_ = std::make_shared<lely::io::CanController>("panther_can");
+  ctrl_ = std::make_shared<lely::io::CanController>(canopen_settings_.can_interface_name.c_str());
   chan_ = std::make_shared<lely::io::CanChannel>(*poll_, *exec_);
 
   chan_->open(*ctrl_);

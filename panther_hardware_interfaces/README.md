@@ -24,6 +24,7 @@ Physical properties
  - `gearbox_efficiency` [*float*, default: 0.75] - measured efficiency, used for converting read current to torque, can vary depending on different factors such as temperature and wear
 
 CAN settings
+ - `can_interface_name` [*string*, default: panther_can] - name of the CAN interface
  - `master_can_id` [*int*, default: 3] - CAN ID of the master device (set as in `canopen_configuration.yaml`)
  - `front_driver_can_id` [*int*, default: 1] - CAN ID defined in the properties of Roboteq (set as in `canopen_configuration.yaml`)
  - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `canopen_configuration.yaml`)

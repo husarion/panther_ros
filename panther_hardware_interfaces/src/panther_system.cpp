@@ -132,6 +132,7 @@ void PantherSystem::ReadDrivetrainSettings()
 
 void PantherSystem::ReadCanOpenSettings()
 {
+  canopen_settings_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
   canopen_settings_.front_driver_can_id =
     std::stoi(info_.hardware_parameters["front_driver_can_id"]);
