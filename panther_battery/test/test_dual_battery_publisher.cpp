@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -43,7 +44,7 @@ public:
     return DualBatteryPublisher::MergeBatteryMsgs(battery_msg_1, battery_msg_2);
   }
 
-  uint8_t MergeBatteryPowerSupplyStatus(
+  std::uint8_t MergeBatteryPowerSupplyStatus(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
   {
     return DualBatteryPublisher::MergeBatteryPowerSupplyStatus(battery_msg_1, battery_msg_2);
@@ -65,7 +66,8 @@ public:
   ~TestDualBatteryPublisher() {}
 
   void TestMergeBatteryPowerSupplyStatus(
-    const uint8_t battery_1_status, const uint8_t battery_2_status, const uint8_t expected_status);
+    const std::uint8_t battery_1_status, const std::uint8_t battery_2_status,
+    const std::uint8_t expected_status);
 
 protected:
   rclcpp::Node::SharedPtr node_;
@@ -102,7 +104,8 @@ TestDualBatteryPublisher::TestDualBatteryPublisher()
 }
 
 void TestDualBatteryPublisher::TestMergeBatteryPowerSupplyStatus(
-  const uint8_t battery_1_status, const uint8_t battery_2_status, const uint8_t expected_status)
+  const std::uint8_t battery_1_status, const std::uint8_t battery_2_status,
+  const std::uint8_t expected_status)
 {
   BatteryStateMsg bat_1;
   BatteryStateMsg bat_2;

@@ -15,6 +15,7 @@
 #ifndef PANTHER_BATTERY_DUAL_BATTERY_PUBLISHER_HPP_
 #define PANTHER_BATTERY_DUAL_BATTERY_PUBLISHER_HPP_
 
+#include <cstdint>
 #include <memory>
 
 #include <rclcpp/rclcpp.hpp>
@@ -42,7 +43,7 @@ protected:
 
   BatteryStateMsg MergeBatteryMsgs(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2);
-  uint8_t MergeBatteryPowerSupplyStatus(
+  std::uint8_t MergeBatteryPowerSupplyStatus(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
   void MergeBatteryPowerSupplyHealth(
     BatteryStateMsg & battery_msg, const BatteryStateMsg & battery_msg_1,

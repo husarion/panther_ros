@@ -14,6 +14,7 @@
 
 #include <panther_battery/battery_publisher.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 
@@ -28,7 +29,7 @@ BatteryPublisher::BatteryPublisher(const rclcpp::Node::SharedPtr & node) : node_
   battery_timeout_ = node_->get_parameter("battery_timeout").as_double();
 
   charger_connected_ = false;
-  last_battery_info_time_ = rclcpp::Time(int64_t(0), RCL_ROS_TIME);
+  last_battery_info_time_ = rclcpp::Time(std::int64_t(0), RCL_ROS_TIME);
 
   io_state_sub_ = node_->create_subscription<IOStateMsg>(
     "hardware/io_state", 3,

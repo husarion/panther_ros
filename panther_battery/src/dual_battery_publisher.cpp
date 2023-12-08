@@ -14,6 +14,7 @@
 
 #include <panther_battery/dual_battery_publisher.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -104,7 +105,7 @@ BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
   return battery_msg;
 }
 
-uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
+std::uint8_t DualBatteryPublisher::MergeBatteryPowerSupplyStatus(
   const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const
 {
   if (battery_msg_1.power_supply_status == battery_msg_2.power_supply_status) {
