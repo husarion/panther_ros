@@ -704,7 +704,6 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
 
   state_msg.reset();
 
-  // More than sdo_operation_wait_timeout_
   pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 4500);
   pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
@@ -774,7 +773,6 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
 
   state_msg.reset();
 
-  // More than sdo_operation_wait_timeout_
   pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::int8_t>(0x210F, 1, 5001);
   pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::uint16_t>(0x210D, 2, 5001);
   pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::int16_t>(0x210C, 1, 5001);

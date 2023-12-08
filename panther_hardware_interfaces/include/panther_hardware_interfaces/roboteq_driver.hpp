@@ -177,7 +177,9 @@ private:
   std::mutex rpdo_timestamp_mtx_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
-  const std::chrono::microseconds sdo_operation_wait_timeout_;
+
+  // Wait timeout has to be longer - first we want to give a chance for lely to cancel operation
+  static constexpr std::chrono::microseconds kSdoOperationAdditionalWait{750};
 
   std::atomic_bool sdo_read_timed_out_ = false;
   std::atomic_bool sdo_write_timed_out_ = false;
