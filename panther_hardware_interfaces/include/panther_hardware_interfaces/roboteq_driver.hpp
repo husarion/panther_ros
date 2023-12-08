@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <vector>
 
 #include <lely/coapp/fiber_driver.hpp>
@@ -30,9 +31,9 @@ namespace panther_hardware_interfaces
 
 struct RoboteqMotorState
 {
-  int32_t pos;
-  int32_t vel;
-  int32_t current;
+  std::int32_t pos;
+  std::int32_t vel;
+  std::int32_t current;
 };
 
 struct RoboteqDriverFeedback
@@ -40,10 +41,10 @@ struct RoboteqDriverFeedback
   RoboteqMotorState motor_1;
   RoboteqMotorState motor_2;
 
-  uint8_t fault_flags;
-  uint8_t script_flags;
-  uint8_t runtime_stat_flag_motor_1;
-  uint8_t runtime_stat_flag_motor_2;
+  std::uint8_t fault_flags;
+  std::uint8_t script_flags;
+  std::uint8_t runtime_stat_flag_motor_1;
+  std::uint8_t runtime_stat_flag_motor_2;
 
   timespec timestamp;
 };
@@ -58,7 +59,7 @@ public:
   using FiberDriver::FiberDriver;
 
   RoboteqDriver(
-    ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id,
+    ev_exec_t * exec, lely::canopen::AsyncMaster & master, std::uint8_t id,
     std::chrono::milliseconds sdo_operation_timeout);
 
   /**
@@ -80,22 +81,22 @@ public:
   /**
    * @exception std::runtime_error if operation fails
    */
-  int16_t ReadTemperature();
+  std::int16_t ReadTemperature();
 
   /**
    * @exception std::runtime_error if operation fails
    */
-  uint16_t ReadVoltage();
+  std::uint16_t ReadVoltage();
 
   /**
    * @exception std::runtime_error if operation fails
    */
-  int16_t ReadBatAmps1();
+  std::int16_t ReadBatAmps1();
 
   /**
    * @exception std::runtime_error if operation fails
    */
-  int16_t ReadBatAmps2();
+  std::int16_t ReadBatAmps2();
 
   /**
    * @brief Reads all the PDO data returned from Roboteq (motors feedback, error flags) and saves
@@ -107,13 +108,13 @@ public:
    * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmdChannel1(const int32_t cmd);
+  void SendRoboteqCmdChannel1(const std::int32_t cmd);
 
   /**
    * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmdChannel2(const int32_t cmd);
+  void SendRoboteqCmdChannel2(const std::int32_t cmd);
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -147,7 +148,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  T SyncSdoRead(const uint16_t index, const uint8_t subindex);
+  T SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex);
 
   /**
    * @brief Blocking SDO write operation
@@ -155,15 +156,15 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  void SyncSdoWrite(const uint16_t index, const uint8_t subindex, T data);
+  void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, T data);
 
   void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
-  void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
+  void OnRpdoWrite(std::uint16_t idx, std::uint8_t subidx) noexcept override;
   void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
 
   // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
   // about it while ros2_canopen has the ability to read it, I didn't see any attempts to handle it
-  // void OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
+  // void OnEmcy(std::uint16_t eec, std::uint8_t er, std::uint8_t msef[5]) noexcept override;
 
   std::atomic_bool booted_ = false;
   std::condition_variable boot_cond_var_;

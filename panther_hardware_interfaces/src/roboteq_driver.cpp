@@ -15,6 +15,7 @@
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
 #include <cmath>
+#include <cstdint>
 #include <future>
 
 #include <panther_hardware_interfaces/utils.hpp>
@@ -28,7 +29,7 @@ namespace panther_hardware_interfaces
 {
 
 RoboteqDriver::RoboteqDriver(
-  ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id,
+  ev_exec_t * exec, lely::canopen::AsyncMaster & master, std::uint8_t id,
   std::chrono::milliseconds sdo_operation_timeout)
 : lely::canopen::FiberDriver(exec, master, id),
   sdo_operation_timeout_(sdo_operation_timeout),
@@ -62,37 +63,37 @@ bool RoboteqDriver::WaitForBoot()
   }
 }
 
-int16_t RoboteqDriver::ReadTemperature()
+std::int16_t RoboteqDriver::ReadTemperature()
 {
   try {
-    return SyncSdoRead<int8_t>(0x210F, 1);
+    return SyncSdoRead<std::int8_t>(0x210F, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
   }
 }
 
-uint16_t RoboteqDriver::ReadVoltage()
+std::uint16_t RoboteqDriver::ReadVoltage()
 {
   try {
-    return SyncSdoRead<uint16_t>(0x210D, 2);
+    return SyncSdoRead<std::uint16_t>(0x210D, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
   }
 }
 
-int16_t RoboteqDriver::ReadBatAmps1()
+std::int16_t RoboteqDriver::ReadBatAmps1()
 {
   try {
-    return SyncSdoRead<int16_t>(0x210C, 1);
+    return SyncSdoRead<std::int16_t>(0x210C, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
   }
 }
 
-int16_t RoboteqDriver::ReadBatAmps2()
+std::int16_t RoboteqDriver::ReadBatAmps2()
 {
   try {
-    return SyncSdoRead<int16_t>(0x210C, 2);
+    return SyncSdoRead<std::int16_t>(0x210C, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
   }
@@ -102,7 +103,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
   RoboteqDriverFeedback fb;
 
-  // uint32_t
+  // std::uint32_t
   // already does locking when accessing rpdo
   fb.motor_1.pos = rpdo_mapped[0x2106][1];
   fb.motor_2.pos = rpdo_mapped[0x2106][2];
@@ -127,20 +128,20 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 
 // todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
 // PDO)
-void RoboteqDriver::SendRoboteqCmdChannel1(const int32_t cmd)
+void RoboteqDriver::SendRoboteqCmdChannel1(const std::int32_t cmd)
 {
   try {
-    SyncSdoWrite<int32_t>(0x2000, 1, cmd);
+    SyncSdoWrite<std::int32_t>(0x2000, 1, cmd);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
   }
 }
 
-void RoboteqDriver::SendRoboteqCmdChannel2(const int32_t cmd)
+void RoboteqDriver::SendRoboteqCmdChannel2(const std::int32_t cmd)
 {
   try {
-    SyncSdoWrite<int32_t>(0x2000, 2, cmd);
+    SyncSdoWrite<std::int32_t>(0x2000, 2, cmd);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
@@ -150,7 +151,7 @@ void RoboteqDriver::SendRoboteqCmdChannel2(const int32_t cmd)
 void RoboteqDriver::ResetRoboteqScript()
 {
   try {
-    SyncSdoWrite<uint8_t>(0x2018, 0, 2);
+    SyncSdoWrite<std::uint8_t>(0x2018, 0, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to reset Roboteq script: " + std::string(e.what()));
   }
@@ -160,7 +161,7 @@ void RoboteqDriver::TurnOnEstop()
 {
   // Cmd_ESTOP
   try {
-    SyncSdoWrite<uint8_t>(0x200C, 0, 1);
+    SyncSdoWrite<std::uint8_t>(0x200C, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
   }
@@ -170,7 +171,7 @@ void RoboteqDriver::TurnOffEstop()
 {
   // Cmd_MGO
   try {
-    SyncSdoWrite<uint8_t>(0x200D, 0, 1);
+    SyncSdoWrite<std::uint8_t>(0x200D, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
   }
@@ -180,7 +181,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel1()
 {
   // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<uint8_t>(0x202C, 0, 1);
+    SyncSdoWrite<std::uint8_t>(0x202C, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 1: " + std::string(e.what()));
@@ -191,7 +192,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 {
   // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<uint8_t>(0x202C, 0, 2);
+    SyncSdoWrite<std::uint8_t>(0x202C, 0, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
@@ -199,7 +200,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 }
 
 template <typename T>
-T RoboteqDriver::SyncSdoRead(const uint16_t index, const uint8_t subindex)
+T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex)
 {
   std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
   if (!sdo_read_lck.try_lock()) {
@@ -225,7 +226,7 @@ T RoboteqDriver::SyncSdoRead(const uint16_t index, const uint8_t subindex)
     SubmitRead<T>(
       index, subindex,
       [&sdo_read_timed_out_ = sdo_read_timed_out_, &mtx, &cv, &err_code, &data](
-        uint8_t, uint16_t, uint8_t, std::error_code ec, T value) mutable {
+        std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec, T value) mutable {
         // In this case function has already finished, and other variables don't exist
         // and we have to end
 
@@ -262,7 +263,7 @@ T RoboteqDriver::SyncSdoRead(const uint16_t index, const uint8_t subindex)
 }
 
 template <typename T>
-void RoboteqDriver::SyncSdoWrite(const uint16_t index, const uint8_t subindex, T data)
+void RoboteqDriver::SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, T data)
 {
   std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
   if (!sdo_write_lck.try_lock()) {
@@ -287,7 +288,7 @@ void RoboteqDriver::SyncSdoWrite(const uint16_t index, const uint8_t subindex, T
     SubmitWrite(
       index, subindex, data,
       [&sdo_write_timed_out_ = sdo_write_timed_out_, &mtx, &cv, &err_code](
-        uint8_t, uint16_t, uint8_t, std::error_code ec) mutable {
+        std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec) mutable {
         // In this case function has already finished, and other variables don't exist
         // and we have to end
         if (sdo_write_timed_out_) {
@@ -334,7 +335,7 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
   }
 }
 
-void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
+void RoboteqDriver::OnRpdoWrite(std::uint16_t idx, std::uint8_t subidx) noexcept
 {
   if (idx == 0x2106 && subidx == 1) {
     std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);

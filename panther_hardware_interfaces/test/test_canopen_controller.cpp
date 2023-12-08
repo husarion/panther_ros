@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -59,22 +60,22 @@ TEST_F(TestCanOpenController, test_canopen_controller)
 
 TEST_F(TestCanOpenController, test_canopen_controller_error_device_type)
 {
-  roboteq_mock_->front_driver_->SetOnReadWait<uint32_t>(0x1000, 0, 100000);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 
-  roboteq_mock_->front_driver_->SetOnReadWait<uint32_t>(0x1000, 0, 0);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 0);
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
 TEST_F(TestCanOpenController, test_canopen_controller_error_vendor_id)
 {
-  roboteq_mock_->rear_driver_->SetOnReadWait<uint32_t>(0x1018, 1, 100000);
+  roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 
-  roboteq_mock_->rear_driver_->SetOnReadWait<uint32_t>(0x1018, 1, 0);
+  roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 0);
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }

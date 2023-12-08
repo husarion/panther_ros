@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <algorithm>
-#include <iostream>
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -215,14 +215,14 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   panther_hardware_interfaces::DriverState front;
   panther_hardware_interfaces::DriverState rear;
 
-  const int16_t f_temp = 36;
-  const uint16_t f_volt = 405;
-  const int16_t f_bat_amps_1 = 15;
-  const int16_t f_bat_amps_2 = 12;
-  const int16_t r_temp = 35;
-  const uint16_t r_volt = 404;
-  const int16_t r_bat_amps_1 = 14;
-  const int16_t r_bat_amps_2 = 11;
+  const std::int16_t f_temp = 36;
+  const std::uint16_t f_volt = 405;
+  const std::int16_t f_bat_amps_1 = 15;
+  const std::int16_t f_bat_amps_2 = 12;
+  const std::int16_t r_temp = 35;
+  const std::uint16_t r_volt = 404;
+  const std::int16_t r_bat_amps_1 = 14;
+  const std::int16_t r_bat_amps_2 = 11;
 
   front.SetTemperature(f_temp);
   front.SetVoltage(f_volt);
@@ -239,16 +239,16 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
 
-  ASSERT_FLOAT_EQ(static_cast<int16_t>(state_msg->front.temperature), f_temp);
-  ASSERT_FLOAT_EQ(static_cast<int16_t>(state_msg->rear.temperature), r_temp);
+  ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->front.temperature), f_temp);
+  ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->rear.temperature), r_temp);
 
-  ASSERT_FLOAT_EQ(static_cast<uint16_t>(state_msg->front.voltage * 10.0), f_volt);
-  ASSERT_FLOAT_EQ(static_cast<uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
+  ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->front.voltage * 10.0), f_volt);
+  ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
   ASSERT_FLOAT_EQ(
-    static_cast<int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
   ASSERT_FLOAT_EQ(
-    static_cast<int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();

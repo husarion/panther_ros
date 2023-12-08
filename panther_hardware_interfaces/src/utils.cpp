@@ -14,13 +14,14 @@
 
 #include <panther_hardware_interfaces/utils.hpp>
 
+#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 
 namespace panther_hardware_interfaces
 {
 
-uint8_t GetByte(uint32_t data, uint8_t byte_no)
+std::uint8_t GetByte(std::uint32_t data, std::uint8_t byte_no)
 {
   if (byte_no > 3) {
     throw std::runtime_error("byte_no out of range, allowed values: [0;3]");
@@ -29,7 +30,7 @@ uint8_t GetByte(uint32_t data, uint8_t byte_no)
   return (data >> (byte_no * 8)) & 0xFF;
 }
 
-bool IsBitSet(uint8_t data, uint8_t bit_no)
+bool IsBitSet(std::uint8_t data, std::uint8_t bit_no)
 {
   if (bit_no > 7) {
     throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
@@ -38,7 +39,7 @@ bool IsBitSet(uint8_t data, uint8_t bit_no)
   return data & (0b00000001 << bit_no);
 }
 
-uint8_t SetBit(uint8_t data, uint8_t bit_no)
+std::uint8_t SetBit(std::uint8_t data, std::uint8_t bit_no)
 {
   if (bit_no > 7) {
     throw std::runtime_error("bit_no out of range, allowed values: [0;7]");

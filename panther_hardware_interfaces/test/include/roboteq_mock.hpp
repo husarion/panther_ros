@@ -17,8 +17,8 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <filesystem>
-#include <iostream>
 #include <thread>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -63,7 +63,7 @@ enum class DriverScriptFlags {
   AMP_LIMITER,
 };
 
-enum class DriverChannel : uint8_t {
+enum class DriverChannel : std::uint8_t {
   CHANNEL1 = 1,
   CHANNEL2 = 2,
 };
@@ -73,36 +73,36 @@ class RoboteqSlave : public lely::canopen::BasicSlave
 public:
   using BasicSlave::BasicSlave;
 
-  void SetPosition(DriverChannel channel, int32_t value);
-  void SetVelocity(DriverChannel channel, int32_t value);
-  void SetCurrent(DriverChannel channel, int32_t value);
+  void SetPosition(DriverChannel channel, std::int32_t value);
+  void SetVelocity(DriverChannel channel, std::int32_t value);
+  void SetCurrent(DriverChannel channel, std::int32_t value);
   void SetDriverFaultFlag(DriverFaultFlags flag);
   void SetDriverScriptFlag(DriverScriptFlags flag);
 
   void SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag);
-  void SetTemperature(int8_t value) { (*this)[0x210F][1] = value; }
-  void SetVoltage(uint16_t value) { (*this)[0x210D][2] = value; }
-  void SetBatAmps1(int16_t value) { (*this)[0x210C][1] = value; }
-  void SetBatAmps2(int16_t value) { (*this)[0x210C][2] = value; }
+  void SetTemperature(std::int8_t value) { (*this)[0x210F][1] = value; }
+  void SetVoltage(std::uint16_t value) { (*this)[0x210D][2] = value; }
+  void SetBatAmps1(std::int16_t value) { (*this)[0x210C][1] = value; }
+  void SetBatAmps2(std::int16_t value) { (*this)[0x210C][2] = value; }
 
-  void SetRoboteqCmd(DriverChannel channel, int32_t value)
+  void SetRoboteqCmd(DriverChannel channel, std::int32_t value)
   {
-    (*this)[0x2000][static_cast<uint8_t>(channel)] = value;
+    (*this)[0x2000][static_cast<std::uint8_t>(channel)] = value;
   }
-  void SetResetRoboteqScript(uint8_t value) { (*this)[0x2018][0] = value; }
+  void SetResetRoboteqScript(std::uint8_t value) { (*this)[0x2018][0] = value; }
 
-  void SetTurnOnEstop(uint8_t value) { (*this)[0x200C][0] = value; }
-  void SetTurnOffEstop(uint8_t value) { (*this)[0x200D][0] = value; }
-  void SetTurnOnSafetyStop(uint8_t value) { (*this)[0x202C][0] = value; }
+  void SetTurnOnEstop(std::uint8_t value) { (*this)[0x200C][0] = value; }
+  void SetTurnOffEstop(std::uint8_t value) { (*this)[0x200D][0] = value; }
+  void SetTurnOnSafetyStop(std::uint8_t value) { (*this)[0x202C][0] = value; }
 
-  int32_t GetRoboteqCmd(DriverChannel channel)
+  std::int32_t GetRoboteqCmd(DriverChannel channel)
   {
-    return (*this)[0x2000][static_cast<uint8_t>(channel)];
+    return (*this)[0x2000][static_cast<std::uint8_t>(channel)];
   }
-  uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
-  uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
-  uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
-  uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
+  std::uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
+  std::uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
+  std::uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
+  std::uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
 
   void ClearErrorFlags();
 
@@ -114,24 +114,27 @@ public:
   void TriggerPDOPublish();
 
   template <typename T>
-  void SetOnWriteWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
+  void SetOnWriteWait(std::uint16_t idx, std::uint8_t subidx, std::uint32_t wait_time_microseconds)
   {
-    OnWrite<T>(idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, T &, T) -> std::error_code {
-      // Blocks whole communication - blocks executor, so if this sleep is executed also other SDO
-      // and PDO calls will be stopped. I haven't found a better approach to testing timeouts
-      // though, and it should be sufficient
-      usleep(wait_time_microseconds);
-      return std::error_code();
-    });
+    OnWrite<T>(
+      idx, subidx,
+      [wait_time_microseconds](std::uint16_t, std::uint8_t, T &, T) -> std::error_code {
+        // Blocks whole communication - blocks executor, so if this sleep is executed also other SDO
+        // and PDO calls will be stopped. I haven't found a better approach to testing timeouts
+        // though, and it should be sufficient
+        usleep(wait_time_microseconds);
+        return std::error_code();
+      });
   }
 
   template <typename T>
-  void SetOnReadWait(uint16_t idx, uint8_t subidx, uint32_t wait_time_microseconds)
+  void SetOnReadWait(std::uint16_t idx, std::uint8_t subidx, std::uint32_t wait_time_microseconds)
   {
-    OnRead<T>(idx, subidx, [wait_time_microseconds](uint16_t, uint8_t, T &) -> std::error_code {
-      usleep(wait_time_microseconds);
-      return std::error_code();
-    });
+    OnRead<T>(
+      idx, subidx, [wait_time_microseconds](std::uint16_t, std::uint8_t, T &) -> std::error_code {
+        usleep(wait_time_microseconds);
+        return std::error_code();
+      });
   }
 
 private:

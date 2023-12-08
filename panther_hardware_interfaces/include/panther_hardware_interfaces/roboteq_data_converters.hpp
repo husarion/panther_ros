@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 
+#include <cstdint>
 #include <vector>
 
 #include <panther_msgs/msg/fault_flag.hpp>
@@ -42,19 +43,19 @@ class RoboteqVeloctiyCommandConverter
 {
 public:
   RoboteqVeloctiyCommandConverter(const DrivetrainSettings & drivetrain_settings);
-  int32_t Convert(const float cmd) const
+  std::int32_t Convert(const float cmd) const
   {
     return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_);
   }
 
 private:
-  inline int32_t LimitCmd(const int32_t cmd) const
+  inline std::int32_t LimitCmd(const std::int32_t cmd) const
   {
     return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
   }
 
   float radians_per_second_to_roboteq_cmd_;
-  static constexpr int32_t max_roboteq_cmd_value_ = 1000;
+  static constexpr std::int32_t max_roboteq_cmd_value_ = 1000;
 };
 
 /**
@@ -110,7 +111,7 @@ public:
     }
   }
 
-  void SetData(const uint8_t flags) { flags_ = flags; }
+  void SetData(const std::uint8_t flags) { flags_ = flags; }
 
   bool IsError() const { return (flags_ & (~surpressed_flags_)) != 0; }
 
@@ -119,8 +120,8 @@ public:
 protected:
   const std::vector<std::string> flag_names_;
 
-  uint8_t surpressed_flags_ = 0b00000000;
-  uint8_t flags_ = 0b00000000;
+  std::uint8_t surpressed_flags_ = 0b00000000;
+  std::uint8_t flags_ = 0b00000000;
 };
 
 class FaultFlag : public FlagError
@@ -180,20 +181,20 @@ class DriverState
 public:
   DriverState() {}
 
-  void SetTemperature(const int16_t temp) { last_temp_ = temp; };
-  void SetVoltage(const uint16_t voltage) { last_voltage_ = voltage; };
-  void SetBatAmps1(const int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
-  void SetBatAmps2(const int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
+  void SetTemperature(const std::int16_t temp) { last_temp_ = temp; };
+  void SetVoltage(const std::uint16_t voltage) { last_voltage_ = voltage; };
+  void SetBatAmps1(const std::int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
+  void SetBatAmps2(const std::int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
 
   float GetTemperature() const { return last_temp_; }
   float GetVoltage() const { return last_voltage_ / 10.0; }
   float GetCurrent() const { return (last_bat_amps_1_ + last_bat_amps_2_) / 10.0; }
 
 private:
-  int16_t last_temp_ = 0;
-  uint16_t last_voltage_ = 0;
-  int16_t last_bat_amps_1_ = 0;
-  int16_t last_bat_amps_2_ = 0;
+  std::int16_t last_temp_ = 0;
+  std::uint16_t last_voltage_ = 0;
+  std::int16_t last_bat_amps_1_ = 0;
+  std::int16_t last_bat_amps_2_ = 0;
 };
 
 /**
@@ -218,8 +219,8 @@ public:
   }
 
   void SetFlags(
-    const uint8_t fault_flags, const uint8_t script_flags, const uint8_t left_runtime_errors_flags,
-    const uint8_t right_runtime_errors_flags)
+    const std::uint8_t fault_flags, const std::uint8_t script_flags,
+    const std::uint8_t left_runtime_errors_flags, const std::uint8_t right_runtime_errors_flags)
   {
     fault_flags_.SetData(fault_flags);
     script_flags_.SetData(script_flags);
@@ -227,10 +228,10 @@ public:
     right_runtime_error_.SetData(right_runtime_errors_flags);
   }
 
-  void SetTemperature(const int16_t temp) { driver_state_.SetTemperature(temp); };
-  void SetVoltage(const uint16_t voltage) { driver_state_.SetVoltage(voltage); };
-  void SetBatAmps1(const int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
-  void SetBatAmps2(const int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
+  void SetTemperature(const std::int16_t temp) { driver_state_.SetTemperature(temp); };
+  void SetVoltage(const std::uint16_t voltage) { driver_state_.SetVoltage(voltage); };
+  void SetBatAmps1(const std::int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
+  void SetBatAmps2(const std::int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
 
   bool IsFlagError() const
   {

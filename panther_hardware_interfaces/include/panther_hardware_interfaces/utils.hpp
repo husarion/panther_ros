@@ -25,19 +25,19 @@ namespace panther_hardware_interfaces
  * @brief Get byte byte_no from data (byte_no has to be in [0;3] range)
  * @exception std::runtime_error if byte_no is out of range
  */
-uint8_t GetByte(uint32_t data, uint8_t byte_no);
+std::uint8_t GetByte(std::uint32_t data, std::uint8_t byte_no);
 
 /**
  * @brief Check if bit bit_no is set (bit_no has to be in [0;7] range)
  * @exception std::runtime_error if bit_no is out of range
  */
-bool IsBitSet(uint8_t data, uint8_t bit_no);
+bool IsBitSet(std::uint8_t data, std::uint8_t bit_no);
 
 /**
  * @brief Set bit_no (bit_no has to be in [0;7] range)
  * @exception std::runtime_error if bit_no is out of range
  */
-uint8_t SetBit(uint8_t data, uint8_t bit_no);
+std::uint8_t SetBit(std::uint8_t data, std::uint8_t bit_no);
 
 /**
  * @brief Attempts to run operation for max_attempts number of times.

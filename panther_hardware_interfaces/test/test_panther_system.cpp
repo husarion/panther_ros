@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -289,16 +290,16 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 
   ASSERT_EQ(
     pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(fl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(fr_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(rl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(rr_v * kRadPerSecToRbtqCmd));
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -314,10 +315,10 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   using panther_hardware_interfaces_test::kRbtqPosFbToRad;
   using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
 
-  const int32_t fl_val = 100;
-  const int32_t fr_val = 200;
-  const int32_t rl_val = 300;
-  const int32_t rr_val = 400;
+  const std::int32_t fl_val = 100;
+  const std::int32_t fr_val = 200;
+  const std::int32_t rl_val = 300;
+  const std::int32_t rr_val = 400;
 
   pth_test_.GetRoboteqMock()->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_val);
   pth_test_.GetRoboteqMock()->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_val);
@@ -394,14 +395,14 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 {
   using hardware_interface::LoanedStateInterface;
 
-  const int16_t f_temp = 30;
-  const int16_t r_temp = 32;
-  const uint16_t f_volt = 400;
-  const uint16_t r_volt = 430;
-  const int16_t f_bat_amps_1 = 10;
-  const int16_t r_bat_amps_1 = 30;
-  const int16_t f_bat_amps_2 = 30;
-  const int16_t r_bat_amps_2 = 40;
+  const std::int16_t f_temp = 30;
+  const std::int16_t r_temp = 32;
+  const std::uint16_t f_volt = 400;
+  const std::uint16_t r_volt = 430;
+  const std::int16_t f_bat_amps_1 = 10;
+  const std::int16_t r_bat_amps_1 = 30;
+  const std::int16_t f_bat_amps_2 = 30;
+  const std::int16_t r_bat_amps_2 = 40;
 
   pth_test_.GetRoboteqMock()->front_driver_->SetTemperature(f_temp);
   pth_test_.GetRoboteqMock()->rear_driver_->SetTemperature(r_temp);
@@ -446,14 +447,16 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 
   ASSERT_TRUE(state_msg);
 
-  ASSERT_EQ(static_cast<int16_t>(state_msg->front.temperature), f_temp);
-  ASSERT_EQ(static_cast<int16_t>(state_msg->rear.temperature), r_temp);
+  ASSERT_EQ(static_cast<std::int16_t>(state_msg->front.temperature), f_temp);
+  ASSERT_EQ(static_cast<std::int16_t>(state_msg->rear.temperature), r_temp);
 
-  ASSERT_EQ(static_cast<uint16_t>(state_msg->front.voltage * 10.0), f_volt);
-  ASSERT_EQ(static_cast<uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
+  ASSERT_EQ(static_cast<std::uint16_t>(state_msg->front.voltage * 10.0), f_volt);
+  ASSERT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
-  ASSERT_EQ(static_cast<int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
-  ASSERT_EQ(static_cast<int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
+  ASSERT_EQ(
+    static_cast<std::int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+  ASSERT_EQ(
+    static_cast<std::int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
 
   pth_test_.ShutdownPantherSystem();
 }
@@ -567,8 +570,8 @@ TEST(TestPantherSystemOthers, test_error_state)
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  pth_test_.GetRoboteqMock()->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 50000);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 50000);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 50000);
 
   auto TIME = rclcpp::Time(0, 0, RCL_ROS_TIME);
   const auto PERIOD = rclcpp::Duration::from_seconds(period_);
@@ -640,16 +643,16 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 
     ASSERT_EQ(
       pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-      static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
+      static_cast<std::int32_t>(fl_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
       pth_test_.GetRoboteqMock()->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-      static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
+      static_cast<std::int32_t>(fr_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
       pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-      static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
+      static_cast<std::int32_t>(rl_v * kRadPerSecToRbtqCmd));
     ASSERT_EQ(
       pth_test_.GetRoboteqMock()->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-      static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
+      static_cast<std::int32_t>(rr_v * kRadPerSecToRbtqCmd));
   }
 
   pth_test_.ShutdownPantherSystem();
@@ -702,7 +705,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   state_msg.reset();
 
   // More than sdo_operation_wait_timeout_
-  pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 4500);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 4500);
   pth_test_.GetResourceManager()->write(TIME, PERIOD);
 
   std::this_thread::sleep_for(PERIOD.to_chrono<std::chrono::milliseconds>());
@@ -772,14 +775,14 @@ TEST(TestPantherSystemOthers, sdo_read_timeout_test)
   state_msg.reset();
 
   // More than sdo_operation_wait_timeout_
-  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
-  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
-  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
-  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<int8_t>(0x210F, 1, 5001);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 5001);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<int16_t>(0x210C, 1, 5001);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<int16_t>(0x210C, 2, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::int8_t>(0x210F, 1, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::uint16_t>(0x210D, 2, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::int16_t>(0x210C, 1, 5001);
+  pth_test_.GetRoboteqMock()->front_driver_->SetOnReadWait<std::int16_t>(0x210C, 2, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<std::int8_t>(0x210F, 1, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<std::uint16_t>(0x210D, 2, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<std::int16_t>(0x210C, 1, 5001);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetOnReadWait<std::int16_t>(0x210C, 2, 5001);
 
   pth_test_.GetResourceManager()->write(TIME, PERIOD);
 

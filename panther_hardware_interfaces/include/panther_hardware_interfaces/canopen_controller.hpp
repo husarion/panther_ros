@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 
 #include <condition_variable>
+#include <cstdint>
 #include <thread>
 
 #include <lely/coapp/fiber_driver.hpp>
@@ -34,9 +35,9 @@ namespace panther_hardware_interfaces
 
 struct CanOpenSettings
 {
-  uint8_t master_can_id;
-  uint8_t front_driver_can_id;
-  uint8_t rear_driver_can_id;
+  std::uint8_t master_can_id;
+  std::uint8_t front_driver_can_id;
+  std::uint8_t rear_driver_can_id;
   std::chrono::milliseconds pdo_feedback_timeout;
   std::chrono::milliseconds sdo_operation_timeout;
 };
