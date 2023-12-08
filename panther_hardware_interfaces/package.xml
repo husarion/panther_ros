@@ -17,7 +17,9 @@
 
   <depend>controller_interface</depend>
   <depend>hardware_interface</depend>
+  <depend>libgpiod-dev</depend>
   <depend>panther_msgs</depend>
+  <depend>panther_utils</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>realtime_tools</depend>
