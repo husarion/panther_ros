@@ -55,8 +55,8 @@ void BatteryNode::Initialize()
     try {
       InitializeWithADCBattery();
       return;
-    } catch (std::runtime_error & err) {
-      RCLCPP_WARN(this->get_logger(), "Failed to initialize ADC Battery: %s", err.what());
+    } catch (const std::runtime_error & e) {
+      RCLCPP_WARN(this->get_logger(), "Failed to initialize ADC Battery: %s", e.what());
       RCLCPP_INFO(this->get_logger(), "Using Roboteq drivers to publish battery data.");
     }
   }

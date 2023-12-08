@@ -148,9 +148,9 @@ void DriverNode::SetBrightnessCB(
   try {
     front_panel_.SetGlobalBrightness(brightness);
     rear_panel_.SetGlobalBrightness(brightness);
-  } catch (const std::out_of_range & err) {
+  } catch (const std::out_of_range & e) {
     res->success = false;
-    res->message = "Failed to set brightness: " + std::string(err.what());
+    res->message = "Failed to set brightness: " + std::string(e.what());
     return;
   }
 
