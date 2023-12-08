@@ -105,7 +105,7 @@ void CanOpenController::InitializeCanCommunication()
   chan_->open(*ctrl_);
 
   // Master dcf is generated from roboteq_motor_controllers_v80_21 using following command:
-  // dcfgen panther_can.yaml -r
+  // dcfgen canopen_configuration.yaml -r
   // dcfgen comes with lely, -r option tells to enable remote PDO mapping
   std::string master_dcf_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                   "panther_hardware_interfaces")) /

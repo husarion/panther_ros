@@ -24,9 +24,9 @@ Physical properties
  - `gearbox_efficiency` [*float*, default: 0.75] - measured efficiency, used for converting read current to torque, can vary depending on different factors such as temperature and wear
 
 CAN settings
- - `master_can_id` [*int*, default: 3] - CAN ID of the master device (set as in `panther_can.yaml`)
- - `front_driver_can_id` [*int*, default: 1] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
- - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `panther_can.yaml`)
+ - `master_can_id` [*int*, default: 3] - CAN ID of the master device (set as in `canopen_configuration.yaml`)
+ - `front_driver_can_id` [*int*, default: 1] - CAN ID defined in the properties of Roboteq (set as in `canopen_configuration.yaml`)
+ - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `canopen_configuration.yaml`)
  - `sdo_operation_timeout` [*int*, default: 4 [ms]] - it is set so that the full controller loop takes up to the required time. Each controller loop contains five SDO operations (four writes and one read). For example, in a 100Hz loop, there is up to 10ms for all operations. This timeout should be set so that in the worst case everything takes 10ms.
  - `pdo_feedback_timeout` [*int*, default: 15 [ms]]  - depends on the frequency at which Roboteq is configured to send PDO data. At 100Hz there should be 10ms between received data if it takes more than `pdo_feedback_timeout`, a PDO read error is triggered
  - `max_roboteq_initialization_attempts` [*int*, default: 5] - in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to general error
@@ -47,7 +47,7 @@ The code structure is described in more detail in a [separate file](./CODE_STRUC
 ## Generating CAN config
 
 Adjust your configuration and generate a new `master.dcf` using:
-`dcfgen panther_can.yaml -r`
+`dcfgen canopen_configuration.yaml -r`
 
 ## Setup
 
@@ -114,5 +114,5 @@ As some of the tests are accessing the virtual CAN interface, they can't be exec
 
 ### Updating config
 Copy eds file to config and run
-`dcfgen panther_can.yaml -r`
+`dcfgen canopen_configuration.yaml -r`
 Remove master.dcf
