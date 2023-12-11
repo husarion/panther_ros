@@ -262,7 +262,8 @@ T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subin
 }
 
 template <typename T>
-void RoboteqDriver::SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, T data)
+void RoboteqDriver::SyncSdoWrite(
+  const std::uint16_t index, const std::uint8_t subindex, const T data)
 {
   std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
   if (!sdo_write_lck.try_lock()) {

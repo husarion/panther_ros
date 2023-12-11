@@ -157,7 +157,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, T data);
+  void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
   void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
   void OnRpdoWrite(std::uint16_t idx, std::uint8_t subidx) noexcept override;
