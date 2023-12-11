@@ -120,8 +120,8 @@ public:
 protected:
   const std::vector<std::string> flag_names_;
 
-  std::uint8_t surpressed_flags_ = 0b00000000;
-  std::uint8_t flags_ = 0b00000000;
+  std::uint8_t surpressed_flags_ = 0;
+  std::uint8_t flags_ = 0;
 };
 
 class FaultFlag : public FlagError
