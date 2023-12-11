@@ -52,13 +52,13 @@ bool OperationWithAttempts(
   const std::function<void()> operation, const unsigned max_attempts,
   const std::function<void()> on_error)
 {
-  for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
+  for (unsigned i = 0; i < max_attempts; ++i) {
     try {
       operation();
       return true;
     } catch (const std::runtime_error & e) {
-      std::cerr << "Operation failed: " << e.what() << ". Attempt " << attempts_counter + 1
-                << " of " << max_attempts << std::endl;
+      std::cerr << "Operation failed: " << e.what() << ". Attempt " << i + 1 << " of "
+                << max_attempts << std::endl;
       try {
         on_error();
       } catch (const std::runtime_error & on_error_e) {
