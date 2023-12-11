@@ -51,11 +51,11 @@ public:
 private:
   inline std::int32_t LimitCmd(const std::int32_t cmd) const
   {
-    return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
+    return std::clamp(cmd, -kMaxRoboteqCmdValue, kMaxRoboteqCmdValue);
   }
 
   float radians_per_second_to_roboteq_cmd_;
-  static constexpr std::int32_t max_roboteq_cmd_value_ = 1000;
+  static constexpr std::int32_t kMaxRoboteqCmdValue = 1000;
 };
 
 /**
