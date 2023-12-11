@@ -86,16 +86,16 @@ protected:
   // In torque mode sometimes after killing the software motor moves and it generally isn't well
   // tuned. Position mode also isn't really stable (reacts abruptly to spikes). If updating the
   // firmware to 2.1a will solve these issues, it may be worth to enable other modes.
-  double hw_commands_velocities_[kJointsSize];
+  std::array<double, kJointsSize> hw_commands_velocities_;
 
-  double hw_states_positions_[kJointsSize];
-  double hw_states_velocities_[kJointsSize];
-  double hw_states_efforts_[kJointsSize];
+  std::array<double, kJointsSize> hw_states_positions_;
+  std::array<double, kJointsSize> hw_states_velocities_;
+  std::array<double, kJointsSize> hw_states_efforts_;
 
   // Define expected joint order, so that it doesn't matter what order is defined in the URDF.
   // It is expected that the joint name should contain these specifiers.
-  std::string joint_order_[kJointsSize] = {"fl", "fr", "rl", "rr"};
-  std::string joints_names_sorted_[kJointsSize];
+  static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
+  std::array<std::string, kJointsSize> joints_names_sorted_;
 
   std::unique_ptr<GPIOController> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;

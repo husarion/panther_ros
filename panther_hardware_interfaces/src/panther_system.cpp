@@ -66,12 +66,11 @@ void PantherSystem::SetInitialValues()
   // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it
   // shouldn't). In case of velocity, I think that setting the initial value to 0.0 is the best
   // option.
-  for (std::size_t i = 0; i < kJointsSize; i++) {
-    hw_commands_velocities_[i] = 0.0;
-    hw_states_positions_[i] = std::numeric_limits<double>::quiet_NaN();
-    hw_states_velocities_[i] = std::numeric_limits<double>::quiet_NaN();
-    hw_states_efforts_[i] = std::numeric_limits<double>::quiet_NaN();
-  }
+  hw_commands_velocities_.fill(0.0);
+
+  hw_states_positions_.fill(std::numeric_limits<double>::quiet_NaN());
+  hw_states_velocities_.fill(std::numeric_limits<double>::quiet_NaN());
+  hw_states_efforts_.fill(std::numeric_limits<double>::quiet_NaN());
 }
 
 void PantherSystem::CheckInterfaces() const
@@ -239,12 +238,10 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Activating");
 
-  for (std::size_t i = 0; i < kJointsSize; i++) {
-    hw_commands_velocities_[i] = 0.0;
-    hw_states_positions_[i] = 0.0;
-    hw_states_velocities_[i] = 0.0;
-    hw_states_efforts_[i] = 0.0;
-  }
+  hw_commands_velocities_.fill(0.0);
+  hw_states_positions_.fill(0.0);
+  hw_states_velocities_.fill(0.0);
+  hw_states_efforts_.fill(0.0);
 
   // gpio_controller_->start();
 
