@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 
+#include <bitset>
 #include <cstdint>
 #include <vector>
 
@@ -105,7 +106,7 @@ public:
     for (size_t i = 0; i < surpressed_flags_names.size(); ++i) {
       for (size_t j = 0; j < flag_names_.size(); ++j) {
         if (surpressed_flags_names[i] == flag_names_[j]) {
-          surpressed_flags_ = SetBit(surpressed_flags_, j);
+          surpressed_flags_.set(j);
         }
       }
     }
@@ -113,15 +114,15 @@ public:
 
   void SetData(const std::uint8_t flags) { flags_ = flags; }
 
-  bool IsError() const { return (flags_ & (~surpressed_flags_)) != 0; }
+  bool IsError() const { return (flags_ & (~surpressed_flags_)).any(); }
 
   std::string GetErrorLog() const;
 
 protected:
   const std::vector<std::string> flag_names_;
 
-  std::uint8_t surpressed_flags_ = 0;
-  std::uint8_t flags_ = 0;
+  std::bitset<8> surpressed_flags_ = 0;
+  std::bitset<8> flags_ = 0;
 };
 
 class FaultFlag : public FlagError

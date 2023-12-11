@@ -15,7 +15,6 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 
-#include <cstdint>
 #include <functional>
 #include <stdexcept>
 #include <string>
@@ -36,18 +35,6 @@ std::uint8_t GetByte(const T data, const unsigned byte_no)
   }
   return (data >> (byte_no * 8)) & 0xFF;
 }
-
-/**
- * @brief Check if bit bit_no is set (bit_no has to be in [0;7] range)
- * @exception std::runtime_error if bit_no is out of range
- */
-bool IsBitSet(std::uint8_t data, std::uint8_t bit_no);
-
-/**
- * @brief Set bit_no (bit_no has to be in [0;7] range)
- * @exception std::runtime_error if bit_no is out of range
- */
-std::uint8_t SetBit(std::uint8_t data, std::uint8_t bit_no);
 
 /**
  * @brief Attempts to run operation for max_attempts number of times.

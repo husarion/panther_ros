@@ -14,30 +14,11 @@
 
 #include <panther_hardware_interfaces/utils.hpp>
 
-#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 
 namespace panther_hardware_interfaces
 {
-
-bool IsBitSet(std::uint8_t data, std::uint8_t bit_no)
-{
-  if (bit_no > 7) {
-    throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
-  }
-
-  return data & (0b00000001 << bit_no);
-}
-
-std::uint8_t SetBit(std::uint8_t data, std::uint8_t bit_no)
-{
-  if (bit_no > 7) {
-    throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
-  }
-
-  return data | (0b00000001 << bit_no);
-}
 
 bool OperationWithAttempts(
   const std::function<void()> operation, const unsigned max_attempts,
