@@ -70,12 +70,9 @@ public:
 
   bool IsError() const
   {
-    for (const auto & filter : error_filters_) {
-      if (filter.IsError()) {
-        return true;
-      }
-    }
-    return false;
+    return std::any_of(error_filters_.begin(), error_filters_.end(), [](const auto & filter) {
+      return filter.IsError();
+    });
   };
 
   bool IsError(const std::size_t id) const { return error_filters_[id].IsError(); };
@@ -100,9 +97,8 @@ private:
   void ClearErrorsIfFlagSet()
   {
     if (clear_errors_) {
-      std::for_each(error_filters_.begin(), error_filters_.end(), [](ErrorFilter & filter) {
-        filter.ClearError();
-      });
+      std::for_each(
+        error_filters_.begin(), error_filters_.end(), [](auto & filter) { filter.ClearError(); });
       clear_errors_.store(false);
     }
   }
