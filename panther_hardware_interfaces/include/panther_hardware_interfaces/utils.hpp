@@ -17,15 +17,25 @@
 
 #include <cstdint>
 #include <functional>
+#include <stdexcept>
+#include <string>
 
 namespace panther_hardware_interfaces
 {
 
 /**
- * @brief Get byte byte_no from data (byte_no has to be in [0;3] range)
+ * @brief Get byte byte_no from data (byte_no has to be in [0;sizeof(T)] range)
  * @exception std::runtime_error if byte_no is out of range
  */
-std::uint8_t GetByte(std::uint32_t data, std::uint8_t byte_no);
+template <typename T>
+std::uint8_t GetByte(const T data, const unsigned byte_no)
+{
+  if (byte_no >= sizeof(T)) {
+    throw std::runtime_error(
+      "byte_no out of range, allowed values: [0," + std::to_string(sizeof(T)) + "].");
+  }
+  return (data >> (byte_no * 8)) & 0xFF;
+}
 
 /**
  * @brief Check if bit bit_no is set (bit_no has to be in [0;7] range)

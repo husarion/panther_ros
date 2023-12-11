@@ -21,15 +21,6 @@
 namespace panther_hardware_interfaces
 {
 
-std::uint8_t GetByte(std::uint32_t data, std::uint8_t byte_no)
-{
-  if (byte_no > 3) {
-    throw std::runtime_error("byte_no out of range, allowed values: [0;3]");
-  }
-
-  return (data >> (byte_no * 8)) & 0xFF;
-}
-
 bool IsBitSet(std::uint8_t data, std::uint8_t bit_no)
 {
   if (bit_no > 7) {

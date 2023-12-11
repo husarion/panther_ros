@@ -111,11 +111,11 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   fb.motor_1.current = rpdo_mapped[0x2106][5];
   fb.motor_2.current = rpdo_mapped[0x2106][6];
 
-  fb.fault_flags = GetByte(rpdo_mapped[0x2106][7], 0);
-  fb.script_flags = GetByte(rpdo_mapped[0x2106][7], 2);
+  fb.fault_flags = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][7]), 0);
+  fb.script_flags = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][7]), 2);
 
-  fb.runtime_stat_flag_motor_1 = GetByte(rpdo_mapped[0x2106][8], 0);
-  fb.runtime_stat_flag_motor_2 = GetByte(rpdo_mapped[0x2106][8], 1);
+  fb.runtime_stat_flag_motor_1 = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][8]), 0);
+  fb.runtime_stat_flag_motor_2 = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][8]), 1);
 
   std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
   fb.timestamp = last_rpdo_write_timestamp_;

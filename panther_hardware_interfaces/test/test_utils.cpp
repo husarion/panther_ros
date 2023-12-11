@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -22,18 +23,18 @@ TEST(TestUtils, test_get_byte)
 {
   using panther_hardware_interfaces::GetByte;
 
-  ASSERT_EQ(GetByte(0xFA3B4186, 0), 0x86);
-  ASSERT_EQ(GetByte(0xFA3B4186, 1), 0x41);
-  ASSERT_EQ(GetByte(0xFA3B4186, 2), 0x3B);
-  ASSERT_EQ(GetByte(0xFA3B4186, 3), 0xFA);
+  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 0), 0x86);
+  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 1), 0x41);
+  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 2), 0x3B);
+  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 3), 0xFA);
 }
 
 TEST(TestUtils, test_get_byte_out_of_range)
 {
   using panther_hardware_interfaces::GetByte;
 
-  ASSERT_THROW(GetByte(0xFA3B4186, 4), std::runtime_error);
-  ASSERT_THROW(GetByte(0xFA3B4186, -1), std::runtime_error);
+  ASSERT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), 4), std::runtime_error);
+  ASSERT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), -1), std::runtime_error);
 }
 
 TEST(TestUtils, test_is_bit_set)
