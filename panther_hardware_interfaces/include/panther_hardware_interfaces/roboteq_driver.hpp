@@ -159,9 +159,13 @@ private:
   template <typename T>
   void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
-  void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
-  void OnRpdoWrite(std::uint16_t idx, std::uint8_t subidx) noexcept override;
-  void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
+  void OnBoot(
+    const lely::canopen::NmtState st, const char es, const std::string & what) noexcept override;
+  void OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subidx) noexcept override;
+  void OnCanError(const lely::io::CanError /* error */) noexcept override
+  {
+    can_error_.store(true);
+  }
 
   // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
   // about it while ros2_canopen has the ability to read it, I didn't see any attempts to handle it

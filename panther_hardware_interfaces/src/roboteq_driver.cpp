@@ -322,7 +322,8 @@ void RoboteqDriver::SyncSdoWrite(
   }
 }
 
-void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept
+void RoboteqDriver::OnBoot(
+  const lely::canopen::NmtState st, const char es, const std::string & what) noexcept
 {
   FiberDriver::OnBoot(st, es, what);
 
@@ -337,7 +338,7 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
   }
 }
 
-void RoboteqDriver::OnRpdoWrite(std::uint16_t idx, std::uint8_t subidx) noexcept
+void RoboteqDriver::OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subidx) noexcept
 {
   if (idx == 0x2106 && subidx == 1) {
     std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
