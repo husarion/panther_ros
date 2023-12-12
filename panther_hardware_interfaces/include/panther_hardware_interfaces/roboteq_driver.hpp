@@ -31,7 +31,7 @@ namespace panther_hardware_interfaces
 struct RoboteqMotorState
 {
   int32_t pos;
-  int32_t vel;
+  int16_t vel;
   int16_t current;
 };
 
@@ -54,8 +54,7 @@ struct RoboteqDriverState
   uint16_t battery_voltage;
   int16_t bat_amps_1;
   int16_t bat_amps_2;
-  int16_t channel_1_temp;
-  int16_t channel_2_temp;
+  int16_t heatsink_temp;
 
   timespec timestamp;
 };

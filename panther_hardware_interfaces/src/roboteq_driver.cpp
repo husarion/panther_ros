@@ -70,15 +70,16 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
   // already does locking when accessing rpdo
 
   // TODO: change remapping
-  fb.motor_1.pos = rpdo_mapped[0x2106][1];
-  fb.motor_2.pos = rpdo_mapped[0x2106][2];
+  fb.motor_1.pos = rpdo_mapped[0x2104][1];
+  fb.motor_2.pos = rpdo_mapped[0x2104][2];
 
-  fb.motor_1.vel = rpdo_mapped[0x2106][3];
-  fb.motor_2.vel = rpdo_mapped[0x2106][4];
+  fb.motor_1.vel = rpdo_mapped[0x2107][1];
+  fb.motor_2.vel = rpdo_mapped[0x2107][2];
 
   fb.motor_1.current = rpdo_mapped[0x2100][1];
   fb.motor_2.current = rpdo_mapped[0x2100][2];
 
+  // TODO: change
   fb.fault_flags = GetByte(int32_t(rpdo_mapped[0x2106][7]), 0);
   fb.runtime_stat_flag_motor_1 = GetByte(int32_t(rpdo_mapped[0x2106][7]), 1);
   fb.runtime_stat_flag_motor_2 = GetByte(int32_t(rpdo_mapped[0x2106][7]), 2);
@@ -98,8 +99,7 @@ RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
   state.battery_voltage = rpdo_mapped[0x210D][2];
   state.bat_amps_1 = rpdo_mapped[0x210C][1];
   state.bat_amps_2 = rpdo_mapped[0x210C][2];
-  state.channel_1_temp = rpdo_mapped[0x210F][2];
-  state.channel_2_temp = rpdo_mapped[0x210F][3];
+  state.heatsink_temp = rpdo_mapped[0x210F][2];
 
   std::unique_lock<std::mutex> lck(state_timestamp_mtx_);
   state.timestamp = last_state_write_timestamp_;
@@ -312,7 +312,7 @@ void RoboteqDriver::OnBoot(lely::canopen::NmtState st, char es, const std::strin
 
 void RoboteqDriver::OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept
 {
-  if (idx == 0x2106 && subidx == 1) {
+  if (idx == 0x2104 && subidx == 1) {
     std::unique_lock<std::mutex> lck(feedback_timestamp_mtx_);
     clock_gettime(CLOCK_MONOTONIC, &last_feedback_write_timestamp_);
   } else if (idx == 0x210F && subidx == 1) {
