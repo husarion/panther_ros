@@ -87,10 +87,12 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
   driver_state.front.voltage = front.GetVoltage();
   driver_state.front.current = front.GetCurrent();
   driver_state.front.temperature = front.GetTemperature();
+  driver_state.front.heatsink_temperature = front.GetHeatsinkTemperature();
 
   driver_state.rear.voltage = rear.GetVoltage();
   driver_state.rear.current = rear.GetCurrent();
   driver_state.rear.temperature = rear.GetTemperature();
+  driver_state.rear.heatsink_temperature = rear.GetHeatsinkTemperature();
 }
 
 void PantherSystemRosInterface::UpdateMsgErrors(const CanErrors & can_errors)

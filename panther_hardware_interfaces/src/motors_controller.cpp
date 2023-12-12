@@ -122,10 +122,13 @@ bool MotorsController::UpdateDriversState()
   const auto rear_state = canopen_controller_.GetRearDriver()->ReadRoboteqDriverState();
 
   front_data_.SetTemperature(front_state.mcu_temp);
+  front_data_.SetHeatsinkTemperature(front_state.heatsink_temp);
   front_data_.SetVoltage(front_state.battery_voltage);
   front_data_.SetBatAmps1(front_state.bat_amps_1);
   front_data_.SetBatAmps2(front_state.bat_amps_2);
+
   rear_data_.SetTemperature(rear_state.mcu_temp);
+  rear_data_.SetHeatsinkTemperature(rear_state.heatsink_temp);
   rear_data_.SetVoltage(rear_state.battery_voltage);
   rear_data_.SetBatAmps1(rear_state.bat_amps_1);
   rear_data_.SetBatAmps2(rear_state.bat_amps_2);

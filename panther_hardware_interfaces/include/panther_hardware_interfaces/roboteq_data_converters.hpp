@@ -178,16 +178,19 @@ public:
   DriverState() {}
 
   void SetTemperature(int16_t temp) { last_temp_ = temp; };
+  void SetHeatsinkTemperature(int16_t temp) { last_heatsink_temp = temp; };
   void SetVoltage(uint16_t voltage) { last_voltage_ = voltage; };
   void SetBatAmps1(int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
   void SetBatAmps2(int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
 
   float GetTemperature() const { return last_temp_; }
+  float GetHeatsinkTemperature() const { return last_heatsink_temp; }
   float GetVoltage() const { return last_voltage_ / 10.0; }
   float GetCurrent() const { return (last_bat_amps_1_ + last_bat_amps_2_) / 10.0; }
 
 private:
   int16_t last_temp_ = 0;
+  int16_t last_heatsink_temp = 0;
   uint16_t last_voltage_ = 0;
   int16_t last_bat_amps_1_ = 0;
   int16_t last_bat_amps_2_ = 0;
@@ -225,6 +228,7 @@ public:
   }
 
   void SetTemperature(int16_t temp) { driver_state_.SetTemperature(temp); };
+  void SetHeatsinkTemperature(int16_t temp) { driver_state_.SetHeatsinkTemperature(temp); };
   void SetVoltage(uint16_t voltage) { driver_state_.SetVoltage(voltage); };
   void SetBatAmps1(int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
   void SetBatAmps2(int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
