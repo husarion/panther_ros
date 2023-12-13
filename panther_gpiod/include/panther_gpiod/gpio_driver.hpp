@@ -62,6 +62,7 @@ enum class GPIOPin {
   STAGE2_INPUT,
   VDIG_OFF,
   VMOT_ON,
+  MOTOR_ON,
   WATCHDOG
 };
 
@@ -172,6 +173,14 @@ public:
   void ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction);
 
   /**
+   * @brief Returns true if a specific pin is configured and stored in GPIO info storage
+   *
+   * @param pin The GPIO pin to check availability for
+   * @return true if the pin is available, false otherwise
+   */
+  bool IsPinAvaible(const GPIOPin pin) const;
+
+  /**
    * @brief Checks if a specific GPIO pin is active. This method returns the value stored in the
    * class read during the last edge event.
    *
@@ -247,7 +256,7 @@ private:
     {GPIOPin::SHDN_INIT, "SHDN_INIT"},
     {GPIOPin::VDIG_OFF, "VDIG_OFF"},
     {GPIOPin::VMOT_ON, "VMOT_ON"},
-  };
+    {GPIOPin::MOTOR_ON, "MOTOR_ON"}};
 
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.

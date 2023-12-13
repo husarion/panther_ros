@@ -28,7 +28,7 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
-#include <panther_hardware_interfaces/gpio_driver.hpp>
+#include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 #include <panther_hardware_interfaces/roboteq_error_filter.hpp>
@@ -97,7 +97,7 @@ protected:
   static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
   std::array<std::string, kJointsSize> joints_names_sorted_;
 
-  std::unique_ptr<GPIOController> gpio_controller_;
+  std::unique_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
