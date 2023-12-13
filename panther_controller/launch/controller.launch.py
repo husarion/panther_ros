@@ -49,6 +49,7 @@ def generate_launch_description():
         description="Path to controller configuration file.",
     )
 
+    # TODO: find some better solution than default to empty string
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -56,7 +57,7 @@ def generate_launch_description():
             "Path to the Ignition LinearBatteryPlugin configuration file. "
             "This configuration is intended for use in simulations only."
         ),
-        condition=IfCondition(use_sim),
+        default_value="",
     )
 
     simulation_engine = LaunchConfiguration("simulation_engine")
@@ -171,7 +172,8 @@ def generate_launch_description():
         event_handler=OnProcessExit(
             target_action=robot_controller_spawner,
             on_exit=[imu_broadcaster_spawner],
-        )
+        ),
+        condition=IfCondition(use_sim),
     )
 
     actions = [
