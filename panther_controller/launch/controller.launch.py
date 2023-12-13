@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.conditions import IfCondition, UnlessCondition
@@ -99,6 +101,18 @@ def generate_launch_description():
             controller_config_path,
             " battery_config_file:=",
             battery_config_path,
+            " imu_pos_x:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_X", "0.168"),
+            " imu_pos_y:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_Y", "0.028"),
+            " imu_pos_z:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_Z", "0.083"),
+            " imu_rot_r:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_R", "3.14"),
+            " imu_rot_p:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
+            " imu_rot_y:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
         ]
     )
     robot_description = {"robot_description": robot_description_content}

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>panther_bringup</name>
+  <name>panther_gpiod</name>
   <version>0.0.1</version>
-  <description>Default launch files and configuration used to start Husarion Panther robot</description>
+  <description>libgpiod wrapper for Panther</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 
@@ -15,12 +15,15 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>imu_filter_madgwick</exec_depend>
-  <exec_depend>launch</exec_depend>
-  <exec_depend>launch_ros</exec_depend>
-  <exec_depend>panther_controller</exec_depend>
-  <exec_depend>phidgets_spatial</exec_depend>
-  <exec_depend>robot_localization</exec_depend>
+  <depend>realtime_tools</depend>
+
+  <build_depend>autoconf</build_depend>
+  <build_depend>autoconf-archive</build_depend>
+  <build_depend>libtool</build_depend>
+  <build_depend>m4</build_depend>
+  <build_depend>pkg-config</build_depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

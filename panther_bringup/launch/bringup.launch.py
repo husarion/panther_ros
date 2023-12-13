@@ -17,6 +17,7 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
@@ -130,6 +131,24 @@ def generate_launch_description():
         }.items(),
     )
 
+    imu_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    get_package_share_directory("panther_bringup"),
+                    "launch",
+                    "imu.launch.py",
+                ]
+            )
+        ),
+        launch_arguments={
+            "imu_config_file": PathJoinSubstitution(
+                [get_package_share_directory("panther_bringup"), "config", "imu.yaml"]
+            ),
+        }.items(),
+        condition=UnlessCondition(use_sim),
+    )
+
     robot_localization_node = Node(
         package="robot_localization",
         executable="ekf_node",
@@ -152,6 +171,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
+        imu_launch,
         robot_localization_node,
     ]
 
