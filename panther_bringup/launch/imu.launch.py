@@ -30,6 +30,7 @@ def generate_launch_description():
 
     imu_container = ComposableNodeContainer(
         name="imu_container",
+        namespace="",
         package="rclcpp_components",
         executable="component_container",
         composable_node_descriptions=[
