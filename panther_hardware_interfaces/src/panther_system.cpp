@@ -201,11 +201,14 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Configuring");
+  RCLCPP_INFO(logger_, "GPIO");
+
+  // TODO - support other pth versions
+  gpio_controller_ = std::make_unique<GPIOControllerPTH12X>();
+  gpio_controller_->Start();
+  gpio_controller_->MotorsEnable(true);
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
-
-  // Waiting for the final GPIO implementation, the current one doesn't work due to permission
-  // issues gpio_controller_ = std::make_unique<GPIOController>();
 
   panther_system_ros_interface_.Initialize();
 
@@ -243,8 +246,6 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   hw_states_velocities_.fill(0.0);
   hw_states_efforts_.fill(0.0);
 
-  // gpio_controller_->start();
-
   RCLCPP_INFO(logger_, "Activating Roboteq drivers");
 
   if (!OperationWithAttempts(
@@ -256,6 +257,8 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_.Activate(
     std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
+
+  gpio_controller_->EStopReset();
 
   RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;
