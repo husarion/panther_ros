@@ -69,6 +69,7 @@ protected:
   void CheckJointNames() const;
   void SetInitialValues();
   void CheckInterfaces() const;
+  void ReadPantherVersion();
   void ReadDrivetrainSettings();
   void ReadCanOpenSettings();
   void ReadInitializationActivationAttempts();
@@ -124,6 +125,8 @@ protected:
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
   enum class ErrorsFilterIds { READ_SDO = 0, WRITE_SDO = 1, READ_PDO = 2, ROBOTEQ_DRIVER = 3 };
+
+  float panther_version_;
 };
 
 }  // namespace panther_hardware_interfaces

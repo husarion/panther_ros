@@ -32,6 +32,11 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    panther_version = LaunchConfiguration("panther_version")
+    declare_panther_version_arg = DeclareLaunchArgument(
+        "panther_version",
+    )
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -91,6 +96,8 @@ def generate_launch_description():
                     "panther.urdf.xacro",
                 ]
             ),
+            " panther_version:=",
+            panther_version,
             " use_sim:=",
             use_sim,
             " simulation_engine:=",
@@ -191,6 +198,7 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_panther_version_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,
