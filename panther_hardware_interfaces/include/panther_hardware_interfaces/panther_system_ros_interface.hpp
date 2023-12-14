@@ -23,6 +23,7 @@
 
 #include <realtime_tools/realtime_publisher.h>
 
+#include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
@@ -131,8 +132,14 @@ public:
   void UpdateMsgErrors(const CanErrors & can_errors);
 
   void PublishDriverState();
-  void UpdateIOStateMsg(std::shared_ptr<GPIOControllerInterface> gpio_controller);
+
   void PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info);
+
+  void InitializeAndPublishIOStateMsg(std::shared_ptr<GPIOControllerInterface> gpio_controller);
+
+  void InitializeAndPublishEstopStateMsg(const bool estop);
+
+  void PublishEstopStateIfChanged(const bool estop);
 
 private:
   void ClearErrorsCb(
@@ -148,9 +155,14 @@ private:
   rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_;
+
   rclcpp::Publisher<panther_msgs::msg::IOState>::SharedPtr io_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>
     realtime_io_state_publisher_;
+
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr estop_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>
+    realtime_estop_state_publisher_;
 
   std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
   std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;

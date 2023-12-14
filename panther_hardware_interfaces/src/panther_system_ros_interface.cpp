@@ -75,10 +75,16 @@ void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
       driver_state_publisher_);
 
   io_state_publisher_ = node_->create_publisher<panther_msgs::msg::IOState>(
-    "~/io_state", rclcpp::SensorDataQoS());
+    "~/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   realtime_io_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>(
       io_state_publisher_);
+
+  estop_state_publisher_ = node_->create_publisher<std_msgs::msg::Bool>(
+    "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  realtime_estop_state_publisher_ =
+    std::make_unique<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>(
+      estop_state_publisher_);
 
   clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
     "~/clear_errors", std::bind(
@@ -92,6 +98,8 @@ void PantherSystemRosInterface::Deactivate()
   driver_state_publisher_.reset();
   realtime_io_state_publisher_.reset();
   io_state_publisher_.reset();
+  realtime_estop_state_publisher_.reset();
+  estop_state_publisher_.reset();
   clear_errors_srv_.reset();
 }
 
@@ -184,7 +192,25 @@ void PantherSystemRosInterface::PublishDriverState()
   }
 }
 
-void PantherSystemRosInterface::UpdateIOStateMsg(
+void PantherSystemRosInterface::InitializeAndPublishEstopStateMsg(const bool estop)
+{
+  realtime_estop_state_publisher_->msg_.data = estop;
+  if (realtime_estop_state_publisher_->trylock()) {
+    realtime_estop_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::PublishEstopStateIfChanged(const bool estop)
+{
+  if (realtime_estop_state_publisher_->msg_.data != estop) {
+    realtime_estop_state_publisher_->msg_.data = estop;
+    if (realtime_estop_state_publisher_->trylock()) {
+      realtime_estop_state_publisher_->unlockAndPublish();
+    }
+  }
+}
+
+void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
   std::shared_ptr<GPIOControllerInterface> gpio_controller)
 {
   auto & io_state = realtime_io_state_publisher_->msg_;
@@ -202,6 +228,10 @@ void PantherSystemRosInterface::UpdateIOStateMsg(
     io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VMOT_ON);
   } else {
     io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::MOTOR_ON);
+  }
+
+  if (realtime_io_state_publisher_->trylock()) {
+    realtime_io_state_publisher_->unlockAndPublish();
   }
 }
 
