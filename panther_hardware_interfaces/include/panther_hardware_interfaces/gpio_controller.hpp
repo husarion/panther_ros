@@ -26,7 +26,7 @@
 #include <thread>
 #include <vector>
 
-#include "gpiod.hpp"
+#include <gpiod.hpp>
 
 #include "panther_gpiod/gpio_driver.hpp"
 
@@ -86,6 +86,7 @@ public:
   virtual bool FanEnable(const bool enable) = 0;
   virtual bool AUXEnable(const bool enable) = 0;
   virtual bool VDIGEnable(const bool enable) = 0;
+  virtual bool ChargerEnable(const bool enable) = 0;
   virtual bool EStopTrigger() = 0;
   virtual bool EStopReset() = 0;
 
@@ -113,6 +114,10 @@ public:
    */
   void ConfigureGpioStateCallback(
     const std::function<void(const panther_gpiod::GPIOInfo &)> & callback);
+
+  bool IsPinActive(const panther_gpiod::GPIOPin pin) const;
+
+  bool IsPinAvaible(const panther_gpiod::GPIOPin pin) const;
 
 protected:
   std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver_;
@@ -178,6 +183,8 @@ public:
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
    */
   bool VDIGEnable(const bool enable) override;
+
+  bool ChargerEnable(const bool enable) override;
 
 private:
   /**
@@ -248,7 +255,7 @@ public:
    * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool FanEnable(const bool enable) override;
+  bool FanEnable(const bool /* enable */) override;
 
   /**
    * @brief Placeholder method indicating lack of support for controlling AUX in this robot
@@ -258,7 +265,7 @@ public:
    * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool AUXEnable(const bool enable) override;
+  bool AUXEnable(const bool /* enable */) override;
 
   /**
    * @brief Placeholder method indicating lack of support for controlling Digital Power in this
@@ -268,7 +275,9 @@ public:
    * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool VDIGEnable(const bool enable) override;
+  bool VDIGEnable(const bool /* enable */) override;
+
+  bool ChargerEnable(const bool /* enable */) override;
 
 private:
   /**

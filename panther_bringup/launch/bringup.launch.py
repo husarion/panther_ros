@@ -20,6 +20,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
+    EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
@@ -28,6 +29,8 @@ from launch_ros.actions import Node, SetParameter
 
 
 def generate_launch_description():
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -138,6 +141,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
+            "panther_version": panther_version,
             "wheel_type": wheel_type,
             "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
