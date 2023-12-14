@@ -119,6 +119,11 @@ void PantherSystem::CheckInterfaces() const
   }
 }
 
+void PantherSystem::ReadPantherVersion()
+{
+  panther_version_ = std::stof(info_.hardware_parameters["panther_version"]);
+}
+
 void PantherSystem::ReadDrivetrainSettings()
 {
   drivetrain_settings_.motor_torque_constant =
@@ -188,6 +193,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   }
 
   try {
+    ReadPantherVersion();
     ReadDrivetrainSettings();
     ReadCanOpenSettings();
     ReadInitializationActivationAttempts();
@@ -204,10 +210,14 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Configuring");
-  RCLCPP_INFO(logger_, "GPIO");
 
-  // TODO - support other pth versions
-  gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
+  RCLCPP_INFO_STREAM(logger_, "Creating GPIO controller for Panther version: " << panther_version_);
+  if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
+    gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
+  } else {
+    gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
+  }
+
   gpio_controller_->Start();
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
