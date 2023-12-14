@@ -127,6 +127,12 @@ protected:
   enum class ErrorsFilterIds { READ_SDO = 0, WRITE_SDO = 1, READ_PDO = 2, ROBOTEQ_DRIVER = 3 };
 
   float panther_version_;
+
+  bool estop_ = false;
+
+  void SetEStop();
+  void ResetEStop();
+  bool ReadEStop();
 };
 
 }  // namespace panther_hardware_interfaces
