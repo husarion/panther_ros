@@ -23,6 +23,7 @@ void TriggerServiceWrapper::CallbackWrapper(
 {
   try {
     callback_();
+    response->success = true;
   } catch (const std::exception & err) {
     response->success = false;
     response->message = err.what();
@@ -39,6 +40,7 @@ void SetBoolServiceWrapper::CallbackWrapper(
 {
   try {
     callback_(request->data);
+    response->success = true;
   } catch (const std::exception & err) {
     response->success = false;
     response->message = err.what();
@@ -103,7 +105,7 @@ void PantherSystemRosInterface::Deinitialize()
   node_.reset();
 }
 
-void PantherSystemRosInterface::AddService(
+void PantherSystemRosInterface::AddTriggerService(
   const std::string service_name, const std::function<void()> & callback)
 {
   auto wrapper = std::make_shared<TriggerServiceWrapper>(callback);
@@ -116,7 +118,7 @@ void PantherSystemRosInterface::AddService(
   trigger_wrappers_.push_back(wrapper);
 }
 
-void PantherSystemRosInterface::AddService(
+void PantherSystemRosInterface::AddSetBoolService(
   const std::string service_name, const std::function<void(const bool)> & callback)
 {
   auto wrapper = std::make_shared<SetBoolServiceWrapper>(callback);

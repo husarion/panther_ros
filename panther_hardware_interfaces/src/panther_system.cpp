@@ -278,24 +278,26 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   gpio_controller_->EStopReset();
 
-  panther_system_ros_interface_.AddService(
+  panther_system_ros_interface_.AddSetBoolService(
     "~/motor_power_enable",
     std::bind(&GPIOControllerInterface::MotorsEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_.AddService(
+  panther_system_ros_interface_.AddSetBoolService(
     "~/fan_enable",
     std::bind(&GPIOControllerInterface::FanEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_.AddService(
+  panther_system_ros_interface_.AddSetBoolService(
     "~/aux_power_enable",
     std::bind(&GPIOControllerInterface::AUXEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_.AddService(
+  panther_system_ros_interface_.AddSetBoolService(
     "~/digital_power_enable",
     std::bind(&GPIOControllerInterface::VDIGEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_.AddService(
+  panther_system_ros_interface_.AddSetBoolService(
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
 
-  // panther_system_ros_interface_.AddService("~/e_stop_trigger", EStopTrigger);
-  // panther_system_ros_interface_.AddService("~/e_stop_reset", EstopReset);
+  panther_system_ros_interface_.AddTriggerService(
+    "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this));
+  panther_system_ros_interface_.AddTriggerService(
+    "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
 
   RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;
@@ -474,8 +476,9 @@ return_type PantherSystem::read(
   UpdateSystemFeedback();
   UpdateMsgErrors();
 
-  if (ReadEStop()) {
-    estop_ = true;
+  estop_ = ReadEStop();
+  if (estop_) {
+    RCLCPP_WARN_STREAM_THROTTLE(logger_, steady_clock_, 5000, "EStop active");
   }
 
   panther_system_ros_interface_.PublishDriverState();
@@ -556,6 +559,7 @@ void PantherSystem::UpdateHwStates()
 
 void PantherSystem::SetEStop()
 {
+  RCLCPP_INFO(logger_, "Setting estop");
   bool motors_controller_error = false;
   try {
     motors_controller_->TurnOnSafetyStop();
@@ -582,6 +586,8 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
+  RCLCPP_INFO(logger_, "Resetting estop");
+
   // On side of the motors controller safety stop is reset by sending 0.0 commands
 
   try {
@@ -598,7 +604,8 @@ void PantherSystem::ResetEStop()
 bool PantherSystem::ReadEStop()
 {
   if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    return gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
+    // TODO: it has reversed logic
+    return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
   } else {
     // For older panther versions there is no hardware EStop
     return false;

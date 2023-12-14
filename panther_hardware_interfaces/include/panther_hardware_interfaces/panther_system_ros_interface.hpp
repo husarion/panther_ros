@@ -111,8 +111,9 @@ public:
   /**
    * @brief Adds new service server to node
    */
-  void AddService(const std::string service_name, const std::function<void()> & callback);
-  void AddService(const std::string service_name, const std::function<void(const bool)> & callback);
+  void AddTriggerService(const std::string service_name, const std::function<void()> & callback);
+  void AddSetBoolService(
+    const std::string service_name, const std::function<void(const bool)> & callback);
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
