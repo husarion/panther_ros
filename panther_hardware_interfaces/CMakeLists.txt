@@ -28,7 +28,10 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
+# why? it doesn't work without this line
+include_directories(include ${panther_gpiod_INCLUDE_DIRS})
+
+pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp libgpiod)
 
 add_library(
   ${PROJECT_NAME} SHARED
@@ -140,13 +143,19 @@ if(BUILD_TESTING)
     test/test_panther_system_ros_interface.cpp
     src/panther_system_ros_interface.cpp
     src/roboteq_data_converters.cpp
-    src/utils.cpp)
+    src/utils.cpp
+    src/gpio_controller.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system_ros_interface rclcpp panther_msgs
-    panther_utils realtime_tools std_srvs)
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    rclcpp
+    panther_msgs
+    panther_utils
+    realtime_tools
+    std_srvs
+    panther_gpiod)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp

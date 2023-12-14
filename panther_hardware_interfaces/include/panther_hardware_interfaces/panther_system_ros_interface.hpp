@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -25,7 +26,9 @@
 #include <std_srvs/srv/trigger.hpp>
 
 #include <panther_msgs/msg/driver_state.hpp>
+#include <panther_msgs/msg/io_state.hpp>
 
+#include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces
@@ -90,6 +93,8 @@ public:
   void UpdateMsgErrors(const CanErrors & can_errors);
 
   void PublishDriverState();
+  void UpdateIOStateMsg(std::shared_ptr<GPIOControllerInterface> gpio_controller);
+  void PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info);
 
 private:
   void ClearErrorsCb(
@@ -105,6 +110,9 @@ private:
   rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_;
+  rclcpp::Publisher<panther_msgs::msg::IOState>::SharedPtr io_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>
+    realtime_io_state_publisher_;
 
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;

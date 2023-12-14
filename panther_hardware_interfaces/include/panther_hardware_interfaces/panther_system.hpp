@@ -97,7 +97,7 @@ protected:
   static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
   std::array<std::string, kJointsSize> joints_names_sorted_;
 
-  std::unique_ptr<GPIOControllerInterface> gpio_controller_;
+  std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;

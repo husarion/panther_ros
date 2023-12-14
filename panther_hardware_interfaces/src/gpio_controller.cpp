@@ -92,11 +92,23 @@ void GPIOControllerInterface::ConfigureGpioStateCallback(
   gpio_driver_->ConfigureEdgeEventCallback(callback);
 }
 
+bool GPIOControllerInterface::IsPinActive(const panther_gpiod::GPIOPin pin) const
+{
+  return gpio_driver_->IsPinActive(pin);
+}
+
+bool GPIOControllerInterface::IsPinAvaible(const panther_gpiod::GPIOPin pin) const
+{
+  return gpio_driver_->IsPinAvaible(pin);
+}
+
 void GPIOControllerPTH12X::Start()
 {
   gpio_driver_ = std::make_shared<panther_gpiod::GPIODriver>(gpio_config_info_storage_);
   gpio_driver_->GPIOMonitorEnable(true, 60);
+
   gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::VMOT_ON, true);
+  MotorsEnable(true);
 
   watchdog_ = std::make_unique<Watchdog>(gpio_driver_);
 }
@@ -158,6 +170,13 @@ bool GPIOControllerPTH12X::VDIGEnable(const bool enable)
   return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::VDIG_OFF, !enable);
 };
 
+bool GPIOControllerPTH12X::ChargerEnable(const bool enable)
+{
+  // TODO: check this functionality
+  return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::CHRG_DISABLE, !enable);
+  ;
+}
+
 void GPIOControllerPTH10X::Start()
 {
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_config_info_storage_);
@@ -205,5 +224,11 @@ bool GPIOControllerPTH10X::VDIGEnable(bool enable)
   (void)enable;
   throw std::runtime_error("This robot version does not support this functionality");
 };
+
+bool GPIOControllerPTH10X::ChargerEnable(const bool enable)
+{
+  (void)enable;
+  throw std::runtime_error("This robot version does not support this functionality");
+}
 
 }  // namespace panther_hardware_interfaces

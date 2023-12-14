@@ -18,6 +18,9 @@
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
+#include <std_srvs/srv/set_bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
+
 #include <panther_hardware_interfaces/utils.hpp>
 
 // todo: add user variable to the script that will trigger DOUT4 instead of safety stop
@@ -204,9 +207,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "GPIO");
 
   // TODO - support other pth versions
-  gpio_controller_ = std::make_unique<GPIOControllerPTH12X>();
+  gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
   gpio_controller_->Start();
-  gpio_controller_->MotorsEnable(true);
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
@@ -258,7 +260,28 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_.Activate(
     std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
 
+  gpio_controller_->ConfigureGpioStateCallback(std::bind(
+    &PantherSystemRosInterface::PublishGPIOState, &panther_system_ros_interface_,
+    std::placeholders::_1));
+
+  panther_system_ros_interface_.UpdateIOStateMsg(gpio_controller_);
+
   gpio_controller_->EStopReset();
+
+  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/motor_power_enable",
+  // gpio_controller_->MotorsEnable);
+  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/fan_enable",
+  // gpio_controller_->FanEnable);
+  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/aux_power_enable",
+  // gpio_controller_->AUXEnable);
+  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/digital_power_enable",
+  // gpio_controller_->VDIGEnable);
+  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/charger_enable",
+  // gpio_controller_->ChargerEnable);
+  // panther_system_ros_interface_->add_service<std_srvs::srv::Trigger>("~/e_stop_trigger",
+  // EStopTrigger);
+  // panther_system_ros_interface_->add_service<std_srvs::srv::Trigger>("~/e_stop_reset",
+  // EstopReset);
 
   RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;

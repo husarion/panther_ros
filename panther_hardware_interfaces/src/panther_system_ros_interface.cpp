@@ -40,6 +40,12 @@ void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
     std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
       driver_state_publisher_);
 
+  io_state_publisher_ = node_->create_publisher<panther_msgs::msg::IOState>(
+    "~/io_state", rclcpp::SensorDataQoS());
+  realtime_io_state_publisher_ =
+    std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>(
+      io_state_publisher_);
+
   clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
     "~/clear_errors", std::bind(
                         &PantherSystemRosInterface::ClearErrorsCb, this, std::placeholders::_1,
@@ -50,6 +56,8 @@ void PantherSystemRosInterface::Deactivate()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
+  realtime_io_state_publisher_.reset();
+  io_state_publisher_.reset();
   clear_errors_srv_.reset();
 }
 
@@ -113,6 +121,64 @@ void PantherSystemRosInterface::PublishDriverState()
 {
   if (realtime_driver_state_publisher_->trylock()) {
     realtime_driver_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::UpdateIOStateMsg(
+  std::shared_ptr<GPIOControllerInterface> gpio_controller)
+{
+  auto & io_state = realtime_io_state_publisher_->msg_;
+
+  io_state.aux_power = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::AUX_PW_EN);
+  io_state.charger_connected = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::CHRG_SENSE);
+  io_state.charger_enabled = gpio_controller->IsPinActive(
+    panther_gpiod::GPIOPin::CHRG_DISABLE);  // TODO: should be negative?
+  io_state.digital_power =
+    gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VDIG_OFF);  // TODO: should be negative?
+  io_state.fan = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::FAN_SW);
+  io_state.power_button = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::SHDN_INIT);
+
+  if (gpio_controller->IsPinAvaible(panther_gpiod::GPIOPin::VMOT_ON)) {
+    io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VMOT_ON);
+  } else {
+    io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::MOTOR_ON);
+  }
+}
+
+void PantherSystemRosInterface::PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info)
+{
+  auto & io_state = realtime_io_state_publisher_->msg_;
+  bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
+
+  switch (gpio_info.pin) {
+    case panther_gpiod::GPIOPin::AUX_PW_EN:
+      io_state.aux_power = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::CHRG_SENSE:
+      io_state.charger_connected = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::CHRG_DISABLE:  // TODO: should be negative?
+      io_state.charger_enabled = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::VDIG_OFF:
+      io_state.digital_power = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::FAN_SW:
+      io_state.fan = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::VMOT_ON:
+    case panther_gpiod::GPIOPin::MOTOR_ON:
+      io_state.motor_on = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::SHDN_INIT:
+      io_state.power_button = pin_value;
+      break;
+    default:
+      return;
+  }
+
+  if (realtime_io_state_publisher_->trylock()) {
+    realtime_io_state_publisher_->unlockAndPublish();
   }
 }
 
