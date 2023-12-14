@@ -124,6 +124,7 @@ def generate_launch_description():
     )
     robot_description = {"robot_description": robot_description_content}
 
+    # TODO: namespace instead of remap to /panther
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -131,10 +132,10 @@ def generate_launch_description():
         remappings=[
             ("panther_base_controller/cmd_vel_unstamped", "/cmd_vel"),
             ("panther_base_controller/odom", "odom/wheels"),
-            ("panther_system_node/io_state", "hardware/io_state"),
-            ("panther_system_node/e_stop", "hardware/e_stop"),
-            ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
-            ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
+            ("panther_system_node/io_state", "/panther/hardware/io_state"),
+            ("panther_system_node/e_stop", "/panther/hardware/e_stop"),
+            ("panther_system_node/e_stop_trigger", "/panther/hardware/e_stop_trigger"),
+            ("panther_system_node/e_stop_reset", "/panther/hardware/e_stop_reset"),
         ],
         condition=UnlessCondition(use_sim),
     )
