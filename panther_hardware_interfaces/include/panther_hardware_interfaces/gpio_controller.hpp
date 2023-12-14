@@ -255,7 +255,7 @@ public:
    * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool FanEnable(const bool enable) override;
+  bool FanEnable(const bool /* enable */) override;
 
   /**
    * @brief Placeholder method indicating lack of support for controlling AUX in this robot
@@ -265,7 +265,7 @@ public:
    * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool AUXEnable(const bool enable) override;
+  bool AUXEnable(const bool /* enable */) override;
 
   /**
    * @brief Placeholder method indicating lack of support for controlling Digital Power in this
@@ -275,9 +275,9 @@ public:
    * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool VDIGEnable(const bool enable) override;
+  bool VDIGEnable(const bool /* enable */) override;
 
-  bool ChargerEnable(const bool enable) override;
+  bool ChargerEnable(const bool /* enable */) override;
 
 private:
   /**

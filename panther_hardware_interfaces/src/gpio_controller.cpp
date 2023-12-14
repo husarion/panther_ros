@@ -174,7 +174,6 @@ bool GPIOControllerPTH12X::ChargerEnable(const bool enable)
 {
   // TODO: check this functionality
   return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::CHRG_DISABLE, !enable);
-  ;
 }
 
 void GPIOControllerPTH10X::Start()
@@ -197,7 +196,7 @@ bool GPIOControllerPTH10X::EStopReset()
   return true;
 }
 
-bool GPIOControllerPTH10X::MotorsEnable(bool enable)
+bool GPIOControllerPTH10X::MotorsEnable(const bool enable)
 {
   if (enable && !gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT)) {
     throw std::runtime_error(
@@ -207,27 +206,23 @@ bool GPIOControllerPTH10X::MotorsEnable(bool enable)
   return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::MOTOR_ON, enable);
 }
 
-bool GPIOControllerPTH10X::AUXEnable(bool enable)
+bool GPIOControllerPTH10X::AUXEnable(const bool /* enable */)
 {
-  (void)enable;
   throw std::runtime_error("This robot version does not support this functionality");
 };
 
-bool GPIOControllerPTH10X::FanEnable(bool enable)
+bool GPIOControllerPTH10X::FanEnable(const bool /* enable */)
 {
-  (void)enable;
   throw std::runtime_error("This robot version does not support this functionality");
 }
 
-bool GPIOControllerPTH10X::VDIGEnable(bool enable)
+bool GPIOControllerPTH10X::VDIGEnable(const bool /* enable */)
 {
-  (void)enable;
   throw std::runtime_error("This robot version does not support this functionality");
 };
 
-bool GPIOControllerPTH10X::ChargerEnable(const bool enable)
+bool GPIOControllerPTH10X::ChargerEnable(const bool /* enable */)
 {
-  (void)enable;
   throw std::runtime_error("This robot version does not support this functionality");
 }
 
