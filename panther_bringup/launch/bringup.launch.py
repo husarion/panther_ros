@@ -149,6 +149,36 @@ def generate_launch_description():
         condition=UnlessCondition(use_sim),
     )
 
+    lights_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    get_package_share_directory("panther_lights"),
+                    "launch",
+                    "lights.launch.py",
+                ]
+            )
+        ),
+        condition=UnlessCondition(use_sim),
+    )
+
+    battery_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    get_package_share_directory("panther_battery"),
+                    "launch",
+                    "battery.launch.py",
+                ]
+            )
+        ),
+        condition=UnlessCondition(use_sim),
+        # TODO: read version from env
+        launch_arguments={
+            "panther_version": 1.22,
+        }.items(),
+    )
+
     robot_localization_node = Node(
         package="robot_localization",
         executable="ekf_node",
@@ -172,6 +202,8 @@ def generate_launch_description():
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
         imu_launch,
+        lights_launch,
+        battery_launch,
         robot_localization_node,
     ]
 
