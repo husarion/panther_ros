@@ -17,6 +17,38 @@
 namespace panther_hardware_interfaces
 {
 
+void TriggerServiceWrapper::CallbackWrapper(
+  std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+  std_srvs::srv::Trigger::Response::SharedPtr response)
+{
+  try {
+    callback_();
+  } catch (const std::exception & err) {
+    response->success = false;
+    response->message = err.what();
+
+    RCLCPP_INFO(
+      rclcpp::get_logger("PantherSystem"), "Trigger service response: %s",
+      response->message.c_str());
+  }
+}
+
+void SetBoolServiceWrapper::CallbackWrapper(
+  std_srvs::srv::SetBool::Request::ConstSharedPtr request,
+  std_srvs::srv::SetBool::Response::SharedPtr response)
+{
+  try {
+    callback_(request->data);
+  } catch (const std::exception & err) {
+    response->success = false;
+    response->message = err.what();
+
+    RCLCPP_INFO(
+      rclcpp::get_logger("PantherSystem"), "SetBool service response: %s",
+      response->message.c_str());
+  }
+}
+
 void PantherSystemRosInterface::Initialize()
 {
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
@@ -69,6 +101,32 @@ void PantherSystemRosInterface::Deinitialize()
 
   executor_.reset();
   node_.reset();
+}
+
+void PantherSystemRosInterface::AddService(
+  const std::string service_name, const std::function<void()> & callback)
+{
+  auto wrapper = std::make_shared<TriggerServiceWrapper>(callback);
+
+  wrapper->service = node_->create_service<std_srvs::srv::Trigger>(
+    service_name, std::bind(
+                    &TriggerServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
+                    std::placeholders::_2));
+
+  trigger_wrappers_.push_back(wrapper);
+}
+
+void PantherSystemRosInterface::AddService(
+  const std::string service_name, const std::function<void(const bool)> & callback)
+{
+  auto wrapper = std::make_shared<SetBoolServiceWrapper>(callback);
+
+  wrapper->service = node_->create_service<std_srvs::srv::SetBool>(
+    service_name, std::bind(
+                    &SetBoolServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
+                    std::placeholders::_2));
+
+  set_bool_wrappers_.push_back(wrapper);
 }
 
 void PantherSystemRosInterface::UpdateMsgErrorFlags(

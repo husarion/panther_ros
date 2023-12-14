@@ -278,20 +278,24 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   gpio_controller_->EStopReset();
 
-  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/motor_power_enable",
-  // gpio_controller_->MotorsEnable);
-  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/fan_enable",
-  // gpio_controller_->FanEnable);
-  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/aux_power_enable",
-  // gpio_controller_->AUXEnable);
-  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/digital_power_enable",
-  // gpio_controller_->VDIGEnable);
-  // panther_system_ros_interface_->add_service<std_srvs::srv::SetBool>("~/charger_enable",
-  // gpio_controller_->ChargerEnable);
-  // panther_system_ros_interface_->add_service<std_srvs::srv::Trigger>("~/e_stop_trigger",
-  // EStopTrigger);
-  // panther_system_ros_interface_->add_service<std_srvs::srv::Trigger>("~/e_stop_reset",
-  // EstopReset);
+  panther_system_ros_interface_.AddService(
+    "~/motor_power_enable",
+    std::bind(&GPIOControllerInterface::MotorsEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_.AddService(
+    "~/fan_enable",
+    std::bind(&GPIOControllerInterface::FanEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_.AddService(
+    "~/aux_power_enable",
+    std::bind(&GPIOControllerInterface::AUXEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_.AddService(
+    "~/digital_power_enable",
+    std::bind(&GPIOControllerInterface::VDIGEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_.AddService(
+    "~/charger_enable",
+    std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
+
+  // panther_system_ros_interface_.AddService("~/e_stop_trigger", EStopTrigger);
+  // panther_system_ros_interface_.AddService("~/e_stop_reset", EstopReset);
 
   RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;

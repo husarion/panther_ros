@@ -23,6 +23,7 @@
 
 #include <realtime_tools/realtime_publisher.h>
 
+#include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
 #include <panther_msgs/msg/driver_state.hpp>
@@ -44,6 +45,36 @@ struct CanErrors
   bool rear_data_timed_out;
   bool front_can_net_err;
   bool rear_can_net_err;
+};
+
+class TriggerServiceWrapper
+{
+public:
+  TriggerServiceWrapper(const std::function<void()> & callback) : callback_(callback){};
+
+  void CallbackWrapper(
+    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
+
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service;
+
+private:
+  std::function<void()> callback_;
+};
+
+class SetBoolServiceWrapper
+{
+public:
+  SetBoolServiceWrapper(const std::function<void(const bool)> & callback) : callback_(callback){};
+
+  void CallbackWrapper(
+    std_srvs::srv::SetBool::Request::ConstSharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response);
+
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr service;
+
+private:
+  std::function<void(bool enable)> callback_;
 };
 
 /**
@@ -76,6 +107,12 @@ public:
    * @brief Stops executor thread and destroys the node
    */
   void Deinitialize();
+
+  /**
+   * @brief Adds new service server to node
+   */
+  void AddService(const std::string service_name, const std::function<void()> & callback);
+  void AddService(const std::string service_name, const std::function<void(const bool)> & callback);
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
@@ -113,6 +150,9 @@ private:
   rclcpp::Publisher<panther_msgs::msg::IOState>::SharedPtr io_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>
     realtime_io_state_publisher_;
+
+  std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
+  std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;
 
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;
