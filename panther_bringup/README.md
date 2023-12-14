@@ -22,7 +22,7 @@ The package contains the default configuration and launch files necessary to sta
 - `controller_config_path` [*string*, default: **panther_controller/config/<wheel_type arg>_controller.yaml**]: path to controller configuration file. A path to custom configuration can be specified here.
 - `ekf_config_path` [*string*, default: **true**]: path to the EKF configuration file.
 - `publish_robot_state` [*bool*, default: **true**]: whether to publish the default Panther robot description.
-- `simulation_engine` [*string*, default: **true**]: simulation engine to use when running Gazebo.
+- `simulation_engine` [*string*, default: **ignition-gazebo**]: simulation engine to use when running Gazebo.
 - `use_ekf` [*bool*, default: **true**]: enable or disable Extended Kalman Filter.
 - `use_sim` [*bool*, default: **false**]: whether simulation is used.
 - `wheel_config_path` [*string*, default: **$(find panther_description)/config/<wheel_type arg>.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
