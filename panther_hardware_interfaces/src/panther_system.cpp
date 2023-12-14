@@ -274,8 +274,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     &PantherSystemRosInterface::PublishGPIOState, &panther_system_ros_interface_,
     std::placeholders::_1));
 
-  panther_system_ros_interface_.UpdateIOStateMsg(gpio_controller_);
-
+  // TODO
   gpio_controller_->EStopReset();
 
   panther_system_ros_interface_.AddSetBoolService(
@@ -298,6 +297,9 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this));
   panther_system_ros_interface_.AddTriggerService(
     "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
+
+  panther_system_ros_interface_.InitializeAndPublishIOStateMsg(gpio_controller_);
+  panther_system_ros_interface_.InitializeAndPublishEstopStateMsg(estop_);
 
   RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;
@@ -482,6 +484,7 @@ return_type PantherSystem::read(
   }
 
   panther_system_ros_interface_.PublishDriverState();
+  panther_system_ros_interface_.PublishEstopStateIfChanged(estop_);
 
   return return_type::OK;
 }
