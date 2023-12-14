@@ -28,10 +28,7 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-# why? it doesn't work without this line
-include_directories(include ${panther_gpiod_INCLUDE_DIRS})
-
-pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp libgpiod)
+pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 
 add_library(
   ${PROJECT_NAME} SHARED
