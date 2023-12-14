@@ -17,7 +17,7 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import UnlessCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -194,9 +194,8 @@ def generate_launch_description():
             )
         ),
         condition=UnlessCondition(use_sim),
-        # TODO: read version from env
         launch_arguments={
-            "panther_version": 1.22,
+            "panther_version": panther_version,
         }.items(),
     )
 
