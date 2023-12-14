@@ -210,14 +210,18 @@ T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subin
   T data;
   std::error_code err_code;
 
-  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
-  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
-  // set to false in result. Solution currently on hold - switching to PDO will also solve this
-  // issue
-  if (sdo_read_timed_out_) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - previous one that timed out is still in queue");
-  }
+  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation,
+  // when set to 50Hz it happened after more than 24 hours) deadlock can happen, when submitted
+  // function won't be executed and sdo_read_timed_out_ won't be set to false in result. Solution
+  // currently on hold - switching to PDO will also solve this issue
+  // if (sdo_read_timed_out_) {
+  //   throw std::runtime_error(
+  //     "Can't submit new SDO read operation - previous one that timed out is still in queue");
+  // }
+  // Commented out in hope that it will be better - now instead of dead lock, if edge case occurs
+  // when 2 operations timed out after each other, but are still on the lely queue and will be
+  // exectuted (which obviously shouldn't be possible), std::system error can happen. TODO: test if
+  // in practice it happens
 
   try {
     SubmitRead<T>(
@@ -275,14 +279,18 @@ void RoboteqDriver::SyncSdoWrite(
   std::condition_variable cv;
   std::error_code err_code;
 
-  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
-  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
-  // set to false in result. Solution currently on hold - switching to PDO will also solve this
-  // issue
-  if (sdo_write_timed_out_) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - previous one that timed out is still in queue");
-  }
+  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation,
+  // when set to 50Hz it happened after more than 24 hours) deadlock can happen, when submitted
+  // function won't be executed and sdo_read_timed_out_ won't be set to false in result. Solution
+  // currently on hold - switching to PDO will also solve this issue
+  // if (sdo_write_timed_out_) {
+  //   throw std::runtime_error(
+  //     "Can't submit new SDO write operation - previous one that timed out is still in queue");
+  // }
+  // Commented out in hope that it will be better - now instead of dead lock, if edge case occurs
+  // when 2 operations timed out after each other, but are still on the lely queue and will be
+  // exectuted (which obviously shouldn't be possible), std::system error can happen. TODO: test
+  // if in practice it happens
 
   try {
     SubmitWrite(
