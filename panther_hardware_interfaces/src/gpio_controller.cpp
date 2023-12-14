@@ -113,6 +113,7 @@ void GPIOControllerPTH12X::Start()
   watchdog_ = std::make_unique<Watchdog>(gpio_driver_);
 }
 
+// TODO: void
 bool GPIOControllerPTH12X::EStopTrigger()
 {
   if (!watchdog_->TurnOff()) {
