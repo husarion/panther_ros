@@ -203,22 +203,25 @@ void PantherSystemRosInterface::PublishEstopStateIfChanged(const bool estop)
 }
 
 void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
-  std::shared_ptr<GPIOControllerInterface> gpio_controller)
+  std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version)
 {
   auto & io_state = realtime_io_state_publisher_->msg_;
 
-  io_state.aux_power = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::AUX_PW_EN);
-  io_state.charger_connected = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::CHRG_SENSE);
-  io_state.charger_enabled = gpio_controller->IsPinActive(
-    panther_gpiod::GPIOPin::CHRG_DISABLE);  // TODO: should be negative?
-  io_state.digital_power =
-    gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VDIG_OFF);  // TODO: should be negative?
-  io_state.fan = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::FAN_SW);
-  io_state.power_button = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::SHDN_INIT);
-
-  if (gpio_controller->IsPinAvaible(panther_gpiod::GPIOPin::VMOT_ON)) {
+  if (panther_version >= 1.2 - std::numeric_limits<float>::epsilon()) {
+    io_state.aux_power = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::AUX_PW_EN);
+    io_state.charger_connected = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::CHRG_SENSE);
+    io_state.charger_enabled = !gpio_controller->IsPinActive(panther_gpiod::GPIOPin::CHRG_DISABLE);
+    io_state.digital_power = !gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VDIG_OFF);
+    io_state.fan = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::FAN_SW);
+    io_state.power_button = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::SHDN_INIT);
     io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VMOT_ON);
   } else {
+    io_state.aux_power = true;
+    io_state.charger_connected = false;
+    io_state.charger_enabled = false;
+    io_state.digital_power = true;
+    io_state.fan = false;
+    io_state.power_button = false;
     io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::MOTOR_ON);
   }
 

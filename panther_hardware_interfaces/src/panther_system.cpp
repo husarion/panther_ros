@@ -296,7 +296,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_.AddTriggerService(
     "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
 
-  panther_system_ros_interface_.InitializeAndPublishIOStateMsg(gpio_controller_);
+  panther_system_ros_interface_.InitializeAndPublishIOStateMsg(gpio_controller_, panther_version_);
 
   estop_ = ReadEStop();
   panther_system_ros_interface_.InitializeAndPublishEstopStateMsg(estop_);
