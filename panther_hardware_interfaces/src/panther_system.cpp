@@ -267,8 +267,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_ros_interface_.Activate(
-    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
+  panther_system_ros_interface_.Activate();
 
   gpio_controller_->ConfigureGpioStateCallback(std::bind(
     &PantherSystemRosInterface::PublishGPIOState, &panther_system_ros_interface_,

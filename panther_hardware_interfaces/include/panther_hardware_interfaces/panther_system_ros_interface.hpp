@@ -97,7 +97,7 @@ public:
    * @param clear_errors - functions that should be called, when clear errors
    * service is called
    */
-  void Activate(std::function<void()> clear_errors);
+  void Activate();
 
   /**
    * @brief Destroys publishers, subscribers and services
@@ -142,10 +142,6 @@ public:
   void PublishEstopStateIfChanged(const bool estop);
 
 private:
-  void ClearErrorsCb(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
-
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
@@ -166,9 +162,6 @@ private:
 
   std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
   std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;
-
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
-  std::function<void()> clear_errors_;
 };
 
 }  // namespace panther_hardware_interfaces

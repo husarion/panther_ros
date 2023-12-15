@@ -64,10 +64,8 @@ void PantherSystemRosInterface::Initialize()
   });
 }
 
-void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
+void PantherSystemRosInterface::Activate()
 {
-  clear_errors_ = clear_errors;
-
   driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
   realtime_driver_state_publisher_ =
@@ -85,11 +83,6 @@ void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
   realtime_estop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>(
       estop_state_publisher_);
-
-  clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
-    "~/clear_errors", std::bind(
-                        &PantherSystemRosInterface::ClearErrorsCb, this, std::placeholders::_1,
-                        std::placeholders::_2));
 }
 
 void PantherSystemRosInterface::Deactivate()
@@ -100,7 +93,6 @@ void PantherSystemRosInterface::Deactivate()
   io_state_publisher_.reset();
   realtime_estop_state_publisher_.reset();
   estop_state_publisher_.reset();
-  clear_errors_srv_.reset();
 }
 
 void PantherSystemRosInterface::Deinitialize()
@@ -270,15 +262,6 @@ void PantherSystemRosInterface::PublishGPIOState(const panther_gpiod::GPIOInfo &
   if (realtime_io_state_publisher_->trylock()) {
     realtime_io_state_publisher_->unlockAndPublish();
   }
-}
-
-void PantherSystemRosInterface::ClearErrorsCb(
-  std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-  std_srvs::srv::Trigger::Response::SharedPtr response)
-{
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
-  clear_errors_();
-  response->success = true;
 }
 
 }  // namespace panther_hardware_interfaces
