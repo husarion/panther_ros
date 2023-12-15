@@ -244,6 +244,8 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
+  gpio_controller_.reset();
+
   panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
@@ -334,6 +336,8 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
+  gpio_controller_.reset();
+
   panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
@@ -354,6 +358,8 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
+
+  gpio_controller_.reset();
 
   panther_system_ros_interface_.Deinitialize();
 
@@ -587,6 +593,7 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
+  // TODO: check if commands 0.0
   RCLCPP_INFO(logger_, "Resetting estop");
 
   // On side of the motors controller safety stop is reset by sending 0.0 commands
