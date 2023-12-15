@@ -31,6 +31,13 @@ from launch_ros.actions import Node, PushRosNamespace, SetParameter
 def generate_launch_description():
     panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
 
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value="panther",
+        description="Panther robot namespace",
+    )
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -163,7 +170,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "imu_config_file": PathJoinSubstitution(
+            "imu_config_path": PathJoinSubstitution(
                 [get_package_share_directory("panther_bringup"), "config", "imu.yaml"]
             ),
         }.items(),
@@ -209,6 +216,7 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_namespace_arg,
         declare_use_sim_arg,
         declare_wheel_type_arg,
         declare_wheel_config_path_arg,
@@ -218,7 +226,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
-        PushRosNamespace("panther"),
+        PushRosNamespace(namespace),
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
         imu_launch,
