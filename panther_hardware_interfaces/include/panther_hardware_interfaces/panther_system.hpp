@@ -128,7 +128,7 @@ protected:
 
   float panther_version_;
 
-  bool estop_ = false;
+  bool estop_ = true;
 
   void SetEStop();
   void ResetEStop();

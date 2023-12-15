@@ -244,6 +244,8 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
+  gpio_controller_.reset();
+
   panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
@@ -267,15 +269,11 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_ros_interface_.Activate(
-    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
+  panther_system_ros_interface_.Activate();
 
   gpio_controller_->ConfigureGpioStateCallback(std::bind(
     &PantherSystemRosInterface::PublishGPIOState, &panther_system_ros_interface_,
     std::placeholders::_1));
-
-  // TODO
-  gpio_controller_->EStopReset();
 
   panther_system_ros_interface_.AddSetBoolService(
     "~/motor_power_enable",
@@ -299,6 +297,8 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
 
   panther_system_ros_interface_.InitializeAndPublishIOStateMsg(gpio_controller_);
+
+  estop_ = ReadEStop();
   panther_system_ros_interface_.InitializeAndPublishEstopStateMsg(estop_);
 
   RCLCPP_INFO(logger_, "Activation finished");
@@ -336,6 +336,8 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
+  gpio_controller_.reset();
+
   panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
@@ -356,6 +358,8 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
+
+  gpio_controller_.reset();
 
   panther_system_ros_interface_.Deinitialize();
 
@@ -495,7 +499,7 @@ return_type PantherSystem::write(
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
   // time of writing there wasn't a better approach to handling estop.
-  if (roboteq_error_filter_->IsError()) {
+  if (roboteq_error_filter_->IsError() && !estop_) {
     if (
       (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
        motors_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
@@ -589,6 +593,7 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
+  // TODO: check if commands 0.0
   RCLCPP_INFO(logger_, "Resetting estop");
 
   // On side of the motors controller safety stop is reset by sending 0.0 commands
@@ -611,7 +616,7 @@ bool PantherSystem::ReadEStop()
     return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
   } else {
     // For older panther versions there is no hardware EStop
-    return false;
+    return estop_;
   }
 }
 
