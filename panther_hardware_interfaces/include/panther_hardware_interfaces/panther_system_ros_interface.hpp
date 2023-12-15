@@ -135,7 +135,8 @@ public:
 
   void PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info);
 
-  void InitializeAndPublishIOStateMsg(std::shared_ptr<GPIOControllerInterface> gpio_controller);
+  void InitializeAndPublishIOStateMsg(
+    std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version);
 
   void InitializeAndPublishEstopStateMsg(const bool estop);
 
