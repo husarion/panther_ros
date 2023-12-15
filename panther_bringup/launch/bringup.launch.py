@@ -215,6 +215,25 @@ def generate_launch_description():
         condition=IfCondition(use_ekf),
     )
 
+    joy2twist_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    get_package_share_directory("joy2twist"),
+                    "launch",
+                    "gamepad_controller.launch.py",
+                ]
+            )
+        ),
+        launch_arguments={
+            # No need to additionally set namespace - it is set for all nodes by PushRosNamespace
+            "namespace": "",
+            "joy2twist_params_file": PathJoinSubstitution(
+                [get_package_share_directory("joy2twist"), "config", "joy2twist_panther.yaml"]
+            ),
+        }.items(),
+    )
+
     actions = [
         declare_namespace_arg,
         declare_use_sim_arg,
@@ -233,6 +252,7 @@ def generate_launch_description():
         lights_launch,
         battery_launch,
         robot_localization_node,
+        joy2twist_launch,
     ]
 
     return LaunchDescription(actions)

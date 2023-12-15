@@ -10,5 +10,9 @@ repositories:
   # mecanum controller
   rosbot_controllers:
     type: git
-    url: https://github.com/husarion/rosbot_controllers
+    url: https://github.com/husarion/rosbot_controllers.git
     version: main
+  joy2twist:
+    type: git
+    url: https://github.com/husarion/joy2twist.git
+    version: ros2-change-estop-qos
