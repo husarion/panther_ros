@@ -25,7 +25,7 @@ from launch.substitutions import (
     PathJoinSubstitution,
     PythonExpression,
 )
-from launch_ros.actions import Node, SetParameter
+from launch_ros.actions import Node, PushRosNamespace, SetParameter
 
 
 def generate_launch_description():
@@ -218,6 +218,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
+        PushRosNamespace("panther"),
         SetParameter(name="use_sim_time", value=use_sim),
         controller_launch,
         imu_launch,
