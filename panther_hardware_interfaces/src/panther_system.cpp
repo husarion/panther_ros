@@ -274,9 +274,6 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     &PantherSystemRosInterface::PublishGPIOState, &panther_system_ros_interface_,
     std::placeholders::_1));
 
-  // TODO
-  gpio_controller_->EStopReset();
-
   panther_system_ros_interface_.AddSetBoolService(
     "~/motor_power_enable",
     std::bind(&GPIOControllerInterface::MotorsEnable, gpio_controller_, std::placeholders::_1));
@@ -495,7 +492,7 @@ return_type PantherSystem::write(
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
   // time of writing there wasn't a better approach to handling estop.
-  if (roboteq_error_filter_->IsError()) {
+  if (roboteq_error_filter_->IsError() && !estop_) {
     if (
       (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
        motors_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
@@ -611,7 +608,7 @@ bool PantherSystem::ReadEStop()
     return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
   } else {
     // For older panther versions there is no hardware EStop
-    return false;
+    return estop_;
   }
 }
 
