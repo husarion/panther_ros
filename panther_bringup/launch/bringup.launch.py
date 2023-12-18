@@ -263,7 +263,11 @@ def generate_launch_description():
             # No need to additionally set namespace - it is set for all nodes by PushRosNamespace
             "namespace": "",
             "joy2twist_params_file": PathJoinSubstitution(
-                [get_package_share_directory("joy2twist"), "config", "joy2twist_panther.yaml"]
+                [
+                    get_package_share_directory("panther_bringup"),
+                    "config",
+                    "joy2twist_panther.yaml",
+                ]
             ),
         }.items(),
     )
