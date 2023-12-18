@@ -20,10 +20,8 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>panther_controller</exec_depend>
   <exec_depend>phidgets_spatial</exec_depend>
+  <exec_depend>python3-click</exec_depend>
   <exec_depend>robot_localization</exec_depend>
-
-  <!-- Python dependencies -->
-  <depend>python3-click</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
