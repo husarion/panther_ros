@@ -14,12 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
+
+import click
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
+    Command,
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
@@ -30,6 +34,36 @@ from launch_ros.actions import Node, PushRosNamespace, SetParameter
 
 def generate_launch_description():
     panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
+    panther_serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
+    panther_pkg_version = Command(command="ros2 pkg xml -t version panther")
+
+    PANTHER_TEXT = """
+     ____             _   _
+    |  _ \ __ _ _ __ | |_| |__   ___ _ __
+    | |_) / _` | '_ \| __| '_ \ / _ \ '__|
+    |  __/ (_| | | | | |_| | | |  __/ |
+    |_|   \__,_|_| |_|\__|_| |_|\___|_|
+
+    """  # noqa: W605
+
+    stats_to_show = {
+        "Serial number": panther_serial_no,
+        "Robot version": panther_version,
+        "ROS driver version": panther_pkg_version,
+        "Website": "https://husarion.com",
+        "Support": "https://community.husarion.com/",
+        "Bugtracker": "https://github.com/husarion/panther_ros/issues",
+    }
+
+    stats_msg = [
+        item
+        for name, value in stats_to_show.items()
+        for item in (f"{click.style(name, bold=True)}: ", value, "\n")
+    ]
+    pth_txt = textwrap.dedent(PANTHER_TEXT)
+    stats_msg.insert(0, click.style(pth_txt, bold=True))
+
+    welcome_msg = LogInfo(msg=stats_msg)
 
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
@@ -247,6 +281,7 @@ def generate_launch_description():
         declare_ekf_config_path_arg,
         PushRosNamespace(namespace),
         SetParameter(name="use_sim_time", value=use_sim),
+        welcome_msg,
         controller_launch,
         imu_launch,
         lights_launch,
