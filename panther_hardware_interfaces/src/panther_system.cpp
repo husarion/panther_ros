@@ -523,9 +523,21 @@ return_type PantherSystem::write(
 
   if (!estop_) {
     try {
-      motors_controller_->WriteSpeed(
-        hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
-        hw_commands_velocities_[3]);
+      {
+        std::unique_lock<std::mutex> motor_controller_write_lck(
+          motor_controller_write_mtx_, std::defer_lock);
+        if (!motor_controller_write_lck.try_lock()) {
+          throw std::runtime_error(
+            "Can't acquire mutex for writing commands - estop is being triggered");
+        }
+
+        motors_controller_->WriteSpeed(
+          hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
+          hw_commands_velocities_[3]);
+      }
+
+      last_commands_zero_ = AreVelocityCommandsNearZero();
+
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::WRITE_SDO), false);
     } catch (const std::runtime_error & e) {
@@ -536,6 +548,16 @@ return_type PantherSystem::write(
   }
 
   return return_type::OK;
+}
+
+bool PantherSystem::AreVelocityCommandsNearZero()
+{
+  for (const auto & cmd : hw_commands_velocities_) {
+    if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void PantherSystem::UpdateHwStates()
@@ -569,7 +591,10 @@ void PantherSystem::SetEStop()
   RCLCPP_INFO(logger_, "Setting estop");
   bool motors_controller_error = false;
   try {
-    motors_controller_->TurnOnSafetyStop();
+    {
+      std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
+      motors_controller_->TurnOnSafetyStop();
+    }
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(
       logger_, "Error when trying to set safety stop using CAN command: "
@@ -597,6 +622,15 @@ void PantherSystem::ResetEStop()
   RCLCPP_INFO(logger_, "Resetting estop");
 
   // On side of the motors controller safety stop is reset by sending 0.0 commands
+  if (!last_commands_zero_) {
+    RCLCPP_ERROR(
+      logger_,
+      "Can't reset estop - last velocity commands are different than zero. Make sure that your "
+      "controller sends zero commands before trying to reset estop.");
+    throw std::runtime_error(
+      "Can't reset estop - last velocity commands are different than zero. Make sure that your "
+      "controller sends zero commands before trying to reset estop.");
+  }
 
   try {
     gpio_controller_->EStopReset();

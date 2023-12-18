@@ -128,7 +128,11 @@ protected:
 
   float panther_version_;
 
-  bool estop_ = true;
+  std::mutex motor_controller_write_mtx_;
+  std::atomic_bool estop_ = true;
+  std::atomic_bool last_commands_zero_ = false;
+
+  bool AreVelocityCommandsNearZero();
 
   void SetEStop();
   void ResetEStop();
