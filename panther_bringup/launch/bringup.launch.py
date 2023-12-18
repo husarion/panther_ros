@@ -68,7 +68,7 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="panther",
+        default_value="",
         description="Panther robot namespace",
     )
 
