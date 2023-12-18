@@ -15,4 +15,4 @@ repositories:
   joy2twist:
     type: git
     url: https://github.com/husarion/joy2twist.git
-    version: ros2-change-estop-qos
+    version: ros2
