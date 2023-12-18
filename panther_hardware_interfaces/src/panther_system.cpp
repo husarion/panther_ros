@@ -496,6 +496,8 @@ return_type PantherSystem::read(
 return_type PantherSystem::write(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
+  last_commands_zero_ = AreVelocityCommandsNearZero();
+
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
   // time of writing there wasn't a better approach to handling estop.
@@ -535,8 +537,6 @@ return_type PantherSystem::write(
           hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
           hw_commands_velocities_[3]);
       }
-
-      last_commands_zero_ = AreVelocityCommandsNearZero();
 
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::WRITE_SDO), false);
