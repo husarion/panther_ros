@@ -19,7 +19,12 @@ import textwrap
 import click
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    LogInfo,
+    TimerAction,
+)
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
@@ -272,6 +277,29 @@ def generate_launch_description():
         }.items(),
     )
 
+    other_action_timer = TimerAction(
+        period=20.0,
+        actions=[
+            battery_launch,
+            imu_launch,
+            joy2twist_launch,
+            lights_launch,
+            robot_localization_node,
+        ],
+    )
+
+    waiting_msg = TimerAction(
+        period=10.0,
+        actions=[
+            LogInfo(
+                msg=(
+                    "We're working on ensuring everything functions properly... Please wait a few"
+                    " seconds more!"
+                )
+            )
+        ],
+    )
+
     actions = [
         declare_namespace_arg,
         declare_use_sim_arg,
@@ -287,11 +315,8 @@ def generate_launch_description():
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,
-        imu_launch,
-        lights_launch,
-        battery_launch,
-        robot_localization_node,
-        joy2twist_launch,
+        waiting_msg,
+        other_action_timer,
     ]
 
     return LaunchDescription(actions)
