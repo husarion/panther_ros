@@ -1,7 +1,7 @@
 /**:
   ekf_node:
     ros__parameters:
-      frequency: 20.0
+      frequency: 50.0
       sensor_timeout: 0.2
       two_d_mode: true
 
