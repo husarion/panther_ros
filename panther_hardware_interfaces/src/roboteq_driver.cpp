@@ -149,7 +149,7 @@ void RoboteqDriver::ResetRoboteqScript()
 {
   try {
     // Operation isn't required to be RT, so timeout set to higher value
-    SyncSdoWrite<std::uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(300));
+    SyncSdoWrite<std::uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(1000));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to reset Roboteq script: " + std::string(e.what()));
   }
