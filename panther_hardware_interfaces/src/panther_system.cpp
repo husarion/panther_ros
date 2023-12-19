@@ -484,7 +484,7 @@ return_type PantherSystem::read(
 
   estop_ = ReadEStop();
   if (estop_) {
-    RCLCPP_WARN_STREAM_THROTTLE(logger_, steady_clock_, 5000, "EStop active");
+    RCLCPP_WARN_STREAM_THROTTLE(logger_, steady_clock_, 30000, "EStop active");
   }
 
   panther_system_ros_interface_.PublishDriverState();
