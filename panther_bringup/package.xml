@@ -19,6 +19,7 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>panther_controller</exec_depend>
+  <exec_depend>phidgets_spatial</exec_depend>
   <exec_depend>robot_localization</exec_depend>
 
   <export>

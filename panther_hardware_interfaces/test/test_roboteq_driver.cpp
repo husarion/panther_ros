@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -53,8 +54,8 @@ public:
 
 TEST_F(TestRoboteqDriver, test_read_temperature)
 {
-  const int16_t f_temp = 30;
-  const int16_t r_temp = 32;
+  const std::int16_t f_temp = 30;
+  const std::int16_t r_temp = 32;
 
   roboteq_mock_->front_driver_->SetTemperature(f_temp);
   roboteq_mock_->rear_driver_->SetTemperature(r_temp);
@@ -65,8 +66,8 @@ TEST_F(TestRoboteqDriver, test_read_temperature)
 
 TEST_F(TestRoboteqDriver, test_read_voltage)
 {
-  const uint16_t f_volt = 400;
-  const uint16_t r_volt = 430;
+  const std::uint16_t f_volt = 400;
+  const std::uint16_t r_volt = 430;
 
   roboteq_mock_->front_driver_->SetVoltage(f_volt);
   roboteq_mock_->rear_driver_->SetVoltage(r_volt);
@@ -77,8 +78,8 @@ TEST_F(TestRoboteqDriver, test_read_voltage)
 
 TEST_F(TestRoboteqDriver, test_read_bat_amps1)
 {
-  const int16_t f_bat_amps_1 = 10;
-  const int16_t r_bat_amps_1 = 30;
+  const std::int16_t f_bat_amps_1 = 10;
+  const std::int16_t r_bat_amps_1 = 30;
 
   roboteq_mock_->front_driver_->SetBatAmps1(f_bat_amps_1);
   roboteq_mock_->rear_driver_->SetBatAmps1(r_bat_amps_1);
@@ -89,8 +90,8 @@ TEST_F(TestRoboteqDriver, test_read_bat_amps1)
 
 TEST_F(TestRoboteqDriver, test_read_bat_amps2)
 {
-  const int16_t f_bat_amps_2 = 30;
-  const int16_t r_bat_amps_2 = 40;
+  const std::int16_t f_bat_amps_2 = 30;
+  const std::int16_t r_bat_amps_2 = 40;
 
   roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
   roboteq_mock_->rear_driver_->SetBatAmps2(r_bat_amps_2);
@@ -106,18 +107,18 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
   using panther_hardware_interfaces_test::DriverRuntimeErrors;
   using panther_hardware_interfaces_test::DriverScriptFlags;
 
-  const int32_t fl_pos = 101;
-  const int32_t fl_vel = 102;
-  const int32_t fl_current = 103;
-  const int32_t fr_pos = 201;
-  const int32_t fr_vel = 202;
-  const int32_t fr_current = 203;
-  const int32_t rl_pos = 301;
-  const int32_t rl_vel = 302;
-  const int32_t rl_current = 303;
-  const int32_t rr_pos = 401;
-  const int32_t rr_vel = 402;
-  const int32_t rr_current = 403;
+  const std::int32_t fl_pos = 101;
+  const std::int32_t fl_vel = 102;
+  const std::int32_t fl_current = 103;
+  const std::int32_t fr_pos = 201;
+  const std::int32_t fr_vel = 202;
+  const std::int32_t fr_current = 203;
+  const std::int32_t rl_pos = 301;
+  const std::int32_t rl_vel = 302;
+  const std::int32_t rl_current = 303;
+  const std::int32_t rr_pos = 401;
+  const std::int32_t rr_vel = 402;
+  const std::int32_t rr_current = 403;
 
   roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_pos);
   roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_pos);
@@ -213,10 +214,10 @@ TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
-  const int32_t fl_v = 10;
-  const int32_t fr_v = 20;
-  const int32_t rl_v = 30;
-  const int32_t rr_v = 40;
+  const std::int32_t fl_v = 10;
+  const std::int32_t fr_v = 20;
+  const std::int32_t rl_v = 30;
+  const std::int32_t rr_v = 40;
 
   canopen_controller_->GetFrontDriver()->SendRoboteqCmdChannel1(fr_v);
   canopen_controller_->GetFrontDriver()->SendRoboteqCmdChannel2(fl_v);
@@ -291,14 +292,14 @@ TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_2)
 
 TEST_F(TestRoboteqDriver, test_write_timeout)
 {
-  roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
+  roboteq_mock_->front_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 100000);
   ASSERT_THROW(
     canopen_controller_->GetFrontDriver()->SendRoboteqCmdChannel1(0), std::runtime_error);
 }
 
 TEST_F(TestRoboteqDriver, test_read_timeout)
 {
-  roboteq_mock_->front_driver_->SetOnReadWait<int8_t>(0x210F, 1, 100000);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::int8_t>(0x210F, 1, 100000);
   ASSERT_THROW(canopen_controller_->GetFrontDriver()->ReadTemperature(), std::runtime_error);
 }
 

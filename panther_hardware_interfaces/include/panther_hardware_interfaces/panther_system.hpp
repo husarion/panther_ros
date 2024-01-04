@@ -58,15 +58,16 @@ public:
   std::vector<StateInterface> export_state_interfaces() override;
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
+  return_type write(
+    const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
 protected:
-  void CheckJointSize();
+  void CheckJointSize() const;
   void SortJointNames();
-  void CheckJointNames();
+  void CheckJointNames() const;
   void SetInitialValues();
-  void CheckInterfaces();
+  void CheckInterfaces() const;
   void ReadDrivetrainSettings();
   void ReadCanOpenSettings();
   void ReadInitializationActivationAttempts();
@@ -83,16 +84,16 @@ protected:
   // In torque mode sometimes after killing the software motor moves and it generally isn't well
   // tuned. Position mode also isn't really stable (reacts abruptly to spikes). If updating the
   // firmware to 2.1a will solve these issues, it may be worth to enable other modes.
-  double hw_commands_velocities_[kJointsSize];
+  std::array<double, kJointsSize> hw_commands_velocities_;
 
-  double hw_states_positions_[kJointsSize];
-  double hw_states_velocities_[kJointsSize];
-  double hw_states_efforts_[kJointsSize];
+  std::array<double, kJointsSize> hw_states_positions_;
+  std::array<double, kJointsSize> hw_states_velocities_;
+  std::array<double, kJointsSize> hw_states_efforts_;
 
   // Define expected joint order, so that it doesn't matter what order is defined in the URDF.
   // It is expected that the joint name should contain these specifiers.
-  std::string joint_order_[kJointsSize] = {"fl", "fr", "rl", "rr"};
-  std::string joints_names_sorted_[kJointsSize];
+  static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
+  std::array<std::string, kJointsSize> joints_names_sorted_;
 
   std::shared_ptr<MotorsController> motors_controller_;
 
@@ -119,13 +120,12 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-  struct ErrorsFilterIds
-  {
-    std::size_t write_pdo_cmds;
-    std::size_t read_pdo_motor_states;
-    std::size_t read_pdo_driver_state;
-    std::size_t roboteq_driver;
-  } errors_filter_ids_;
+  enum class ErrorsFilterIds {
+    READ_PDO_MOTOR_STATES = 0,
+    WRITE_PDO_CMDS = 1,
+    READ_PDO_DRIVER_STATE = 2,
+    ROBOTEQ_DRIVER = 3
+  };
 };
 
 }  // namespace panther_hardware_interfaces

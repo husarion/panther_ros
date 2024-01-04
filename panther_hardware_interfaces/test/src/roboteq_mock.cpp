@@ -14,22 +14,24 @@
 
 #include <roboteq_mock.hpp>
 
+#include <cstdint>
+
 namespace panther_hardware_interfaces_test
 {
 
-void RoboteqSlave::SetPosition(DriverChannel channel, int32_t value)
+void RoboteqSlave::SetPosition(DriverChannel channel, std::int32_t value)
 {
-  (*this)[0x2106][static_cast<uint8_t>(channel)] = value;
+  (*this)[0x2106][static_cast<std::uint8_t>(channel)] = value;
 }
 
-void RoboteqSlave::SetVelocity(DriverChannel channel, int32_t value)
+void RoboteqSlave::SetVelocity(DriverChannel channel, std::int32_t value)
 {
-  (*this)[0x2106][static_cast<uint8_t>(channel) + 2] = value;
+  (*this)[0x2106][static_cast<std::uint8_t>(channel) + 2] = value;
 }
 
-void RoboteqSlave::SetCurrent(DriverChannel channel, int32_t value)
+void RoboteqSlave::SetCurrent(DriverChannel channel, std::int32_t value)
 {
-  (*this)[0x2106][static_cast<uint8_t>(channel) + 4] = value;
+  (*this)[0x2106][static_cast<std::uint8_t>(channel) + 4] = value;
 }
 
 void RoboteqSlave::ClearErrorFlags()
@@ -87,22 +89,23 @@ void RoboteqSlave::TriggerPDOPublish()
 
 void RoboteqSlave::SetDriverFaultFlag(DriverFaultFlags flag)
 {
-  int32_t current_data = (*this)[0x2106][7];
-  current_data |= (0b00000001 << uint8_t(flag));
+  std::int32_t current_data = (*this)[0x2106][7];
+  current_data |= (0b00000001 << std::uint8_t(flag));
   (*this)[0x2106][7] = current_data;
 }
 
 void RoboteqSlave::SetDriverScriptFlag(DriverScriptFlags flag)
 {
-  int32_t current_data = (*this)[0x2106][7];
-  current_data |= int32_t(0b00000001 << uint8_t(flag)) << 2 * 8;
+  std::int32_t current_data = (*this)[0x2106][7];
+  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag)) << 2 * 8;
   (*this)[0x2106][7] = current_data;
 }
 
 void RoboteqSlave::SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag)
 {
-  int32_t current_data = (*this)[0x2106][8];
-  current_data |= int32_t(0b00000001 << uint8_t(flag)) << (static_cast<uint8_t>(channel) - 1) * 8;
+  std::int32_t current_data = (*this)[0x2106][8];
+  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag))
+                  << (static_cast<std::uint8_t>(channel) - 1) * 8;
   (*this)[0x2106][8] = current_data;
 }
 

@@ -20,43 +20,17 @@
 namespace panther_hardware_interfaces
 {
 
-uint8_t GetByte(uint32_t data, uint8_t byte_no)
-{
-  if (byte_no > 3) {
-    throw std::runtime_error("byte_no out of range, allowed values: [0;3]");
-  }
-
-  return (data >> (byte_no * 8)) & 0xFF;
-}
-
-bool IsBitSet(uint8_t data, uint8_t bit_no)
-{
-  if (bit_no > 7) {
-    throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
-  }
-
-  return data & (0b00000001 << bit_no);
-}
-
-uint8_t SetBit(uint8_t data, uint8_t bit_no)
-{
-  if (bit_no > 7) {
-    throw std::runtime_error("bit_no out of range, allowed values: [0;7]");
-  }
-
-  return data | (0b00000001 << bit_no);
-}
-
 bool OperationWithAttempts(
-  std::function<void()> operation, unsigned max_attempts, std::function<void()> on_error)
+  const std::function<void()> operation, const unsigned max_attempts,
+  const std::function<void()> on_error)
 {
-  for (unsigned attempts_counter = 0; attempts_counter < max_attempts; ++attempts_counter) {
+  for (unsigned i = 0; i < max_attempts; ++i) {
     try {
       operation();
       return true;
     } catch (const std::runtime_error & e) {
-      std::cerr << "Operation failed: " << e.what() << ". Attempt " << attempts_counter + 1
-                << " of " << max_attempts << std::endl;
+      std::cerr << "Operation failed: " << e.what() << ". Attempt " << i + 1 << " of "
+                << max_attempts << std::endl;
       try {
         on_error();
       } catch (const std::runtime_error & on_error_e) {

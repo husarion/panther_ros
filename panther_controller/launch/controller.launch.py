@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.conditions import IfCondition, UnlessCondition
@@ -49,6 +51,7 @@ def generate_launch_description():
         description="Path to controller configuration file.",
     )
 
+    # TODO: find some better solution than default to empty string
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -56,7 +59,7 @@ def generate_launch_description():
             "Path to the Ignition LinearBatteryPlugin configuration file. "
             "This configuration is intended for use in simulations only."
         ),
-        condition=IfCondition(use_sim),
+        default_value="",
     )
 
     simulation_engine = LaunchConfiguration("simulation_engine")
@@ -98,6 +101,18 @@ def generate_launch_description():
             controller_config_path,
             " battery_config_file:=",
             battery_config_path,
+            " imu_pos_x:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_X", "0.168"),
+            " imu_pos_y:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_Y", "0.028"),
+            " imu_pos_z:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_Z", "0.083"),
+            " imu_rot_r:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_R", "3.14"),
+            " imu_rot_p:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
+            " imu_rot_y:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -171,7 +186,8 @@ def generate_launch_description():
         event_handler=OnProcessExit(
             target_action=robot_controller_spawner,
             on_exit=[imu_broadcaster_spawner],
-        )
+        ),
+        condition=IfCondition(use_sim),
     )
 
     actions = [

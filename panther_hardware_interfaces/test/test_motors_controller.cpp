@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -61,22 +62,22 @@ TEST_F(TestMotorsControllerInitialization, test_initialize)
 
 TEST_F(TestMotorsControllerInitialization, test_error_device_type)
 {
-  roboteq_mock_->front_driver_->SetOnReadWait<uint32_t>(0x1000, 0, 100000);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(motors_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 
-  roboteq_mock_->front_driver_->SetOnReadWait<uint32_t>(0x1000, 0, 0);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 0);
   ASSERT_NO_THROW(motors_controller_->Initialize());
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 }
 
 TEST_F(TestMotorsControllerInitialization, test_error_vendor_id)
 {
-  roboteq_mock_->rear_driver_->SetOnReadWait<uint32_t>(0x1018, 1, 100000);
+  roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(motors_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 
-  roboteq_mock_->rear_driver_->SetOnReadWait<uint32_t>(0x1018, 1, 0);
+  roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 0);
   ASSERT_NO_THROW(motors_controller_->Initialize());
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 }
@@ -111,7 +112,7 @@ TEST_F(TestMotorsControllerInitialization, test_activate)
 TEST_F(TestMotorsControllerInitialization, test_activate_sdo_timeout_reset)
 {
   motors_controller_->Initialize();
-  roboteq_mock_->front_driver_->SetOnWriteWait<uint8_t>(0x2018, 0, 100000);
+  roboteq_mock_->front_driver_->SetOnWriteWait<std::uint8_t>(0x2018, 0, 100000);
   ASSERT_THROW(motors_controller_->Activate(), std::runtime_error);
   motors_controller_->Deinitialize();
 }
@@ -119,7 +120,7 @@ TEST_F(TestMotorsControllerInitialization, test_activate_sdo_timeout_reset)
 TEST_F(TestMotorsControllerInitialization, test_activate_sdo_timeout_cmd)
 {
   motors_controller_->Initialize();
-  roboteq_mock_->rear_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
+  roboteq_mock_->rear_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 100000);
   ASSERT_THROW(motors_controller_->Activate(), std::runtime_error);
   motors_controller_->Deinitialize();
 }
@@ -147,18 +148,18 @@ TEST_F(TestMotorsController, test_update_system_feedback)
   using panther_hardware_interfaces_test::kRbtqPosFbToRad;
   using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
 
-  const int32_t fl_pos = 101;
-  const int32_t fl_vel = 102;
-  const int32_t fl_current = 103;
-  const int32_t fr_pos = 201;
-  const int32_t fr_vel = 202;
-  const int32_t fr_current = 203;
-  const int32_t rl_pos = 301;
-  const int32_t rl_vel = 302;
-  const int32_t rl_current = 303;
-  const int32_t rr_pos = 401;
-  const int32_t rr_vel = 402;
-  const int32_t rr_current = 403;
+  const std::int32_t fl_pos = 101;
+  const std::int32_t fl_vel = 102;
+  const std::int32_t fl_current = 103;
+  const std::int32_t fr_pos = 201;
+  const std::int32_t fr_vel = 202;
+  const std::int32_t fr_current = 203;
+  const std::int32_t rl_pos = 301;
+  const std::int32_t rl_vel = 302;
+  const std::int32_t rl_current = 303;
+  const std::int32_t rr_pos = 401;
+  const std::int32_t rr_vel = 402;
+  const std::int32_t rr_current = 403;
 
   roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL2, fl_pos);
   roboteq_mock_->front_driver_->SetPosition(DriverChannel::CHANNEL1, fr_pos);
@@ -283,14 +284,14 @@ TEST(TestMotorsControllerOthers, test_update_system_pdo_feedback_timeout)
 
 TEST_F(TestMotorsController, test_update_drivers_state)
 {
-  const int16_t f_temp = 30;
-  const int16_t r_temp = 32;
-  const uint16_t f_volt = 400;
-  const uint16_t r_volt = 430;
-  const int16_t f_bat_amps_1 = 10;
-  const int16_t r_bat_amps_1 = 30;
-  const int16_t f_bat_amps_2 = 30;
-  const int16_t r_bat_amps_2 = 40;
+  const std::int16_t f_temp = 30;
+  const std::int16_t r_temp = 32;
+  const std::uint16_t f_volt = 400;
+  const std::uint16_t r_volt = 430;
+  const std::int16_t f_bat_amps_1 = 10;
+  const std::int16_t r_bat_amps_1 = 30;
+  const std::int16_t f_bat_amps_2 = 30;
+  const std::int16_t r_bat_amps_2 = 40;
 
   roboteq_mock_->front_driver_->SetTemperature(f_temp);
   roboteq_mock_->rear_driver_->SetTemperature(r_temp);
@@ -303,51 +304,55 @@ TEST_F(TestMotorsController, test_update_drivers_state)
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
+    static_cast<std::int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
     f_temp);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<uint16_t>(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
+    static_cast<std::uint16_t>(
+      motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
     f_volt);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
+    static_cast<std::int16_t>(
+      motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
     f_bat_amps_1 + f_bat_amps_2);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetRearData().GetDriverState().GetTemperature()),
+    static_cast<std::int16_t>(motors_controller_->GetRearData().GetDriverState().GetTemperature()),
     r_temp);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<uint16_t>(motors_controller_->GetRearData().GetDriverState().GetVoltage() * 10.0),
+    static_cast<std::uint16_t>(
+      motors_controller_->GetRearData().GetDriverState().GetVoltage() * 10.0),
     r_volt);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_TRUE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetRearData().GetDriverState().GetCurrent() * 10.0),
+    static_cast<std::int16_t>(
+      motors_controller_->GetRearData().GetDriverState().GetCurrent() * 10.0),
     r_bat_amps_1 + r_bat_amps_2);
 
-  const int16_t f_temp_2 = 29;
+  const std::int16_t f_temp_2 = 29;
   roboteq_mock_->front_driver_->SetTemperature(f_temp_2);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
+    static_cast<std::int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
     f_temp_2);
 }
 
 TEST_F(TestMotorsController, test_update_drivers_state_sdo_timeout)
 {
-  const int16_t f_temp = 30;
-  const uint16_t f_volt = 400;
-  const int16_t f_bat_amps_1 = 10;
-  const int16_t f_bat_amps_2 = 30;
+  const std::int16_t f_temp = 30;
+  const std::uint16_t f_volt = 400;
+  const std::int16_t f_bat_amps_1 = 10;
+  const std::int16_t f_bat_amps_2 = 30;
 
   roboteq_mock_->front_driver_->SetTemperature(f_temp);
   roboteq_mock_->front_driver_->SetVoltage(f_volt);
@@ -356,29 +361,32 @@ TEST_F(TestMotorsController, test_update_drivers_state_sdo_timeout)
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
+    static_cast<std::int16_t>(motors_controller_->GetFrontData().GetDriverState().GetTemperature()),
     f_temp);
 
-  roboteq_mock_->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 100000);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::uint16_t>(0x210D, 2, 100000);
 
   ASSERT_THROW(motors_controller_->UpdateDriversState(), std::runtime_error);
   ASSERT_EQ(
-    static_cast<uint16_t>(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
+    static_cast<std::uint16_t>(
+      motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
     0.0);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  roboteq_mock_->front_driver_->SetOnReadWait<uint16_t>(0x210D, 2, 0);
+  roboteq_mock_->front_driver_->SetOnReadWait<std::uint16_t>(0x210D, 2, 0);
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<uint16_t>(motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
+    static_cast<std::uint16_t>(
+      motors_controller_->GetFrontData().GetDriverState().GetVoltage() * 10.0),
     f_volt);
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
-    static_cast<int16_t>(motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
+    static_cast<std::int16_t>(
+      motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
     f_bat_amps_1 + f_bat_amps_2);
 }
 
@@ -397,21 +405,21 @@ TEST_F(TestMotorsController, test_write_speed)
 
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(fl_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(fl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(fr_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(fr_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
-    static_cast<int32_t>(rl_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(rl_v * kRadPerSecToRbtqCmd));
   ASSERT_EQ(
     roboteq_mock_->rear_driver_->GetRoboteqCmd(DriverChannel::CHANNEL1),
-    static_cast<int32_t>(rr_v * kRadPerSecToRbtqCmd));
+    static_cast<std::int32_t>(rr_v * kRadPerSecToRbtqCmd));
 }
 
 TEST_F(TestMotorsController, test_write_speed_sdo_timeout)
 {
-  roboteq_mock_->front_driver_->SetOnWriteWait<int32_t>(0x2000, 1, 100000);
+  roboteq_mock_->front_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 100000);
   ASSERT_THROW(motors_controller_->WriteSpeed(0.0, 0.0, 0.0, 0.0), std::runtime_error);
 }
 
@@ -442,13 +450,13 @@ TEST_F(TestMotorsController, test_turn_off_estop)
 
 TEST_F(TestMotorsController, test_turn_on_estop_timeout)
 {
-  roboteq_mock_->front_driver_->SetOnWriteWait<uint8_t>(0x200C, 0, 100000);
+  roboteq_mock_->front_driver_->SetOnWriteWait<std::uint8_t>(0x200C, 0, 100000);
   ASSERT_THROW(motors_controller_->TurnOnEstop(), std::runtime_error);
 }
 
 TEST_F(TestMotorsController, test_turn_off_estop_timeout)
 {
-  roboteq_mock_->front_driver_->SetOnWriteWait<uint8_t>(0x200D, 0, 100000);
+  roboteq_mock_->front_driver_->SetOnWriteWait<std::uint8_t>(0x200D, 0, 100000);
   ASSERT_THROW(motors_controller_->TurnOffEstop(), std::runtime_error);
 }
 
@@ -503,7 +511,7 @@ TEST_F(TestMotorsController, test_safety_stop)
 
 TEST_F(TestMotorsController, test_safety_stop_timeout)
 {
-  roboteq_mock_->front_driver_->SetOnWriteWait<uint8_t>(0x202C, 0, 100000);
+  roboteq_mock_->front_driver_->SetOnWriteWait<std::uint8_t>(0x202C, 0, 100000);
   ASSERT_THROW(motors_controller_->TurnOnSafetyStop(), std::runtime_error);
 }
 

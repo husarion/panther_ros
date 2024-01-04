@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 
 #include <condition_variable>
+#include <cstdint>
 #include <thread>
 
 #include <lely/coapp/fiber_driver.hpp>
@@ -34,10 +35,13 @@ namespace panther_hardware_interfaces
 
 struct CanOpenSettings
 {
-  uint8_t master_can_id;
-  uint8_t front_driver_can_id;
-  uint8_t rear_driver_can_id;
-  std::chrono::milliseconds pdo_motors_state_timeout;
+  std::string can_interface_name;
+
+  std::uint8_t master_can_id;
+  std::uint8_t front_driver_can_id;
+  std::uint8_t rear_driver_can_id;
+
+  std::chrono::milliseconds pdo_motor_states_timeout;
   std::chrono::milliseconds pdo_driver_state_timeout;
   std::chrono::milliseconds sdo_operation_timeout;
 };
@@ -49,7 +53,7 @@ struct CanOpenSettings
 class CanOpenController
 {
 public:
-  CanOpenController(CanOpenSettings canopen_settings);
+  CanOpenController(const CanOpenSettings & canopen_settings);
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
@@ -80,7 +84,7 @@ private:
    *
    * @param result status of CAN communication started
    */
-  void NotifyCanCommunicationStarted(bool result);
+  void NotifyCanCommunicationStarted(const bool result);
 
   /**
    * @brief Triggers boot on front and rear Roboteq drivers and waits for finish
@@ -90,7 +94,7 @@ private:
   void BootDrivers();
 
   // Priority set to be higher than the priority of the main ros2 control node (50)
-  int const kCanOpenThreadSchedPriority = 60;
+  static constexpr unsigned kCanOpenThreadSchedPriority = 60;
 
   std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;

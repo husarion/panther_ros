@@ -18,12 +18,12 @@ namespace panther_hardware_interfaces
 {
 
 MotorsController::MotorsController(
-  CanOpenSettings canopen_settings, DrivetrainSettings drivetrain_settings)
+  const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
 : canopen_controller_(canopen_settings),
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_vel_cmd_converter_(drivetrain_settings),
-  pdo_motors_state_timeout_(canopen_settings.pdo_motors_state_timeout),
+  pdo_motor_states_timeout_(canopen_settings.pdo_motor_states_timeout),
   pdo_driver_state_timeout_(canopen_settings.pdo_driver_state_timeout)
 {
 }
@@ -78,10 +78,10 @@ void MotorsController::UpdateSystemFeedback(
 {
   bool data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(feedback.pos_timestamp) >
-     pdo_motors_state_timeout_) ||
+     pdo_motor_states_timeout_) ||
     (lely::util::from_timespec(current_time) -
        lely::util::from_timespec(feedback.vel_current_timestamp) >
-     pdo_motors_state_timeout_);
+     pdo_motor_states_timeout_);
 
   // Channel 1 - right, Channel 2 - left
   data.SetMotorStates(feedback.motor_2, feedback.motor_1, data_timed_out);
@@ -136,7 +136,8 @@ void MotorsController::UpdateDriversState()
   }
 }
 
-void MotorsController::WriteSpeed(float speed_fl, float speed_fr, float speed_rl, float speed_rr)
+void MotorsController::WriteSpeed(
+  const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr)
 {
   // Channel 1 - right, Channel 2 - left
   try {

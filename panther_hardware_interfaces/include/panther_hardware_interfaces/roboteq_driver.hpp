@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <vector>
 
 #include <lely/coapp/fiber_driver.hpp>
@@ -30,9 +31,9 @@ namespace panther_hardware_interfaces
 
 struct RoboteqMotorState
 {
-  int32_t pos;
-  int16_t vel;
-  int16_t current;
+  std::int32_t pos;
+  std::int16_t vel;
+  std::int16_t current;
 };
 
 struct RoboteqDriverFeedback
@@ -46,10 +47,10 @@ struct RoboteqDriverFeedback
 
 struct RoboteqDriverState
 {
-  uint8_t fault_flags;
-  uint8_t script_flags;
-  uint8_t runtime_stat_flag_motor_1;
-  uint8_t runtime_stat_flag_motor_2;
+  std::uint8_t fault_flags;
+  std::uint8_t script_flags;
+  std::uint8_t runtime_stat_flag_motor_1;
+  std::uint8_t runtime_stat_flag_motor_2;
 
   int16_t bat_amps_1;
   int16_t bat_amps_2;
@@ -74,8 +75,9 @@ public:
   using FiberDriver::FiberDriver;
 
   RoboteqDriver(
-    ev_exec_t * exec, lely::canopen::AsyncMaster & master, uint8_t id,
-    std::chrono::milliseconds sdo_operation_timeout);
+    const std::shared_ptr<lely::ev::Executor> & exec,
+    const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
+    const std::chrono::milliseconds & sdo_operation_timeout);
 
   /**
    * @brief Trigger boot operations
@@ -89,9 +91,9 @@ public:
    */
   bool WaitForBoot();
 
-  bool IsBooted() { return booted_.load(); }
+  bool IsBooted() const { return booted_.load(); }
 
-  bool IsCanError() { return can_error_.load(); }
+  bool IsCanError() const { return can_error_.load(); }
 
   /**
    * @brief Reads all the PDO data returned from Roboteq (motors feedback, error flags) and saves
@@ -99,13 +101,14 @@ public:
    */
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
+  // TODO
   RoboteqDriverState ReadRoboteqDriverState();
 
   /**
    * @param cmd command value in the range [-1000, 1000]
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmd(int32_t cmd_channel_1, int32_t cmd_channel_2);
+  void SendRoboteqCmd(const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2);
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -138,27 +141,32 @@ private:
    *
    * @exception std::runtime_error if operation fails
    */
-  template <typename type>
-  type SyncSdoRead(
-    uint16_t index, uint8_t subindex, const std::chrono::milliseconds sdo_operation_timeout);
+  template <typename T>
+  T SyncSdoRead(
+    const std::uint16_t index, const std::uint8_t subindex,
+    const std::chrono::milliseconds sdo_operation_timeout);
 
   /**
    * @brief Blocking SDO write operation
    *
    * @exception std::runtime_error if operation fails
    */
-  template <typename type>
+  template <typename T>
   void SyncSdoWrite(
-    uint16_t index, uint8_t subindex, type data,
+    const std::uint16_t index, const std::uint8_t subindex, const T data,
     const std::chrono::milliseconds sdo_operation_timeout);
 
-  void OnBoot(lely::canopen::NmtState st, char es, const std::string & what) noexcept override;
-  void OnRpdoWrite(uint16_t idx, uint8_t subidx) noexcept override;
-  void OnCanError(lely::io::CanError /* error */) noexcept override { can_error_.store(true); }
+  void OnBoot(
+    const lely::canopen::NmtState st, const char es, const std::string & what) noexcept override;
+  void OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subidx) noexcept override;
+  void OnCanError(const lely::io::CanError /* error */) noexcept override
+  {
+    can_error_.store(true);
+  }
 
   // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
   // about it while ros2_canopen has the ability to read it, I didn't see any attempts to handle it
-  // void OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcept override;
+  // void OnEmcy(std::uint16_t eec, std::uint8_t er, std::uint8_t msef[5]) noexcept override;
 
   std::atomic_bool booted_ = false;
   std::condition_variable boot_cond_var_;
@@ -181,7 +189,9 @@ private:
   timespec last_volts_temps_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
-  const std::chrono::microseconds sdo_operation_wait_timeout_;
+
+  // Wait timeout has to be longer - first we want to give a chance for lely to cancel operation
+  static constexpr std::chrono::microseconds kSdoOperationAdditionalWait{750};
 
   std::atomic_bool sdo_read_timed_out_ = false;
   std::atomic_bool sdo_write_timed_out_ = false;

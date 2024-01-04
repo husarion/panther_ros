@@ -90,6 +90,7 @@
           <!-- Max RPM speed set in the Roboteq driver (MXRPM parameter) -->
           <param name="max_rpm_motor_speed">3600.0</param>
 
+          <param name="can_interface_name">panther_can</param>
           <param name="master_can_id">3</param>
           <param name="front_driver_can_id">1</param>
           <param name="rear_driver_can_id">2</param>
@@ -97,7 +98,7 @@
             frequency of controller (frequency of publishing commands). SDO operation are not RT critical -->
           <param name="sdo_operation_timeout">50</param>
           <!-- Depends on frequency of the controller, more critical motors state are sent with higher frequency, other parameters are sent with lower, here allowed time is set to be expected period +4ms margin -->
-          <param name="pdo_motors_state_timeout">20</param>
+          <param name="pdo_motor_states_timeout">20</param>
           <param name="pdo_driver_state_timeout">108</param>
 
           <param name="max_roboteq_initialization_attempts">5</param>
@@ -105,7 +106,7 @@
           <param name="max_safety_stop_attempts">20</param>
 
           <param name="max_write_pdo_cmds_errors_count">2</param>
-          <param name="max_read_pdo_motors_state_errors_count">2</param>
+          <param name="max_read_pdo_motor_states_errors_count">2</param>
           <param name="max_read_pdo_driver_state_errors_count">2</param>
         </xacro:unless>
       </hardware>

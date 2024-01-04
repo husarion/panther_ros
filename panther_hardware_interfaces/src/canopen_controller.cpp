@@ -24,7 +24,7 @@
 namespace panther_hardware_interfaces
 {
 
-CanOpenController::CanOpenController(CanOpenSettings canopen_settings)
+CanOpenController::CanOpenController(const CanOpenSettings & canopen_settings)
 {
   canopen_settings_ = canopen_settings;
 }
@@ -99,13 +99,13 @@ void CanOpenController::InitializeCanCommunication()
 
   timer_ = std::make_shared<lely::io::Timer>(*poll_, *exec_, CLOCK_MONOTONIC);
 
-  ctrl_ = std::make_shared<lely::io::CanController>("panther_can");
+  ctrl_ = std::make_shared<lely::io::CanController>(canopen_settings_.can_interface_name.c_str());
   chan_ = std::make_shared<lely::io::CanChannel>(*poll_, *exec_);
 
   chan_->open(*ctrl_);
 
   // Master dcf is generated from roboteq_motor_controllers_v80_21 using following command:
-  // dcfgen panther_can.yaml -r
+  // dcfgen canopen_configuration.yaml -r
   // dcfgen comes with lely, -r option tells to enable remote PDO mapping
   std::string master_dcf_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                   "panther_hardware_interfaces")) /
@@ -115,11 +115,9 @@ void CanOpenController::InitializeCanCommunication()
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
   front_driver_ = std::make_shared<RoboteqDriver>(
-    *exec_, *master_, canopen_settings_.front_driver_can_id,
-    canopen_settings_.sdo_operation_timeout);
+    exec_, master_, canopen_settings_.front_driver_can_id, canopen_settings_.sdo_operation_timeout);
   rear_driver_ = std::make_shared<RoboteqDriver>(
-    *exec_, *master_, canopen_settings_.rear_driver_can_id,
-    canopen_settings_.sdo_operation_timeout);
+    exec_, master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout);
 
   // Start the NMT service of the master by pretending to receive a 'reset
   // node' command.
@@ -140,7 +138,7 @@ void CanOpenController::ConfigureRT()
   }
 }
 
-void CanOpenController::NotifyCanCommunicationStarted(bool result)
+void CanOpenController::NotifyCanCommunicationStarted(const bool result)
 {
   {
     std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);

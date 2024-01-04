@@ -15,6 +15,8 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 
+#include <bitset>
+#include <cstdint>
 #include <vector>
 
 #include <panther_msgs/msg/fault_flag.hpp>
@@ -41,17 +43,20 @@ struct DrivetrainSettings
 class RoboteqVeloctiyCommandConverter
 {
 public:
-  RoboteqVeloctiyCommandConverter(DrivetrainSettings drivetrain_settings);
-  int32_t Convert(float cmd) const { return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_); }
+  RoboteqVeloctiyCommandConverter(const DrivetrainSettings & drivetrain_settings);
+  std::int32_t Convert(const float cmd) const
+  {
+    return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_);
+  }
 
 private:
-  inline int32_t LimitCmd(int32_t cmd) const
+  inline std::int32_t LimitCmd(const std::int32_t cmd) const
   {
-    return std::clamp(cmd, -max_roboteq_cmd_value_, max_roboteq_cmd_value_);
+    return std::clamp(cmd, -kMaxRoboteqCmdValue, kMaxRoboteqCmdValue);
   }
 
   float radians_per_second_to_roboteq_cmd_;
-  static constexpr int32_t max_roboteq_cmd_value_ = 1000;
+  static constexpr std::int32_t kMaxRoboteqCmdValue = 1000;
 };
 
 /**
@@ -61,9 +66,9 @@ private:
 class MotorState
 {
 public:
-  MotorState(DrivetrainSettings drivetrain_settings);
+  MotorState(const DrivetrainSettings & drivetrain_settings);
 
-  void SetData(RoboteqMotorState fb) { last_state_ = fb; };
+  void SetData(const RoboteqMotorState & fb) { last_state_ = fb; };
 
   float GetPosition() const { return last_state_.pos * roboteq_pos_feedback_to_radians_; }
   float GetVelocity() const
@@ -101,23 +106,23 @@ public:
     for (size_t i = 0; i < surpressed_flags_names.size(); ++i) {
       for (size_t j = 0; j < flag_names_.size(); ++j) {
         if (surpressed_flags_names[i] == flag_names_[j]) {
-          surpressed_flags_ = SetBit(surpressed_flags_, j);
+          surpressed_flags_.set(j);
         }
       }
     }
   }
 
-  void SetData(uint8_t flags) { flags_ = flags; }
+  void SetData(const std::uint8_t flags) { flags_ = flags; }
 
-  bool IsError() const { return (flags_ & (~surpressed_flags_)) != 0; }
+  bool IsError() const { return (flags_ & (~surpressed_flags_)).any(); }
 
   std::string GetErrorLog() const;
 
 protected:
   const std::vector<std::string> flag_names_;
 
-  uint8_t surpressed_flags_ = 0b00000000;
-  uint8_t flags_ = 0b00000000;
+  std::bitset<8> surpressed_flags_ = 0;
+  std::bitset<8> flags_ = 0;
 };
 
 class FaultFlag : public FlagError
@@ -177,11 +182,11 @@ class DriverState
 public:
   DriverState() {}
 
-  void SetTemperature(int16_t temp) { last_temp_ = temp; };
-  void SetHeatsinkTemperature(int16_t temp) { last_heatsink_temp = temp; };
-  void SetVoltage(uint16_t voltage) { last_voltage_ = voltage; };
-  void SetBatAmps1(int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
-  void SetBatAmps2(int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
+  void SetTemperature(const std::int16_t temp) { last_temp_ = temp; };
+  void SetHeatsinkTemperature(const std::int16_t temp) { last_heatsink_temp = temp; };
+  void SetVoltage(const std::uint16_t voltage) { last_voltage_ = voltage; };
+  void SetBatAmps1(const std::int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
+  void SetBatAmps2(const std::int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
 
   float GetTemperature() const { return last_temp_; }
   float GetHeatsinkTemperature() const { return last_heatsink_temp; }
@@ -189,11 +194,11 @@ public:
   float GetCurrent() const { return (last_bat_amps_1_ + last_bat_amps_2_) / 10.0; }
 
 private:
-  int16_t last_temp_ = 0;
-  int16_t last_heatsink_temp = 0;
-  uint16_t last_voltage_ = 0;
-  int16_t last_bat_amps_1_ = 0;
-  int16_t last_bat_amps_2_ = 0;
+  std::int16_t last_temp_ = 0;
+  std::int16_t last_heatsink_temp = 0;
+  std::uint16_t last_voltage_ = 0;
+  std::int16_t last_bat_amps_1_ = 0;
+  std::int16_t last_bat_amps_2_ = 0;
 };
 
 /**
@@ -202,20 +207,21 @@ private:
 class RoboteqData
 {
 public:
-  RoboteqData(DrivetrainSettings drivetrain_settings)
+  RoboteqData(const DrivetrainSettings & drivetrain_settings)
   : left_state_(drivetrain_settings), right_state_(drivetrain_settings)
   {
   }
 
   void SetMotorStates(
-    RoboteqMotorState left_state, RoboteqMotorState right_state, bool data_timed_out)
+    const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
+    const bool data_timed_out)
   {
     left_state_.SetData(left_state);
     right_state_.SetData(right_state);
     motor_states_data_timed_out_ = data_timed_out;
   }
 
-  void SetDriverState(RoboteqDriverState state, bool data_timed_out)
+  void SetDriverState(const RoboteqDriverState & state, const bool data_timed_out)
   {
     driver_state_.SetTemperature(state.mcu_temp);
     driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
@@ -231,7 +237,7 @@ public:
     driver_state_data_timed_out_ = data_timed_out;
   }
 
-  void SetCanNetErr(bool can_net_err) { can_net_err_ = can_net_err; }
+  void SetCanNetErr(const bool can_net_err) { can_net_err_ = can_net_err; }
 
   bool IsFlagError() const
   {

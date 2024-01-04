@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_TEST_UTILS_HPP_
 
 #include <cmath>
+#include <cstdint>
 #include <map>
 #include <string>
 
@@ -80,7 +81,7 @@ private:
    * @param state_id
    * @param state_name
    */
-  void SetState(const uint8_t state_id, const std::string & state_name);
+  void SetState(const std::uint8_t state_id, const std::string & state_name);
 
   std::shared_ptr<RoboteqMock> roboteq_mock_;
   std::shared_ptr<hardware_interface::ResourceManager> rm_;

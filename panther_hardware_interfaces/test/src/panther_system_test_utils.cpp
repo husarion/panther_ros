@@ -14,6 +14,8 @@
 
 #include <panther_system_test_utils.hpp>
 
+#include <cstdint>
+
 #include <lifecycle_msgs/msg/state.hpp>
 
 #include <hardware_interface/types/lifecycle_state_names.hpp>
@@ -103,7 +105,7 @@ void PantherSystemTestUtils::ConfigureActivatePantherSystem()
   ActivatePantherSystem();
 }
 
-void PantherSystemTestUtils::SetState(const uint8_t state_id, const std::string & state_name)
+void PantherSystemTestUtils::SetState(const std::uint8_t state_id, const std::string & state_name)
 {
   rclcpp_lifecycle::State state(state_id, state_name);
   rm_->set_component_state(kPantherSystemName, state);
