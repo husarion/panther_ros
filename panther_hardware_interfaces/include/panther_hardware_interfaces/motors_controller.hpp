@@ -64,6 +64,7 @@ public:
    */
   void UpdateSystemFeedback();
 
+  // TODO: update
   /**
    * @brief Updates one of current Roboteq driver feedback states (temperature, voltage,
    * battery current). It has to be called 8 times to update all values. It was separated
@@ -76,7 +77,7 @@ public:
    * @return whether all updates were finished - only one is read every iteration
    * once it is ready driver state values can be accessed
    */
-  bool UpdateDriversState();
+  void UpdateDriversState();
 
   const RoboteqData & GetFrontData() { return front_data_; }
   const RoboteqData & GetRearData() { return rear_data_; }
@@ -115,6 +116,12 @@ public:
   void TurnOnSafetyStop();
 
 private:
+  // TODO: docs and rename
+  void UpdateSystemFeedback(
+    RoboteqData & data, const RoboteqDriverFeedback & feedback, const timespec & current_time);
+  void UpdateDriversState(
+    RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time);
+
   CanOpenController canopen_controller_;
 
   RoboteqData front_data_;
@@ -122,9 +129,8 @@ private:
 
   RoboteqVeloctiyCommandConverter roboteq_vel_cmd_converter_;
 
-  const std::chrono::milliseconds pdo_feedback_timeout_;
-
-  unsigned current_update_ = 0;
+  const std::chrono::milliseconds pdo_motors_state_timeout_;
+  const std::chrono::milliseconds pdo_driver_state_timeout_;
 };
 
 }  // namespace panther_hardware_interfaces

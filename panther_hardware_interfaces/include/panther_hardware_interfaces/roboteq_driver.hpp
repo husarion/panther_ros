@@ -40,23 +40,28 @@ struct RoboteqDriverFeedback
   RoboteqMotorState motor_1;
   RoboteqMotorState motor_2;
 
+  timespec pos_timestamp;
+  timespec vel_current_timestamp;
+};
+
+struct RoboteqDriverState
+{
   uint8_t fault_flags;
   uint8_t script_flags;
   uint8_t runtime_stat_flag_motor_1;
   uint8_t runtime_stat_flag_motor_2;
 
-  timespec timestamp;
-};
-
-struct RoboteqDriverState
-{
-  int16_t mcu_temp;
-  uint16_t battery_voltage;
   int16_t bat_amps_1;
   int16_t bat_amps_2;
+
+  // TODO: battery vs bat, amps vs voltage
+  uint16_t battery_voltage;
+
+  int16_t mcu_temp;
   int16_t heatsink_temp;
 
-  timespec timestamp;
+  timespec flags_amps_timestamp;
+  timespec volts_temps_timestamp;
 };
 
 // todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
@@ -162,11 +167,18 @@ private:
 
   std::atomic_bool can_error_;
 
-  std::mutex feedback_timestamp_mtx_;
-  timespec last_feedback_write_timestamp_;
+  // TODO: maybe one mutex?
+  std::mutex position_timestamp_mtx_;
+  timespec last_position_timestamp_;
 
-  std::mutex state_timestamp_mtx_;
-  timespec last_state_write_timestamp_;
+  std::mutex speed_current_timestamp_mtx_;
+  timespec last_speed_current_timestamp_;
+
+  std::mutex flags_amps_timestamp_mtx_;
+  timespec last_flags_amps_timestamp_;
+
+  std::mutex volts_temps_timestamp_mtx_;
+  timespec last_volts_temps_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
   const std::chrono::microseconds sdo_operation_wait_timeout_;

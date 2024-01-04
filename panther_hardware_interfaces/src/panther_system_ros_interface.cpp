@@ -100,12 +100,15 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CanErrors & can_errors)
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
   driver_state.error = can_errors.error;
-  driver_state.write_sdo_error = can_errors.write_sdo_error;
-  driver_state.read_sdo_error = can_errors.read_sdo_error;
-  driver_state.read_pdo_error = can_errors.read_pdo_error;
+  driver_state.write_pdo_cmds_error = can_errors.write_pdo_cmds_error;
+  driver_state.read_pdo_motor_states_error = can_errors.read_pdo_motor_states_error;
+  driver_state.read_pdo_driver_state_error = can_errors.read_pdo_driver_state_error;
 
-  driver_state.front.data_timed_out = can_errors.front_data_timed_out;
-  driver_state.rear.data_timed_out = can_errors.rear_data_timed_out;
+  driver_state.front.motor_states_data_timed_out = can_errors.front_motor_states_data_timed_out;
+  driver_state.rear.motor_states_data_timed_out = can_errors.rear_motor_states_data_timed_out;
+
+  driver_state.front.driver_state_data_timed_out = can_errors.front_driver_state_data_timed_out;
+  driver_state.rear.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
 
   driver_state.front.can_net_err = can_errors.front_can_net_err;
   driver_state.rear.can_net_err = can_errors.rear_can_net_err;

@@ -28,7 +28,6 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
-#include <panther_hardware_interfaces/gpio_driver.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 #include <panther_hardware_interfaces/roboteq_error_filter.hpp>
@@ -76,7 +75,6 @@ protected:
   void UpdateHwStates();
   void UpdateDriverState();
   void UpdateSystemFeedback();
-  void UpdateMsgErrors();
 
   static constexpr size_t kJointsSize = 4;
 
@@ -96,7 +94,6 @@ protected:
   std::string joint_order_[kJointsSize] = {"fl", "fr", "rl", "rr"};
   std::string joints_names_sorted_[kJointsSize];
 
-  std::unique_ptr<GPIOController> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
@@ -124,9 +121,9 @@ protected:
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
   struct ErrorsFilterIds
   {
-    std::size_t read_sdo;
-    std::size_t write_sdo;
-    std::size_t read_pdo;
+    std::size_t write_pdo_cmds;
+    std::size_t read_pdo_motor_states;
+    std::size_t read_pdo_driver_state;
     std::size_t roboteq_driver;
   } errors_filter_ids_;
 };

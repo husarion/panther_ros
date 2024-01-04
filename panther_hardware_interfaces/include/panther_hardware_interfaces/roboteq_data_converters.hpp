@@ -208,30 +208,30 @@ public:
   }
 
   void SetMotorStates(
-    RoboteqMotorState left_state, RoboteqMotorState right_state, bool data_timed_out,
-    bool can_net_err)
+    RoboteqMotorState left_state, RoboteqMotorState right_state, bool data_timed_out)
   {
     left_state_.SetData(left_state);
     right_state_.SetData(right_state);
-    data_timed_out_ = data_timed_out;
-    can_net_err_ = can_net_err;
+    motor_states_data_timed_out_ = data_timed_out;
   }
 
-  void SetFlags(
-    uint8_t fault_flags, uint8_t script_flags, uint8_t left_runtime_errors_flags,
-    uint8_t right_runtime_errors_flags)
+  void SetDriverState(RoboteqDriverState state, bool data_timed_out)
   {
-    fault_flags_.SetData(fault_flags);
-    script_flags_.SetData(script_flags);
-    left_runtime_error_.SetData(left_runtime_errors_flags);
-    right_runtime_error_.SetData(right_runtime_errors_flags);
+    driver_state_.SetTemperature(state.mcu_temp);
+    driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
+    driver_state_.SetVoltage(state.battery_voltage);
+    driver_state_.SetBatAmps1(state.bat_amps_1);
+    driver_state_.SetBatAmps2(state.bat_amps_2);
+
+    fault_flags_.SetData(state.fault_flags);
+    script_flags_.SetData(state.script_flags);
+    left_runtime_error_.SetData(state.runtime_stat_flag_motor_2);
+    right_runtime_error_.SetData(state.runtime_stat_flag_motor_1);
+
+    driver_state_data_timed_out_ = data_timed_out;
   }
 
-  void SetTemperature(int16_t temp) { driver_state_.SetTemperature(temp); };
-  void SetHeatsinkTemperature(int16_t temp) { driver_state_.SetHeatsinkTemperature(temp); };
-  void SetVoltage(uint16_t voltage) { driver_state_.SetVoltage(voltage); };
-  void SetBatAmps1(int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
-  void SetBatAmps2(int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
+  void SetCanNetErr(bool can_net_err) { can_net_err_ = can_net_err; }
 
   bool IsFlagError() const
   {
@@ -239,13 +239,18 @@ public:
            right_runtime_error_.IsError();
   }
 
-  bool IsError() const { return IsFlagError() || data_timed_out_ || can_net_err_; }
+  bool IsError() const
+  {
+    return IsFlagError() || motor_states_data_timed_out_ || driver_state_data_timed_out_ ||
+           can_net_err_;
+  }
 
   const MotorState & GetLeftMotorState() const { return left_state_; }
   const MotorState & GetRightMotorState() const { return right_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
 
-  bool IsDataTimedOut() const { return data_timed_out_; }
+  bool IsMotorStatesDataTimedOut() const { return motor_states_data_timed_out_; }
+  bool IsDriverStateDataTimedOut() const { return driver_state_data_timed_out_; }
   bool IsCanNetErr() const { return can_net_err_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
@@ -272,7 +277,8 @@ private:
   RuntimeError left_runtime_error_;
   RuntimeError right_runtime_error_;
 
-  bool data_timed_out_ = false;
+  bool motor_states_data_timed_out_ = false;
+  bool driver_state_data_timed_out_ = false;
   bool can_net_err_ = false;
 };
 

@@ -34,11 +34,17 @@ namespace panther_hardware_interfaces
 struct CanErrors
 {
   bool error;
-  bool write_sdo_error;
-  bool read_sdo_error;
-  bool read_pdo_error;
-  bool front_data_timed_out;
-  bool rear_data_timed_out;
+
+  bool write_pdo_cmds_error;
+  bool read_pdo_motor_states_error;
+  bool read_pdo_driver_state_error;
+
+  bool front_motor_states_data_timed_out;
+  bool rear_motor_states_data_timed_out;
+
+  bool front_driver_state_data_timed_out;
+  bool rear_driver_state_data_timed_out;
+
   bool front_can_net_err;
   bool rear_can_net_err;
 };
