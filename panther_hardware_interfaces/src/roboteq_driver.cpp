@@ -29,17 +29,16 @@ namespace panther_hardware_interfaces
 {
 
 RoboteqDriver::RoboteqDriver(
-  const std::shared_ptr<lely::ev::Executor> & exec,
   const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
   const std::chrono::milliseconds & sdo_operation_timeout)
-: lely::canopen::FiberDriver(*exec, *master, id), sdo_operation_timeout_(sdo_operation_timeout)
+: lely::canopen::LoopDriver(*master, id), sdo_operation_timeout_(sdo_operation_timeout)
 {
 }
 
 bool RoboteqDriver::Boot()
 {
   booted_.store(false);
-  return FiberDriver::Boot();
+  return LoopDriver::Boot();
 }
 
 bool RoboteqDriver::WaitForBoot()
@@ -301,7 +300,7 @@ void RoboteqDriver::SyncSdoWrite(
 void RoboteqDriver::OnBoot(
   const lely::canopen::NmtState st, const char es, const std::string & what) noexcept
 {
-  FiberDriver::OnBoot(st, es, what);
+  LoopDriver::OnBoot(st, es, what);
 
   if (!es || es == 'L') {
     booted_.store(true);

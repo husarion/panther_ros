@@ -4,6 +4,7 @@ A brief introduction to the code structure of the panther system.
 
 ## RoboteqDriver
 
+<!-- TODO: update -->
 Low-level CANopen driver implementing FiberDriver from [Lely](https://opensource.lely.com/canopen/) ([here](https://en.wikipedia.org/wiki/Fiber_%28computer_science%29) you can read more about fibers). It takes care of translating CANopen indexes into meaningful data. It handles PDO and SDO communication and provides methods for sending commands and reading all the useful parameters from the Roboteq drivers. It saves the timestamp of the last RPDO, which can be later used to detect timeout errors.
 
 ## CanopenController

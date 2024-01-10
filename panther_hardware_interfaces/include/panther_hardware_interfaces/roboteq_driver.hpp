@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <vector>
 
-#include <lely/coapp/fiber_driver.hpp>
+#include <lely/coapp/loop_driver.hpp>
 
 #include <panther_msgs/msg/fault_flag.hpp>
 #include <panther_msgs/msg/runtime_error.hpp>
@@ -67,15 +67,12 @@ struct RoboteqDriverState
 
 // todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
 /**
- * @brief Implementation of FiberDriver for Roboteq drivers
+ * @brief Implementation of LoopDriver for Roboteq drivers
  */
-class RoboteqDriver : public lely::canopen::FiberDriver
+class RoboteqDriver : public lely::canopen::LoopDriver
 {
 public:
-  using FiberDriver::FiberDriver;
-
   RoboteqDriver(
-    const std::shared_ptr<lely::ev::Executor> & exec,
     const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
     const std::chrono::milliseconds & sdo_operation_timeout);
 
