@@ -23,11 +23,7 @@ void PantherSystemRosInterface::Initialize()
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
-  executor_thread_ = std::make_unique<std::thread>([this]() {
-    while (!stop_executor_) {
-      executor_->spin_some();
-    }
-  });
+  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 }
 
 void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
@@ -55,11 +51,12 @@ void PantherSystemRosInterface::Deactivate()
 
 void PantherSystemRosInterface::Deinitialize()
 {
-  stop_executor_.store(true);
-  executor_thread_->join();
-  stop_executor_.store(false);
+  if (executor_) {
+    executor_->cancel();
+    executor_thread_->join();
+    executor_.reset();
+  }
 
-  executor_.reset();
   node_.reset();
 }
 
