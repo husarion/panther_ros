@@ -58,7 +58,7 @@ public:
   std::vector<StateInterface> export_state_interfaces() override;
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
+  return_type read(const rclcpp::Time & time, const rclcpp::Duration & /* period */) override;
   return_type write(
     const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
@@ -126,6 +126,9 @@ protected:
     READ_PDO_DRIVER_STATE = 2,
     ROBOTEQ_DRIVER = 3
   };
+
+  rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
+  rclcpp::Duration driver_states_update_period_{0, 0};
 };
 
 }  // namespace panther_hardware_interfaces

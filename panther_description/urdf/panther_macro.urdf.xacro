@@ -101,6 +101,9 @@
           <param name="pdo_motor_states_timeout">20</param>
           <param name="pdo_driver_state_timeout">108</param>
 
+          <!-- It will be rounded to the closest value taking into account current controller frequency -->
+          <param name="driver_states_update_frequency">10.0</param>
+
           <param name="max_roboteq_initialization_attempts">5</param>
           <param name="max_roboteq_activation_attempts">5</param>
           <param name="max_safety_stop_attempts">20</param>

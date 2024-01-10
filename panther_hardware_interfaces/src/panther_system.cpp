@@ -193,6 +193,11 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     ReadInitializationActivationAttempts();
     ReadParametersAndCreateRoboteqErrorFilter();
 
+    const float driver_states_update_frequency =
+      std::stof(info_.hardware_parameters["driver_states_update_frequency"]);
+    driver_states_update_period_ =
+      rclcpp::Duration::from_seconds(1.0f / driver_states_update_frequency);
+
   } catch (const std::invalid_argument & e) {
     RCLCPP_FATAL(logger_, "One of the required hardware parameters was not defined");
     return CallbackReturn::ERROR;
@@ -452,13 +457,14 @@ void PantherSystem::UpdateDriverState()
   panther_system_ros_interface_.PublishDriverState();
 }
 
-return_type PantherSystem::read(
-  const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
+return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
 {
   UpdateSystemFeedback();
 
-  // TODO: lower frequency
-  UpdateDriverState();
+  if (time >= next_driver_state_update_time_) {
+    UpdateDriverState();
+    next_driver_state_update_time_ = time + driver_states_update_period_;
+  }
 
   return return_type::OK;
 }
