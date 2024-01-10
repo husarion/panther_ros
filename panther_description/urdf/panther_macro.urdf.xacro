@@ -98,8 +98,8 @@
             frequency of controller (frequency of publishing commands). SDO operation are not RT critical -->
           <param name="sdo_operation_timeout">50</param>
           <!-- Depends on frequency of the controller, more critical motors state are sent with higher frequency, other parameters are sent with lower, here allowed time is set to be expected period +4ms margin -->
-          <param name="pdo_motor_states_timeout">20</param>
-          <param name="pdo_driver_state_timeout">108</param>
+          <param name="pdo_motor_states_timeout">12</param>
+          <param name="pdo_driver_state_timeout">156</param>
 
           <!-- It will be rounded to the closest value taking into account current controller frequency -->
           <param name="driver_states_update_frequency">10.0</param>
