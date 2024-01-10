@@ -73,7 +73,11 @@ void CanOpenController::Deinitialize()
   if (master_) {
     master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
   }
-  canopen_communication_thread_.join();
+
+  if (canopen_communication_thread_.joinable()) {
+    canopen_communication_thread_.join();
+  }
+
   canopen_communication_started_.store(false);
 
   rear_driver_.reset();
