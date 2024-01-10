@@ -436,11 +436,10 @@ void PantherSystem::UpdateDriverState()
       motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ||
       motors_controller_->GetRearData().IsDriverStateDataTimedOut()) {
       RCLCPP_ERROR_STREAM(
-        logger_, "PDO data timeout: "
-                   << (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "front "
-                                                                                      : "")
-                   << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "rear"
-                                                                                     : ""));
+        logger_,
+        "PDO driver state timeout: "
+          << (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "front " : "")
+          << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "rear" : ""));
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), true);
     } else {
