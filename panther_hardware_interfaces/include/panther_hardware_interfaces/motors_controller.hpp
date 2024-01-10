@@ -37,6 +37,8 @@ public:
   MotorsController(
     const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
 
+  ~MotorsController() { Deinitialize(); }
+
   /**
    * @brief Starts CAN communication and waits for boot to finish
    *

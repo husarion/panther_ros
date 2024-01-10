@@ -58,6 +58,12 @@ class PantherSystemRosInterface
 public:
   PantherSystemRosInterface() {}
 
+  ~PantherSystemRosInterface()
+  {
+    Deactivate();
+    Deinitialize();
+  }
+
   /**
    * @brief Creates node and executor (in a separate thread)
    */
@@ -105,8 +111,6 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
-
-  std::atomic_bool stop_executor_ = false;
 
   rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>

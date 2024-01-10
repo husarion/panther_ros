@@ -55,6 +55,8 @@ class CanOpenController
 public:
   CanOpenController(const CanOpenSettings & canopen_settings);
 
+  ~CanOpenController() { Deinitialize(); }
+
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
    *
