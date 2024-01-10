@@ -224,7 +224,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
         max_roboteq_initialization_attempts_,
         std::bind(&MotorsController::Deinitialize, motors_controller_))) {
     RCLCPP_FATAL_STREAM(logger_, "Initialization failed");
-    return CallbackReturn::FAILURE;
+    return CallbackReturn::ERROR;
   }
 
   return CallbackReturn::SUCCESS;
@@ -259,7 +259,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
         std::bind(&MotorsController::Activate, motors_controller_),
         max_roboteq_activation_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(logger_, "Activation failed");
-    return CallbackReturn::FAILURE;
+    return CallbackReturn::ERROR;
   }
 
   panther_system_ros_interface_.Activate(
@@ -277,7 +277,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "on_error failure " << e.what());
-    return CallbackReturn::FAILURE;
+    return CallbackReturn::ERROR;
   }
 
   panther_system_ros_interface_.Deactivate();
@@ -292,7 +292,7 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "on_error failure " << e.what());
-    return CallbackReturn::FAILURE;
+    return CallbackReturn::ERROR;
   }
 
   panther_system_ros_interface_.Deactivate();
@@ -314,7 +314,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
         std::bind(&MotorsController::TurnOnSafetyStop, motors_controller_),
         max_safety_stop_attempts_, []() {})) {
     RCLCPP_FATAL_STREAM(logger_, "safety stop failed");
-    return CallbackReturn::FAILURE;
+    return CallbackReturn::ERROR;
   }
 
   panther_system_ros_interface_.Deactivate();
