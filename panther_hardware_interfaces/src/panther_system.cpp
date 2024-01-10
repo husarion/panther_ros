@@ -170,7 +170,7 @@ void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()
 
 CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
 {
-  RCLCPP_INFO(logger_, "Initializing");
+  RCLCPP_INFO(logger_, "Initializing Panther System");
 
   if (hardware_interface::SystemInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -208,7 +208,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Configuring");
+  RCLCPP_INFO(logger_, "Configuring Panther System");
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
@@ -217,13 +217,11 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_.Initialize();
 
-  RCLCPP_INFO(logger_, "Initializing Roboteq drivers");
-
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Initialize, motors_controller_),
         max_roboteq_initialization_attempts_,
         std::bind(&MotorsController::Deinitialize, motors_controller_))) {
-    RCLCPP_FATAL_STREAM(logger_, "Initialization failed");
+    RCLCPP_FATAL_STREAM(logger_, "Roboteq drivers initialization failed");
     return CallbackReturn::ERROR;
   }
 
@@ -232,7 +230,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Cleaning up");
+  RCLCPP_INFO(logger_, "Cleaning up Panther System");
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
@@ -244,7 +242,7 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Activating");
+  RCLCPP_INFO(logger_, "Activating Panther System");
 
   hw_commands_velocities_.fill(0.0);
   hw_states_positions_.fill(0.0);
@@ -253,25 +251,22 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   // gpio_controller_->start();
 
-  RCLCPP_INFO(logger_, "Activating Roboteq drivers");
-
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Activate, motors_controller_),
         max_roboteq_activation_attempts_, []() {})) {
-    RCLCPP_FATAL_STREAM(logger_, "Activation failed");
+    RCLCPP_FATAL_STREAM(logger_, "Roboteq drivers activation failed");
     return CallbackReturn::ERROR;
   }
 
   panther_system_ros_interface_.Activate(
     std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
 
-  RCLCPP_INFO(logger_, "Activation finished");
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Deactivating");
+  RCLCPP_INFO(logger_, "Deactivating Panther System");
 
   try {
     motors_controller_->TurnOnSafetyStop();
@@ -287,7 +282,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Shutting down");
+  RCLCPP_INFO(logger_, "Shutting down Panther System");
   try {
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
@@ -307,13 +302,12 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 
 CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Handling error");
+  RCLCPP_INFO(logger_, "Handling Panther System error");
 
-  RCLCPP_INFO(logger_, "Setting safe stop");
   if (!OperationWithAttempts(
         std::bind(&MotorsController::TurnOnSafetyStop, motors_controller_),
         max_safety_stop_attempts_, []() {})) {
-    RCLCPP_FATAL_STREAM(logger_, "safety stop failed");
+    RCLCPP_FATAL_STREAM(logger_, "Setting safety stop failed");
     return CallbackReturn::ERROR;
   }
 
@@ -362,11 +356,10 @@ void PantherSystem::UpdateSystemFeedback()
     if (
       motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ||
       motors_controller_->GetRearData().IsMotorStatesDataTimedOut()) {
-      RCLCPP_ERROR_STREAM(
-        logger_,
-        "PDO motor state data timeout: "
-          << (motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ? "front " : "")
-          << (motors_controller_->GetRearData().IsMotorStatesDataTimedOut() ? "rear" : ""));
+      RCLCPP_WARN_STREAM(
+        logger_, (motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ? "Front " : "")
+                   << (motors_controller_->GetRearData().IsMotorStatesDataTimedOut() ? "Rear " : "")
+                   << "PDO motor state data timeout");
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES), true);
     } else {
@@ -377,7 +370,7 @@ void PantherSystem::UpdateSystemFeedback()
   } catch (const std::runtime_error & e) {
     roboteq_error_filter_->UpdateError(
       static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES), true);
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to read feedback: " << e.what());
+    RCLCPP_WARN_STREAM(logger_, "Error when trying to read feedback: " << e.what());
   }
 }
 
@@ -420,7 +413,7 @@ void PantherSystem::UpdateDriverState()
     if (
       motors_controller_->GetFrontData().IsFlagError() ||
       motors_controller_->GetRearData().IsFlagError()) {
-      RCLCPP_ERROR_STREAM_THROTTLE(
+      RCLCPP_WARN_STREAM_THROTTLE(
         logger_, steady_clock_, 5000,
         "Error state on one of the drivers"
           << "\nFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
@@ -435,11 +428,10 @@ void PantherSystem::UpdateDriverState()
     if (
       motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ||
       motors_controller_->GetRearData().IsDriverStateDataTimedOut()) {
-      RCLCPP_ERROR_STREAM(
-        logger_,
-        "PDO driver state timeout: "
-          << (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "front " : "")
-          << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "rear" : ""));
+      RCLCPP_WARN_STREAM(
+        logger_, (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "Front " : "")
+                   << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "Rear " : "")
+                   << "PDO driver state timeout");
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), true);
     } else {
@@ -448,7 +440,7 @@ void PantherSystem::UpdateDriverState()
     }
 
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to read drivers feedback: " << e.what());
+    RCLCPP_WARN_STREAM(logger_, "Error when trying to read drivers feedback: " << e.what());
     roboteq_error_filter_->UpdateError(
       static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), true);
   }
@@ -479,7 +471,7 @@ return_type PantherSystem::write(
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::WRITE_PDO_CMDS), false);
     } catch (const std::runtime_error & e) {
-      RCLCPP_ERROR_STREAM(logger_, "Error when trying to write commands: " << e.what());
+      RCLCPP_WARN_STREAM(logger_, "Error when trying to write commands: " << e.what());
       roboteq_error_filter_->UpdateError(
         static_cast<std::size_t>(ErrorsFilterIds::WRITE_PDO_CMDS), true);
     }
@@ -496,7 +488,10 @@ return_type PantherSystem::write(
        motors_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
        motors_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active) ==
       false) {
-      RCLCPP_ERROR(logger_, "Sending safety stop request");
+      RCLCPP_ERROR(
+        logger_,
+        "Error detected and at least on of the channels is not in the safety stop state, sending "
+        "safety stop request...");
       // 0 command is set with safety stop
       try {
         motors_controller_->TurnOnSafetyStop();
