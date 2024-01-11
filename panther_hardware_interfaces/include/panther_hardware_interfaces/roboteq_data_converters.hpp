@@ -166,7 +166,8 @@ public:
         "reverse_limit_triggered",
         "amps_trigger_activated",
       },
-      {"safety_stop_active", "amps_limit_active"})
+      {"amps_limit_active", "safety_stop_active", "forward_limit_triggered",
+       "reverse_limit_triggered", "amps_trigger_activated"})
   {
   }
 
