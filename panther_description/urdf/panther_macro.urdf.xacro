@@ -94,10 +94,8 @@
           <param name="master_can_id">3</param>
           <param name="front_driver_can_id">1</param>
           <param name="rear_driver_can_id">2</param>
-          <!-- Shouldn't but can depend on frequencies of publishing PDO (set on Roboteq) and
-            frequency of controller (frequency of publishing commands). SDO operation are not RT critical -->
-          <param name="sdo_operation_timeout">50</param>
-          <!-- Depends on frequency of the controller, more critical motors state are sent with higher frequency, other parameters are sent with lower, here allowed time is set to be expected period +4ms margin -->
+          <param name="sdo_operation_timeout">100</param>
+          <!-- Depends on frequency of the controller, more critical motors state are sent with higher frequency, other parameters are sent with lower, here allowed time is set to be expected period +50% margin -->
           <param name="pdo_motor_states_timeout">12</param>
           <param name="pdo_driver_state_timeout">156</param>
 
