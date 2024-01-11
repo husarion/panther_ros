@@ -44,8 +44,8 @@ void RoboteqSlave::InitializeValues()
 {
   SetTemperature(0);
   SetVoltage(0);
-  SetBatAmps1(0);
-  SetBatAmps2(0);
+  SetBatteryCurrent1(0);
+  SetBatteryCurrent2(0);
 
   SetPosition(DriverChannel::CHANNEL1, 0);
   SetPosition(DriverChannel::CHANNEL2, 0);

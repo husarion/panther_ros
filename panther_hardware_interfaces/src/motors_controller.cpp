@@ -109,10 +109,10 @@ void MotorsController::UpdateDriversState(
   RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time)
 {
   bool data_timed_out = (lely::util::from_timespec(current_time) -
-                           lely::util::from_timespec(state.flags_amps_timestamp) >
+                           lely::util::from_timespec(state.flags_current_timestamp) >
                          pdo_driver_state_timeout_) ||
                         (lely::util::from_timespec(current_time) -
-                           lely::util::from_timespec(state.volts_temps_timestamp) >
+                           lely::util::from_timespec(state.voltages_temps_timestamp) >
                          pdo_driver_state_timeout_);
 
   data.SetDriverState(state, data_timed_out);

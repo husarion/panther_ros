@@ -93,15 +93,15 @@ RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
 
   state.mcu_temp = rpdo_mapped[0x210F][1];
   state.battery_voltage = rpdo_mapped[0x210D][2];
-  state.bat_amps_1 = rpdo_mapped[0x210C][1];
-  state.bat_amps_2 = rpdo_mapped[0x210C][2];
+  state.battery_current_1 = rpdo_mapped[0x210C][1];
+  state.battery_current_2 = rpdo_mapped[0x210C][2];
   state.heatsink_temp = rpdo_mapped[0x210F][2];
 
-  std::unique_lock<std::mutex> lck_fa(flags_amps_timestamp_mtx_);
-  state.flags_amps_timestamp = last_flags_amps_timestamp_;
+  std::unique_lock<std::mutex> lck_fa(flags_current_timestamp_mtx_);
+  state.flags_current_timestamp = flags_current_timestamp_;
 
-  std::unique_lock<std::mutex> lck_vt(volts_temps_timestamp_mtx_);
-  state.volts_temps_timestamp = last_volts_temps_timestamp_;
+  std::unique_lock<std::mutex> lck_vt(voltages_temps_timestamp_mtx_);
+  state.voltages_temps_timestamp = last_voltages_temps_timestamp_;
 
   return state;
 }
@@ -322,11 +322,11 @@ void RoboteqDriver::OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subi
     std::unique_lock<std::mutex> lck(speed_current_timestamp_mtx_);
     clock_gettime(CLOCK_MONOTONIC, &last_speed_current_timestamp_);
   } else if (idx == 0x2106 && subidx == 7) {
-    std::unique_lock<std::mutex> lck(flags_amps_timestamp_mtx_);
-    clock_gettime(CLOCK_MONOTONIC, &last_flags_amps_timestamp_);
+    std::unique_lock<std::mutex> lck(flags_current_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &flags_current_timestamp_);
   } else if (idx == 0x210D && subidx == 2) {
-    std::unique_lock<std::mutex> lck(volts_temps_timestamp_mtx_);
-    clock_gettime(CLOCK_MONOTONIC, &last_volts_temps_timestamp_);
+    std::unique_lock<std::mutex> lck(voltages_temps_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_voltages_temps_timestamp_);
   }
 }
 

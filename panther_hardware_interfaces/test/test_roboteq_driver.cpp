@@ -76,28 +76,28 @@ TEST_F(TestRoboteqDriver, test_read_voltage)
   ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadVoltage(), r_volt);
 }
 
-TEST_F(TestRoboteqDriver, test_read_bat_amps1)
+TEST_F(TestRoboteqDriver, test_read_battery_current1)
 {
-  const std::int16_t f_bat_amps_1 = 10;
-  const std::int16_t r_bat_amps_1 = 30;
+  const std::int16_t f_battery_current_1 = 10;
+  const std::int16_t r_battery_current_1 = 30;
 
-  roboteq_mock_->front_driver_->SetBatAmps1(f_bat_amps_1);
-  roboteq_mock_->rear_driver_->SetBatAmps1(r_bat_amps_1);
+  roboteq_mock_->front_driver_->SetBatteryCurrent1(f_battery_current_1);
+  roboteq_mock_->rear_driver_->SetBatteryCurrent1(r_battery_current_1);
 
-  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadBatAmps1(), f_bat_amps_1);
-  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadBatAmps1(), r_bat_amps_1);
+  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadBatteryCurrent1(), f_battery_current_1);
+  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadBatteryCurrent1(), r_battery_current_1);
 }
 
-TEST_F(TestRoboteqDriver, test_read_bat_amps2)
+TEST_F(TestRoboteqDriver, test_read_battery_current2)
 {
-  const std::int16_t f_bat_amps_2 = 30;
-  const std::int16_t r_bat_amps_2 = 40;
+  const std::int16_t f_battery_current_2 = 30;
+  const std::int16_t r_battery_current_2 = 40;
 
-  roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
-  roboteq_mock_->rear_driver_->SetBatAmps2(r_bat_amps_2);
+  roboteq_mock_->front_driver_->SetBatteryCurrent2(f_battery_current_2);
+  roboteq_mock_->rear_driver_->SetBatteryCurrent2(r_battery_current_2);
 
-  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadBatAmps2(), f_bat_amps_2);
-  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadBatAmps2(), r_bat_amps_2);
+  ASSERT_EQ(canopen_controller_->GetFrontDriver()->ReadBatteryCurrent2(), f_battery_current_2);
+  ASSERT_EQ(canopen_controller_->GetRearDriver()->ReadBatteryCurrent2(), r_battery_current_2);
 }
 
 TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)

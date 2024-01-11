@@ -217,22 +217,22 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
 
   const std::int16_t f_temp = 36;
   const std::uint16_t f_volt = 405;
-  const std::int16_t f_bat_amps_1 = 15;
-  const std::int16_t f_bat_amps_2 = 12;
+  const std::int16_t f_battery_current_1 = 15;
+  const std::int16_t f_battery_current_2 = 12;
   const std::int16_t r_temp = 35;
   const std::uint16_t r_volt = 404;
-  const std::int16_t r_bat_amps_1 = 14;
-  const std::int16_t r_bat_amps_2 = 11;
+  const std::int16_t r_battery_current_1 = 14;
+  const std::int16_t r_battery_current_2 = 11;
 
   front.SetTemperature(f_temp);
   front.SetVoltage(f_volt);
-  front.SetBatAmps1(f_bat_amps_1);
-  front.SetBatAmps2(f_bat_amps_2);
+  front.SetBatteryCurrent1(f_battery_current_1);
+  front.SetBatteryCurrent2(f_battery_current_2);
 
   rear.SetTemperature(r_temp);
   rear.SetVoltage(r_volt);
-  rear.SetBatAmps1(r_bat_amps_1);
-  rear.SetBatAmps2(r_bat_amps_2);
+  rear.SetBatteryCurrent1(r_battery_current_1);
+  rear.SetBatteryCurrent2(r_battery_current_2);
 
   panther_system_ros_interface.UpdateMsgDriversParameters(front, rear);
   panther_system_ros_interface.PublishDriverState();
@@ -246,9 +246,11 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
   ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->front.current * 10.0),
+    (f_battery_current_1 + f_battery_current_2));
   ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->rear.current * 10.0),
+    (r_battery_current_1 + r_battery_current_2));
 
   panther_system_ros_interface.Deactivate();
   panther_system_ros_interface.Deinitialize();

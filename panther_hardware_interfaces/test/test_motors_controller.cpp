@@ -288,19 +288,19 @@ TEST_F(TestMotorsController, test_update_drivers_state)
   const std::int16_t r_temp = 32;
   const std::uint16_t f_volt = 400;
   const std::uint16_t r_volt = 430;
-  const std::int16_t f_bat_amps_1 = 10;
-  const std::int16_t r_bat_amps_1 = 30;
-  const std::int16_t f_bat_amps_2 = 30;
-  const std::int16_t r_bat_amps_2 = 40;
+  const std::int16_t f_battery_current_1 = 10;
+  const std::int16_t r_battery_current_1 = 30;
+  const std::int16_t f_battery_current_2 = 30;
+  const std::int16_t r_battery_current_2 = 40;
 
   roboteq_mock_->front_driver_->SetTemperature(f_temp);
   roboteq_mock_->rear_driver_->SetTemperature(r_temp);
   roboteq_mock_->front_driver_->SetVoltage(f_volt);
   roboteq_mock_->rear_driver_->SetVoltage(r_volt);
-  roboteq_mock_->front_driver_->SetBatAmps1(f_bat_amps_1);
-  roboteq_mock_->rear_driver_->SetBatAmps1(r_bat_amps_1);
-  roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
-  roboteq_mock_->rear_driver_->SetBatAmps2(r_bat_amps_2);
+  roboteq_mock_->front_driver_->SetBatteryCurrent1(f_battery_current_1);
+  roboteq_mock_->rear_driver_->SetBatteryCurrent1(r_battery_current_1);
+  roboteq_mock_->front_driver_->SetBatteryCurrent2(f_battery_current_2);
+  roboteq_mock_->rear_driver_->SetBatteryCurrent2(r_battery_current_2);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
@@ -318,7 +318,7 @@ TEST_F(TestMotorsController, test_update_drivers_state)
   ASSERT_EQ(
     static_cast<std::int16_t>(
       motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
-    f_bat_amps_1 + f_bat_amps_2);
+    f_battery_current_1 + f_battery_current_2);
 
   ASSERT_FALSE(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
@@ -336,7 +336,7 @@ TEST_F(TestMotorsController, test_update_drivers_state)
   ASSERT_EQ(
     static_cast<std::int16_t>(
       motors_controller_->GetRearData().GetDriverState().GetCurrent() * 10.0),
-    r_bat_amps_1 + r_bat_amps_2);
+    r_battery_current_1 + r_battery_current_2);
 
   const std::int16_t f_temp_2 = 29;
   roboteq_mock_->front_driver_->SetTemperature(f_temp_2);
@@ -351,13 +351,13 @@ TEST_F(TestMotorsController, test_update_drivers_state_sdo_timeout)
 {
   const std::int16_t f_temp = 30;
   const std::uint16_t f_volt = 400;
-  const std::int16_t f_bat_amps_1 = 10;
-  const std::int16_t f_bat_amps_2 = 30;
+  const std::int16_t f_battery_current_1 = 10;
+  const std::int16_t f_battery_current_2 = 30;
 
   roboteq_mock_->front_driver_->SetTemperature(f_temp);
   roboteq_mock_->front_driver_->SetVoltage(f_volt);
-  roboteq_mock_->front_driver_->SetBatAmps1(f_bat_amps_1);
-  roboteq_mock_->front_driver_->SetBatAmps2(f_bat_amps_2);
+  roboteq_mock_->front_driver_->SetBatteryCurrent1(f_battery_current_1);
+  roboteq_mock_->front_driver_->SetBatteryCurrent2(f_battery_current_2);
 
   ASSERT_NO_THROW(motors_controller_->UpdateDriversState());
   ASSERT_EQ(
@@ -387,7 +387,7 @@ TEST_F(TestMotorsController, test_update_drivers_state_sdo_timeout)
   ASSERT_EQ(
     static_cast<std::int16_t>(
       motors_controller_->GetFrontData().GetDriverState().GetCurrent() * 10.0),
-    f_bat_amps_1 + f_bat_amps_2);
+    f_battery_current_1 + f_battery_current_2);
 }
 
 TEST_F(TestMotorsController, test_write_speed)

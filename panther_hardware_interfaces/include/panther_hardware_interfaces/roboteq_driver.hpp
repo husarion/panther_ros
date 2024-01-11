@@ -52,17 +52,16 @@ struct RoboteqDriverState
   std::uint8_t runtime_stat_flag_motor_1;
   std::uint8_t runtime_stat_flag_motor_2;
 
-  int16_t bat_amps_1;
-  int16_t bat_amps_2;
+  int16_t battery_current_1;
+  int16_t battery_current_2;
 
-  // TODO: battery vs bat, amps vs voltage
   uint16_t battery_voltage;
 
   int16_t mcu_temp;
   int16_t heatsink_temp;
 
-  timespec flags_amps_timestamp;
-  timespec volts_temps_timestamp;
+  timespec flags_current_timestamp;
+  timespec voltages_temps_timestamp;
 };
 
 // todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
@@ -179,11 +178,11 @@ private:
   std::mutex speed_current_timestamp_mtx_;
   timespec last_speed_current_timestamp_;
 
-  std::mutex flags_amps_timestamp_mtx_;
-  timespec last_flags_amps_timestamp_;
+  std::mutex flags_current_timestamp_mtx_;
+  timespec flags_current_timestamp_;
 
-  std::mutex volts_temps_timestamp_mtx_;
-  timespec last_volts_temps_timestamp_;
+  std::mutex voltages_temps_timestamp_mtx_;
+  timespec last_voltages_temps_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
 

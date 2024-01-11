@@ -223,8 +223,8 @@ TEST(TestRoboteqDataConverters, test_driver_state)
 
   driver_state.SetTemperature(32);
   driver_state.SetVoltage(365);
-  driver_state.SetBatAmps1(15);
-  driver_state.SetBatAmps2(20);
+  driver_state.SetBatteryCurrent1(15);
+  driver_state.SetBatteryCurrent2(20);
 
   ASSERT_FLOAT_EQ(driver_state.GetTemperature(), 32);
   ASSERT_FLOAT_EQ(driver_state.GetVoltage(), 36.5);
@@ -273,8 +273,8 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
 
   roboteq_data.SetTemperature(32);
   roboteq_data.SetVoltage(365);
-  roboteq_data.SetBatAmps1(15);
-  roboteq_data.SetBatAmps2(20);
+  roboteq_data.SetBatteryCurrent1(15);
+  roboteq_data.SetBatteryCurrent2(20);
 
   ASSERT_FLOAT_EQ(roboteq_data.GetDriverState().GetTemperature(), 32);
   ASSERT_FLOAT_EQ(roboteq_data.GetDriverState().GetVoltage(), 36.5);

@@ -82,8 +82,8 @@ public:
   void SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag);
   void SetTemperature(std::int8_t value) { (*this)[0x210F][1] = value; }
   void SetVoltage(std::uint16_t value) { (*this)[0x210D][2] = value; }
-  void SetBatAmps1(std::int16_t value) { (*this)[0x210C][1] = value; }
-  void SetBatAmps2(std::int16_t value) { (*this)[0x210C][2] = value; }
+  void SetBatteryCurrent1(std::int16_t value) { (*this)[0x210C][1] = value; }
+  void SetBatteryCurrent2(std::int16_t value) { (*this)[0x210C][2] = value; }
 
   void SetRoboteqCmd(DriverChannel channel, std::int32_t value)
   {

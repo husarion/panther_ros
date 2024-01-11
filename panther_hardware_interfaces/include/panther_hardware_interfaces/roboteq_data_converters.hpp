@@ -185,20 +185,26 @@ public:
   void SetTemperature(const std::int16_t temp) { last_temp_ = temp; };
   void SetHeatsinkTemperature(const std::int16_t temp) { last_heatsink_temp = temp; };
   void SetVoltage(const std::uint16_t voltage) { last_voltage_ = voltage; };
-  void SetBatAmps1(const std::int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
-  void SetBatAmps2(const std::int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
+  void SetBatteryCurrent1(const std::int16_t battery_current_1)
+  {
+    last_battery_current_1_ = battery_current_1;
+  };
+  void SetBatteryCurrent2(const std::int16_t battery_current_2)
+  {
+    last_battery_current_2_ = battery_current_2;
+  };
 
   float GetTemperature() const { return last_temp_; }
   float GetHeatsinkTemperature() const { return last_heatsink_temp; }
   float GetVoltage() const { return last_voltage_ / 10.0; }
-  float GetCurrent() const { return (last_bat_amps_1_ + last_bat_amps_2_) / 10.0; }
+  float GetCurrent() const { return (last_battery_current_1_ + last_battery_current_2_) / 10.0; }
 
 private:
   std::int16_t last_temp_ = 0;
   std::int16_t last_heatsink_temp = 0;
   std::uint16_t last_voltage_ = 0;
-  std::int16_t last_bat_amps_1_ = 0;
-  std::int16_t last_bat_amps_2_ = 0;
+  std::int16_t last_battery_current_1_ = 0;
+  std::int16_t last_battery_current_2_ = 0;
 };
 
 /**
@@ -226,8 +232,8 @@ public:
     driver_state_.SetTemperature(state.mcu_temp);
     driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
     driver_state_.SetVoltage(state.battery_voltage);
-    driver_state_.SetBatAmps1(state.bat_amps_1);
-    driver_state_.SetBatAmps2(state.bat_amps_2);
+    driver_state_.SetBatteryCurrent1(state.battery_current_1);
+    driver_state_.SetBatteryCurrent2(state.battery_current_2);
 
     fault_flags_.SetData(state.fault_flags);
     script_flags_.SetData(state.script_flags);

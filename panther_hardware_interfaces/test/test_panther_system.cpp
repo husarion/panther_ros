@@ -399,19 +399,19 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   const std::int16_t r_temp = 32;
   const std::uint16_t f_volt = 400;
   const std::uint16_t r_volt = 430;
-  const std::int16_t f_bat_amps_1 = 10;
-  const std::int16_t r_bat_amps_1 = 30;
-  const std::int16_t f_bat_amps_2 = 30;
-  const std::int16_t r_bat_amps_2 = 40;
+  const std::int16_t f_battery_current_1 = 10;
+  const std::int16_t r_battery_current_1 = 30;
+  const std::int16_t f_battery_current_2 = 30;
+  const std::int16_t r_battery_current_2 = 40;
 
   pth_test_.GetRoboteqMock()->front_driver_->SetTemperature(f_temp);
   pth_test_.GetRoboteqMock()->rear_driver_->SetTemperature(r_temp);
   pth_test_.GetRoboteqMock()->front_driver_->SetVoltage(f_volt);
   pth_test_.GetRoboteqMock()->rear_driver_->SetVoltage(r_volt);
-  pth_test_.GetRoboteqMock()->front_driver_->SetBatAmps1(f_bat_amps_1);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetBatAmps1(r_bat_amps_1);
-  pth_test_.GetRoboteqMock()->front_driver_->SetBatAmps2(f_bat_amps_2);
-  pth_test_.GetRoboteqMock()->rear_driver_->SetBatAmps2(r_bat_amps_2);
+  pth_test_.GetRoboteqMock()->front_driver_->SetBatteryCurrent1(f_battery_current_1);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetBatteryCurrent1(r_battery_current_1);
+  pth_test_.GetRoboteqMock()->front_driver_->SetBatteryCurrent2(f_battery_current_2);
+  pth_test_.GetRoboteqMock()->rear_driver_->SetBatteryCurrent2(r_battery_current_2);
 
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
 
@@ -454,9 +454,11 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
   ASSERT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->front.current * 10.0),
+    (f_battery_current_1 + f_battery_current_2));
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
+    battery_current static_cast<std::int16_t>(state_msg->rear.current * 10.0),
+    (r_battery_current_1 + r_battery_current_2));
 
   pth_test_.ShutdownPantherSystem();
 }
