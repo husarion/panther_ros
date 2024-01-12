@@ -36,7 +36,7 @@ struct RoboteqMotorState
   std::int16_t current;
 };
 
-struct RoboteqDriverFeedback
+struct RoboteqMotorsStates
 {
   RoboteqMotorState motor_1;
   RoboteqMotorState motor_2;
@@ -92,12 +92,15 @@ public:
   bool IsCanError() const { return can_error_.load(); }
 
   /**
-   * @brief Reads all the PDO data returned from Roboteq (motors feedback, error flags) and saves
-   * current timestamp
+   * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
+   * last timestamps
    */
-  RoboteqDriverFeedback ReadRoboteqDriverFeedback();
+  RoboteqMotorsStates ReadRoboteqMotorsStates();
 
-  // TODO
+  /**
+   * @brief Reads driver state data returned from Roboteq (PDO 3 and 4 - flags, battery voltage and
+   * currents, temperatures) and saves last timestamps
+   */
   RoboteqDriverState ReadRoboteqDriverState();
 
   /**

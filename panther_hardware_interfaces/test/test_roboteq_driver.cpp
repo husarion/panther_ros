@@ -151,10 +151,10 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_values)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  panther_hardware_interfaces::RoboteqDriverFeedback f_fb =
-    canopen_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
-  panther_hardware_interfaces::RoboteqDriverFeedback r_fb =
-    canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+  panther_hardware_interfaces::RoboteqMotorsStates f_fb =
+    canopen_controller_->GetFrontDriver()->ReadRoboteqMotorsStates();
+  panther_hardware_interfaces::RoboteqMotorsStates r_fb =
+    canopen_controller_->GetRearDriver()->ReadRoboteqMotorsStates();
 
   ASSERT_EQ(f_fb.motor_2.pos, fl_pos);
   ASSERT_EQ(f_fb.motor_2.vel, fl_vel);
@@ -187,18 +187,18 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_feedback_timestamp)
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-  panther_hardware_interfaces::RoboteqDriverFeedback f_fb1 =
-    canopen_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
-  panther_hardware_interfaces::RoboteqDriverFeedback r_fb1 =
-    canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+  panther_hardware_interfaces::RoboteqMotorsStates f_fb1 =
+    canopen_controller_->GetFrontDriver()->ReadRoboteqMotorsStates();
+  panther_hardware_interfaces::RoboteqMotorsStates r_fb1 =
+    canopen_controller_->GetRearDriver()->ReadRoboteqMotorsStates();
 
   // based on publishing frequency in the Roboteq mock (100)
   std::this_thread::sleep_for(std::chrono::milliseconds(110));
 
-  panther_hardware_interfaces::RoboteqDriverFeedback f_fb2 =
-    canopen_controller_->GetFrontDriver()->ReadRoboteqDriverFeedback();
-  panther_hardware_interfaces::RoboteqDriverFeedback r_fb2 =
-    canopen_controller_->GetRearDriver()->ReadRoboteqDriverFeedback();
+  panther_hardware_interfaces::RoboteqMotorsStates f_fb2 =
+    canopen_controller_->GetFrontDriver()->ReadRoboteqMotorsStates();
+  panther_hardware_interfaces::RoboteqMotorsStates r_fb2 =
+    canopen_controller_->GetRearDriver()->ReadRoboteqMotorsStates();
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart

@@ -68,7 +68,7 @@ class MotorState
 public:
   MotorState(const DrivetrainSettings & drivetrain_settings);
 
-  void SetData(const RoboteqMotorState & fb) { last_state_ = fb; };
+  void SetData(const RoboteqMotorState & state) { last_state_ = state; };
 
   float GetPosition() const { return last_state_.pos * roboteq_pos_feedback_to_radians_; }
   float GetVelocity() const
@@ -219,7 +219,7 @@ public:
   {
   }
 
-  void SetMotorStates(
+  void SetMotorsStates(
     const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
     const bool data_timed_out)
   {

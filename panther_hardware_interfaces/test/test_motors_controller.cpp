@@ -192,7 +192,7 @@ TEST_F(TestMotorsController, test_update_system_feedback)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  motors_controller_->UpdateSystemFeedback();
+  motors_controller_->UpdateMotorsStates();
 
   const auto & fl = motors_controller_->GetFrontData().GetLeftMotorState();
   const auto & fr = motors_controller_->GetFrontData().GetRightMotorState();
@@ -231,13 +231,13 @@ TEST_F(TestMotorsController, test_update_system_feedback)
 
 TEST_F(TestMotorsController, test_update_system_feedback_timestamps)
 {
-  motors_controller_->UpdateSystemFeedback();
+  motors_controller_->UpdateMotorsStates();
 
   std::this_thread::sleep_for(
     panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
     std::chrono::milliseconds(10));
 
-  motors_controller_->UpdateSystemFeedback();
+  motors_controller_->UpdateMotorsStates();
 
   ASSERT_FALSE(motors_controller_->GetFrontData().IsDataTimedOut());
   ASSERT_FALSE(motors_controller_->GetRearData().IsDataTimedOut());
@@ -259,13 +259,13 @@ TEST(TestMotorsControllerOthers, test_update_system_pdo_feedback_timeout)
   motors_controller_->Initialize();
   motors_controller_->Activate();
 
-  motors_controller_->UpdateSystemFeedback();
+  motors_controller_->UpdateMotorsStates();
 
   std::this_thread::sleep_for(
     panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
     std::chrono::milliseconds(10));
 
-  motors_controller_->UpdateSystemFeedback();
+  motors_controller_->UpdateMotorsStates();
 
   ASSERT_TRUE(motors_controller_->GetFrontData().IsDataTimedOut());
   ASSERT_TRUE(motors_controller_->GetRearData().IsDataTimedOut());
@@ -401,7 +401,7 @@ TEST_F(TestMotorsController, test_write_speed)
   const float rl_v = 0.3;
   const float rr_v = 0.4;
 
-  ASSERT_NO_THROW(motors_controller_->WriteSpeed(fl_v, fr_v, rl_v, rr_v));
+  ASSERT_NO_THROW(motors_controller_->SendSpeedCommands(fl_v, fr_v, rl_v, rr_v));
 
   ASSERT_EQ(
     roboteq_mock_->front_driver_->GetRoboteqCmd(DriverChannel::CHANNEL2),
@@ -420,7 +420,7 @@ TEST_F(TestMotorsController, test_write_speed)
 TEST_F(TestMotorsController, test_write_speed_sdo_timeout)
 {
   roboteq_mock_->front_driver_->SetOnWriteWait<std::int32_t>(0x2000, 1, 100000);
-  ASSERT_THROW(motors_controller_->WriteSpeed(0.0, 0.0, 0.0, 0.0), std::runtime_error);
+  ASSERT_THROW(motors_controller_->SendSpeedCommands(0.0, 0.0, 0.0, 0.0), std::runtime_error);
 }
 
 // Similar to test_roboteq_driver, can_error in write speed isn't tested, because it reacts to lower

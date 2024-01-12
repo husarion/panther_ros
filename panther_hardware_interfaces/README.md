@@ -34,6 +34,7 @@ CAN settings
  - `driver_states_update_frequency` [*float*, default: 10.0 [Hz]] - as by default driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. Exact frequency at which driver state is published won't match this value - it will depend also on the frequency of the controller (exact value of period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`)
  - `max_roboteq_initialization_attempts` [*int*, default: 5] - in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to general error
  - `max_roboteq_activation_attempts` [*int*, default: 5] - similar to initialization, it is possible to allow some SDO errors before escalating to error
+ <!-- TODO: with GPIODriver it should no longer be needed -->
  - `max_safety_stop_attempts` [*int*, default: 20] - how many attempts to activate safety stop will be taken before failing
  - `max_write_pdo_cmds_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
  - `max_read_pdo_motor_states_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
@@ -41,7 +42,7 @@ CAN settings
 
 
 > [!CAUTION]
-> `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `max_safety_stop_attempts`. `sdo_operation_timeout` and `pdo_feedback_timeout` TODO are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
+> `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `max_safety_stop_attempts`. `sdo_operation_timeout`, `pdo_motor_states_timeout` and `pdo_driver_state_timeout` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
 
 ## Code structure
 

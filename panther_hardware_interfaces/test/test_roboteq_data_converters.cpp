@@ -240,21 +240,21 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
 
   panther_hardware_interfaces::RoboteqMotorState left_state = {48128, 1000, 1};
   panther_hardware_interfaces::RoboteqMotorState right_state = {0, 0, 0};
-  roboteq_data.SetMotorStates(left_state, right_state, true, false);
+  roboteq_data.SetMotorsStates(left_state, right_state, true, false);
 
   ASSERT_TRUE(roboteq_data.IsError());
   ASSERT_TRUE(roboteq_data.IsDataTimedOut());
 
-  roboteq_data.SetMotorStates(left_state, right_state, false, false);
+  roboteq_data.SetMotorsStates(left_state, right_state, false, false);
 
   ASSERT_FALSE(roboteq_data.IsError());
 
-  roboteq_data.SetMotorStates(left_state, right_state, false, true);
+  roboteq_data.SetMotorsStates(left_state, right_state, false, true);
 
   ASSERT_TRUE(roboteq_data.IsError());
   ASSERT_TRUE(roboteq_data.IsCanNetErr());
 
-  roboteq_data.SetMotorStates(left_state, right_state, false, false);
+  roboteq_data.SetMotorsStates(left_state, right_state, false, false);
   ASSERT_FALSE(roboteq_data.IsError());
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetPosition(), 0.0);
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetVelocity(), 0.0);

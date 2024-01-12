@@ -59,27 +59,27 @@ bool RoboteqDriver::WaitForBoot()
   }
 }
 
-RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
+RoboteqMotorsStates RoboteqDriver::ReadRoboteqMotorsStates()
 {
-  RoboteqDriverFeedback fb;
+  RoboteqMotorsStates states;
 
   // already does locking when accessing rpdo
-  fb.motor_1.pos = rpdo_mapped[0x2104][1];
-  fb.motor_2.pos = rpdo_mapped[0x2104][2];
+  states.motor_1.pos = rpdo_mapped[0x2104][1];
+  states.motor_2.pos = rpdo_mapped[0x2104][2];
 
-  fb.motor_1.vel = rpdo_mapped[0x2107][1];
-  fb.motor_2.vel = rpdo_mapped[0x2107][2];
+  states.motor_1.vel = rpdo_mapped[0x2107][1];
+  states.motor_2.vel = rpdo_mapped[0x2107][2];
 
-  fb.motor_1.current = rpdo_mapped[0x2100][1];
-  fb.motor_2.current = rpdo_mapped[0x2100][2];
+  states.motor_1.current = rpdo_mapped[0x2100][1];
+  states.motor_2.current = rpdo_mapped[0x2100][2];
 
   std::unique_lock<std::mutex> lck_p(position_timestamp_mtx_);
-  fb.pos_timestamp = last_position_timestamp_;
+  states.pos_timestamp = last_position_timestamp_;
 
   std::unique_lock<std::mutex> lck_sc(speed_current_timestamp_mtx_);
-  fb.vel_current_timestamp = last_speed_current_timestamp_;
+  states.vel_current_timestamp = last_speed_current_timestamp_;
 
-  return fb;
+  return states;
 }
 
 RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
@@ -106,8 +106,6 @@ RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
   return state;
 }
 
-// todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
-// PDO)
 void RoboteqDriver::SendRoboteqCmd(
   const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2)
 {

@@ -347,10 +347,10 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
   return command_interfaces;
 }
 
-void PantherSystem::UpdateSystemFeedback()
+void PantherSystem::UpdateMotorsStates()
 {
   try {
-    motors_controller_->UpdateSystemFeedback();
+    motors_controller_->UpdateMotorsStates();
     UpdateHwStates();
 
     if (
@@ -370,7 +370,7 @@ void PantherSystem::UpdateSystemFeedback()
   } catch (const std::runtime_error & e) {
     roboteq_error_filter_->UpdateError(
       static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES), true);
-    RCLCPP_WARN_STREAM(logger_, "Error when trying to read feedback: " << e.what());
+    RCLCPP_WARN_STREAM(logger_, "Error when trying to read motors states: " << e.what());
   }
 }
 
@@ -440,7 +440,7 @@ void PantherSystem::UpdateDriverState()
     }
 
   } catch (const std::runtime_error & e) {
-    RCLCPP_WARN_STREAM(logger_, "Error when trying to read drivers feedback: " << e.what());
+    RCLCPP_WARN_STREAM(logger_, "Error when trying to read drivers states: " << e.what());
     roboteq_error_filter_->UpdateError(
       static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), true);
   }
@@ -450,7 +450,7 @@ void PantherSystem::UpdateDriverState()
 
 return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
 {
-  UpdateSystemFeedback();
+  UpdateMotorsStates();
 
   if (time >= next_driver_state_update_time_) {
     UpdateDriverState();
@@ -465,7 +465,7 @@ return_type PantherSystem::write(
 {
   if (!roboteq_error_filter_->IsError()) {
     try {
-      motors_controller_->WriteSpeed(
+      motors_controller_->SendSpeedCommands(
         hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
         hw_commands_velocities_[3]);
       roboteq_error_filter_->UpdateError(
@@ -479,8 +479,8 @@ return_type PantherSystem::write(
 
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
-  // time of writing there wasn't a better approach to handling estop. Moved after WriteSpeed, so
-  // that safety stop can be set just after write error happens.
+  // time of writing there wasn't a better approach to handling estop. Moved after
+  // SendSpeedCommands, so that safety stop can be set just after write error happens.
   if (roboteq_error_filter_->IsError()) {
     if (
       (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
