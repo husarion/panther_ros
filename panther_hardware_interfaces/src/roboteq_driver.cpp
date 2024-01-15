@@ -117,7 +117,7 @@ void RoboteqDriver::SendRoboteqCmd(
 void RoboteqDriver::ResetRoboteqScript()
 {
   try {
-    SyncSdoWrite<std::uint8_t>(0x2018, 0, 2, std::chrono::milliseconds(20));
+    SyncSdoWrite<std::uint8_t>(0x2018, 0, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to reset Roboteq script: " + std::string(e.what()));
   }
@@ -127,7 +127,7 @@ void RoboteqDriver::TurnOnEstop()
 {
   // Cmd_ESTOP
   try {
-    SyncSdoWrite<std::uint8_t>(0x200C, 0, 1, std::chrono::milliseconds(20));
+    SyncSdoWrite<std::uint8_t>(0x200C, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
   }
@@ -137,7 +137,7 @@ void RoboteqDriver::TurnOffEstop()
 {
   // Cmd_MGO
   try {
-    SyncSdoWrite<std::uint8_t>(0x200D, 0, 1, std::chrono::milliseconds(20));
+    SyncSdoWrite<std::uint8_t>(0x200D, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
   }
@@ -148,7 +148,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel1()
   // Cmd_SFT Safety Stop
   try {
     // TODO: change hardcoded value
-    SyncSdoWrite<std::uint8_t>(0x202C, 0, 1, std::chrono::milliseconds(20));
+    SyncSdoWrite<std::uint8_t>(0x202C, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 1: " + std::string(e.what()));
@@ -159,7 +159,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 {
   // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<std::uint8_t>(0x202C, 0, 2, std::chrono::milliseconds(20));
+    SyncSdoWrite<std::uint8_t>(0x202C, 0, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
@@ -167,9 +167,7 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 }
 
 template <typename T>
-T RoboteqDriver::SyncSdoRead(
-  const std::uint16_t index, const std::uint8_t subindex,
-  const std::chrono::milliseconds sdo_operation_timeout)
+T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex)
 {
   std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
   if (!sdo_read_lck.try_lock()) {
@@ -213,14 +211,14 @@ T RoboteqDriver::SyncSdoRead(
         }
         cv.notify_one();
       },
-      sdo_operation_timeout);
+      sdo_operation_timeout_);
   } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
   std::unique_lock<std::mutex> lck(mtx);
   if (
-    cv.wait_for(lck, sdo_operation_timeout + kSdoOperationAdditionalWait) ==
+    cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
     std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
@@ -235,8 +233,7 @@ T RoboteqDriver::SyncSdoRead(
 
 template <typename T>
 void RoboteqDriver::SyncSdoWrite(
-  const std::uint16_t index, const std::uint8_t subindex, const T data,
-  const std::chrono::milliseconds sdo_operation_timeout)
+  const std::uint16_t index, const std::uint8_t subindex, const T data)
 {
   std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
   if (!sdo_write_lck.try_lock()) {
@@ -276,7 +273,7 @@ void RoboteqDriver::SyncSdoWrite(
         }
         cv.notify_one();
       },
-      sdo_operation_timeout);
+      sdo_operation_timeout_);
   } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
   }
@@ -284,7 +281,7 @@ void RoboteqDriver::SyncSdoWrite(
   std::unique_lock<std::mutex> lck(mtx);
 
   if (
-    cv.wait_for(lck, sdo_operation_timeout + kSdoOperationAdditionalWait) ==
+    cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
     std::cv_status::timeout) {
     sdo_write_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for finish of SDO write operation");

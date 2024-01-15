@@ -141,9 +141,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  T SyncSdoRead(
-    const std::uint16_t index, const std::uint8_t subindex,
-    const std::chrono::milliseconds sdo_operation_timeout);
+  T SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex);
 
   /**
    * @brief Blocking SDO write operation
@@ -151,9 +149,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  void SyncSdoWrite(
-    const std::uint16_t index, const std::uint8_t subindex, const T data,
-    const std::chrono::milliseconds sdo_operation_timeout);
+  void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
   void OnBoot(
     const lely::canopen::NmtState st, const char es, const std::string & what) noexcept override;
