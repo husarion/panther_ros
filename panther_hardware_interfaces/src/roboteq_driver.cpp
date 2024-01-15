@@ -194,7 +194,6 @@ T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subin
   }
 
   std::unique_lock<std::mutex> lck(mtx);
-  // TODO: check if there won't be infinite lock
   cv.wait(lck);
 
   if (err_code) {
