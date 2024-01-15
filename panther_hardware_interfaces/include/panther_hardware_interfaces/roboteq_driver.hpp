@@ -184,15 +184,6 @@ private:
   timespec last_voltages_temps_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_;
-
-  // Wait timeout has to be longer - first we want to give a chance for lely to cancel operation
-  static constexpr std::chrono::microseconds kSdoOperationAdditionalWait{750};
-
-  std::atomic_bool sdo_read_timed_out_ = false;
-  std::atomic_bool sdo_write_timed_out_ = false;
-
-  std::mutex sdo_read_mtx_;
-  std::mutex sdo_write_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces

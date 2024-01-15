@@ -147,7 +147,6 @@ void RoboteqDriver::TurnOnSafetyStopChannel1()
 {
   // Cmd_SFT Safety Stop
   try {
-    // TODO: change hardcoded value
     SyncSdoWrite<std::uint8_t>(0x202C, 0, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
@@ -169,38 +168,16 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 template <typename T>
 T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex)
 {
-  std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
-  if (!sdo_read_lck.try_lock()) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - the previous one is still being processed");
-  }
-
   std::mutex mtx;
   std::condition_variable cv;
   T data;
   std::error_code err_code;
 
-  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
-  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
-  // set to false in result. Solution currently on hold - switching to PDO will also solve this
-  // issue
-  if (sdo_read_timed_out_) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - previous one that timed out is still in queue");
-  }
-
   try {
     SubmitRead<T>(
       index, subindex,
-      [&sdo_read_timed_out_ = sdo_read_timed_out_, &mtx, &cv, &err_code, &data](
+      [&mtx, &cv, &err_code, &data](
         std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec, T value) mutable {
-        // In this case function has already finished, and other variables don't exist
-        // and we have to end
-
-        if (sdo_read_timed_out_) {
-          sdo_read_timed_out_.store(false);
-          return;
-        }
         {
           std::lock_guard<std::mutex> lck_g(mtx);
           if (ec) {
@@ -217,12 +194,8 @@ T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subin
   }
 
   std::unique_lock<std::mutex> lck(mtx);
-  if (
-    cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
-    std::cv_status::timeout) {
-    sdo_read_timed_out_.store(true);
-    throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
-  }
+  // TODO: check if there won't be infinite lock
+  cv.wait(lck);
 
   if (err_code) {
     throw std::runtime_error("Error msg: " + err_code.message());
@@ -235,36 +208,15 @@ template <typename T>
 void RoboteqDriver::SyncSdoWrite(
   const std::uint16_t index, const std::uint8_t subindex, const T data)
 {
-  std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
-  if (!sdo_write_lck.try_lock()) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - the previous one is still being processed");
-  }
-
   std::mutex mtx;
   std::condition_variable cv;
   std::error_code err_code;
 
-  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
-  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
-  // set to false in result. Solution currently on hold - switching to PDO will also solve this
-  // issue
-  if (sdo_write_timed_out_) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - previous one that timed out is still in queue");
-  }
-
   try {
     SubmitWrite(
       index, subindex, data,
-      [&sdo_write_timed_out_ = sdo_write_timed_out_, &mtx, &cv, &err_code](
+      [&mtx, &cv, &err_code](
         std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec) mutable {
-        // In this case function has already finished, and other variables don't exist
-        // and we have to end
-        if (sdo_write_timed_out_) {
-          sdo_write_timed_out_.store(false);
-          return;
-        }
         {
           std::lock_guard<std::mutex> lck_g(mtx);
           if (ec) {
@@ -279,13 +231,7 @@ void RoboteqDriver::SyncSdoWrite(
   }
 
   std::unique_lock<std::mutex> lck(mtx);
-
-  if (
-    cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
-    std::cv_status::timeout) {
-    sdo_write_timed_out_.store(true);
-    throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
-  }
+  cv.wait(lck);
 
   if (err_code) {
     throw std::runtime_error("Error msg: " + err_code.message());
