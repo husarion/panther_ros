@@ -64,7 +64,6 @@ struct RoboteqDriverState
   timespec voltages_temps_timestamp;
 };
 
-// todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
 /**
  * @brief Implementation of LoopDriver for Roboteq drivers
  */
@@ -159,10 +158,6 @@ private:
     can_error_.store(true);
   }
 
-  // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
-  // about it while ros2_canopen has the ability to read it, I didn't see any attempts to handle it
-  // void OnEmcy(std::uint16_t eec, std::uint8_t er, std::uint8_t msef[5]) noexcept override;
-
   std::atomic_bool booted_ = false;
   std::condition_variable boot_cond_var_;
   std::mutex boot_mtx_;
@@ -170,7 +165,6 @@ private:
 
   std::atomic_bool can_error_;
 
-  // TODO: maybe one mutex?
   std::mutex position_timestamp_mtx_;
   timespec last_position_timestamp_;
 
