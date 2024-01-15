@@ -1,7 +1,7 @@
 controller_manager:
   ros__parameters:
     use_sim_time: false
-    update_rate: 50
+    update_rate: 100
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -23,7 +23,6 @@ panther_base_controller:
     wheel_separation: 0.616
     wheel_radius: 0.1016
 
-    # todo: check it for panther
     # For skid drive kinematics it will act as ICR coefficient, kinematic model with ICR
     # coefficient isn't totally accurate and this coefficient can differ for various ground types
     wheel_separation_multiplier: 1.3
