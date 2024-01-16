@@ -16,15 +16,14 @@
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DRIVER_HPP_
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
-#include <vector>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include <lely/coapp/fiber_driver.hpp>
-
-#include <panther_msgs/msg/fault_flag.hpp>
-#include <panther_msgs/msg/runtime_error.hpp>
-#include <panther_msgs/msg/script_flag.hpp>
 
 namespace panther_hardware_interfaces
 {
