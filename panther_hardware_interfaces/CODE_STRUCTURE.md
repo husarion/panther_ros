@@ -52,5 +52,5 @@ A class that takes care of additional ROS interface of panther system, such as p
 ## PantherSystem
 
 Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
-
-<!-- todo: when an exception is thrown it is not RT safe (situation may change when we switch to PDO - on hold) -->
+Handles transitions (initialization, activation, shutdown, error, etc.), provides interfaces for feedback (position, velocity, effort) and commands (velocity).
+In the main loop controller should call read and write functions to communicate with motor drivers.
