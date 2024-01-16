@@ -32,6 +32,11 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    panther_version = LaunchConfiguration("panther_version")
+    declare_panther_version_arg = DeclareLaunchArgument(
+        "panther_version",
+    )
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -91,6 +96,8 @@ def generate_launch_description():
                     "panther.urdf.xacro",
                 ]
             ),
+            " panther_version:=",
+            panther_version,
             " use_sim:=",
             use_sim,
             " simulation_engine:=",
@@ -117,13 +124,22 @@ def generate_launch_description():
     )
     robot_description = {"robot_description": robot_description_content}
 
+    # TODO: namespace instead of remap to /panther
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controller_config_path],
         remappings=[
-            ("panther_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+            (
+                "panther_system_node/driver/motor_controllers_state",
+                "driver/motor_controllers_state",
+            ),
+            ("panther_base_controller/cmd_vel_unstamped", "cmd_vel"),
             ("panther_base_controller/odom", "odom/wheels"),
+            ("panther_system_node/io_state", "hardware/io_state"),
+            ("panther_system_node/e_stop", "hardware/e_stop"),
+            ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
+            ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
         ],
         condition=UnlessCondition(use_sim),
     )
@@ -142,7 +158,7 @@ def generate_launch_description():
         arguments=[
             "panther_base_controller",
             "--controller-manager",
-            "/controller_manager",
+            "controller_manager",
             "--controller-manager-timeout",
             "120",
         ],
@@ -154,7 +170,7 @@ def generate_launch_description():
         arguments=[
             "joint_state_broadcaster",
             "--controller-manager",
-            "/controller_manager",
+            "controller_manager",
             "--controller-manager-timeout",
             "120",
         ],
@@ -174,7 +190,7 @@ def generate_launch_description():
         arguments=[
             "imu_broadcaster",
             "--controller-manager",
-            "/controller_manager",
+            "controller_manager",
             "--controller-manager-timeout",
             "120",
         ],
@@ -191,6 +207,7 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_panther_version_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,

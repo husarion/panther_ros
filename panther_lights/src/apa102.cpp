@@ -85,7 +85,8 @@ std::vector<std::uint8_t> APA102::RGBAFrameToBGRBuffer(
     throw std::runtime_error("Incorrect number of bytes to convert frame");
   }
 
-  const std::size_t buffer_size = (4 * sizeof(std::uint8_t)) + frame.size() + (4 * sizeof(std::uint8_t));
+  const std::size_t buffer_size = (4 * sizeof(std::uint8_t)) + frame.size() +
+                                  (4 * sizeof(std::uint8_t));
   std::vector<std::uint8_t> buffer(buffer_size);
 
   // Init start and end frames

@@ -21,6 +21,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     std_srvs
     PkgConfig
     panther_msgs
+    panther_gpiod
     realtime_tools)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
@@ -35,6 +36,7 @@ add_library(
   src/panther_system_ros_interface.cpp
   src/motors_controller.cpp
   src/canopen_controller.cpp
+  src/gpio_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
   src/utils.cpp)
@@ -47,9 +49,10 @@ ament_target_dependencies(
   rclcpp
   pluginlib
   std_srvs
+  panther_gpiod
   panther_msgs
   realtime_tools)
-target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP gpiodcxx)
+target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
@@ -137,13 +140,19 @@ if(BUILD_TESTING)
     test/test_panther_system_ros_interface.cpp
     src/panther_system_ros_interface.cpp
     src/roboteq_data_converters.cpp
-    src/utils.cpp)
+    src/utils.cpp
+    src/gpio_controller.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system_ros_interface rclcpp panther_msgs
-    panther_utils realtime_tools std_srvs)
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    rclcpp
+    panther_msgs
+    panther_utils
+    realtime_tools
+    std_srvs
+    panther_gpiod)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp

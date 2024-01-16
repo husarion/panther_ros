@@ -1,0 +1,32 @@
+/**:
+  ros__parameters:
+    linear_velocity_factor:
+      fast: 2.0
+      regular: 1.2
+      slow: 0.4
+
+    angular_velocity_factor:
+      fast: 1.88
+      regular: 0.78
+      slow: 0.39
+
+    e_stop:
+      present: true
+      # Relatice topics, will use namespace of the node
+      topic: hardware/e_stop
+      reset_srv: hardware/e_stop_reset
+      trigger_srv: hardware/e_stop_trigger
+
+    # This button mapping should be adjusted to the specific controller
+    # The following map is suited for Logitech F710
+    button_index_map:
+      axis:
+        angular_z: 2 # Right joystick
+        linear_x: 1 # Left joystick
+        linear_y: 0 # Left joystick
+      dead_man_switch: 4 # LB
+      fast_mode: 7 # RT
+      slow_mode: 5 # RB
+      e_stop_reset: 1 # A
+      e_stop_trigger: 2 # B
+      enable_e_stop_reset: 6 # LT

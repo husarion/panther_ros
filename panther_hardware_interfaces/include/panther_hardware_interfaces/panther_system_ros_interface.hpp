@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -22,10 +23,14 @@
 
 #include <realtime_tools/realtime_publisher.h>
 
+#include <std_msgs/msg/bool.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
 #include <panther_msgs/msg/driver_state.hpp>
+#include <panther_msgs/msg/io_state.hpp>
 
+#include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces
@@ -41,6 +46,36 @@ struct CanErrors
   bool rear_data_timed_out;
   bool front_can_net_err;
   bool rear_can_net_err;
+};
+
+class TriggerServiceWrapper
+{
+public:
+  TriggerServiceWrapper(const std::function<void()> & callback) : callback_(callback){};
+
+  void CallbackWrapper(
+    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
+
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service;
+
+private:
+  std::function<void()> callback_;
+};
+
+class SetBoolServiceWrapper
+{
+public:
+  SetBoolServiceWrapper(const std::function<void(const bool)> & callback) : callback_(callback){};
+
+  void CallbackWrapper(
+    std_srvs::srv::SetBool::Request::ConstSharedPtr request,
+    std_srvs::srv::SetBool::Response::SharedPtr response);
+
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr service;
+
+private:
+  std::function<void(bool enable)> callback_;
 };
 
 /**
@@ -62,7 +97,7 @@ public:
    * @param clear_errors - functions that should be called, when clear errors
    * service is called
    */
-  void Activate(std::function<void()> clear_errors);
+  void Activate();
 
   /**
    * @brief Destroys publishers, subscribers and services
@@ -73,6 +108,13 @@ public:
    * @brief Stops executor thread and destroys the node
    */
   void Deinitialize();
+
+  /**
+   * @brief Adds new service server to node
+   */
+  void AddTriggerService(const std::string service_name, const std::function<void()> & callback);
+  void AddSetBoolService(
+    const std::string service_name, const std::function<void(const bool)> & callback);
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
@@ -91,11 +133,16 @@ public:
 
   void PublishDriverState();
 
-private:
-  void ClearErrorsCb(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
+  void PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info);
 
+  void InitializeAndPublishIOStateMsg(
+    std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version);
+
+  void InitializeAndPublishEstopStateMsg(const bool estop);
+
+  void PublishEstopStateIfChanged(const bool estop);
+
+private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
@@ -106,8 +153,16 @@ private:
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
     realtime_driver_state_publisher_;
 
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
-  std::function<void()> clear_errors_;
+  rclcpp::Publisher<panther_msgs::msg::IOState>::SharedPtr io_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>
+    realtime_io_state_publisher_;
+
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr estop_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>
+    realtime_estop_state_publisher_;
+
+  std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
+  std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;
 };
 
 }  // namespace panther_hardware_interfaces

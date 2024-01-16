@@ -71,7 +71,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;
 
   panther_system_ros_interface.Initialize();
-  panther_system_ros_interface.Activate([]() {});
+  panther_system_ros_interface.Activate();
 
   // Necessary to add some waiting, so that topic lists are updated
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -94,7 +94,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   ASSERT_FALSE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
-  panther_system_ros_interface.Activate([]() {});
+  panther_system_ros_interface.Activate();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -109,7 +109,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   panther_system_ros_interface.Deinitialize();
 
   panther_system_ros_interface.Initialize();
-  panther_system_ros_interface.Activate([]() {});
+  panther_system_ros_interface.Activate();
 
   service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
@@ -134,7 +134,7 @@ TEST(TestPantherSystemRosInterface, test_clear_errors_srv)
   bool clear_errors = false;
 
   panther_system_ros_interface.Initialize();
-  panther_system_ros_interface.Activate([&clear_errors]() { clear_errors = true; });
+  panther_system_ros_interface.Activate();
 
   auto clear_errors_client = test_node->create_client<std_srvs::srv::Trigger>(
     panther_hardware_interfaces_test::kClearErrorsService);
@@ -166,7 +166,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;
 
   panther_system_ros_interface.Initialize();
-  panther_system_ros_interface.Activate([]() {});
+  panther_system_ros_interface.Activate();
 
   panther_hardware_interfaces::RoboteqData front(
     panther_hardware_interfaces_test::kDrivetrainSettings);
@@ -210,7 +210,7 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;
 
   panther_system_ros_interface.Initialize();
-  panther_system_ros_interface.Activate([]() {});
+  panther_system_ros_interface.Activate();
 
   panther_hardware_interfaces::DriverState front;
   panther_hardware_interfaces::DriverState rear;
@@ -269,7 +269,7 @@ TEST(TestPantherSystemRosInterface, test_errors)
   panther_hardware_interfaces::PantherSystemRosInterface panther_system_ros_interface;
 
   panther_system_ros_interface.Initialize();
-  panther_system_ros_interface.Activate([]() {});
+  panther_system_ros_interface.Activate();
 
   panther_hardware_interfaces::CanErrors can_errors;
   can_errors.error = true;

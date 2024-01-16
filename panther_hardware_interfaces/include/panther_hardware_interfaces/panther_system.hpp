@@ -28,7 +28,7 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
-#include <panther_hardware_interfaces/gpio_driver.hpp>
+#include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 #include <panther_hardware_interfaces/roboteq_error_filter.hpp>
@@ -69,6 +69,7 @@ protected:
   void CheckJointNames() const;
   void SetInitialValues();
   void CheckInterfaces() const;
+  void ReadPantherVersion();
   void ReadDrivetrainSettings();
   void ReadCanOpenSettings();
   void ReadInitializationActivationAttempts();
@@ -97,7 +98,7 @@ protected:
   static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
   std::array<std::string, kJointsSize> joints_names_sorted_;
 
-  std::unique_ptr<GPIOController> gpio_controller_;
+  std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
@@ -124,6 +125,18 @@ protected:
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
   enum class ErrorsFilterIds { READ_SDO = 0, WRITE_SDO = 1, READ_PDO = 2, ROBOTEQ_DRIVER = 3 };
+
+  float panther_version_;
+
+  std::mutex motor_controller_write_mtx_;
+  std::atomic_bool estop_ = true;
+  std::atomic_bool last_commands_zero_ = false;
+
+  bool AreVelocityCommandsNearZero();
+
+  void SetEStop();
+  void ResetEStop();
+  bool ReadEStop();
 };
 
 }  // namespace panther_hardware_interfaces

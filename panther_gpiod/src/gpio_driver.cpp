@@ -105,8 +105,17 @@ gpiod::line_settings GPIODriver::GenerateLineSettings(const GPIOInfo & gpio_info
 {
   auto settings = gpiod::line_settings();
   settings.set_direction(gpio_info.direction);
-  settings.set_output_value(gpio_info.init_value);
   settings.set_active_low(gpio_info.active_low);
+
+  // Set the initial value only when the line is configured for the first time;
+  // otherwise, set the last known value
+  gpiod::line::value new_outpu_value;
+  if (!line_request_) {
+    new_outpu_value = gpio_info.init_value;
+  } else {
+    new_outpu_value = gpio_info.value;
+  }
+  settings.set_output_value(new_outpu_value);
 
   if (gpio_info.direction == gpiod::line::direction::INPUT) {
     settings.set_edge_detection(gpiod::line::edge::BOTH);
@@ -136,6 +145,16 @@ void GPIODriver::ChangePinDirection(const GPIOPin pin, const gpiod::line::direct
 
   line_request_->reconfigure_lines(line_config);
   gpio_info.value = line_request_->get_value(gpio_info.offset);
+}
+
+bool GPIODriver::IsPinAvaible(const GPIOPin pin) const
+{
+  for (auto & info : gpio_info_storage_) {
+    if (info.pin == pin) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool GPIODriver::IsPinActive(const GPIOPin pin)
@@ -192,10 +211,10 @@ void GPIODriver::GPIOMonitorOn()
     }
   }
 
+  std::unique_lock<std::mutex> lck(monitor_init_mtx_);
+
   gpio_monitor_thread_enabled_ = true;
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIODriver::MonitorAsyncEvents, this);
-
-  std::unique_lock<std::mutex> lck(monitor_init_mtx_);
 
   if (
     monitor_init_cond_var_.wait_for(lck, std::chrono::milliseconds(50)) ==
@@ -217,7 +236,7 @@ void GPIODriver::MonitorAsyncEvents()
   pollfd.events = POLLIN;
 
   {
-    std::lock_guard<std::mutex> lck(monitor_init_mtx_);
+    std::unique_lock<std::mutex> lck(monitor_init_mtx_);
     monitor_init_cond_var_.notify_all();
   }
 
