@@ -22,14 +22,15 @@ from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
-    imu_config_file = LaunchConfiguration("imu_config_file")
-    declare_imu_config_file_arg = DeclareLaunchArgument(
-        "imu_config_file",
+    imu_config_path = LaunchConfiguration("imu_config_path")
+    declare_imu_config_path_arg = DeclareLaunchArgument(
+        "imu_config_path",
         description="Path to IMU configuration file",
     )
 
     imu_container = ComposableNodeContainer(
         name="imu_container",
+        namespace="",
         package="rclcpp_components",
         executable="component_container",
         composable_node_descriptions=[
@@ -37,19 +38,19 @@ def generate_launch_description():
                 package="phidgets_spatial",
                 plugin="phidgets::SpatialRosI",
                 name="phidgets_spatial_node",
-                parameters=[imu_config_file],
+                parameters=[imu_config_path],
             ),
             ComposableNode(
                 package="imu_filter_madgwick",
                 plugin="ImuFilterMadgwickRos",
                 name="imu_filter_node",
-                parameters=[imu_config_file],
+                parameters=[imu_config_path],
             ),
         ],
     )
 
     actions = [
-        declare_imu_config_file_arg,
+        declare_imu_config_path_arg,
         imu_container,
     ]
 
