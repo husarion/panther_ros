@@ -97,18 +97,19 @@
           <param name="sdo_operation_timeout">100</param>
           <!-- Depends on frequency of the controller, more critical motors state are sent with higher frequency, other parameters are sent with lower, here allowed time is set to be expected period +50% margin -->
           <param name="pdo_motor_states_timeout">15</param>
-          <param name="pdo_driver_state_timeout">150</param>
+          <param name="pdo_driver_state_timeout">75</param>
 
           <!-- It will be rounded to the closest value taking into account current controller frequency -->
-          <param name="driver_states_update_frequency">10.0</param>
+          <param name="driver_states_update_frequency">20.0</param>
 
           <param name="max_roboteq_initialization_attempts">5</param>
           <param name="max_roboteq_activation_attempts">5</param>
           <param name="max_safety_stop_attempts">20</param>
 
+          <!-- TODO: after all tests update parameters, these ones are quite high for the worst case scenario -->
           <param name="max_write_pdo_cmds_errors_count">4</param>
           <param name="max_read_pdo_motor_states_errors_count">4</param>
-          <param name="max_read_pdo_driver_state_errors_count">4</param>
+          <param name="max_read_pdo_driver_state_errors_count">20</param>
         </xacro:unless>
       </hardware>
 

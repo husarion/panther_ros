@@ -29,16 +29,16 @@ CAN settings
  - `front_driver_can_id` [*int*, default: 1] - CAN ID defined in the properties of Roboteq (set as in `canopen_configuration.yaml`)
  - `rear_driver_can_id` [*int*, default: 2] - CAN ID defined in the properties of Roboteq (set as in `canopen_configuration.yaml`)
  - `sdo_operation_timeout` [*int*, default: 100 [ms]] - timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value
- - `pdo_motor_states_timeout` [*int*, default: 12 [ms]]  - depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default there should 8ms between received data, if it takes more than `pdo_motor_states_timeout`, a motor states read error is triggered. Default value is set to be expected period +50% margin
- - `pdo_driver_state_timeout` [*int*, default: 156 [ms]]  - depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default there should 104ms between received data, if it takes more than `pdo_driver_state_timeout`, a driver state read error is triggered. Default value is set to be expected period +50% margin.
- - `driver_states_update_frequency` [*float*, default: 10.0 [Hz]] - as by default driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. Exact frequency at which driver state is published won't match this value - it will depend also on the frequency of the controller (exact value of period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`)
+ - `pdo_motor_states_timeout` [*int*, default: 15 [ms]]  - depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default there should 8ms between received data, if it takes more than `pdo_motor_states_timeout`, a motor states read error is triggered. Default value is set to be expected period +50% margin
+ - `pdo_driver_state_timeout` [*int*, default: 75 [ms]]  - depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default there should 104ms between received data, if it takes more than `pdo_driver_state_timeout`, a driver state read error is triggered. Default value is set to be expected period +50% margin.
+ - `driver_states_update_frequency` [*float*, default: 20.0 [Hz]] - as by default driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. Exact frequency at which driver state is published won't match this value - it will depend also on the frequency of the controller (exact value of period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`)
  - `max_roboteq_initialization_attempts` [*int*, default: 5] - in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to general error
  - `max_roboteq_activation_attempts` [*int*, default: 5] - similar to initialization, it is possible to allow some SDO errors before escalating to error
  <!-- TODO: with GPIODriver it should no longer be needed -->
  - `max_safety_stop_attempts` [*int*, default: 20] - how many attempts to activate safety stop will be taken before failing
- - `max_write_pdo_cmds_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
- - `max_read_pdo_motor_states_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
- - `max_read_pdo_driver_state_errors_count` [*int*, default: 2] - how many consecutive errors can happen before escalating to general error
+ - `max_write_pdo_cmds_errors_count` [*int*, default: 4] - how many consecutive errors can happen before escalating to general error
+ - `max_read_pdo_motor_states_errors_count` [*int*, default: 4] - how many consecutive errors can happen before escalating to general error
+ - `max_read_pdo_driver_state_errors_count` [*int*, default: 20] - how many consecutive errors can happen before escalating to general error
 
 
 > [!CAUTION]
