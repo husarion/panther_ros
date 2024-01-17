@@ -182,7 +182,7 @@ void RoboteqDriver::TurnOnEstop()
     SyncSdoWrite<std::uint8_t>(
       kRoboteqCanObjects.turn_on_estop.id, kRoboteqCanObjects.turn_on_estop.subid, 1);
   } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to turn on E-stop: " + std::string(e.what()));
   }
 }
 
@@ -192,7 +192,7 @@ void RoboteqDriver::TurnOffEstop()
     SyncSdoWrite<std::uint8_t>(
       kRoboteqCanObjects.turn_off_estop.id, kRoboteqCanObjects.turn_off_estop.subid, 1);
   } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
+    throw std::runtime_error("Error when trying to turn off E-stop: " + std::string(e.what()));
   }
 }
 
@@ -273,7 +273,7 @@ T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subin
     cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
     std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
-    throw std::runtime_error("Timeout while waiting for finish of SDO read operation");
+    throw std::runtime_error("Timeout while waiting for SDO read operation to finish");
   }
 
   if (err_code) {
@@ -336,7 +336,7 @@ void RoboteqDriver::SyncSdoWrite(
     cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
     std::cv_status::timeout) {
     sdo_write_timed_out_.store(true);
-    throw std::runtime_error("Timeout while waiting for finish of SDO write operation");
+    throw std::runtime_error("Timeout while waiting for SDO read operation to finish");
   }
 
   if (err_code) {

@@ -14,6 +14,15 @@
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
+#include <functional>
+#include <memory>
+#include <thread>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <realtime_tools/realtime_publisher.h>
+
+#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 namespace panther_hardware_interfaces
 {
 
@@ -120,7 +129,7 @@ void PantherSystemRosInterface::ClearErrorsCb(
   std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
+  RCLCPP_INFO(node_->get_logger(), "Clearing errors");
   clear_errors_();
   response->success = true;
 }

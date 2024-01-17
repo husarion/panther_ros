@@ -15,8 +15,13 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 #define PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 
+#include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <memory>
+#include <mutex>
+#include <string>
 #include <thread>
 
 #include <lely/coapp/fiber_driver.hpp>
@@ -113,7 +118,7 @@ private:
   std::shared_ptr<RoboteqDriver> front_driver_;
   std::shared_ptr<RoboteqDriver> rear_driver_;
 
-  CanOpenSettings canopen_settings_;
+  const CanOpenSettings canopen_settings_;
 };
 
 }  // namespace panther_hardware_interfaces

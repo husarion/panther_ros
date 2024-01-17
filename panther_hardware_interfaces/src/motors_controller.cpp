@@ -65,12 +65,14 @@ void MotorsController::Activate()
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver send 0 command exception: " + std::string(e.what()));
   }
+
   try {
     canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(0);
     canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(0);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver send 0 command exception: " + std::string(e.what()));
   }
+
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
@@ -96,7 +98,7 @@ void MotorsController::UpdateSystemFeedback()
   const bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
   const bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
 
-  // Channel 1 - right, Channel 2 - left
+  // Channel 1 - right motor, Channel 2 - left motor
   front_data_.SetMotorStates(
     front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_timed_out,
     front_can_error);
@@ -165,7 +167,7 @@ bool MotorsController::UpdateDriversState()
 void MotorsController::WriteSpeed(
   const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr)
 {
-  // Channel 1 - right, Channel 2 - left
+  // Channel 1 - right motor, Channel 2 - left motor
   try {
     canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel1(
       roboteq_vel_cmd_converter_.Convert(speed_fr));

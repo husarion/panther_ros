@@ -1,6 +1,6 @@
 # Structure
 
-A brief introduction to the code structure of the panther system.
+A brief introduction to the code structure of the Panther system.
 
 ## RoboteqDriver
 
@@ -8,14 +8,11 @@ Low-level CANopen driver implementing FiberDriver from [Lely](https://opensource
 
 ## CanopenController
 
-Takes care of CANopen communication - creates master controller and two Roboteq drivers (front and rear) - initialization. For handling CANopen communication separate thread is created.
+Takes care of CANopen communication - creates and initializes master controller and two Roboteq drivers (front and rear). For handling CANopen communication separate thread is created.
 
 ## MotorsController
 
-It abstract usage of two Roboteq controllers:
-* uses `canopen_controller` for communication with Roboteq controllers
-* implements the activate procedure for controllers - resets script and sends initial 0 command.
-* provides methods to get data feedback and send commands. Data is converted between raw Roboteq formats and SI units using `roboteq_data_converters`
+This class abstracts the usage of two Roboteq controllers. It uses canopen_controller for communication with Roboteq controllers, implements the activation procedure for controllers (resets script and sends initial 0 command), and provides methods to get data feedback and send commands. Data is converted between raw Roboteq formats and SI units using `roboteq_data_converters`.
 
 ## RoboteqDataConverters
 
@@ -48,6 +45,6 @@ A class that takes care of additional ROS interface of panther system, such as p
 
 ## PantherSystem
 
-Main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
+The main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
 
 <!-- todo: when an exception is thrown it is not RT safe (situation may change when we switch to PDO - on hold) -->

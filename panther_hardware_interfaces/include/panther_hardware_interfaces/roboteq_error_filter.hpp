@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_ERROR_FILTER_HPP_
 
 #include <atomic>
+#include <vector>
 
 namespace panther_hardware_interfaces
 {

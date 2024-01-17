@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,13 +29,13 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
-#include <panther_hardware_interfaces/gpio_driver.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 #include <panther_hardware_interfaces/roboteq_error_filter.hpp>
 
 namespace panther_hardware_interfaces
 {
+
 using return_type = hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 using StateInterface = hardware_interface::StateInterface;
@@ -78,6 +79,7 @@ protected:
   void UpdateDriverState();
   void UpdateSystemFeedback();
   void UpdateMsgErrors();
+  bool CheckIfSafetyStopActive();
 
   static constexpr size_t kJointsSize = 4;
 
@@ -97,7 +99,6 @@ protected:
   static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
   std::array<std::string, kJointsSize> joints_names_sorted_;
 
-  std::unique_ptr<GPIOController> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;

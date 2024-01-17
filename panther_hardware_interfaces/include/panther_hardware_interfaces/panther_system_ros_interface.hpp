@@ -15,6 +15,8 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <atomic>
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -30,6 +32,9 @@
 
 namespace panther_hardware_interfaces
 {
+
+using TriggerSrv = std_srvs::srv::Trigger;
+using DriverStateMsg = panther_msgs::msg::DriverState;
 
 struct CanErrors
 {
@@ -93,8 +98,7 @@ public:
 
 private:
   void ClearErrorsCb(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
+    TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response);
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
@@ -102,11 +106,11 @@ private:
 
   std::atomic_bool stop_executor_ = false;
 
-  rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
+  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
     realtime_driver_state_publisher_;
 
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
+  rclcpp::Service<TriggerSrv>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;
 };
 

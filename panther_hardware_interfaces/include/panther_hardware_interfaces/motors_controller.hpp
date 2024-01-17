@@ -25,11 +25,11 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @brief It abstract usage of two Roboteq controllers:
- * uses canopen_controller for communication with Roboteq controllers
- * implements activate procedure for controllers - resets script and sends initial 0 command
- * provides methods to get data feedback and send commands. Data is converted between raw
- * Roboteq formats and SI units using roboteq_data_converters
+ * @brief This class abstracts the usage of two Roboteq controllers.
+ * It uses canopen_controller for communication with Roboteq controllers,
+ * implements the activation procedure for controllers (resets script and sends initial 0 command),
+ * and provides methods to get data feedback and send commands.
+ * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
  */
 class MotorsController
 {
@@ -66,16 +66,16 @@ public:
   void UpdateSystemFeedback();
 
   /**
-   * @brief Updates one of current Roboteq driver feedback states (temperature, voltage,
+   * @brief Updates one of the current Roboteq driver feedback states (temperature, voltage,
    * battery current). It has to be called 8 times to update all values. It was separated
    * to allow higher frequencies of the controller - reading all the values at once takes
-   * some time. By reading values one by one, the required time won't be as long. This values
+   * some time. By reading values one by one, the required time won't be as long. These values
    * don't have to be updated that frequently, so having a frequency of controller_frequency/8
    * shouldn't be a problem.
    *
    * @exception std::runtime_error if there was an error
-   * @return whether all updates were finished - only one is read every iteration
-   * once it is ready driver state values can be accessed
+   * @return whether all updates were finished - only one is read every iteration.
+   * Once it is ready, driver state values can be accessed
    */
   bool UpdateDriversState();
 

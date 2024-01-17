@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10.2)
 project(panther_hardware_interfaces)
 
 # Default to C++17
@@ -15,13 +15,13 @@ set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
     hardware_interface
+    panther_msgs
+    PkgConfig
     pluginlib
     rclcpp
     rclcpp_lifecycle
-    std_srvs
-    PkgConfig
-    panther_msgs
-    realtime_tools)
+    realtime_tools
+    std_srvs)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -49,13 +49,11 @@ ament_target_dependencies(
   std_srvs
   panther_msgs
   realtime_tools)
-target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP gpiodcxx)
+target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
 
-# target_compile_definitions(${PROJECT_NAME} PUBLIC
-# "PLUGINLIB__DISABLE_BOOST_FUNCTIONS"s)
 pluginlib_export_plugin_description_file(hardware_interface
                                          panther_hardware_interfaces.xml)
 

@@ -25,8 +25,8 @@ namespace panther_hardware_interfaces
 {
 
 CanOpenController::CanOpenController(const CanOpenSettings & canopen_settings)
+: canopen_settings_(canopen_settings)
 {
-  canopen_settings_ = canopen_settings;
 }
 
 void CanOpenController::Initialize()
@@ -119,8 +119,7 @@ void CanOpenController::InitializeCanCommunication()
   rear_driver_ = std::make_shared<RoboteqDriver>(
     exec_, master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout);
 
-  // Start the NMT service of the master by pretending to receive a 'reset
-  // node' command.
+  // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
 }
 

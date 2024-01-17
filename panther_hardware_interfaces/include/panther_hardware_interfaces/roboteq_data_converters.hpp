@@ -17,6 +17,7 @@
 
 #include <bitset>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <panther_msgs/msg/fault_flag.hpp>
@@ -68,16 +69,16 @@ class MotorState
 public:
   MotorState(const DrivetrainSettings & drivetrain_settings);
 
-  void SetData(const RoboteqMotorState & fb) { last_state_ = fb; };
+  void SetData(const RoboteqMotorState & motor_state) { motor_state_ = motor_state; };
 
-  float GetPosition() const { return last_state_.pos * roboteq_pos_feedback_to_radians_; }
+  float GetPosition() const { return motor_state_.pos * roboteq_pos_feedback_to_radians_; }
   float GetVelocity() const
   {
-    return last_state_.vel * roboteq_vel_feedback_to_radians_per_second_;
+    return motor_state_.vel * roboteq_vel_feedback_to_radians_per_second_;
   }
   float GetTorque() const
   {
-    return last_state_.current * roboteq_current_feedback_to_newton_meters_;
+    return motor_state_.current * roboteq_current_feedback_to_newton_meters_;
   }
 
 private:
@@ -85,7 +86,7 @@ private:
   float roboteq_vel_feedback_to_radians_per_second_;
   float roboteq_current_feedback_to_newton_meters_;
 
-  RoboteqMotorState last_state_ = {0, 0, 0};
+  RoboteqMotorState motor_state_ = {0, 0, 0};
 };
 
 /**
@@ -182,20 +183,20 @@ class DriverState
 public:
   DriverState() {}
 
-  void SetTemperature(const std::int16_t temp) { last_temp_ = temp; };
-  void SetVoltage(const std::uint16_t voltage) { last_voltage_ = voltage; };
-  void SetBatAmps1(const std::int16_t bat_amps_1) { last_bat_amps_1_ = bat_amps_1; };
-  void SetBatAmps2(const std::int16_t bat_amps_2) { last_bat_amps_2_ = bat_amps_2; };
+  void SetTemperature(const std::int16_t temp) { temp_ = temp; };
+  void SetVoltage(const std::uint16_t voltage) { voltage_ = voltage; };
+  void SetBatAmps1(const std::int16_t bat_amps_1) { bat_amps_1_ = bat_amps_1; };
+  void SetBatAmps2(const std::int16_t bat_amps_2) { bat_amps_2_ = bat_amps_2; };
 
-  float GetTemperature() const { return last_temp_; }
-  float GetVoltage() const { return last_voltage_ / 10.0; }
-  float GetCurrent() const { return (last_bat_amps_1_ + last_bat_amps_2_) / 10.0; }
+  float GetTemperature() const { return temp_; }
+  float GetVoltage() const { return voltage_ / 10.0; }
+  float GetCurrent() const { return (bat_amps_1_ + bat_amps_2_) / 10.0; }
 
 private:
-  std::int16_t last_temp_ = 0;
-  std::uint16_t last_voltage_ = 0;
-  std::int16_t last_bat_amps_1_ = 0;
-  std::int16_t last_bat_amps_2_ = 0;
+  std::int16_t temp_ = 0;
+  std::uint16_t voltage_ = 0;
+  std::int16_t bat_amps_1_ = 0;
+  std::int16_t bat_amps_2_ = 0;
 };
 
 /**
@@ -205,7 +206,7 @@ class RoboteqData
 {
 public:
   RoboteqData(const DrivetrainSettings & drivetrain_settings)
-  : left_state_(drivetrain_settings), right_state_(drivetrain_settings)
+  : left_motor_state_(drivetrain_settings), right_motor_state_(drivetrain_settings)
   {
   }
 
@@ -213,8 +214,8 @@ public:
     const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
     const bool data_timed_out, const bool can_net_err)
   {
-    left_state_.SetData(left_state);
-    right_state_.SetData(right_state);
+    left_motor_state_.SetData(left_state);
+    right_motor_state_.SetData(right_state);
     data_timed_out_ = data_timed_out;
     can_net_err_ = can_net_err;
   }
@@ -242,8 +243,8 @@ public:
 
   bool IsError() const { return IsFlagError() || data_timed_out_ || can_net_err_; }
 
-  const MotorState & GetLeftMotorState() const { return left_state_; }
-  const MotorState & GetRightMotorState() const { return right_state_; }
+  const MotorState & GetLeftMotorState() const { return left_motor_state_; }
+  const MotorState & GetRightMotorState() const { return right_motor_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
 
   bool IsDataTimedOut() const { return data_timed_out_; }
@@ -263,8 +264,8 @@ public:
   }
 
 private:
-  MotorState left_state_;
-  MotorState right_state_;
+  MotorState left_motor_state_;
+  MotorState right_motor_state_;
 
   DriverState driver_state_;
 
