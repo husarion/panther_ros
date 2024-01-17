@@ -95,7 +95,7 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(realtime_tools libgpiod libgpiosim)
+ament_export_dependencies(realtime_tools)
 
 # Whem building first time, libgpiod is not installed yet, so you need to
 # comment this test target and after building libgpiod, uncomment this target
