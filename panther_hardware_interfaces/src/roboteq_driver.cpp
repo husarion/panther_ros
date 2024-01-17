@@ -14,16 +14,16 @@
 
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <future>
+#include <memory>
+#include <mutex>
+#include <stdexcept>
+#include <string>
 
 #include <panther_hardware_interfaces/utils.hpp>
-
-// All ids and sub ids were read directly from the eds file. Lely CANopen doesn't have the option to
-// parse them based on the ParameterName. Additionally between version v60 and v80 ParameterName
-// changed, for example: Cmd_ESTOP (old), Cmd_ESTOP Emergency Shutdown (new)
-// As parameter names changed, but ids stayed the same, it will be better to just use ids directly
 
 namespace panther_hardware_interfaces
 {
@@ -63,7 +63,8 @@ bool RoboteqDriver::WaitForBoot()
 std::int16_t RoboteqDriver::ReadTemperature()
 {
   try {
-    return SyncSdoRead<std::int8_t>(0x210F, 1);
+    return SyncSdoRead<std::int8_t>(
+      kRoboteqCanObjects.temperature.id, kRoboteqCanObjects.temperature.subid);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
   }
@@ -72,7 +73,8 @@ std::int16_t RoboteqDriver::ReadTemperature()
 std::uint16_t RoboteqDriver::ReadVoltage()
 {
   try {
-    return SyncSdoRead<std::uint16_t>(0x210D, 2);
+    return SyncSdoRead<std::uint16_t>(
+      kRoboteqCanObjects.voltage.id, kRoboteqCanObjects.voltage.subid);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
   }
@@ -81,7 +83,8 @@ std::uint16_t RoboteqDriver::ReadVoltage()
 std::int16_t RoboteqDriver::ReadBatAmps1()
 {
   try {
-    return SyncSdoRead<std::int16_t>(0x210C, 1);
+    return SyncSdoRead<std::int16_t>(
+      kRoboteqCanObjects.bat_amps_1.id, kRoboteqCanObjects.bat_amps_1.subid);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
   }
@@ -90,7 +93,8 @@ std::int16_t RoboteqDriver::ReadBatAmps1()
 std::int16_t RoboteqDriver::ReadBatAmps2()
 {
   try {
-    return SyncSdoRead<std::int16_t>(0x210C, 2);
+    return SyncSdoRead<std::int16_t>(
+      kRoboteqCanObjects.bat_amps_2.id, kRoboteqCanObjects.bat_amps_2.subid);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
   }
@@ -100,22 +104,39 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 {
   RoboteqDriverFeedback fb;
 
-  // std::uint32_t
   // already does locking when accessing rpdo
-  fb.motor_1.pos = rpdo_mapped[0x2106][1];
-  fb.motor_2.pos = rpdo_mapped[0x2106][2];
+  fb.motor_1.pos =
+    rpdo_mapped[kRoboteqCanObjects.position_1.id][kRoboteqCanObjects.position_1.subid];
+  fb.motor_2.pos =
+    rpdo_mapped[kRoboteqCanObjects.position_2.id][kRoboteqCanObjects.position_2.subid];
 
-  fb.motor_1.vel = rpdo_mapped[0x2106][3];
-  fb.motor_2.vel = rpdo_mapped[0x2106][4];
+  fb.motor_1.vel =
+    rpdo_mapped[kRoboteqCanObjects.velocity_1.id][kRoboteqCanObjects.velocity_1.subid];
+  fb.motor_2.vel =
+    rpdo_mapped[kRoboteqCanObjects.velocity_2.id][kRoboteqCanObjects.velocity_2.subid];
 
-  fb.motor_1.current = rpdo_mapped[0x2106][5];
-  fb.motor_2.current = rpdo_mapped[0x2106][6];
+  fb.motor_1.current =
+    rpdo_mapped[kRoboteqCanObjects.current_1.id][kRoboteqCanObjects.current_1.subid];
+  fb.motor_2.current =
+    rpdo_mapped[kRoboteqCanObjects.current_2.id][kRoboteqCanObjects.current_2.subid];
 
-  fb.fault_flags = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][7]), 0);
-  fb.script_flags = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][7]), 2);
+  fb.fault_flags = GetByte(
+    static_cast<int32_t>(rpdo_mapped[kRoboteqCanObjects.fault_script_flags.id]
+                                    [kRoboteqCanObjects.fault_script_flags.subid]),
+    0);
+  fb.script_flags = GetByte(
+    static_cast<int32_t>(rpdo_mapped[kRoboteqCanObjects.fault_script_flags.id]
+                                    [kRoboteqCanObjects.fault_script_flags.subid]),
+    2);
 
-  fb.runtime_stat_flag_motor_1 = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][8]), 0);
-  fb.runtime_stat_flag_motor_2 = GetByte(static_cast<int32_t>(rpdo_mapped[0x2106][8]), 1);
+  fb.runtime_stat_flag_motor_1 = GetByte(
+    static_cast<int32_t>(
+      rpdo_mapped[kRoboteqCanObjects.motor_flags.id][kRoboteqCanObjects.motor_flags.subid]),
+    0);
+  fb.runtime_stat_flag_motor_2 = GetByte(
+    static_cast<int32_t>(
+      rpdo_mapped[kRoboteqCanObjects.motor_flags.id][kRoboteqCanObjects.motor_flags.subid]),
+    1);
 
   std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
   fb.timestamp = last_rpdo_write_timestamp_;
@@ -128,7 +149,7 @@ RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
 void RoboteqDriver::SendRoboteqCmdChannel1(const std::int32_t cmd)
 {
   try {
-    SyncSdoWrite<std::int32_t>(0x2000, 1, cmd);
+    SyncSdoWrite<std::int32_t>(kRoboteqCanObjects.cmd_1.id, kRoboteqCanObjects.cmd_1.subid, cmd);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
@@ -138,7 +159,7 @@ void RoboteqDriver::SendRoboteqCmdChannel1(const std::int32_t cmd)
 void RoboteqDriver::SendRoboteqCmdChannel2(const std::int32_t cmd)
 {
   try {
-    SyncSdoWrite<std::int32_t>(0x2000, 2, cmd);
+    SyncSdoWrite<std::int32_t>(kRoboteqCanObjects.cmd_2.id, kRoboteqCanObjects.cmd_2.subid, cmd);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
@@ -148,7 +169,8 @@ void RoboteqDriver::SendRoboteqCmdChannel2(const std::int32_t cmd)
 void RoboteqDriver::ResetRoboteqScript()
 {
   try {
-    SyncSdoWrite<std::uint8_t>(0x2018, 0, 2);
+    SyncSdoWrite<std::uint8_t>(
+      kRoboteqCanObjects.reset_script.id, kRoboteqCanObjects.reset_script.subid, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to reset Roboteq script: " + std::string(e.what()));
   }
@@ -156,9 +178,9 @@ void RoboteqDriver::ResetRoboteqScript()
 
 void RoboteqDriver::TurnOnEstop()
 {
-  // Cmd_ESTOP
   try {
-    SyncSdoWrite<std::uint8_t>(0x200C, 0, 1);
+    SyncSdoWrite<std::uint8_t>(
+      kRoboteqCanObjects.turn_on_estop.id, kRoboteqCanObjects.turn_on_estop.subid, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn on estop: " + std::string(e.what()));
   }
@@ -166,9 +188,9 @@ void RoboteqDriver::TurnOnEstop()
 
 void RoboteqDriver::TurnOffEstop()
 {
-  // Cmd_MGO
   try {
-    SyncSdoWrite<std::uint8_t>(0x200D, 0, 1);
+    SyncSdoWrite<std::uint8_t>(
+      kRoboteqCanObjects.turn_off_estop.id, kRoboteqCanObjects.turn_off_estop.subid, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn off estop: " + std::string(e.what()));
   }
@@ -176,9 +198,9 @@ void RoboteqDriver::TurnOffEstop()
 
 void RoboteqDriver::TurnOnSafetyStopChannel1()
 {
-  // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<std::uint8_t>(0x202C, 0, 1);
+    SyncSdoWrite<std::uint8_t>(
+      kRoboteqCanObjects.turn_on_safety_stop.id, kRoboteqCanObjects.turn_on_safety_stop.subid, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 1: " + std::string(e.what()));
@@ -187,9 +209,9 @@ void RoboteqDriver::TurnOnSafetyStopChannel1()
 
 void RoboteqDriver::TurnOnSafetyStopChannel2()
 {
-  // Cmd_SFT Safety Stop
   try {
-    SyncSdoWrite<std::uint8_t>(0x202C, 0, 2);
+    SyncSdoWrite<std::uint8_t>(
+      kRoboteqCanObjects.turn_on_safety_stop.id, kRoboteqCanObjects.turn_on_safety_stop.subid, 2);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
@@ -340,7 +362,7 @@ void RoboteqDriver::OnBoot(
 
 void RoboteqDriver::OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subidx) noexcept
 {
-  if (idx == 0x2106 && subidx == 1) {
+  if (idx == kRoboteqCanObjects.position_1.id && subidx == kRoboteqCanObjects.position_1.subid) {
     std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
     clock_gettime(CLOCK_MONOTONIC, &last_rpdo_write_timestamp_);
   }
