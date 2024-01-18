@@ -170,9 +170,8 @@ void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()
   const unsigned max_read_pdo_errors_count =
     std::stoi(info_.hardware_parameters["max_read_pdo_errors_count"]);
 
-  roboteq_error_filter_ = std::make_shared<RoboteqErrorFilter>(std::vector<ErrorFilter>{
-    ErrorFilter(max_read_sdo_errors_count), ErrorFilter(max_write_sdo_errors_count),
-    ErrorFilter(max_read_pdo_errors_count), ErrorFilter(1)});
+  roboteq_error_filter_ = std::make_shared<RoboteqErrorFilter>(
+    max_read_sdo_errors_count, max_write_sdo_errors_count, max_read_pdo_errors_count, 1);
 }
 
 CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
@@ -363,11 +362,10 @@ void PantherSystem::UpdateDriverState()
         motors_controller_->GetRearData().GetDriverState());
     }
 
-    roboteq_error_filter_->UpdateError(static_cast<std::size_t>(ErrorsFilterIds::READ_SDO), false);
-
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_SDO, false);
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Error when trying to read drivers feedback: " << e.what());
-    roboteq_error_filter_->UpdateError(static_cast<std::size_t>(ErrorsFilterIds::READ_SDO), true);
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_SDO, true);
   }
 }
 
@@ -387,11 +385,9 @@ void PantherSystem::UpdateSystemFeedback()
         "Error state on one of the drivers"
           << "\nFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
           << "\nRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::ROBOTEQ_DRIVER), true);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
     } else {
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::ROBOTEQ_DRIVER), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
     }
 
     if (
@@ -401,14 +397,12 @@ void PantherSystem::UpdateSystemFeedback()
         logger_, "PDO data timeout: "
                    << (motors_controller_->GetFrontData().IsDataTimedOut() ? "front " : "")
                    << (motors_controller_->GetRearData().IsDataTimedOut() ? "rear" : ""));
-      roboteq_error_filter_->UpdateError(static_cast<std::size_t>(ErrorsFilterIds::READ_PDO), true);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO, true);
     } else {
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::READ_PDO), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO, false);
     }
-
   } catch (const std::runtime_error & e) {
-    roboteq_error_filter_->UpdateError(static_cast<std::size_t>(ErrorsFilterIds::READ_PDO), true);
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO, true);
     RCLCPP_ERROR_STREAM(logger_, "Error when trying to read feedback: " << e.what());
   }
 }
@@ -417,12 +411,9 @@ void PantherSystem::UpdateMsgErrors()
 {
   CanErrors can_errors;
   can_errors.error = roboteq_error_filter_->IsError();
-  can_errors.write_sdo_error =
-    roboteq_error_filter_->IsError(static_cast<std::size_t>(ErrorsFilterIds::WRITE_SDO));
-  can_errors.read_sdo_error =
-    roboteq_error_filter_->IsError(static_cast<std::size_t>(ErrorsFilterIds::READ_SDO));
-  can_errors.read_pdo_error =
-    roboteq_error_filter_->IsError(static_cast<std::size_t>(ErrorsFilterIds::READ_PDO));
+  can_errors.write_sdo_error = roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_SDO);
+  can_errors.read_sdo_error = roboteq_error_filter_->IsError(ErrorsFilterIds::READ_SDO);
+  can_errors.read_pdo_error = roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO);
   can_errors.front_data_timed_out = motors_controller_->GetFrontData().IsDataTimedOut();
   can_errors.rear_data_timed_out = motors_controller_->GetRearData().IsDataTimedOut();
   can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCanNetErr();
@@ -451,12 +442,10 @@ return_type PantherSystem::write(
       motors_controller_->WriteSpeed(
         hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
         hw_commands_velocities_[3]);
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::WRITE_SDO), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_SDO, false);
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(logger_, "Error when trying to write commands: " << e.what());
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::WRITE_SDO), true);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_SDO, true);
     }
   }
 

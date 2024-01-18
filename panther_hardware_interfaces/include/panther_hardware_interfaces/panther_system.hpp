@@ -124,7 +124,6 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-  enum class ErrorsFilterIds { READ_SDO = 0, WRITE_SDO = 1, READ_PDO = 2, ROBOTEQ_DRIVER = 3 };
 };
 
 }  // namespace panther_hardware_interfaces

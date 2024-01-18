@@ -56,6 +56,8 @@ private:
   bool error_ = false;
 };
 
+enum class ErrorsFilterIds { READ_SDO, WRITE_SDO, READ_PDO, ROBOTEQ_DRIVER };
+
 /**
  * @brief Class that keeps track of different types of errors. In some rare cases Roboteq
  * controllers can miss for example the SDO response, or PDO can be received a bit later, which
@@ -65,27 +67,34 @@ private:
 class RoboteqErrorFilter
 {
 public:
-  RoboteqErrorFilter(const std::vector<ErrorFilter> & error_filters) : error_filters_(error_filters)
+  RoboteqErrorFilter(
+    const unsigned max_read_sdo_errors_count, const unsigned max_write_sdo_errors_count,
+    const unsigned max_read_pdo_errors_count, const unsigned max_roboteq_driver_error_count)
   {
+    error_filters_.insert({ErrorsFilterIds::READ_SDO, ErrorFilter(max_read_sdo_errors_count)});
+    error_filters_.insert({ErrorsFilterIds::WRITE_SDO, ErrorFilter(max_write_sdo_errors_count)});
+    error_filters_.insert({ErrorsFilterIds::READ_PDO, ErrorFilter(max_read_pdo_errors_count)});
+    error_filters_.insert(
+      {ErrorsFilterIds::ROBOTEQ_DRIVER, ErrorFilter(max_roboteq_driver_error_count)});
   }
 
   bool IsError() const
   {
     return std::any_of(error_filters_.begin(), error_filters_.end(), [](const auto & filter) {
-      return filter.IsError();
+      return filter.second.IsError();
     });
   };
 
-  bool IsError(const std::size_t id) const { return error_filters_[id].IsError(); };
+  bool IsError(const ErrorsFilterIds id) const { return error_filters_.at(id).IsError(); };
 
   /**
    * @brief Updates error count, if the number of consecutive errors exceeds the max
    * threshold error is set
    */
-  void UpdateError(const std::size_t id, const bool current_error)
+  void UpdateError(const ErrorsFilterIds id, const bool current_error)
   {
     ClearErrorsIfFlagSet();
-    error_filters_[id].UpdateError(current_error);
+    error_filters_.at(id).UpdateError(current_error);
   }
 
   /**
@@ -98,15 +107,16 @@ private:
   void ClearErrorsIfFlagSet()
   {
     if (clear_errors_) {
-      std::for_each(
-        error_filters_.begin(), error_filters_.end(), [](auto & filter) { filter.ClearError(); });
+      std::for_each(error_filters_.begin(), error_filters_.end(), [](auto & filter) {
+        filter.second.ClearError();
+      });
       clear_errors_.store(false);
     }
   }
 
   std::atomic_bool clear_errors_ = false;
 
-  std::vector<ErrorFilter> error_filters_;
+  std::map<ErrorsFilterIds, ErrorFilter> error_filters_;
 };
 
 }  // namespace panther_hardware_interfaces
