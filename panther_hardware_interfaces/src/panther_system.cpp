@@ -43,27 +43,25 @@ void PantherSystem::CheckJointSize() const
   }
 }
 
-void PantherSystem::SortJointNames()
+void PantherSystem::SortAndCheckJointNames()
 {
   // Sort joints names - later hw_states and hw_commands are accessed by static indexes, so it
   // is necessary to make sure that joints are in specific order and order of definitions in URDF
   // doesn't matter
   for (std::size_t i = 0; i < kJointsSize; i++) {
+    std::size_t match_count = 0;
+
     for (std::size_t j = 0; j < kJointsSize; j++) {
       if (info_.joints[j].name.find(joint_order_[i]) != std::string::npos) {
         joints_names_sorted_[i] = info_.joints[j].name;
+        ++match_count;
       }
     }
-  }
-}
 
-void PantherSystem::CheckJointNames() const
-{
-  for (std::size_t i = 0; i < kJointsSize; i++) {
-    if (joints_names_sorted_[i] == "") {
+    if (match_count != 1) {
       throw std::runtime_error(
-        joint_order_[i] +
-        " joint not defined (exactly one joint containing this string is required)");
+        "There should be exactly one joint containing " + joint_order_[i] + ", " +
+        std::to_string(match_count) + " found.");
     }
   }
 }
@@ -182,8 +180,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
   try {
     CheckJointSize();
-    SortJointNames();
-    CheckJointNames();
+    SortAndCheckJointNames();
     SetInitialValues();
     CheckInterfaces();
   } catch (const std::runtime_error & e) {

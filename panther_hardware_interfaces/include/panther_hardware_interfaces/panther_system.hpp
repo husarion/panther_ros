@@ -66,8 +66,7 @@ public:
 
 protected:
   void CheckJointSize() const;
-  void SortJointNames();
-  void CheckJointNames() const;
+  void SortAndCheckJointNames();
   void SetInitialValues();
   void CheckInterfaces() const;
   void ReadDrivetrainSettings();
