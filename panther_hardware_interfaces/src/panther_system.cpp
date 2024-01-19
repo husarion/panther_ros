@@ -34,14 +34,12 @@
 namespace panther_hardware_interfaces
 {
 
-using namespace std::literals;
-
 void PantherSystem::CheckJointSize() const
 {
   if (info_.joints.size() != kJointsSize) {
     throw std::runtime_error(
-      "Wrong number of joints defined: "s + std::to_string(info_.joints.size()) + ", "s +
-      std::to_string(kJointsSize) + "expected."s);
+      "Wrong number of joints defined: " + std::to_string(info_.joints.size()) + ", " +
+      std::to_string(kJointsSize) + "expected.");
   }
 }
 
@@ -65,7 +63,7 @@ void PantherSystem::CheckJointNames() const
     if (joints_names_sorted_[i] == "") {
       throw std::runtime_error(
         joint_order_[i] +
-        " joint not defined (exactly one joint containing this string is required)"s);
+        " joint not defined (exactly one joint containing this string is required)");
     }
   }
 }
@@ -88,14 +86,14 @@ void PantherSystem::CheckInterfaces() const
     // Commands
     if (joint.command_interfaces.size() != 1) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " has "s + std::to_string(joint.command_interfaces.size()) +
-        " command interfaces found. 1 expected."s);
+        "Joint " + joint.name + " has " + std::to_string(joint.command_interfaces.size()) +
+        " command interfaces found. 1 expected.");
     }
 
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.command_interfaces[0].name +
-        " command interfaces found. "s + hardware_interface::HW_IF_VELOCITY + " expected."s);
+        "Joint " + joint.name + " have " + joint.command_interfaces[0].name +
+        " command interfaces found. " + hardware_interface::HW_IF_VELOCITY + " expected.");
     }
 
     // States
@@ -108,20 +106,20 @@ void PantherSystem::CheckInterfaces() const
 
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.state_interfaces[0].name +
-        " as first state interface. "s + hardware_interface::HW_IF_POSITION + " expected."s);
+        "Joint " + joint.name + " have " + joint.state_interfaces[0].name +
+        " as first state interface. " + hardware_interface::HW_IF_POSITION + " expected.");
     }
 
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.state_interfaces[1].name +
-        " as second state interface. "s + hardware_interface::HW_IF_VELOCITY + " expected."s);
+        "Joint " + joint.name + " have " + joint.state_interfaces[1].name +
+        " as second state interface. " + hardware_interface::HW_IF_VELOCITY + " expected.");
     }
 
     if (joint.state_interfaces[2].name != hardware_interface::HW_IF_EFFORT) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.state_interfaces[2].name +
-        " as third state interface. "s + hardware_interface::HW_IF_EFFORT + " expected."s);
+        "Joint " + joint.name + " have " + joint.state_interfaces[2].name +
+        " as third state interface. " + hardware_interface::HW_IF_EFFORT + " expected.");
     }
   }
 }
