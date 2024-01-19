@@ -204,7 +204,7 @@ void GPIODriver::GPIOMonitorOn()
     }
   }
 
-  std::lock_guard<std::mutex> lck(monitor_init_mtx_);
+  std::unique_lock<std::mutex> lck(monitor_init_mtx_);
 
   gpio_monitor_thread_enabled_ = true;
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIODriver::MonitorAsyncEvents, this);
