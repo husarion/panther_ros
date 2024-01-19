@@ -14,6 +14,7 @@
 
 #include "panther_gpiod/gpio_driver.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
