@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot name="panther" xmlns:xacro="http://wiki.ros.org/xacro">
 
+  <xacro:arg name="panther_version" default="1.0" />
   <xacro:arg name="use_sim" default="false" />
   <xacro:arg name="use_gpu" default="false" />
   <xacro:arg name="imu_pos_x" default="0.169" />
@@ -19,6 +20,7 @@
 
   <xacro:include filename="$(find panther_description)/urdf/panther_macro.urdf.xacro" ns="husarion" />
   <xacro:husarion.panther_robot
+    panther_version="$(arg panther_version)"
     use_sim="$(arg use_sim)"
     imu_pos_x="$(arg imu_pos_x)"
     imu_pos_y="$(arg imu_pos_y)"

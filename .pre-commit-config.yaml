@@ -3,7 +3,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
-      # mesh files has to be taken into account
+        # mesh files has to be taken into account
         args: ["--maxkb=2000"]
       - id: check-ast
       - id: check-json
