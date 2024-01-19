@@ -234,7 +234,7 @@ TEST_F(TestMotorsController, test_update_system_feedback_timestamps)
   motors_controller_->UpdateSystemFeedback();
 
   std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
+    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout_ms +
     std::chrono::milliseconds(10));
 
   motors_controller_->UpdateSystemFeedback();
@@ -262,7 +262,7 @@ TEST(TestMotorsControllerOthers, test_update_system_pdo_feedback_timeout)
   motors_controller_->UpdateSystemFeedback();
 
   std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
+    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout_ms +
     std::chrono::milliseconds(10));
 
   motors_controller_->UpdateSystemFeedback();

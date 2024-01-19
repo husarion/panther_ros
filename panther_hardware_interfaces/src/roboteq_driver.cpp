@@ -31,8 +31,9 @@ namespace panther_hardware_interfaces
 RoboteqDriver::RoboteqDriver(
   const std::shared_ptr<lely::ev::Executor> & exec,
   const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
-  const std::chrono::milliseconds & sdo_operation_timeout)
-: lely::canopen::FiberDriver(*exec, *master, id), sdo_operation_timeout_(sdo_operation_timeout)
+  const std::chrono::milliseconds & sdo_operation_timeout_ms)
+: lely::canopen::FiberDriver(*exec, *master, id),
+  sdo_operation_timeout_ms_(sdo_operation_timeout_ms)
 {
 }
 
@@ -263,14 +264,14 @@ T RoboteqDriver::SyncSdoRead(const std::uint16_t index, const std::uint8_t subin
         }
         cv.notify_one();
       },
-      sdo_operation_timeout_);
+      sdo_operation_timeout_ms_);
   } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
   }
 
   std::unique_lock<std::mutex> lck(mtx);
   if (
-    cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
+    cv.wait_for(lck, sdo_operation_timeout_ms_ + kSdoOperationAdditionalWait) ==
     std::cv_status::timeout) {
     sdo_read_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for SDO read operation to finish");
@@ -325,7 +326,7 @@ void RoboteqDriver::SyncSdoWrite(
         }
         cv.notify_one();
       },
-      sdo_operation_timeout_);
+      sdo_operation_timeout_ms_);
   } catch (const lely::canopen::SdoError & e) {
     throw std::runtime_error("SDO write error, message: " + std::string(e.what()));
   }
@@ -333,7 +334,7 @@ void RoboteqDriver::SyncSdoWrite(
   std::unique_lock<std::mutex> lck(mtx);
 
   if (
-    cv.wait_for(lck, sdo_operation_timeout_ + kSdoOperationAdditionalWait) ==
+    cv.wait_for(lck, sdo_operation_timeout_ms_ + kSdoOperationAdditionalWait) ==
     std::cv_status::timeout) {
     sdo_write_timed_out_.store(true);
     throw std::runtime_error("Timeout while waiting for SDO read operation to finish");

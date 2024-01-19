@@ -142,10 +142,10 @@ void PantherSystem::ReadCanOpenSettings()
   canopen_settings_.front_driver_can_id =
     std::stoi(info_.hardware_parameters["front_driver_can_id"]);
   canopen_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
-  canopen_settings_.pdo_feedback_timeout =
-    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_feedback_timeout"]));
-  canopen_settings_.sdo_operation_timeout =
-    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout"]));
+  canopen_settings_.pdo_feedback_timeout_ms =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_feedback_timeout_ms"]));
+  canopen_settings_.sdo_operation_timeout_ms =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout_ms"]));
 }
 
 void PantherSystem::ReadInitializationActivationAttempts()

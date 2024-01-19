@@ -60,7 +60,7 @@ public:
   RoboteqDriver(
     const std::shared_ptr<lely::ev::Executor> & exec,
     const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
-    const std::chrono::milliseconds & sdo_operation_timeout);
+    const std::chrono::milliseconds & sdo_operation_timeout_ms);
 
   /**
    * @brief Trigger boot operations
@@ -180,7 +180,7 @@ private:
   timespec last_rpdo_write_timestamp_;
   std::mutex rpdo_timestamp_mtx_;
 
-  const std::chrono::milliseconds sdo_operation_timeout_;
+  const std::chrono::milliseconds sdo_operation_timeout_ms_;
 
   // Wait timeout has to be longer - first we want to give a chance for lely to cancel operation
   static constexpr std::chrono::microseconds kSdoOperationAdditionalWait{750};

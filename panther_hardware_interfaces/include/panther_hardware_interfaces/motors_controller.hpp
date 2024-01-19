@@ -124,7 +124,7 @@ private:
 
   RoboteqVeloctiyCommandConverter roboteq_vel_cmd_converter_;
 
-  const std::chrono::milliseconds pdo_feedback_timeout_;
+  const std::chrono::milliseconds pdo_feedback_timeout_ms_;
 
   unsigned current_update_ = 0;
 };

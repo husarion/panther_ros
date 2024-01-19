@@ -115,9 +115,11 @@ void CanOpenController::InitializeCanCommunication()
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
   front_driver_ = std::make_shared<RoboteqDriver>(
-    exec_, master_, canopen_settings_.front_driver_can_id, canopen_settings_.sdo_operation_timeout);
+    exec_, master_, canopen_settings_.front_driver_can_id,
+    canopen_settings_.sdo_operation_timeout_ms);
   rear_driver_ = std::make_shared<RoboteqDriver>(
-    exec_, master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout);
+    exec_, master_, canopen_settings_.rear_driver_can_id,
+    canopen_settings_.sdo_operation_timeout_ms);
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();

@@ -46,8 +46,8 @@ struct CanOpenSettings
   std::uint8_t front_driver_can_id;
   std::uint8_t rear_driver_can_id;
 
-  std::chrono::milliseconds pdo_feedback_timeout;
-  std::chrono::milliseconds sdo_operation_timeout;
+  std::chrono::milliseconds pdo_feedback_timeout_ms;
+  std::chrono::milliseconds sdo_operation_timeout_ms;
 };
 
 /**

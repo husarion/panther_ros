@@ -23,7 +23,7 @@ MotorsController::MotorsController(
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_vel_cmd_converter_(drivetrain_settings),
-  pdo_feedback_timeout_(canopen_settings.pdo_feedback_timeout)
+  pdo_feedback_timeout_ms_(canopen_settings.pdo_feedback_timeout_ms)
 {
 }
 
@@ -90,10 +90,10 @@ void MotorsController::UpdateSystemFeedback()
 
   const bool front_data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
-     pdo_feedback_timeout_);
+     pdo_feedback_timeout_ms_);
   const bool rear_data_timed_out =
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
-     pdo_feedback_timeout_);
+     pdo_feedback_timeout_ms_);
 
   const bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
   const bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
