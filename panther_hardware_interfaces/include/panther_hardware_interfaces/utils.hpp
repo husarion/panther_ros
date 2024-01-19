@@ -47,7 +47,7 @@ std::uint8_t GetByte(const T data, const unsigned byte_no)
  */
 bool OperationWithAttempts(
   const std::function<void()> operation, const unsigned max_attempts,
-  const std::function<void()> on_error);
+  const std::function<void()> on_error = []() {});
 
 }  // namespace panther_hardware_interfaces
 

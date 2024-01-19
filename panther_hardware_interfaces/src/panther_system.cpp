@@ -85,13 +85,13 @@ void PantherSystem::CheckInterfaces() const
     if (joint.command_interfaces.size() != 1) {
       throw std::runtime_error(
         "Joint " + joint.name + " has " + std::to_string(joint.command_interfaces.size()) +
-        " command interfaces found. 1 expected.");
+        " command interfaces. 1 expected.");
     }
 
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
       throw std::runtime_error(
-        "Joint " + joint.name + " have " + joint.command_interfaces[0].name +
-        " command interfaces found. " + hardware_interface::HW_IF_VELOCITY + " expected.");
+        "Joint " + joint.name + " has " + joint.command_interfaces[0].name +
+        " command interface. " + hardware_interface::HW_IF_VELOCITY + " expected.");
     }
 
     // States
@@ -104,19 +104,19 @@ void PantherSystem::CheckInterfaces() const
 
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       throw std::runtime_error(
-        "Joint " + joint.name + " have " + joint.state_interfaces[0].name +
+        "Joint " + joint.name + " has " + joint.state_interfaces[0].name +
         " as first state interface. " + hardware_interface::HW_IF_POSITION + " expected.");
     }
 
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
       throw std::runtime_error(
-        "Joint " + joint.name + " have " + joint.state_interfaces[1].name +
+        "Joint " + joint.name + " has " + joint.state_interfaces[1].name +
         " as second state interface. " + hardware_interface::HW_IF_VELOCITY + " expected.");
     }
 
     if (joint.state_interfaces[2].name != hardware_interface::HW_IF_EFFORT) {
       throw std::runtime_error(
-        "Joint " + joint.name + " have " + joint.state_interfaces[2].name +
+        "Joint " + joint.name + " has " + joint.state_interfaces[2].name +
         " as third state interface. " + hardware_interface::HW_IF_EFFORT + " expected.");
     }
   }
@@ -247,7 +247,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Activate, motors_controller_),
-        max_roboteq_activation_attempts_, []() {})) {
+        max_roboteq_activation_attempts_)) {
     RCLCPP_FATAL_STREAM(logger_, "Activation failed");
     return CallbackReturn::FAILURE;
   }
@@ -301,7 +301,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Setting safe stop");
   if (!OperationWithAttempts(
         std::bind(&MotorsController::TurnOnSafetyStop, motors_controller_),
-        max_safety_stop_attempts_, []() {})) {
+        max_safety_stop_attempts_)) {
     RCLCPP_FATAL_STREAM(logger_, "Setting safety stop failed");
     return CallbackReturn::FAILURE;
   }
