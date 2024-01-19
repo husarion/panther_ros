@@ -109,13 +109,13 @@ gpiod::line_settings GPIODriver::GenerateLineSettings(const GPIOInfo & gpio_info
 
   // Set the initial value only when the line is configured for the first time;
   // otherwise, set the last known value
-  gpiod::line::value new_outpu_value;
+  gpiod::line::value new_output_value;
   if (!line_request_) {
-    new_outpu_value = gpio_info.init_value;
+    new_output_value = gpio_info.init_value;
   } else {
-    new_outpu_value = gpio_info.value;
+    new_output_value = gpio_info.value;
   }
-  settings.set_output_value(new_outpu_value);
+  settings.set_output_value(new_output_value);
 
   if (gpio_info.direction == gpiod::line::direction::INPUT) {
     settings.set_edge_detection(gpiod::line::edge::BOTH);
