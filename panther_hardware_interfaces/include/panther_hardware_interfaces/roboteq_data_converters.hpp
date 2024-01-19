@@ -248,7 +248,7 @@ public:
   const DriverState & GetDriverState() const { return driver_state_; }
 
   bool IsDataTimedOut() const { return data_timed_out_; }
-  bool IsCanNetErr() const { return can_net_err_; }
+  bool IsCANNetErr() const { return can_net_err_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }

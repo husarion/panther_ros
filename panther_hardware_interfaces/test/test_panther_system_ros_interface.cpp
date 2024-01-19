@@ -271,7 +271,7 @@ TEST(TestPantherSystemRosInterface, test_errors)
   panther_system_ros_interface.Initialize();
   panther_system_ros_interface.Activate([]() {});
 
-  panther_hardware_interfaces::CanErrors can_errors;
+  panther_hardware_interfaces::CANErrors can_errors;
   can_errors.error = true;
   can_errors.write_sdo_error = true;
   can_errors.read_sdo_error = false;

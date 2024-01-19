@@ -70,7 +70,7 @@ protected:
   void SetInitialValues();
   void CheckInterfaces() const;
   void ReadDrivetrainSettings();
-  void ReadCanOpenSettings();
+  void ReadCANopenSettings();
   void ReadInitializationActivationAttempts();
   void ReadParametersAndCreateRoboteqErrorFilter();
 
@@ -101,7 +101,7 @@ protected:
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
-  CanOpenSettings canopen_settings_;
+  CANopenSettings canopen_settings_;
 
   PantherSystemRosInterface panther_system_ros_interface_;
 

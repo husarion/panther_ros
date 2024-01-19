@@ -76,7 +76,7 @@ public:
 
   bool IsBooted() const { return booted_.load(); }
 
-  bool IsCanError() const { return can_error_.load(); }
+  bool IsCANError() const { return can_error_.load(); }
 
   /**
    * @exception std::runtime_error if operation fails
@@ -148,7 +148,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  T SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex);
+  T SyncSDORead(const std::uint16_t index, const std::uint8_t subindex);
 
   /**
    * @brief Blocking SDO write operation
@@ -156,7 +156,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
+  void SyncSDOWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
   void OnBoot(
     const lely::canopen::NmtState st, const char es, const std::string & what) noexcept override;
@@ -191,7 +191,7 @@ private:
   std::mutex sdo_read_mtx_;
   std::mutex sdo_write_mtx_;
 
-  struct CanOpenObject
+  struct CANopenObject
   {
     std::uint16_t id;
     std::uint8_t subid;
@@ -201,33 +201,33 @@ private:
   // to parse them based on the ParameterName. Additionally between version v60 and v80
   // ParameterName changed, for example: Cmd_ESTOP (old), Cmd_ESTOP Emergency Shutdown (new) As
   // parameter names changed, but ids stayed the same, it will be better to just use ids directly
-  const struct RoboteqCanObjects
+  const struct RoboteqCANObjects
   {
-    CanOpenObject cmd_1 = {0x2000, 1};
-    CanOpenObject cmd_2 = {0x2000, 2};
+    CANopenObject cmd_1 = {0x2000, 1};
+    CANopenObject cmd_2 = {0x2000, 2};
 
-    CanOpenObject position_1 = {0x2106, 1};
-    CanOpenObject position_2 = {0x2106, 2};
+    CANopenObject position_1 = {0x2106, 1};
+    CANopenObject position_2 = {0x2106, 2};
 
-    CanOpenObject velocity_1 = {0x2106, 3};
-    CanOpenObject velocity_2 = {0x2106, 4};
+    CANopenObject velocity_1 = {0x2106, 3};
+    CANopenObject velocity_2 = {0x2106, 4};
 
-    CanOpenObject current_1 = {0x2106, 5};
-    CanOpenObject current_2 = {0x2106, 6};
+    CANopenObject current_1 = {0x2106, 5};
+    CANopenObject current_2 = {0x2106, 6};
 
-    CanOpenObject fault_script_flags = {0x2106, 7};
-    CanOpenObject motor_flags = {0x2106, 8};
+    CANopenObject fault_script_flags = {0x2106, 7};
+    CANopenObject motor_flags = {0x2106, 8};
 
-    CanOpenObject temperature = {0x210F, 1};
-    CanOpenObject voltage = {0x210D, 2};
-    CanOpenObject bat_amps_1 = {0x210C, 1};
-    CanOpenObject bat_amps_2 = {0x210C, 2};
+    CANopenObject temperature = {0x210F, 1};
+    CANopenObject voltage = {0x210D, 2};
+    CANopenObject bat_amps_1 = {0x210C, 1};
+    CANopenObject bat_amps_2 = {0x210C, 2};
 
-    CanOpenObject reset_script = {0x2018, 0};
-    CanOpenObject turn_on_estop = {0x200C, 0};        // Cmd_ESTOP
-    CanOpenObject turn_off_estop = {0x200D, 0};       // Cmd_MGO
-    CanOpenObject turn_on_safety_stop = {0x202C, 0};  // Cmd_SFT
-  } kRoboteqCanObjects;
+    CANopenObject reset_script = {0x2018, 0};
+    CANopenObject turn_on_estop = {0x200C, 0};        // Cmd_ESTOP
+    CANopenObject turn_off_estop = {0x200D, 0};       // Cmd_MGO
+    CANopenObject turn_on_safety_stop = {0x202C, 0};  // Cmd_SFT
+  } kRoboteqCANObjects;
 };
 
 }  // namespace panther_hardware_interfaces

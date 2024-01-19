@@ -135,7 +135,7 @@ void PantherSystem::ReadDrivetrainSettings()
     std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
 }
 
-void PantherSystem::ReadCanOpenSettings()
+void PantherSystem::ReadCANopenSettings()
 {
   canopen_settings_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
@@ -190,7 +190,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
   try {
     ReadDrivetrainSettings();
-    ReadCanOpenSettings();
+    ReadCANopenSettings();
     ReadInitializationActivationAttempts();
     ReadParametersAndCreateRoboteqErrorFilter();
   } catch (const std::invalid_argument & e) {
@@ -404,15 +404,15 @@ void PantherSystem::UpdateSystemFeedback()
 
 void PantherSystem::UpdateMsgErrors()
 {
-  CanErrors can_errors;
+  CANErrors can_errors;
   can_errors.error = roboteq_error_filter_->IsError();
   can_errors.write_sdo_error = roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_SDO);
   can_errors.read_sdo_error = roboteq_error_filter_->IsError(ErrorsFilterIds::READ_SDO);
   can_errors.read_pdo_error = roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO);
   can_errors.front_data_timed_out = motors_controller_->GetFrontData().IsDataTimedOut();
   can_errors.rear_data_timed_out = motors_controller_->GetRearData().IsDataTimedOut();
-  can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCanNetErr();
-  can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCanNetErr();
+  can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCANNetErr();
+  can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCANNetErr();
 
   panther_system_ros_interface_.UpdateMsgErrors(can_errors);
 }

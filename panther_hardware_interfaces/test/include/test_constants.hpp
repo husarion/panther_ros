@@ -27,7 +27,7 @@
 namespace panther_hardware_interfaces_test
 {
 
-const panther_hardware_interfaces::CanOpenSettings kCanopenSettings{
+const panther_hardware_interfaces::CANopenSettings kCANopenSettings{
   "panther_can", 3, 1, 2, std::chrono::milliseconds(15), std::chrono::milliseconds(4)};
 
 const panther_hardware_interfaces::DrivetrainSettings kDrivetrainSettings{

@@ -36,7 +36,7 @@ namespace panther_hardware_interfaces
 using TriggerSrv = std_srvs::srv::Trigger;
 using DriverStateMsg = panther_msgs::msg::DriverState;
 
-struct CanErrors
+struct CANErrors
 {
   bool error;
   bool write_sdo_error;
@@ -92,7 +92,7 @@ public:
   /**
    * @brief Updates the current state of communication errors and general error state
    */
-  void UpdateMsgErrors(const CanErrors & can_errors);
+  void UpdateMsgErrors(const CANErrors & can_errors);
 
   void PublishDriverState();
 

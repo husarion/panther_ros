@@ -35,7 +35,7 @@ class MotorsController
 {
 public:
   MotorsController(
-    const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
 
   /**
    * @brief Starts CAN communication and waits for boot to finish
@@ -117,7 +117,7 @@ public:
   void TurnOnSafetyStop();
 
 private:
-  CanOpenController canopen_controller_;
+  CANopenController canopen_controller_;
 
   RoboteqData front_data_;
   RoboteqData rear_data_;

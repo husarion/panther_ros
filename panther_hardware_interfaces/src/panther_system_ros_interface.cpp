@@ -102,7 +102,7 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
   driver_state.rear.temperature = rear.GetTemperature();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrors(const CanErrors & can_errors)
+void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 

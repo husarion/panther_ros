@@ -24,12 +24,12 @@
 namespace panther_hardware_interfaces
 {
 
-CanOpenController::CanOpenController(const CanOpenSettings & canopen_settings)
+CANopenController::CANopenController(const CANopenSettings & canopen_settings)
 : canopen_settings_(canopen_settings)
 {
 }
 
-void CanOpenController::Initialize()
+void CANopenController::Initialize()
 {
   canopen_communication_started_.store(false);
 
@@ -37,15 +37,15 @@ void CanOpenController::Initialize()
     ConfigureRT();
 
     try {
-      InitializeCanCommunication();
+      InitializeCANCommunication();
     } catch (const std::system_error & e) {
       std::cerr << "Exception caught during CAN initialization: " << e.what() << std::endl;
 
-      NotifyCanCommunicationStarted(false);
+      NotifyCANCommunicationStarted(false);
       return;
     }
 
-    NotifyCanCommunicationStarted(true);
+    NotifyCANCommunicationStarted(true);
 
     try {
       loop_->run();
@@ -68,7 +68,7 @@ void CanOpenController::Initialize()
   BootDrivers();
 }
 
-void CanOpenController::Deinitialize()
+void CANopenController::Deinitialize()
 {
   if (master_) {
     master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
@@ -88,7 +88,7 @@ void CanOpenController::Deinitialize()
   ctx_.reset();
 }
 
-void CanOpenController::InitializeCanCommunication()
+void CANopenController::InitializeCANCommunication()
 {
   lely::io::IoGuard io_guard;
 
@@ -125,13 +125,13 @@ void CanOpenController::InitializeCanCommunication()
   master_->Reset();
 }
 
-void CanOpenController::ConfigureRT()
+void CANopenController::ConfigureRT()
 {
   if (realtime_tools::has_realtime_kernel()) {
-    if (!realtime_tools::configure_sched_fifo(kCanOpenThreadSchedPriority)) {
+    if (!realtime_tools::configure_sched_fifo(kCANopenThreadSchedPriority)) {
       std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
     } else {
-      std::cerr << "FIFO RT scheduling policy with priority " << kCanOpenThreadSchedPriority
+      std::cerr << "FIFO RT scheduling policy with priority " << kCANopenThreadSchedPriority
                 << " set (CAN thread) " << std::endl;
     }
   } else {
@@ -139,7 +139,7 @@ void CanOpenController::ConfigureRT()
   }
 }
 
-void CanOpenController::NotifyCanCommunicationStarted(const bool result)
+void CANopenController::NotifyCANCommunicationStarted(const bool result)
 {
   {
     std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);
@@ -148,7 +148,7 @@ void CanOpenController::NotifyCanCommunicationStarted(const bool result)
   canopen_communication_started_cond_.notify_all();
 }
 
-void CanOpenController::BootDrivers()
+void CANopenController::BootDrivers()
 {
   try {
     front_driver_->Boot();

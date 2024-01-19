@@ -18,7 +18,7 @@ namespace panther_hardware_interfaces
 {
 
 MotorsController::MotorsController(
-  const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
+  const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
 : canopen_controller_(canopen_settings),
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
@@ -95,8 +95,8 @@ void MotorsController::UpdateSystemFeedback()
     (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
      pdo_feedback_timeout_ms_);
 
-  const bool front_can_error = canopen_controller_.GetFrontDriver()->IsCanError();
-  const bool rear_can_error = canopen_controller_.GetRearDriver()->IsCanError();
+  const bool front_can_error = canopen_controller_.GetFrontDriver()->IsCANError();
+  const bool rear_can_error = canopen_controller_.GetRearDriver()->IsCANError();
 
   // Channel 1 - right motor, Channel 2 - left motor
   front_data_.SetMotorStates(
@@ -185,11 +185,11 @@ void MotorsController::WriteSpeed(
     throw std::runtime_error("Rear driver send Roboteq cmd failed: " + std::string(e.what()));
   }
 
-  if (canopen_controller_.GetFrontDriver()->IsCanError()) {
+  if (canopen_controller_.GetFrontDriver()->IsCANError()) {
     throw std::runtime_error(
       "CAN error detected on the front driver when trying to write speed commands");
   }
-  if (canopen_controller_.GetRearDriver()->IsCanError()) {
+  if (canopen_controller_.GetRearDriver()->IsCANError()) {
     throw std::runtime_error(
       "CAN error detected on the rear driver when trying to write speed commands");
   }
