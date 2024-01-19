@@ -19,6 +19,7 @@
   <depend>image_transport</depend>
   <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
+  <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
 
