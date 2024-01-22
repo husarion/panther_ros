@@ -26,8 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include <poll.h>
-
 #include <gpiod.hpp>
 #include <realtime_tools/thread_priority.hpp>
 
@@ -53,8 +51,8 @@ GPIODriver::~GPIODriver()
     }
   }
 
-  line_request_->release();
   GPIOMonitorOff();
+  line_request_->release();
 }
 
 void GPIODriver::GPIOMonitorEnable(
@@ -212,26 +210,18 @@ void GPIODriver::MonitorAsyncEvents()
 
   auto edge_event_buffer = gpiod::edge_event_buffer(edge_event_buffer_size_);
 
-  struct pollfd pollfd;
-  pollfd.fd = line_request_->fd();
-  pollfd.events = POLLIN;
-
   {
     std::lock_guard<std::mutex> lck(monitor_init_mtx_);
     monitor_init_cond_var_.notify_all();
   }
 
   while (gpio_monitor_thread_enabled_) {
-    auto ret = poll(&pollfd, 1, -1);
+    if (line_request_->wait_edge_events(std::chrono::milliseconds(10))) {
+      line_request_->read_edge_events(edge_event_buffer);
 
-    if (ret == -1) {
-      throw std::runtime_error("Error waiting for edge events.");
-    }
-
-    line_request_->read_edge_events(edge_event_buffer);
-
-    for (const auto & event : edge_event_buffer) {
-      HandleEdgeEvent(event);
+      for (const auto & event : edge_event_buffer) {
+        HandleEdgeEvent(event);
+      }
     }
   }
 }

@@ -62,6 +62,7 @@ enum class GPIOPin {
   STAGE2_INPUT,
   VDIG_OFF,
   VMOT_ON,
+  MOTOR_ON,
   WATCHDOG
 };
 
@@ -245,9 +246,10 @@ private:
     {GPIOPin::GPIN2, "GPIN2"},
     {GPIOPin::LED_SBC_SEL, "LED_SBC_SEL"},
     {GPIOPin::SHDN_INIT, "SHDN_INIT"},
+    {GPIOPin::STAGE2_INPUT, "STAGE2_INPUT"},
     {GPIOPin::VDIG_OFF, "VDIG_OFF"},
     {GPIOPin::VMOT_ON, "VMOT_ON"},
-  };
+    {GPIOPin::MOTOR_ON, "MOTOR_ON"}};
 
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
