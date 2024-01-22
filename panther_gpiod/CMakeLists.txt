@@ -18,6 +18,7 @@ if(NOT LIBGPIOD_INSTALLED)
 
   include(ExternalProject)
 
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
   ExternalProject_Add(
     libgpiod-build
     GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
@@ -57,9 +58,8 @@ endforeach()
 add_library(${PROJECT_NAME} SHARED src/gpio_driver.cpp)
 
 target_include_directories(
-  ${PROJECT_NAME}
-  PUBLIC include/ ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include
-         ${GPIOSIM_CXX_DIR})
+  ${PROJECT_NAME} PUBLIC include/
+                         ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
 
 target_link_libraries(${PROJECT_NAME} libgpiod)
 
@@ -77,7 +77,7 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(realtime_tools libgpiod)
+ament_export_dependencies(realtime_tools)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
