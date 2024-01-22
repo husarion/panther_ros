@@ -194,7 +194,7 @@ TEST_F(TestGPIODriver, ChangePinDirection)
     },
     std::invalid_argument);
 
-  gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::INPUT);
+  gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT);
 
   SetAndVerifyPinState(GPIOPin::LED_SBC_SEL);
 }
