@@ -14,6 +14,7 @@
 
 #include "panther_gpiod/gpio_driver.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
@@ -107,8 +108,12 @@ gpiod::line_settings GPIODriver::GenerateLineSettings(const GPIOInfo & gpio_info
 {
   auto settings = gpiod::line_settings();
   settings.set_direction(gpio_info.direction);
-  settings.set_output_value(gpio_info.init_value);
   settings.set_active_low(gpio_info.active_low);
+
+  // Set the initial value only when the line is configured for the first time;
+  // otherwise, set the last known value
+  gpiod::line::value new_output_value = line_request_ ? gpio_info.value : gpio_info.init_value;
+  settings.set_output_value(new_output_value);
 
   if (gpio_info.direction == gpiod::line::direction::INPUT) {
     settings.set_edge_detection(gpiod::line::edge::BOTH);
@@ -120,7 +125,7 @@ gpiod::line_settings GPIODriver::GenerateLineSettings(const GPIOInfo & gpio_info
 
 void GPIODriver::ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction)
 {
-  std::unique_lock lock(gpio_info_storage_mutex_);
+  std::lock_guard lock(gpio_info_storage_mutex_);
   GPIOInfo & gpio_info = GetGPIOInfoRef(pin);
 
   if (gpio_info.direction == direction) {
@@ -140,13 +145,20 @@ void GPIODriver::ChangePinDirection(const GPIOPin pin, const gpiod::line::direct
   gpio_info.value = line_request_->get_value(gpio_info.offset);
 }
 
+bool GPIODriver::IsPinAvaible(const GPIOPin pin) const
+{
+  return std::any_of(gpio_info_storage_.begin(), gpio_info_storage_.end(), [&](const auto & info) {
+    return info.pin == pin;
+  });
+}
+
 bool GPIODriver::IsPinActive(const GPIOPin pin)
 {
   if (!IsGPIOMonitorThreadRunning()) {
     throw std::runtime_error("GPIO monitor thread is not running!");
   }
 
-  std::unique_lock lock(gpio_info_storage_mutex_);
+  std::lock_guard lock(gpio_info_storage_mutex_);
   const GPIOInfo & pin_info = GetGPIOInfoRef(pin);
   return pin_info.value == gpiod::line::value::ACTIVE;
 }
@@ -161,7 +173,7 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
 
   gpiod::line::value gpio_value = value ? gpiod::line::value::ACTIVE : gpiod::line::value::INACTIVE;
 
-  std::unique_lock lock(gpio_info_storage_mutex_);
+  std::lock_guard lock(gpio_info_storage_mutex_);
   try {
     line_request_->set_value(gpio_info.offset, gpio_value);
 
@@ -188,16 +200,16 @@ void GPIODriver::GPIOMonitorOn()
   }
 
   {
-    std::unique_lock lock(gpio_info_storage_mutex_);
+    std::lock_guard lock(gpio_info_storage_mutex_);
     for (auto & info : gpio_info_storage_) {
       info.value = line_request_->get_value(info.offset);
     }
   }
 
+  std::unique_lock<std::mutex> lck(monitor_init_mtx_);
+
   gpio_monitor_thread_enabled_ = true;
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIODriver::MonitorAsyncEvents, this);
-
-  std::unique_lock<std::mutex> lck(monitor_init_mtx_);
 
   if (
     monitor_init_cond_var_.wait_for(lck, std::chrono::milliseconds(50)) ==
@@ -252,7 +264,7 @@ void GPIODriver::ConfigureRt()
 
 void GPIODriver::HandleEdgeEvent(const gpiod::edge_event & event)
 {
-  std::unique_lock lock(gpio_info_storage_mutex_);
+  std::lock_guard lock(gpio_info_storage_mutex_);
   GPIOPin pin;
   try {
     pin = GetPinFromOffset(event.line_offset());
