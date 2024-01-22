@@ -41,14 +41,6 @@ int main() {
 
 ## Testing
 
-### Setup
-
-```bash
-sudo modprobe gpio-sim
-```
-
-### Running tests
-
 ```bash
 colcon build --packages-select panther_gpiod --symlink-install
 colcon test --event-handlers console_direct+ --packages-select panther_gpiod --parallel-workers 1
