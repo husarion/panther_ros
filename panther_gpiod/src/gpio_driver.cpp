@@ -66,6 +66,10 @@ void GPIODriver::GPIOMonitorEnable(
 
 void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback)
 {
+  if (!IsGPIOMonitorThreadRunning()) {
+    throw std::runtime_error("GPIO monitor thread is not running!");
+  }
+
   GPIOEdgeEventCallback = callback;
 }
 
@@ -295,7 +299,7 @@ GPIOInfo & GPIODriver::GetGPIOInfoRef(const GPIOPin pin)
     }
   }
 
-  throw std::runtime_error("Pin not found in GPIO info storage.");
+  throw std::invalid_argument("Pin not found in GPIO info storage.");
 }
 
 GPIOPin GPIODriver::GetPinFromOffset(const gpiod::line::offset & offset) const
