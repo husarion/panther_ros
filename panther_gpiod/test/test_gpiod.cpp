@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gpiod/gpio_driver.hpp"
-
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -25,6 +23,8 @@
 
 #include <gtest/gtest.h>
 #include "gpiod.hpp"
+
+#include "panther_gpiod/gpio_driver.hpp"
 
 using namespace panther_gpiod;
 
@@ -68,10 +68,10 @@ void TestGPIODriver::GPIOEventCallback(const GPIOInfo & gpio_info)
 
 void TestGPIODriver::SetAndVerifyPinState(const GPIOPin & pin)
 {
-  gpio_driver_->SetPinValue(pin, true);
+  EXPECT_TRUE(gpio_driver_->SetPinValue(pin, true));
   EXPECT_TRUE(gpio_driver_->IsPinActive(pin));
 
-  gpio_driver_->SetPinValue(pin, false);
+  EXPECT_TRUE(gpio_driver_->SetPinValue(pin, false));
   EXPECT_FALSE(gpio_driver_->IsPinActive(pin));
 }
 
