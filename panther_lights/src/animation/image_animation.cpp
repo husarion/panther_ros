@@ -33,7 +33,8 @@ namespace panther_lights
 {
 
 void ImageAnimation::Initialize(
-  const YAML::Node & animation_description, const int num_led, const float controller_frequency)
+  const YAML::Node & animation_description, const std::size_t num_led,
+  const float controller_frequency)
 {
   Animation::Initialize(animation_description, num_led, controller_frequency);
 
@@ -72,7 +73,8 @@ std::filesystem::path ImageAnimation::ParseImagePath(const std::string & image_p
       std::smatch match;
       if (std::regex_search(image_path, match, std::regex("^\\$\\(find .*\\)"))) {
         std::string ros_pkg_expr = match[0];
-        std::string ros_pkg = std::regex_replace(ros_pkg_expr, std::regex("^\\$\\(find |\\)$"), "");
+        std::string ros_pkg = std::regex_replace(
+          ros_pkg_expr, std::regex("^\\$\\(find \\s*|\\)$"), "");
 
         auto img_relative_path = image_path;
         img_relative_path.erase(0, ros_pkg_expr.length());
@@ -84,10 +86,6 @@ std::filesystem::path ImageAnimation::ParseImagePath(const std::string & image_p
           throw std::runtime_error("Can't find ROS package: " + ros_pkg);
         }
 
-        if (!std::filesystem::exists(global_img_path)) {
-          throw std::runtime_error("File doesn't exists: " + std::string(global_img_path));
-        }
-
       } else {
         throw std::runtime_error("Can't process substitution expression");
       }
@@ -96,6 +94,10 @@ std::filesystem::path ImageAnimation::ParseImagePath(const std::string & image_p
     }
   } else {
     global_img_path = image_path;
+  }
+
+  if (!std::filesystem::exists(global_img_path)) {
+    throw std::runtime_error("File doesn't exists: " + std::string(global_img_path));
   }
 
   return global_img_path;
@@ -126,9 +128,6 @@ void ImageAnimation::RGBImageConvertColor(gil::rgb8_image_t & image, const std::
         static_cast<std::uint8_t>(pixel * r / 255), static_cast<std::uint8_t>(pixel * g / 255),
         static_cast<std::uint8_t>(pixel * b / 255));
     });
-
-  // gil::write_view("out.png", gil::const_view(image), gil::png_tag());
-  // gil::write_view("out1.png", gil::const_view(grey_image), gil::png_tag());
 }
 
 gil::gray8_image_t ImageAnimation::RGBImageConvertToGrey(gil::rgb8_image_t & image)

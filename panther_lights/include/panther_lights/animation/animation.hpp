@@ -44,7 +44,8 @@ public:
    * parameters defined in description are missing or are incorrect
    */
   virtual void Initialize(
-    const YAML::Node & animation_description, const int num_led, const float controller_frequency)
+    const YAML::Node & animation_description, const std::size_t num_led,
+    const float controller_frequency)
   {
     num_led_ = num_led;
 
@@ -89,17 +90,24 @@ public:
    * @brief Update and return animation frame
    *
    * @returns the newest animation frame, if animation is finished will return vector filled with 0
+   * @throws std::runtime_error if UpdateFrame() method returns frame with invalid size
    */
   std::vector<std::uint8_t> Call()
   {
     if (current_cycle_ < loops_) {
       auto frame = UpdateFrame();
+
+      if (frame.size() != num_led_ * 3) {
+        throw std::runtime_error(
+          "Invalid frame size. Check animation UpdateFrame() method implementation");
+      }
+
       anim_iteration_++;
-      progress_ = (anim_iteration_ + anim_len_ * current_cycle_) / full_anim_len_;
+      progress_ = float(anim_iteration_ + anim_len_ * current_cycle_) / full_anim_len_;
 
       if (anim_iteration_ >= anim_len_) {
         anim_iteration_ = 0;
-        current_cycle_ = 1;
+        current_cycle_++;
       }
 
       if (current_cycle_ >= loops_) {
@@ -109,7 +117,7 @@ public:
       return frame;
     }
 
-    return std::vector<std::uint8_t>(num_led_, 0);
+    return std::vector<std::uint8_t>(num_led_ * 3, 0);
   }
 
   /**
@@ -123,6 +131,8 @@ public:
     finished_ = false;
     progress_ = 0.0;
   }
+
+  // TODO:
   // void SetParam();
 
   bool IsFinished() const { return finished_; }
@@ -130,8 +140,6 @@ public:
   std::size_t GetAnimationLength() const { return anim_len_; }
   std::size_t GetAnimationIteration() const { return anim_iteration_; }
   float GetProgress() const { return progress_; }
-
-  // void SetBrightness();
 
 protected:
   Animation() {}

@@ -36,21 +36,42 @@ public:
   ~ImageAnimation() {}
 
   void Initialize(
-    const YAML::Node & animation_description, const int num_led,
+    const YAML::Node & animation_description, const std::size_t num_led,
     const float controller_frequency) override;
 
 protected:
   std::vector<std::uint8_t> UpdateFrame() override;
 
-private:
-  gil::rgb8_image_t image_;
-
+  /**
+   * @brief Process raw image path including extracting ros package shared directory path specified
+   * with '$(find ros_package)` syntax
+   *
+   * @param image_path raw path to an image, it should be a global path or should contain '$(find
+   * ros_package)` syntax
+   *
+   * @returns global path to an image file
+   * @exception std::runtime_error if provided image_path is invalid or file does not exists
+   */
   std::filesystem::path ParseImagePath(const std::string & image_path) const;
+
   gil::rgb8_image_t RGBImageResize(
     const gil::rgb8_image_t & image, const std::size_t width, const std::size_t height);
+
+  /**
+   * @brief This method converts RGB image to gray, normalizes gray image brightness and then
+   * applies provided color
+   *
+   * @param image RGB image that will be converted
+   * @param color 24-bit RGB color
+   */
   void RGBImageConvertColor(gil::rgb8_image_t & image, const std::uint32_t color);
+
   gil::gray8_image_t RGBImageConvertToGrey(gil::rgb8_image_t & image);
+
   void GreyImageNormalizeBrightness(gil::gray8_image_t & image);
+
+private:
+  gil::rgb8_image_t image_;
 };
 
 }  // namespace panther_lights
