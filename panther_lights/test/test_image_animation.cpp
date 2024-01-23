@@ -22,6 +22,8 @@
 
 #include <panther_lights/animation/image_animation.hpp>
 
+namespace gil = boost::gil;
+
 class ImageAnimationWrapper : public panther_lights::ImageAnimation
 {
 public:
@@ -32,7 +34,7 @@ public:
     return ImageAnimation::ParseImagePath(image_path);
   }
 
-  boost::gil::rgb8_image_t RGBImageResize(
+  gil::rgb8_image_t RGBImageResize(
     const gil::rgb8_image_t & image, const std::size_t width, const std::size_t height)
   {
     return ImageAnimation::RGBImageResize(image, width, height);
@@ -69,8 +71,8 @@ protected:
 
 TestImageAnimation::TestImageAnimation()
 {
-  boost::gil::rgb8_image_t image(100, 100);
-  boost::gil::write_view(test_image_path, boost::gil::const_view(image), gil::png_tag());
+  gil::rgb8_image_t image(100, 100);
+  gil::write_view(test_image_path, gil::const_view(image), gil::png_tag());
   animation_ = std::make_unique<ImageAnimationWrapper>();
 }
 
@@ -108,7 +110,7 @@ TEST_F(TestImageAnimation, ParseImagePath)
 
 TEST_F(TestImageAnimation, RGBImageResize)
 {
-  boost::gil::rgb8_image_t input_image(100, 100);
+  gil::rgb8_image_t input_image(100, 100);
   auto output_image = animation_->RGBImageResize(input_image, 75, 112);
   EXPECT_EQ(75, output_image.width());
   EXPECT_EQ(112, output_image.height());
@@ -116,73 +118,70 @@ TEST_F(TestImageAnimation, RGBImageResize)
 
 TEST_F(TestImageAnimation, RGBImageConvertColor)
 {
-  boost::gil::rgb8_image_t white_image(5, 5);
-  boost::gil::fill_pixels(boost::gil::view(white_image), boost::gil::rgb8_pixel_t(255, 255, 255));
+  gil::rgb8_image_t white_image(5, 5);
+  gil::fill_pixels(gil::view(white_image), gil::rgb8_pixel_t(255, 255, 255));
 
   // copy white image
   auto blue_image = white_image;
   animation_->RGBImageConvertColor(blue_image, 0x0000FF);
   // expect r,g pixels to be 0, b to be 255
-  boost::gil::for_each_pixel(
-    boost::gil::view(blue_image), [](const boost::gil::rgb8_pixel_t & pixel) {
-      EXPECT_EQ(0, pixel[0]);
-      EXPECT_EQ(0, pixel[1]);
-      EXPECT_EQ(255, pixel[2]);
-    });
+  gil::for_each_pixel(gil::view(blue_image), [](const gil::rgb8_pixel_t & pixel) {
+    EXPECT_EQ(0, pixel[0]);
+    EXPECT_EQ(0, pixel[1]);
+    EXPECT_EQ(255, pixel[2]);
+  });
 
   // copy white image
   auto green_image = white_image;
   animation_->RGBImageConvertColor(green_image, 0x00FF00);
   // expect r,b pixels to be 0, g to be 255
-  boost::gil::for_each_pixel(
-    boost::gil::view(green_image), [](const boost::gil::rgb8_pixel_t & pixel) {
-      EXPECT_EQ(0, pixel[0]);
-      EXPECT_EQ(255, pixel[1]);
-      EXPECT_EQ(0, pixel[2]);
-    });
+  gil::for_each_pixel(gil::view(green_image), [](const gil::rgb8_pixel_t & pixel) {
+    EXPECT_EQ(0, pixel[0]);
+    EXPECT_EQ(255, pixel[1]);
+    EXPECT_EQ(0, pixel[2]);
+  });
 
   // copy white image
   auto red_image = white_image;
   animation_->RGBImageConvertColor(red_image, 0xFF0000);
   // expect g,b pixels to be 0, r to be 255
-  boost::gil::for_each_pixel(
-    boost::gil::view(red_image), [](const boost::gil::rgb8_pixel_t & pixel) {
-      EXPECT_EQ(255, pixel[0]);
-      EXPECT_EQ(0, pixel[1]);
-      EXPECT_EQ(0, pixel[2]);
-    });
+  gil::for_each_pixel(gil::view(red_image), [](const gil::rgb8_pixel_t & pixel) {
+    EXPECT_EQ(255, pixel[0]);
+    EXPECT_EQ(0, pixel[1]);
+    EXPECT_EQ(0, pixel[2]);
+  });
 }
 
 TEST_F(TestImageAnimation, RGBImageConvertToGrey)
 {
-  boost::gil::rgb8_image_t rgb_image(5, 5);
-  boost::gil::fill_pixels(boost::gil::view(rgb_image), boost::gil::rgb8_pixel_t(30, 100, 200));
+  gil::rgb8_image_t rgb_image(5, 5);
+  gil::fill_pixels(gil::view(rgb_image), gil::rgb8_pixel_t(30, 100, 200));
 
   const int expected_grey_value = 0.299 * 30 + 0.587 * 100 + 0.114 * 200;
   auto grey_image = animation_->RGBImageConvertToGrey(rgb_image);
-  boost::gil::for_each_pixel(
-    boost::gil::view(grey_image), [expected_grey_value](const boost::gil::gray8_pixel_t & pixel) {
+  gil::for_each_pixel(
+    gil::view(grey_image), [expected_grey_value](const gil::gray8_pixel_t & pixel) {
       EXPECT_EQ(expected_grey_value, pixel[0]);
     });
 }
 
 TEST_F(TestImageAnimation, GreyImageNormalizeBrightness)
 {
-  boost::gil::gray8_image_t grey_image(5, 5);
-  boost::gil::fill_pixels(boost::gil::view(grey_image), boost::gil::gray8_pixel_t(204));
+  gil::gray8_image_t grey_image(5, 5);
+  gil::fill_pixels(gil::view(grey_image), gil::gray8_pixel_t(204));
   // make the first row a bit darker
   for (int i = 0; i < grey_image.width(); i++) {
-    *boost::gil::view(grey_image).at(i) = 102;
+    *gil::view(grey_image).at(i) = 102;
   }
 
   animation_->GreyImageNormalizeBrightness(grey_image);
   // check the first row
   for (int i = 0; i < grey_image.width(); i++) {
-    EXPECT_EQ(int(102.0 / 204 * 255), *boost::gil::view(grey_image).at(i));
+    EXPECT_EQ(int(102.0 / 204 * 255), *gil::view(grey_image).at(i));
   }
   // check the rest of the image
   for (int i = grey_image.width(); i < grey_image.width() * grey_image.height(); i++) {
-    EXPECT_EQ(255, *boost::gil::view(grey_image).at(i));
+    EXPECT_EQ(255, *gil::view(grey_image).at(i));
   }
 }
 
