@@ -97,7 +97,7 @@ public:
     if (current_cycle_ < loops_) {
       auto frame = UpdateFrame();
 
-      if (frame.size() != num_led_ * 3) {
+      if (frame.size() != num_led_ * 4) {
         throw std::runtime_error(
           "Invalid frame size. Check animation UpdateFrame() method implementation");
       }
@@ -117,7 +117,7 @@ public:
       return frame;
     }
 
-    return std::vector<std::uint8_t>(num_led_ * 3, 0);
+    return std::vector<std::uint8_t>(num_led_ * 4, 0);
   }
 
   /**
@@ -132,21 +132,20 @@ public:
     progress_ = 0.0;
   }
 
-  // TODO:
-  // void SetParam();
-
   bool IsFinished() const { return finished_; }
   std::size_t GetNumberOfLeds() const { return num_led_; }
   std::size_t GetAnimationLength() const { return anim_len_; }
   std::size_t GetAnimationIteration() const { return anim_iteration_; }
   float GetProgress() const { return progress_; }
 
+  virtual void SetParam(const std::string & /*param*/){};
+
 protected:
   Animation() {}
 
   /**
-   * @brief Abstract method that has to be implemented iside child class
-   * it should return animation frame with size equal to num_led_
+   * @brief Abstract method that has to be implemented inside child class
+   * it should return RGBA animation frame with size equal to num_led_ * 4
    */
   virtual std::vector<std::uint8_t> UpdateFrame() = 0;
 

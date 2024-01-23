@@ -107,7 +107,7 @@ TEST_F(TestAnimation, Call)
   EXPECT_THROW(animation_->Call(), std::runtime_error);
 
   // correctly define frame size and call
-  animation_->frame_size = num_led * 3;
+  animation_->frame_size = num_led * 4;
   for (std::size_t i = 0; i < 5; i++) {
     ASSERT_NO_THROW(animation_->Call());
   }
@@ -141,7 +141,7 @@ TEST_F(TestAnimation, Call)
 
   // after reaching animaiton end Call() method when invoked should return frame filled with 0
   auto frame = animation_->Call();
-  EXPECT_EQ(num_led * 3, frame.size());
+  EXPECT_EQ(num_led * 4, frame.size());
   for (std::size_t i = 0; i < num_led * 3; i++) {
     EXPECT_EQ(0, frame[i]);
   }

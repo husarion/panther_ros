@@ -23,6 +23,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <boost/gil.hpp>
+#include <boost/gil/extension/toolbox/color_spaces/gray_alpha.hpp>
 
 namespace gil = boost::gil;
 
@@ -54,8 +55,8 @@ protected:
    */
   std::filesystem::path ParseImagePath(const std::string & image_path) const;
 
-  gil::rgb8_image_t RGBImageResize(
-    const gil::rgb8_image_t & image, const std::size_t width, const std::size_t height);
+  gil::rgba8_image_t RGBAImageResize(
+    const gil::rgba8_image_t & image, const std::size_t width, const std::size_t height) const;
 
   /**
    * @brief This method converts RGB image to gray, normalizes gray image brightness and then
@@ -64,14 +65,14 @@ protected:
    * @param image RGB image that will be converted
    * @param color 24-bit RGB color
    */
-  void RGBImageConvertColor(gil::rgb8_image_t & image, const std::uint32_t color);
+  void RGBAImageConvertColor(gil::rgba8_image_t & image, const std::uint32_t color) const;
 
-  gil::gray8_image_t RGBImageConvertToGrey(gil::rgb8_image_t & image);
+  gil::gray_alpha8_image_t RGBAImageConvertToGrey(const gil::rgba8_image_t & image) const;
 
-  void GreyImageNormalizeBrightness(gil::gray8_image_t & image);
+  void GreyImageNormalizeBrightness(gil::gray_alpha8_image_t & image) const;
 
 private:
-  gil::rgb8_image_t image_;
+  gil::rgba8_image_t image_;
 };
 
 }  // namespace panther_lights

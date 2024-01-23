@@ -34,23 +34,23 @@ public:
     return ImageAnimation::ParseImagePath(image_path);
   }
 
-  gil::rgb8_image_t RGBImageResize(
-    const gil::rgb8_image_t & image, const std::size_t width, const std::size_t height)
+  gil::rgba8_image_t RGBAImageResize(
+    const gil::rgba8_image_t & image, const std::size_t width, const std::size_t height)
   {
-    return ImageAnimation::RGBImageResize(image, width, height);
+    return ImageAnimation::RGBAImageResize(image, width, height);
   }
 
-  void RGBImageConvertColor(gil::rgb8_image_t & image, const std::uint32_t color)
+  void RGBAImageConvertColor(gil::rgba8_image_t & image, const std::uint32_t color)
   {
-    return ImageAnimation::RGBImageConvertColor(image, color);
+    return ImageAnimation::RGBAImageConvertColor(image, color);
   }
 
-  gil::gray8_image_t RGBImageConvertToGrey(gil::rgb8_image_t & image)
+  gil::gray_alpha8_image_t RGBAImageConvertToGrey(gil::rgba8_image_t & image)
   {
-    return ImageAnimation::RGBImageConvertToGrey(image);
+    return ImageAnimation::RGBAImageConvertToGrey(image);
   }
 
-  void GreyImageNormalizeBrightness(gil::gray8_image_t & image)
+  void GreyImageNormalizeBrightness(gil::gray_alpha8_image_t & image)
   {
     return ImageAnimation::GreyImageNormalizeBrightness(image);
   }
@@ -71,7 +71,7 @@ protected:
 
 TestImageAnimation::TestImageAnimation()
 {
-  gil::rgb8_image_t image(100, 100);
+  gil::rgba8_image_t image(100, 100);
   gil::write_view(test_image_path, gil::const_view(image), gil::png_tag());
   animation_ = std::make_unique<ImageAnimationWrapper>();
 }
@@ -108,80 +108,83 @@ TEST_F(TestImageAnimation, ParseImagePath)
   EXPECT_NO_THROW(animation_->ParseImagePath(image_path));
 }
 
-TEST_F(TestImageAnimation, RGBImageResize)
+TEST_F(TestImageAnimation, RGBAImageResize)
 {
-  gil::rgb8_image_t input_image(100, 100);
-  auto output_image = animation_->RGBImageResize(input_image, 75, 112);
+  gil::rgba8_image_t input_image(100, 100);
+  auto output_image = animation_->RGBAImageResize(input_image, 75, 112);
   EXPECT_EQ(75, output_image.width());
   EXPECT_EQ(112, output_image.height());
 }
 
-TEST_F(TestImageAnimation, RGBImageConvertColor)
+TEST_F(TestImageAnimation, RGBAImageConvertColor)
 {
-  gil::rgb8_image_t white_image(5, 5);
-  gil::fill_pixels(gil::view(white_image), gil::rgb8_pixel_t(255, 255, 255));
+  gil::rgba8_image_t white_image(5, 5);
+  gil::fill_pixels(gil::view(white_image), gil::rgba8_pixel_t(255, 255, 255, 255));
 
   // copy white image
   auto blue_image = white_image;
-  animation_->RGBImageConvertColor(blue_image, 0x0000FF);
+  animation_->RGBAImageConvertColor(blue_image, 0x0000FF);
   // expect r,g pixels to be 0, b to be 255
-  gil::for_each_pixel(gil::view(blue_image), [](const gil::rgb8_pixel_t & pixel) {
+  gil::for_each_pixel(gil::view(blue_image), [](const gil::rgba8_pixel_t & pixel) {
     EXPECT_EQ(0, pixel[0]);
     EXPECT_EQ(0, pixel[1]);
     EXPECT_EQ(255, pixel[2]);
+    EXPECT_EQ(255, pixel[3]);
   });
 
   // copy white image
   auto green_image = white_image;
-  animation_->RGBImageConvertColor(green_image, 0x00FF00);
+  animation_->RGBAImageConvertColor(green_image, 0x00FF00);
   // expect r,b pixels to be 0, g to be 255
-  gil::for_each_pixel(gil::view(green_image), [](const gil::rgb8_pixel_t & pixel) {
+  gil::for_each_pixel(gil::view(green_image), [](const gil::rgba8_pixel_t & pixel) {
     EXPECT_EQ(0, pixel[0]);
     EXPECT_EQ(255, pixel[1]);
     EXPECT_EQ(0, pixel[2]);
+    EXPECT_EQ(255, pixel[3]);
   });
 
   // copy white image
   auto red_image = white_image;
-  animation_->RGBImageConvertColor(red_image, 0xFF0000);
+  animation_->RGBAImageConvertColor(red_image, 0xFF0000);
   // expect g,b pixels to be 0, r to be 255
-  gil::for_each_pixel(gil::view(red_image), [](const gil::rgb8_pixel_t & pixel) {
+  gil::for_each_pixel(gil::view(red_image), [](const gil::rgba8_pixel_t & pixel) {
     EXPECT_EQ(255, pixel[0]);
     EXPECT_EQ(0, pixel[1]);
     EXPECT_EQ(0, pixel[2]);
+    EXPECT_EQ(255, pixel[3]);
   });
 }
 
-TEST_F(TestImageAnimation, RGBImageConvertToGrey)
+TEST_F(TestImageAnimation, RGBAImageConvertToGrey)
 {
-  gil::rgb8_image_t rgb_image(5, 5);
-  gil::fill_pixels(gil::view(rgb_image), gil::rgb8_pixel_t(30, 100, 200));
+  gil::rgba8_image_t rgb_image(5, 5);
+  gil::fill_pixels(gil::view(rgb_image), gil::rgba8_pixel_t(30, 100, 200, 255));
 
   const int expected_grey_value = 0.299 * 30 + 0.587 * 100 + 0.114 * 200;
-  auto grey_image = animation_->RGBImageConvertToGrey(rgb_image);
+  auto grey_image = animation_->RGBAImageConvertToGrey(rgb_image);
   gil::for_each_pixel(
-    gil::view(grey_image), [expected_grey_value](const gil::gray8_pixel_t & pixel) {
+    gil::view(grey_image), [expected_grey_value](const gil::gray_alpha8_pixel_t & pixel) {
       EXPECT_EQ(expected_grey_value, pixel[0]);
     });
 }
 
 TEST_F(TestImageAnimation, GreyImageNormalizeBrightness)
 {
-  gil::gray8_image_t grey_image(5, 5);
-  gil::fill_pixels(gil::view(grey_image), gil::gray8_pixel_t(204));
+  gil::gray_alpha8_image_t grey_image(5, 5);
+  gil::fill_pixels(gil::view(grey_image), gil::gray_alpha8_pixel_t(204));
   // make the first row a bit darker
   for (int i = 0; i < grey_image.width(); i++) {
-    *gil::view(grey_image).at(i) = 102;
+    gil::at_c<0>(*gil::view(grey_image).at(i)) = 102;
   }
 
   animation_->GreyImageNormalizeBrightness(grey_image);
   // check the first row
   for (int i = 0; i < grey_image.width(); i++) {
-    EXPECT_EQ(int(102.0 / 204 * 255), *gil::view(grey_image).at(i));
+    EXPECT_EQ(int(102.0 / 204 * 255), gil::at_c<0>(*gil::view(grey_image).at(i)));
   }
   // check the rest of the image
   for (int i = grey_image.width(); i < grey_image.width() * grey_image.height(); i++) {
-    EXPECT_EQ(255, *gil::view(grey_image).at(i));
+    EXPECT_EQ(255, gil::at_c<0>(*gil::view(grey_image).at(i)));
   }
 }
 
@@ -205,7 +208,7 @@ TEST_F(TestImageAnimation, UpdateFrame)
   ASSERT_NO_THROW(animation_->Initialize(animation_description, num_led, 10.0));
 
   auto frame = animation_->UpdateFrame();
-  EXPECT_EQ(num_led * 3, frame.size());
+  EXPECT_EQ(num_led * 4, frame.size());
 }
 
 int main(int argc, char ** argv)

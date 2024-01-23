@@ -43,23 +43,24 @@ void ImageAnimation::Initialize(
   }
 
   const auto image_path = ParseImagePath(animation_description["image"].as<std::string>());
-  gil::rgb8_image_t base_image;
+  gil::rgba8_image_t base_image;
   gil::read_and_convert_image(std::string(image_path), base_image, gil::png_tag());
-  image_ = RGBImageResize(base_image, GetNumberOfLeds(), GetAnimationLength());
+  image_ = RGBAImageResize(base_image, this->GetNumberOfLeds(), this->GetAnimationLength());
 
   if (animation_description["color"]) {
-    RGBImageConvertColor(image_, animation_description["color"].as<std::uint32_t>());
+    RGBAImageConvertColor(image_, animation_description["color"].as<std::uint32_t>());
   }
 }
 
 std::vector<uint8_t> ImageAnimation::UpdateFrame()
 {
   std::vector<std::uint8_t> frame;
-  for (std::size_t i = 0; i < GetNumberOfLeds(); i++) {
-    auto pixel = gil::const_view(image_)(i, GetAnimationIteration());
+  for (std::size_t i = 0; i < this->GetNumberOfLeds(); i++) {
+    auto pixel = gil::const_view(image_)(i, this->GetAnimationIteration());
     frame.push_back(pixel[0]);
     frame.push_back(pixel[1]);
     frame.push_back(pixel[2]);
+    frame.push_back(pixel[3]);
   }
 
   return frame;
@@ -103,18 +104,19 @@ std::filesystem::path ImageAnimation::ParseImagePath(const std::string & image_p
   return global_img_path;
 }
 
-gil::rgb8_image_t ImageAnimation::RGBImageResize(
-  const gil::rgb8_image_t & image, const std::size_t width, const std::size_t height)
+gil::rgba8_image_t ImageAnimation::RGBAImageResize(
+  const gil::rgba8_image_t & image, const std::size_t width, const std::size_t height) const
 {
-  gil::rgb8_image_t resized_image(width, height);
+  gil::rgba8_image_t resized_image(width, height);
   gil::resize_view(gil::const_view(image), view(resized_image), gil::bilinear_sampler());
 
   return resized_image;
 }
 
-void ImageAnimation::RGBImageConvertColor(gil::rgb8_image_t & image, const std::uint32_t color)
+void ImageAnimation::RGBAImageConvertColor(
+  gil::rgba8_image_t & image, const std::uint32_t color) const
 {
-  auto grey_image = RGBImageConvertToGrey(image);
+  auto grey_image = RGBAImageConvertToGrey(image);
   GreyImageNormalizeBrightness(grey_image);
 
   // extract RGB values from hex
@@ -123,30 +125,39 @@ void ImageAnimation::RGBImageConvertColor(gil::rgb8_image_t & image, const std::
   auto b = (std::uint32_t(color)) & (0xFF);
 
   gil::transform_pixels(
-    gil::const_view(grey_image), gil::view(image), [r, g, b](const gil::gray8_pixel_t & pixel) {
-      return gil::rgb8_pixel_t(
-        static_cast<std::uint8_t>(pixel * r / 255), static_cast<std::uint8_t>(pixel * g / 255),
-        static_cast<std::uint8_t>(pixel * b / 255));
+    gil::const_view(grey_image), gil::view(image),
+    [r, g, b](const gil::gray_alpha8_pixel_t & pixel) {
+      return gil::rgba8_pixel_t(
+        static_cast<std::uint8_t>(pixel[0] * r / 255),
+        static_cast<std::uint8_t>(pixel[0] * g / 255),
+        static_cast<std::uint8_t>(pixel[0] * b / 255), pixel[1]);
     });
+
+  gil::write_view("/home/ros/ros2_ws/src/out.png", gil::const_view(image), gil::png_tag());
 }
 
-gil::gray8_image_t ImageAnimation::RGBImageConvertToGrey(gil::rgb8_image_t & image)
+gil::gray_alpha8_image_t ImageAnimation::RGBAImageConvertToGrey(
+  const gil::rgba8_image_t & image) const
 {
-  gil::gray8_image_t grey_image(image.dimensions());
+  gil::gray_alpha8_image_t grey_image(image.dimensions());
   gil::transform_pixels(
-    gil::const_view(image), gil::view(grey_image), [](const gil::rgb8_pixel_t & pixel) {
-      return static_cast<std::uint8_t>(0.299 * pixel[0] + 0.587 * pixel[1] + 0.114 * pixel[2]);
+    gil::const_view(image), gil::view(grey_image), [](const gil::rgba8_pixel_t & pixel) {
+      return gil::gray_alpha8_pixel_t(
+        static_cast<std::uint8_t>(0.299 * pixel[0] + 0.587 * pixel[1] + 0.114 * pixel[2]),
+        pixel[3]);
     });
   return grey_image;
 }
 
-void ImageAnimation::GreyImageNormalizeBrightness(gil::gray8_image_t & image)
+void ImageAnimation::GreyImageNormalizeBrightness(gil::gray_alpha8_image_t & image) const
 {
   std::uint8_t max_value = *std::max_element(
-    gil::const_view(image).begin(), gil::const_view(image).end());
+    gil::nth_channel_view(gil::const_view(image), 0).begin(),
+    gil::nth_channel_view(gil::const_view(image), 0).end());
   gil::transform_pixels(
-    gil::const_view(image), gil::view(image), [max_value](const gil::gray8_pixel_t & pixel) {
-      return static_cast<std::uint8_t>(float(pixel) / float(max_value) * 255);
+    gil::const_view(image), gil::view(image), [max_value](const gil::gray_alpha8_pixel_t & pixel) {
+      return gil::gray_alpha8_pixel_t(
+        static_cast<std::uint8_t>(float(pixel[0]) / float(max_value) * 255), pixel[1]);
     });
 }
 
