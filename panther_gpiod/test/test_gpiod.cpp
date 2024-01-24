@@ -22,9 +22,9 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include "gpiod.hpp"
+#include <gpiod.hpp>
 
-#include "panther_gpiod/gpio_driver.hpp"
+#include <panther_gpiod/gpio_driver.hpp>
 
 using namespace panther_gpiod;
 
