@@ -20,10 +20,11 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
 # Create list with animation plugins
 list(APPEND animation_plugins src/animation/image_animation.cpp)
+list(APPEND animation_plugins src/animation/charging_animation.cpp)
 
 add_library(panther_animation_plugins SHARED ${animation_plugins})
 # figure out how to handle dependencies for different plugins
-ament_target_dependencies(panther_animation_plugins pluginlib yaml-cpp)
+ament_target_dependencies(panther_animation_plugins pluginlib)
 target_link_libraries(panther_animation_plugins png yaml-cpp)
 
 add_executable(driver_node src/driver_node_main.cpp src/driver_node.cpp
@@ -76,6 +77,17 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_image_animation
                             ament_index_cpp pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_image_animation png yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_charging_animation test/test_charging_animation.cpp
+    src/animation/charging_animation.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_charging_animation
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_charging_animation
+                            ament_index_cpp pluginlib)
+  target_link_libraries(${PROJECT_NAME}_test_charging_animation yaml-cpp)
 endif()
 
 ament_package()
