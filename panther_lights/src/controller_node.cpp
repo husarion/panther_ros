@@ -46,10 +46,10 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
     sensor_msgs::msg::Image image;
     image.header.frame_id = "frame_id";
     // image.header.stamp = rospy.Time.now();
-    image.encoding = "rgb8";
+    image.encoding = "rgba8";
     image.height = 1;
     image.width = num_led;
-    image.step = 3 * num_led;
+    image.step = 4 * num_led;
 
     while (rclcpp::ok()) {
       if (image_anim->IsFinished()) {
@@ -59,7 +59,7 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
       image.data = a;
       pub->publish(image);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
       // for (auto & item : a) {
       //   std::cout << unsigned(item) << ", ";
