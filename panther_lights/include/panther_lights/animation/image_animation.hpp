@@ -15,15 +15,17 @@
 #ifndef PANTHER_LIGHTS_IMAGE_ANIMATION_HPP_
 #define PANTHER_LIGHTS_IMAGE_ANIMATION_HPP_
 
-#include <panther_lights/animation/animation.hpp>
-
 #include <cstdint>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 #include <yaml-cpp/yaml.h>
 
 #include <boost/gil.hpp>
 #include <boost/gil/extension/toolbox/color_spaces/gray_alpha.hpp>
+
+#include <panther_lights/animation/animation.hpp>
 
 namespace gil = boost::gil;
 

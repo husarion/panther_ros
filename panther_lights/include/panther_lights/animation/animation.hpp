@@ -17,13 +17,12 @@
 
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include <yaml-cpp/yaml.h>
-
-#include <iostream>
 
 namespace panther_lights
 {
@@ -55,14 +54,11 @@ public:
 
     auto duration = animation_description["duration"].as<float>();
     if ((duration - std::numeric_limits<float>::epsilon()) <= 0.0) {
-      throw std::range_error("Duration has to be positive");
+      throw std::out_of_range("Duration has to be positive");
     }
 
     if (animation_description["repeat"]) {
-      loops_ = animation_description["repeat"].as<int>();
-      if (loops_ <= 0) {
-        throw std::range_error("Repeat has to be a positive integer");
-      }
+      loops_ = animation_description["repeat"].as<std::size_t>();
     }
 
     if (duration * loops_ > 10.0) {
@@ -72,7 +68,7 @@ public:
     if (animation_description["brightness"]) {
       auto brightness = animation_description["brightness"].as<float>();
       if (brightness < 0.0 || brightness > 1.0) {
-        throw std::range_error("Brightness has to be in range <0,1>");
+        throw std::out_of_range("Brightness has to be in range <0,1>");
       }
       brightness_ = static_cast<std::uint8_t>(round(brightness * 255));
     }
@@ -134,8 +130,7 @@ public:
 
   bool IsFinished() const { return finished_; }
   std::size_t GetNumberOfLeds() const { return num_led_; }
-  std::size_t GetAnimationLength() const { return anim_len_; }
-  std::size_t GetAnimationIteration() const { return anim_iteration_; }
+  std::uint8_t GetBrightness() const { return brightness_; }
   float GetProgress() const { return progress_; }
 
   virtual void SetParam(const std::string & /*param*/){};
@@ -148,6 +143,9 @@ protected:
    * it should return RGBA animation frame with size equal to num_led_ * 4
    */
   virtual std::vector<std::uint8_t> UpdateFrame() = 0;
+
+  std::size_t GetAnimationLength() const { return anim_len_; }
+  std::size_t GetAnimationIteration() const { return anim_iteration_; }
 
 private:
   std::size_t num_led_;

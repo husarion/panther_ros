@@ -32,6 +32,9 @@ public:
     return std::vector<std::uint8_t>(frame_size, 147);
   }
 
+  std::size_t GetAnimationLength() const { return Animation::GetAnimationLength(); }
+  std::size_t GetAnimationIteration() const { return Animation::GetAnimationIteration(); }
+
   std::size_t frame_size = 0;
 };
 
@@ -56,7 +59,9 @@ TEST_F(TestAnimation, Initialize)
 
   // invalid duration
   animation_description["duration"] = "-1.0";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::out_of_range);
+  animation_description["duration"] = "word";
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
 
   // invalid animation length
   animation_description["duration"] = "0.1";
@@ -67,10 +72,9 @@ TEST_F(TestAnimation, Initialize)
 
   // invalid repeat
   animation_description["repeat"] = "-2";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
-
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
   animation_description["repeat"] = "1.1";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
 
   // exceeded anim display duration
   animation_description["repeat"] = "6";
@@ -81,10 +85,9 @@ TEST_F(TestAnimation, Initialize)
 
   // invalid brightness
   animation_description["brightness"] = "-0.5";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
-
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::out_of_range);
   animation_description["brightness"] = "1.2";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::out_of_range);
 
   animation_description["brightness"] = "0.5";
   EXPECT_NO_THROW(animation_->Initialize(animation_description, 10, 10.0));

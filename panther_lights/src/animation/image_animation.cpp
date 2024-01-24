@@ -14,6 +14,7 @@
 
 #include <panther_lights/animation/image_animation.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <filesystem>
 #include <regex>
@@ -52,7 +53,7 @@ void ImageAnimation::Initialize(
   }
 }
 
-std::vector<uint8_t> ImageAnimation::UpdateFrame()
+std::vector<std::uint8_t> ImageAnimation::UpdateFrame()
 {
   std::vector<std::uint8_t> frame;
   for (std::size_t i = 0; i < this->GetNumberOfLeds(); i++) {

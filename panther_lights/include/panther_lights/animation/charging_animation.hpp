@@ -15,9 +15,14 @@
 #ifndef PANTHER_LIGHTS_CHARGING_ANIMATION_HPP_
 #define PANTHER_LIGHTS_CHARGING_ANIMATION_HPP_
 
-#include <panther_lights/animation/animation.hpp>
+#include <array>
+#include <cstdint>
+#include <string>
+#include <vector>
 
 #include <yaml-cpp/yaml.h>
+
+#include <panther_lights/animation/animation.hpp>
 
 namespace panther_lights
 {

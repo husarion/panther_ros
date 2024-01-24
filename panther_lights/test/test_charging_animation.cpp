@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <array>
+#include <cstdint>
 #include <memory>
+#include <stdexcept>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
@@ -36,6 +40,9 @@ public:
   {
     return ChargingAnimation::CreateRGBAFrame(color, brightness);
   }
+
+  std::size_t GetAnimationLength() const { return ChargingAnimation::GetAnimationLength(); }
+  std::size_t GetAnimationIteration() const { return ChargingAnimation::GetAnimationIteration(); }
 };
 
 class TestChargingAnimation : public testing::Test
@@ -46,7 +53,8 @@ public:
 
 protected:
   void TestRGBColor(
-    const std::array<uint8_t, 3UL> & color, std::uint8_t r, std::uint8_t g, std::uint8_t b) const;
+    const std::array<std::uint8_t, 3UL> & color, std::uint8_t r, std::uint8_t g,
+    std::uint8_t b) const;
   void TestRGBAFrame(
     const std::vector<std::uint8_t> & frame, std::uint8_t r, std::uint8_t g, std::uint8_t b,
     std::uint8_t a);
@@ -62,7 +70,7 @@ TestChargingAnimation::TestChargingAnimation()
 TestChargingAnimation::~TestChargingAnimation() {}
 
 void TestChargingAnimation::TestRGBColor(
-  const std::array<uint8_t, 3UL> & color, std::uint8_t r, std::uint8_t g, std::uint8_t b) const
+  const std::array<std::uint8_t, 3UL> & color, std::uint8_t r, std::uint8_t g, std::uint8_t b) const
 {
   EXPECT_EQ(r, color[0]);
   EXPECT_EQ(g, color[1]);
@@ -150,8 +158,7 @@ TEST_F(TestChargingAnimation, UpdateFrame)
 
   ASSERT_NO_THROW(animation_->Initialize(animation_description, num_led, 10.0));
 
-  // We assume that Call method works correctly. UpdateFrame depends on parent class variables which
-  // can be only updated using Call method.
+  // UpdateFrame depends on parent class variables which can be only updated using Call method.
   // For full battery whole animation should be a solid green color
   animation_->SetParam("1.0");
   for (std::uint8_t i = 0; i < animation_->GetAnimationLength(); i++) {
@@ -172,6 +179,7 @@ TEST_F(TestChargingAnimation, UpdateFrame)
   while (animation_->GetAnimationIteration() < animation_->GetAnimationLength() / 2) {
     frame = animation_->Call();
   }
+
   // The middle of animation for param 0.5 should be yellow
   ASSERT_EQ(num_led * 4, frame.size());
   TestRGBAFrame(frame, 255, 255, 0, 255);
