@@ -73,6 +73,16 @@ void TestGPIODriver::SetAndVerifyPinState(const GPIOPin & pin)
   EXPECT_FALSE(gpio_driver_->IsPinActive(pin));
 }
 
+TEST_F(TestGPIODriver, InitGPIODriver_EmptyInfoStorage)
+{
+  EXPECT_THROW(
+    {
+      this->gpio_driver_.reset();
+      this->gpio_driver_ = std::make_unique<GPIODriver>(std::vector<GPIOInfo>{});
+    },
+    std::runtime_error);
+}
+
 TEST_F(TestGPIODriver, InitGPIODriver_WrongPinConfigFail)
 {
   // There is no OS version that supports simultaneous operation of MOTOR_ON and VMOT_ON pins.
@@ -101,6 +111,12 @@ TEST_F(TestGPIODriver, SetPinValue_WrongPinFail)
       }
     },
     std::invalid_argument);
+}
+
+TEST_F(TestGPIODriver, IsPinAvaible)
+{
+  EXPECT_TRUE(this->gpio_driver_->IsPinAvaible(GPIOPin::LED_SBC_SEL));
+  EXPECT_FALSE(this->gpio_driver_->IsPinAvaible(static_cast<GPIOPin>(-1)));
 }
 
 TEST_F(TestGPIODriver, GPIOMonitorEnable_NoRT)
