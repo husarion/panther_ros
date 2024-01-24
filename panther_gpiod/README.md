@@ -38,10 +38,3 @@ int main() {
 > **NOTE**
 >
 > Not invoking the `GPIOMonitorEnable()` method will result in the absence of functionality to read pin values. It is not mandatory to call this method, but the `IsPinActive()` method throws a runtime error when the GPIO monitor thread is not running.
-
-## Testing
-
-```bash
-colcon build --packages-select panther_gpiod --symlink-install
-colcon test --event-handlers console_direct+ --packages-select panther_gpiod --parallel-workers 1
-```

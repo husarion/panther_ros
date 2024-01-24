@@ -82,8 +82,7 @@ ament_export_dependencies(realtime_tools)
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_gpiod test/test_gpiod.cpp)
-  add_dependencies(${PROJECT_NAME}_test_gpiod ${PROJECT_NAME} libgpiod)
+  ament_add_gtest(${PROJECT_NAME}_test_gpiod test/test_gpio_driver.cpp)
 
   target_include_directories(
     ${PROJECT_NAME}_test_gpiod

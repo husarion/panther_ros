@@ -37,8 +37,8 @@ public:
   void GPIOEventCallback(const GPIOInfo & gpio_info);
 
 protected:
-  void ReinitializeGPIODriver(std::vector<GPIOInfo> gpio_info_storage);
-  void ReinitializeEventSummary();
+  void SetUp() override;
+  void TearDown() override;
   void SetAndVerifyPinState(const GPIOPin & pin);
 
   std::unique_ptr<GPIODriver> gpio_driver_;
@@ -48,17 +48,15 @@ protected:
   };
 };
 
-void TestGPIODriver::ReinitializeGPIODriver(std::vector<GPIOInfo> gpio_info_storage)
+void TestGPIODriver::SetUp()
 {
-  gpio_driver_.reset();
-  gpio_driver_ = std::make_unique<GPIODriver>(gpio_info_storage);
-}
+  gpio_driver_ = std::make_unique<GPIODriver>(gpio_config_info_);
 
-void TestGPIODriver::ReinitializeEventSummary()
-{
   last_gpio_event_summary_.first = static_cast<GPIOPin>(-1);
   last_gpio_event_summary_.second = static_cast<gpiod::line::value>(-1);
 }
+
+void TestGPIODriver::TearDown() { gpio_driver_.reset(); }
 
 void TestGPIODriver::GPIOEventCallback(const GPIOInfo & gpio_info)
 {
@@ -80,25 +78,23 @@ TEST_F(TestGPIODriver, InitGPIODriver_WrongPinConfigFail)
   // There is no OS version that supports simultaneous operation of MOTOR_ON and VMOT_ON pins.
   EXPECT_THROW(
     {
-      try {
-        ReinitializeGPIODriver({GPIOInfo{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT}});
-        ReinitializeGPIODriver({GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT}});
-      } catch (const std::invalid_argument & e) {
-        EXPECT_STREQ("error requesting GPIO lines", e.what());
-        throw;
-      }
+      this->gpio_driver_.reset();
+      this->gpio_driver_ = std::make_unique<GPIODriver>(
+        std::vector<GPIOInfo>{{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT}});
+
+      this->gpio_driver_.reset();
+      this->gpio_driver_ = std::make_unique<GPIODriver>(
+        std::vector<GPIOInfo>{{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT}});
     },
     std::invalid_argument);
 }
 
-TEST_F(TestGPIODriver, GPIODriverManipulatePin_WrongPinFail)
+TEST_F(TestGPIODriver, SetPinValue_WrongPinFail)
 {
-  ReinitializeGPIODriver(gpio_config_info_);
-
   EXPECT_THROW(
     {
       try {
-        gpio_driver_->SetPinValue(static_cast<GPIOPin>(-1), true);
+        this->gpio_driver_->SetPinValue(static_cast<GPIOPin>(-1), true);
       } catch (const std::invalid_argument & e) {
         EXPECT_STREQ("Pin not found in GPIO info storage.", e.what());
         throw;
@@ -109,8 +105,7 @@ TEST_F(TestGPIODriver, GPIODriverManipulatePin_WrongPinFail)
 
 TEST_F(TestGPIODriver, GPIOMonitorEnable_NoRT)
 {
-  ReinitializeGPIODriver(gpio_config_info_);
-  gpio_driver_->GPIOMonitorEnable();
+  this->gpio_driver_->GPIOMonitorEnable();
 
   SetAndVerifyPinState(GPIOPin::LED_SBC_SEL);
 }
@@ -121,8 +116,7 @@ TEST_F(TestGPIODriver, GPIOMonitorEnable_UseRT)
   std::stringstream buffer;
   std::streambuf * prev_cerr_buf = std::cerr.rdbuf(buffer.rdbuf());
 
-  ReinitializeGPIODriver(gpio_config_info_);
-  gpio_driver_->GPIOMonitorEnable(true);
+  this->gpio_driver_->GPIOMonitorEnable(true);
 
   std::string captured_scheduling_rt_policy_waring = buffer.str();
 
@@ -136,12 +130,10 @@ TEST_F(TestGPIODriver, GPIOMonitorEnable_UseRT)
 
 TEST_F(TestGPIODriver, GPIOEventCallback_FailWHenNoMonitorThread)
 {
-  ReinitializeGPIODriver(gpio_config_info_);
-
   EXPECT_THROW(
     {
       try {
-        gpio_driver_->ConfigureEdgeEventCallback(
+        this->gpio_driver_->ConfigureEdgeEventCallback(
           std::bind(&TestGPIODriver::GPIOEventCallback, this, std::placeholders::_1));
       } catch (const std::runtime_error & e) {
         EXPECT_STREQ("GPIO monitor thread is not running!", e.what());
@@ -155,22 +147,18 @@ TEST_F(TestGPIODriver, GPIOEventCallback_ShareNewPinState)
 {
   auto tested_pin = GPIOPin::LED_SBC_SEL;
 
-  ReinitializeGPIODriver(gpio_config_info_);
-  ReinitializeEventSummary();
-
-  gpio_driver_->GPIOMonitorEnable();
-  gpio_driver_->ConfigureEdgeEventCallback(
+  this->gpio_driver_->GPIOMonitorEnable();
+  this->gpio_driver_->ConfigureEdgeEventCallback(
     std::bind(&TestGPIODriver::GPIOEventCallback, this, std::placeholders::_1));
 
-  EXPECT_TRUE(gpio_driver_->SetPinValue(tested_pin, true));
-  EXPECT_TRUE(gpio_driver_->IsPinActive(tested_pin));
+  EXPECT_TRUE(this->gpio_driver_->SetPinValue(tested_pin, true));
+  EXPECT_TRUE(this->gpio_driver_->IsPinActive(tested_pin));
 
   EXPECT_EQ(last_gpio_event_summary_.first, tested_pin);
   EXPECT_EQ(last_gpio_event_summary_.second, gpiod::line::value::ACTIVE);
 
-  ReinitializeEventSummary();
-  EXPECT_TRUE(gpio_driver_->SetPinValue(tested_pin, false));
-  EXPECT_FALSE(gpio_driver_->IsPinActive(tested_pin));
+  EXPECT_TRUE(this->gpio_driver_->SetPinValue(tested_pin, false));
+  EXPECT_FALSE(this->gpio_driver_->IsPinActive(tested_pin));
 
   EXPECT_EQ(last_gpio_event_summary_.first, tested_pin);
   EXPECT_EQ(last_gpio_event_summary_.second, gpiod::line::value::INACTIVE);
@@ -178,15 +166,13 @@ TEST_F(TestGPIODriver, GPIOEventCallback_ShareNewPinState)
 
 TEST_F(TestGPIODriver, ChangePinDirection)
 {
-  ReinitializeGPIODriver(gpio_config_info_);
-  gpio_driver_->GPIOMonitorEnable();
-
-  gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::INPUT);
+  this->gpio_driver_->GPIOMonitorEnable();
+  this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::INPUT);
 
   EXPECT_THROW(
     {
       try {
-        gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, true);
+        this->gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, true);
       } catch (const std::invalid_argument & e) {
         EXPECT_STREQ("Cannot set value for INPUT pin.", e.what());
         throw;
@@ -194,7 +180,7 @@ TEST_F(TestGPIODriver, ChangePinDirection)
     },
     std::invalid_argument);
 
-  gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT);
+  this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT);
 
   SetAndVerifyPinState(GPIOPin::LED_SBC_SEL);
 }
