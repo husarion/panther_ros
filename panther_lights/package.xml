@@ -17,6 +17,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>image_transport</depend>
+  <depend>libpng-dev</depend>
   <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
   <depend>pluginlib</depend>
