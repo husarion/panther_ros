@@ -14,8 +14,13 @@
 
 #include <panther_hardware_interfaces/canopen_controller.hpp>
 
+#include <condition_variable>
 #include <filesystem>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <stdexcept>
+#include <thread>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 

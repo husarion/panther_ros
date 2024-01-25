@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DATA_CONVERTERS_HPP_
 
+#include <algorithm>
 #include <bitset>
 #include <cstdint>
 #include <string>
@@ -167,7 +168,10 @@ public:
         "reverse_limit_triggered",
         "amps_trigger_activated",
       },
-      {"safety_stop_active", "amps_limit_active"})
+      {
+        "safety_stop_active",
+        "amps_limit_active",
+      })
   {
   }
 

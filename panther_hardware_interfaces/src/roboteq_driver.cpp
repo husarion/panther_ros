@@ -16,12 +16,13 @@
 
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <cstdint>
-#include <future>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 
 #include <panther_hardware_interfaces/utils.hpp>
 

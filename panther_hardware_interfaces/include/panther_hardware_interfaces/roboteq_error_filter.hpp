@@ -15,7 +15,9 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_ERROR_FILTER_HPP_
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_ERROR_FILTER_HPP_
 
+#include <algorithm>
 #include <atomic>
+#include <map>
 #include <vector>
 
 namespace panther_hardware_interfaces
@@ -56,7 +58,12 @@ private:
   bool error_ = false;
 };
 
-enum class ErrorsFilterIds { READ_SDO, WRITE_SDO, READ_PDO, ROBOTEQ_DRIVER };
+enum class ErrorsFilterIds {
+  READ_SDO = 0,
+  WRITE_SDO,
+  READ_PDO,
+  ROBOTEQ_DRIVER,
+};
 
 /**
  * @brief Class that keeps track of different types of errors. In some rare cases Roboteq

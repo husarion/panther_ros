@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 
+#include <cstdint>
 #include <functional>
 #include <stdexcept>
 #include <string>
