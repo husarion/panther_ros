@@ -103,7 +103,7 @@ protected:
   DrivetrainSettings drivetrain_settings_;
   CANopenSettings canopen_settings_;
 
-  PantherSystemRosInterface panther_system_ros_interface_;
+  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in these cases it is better to retry

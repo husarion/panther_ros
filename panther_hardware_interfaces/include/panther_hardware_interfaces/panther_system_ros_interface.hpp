@@ -55,29 +55,13 @@ struct CANErrors
 class PantherSystemRosInterface
 {
 public:
-  PantherSystemRosInterface() {}
-
   /**
-   * @brief Creates node and executor (in a separate thread)
-   */
-  void Initialize();
-
-  /**
-   * @brief Creates publishers, subscribers and services
+   * @brief Creates node and executor (in a separate thread), publishers, subscribers and services
    * @param clear_errors - functions that should be called, when clear errors
    * service is called
    */
-  void Activate(std::function<void()> clear_errors);
-
-  /**
-   * @brief Destroys publishers, subscribers and services
-   */
-  void Deactivate();
-
-  /**
-   * @brief Stops executor thread and destroys the node
-   */
-  void Deinitialize();
+  PantherSystemRosInterface(std::function<void()> clear_errors);
+  ~PantherSystemRosInterface();
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg

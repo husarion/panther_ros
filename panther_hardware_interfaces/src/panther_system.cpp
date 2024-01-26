@@ -207,8 +207,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
-  panther_system_ros_interface_.Initialize();
-
   RCLCPP_INFO(logger_, "Initializing Roboteq drivers");
 
   if (!OperationWithAttempts(
@@ -228,8 +226,6 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
-
-  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -252,7 +248,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_ros_interface_.Activate(
+  panther_system_ros_interface_ = std::make_unique<PantherSystemRosInterface>(
     std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
 
   return CallbackReturn::SUCCESS;
@@ -269,7 +265,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_ros_interface_.Deactivate();
+  panther_system_ros_interface_.reset();
 
   return CallbackReturn::SUCCESS;
 }
@@ -284,12 +280,10 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_ros_interface_.Deactivate();
+  panther_system_ros_interface_.reset();
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
-
-  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -306,12 +300,10 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
     return CallbackReturn::FAILURE;
   }
 
-  panther_system_ros_interface_.Deactivate();
+  panther_system_ros_interface_.reset();
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
-
-  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -352,7 +344,7 @@ void PantherSystem::UpdateDriverState()
     const bool finished_updates = motors_controller_->UpdateDriversState();
 
     if (finished_updates) {
-      panther_system_ros_interface_.UpdateMsgDriversParameters(
+      panther_system_ros_interface_->UpdateMsgDriversParameters(
         motors_controller_->GetFrontData().GetDriverState(),
         motors_controller_->GetRearData().GetDriverState());
     }
@@ -369,7 +361,7 @@ void PantherSystem::UpdateSystemFeedback()
   try {
     motors_controller_->UpdateSystemFeedback();
     UpdateHwStates();
-    panther_system_ros_interface_.UpdateMsgErrorFlags(
+    panther_system_ros_interface_->UpdateMsgErrorFlags(
       motors_controller_->GetFrontData(), motors_controller_->GetRearData());
 
     if (
@@ -414,7 +406,7 @@ void PantherSystem::UpdateMsgErrors()
   can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCANNetErr();
   can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCANNetErr();
 
-  panther_system_ros_interface_.UpdateMsgErrors(can_errors);
+  panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 }
 
 return_type PantherSystem::read(
@@ -424,7 +416,7 @@ return_type PantherSystem::read(
   UpdateSystemFeedback();
   UpdateMsgErrors();
 
-  panther_system_ros_interface_.PublishDriverState();
+  panther_system_ros_interface_->PublishDriverState();
 
   return return_type::OK;
 }

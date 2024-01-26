@@ -27,7 +27,7 @@
 namespace panther_hardware_interfaces
 {
 
-void PantherSystemRosInterface::Initialize()
+PantherSystemRosInterface::PantherSystemRosInterface(std::function<void()> clear_errors)
 {
   node_ = std::make_shared<rclcpp::Node>("panther_system_node");
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
@@ -38,10 +38,7 @@ void PantherSystemRosInterface::Initialize()
       executor_->spin_some();
     }
   });
-}
 
-void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
-{
   clear_errors_ = clear_errors;
 
   driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
@@ -55,15 +52,12 @@ void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
                         std::placeholders::_2));
 }
 
-void PantherSystemRosInterface::Deactivate()
+PantherSystemRosInterface::~PantherSystemRosInterface()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
   clear_errors_srv_.reset();
-}
 
-void PantherSystemRosInterface::Deinitialize()
-{
   stop_executor_.store(true);
   executor_thread_->join();
   stop_executor_.store(false);
