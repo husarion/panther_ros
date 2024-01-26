@@ -30,6 +30,7 @@
 
 namespace panther_hardware_interfaces
 {
+
 struct DrivetrainSettings
 {
   float motor_torque_constant;
@@ -102,17 +103,7 @@ public:
    */
   FlagError(
     const std::vector<std::string> & flag_names,
-    const std::vector<std::string> & surpressed_flags_names = {})
-  : flag_names_(flag_names)
-  {
-    for (size_t i = 0; i < surpressed_flags_names.size(); ++i) {
-      for (size_t j = 0; j < flag_names_.size(); ++j) {
-        if (surpressed_flags_names[i] == flag_names_[j]) {
-          surpressed_flags_.set(j);
-        }
-      }
-    }
-  }
+    const std::vector<std::string> & surpressed_flags_names = {});
 
   void SetData(const std::uint8_t flags) { flags_ = flags; }
 
@@ -130,51 +121,21 @@ protected:
 class FaultFlag : public FlagError
 {
 public:
-  FaultFlag()
-  : FlagError({
-      "overheat",
-      "overvoltage",
-      "undervoltage",
-      "short_circuit",
-      "emergency_stop",
-      "motor_or_sensor_setup_fault",
-      "mosfet_failure",
-      "default_config_loaded_at_startup",
-    })
-  {
-  }
-
+  FaultFlag();
   panther_msgs::msg::FaultFlag GetMessage() const;
 };
 
 class ScriptFlag : public FlagError
 {
 public:
-  ScriptFlag() : FlagError({"loop_error", "encoder_disconected", "amp_limiter"}) {}
+  ScriptFlag();
   panther_msgs::msg::ScriptFlag GetMessage() const;
 };
 
 class RuntimeError : public FlagError
 {
 public:
-  RuntimeError()
-  : FlagError(
-      {
-        "amps_limit_active",
-        "motor_stall",
-        "loop_error",
-        "safety_stop_active",
-        "forward_limit_triggered",
-        "reverse_limit_triggered",
-        "amps_trigger_activated",
-      },
-      {
-        "safety_stop_active",
-        "amps_limit_active",
-      })
-  {
-  }
-
+  RuntimeError();
   panther_msgs::msg::RuntimeError GetMessage() const;
 };
 
@@ -216,24 +177,10 @@ public:
 
   void SetMotorStates(
     const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
-    const bool data_timed_out, const bool can_net_err)
-  {
-    left_motor_state_.SetData(left_state);
-    right_motor_state_.SetData(right_state);
-    data_timed_out_ = data_timed_out;
-    can_net_err_ = can_net_err;
-  }
-
+    const bool data_timed_out, const bool can_net_err);
   void SetFlags(
     const std::uint8_t fault_flags, const std::uint8_t script_flags,
-    const std::uint8_t left_runtime_errors_flags, const std::uint8_t right_runtime_errors_flags)
-  {
-    fault_flags_.SetData(fault_flags);
-    script_flags_.SetData(script_flags);
-    left_runtime_error_.SetData(left_runtime_errors_flags);
-    right_runtime_error_.SetData(right_runtime_errors_flags);
-  }
-
+    const std::uint8_t left_runtime_errors_flags, const std::uint8_t right_runtime_errors_flags);
   void SetTemperature(const std::int16_t temp) { driver_state_.SetTemperature(temp); };
   void SetVoltage(const std::uint16_t voltage) { driver_state_.SetVoltage(voltage); };
   void SetBatAmps1(const std::int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
@@ -259,13 +206,7 @@ public:
   const RuntimeError & GetLeftRuntimeError() const { return left_runtime_error_; }
   const RuntimeError & GetRightRuntimeError() const { return right_runtime_error_; }
 
-  std::string GetFlagErrorLog() const
-  {
-    return "Fault flags: " + fault_flags_.GetErrorLog() +
-           "Script flags: " + script_flags_.GetErrorLog() +
-           "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
-           "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
-  }
+  std::string GetFlagErrorLog() const;
 
 private:
   MotorState left_motor_state_;
