@@ -1,18 +1,52 @@
+[//]: # (ROS_API_PACKAGE_START)
+[//]: # (ROS_API_PACKAGE_NAME_START)
+
 # panther_hardware_interfaces
+
+[//]: # (ROS_API_PACKAGE_NAME_END)
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_START)
 
 Package that implements SystemInterface from ros2_control for Panther.
 
+[//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
+
 ## ROS Nodes
 
-This package doesn't contain any nodes - it is used as a plugin within the controller manager. To use this hardware interface you have to add it to your URDF (you can check how to do it in `panther_description`) and add a controller (example configuration provided in `panther_controller` package).
+[//]: # (ROS_API_NODE_START)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+[//]: # (ROS_API_NODE_NAME_START)
 
-### Publishers
+### PantherSystem
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
+This package doesn't contain any standalone nodes - `PantherSystem` is a plugin loaded by the controller manager.
+To use this hardware interface you have to add it to your URDF (you can check how to do it in `panther_description`) and add a controller (example configuration provided in `panther_controller` package).
+That said apart from the usual interface provided by the ros2_control, this plugin also provides additional published topics and services specific for Panther.
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
+#### Publishers
+
+[//]: # (ROS_API_NODE_PUBLISHERS_START)
+
 - `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags
 
-### Services
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+
+#### Service Servers
+
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
+
 - `/panther_system_node/clear_errors` [*std_srvs/Trigger*]: clear current errors
 
-## panther_hardware_interface parameters
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
+
+#### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
 
 Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
 
@@ -39,6 +73,9 @@ CAN settings
 
 > [!CAUTION]
 > `max_write_sdo_errors_count`, `max_read_sdo_errors_count`, `max_read_pdo_errors_count`, `max_safety_stop_attempts`, `sdo_operation_timeout_ms` and `pdo_feedback_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
+
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
 
 ## Code structure
 
