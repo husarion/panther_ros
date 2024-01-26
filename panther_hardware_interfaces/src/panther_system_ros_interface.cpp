@@ -27,9 +27,11 @@
 namespace panther_hardware_interfaces
 {
 
-PantherSystemRosInterface::PantherSystemRosInterface(std::function<void()> clear_errors)
+PantherSystemRosInterface::PantherSystemRosInterface(
+  std::function<void()> clear_errors, const std::string & node_name,
+  const rclcpp::NodeOptions & node_options)
 {
-  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
+  node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 

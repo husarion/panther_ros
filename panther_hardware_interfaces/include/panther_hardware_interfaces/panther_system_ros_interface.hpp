@@ -57,10 +57,15 @@ class PantherSystemRosInterface
 public:
   /**
    * @brief Creates node and executor (in a separate thread), publishers, subscribers and services
+   *
    * @param clear_errors - functions that should be called, when clear errors
    * service is called
+   * @param node_name
+   * @param node_options
    */
-  PantherSystemRosInterface(std::function<void()> clear_errors);
+  PantherSystemRosInterface(
+    std::function<void()> clear_errors, const std::string & node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
   ~PantherSystemRosInterface();
 
   /**

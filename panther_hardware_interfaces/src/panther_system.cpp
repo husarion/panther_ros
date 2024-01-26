@@ -249,7 +249,8 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   panther_system_ros_interface_ = std::make_unique<PantherSystemRosInterface>(
-    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
+    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_),
+    "panther_system_node");
 
   return CallbackReturn::SUCCESS;
 }

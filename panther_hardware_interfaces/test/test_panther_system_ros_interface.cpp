@@ -32,28 +32,34 @@ TEST(TestPantherSystemRosInterface, test_node)
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
   std::vector<std::string> node_names;
-  const std::string panther_system_node_name = "/panther_system_node";
+  const std::string panther_system_node_name = "panther_system_node";
+  const std::string panther_system_node_name_with_ns = "/" + panther_system_node_name;
 
   rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface;
 
-  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>([]() {});
+  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>(
+    []() {}, panther_system_node_name);
   node_names = test_node->get_node_names();
   ASSERT_TRUE(
-    std::find(node_names.begin(), node_names.end(), panther_system_node_name) != node_names.end());
+    std::find(node_names.begin(), node_names.end(), panther_system_node_name_with_ns) !=
+    node_names.end());
 
   panther_system_ros_interface.reset();
   node_names = test_node->get_node_names();
   ASSERT_FALSE(
-    std::find(node_names.begin(), node_names.end(), panther_system_node_name) != node_names.end());
+    std::find(node_names.begin(), node_names.end(), panther_system_node_name_with_ns) !=
+    node_names.end());
 
   // Check if it is possible to create a node once again (if everything was cleaned up properly)
-  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>([]() {});
+  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>(
+    []() {}, panther_system_node_name);
   node_names = test_node->get_node_names();
   ASSERT_TRUE(
-    std::find(node_names.begin(), node_names.end(), panther_system_node_name) != node_names.end());
+    std::find(node_names.begin(), node_names.end(), panther_system_node_name_with_ns) !=
+    node_names.end());
 
   panther_system_ros_interface.reset();
   rclcpp::shutdown();
@@ -72,7 +78,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>([]() {});
+    std::make_unique<PantherSystemRosInterface>([]() {}, "panther_system_node");
 
   // Necessary to add some waiting, so that topic lists are updated
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -95,7 +101,8 @@ TEST(TestPantherSystemRosInterface, test_activation)
   ASSERT_FALSE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
-  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>([]() {});
+  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>(
+    []() {}, "panther_system_node");
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -119,7 +126,8 @@ TEST(TestPantherSystemRosInterface, test_clear_errors_srv)
 
   bool clear_errors = false;
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>([&clear_errors]() { clear_errors = true; });
+    std::make_unique<PantherSystemRosInterface>(
+      [&clear_errors]() { clear_errors = true; }, "panther_system_node");
 
   auto clear_errors_client = test_node->create_client<std_srvs::srv::Trigger>(
     panther_hardware_interfaces_test::kClearErrorsService);
@@ -149,7 +157,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>([]() {});
+    std::make_unique<PantherSystemRosInterface>([]() {}, "panther_system_node");
 
   panther_hardware_interfaces::RoboteqData front(
     panther_hardware_interfaces_test::kDrivetrainSettings);
@@ -191,7 +199,7 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>([]() {});
+    std::make_unique<PantherSystemRosInterface>([]() {}, "panther_system_node");
 
   panther_hardware_interfaces::DriverState front;
   panther_hardware_interfaces::DriverState rear;
@@ -248,7 +256,7 @@ TEST(TestPantherSystemRosInterface, test_errors)
     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>([]() {});
+    std::make_unique<PantherSystemRosInterface>([]() {}, "panther_system_node");
 
   panther_hardware_interfaces::CANErrors can_errors;
   can_errors.error = true;
