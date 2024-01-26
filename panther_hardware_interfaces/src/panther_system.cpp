@@ -52,7 +52,7 @@ void PantherSystem::SortAndCheckJointNames()
     std::size_t match_count = 0;
 
     for (std::size_t j = 0; j < kJointsSize; j++) {
-      if (info_.joints[j].name.find(joint_order_[i]) != std::string::npos) {
+      if (CheckIfJointNameContainValidSequence(info_.joints[j].name, joint_order_[i])) {
         joints_names_sorted_[i] = info_.joints[j].name;
         ++match_count;
       }
