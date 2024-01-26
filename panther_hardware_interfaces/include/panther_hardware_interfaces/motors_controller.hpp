@@ -117,6 +117,8 @@ public:
   void TurnOnSafetyStop();
 
 private:
+  bool initialized_ = false;
+
   CANopenController canopen_controller_;
 
   RoboteqData front_data_;

@@ -36,6 +36,10 @@ CANopenController::CANopenController(const CANopenSettings & canopen_settings)
 
 void CANopenController::Initialize()
 {
+  if (initialized_) {
+    return;
+  }
+
   canopen_communication_started_.store(false);
 
   canopen_communication_thread_ = std::thread([this]() {
@@ -71,14 +75,21 @@ void CANopenController::Initialize()
   }
 
   BootDrivers();
+
+  initialized_ = true;
 }
 
 void CANopenController::Deinitialize()
 {
+  // Deinitialization should be done regardless of the initialized_ state - in case some operation
+  // during initialization fails, it is still necessary to do the cleanup
+
   if (master_) {
     master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
   }
-  canopen_communication_thread_.join();
+  if (canopen_communication_thread_.joinable()) {
+    canopen_communication_thread_.join();
+  }
   canopen_communication_started_.store(false);
 
   rear_driver_.reset();
@@ -91,6 +102,8 @@ void CANopenController::Deinitialize()
   loop_.reset();
   poll_.reset();
   ctx_.reset();
+
+  initialized_ = false;
 }
 
 void CANopenController::InitializeCANCommunication()

@@ -100,6 +100,8 @@ private:
   // Priority set to be higher than the priority of the main ros2 control node (50)
   static constexpr unsigned kCANopenThreadSchedPriority = 60;
 
+  bool initialized_ = false;
+
   std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;
   std::mutex canopen_communication_started_mtx_;

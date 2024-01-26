@@ -29,14 +29,24 @@ MotorsController::MotorsController(
 
 void MotorsController::Initialize()
 {
+  if (initialized_) {
+    return;
+  }
+
   try {
     canopen_controller_.Initialize();
   } catch (const std::runtime_error & e) {
     throw e;
   }
+
+  initialized_ = true;
 }
 
-void MotorsController::Deinitialize() { canopen_controller_.Deinitialize(); }
+void MotorsController::Deinitialize()
+{
+  canopen_controller_.Deinitialize();
+  initialized_ = false;
+}
 
 void MotorsController::Activate()
 {
