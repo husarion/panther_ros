@@ -37,6 +37,7 @@ add_library(
   src/canopen_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
+  src/roboteq_error_filter.cpp
   src/utils.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
@@ -71,8 +72,9 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(panther_utils REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_roboteq_error_filter
-                  test/test_roboteq_error_filter.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_roboteq_error_filter
+    test/test_roboteq_error_filter.cpp src/roboteq_error_filter.cpp)
   target_include_directories(${PROJECT_NAME}_test_roboteq_error_filter
                              PRIVATE include)
 

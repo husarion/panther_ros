@@ -15,10 +15,8 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_ROBOTEQ_ERROR_FILTER_HPP_
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_ERROR_FILTER_HPP_
 
-#include <algorithm>
 #include <atomic>
 #include <map>
-#include <vector>
 
 namespace panther_hardware_interfaces
 {
@@ -34,23 +32,9 @@ public:
    * @brief Updates the error count, if the number of consecutive errors exceeds the max
    * threshold error is set
    */
-  void UpdateError(const bool current_error)
-  {
-    if (current_error) {
-      ++current_error_count_;
-      if (current_error_count_ >= max_error_count_) {
-        error_ = true;
-      }
-    } else {
-      current_error_count_ = 0;
-    }
-  }
+  void UpdateError(const bool current_error);
 
-  void ClearError()
-  {
-    error_ = false;
-    current_error_count_ = 0;
-  }
+  void ClearError();
 
 private:
   const unsigned max_error_count_;
@@ -76,21 +60,9 @@ class RoboteqErrorFilter
 public:
   RoboteqErrorFilter(
     const unsigned max_read_sdo_errors_count, const unsigned max_write_sdo_errors_count,
-    const unsigned max_read_pdo_errors_count, const unsigned max_roboteq_driver_error_count)
-  {
-    error_filters_.insert({ErrorsFilterIds::READ_SDO, ErrorFilter(max_read_sdo_errors_count)});
-    error_filters_.insert({ErrorsFilterIds::WRITE_SDO, ErrorFilter(max_write_sdo_errors_count)});
-    error_filters_.insert({ErrorsFilterIds::READ_PDO, ErrorFilter(max_read_pdo_errors_count)});
-    error_filters_.insert(
-      {ErrorsFilterIds::ROBOTEQ_DRIVER, ErrorFilter(max_roboteq_driver_error_count)});
-  }
+    const unsigned max_read_pdo_errors_count, const unsigned max_roboteq_driver_error_count);
 
-  bool IsError() const
-  {
-    return std::any_of(error_filters_.begin(), error_filters_.end(), [](const auto & filter) {
-      return filter.second.IsError();
-    });
-  };
+  bool IsError() const;
 
   bool IsError(const ErrorsFilterIds id) const { return error_filters_.at(id).IsError(); };
 
@@ -98,12 +70,7 @@ public:
    * @brief Updates error count, if the number of consecutive errors exceeds the max
    * threshold error is set
    */
-  void UpdateError(const ErrorsFilterIds id, const bool current_error)
-  {
-    ClearErrorsIfFlagSet();
-    error_filters_.at(id).UpdateError(current_error);
-  }
-
+  void UpdateError(const ErrorsFilterIds id, const bool current_error);
   /**
    * @brief Sets clear errors flag - errors will be cleared upon the next Update (any) method.
    * This makes sure that the operation is multithread-safe.
@@ -111,15 +78,7 @@ public:
   void SetClearErrorsFlag() { clear_errors_.store(true); }
 
 private:
-  void ClearErrorsIfFlagSet()
-  {
-    if (clear_errors_) {
-      std::for_each(error_filters_.begin(), error_filters_.end(), [](auto & filter) {
-        filter.second.ClearError();
-      });
-      clear_errors_.store(false);
-    }
-  }
+  void ClearErrorsIfFlagSet();
 
   std::atomic_bool clear_errors_ = false;
 
