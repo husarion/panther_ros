@@ -190,44 +190,6 @@ private:
 
   std::mutex sdo_read_mtx_;
   std::mutex sdo_write_mtx_;
-
-  struct CANopenObject
-  {
-    std::uint16_t id;
-    std::uint8_t subid;
-  };
-
-  // All ids and sub ids were read directly from the eds file. Lely CANopen doesn't have the option
-  // to parse them based on the ParameterName. Additionally between version v60 and v80
-  // ParameterName changed, for example: Cmd_ESTOP (old), Cmd_ESTOP Emergency Shutdown (new) As
-  // parameter names changed, but ids stayed the same, it will be better to just use ids directly
-  const struct RoboteqCANObjects
-  {
-    CANopenObject cmd_1 = {0x2000, 1};
-    CANopenObject cmd_2 = {0x2000, 2};
-
-    CANopenObject position_1 = {0x2106, 1};
-    CANopenObject position_2 = {0x2106, 2};
-
-    CANopenObject velocity_1 = {0x2106, 3};
-    CANopenObject velocity_2 = {0x2106, 4};
-
-    CANopenObject current_1 = {0x2106, 5};
-    CANopenObject current_2 = {0x2106, 6};
-
-    CANopenObject fault_script_flags = {0x2106, 7};
-    CANopenObject motor_flags = {0x2106, 8};
-
-    CANopenObject temperature = {0x210F, 1};
-    CANopenObject voltage = {0x210D, 2};
-    CANopenObject bat_amps_1 = {0x210C, 1};
-    CANopenObject bat_amps_2 = {0x210C, 2};
-
-    CANopenObject reset_script = {0x2018, 0};
-    CANopenObject turn_on_estop = {0x200C, 0};        // Cmd_ESTOP
-    CANopenObject turn_off_estop = {0x200D, 0};       // Cmd_MGO
-    CANopenObject turn_on_safety_stop = {0x202C, 0};  // Cmd_SFT
-  } kRoboteqCANObjects;
 };
 
 }  // namespace panther_hardware_interfaces
