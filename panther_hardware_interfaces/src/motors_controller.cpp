@@ -14,6 +14,17 @@
 
 #include <panther_hardware_interfaces/motors_controller.hpp>
 
+#include <chrono>
+#include <ctime>
+#include <stdexcept>
+#include <thread>
+
+#include <lely/util/chrono.hpp>
+
+#include <panther_hardware_interfaces/canopen_controller.hpp>
+#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+#include <panther_hardware_interfaces/roboteq_driver.hpp>
+
 namespace panther_hardware_interfaces
 {
 
