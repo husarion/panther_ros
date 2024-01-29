@@ -30,7 +30,7 @@ namespace panther_lights
 class Animation
 {
 public:
-  ~Animation() {}
+  virtual ~Animation() {}
 
   /**
    * @brief Initialize and verify if animation was correctly defined
