@@ -78,11 +78,6 @@ private:
   void InitializeCANCommunication();
 
   /**
-   * @brief When RT kernel is used configures thread to have kCANopenThreadSchedPriority priority
-   */
-  void ConfigureRT();
-
-  /**
    * @brief Sets CAN communication started status and notifies other thread through the condition
    * variable
    *

@@ -24,7 +24,7 @@
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
-#include <realtime_tools/thread_priority.hpp>
+#include <panther_utils/configure_rt.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -43,13 +43,19 @@ void CANopenController::Initialize()
   canopen_communication_started_.store(false);
 
   canopen_communication_thread_ = std::thread([this]() {
-    ConfigureRT();
+    try {
+      panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
+    } catch (const std::runtime_error & e) {
+      std::cerr << "Exception caught when configuring RT: " << e.what() << std::endl
+                << "Continuing with regular thread settings (it may have a negative impact on the "
+                   "performance)."
+                << std::endl;
+    }
 
     try {
       InitializeCANCommunication();
     } catch (const std::system_error & e) {
       std::cerr << "Exception caught during CAN initialization: " << e.what() << std::endl;
-
       NotifyCANCommunicationStarted(false);
       return;
     }
@@ -141,20 +147,6 @@ void CANopenController::InitializeCANCommunication()
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
-}
-
-void CANopenController::ConfigureRT()
-{
-  if (realtime_tools::has_realtime_kernel()) {
-    if (!realtime_tools::configure_sched_fifo(kCANopenThreadSchedPriority)) {
-      std::cerr << "Could not enable FIFO RT scheduling policy (CAN thread)" << std::endl;
-    } else {
-      std::cerr << "FIFO RT scheduling policy with priority " << kCANopenThreadSchedPriority
-                << " set (CAN thread) " << std::endl;
-    }
-  } else {
-    std::cerr << "RT kernel is recommended for better performance (CAN thread)" << std::endl;
-  }
 }
 
 void CANopenController::NotifyCANCommunicationStarted(const bool result)

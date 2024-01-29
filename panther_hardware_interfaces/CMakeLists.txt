@@ -16,6 +16,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     controller_interface
     hardware_interface
     panther_msgs
+    panther_utils
     PkgConfig
     pluginlib
     rclcpp
@@ -49,6 +50,7 @@ ament_target_dependencies(
   pluginlib
   std_srvs
   panther_msgs
+  panther_utils
   realtime_tools)
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
 
@@ -99,7 +101,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_canopen_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller rclcpp
-                            panther_msgs realtime_tools)
+                            panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_canopen_controller
                         PkgConfig::LIBLELY_COAPP)
 
@@ -111,7 +113,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_roboteq_driver
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver rclcpp
-                            panther_msgs realtime_tools)
+                            panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_driver
                         PkgConfig::LIBLELY_COAPP)
 
@@ -128,7 +130,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_motors_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_motors_controller rclcpp
-                            panther_msgs realtime_tools)
+                            panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_motors_controller
                         PkgConfig::LIBLELY_COAPP)
 
@@ -166,7 +168,13 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(hardware_interface controller_interface
-                          realtime_tools rclcpp_lifecycle rclcpp std_msgs)
+ament_export_dependencies(
+  hardware_interface
+  controller_interface
+  realtime_tools
+  panther_utils
+  rclcpp_lifecycle
+  rclcpp
+  std_msgs)
 
 ament_package()
