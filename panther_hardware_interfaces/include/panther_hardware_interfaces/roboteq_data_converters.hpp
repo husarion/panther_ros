@@ -105,6 +105,8 @@ public:
     const std::vector<std::string> & flag_names,
     const std::vector<std::string> & surpressed_flags_names = {});
 
+  virtual ~FlagError() = default;
+
   void SetData(const std::uint8_t flags) { flags_ = flags; }
 
   bool IsError() const { return (flags_ & (~surpressed_flags_)).any(); }
