@@ -44,7 +44,7 @@ protected:
 
   std::array<std::uint8_t, 3> HSVtoRGB(const float h, const float s, const float v) const;
   std::vector<std::uint8_t> CreateRGBAFrame(
-    const std::array<std::uint8_t, 3> color, const float brightness) const;
+    const std::array<std::uint8_t, 3> & color, const float brightness) const;
 
 private:
   static constexpr float kFadeFactor = 0.15;

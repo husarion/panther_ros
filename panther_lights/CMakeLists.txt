@@ -18,12 +18,9 @@ include_directories(include)
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
-# Create list with animation plugins
-list(APPEND animation_plugins src/animation/image_animation.cpp)
-list(APPEND animation_plugins src/animation/charging_animation.cpp)
-
-add_library(panther_animation_plugins SHARED ${animation_plugins})
-# figure out how to handle dependencies for different plugins
+add_library(
+  panther_animation_plugins SHARED src/animation/image_animation.cpp
+                                   src/animation/charging_animation.cpp)
 ament_target_dependencies(panther_animation_plugins pluginlib)
 target_link_libraries(panther_animation_plugins png yaml-cpp)
 

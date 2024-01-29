@@ -136,18 +136,18 @@ std::array<std::uint8_t, 3> ChargingAnimation::HSVtoRGB(
 }
 
 std::vector<std::uint8_t> ChargingAnimation::CreateRGBAFrame(
-  const std::array<std::uint8_t, 3> color, const float brightness) const
+  const std::array<std::uint8_t, 3> & color, const float brightness) const
 {
-  std::vector<std::uint8_t> frame(this->GetNumberOfLeds() * 4);
+  const std::array<std::uint8_t, 4> rgba_color = {
+    static_cast<std::uint8_t>(color[0] * brightness),
+    static_cast<std::uint8_t>(color[1] * brightness),
+    static_cast<std::uint8_t>(color[2] * brightness),
+    255,
+  };
+  std::vector<std::uint8_t> frame(this->GetNumberOfLeds() * rgba_color.size());
 
-  for (std::size_t i = 0; i < frame.size(); i += 4) {
-    for (int j = 0; j < 4; j++) {
-      if (j == 3) {
-        frame[i + j] = 255;
-        continue;
-      }
-      frame[i + j] = static_cast<std::uint8_t>(color[j] * brightness);
-    }
+  for (std::size_t i = 0; i < frame.size(); i += rgba_color.size()) {
+    std::copy(rgba_color.begin(), rgba_color.end(), frame.begin() + i);
   }
 
   return frame;

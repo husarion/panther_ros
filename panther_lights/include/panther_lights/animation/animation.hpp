@@ -86,7 +86,7 @@ public:
    * @brief Update and return animation frame
    *
    * @returns the newest animation frame, if animation is finished will return vector filled with 0
-   * @throws std::runtime_error if UpdateFrame() method returns frame with invalid size
+   * @exception std::runtime_error if UpdateFrame() method returns frame with invalid size
    */
   std::vector<std::uint8_t> Call()
   {

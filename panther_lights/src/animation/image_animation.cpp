@@ -70,29 +70,26 @@ std::vector<std::uint8_t> ImageAnimation::UpdateFrame()
 std::filesystem::path ImageAnimation::ParseImagePath(const std::string & image_path) const
 {
   std::filesystem::path global_img_path;
+
   if (!std::filesystem::path(image_path).is_absolute()) {
-    if (image_path[0] == '$') {
-      std::smatch match;
-      if (std::regex_search(image_path, match, std::regex("^\\$\\(find .*\\)"))) {
-        std::string ros_pkg_expr = match[0];
-        std::string ros_pkg = std::regex_replace(
-          ros_pkg_expr, std::regex("^\\$\\(find \\s*|\\)$"), "");
-
-        auto img_relative_path = image_path;
-        img_relative_path.erase(0, ros_pkg_expr.length());
-
-        try {
-          global_img_path = ament_index_cpp::get_package_share_directory(ros_pkg) +
-                            img_relative_path;
-        } catch (const ament_index_cpp::PackageNotFoundError & e) {
-          throw std::runtime_error("Can't find ROS package: " + ros_pkg);
-        }
-
-      } else {
-        throw std::runtime_error("Can't process substitution expression");
-      }
-    } else {
+    if (image_path[0] != '$') {
       throw std::runtime_error("Invalid image path");
+    }
+
+    std::smatch match;
+    if (!std::regex_search(image_path, match, std::regex("^\\$\\(find .*\\)"))) {
+      throw std::runtime_error("Can't process substitution expression");
+    }
+
+    const std::string ros_pkg_expr = match[0];
+    const std::string ros_pkg = std::regex_replace(
+      ros_pkg_expr, std::regex("^\\$\\(find \\s*|\\)$"), "");
+    const std::string img_relative_path = image_path.substr(ros_pkg_expr.length());
+
+    try {
+      global_img_path = ament_index_cpp::get_package_share_directory(ros_pkg) + img_relative_path;
+    } catch (const ament_index_cpp::PackageNotFoundError & e) {
+      throw std::runtime_error("Can't find ROS package: " + ros_pkg);
     }
   } else {
     global_img_path = image_path;
@@ -133,8 +130,6 @@ void ImageAnimation::RGBAImageConvertColor(
         static_cast<std::uint8_t>(pixel[0] * g / 255),
         static_cast<std::uint8_t>(pixel[0] * b / 255), pixel[1]);
     });
-
-  gil::write_view("/home/ros/ros2_ws/src/out.png", gil::const_view(image), gil::png_tag());
 }
 
 gil::gray_alpha8_image_t ImageAnimation::RGBAImageConvertToGrey(
