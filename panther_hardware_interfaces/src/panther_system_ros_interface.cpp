@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <thread>
 
 #include <rclcpp/rclcpp.hpp>
@@ -129,8 +130,8 @@ void PantherSystemRosInterface::ClearErrorsCb(
   try {
     clear_errors_();
     response->success = true;
-  } catch (...) {
-    response->message = "Exception caught in the callback function";
+  } catch (const std::exception & e) {
+    response->message = "Exception caught in the callback function: " + std::string(e.what());
     response->success = false;
   }
 }
