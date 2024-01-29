@@ -89,11 +89,15 @@ public:
   std::uint16_t ReadVoltage();
 
   /**
+   * @brief Return current flowing from battery to channel 1 (it is not the same as motor current)
+   *
    * @exception std::runtime_error if operation fails
    */
   std::int16_t ReadBatAmps1();
 
   /**
+   * @brief Return current flowing from battery to channel 2 (it is not the same as motor current)
+   *
    * @exception std::runtime_error if operation fails
    */
   std::int16_t ReadBatAmps2();
@@ -105,13 +109,19 @@ public:
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
   /**
+   * @brief Sends a command to the motor connected to channel 1
+   *
    * @param cmd command value in the range [-1000, 1000]
+   *
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel1(const std::int32_t cmd);
 
   /**
+   * @brief Sends a command to the motor connected to channel 2
+   *
    * @param cmd command value in the range [-1000, 1000]
+   *
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel2(const std::int32_t cmd);
@@ -132,11 +142,15 @@ public:
   void TurnOffEstop();
 
   /**
+   * @brief Sends a safety stop command to the motor connected to channel 1
+   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOnSafetyStopChannel1();
 
   /**
+   * @brief Sends a safety stop command to the motor connected to channel 2
+   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOnSafetyStopChannel2();
