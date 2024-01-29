@@ -370,9 +370,9 @@ void PantherSystem::UpdateSystemFeedback()
       motors_controller_->GetRearData().IsFlagError()) {
       RCLCPP_ERROR_STREAM_THROTTLE(
         logger_, steady_clock_, 5000,
-        "Error state on one of the drivers"
-          << "\nFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
-          << "\nRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
+        "Error state on one of the drivers:\n"
+          << "\tFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
+          << "\tRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
       roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
     } else {
       roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
@@ -463,13 +463,12 @@ return_type PantherSystem::write(
 
 bool PantherSystem::CheckIfSafetyStopActive()
 {
-  return motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
-         motors_controller_->GetFrontData()
-           .GetRightRuntimeError()
-           .GetMessage()
-           .safety_stop_active &&
-         motors_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
-         motors_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active;
+  const auto & front_data = motors_controller_->GetFrontData();
+  const auto & rear_data = motors_controller_->GetRearData();
+  return front_data.GetLeftRuntimeError().GetMessage().safety_stop_active &&
+         front_data.GetRightRuntimeError().GetMessage().safety_stop_active &&
+         rear_data.GetLeftRuntimeError().GetMessage().safety_stop_active &&
+         rear_data.GetRightRuntimeError().GetMessage().safety_stop_active;
 }
 
 void PantherSystem::UpdateHwStates()
