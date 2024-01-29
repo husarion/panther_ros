@@ -74,23 +74,21 @@ public:
   using BasicSlave::BasicSlave;
 
   void SetPosition(DriverChannel channel, std::int32_t value);
-  void SetVelocity(DriverChannel channel, std::int32_t value);
-  void SetCurrent(DriverChannel channel, std::int32_t value);
+  void SetVelocity(DriverChannel channel, std::int16_t value);
+  void SetCurrent(DriverChannel channel, std::int16_t value);
   void SetDriverFaultFlag(DriverFaultFlags flag);
   void SetDriverScriptFlag(DriverScriptFlags flag);
-
   void SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag);
-  void SetTemperature(std::int8_t value) { (*this)[0x210F][1] = value; }
+  void SetTemperature(std::int16_t value) { (*this)[0x210F][1] = value; }
+  void SetHeatsinkTemperature(std::int16_t value) { (*this)[0x210F][2] = value; }
   void SetVoltage(std::uint16_t value) { (*this)[0x210D][2] = value; }
   void SetBatteryCurrent1(std::int16_t value) { (*this)[0x210C][1] = value; }
   void SetBatteryCurrent2(std::int16_t value) { (*this)[0x210C][2] = value; }
-
   void SetRoboteqCmd(DriverChannel channel, std::int32_t value)
   {
     (*this)[0x2000][static_cast<std::uint8_t>(channel)] = value;
   }
   void SetResetRoboteqScript(std::uint8_t value) { (*this)[0x2018][0] = value; }
-
   void SetTurnOnEstop(std::uint8_t value) { (*this)[0x200C][0] = value; }
   void SetTurnOffEstop(std::uint8_t value) { (*this)[0x200D][0] = value; }
   void SetTurnOnSafetyStop(std::uint8_t value) { (*this)[0x202C][0] = value; }
@@ -104,14 +102,16 @@ public:
   std::uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
   std::uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
 
-  void ClearErrorFlags();
+  void ClearErrorFlags() { (*this)[0x2106][7] = 0; }
 
   void InitializeValues();
 
-  void StartPublishing(std::chrono::milliseconds period);
+  void StartPublishing(
+    std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period);
   void StopPublishing();
 
-  void TriggerPDOPublish();
+  void TriggerMotorsStatesPublish();
+  void TriggerDriverStatePublish();
 
   template <typename T>
   void SetOnWriteWait(std::uint16_t idx, std::uint8_t subidx, std::uint32_t wait_time_microseconds)
@@ -138,7 +138,9 @@ public:
   }
 
 private:
-  std::thread pdo_publishing_thread_;
+  std::thread motors_states_publishing_thread_;
+  std::thread driver_state_publishing_thread_;
+
   std::atomic_bool stop_publishing_ = false;
 };
 
@@ -148,7 +150,8 @@ public:
   RoboteqMock() {}
   ~RoboteqMock() {}
 
-  void Start(std::chrono::milliseconds pdo_period);
+  void Start(
+    std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period);
   void Stop();
 
   std::unique_ptr<RoboteqSlave> front_driver_;

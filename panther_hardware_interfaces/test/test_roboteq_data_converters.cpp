@@ -240,22 +240,23 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
 
   panther_hardware_interfaces::RoboteqMotorState left_state = {48128, 1000, 1};
   panther_hardware_interfaces::RoboteqMotorState right_state = {0, 0, 0};
-  roboteq_data.SetMotorsStates(left_state, right_state, true, false);
+  roboteq_data.SetMotorsStates(left_state, right_state, true);
 
   ASSERT_TRUE(roboteq_data.IsError());
-  ASSERT_TRUE(roboteq_data.IsDataTimedOut());
+  ASSERT_TRUE(roboteq_data.IsMotorStatesDataTimedOut());
 
-  roboteq_data.SetMotorsStates(left_state, right_state, false, false);
+  roboteq_data.SetMotorsStates(left_state, right_state, false);
 
   ASSERT_FALSE(roboteq_data.IsError());
 
-  roboteq_data.SetMotorsStates(left_state, right_state, false, true);
+  roboteq_data.SetCANNetErr(true);
 
   ASSERT_TRUE(roboteq_data.IsError());
   ASSERT_TRUE(roboteq_data.IsCANNetErr());
 
-  roboteq_data.SetMotorsStates(left_state, right_state, false, false);
+  roboteq_data.SetCANNetErr(false);
   ASSERT_FALSE(roboteq_data.IsError());
+
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetPosition(), 0.0);
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetVelocity(), 0.0);
   ASSERT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetTorque(), 0.0);
@@ -263,7 +264,21 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
   ASSERT_FLOAT_EQ(roboteq_data.GetLeftMotorState().GetVelocity(), 3.481375);
   ASSERT_FLOAT_EQ(roboteq_data.GetLeftMotorState().GetTorque(), 0.24816);
 
-  roboteq_data.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00010000);
+  panther_hardware_interfaces::RoboteqDriverState state;
+
+  state.fault_flags = 0b00000001;
+  state.script_flags = 0b00000010;
+  state.runtime_stat_flag_motor_1 = 0b00010000;
+  state.runtime_stat_flag_motor_2 = 0b00000100;
+
+  state.mcu_temp = 32;
+  state.heatsink_temp = 31;
+  state.battery_voltage = 365;
+  state.battery_current_1 = 15;
+  state.battery_current_2 = 20;
+
+  roboteq_data.SetDriverState(state, false);
+
   ASSERT_TRUE(roboteq_data.IsError());
 
   ASSERT_TRUE(roboteq_data.GetFaultFlag().GetMessage().overheat);
@@ -271,12 +286,8 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
   ASSERT_TRUE(roboteq_data.GetLeftRuntimeError().GetMessage().loop_error);
   ASSERT_TRUE(roboteq_data.GetRightRuntimeError().GetMessage().forward_limit_triggered);
 
-  roboteq_data.SetTemperature(32);
-  roboteq_data.SetVoltage(365);
-  roboteq_data.SetBatteryCurrent1(15);
-  roboteq_data.SetBatteryCurrent2(20);
-
   ASSERT_FLOAT_EQ(roboteq_data.GetDriverState().GetTemperature(), 32);
+  ASSERT_FLOAT_EQ(roboteq_data.GetDriverState().GetHeatsinkTemperature(), 31);
   ASSERT_FLOAT_EQ(roboteq_data.GetDriverState().GetVoltage(), 36.5);
   ASSERT_FLOAT_EQ(roboteq_data.GetDriverState().GetCurrent(), 3.5);
 }

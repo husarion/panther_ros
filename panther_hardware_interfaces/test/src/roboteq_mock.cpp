@@ -21,28 +21,45 @@ namespace panther_hardware_interfaces_test
 
 void RoboteqSlave::SetPosition(DriverChannel channel, std::int32_t value)
 {
-  (*this)[0x2106][static_cast<std::uint8_t>(channel)] = value;
+  (*this)[0x2104][static_cast<std::uint8_t>(channel)] = value;
 }
 
-void RoboteqSlave::SetVelocity(DriverChannel channel, std::int32_t value)
+void RoboteqSlave::SetVelocity(DriverChannel channel, std::int16_t value)
 {
-  (*this)[0x2106][static_cast<std::uint8_t>(channel) + 2] = value;
+  (*this)[0x2107][static_cast<std::uint8_t>(channel)] = value;
 }
 
-void RoboteqSlave::SetCurrent(DriverChannel channel, std::int32_t value)
+void RoboteqSlave::SetCurrent(DriverChannel channel, std::int16_t value)
 {
-  (*this)[0x2106][static_cast<std::uint8_t>(channel) + 4] = value;
+  (*this)[0x2100][static_cast<std::uint8_t>(channel)] = value;
 }
 
-void RoboteqSlave::ClearErrorFlags()
+void RoboteqSlave::SetDriverFaultFlag(DriverFaultFlags flag)
 {
-  (*this)[0x2106][7] = 0;
-  (*this)[0x2106][8] = 0;
+  std::int32_t current_data = (*this)[0x2106][7];
+  current_data |= (0b00000001 << std::uint8_t(flag));
+  (*this)[0x2106][7] = current_data;
+}
+
+void RoboteqSlave::SetDriverScriptFlag(DriverScriptFlags flag)
+{
+  std::int32_t current_data = (*this)[0x2106][7];
+  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag)) << 3 * 8;
+  (*this)[0x2106][7] = current_data;
+}
+
+void RoboteqSlave::SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag)
+{
+  std::int32_t current_data = (*this)[0x2106][7];
+  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag))
+                  << (static_cast<std::uint8_t>(channel)) * 8;
+  (*this)[0x2106][7] = current_data;
 }
 
 void RoboteqSlave::InitializeValues()
 {
   SetTemperature(0);
+  SetHeatsinkTemperature(0);
   SetVoltage(0);
   SetBatteryCurrent1(0);
   SetBatteryCurrent2(0);
@@ -57,14 +74,25 @@ void RoboteqSlave::InitializeValues()
   ClearErrorFlags();
 };
 
-void RoboteqSlave::StartPublishing(std::chrono::milliseconds period)
+void RoboteqSlave::StartPublishing(
+  std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period)
 {
-  pdo_publishing_thread_ = std::thread([this, period]() {
+  motors_states_publishing_thread_ = std::thread([this, motors_states_period]() {
     auto next = std::chrono::steady_clock::now();
     while (!stop_publishing_) {
-      next += period;
+      next += motors_states_period;
       // std::cout << "Publishing PDO" << std::endl;
-      TriggerPDOPublish();
+      TriggerMotorsStatesPublish();
+      std::this_thread::sleep_until(next);
+    }
+  });
+
+  driver_state_publishing_thread_ = std::thread([this, driver_state_period]() {
+    auto next = std::chrono::steady_clock::now();
+    while (!stop_publishing_) {
+      next += driver_state_period;
+      // std::cout << "Publishing PDO" << std::endl;
+      TriggerDriverStatePublish();
       std::this_thread::sleep_until(next);
     }
   });
@@ -73,51 +101,40 @@ void RoboteqSlave::StartPublishing(std::chrono::milliseconds period)
 void RoboteqSlave::StopPublishing()
 {
   stop_publishing_.store(true);
-  if (pdo_publishing_thread_.joinable()) {
-    pdo_publishing_thread_.join();
+  if (motors_states_publishing_thread_.joinable()) {
+    motors_states_publishing_thread_.join();
+  }
+  if (driver_state_publishing_thread_.joinable()) {
+    driver_state_publishing_thread_.join();
   }
 }
 
-void RoboteqSlave::TriggerPDOPublish()
+void RoboteqSlave::TriggerMotorsStatesPublish()
 {
   // Every PDO holds two values - it is enough to send an event to just one and both will be sent
-  this->WriteEvent(0x2106, 1);
-  this->WriteEvent(0x2106, 3);
-  this->WriteEvent(0x2106, 5);
+  this->WriteEvent(0x2104, 1);
+  this->WriteEvent(0x2107, 1);
+}
+
+void RoboteqSlave::TriggerDriverStatePublish()
+{
+  // Every PDO holds two values - it is enough to send an event to just one and both will be sent
+  // this->WriteEvent(0x2106, 5);
+  // this->WriteEvent(0x2106, 7);
   this->WriteEvent(0x2106, 7);
+  this->WriteEvent(0x210D, 2);
 }
 
-void RoboteqSlave::SetDriverFaultFlag(DriverFaultFlags flag)
-{
-  std::int32_t current_data = (*this)[0x2106][7];
-  current_data |= (0b00000001 << std::uint8_t(flag));
-  (*this)[0x2106][7] = current_data;
-}
-
-void RoboteqSlave::SetDriverScriptFlag(DriverScriptFlags flag)
-{
-  std::int32_t current_data = (*this)[0x2106][7];
-  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag)) << 2 * 8;
-  (*this)[0x2106][7] = current_data;
-}
-
-void RoboteqSlave::SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag)
-{
-  std::int32_t current_data = (*this)[0x2106][8];
-  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag))
-                  << (static_cast<std::uint8_t>(channel) - 1) * 8;
-  (*this)[0x2106][8] = current_data;
-}
-
-void RoboteqMock::Start(std::chrono::milliseconds pdo_period)
+void RoboteqMock::Start(
+  std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period)
 {
   canopen_communication_started_.store(false);
   ctx_ = std::make_shared<lely::io::Context>();
 
-  canopen_communication_thread_ = std::thread([this, pdo_period]() {
+  canopen_communication_thread_ = std::thread([this, motors_states_period, driver_state_period]() {
     std::string slave_eds_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
                                    "panther_hardware_interfaces")) /
-                                 "config" / "roboteq_motor_controllers_v80_21.eds";
+                                 "config" / "roboteq_motor_controllers_v80_21a.eds";
     std::string slave1_eds_bin_path =
       std::filesystem::path(
         ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
@@ -152,8 +169,8 @@ void RoboteqMock::Start(std::chrono::milliseconds pdo_period)
     rear_driver_->Reset();
     front_driver_->InitializeValues();
     rear_driver_->InitializeValues();
-    front_driver_->StartPublishing(pdo_period);
-    rear_driver_->StartPublishing(pdo_period);
+    front_driver_->StartPublishing(motors_states_period, driver_state_period);
+    rear_driver_->StartPublishing(motors_states_period, driver_state_period);
 
     {
       std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);
@@ -180,7 +197,9 @@ void RoboteqMock::Start(std::chrono::milliseconds pdo_period)
 void RoboteqMock::Stop()
 {
   ctx_->shutdown();
-  canopen_communication_thread_.join();
+  if (canopen_communication_thread_.joinable()) {
+    canopen_communication_thread_.join();
+  }
 
   front_driver_.reset();
   rear_driver_.reset();
