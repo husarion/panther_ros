@@ -117,7 +117,7 @@ public:
   }
 
   /**
-   * @brief Restet animation, this will cause animation
+   * @brief Reset animation, this will cause animation
    * to start from the beginning if Update() method is invoked
    */
   void Reset()
