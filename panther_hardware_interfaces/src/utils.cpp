@@ -44,19 +44,19 @@ bool OperationWithAttempts(
 
 bool CheckIfJointNameContainValidSequence(const std::string & name, const std::string & sequence)
 {
-  std::size_t pos = name.find(sequence);
+  const std::size_t pos = name.find(sequence);
   if (pos == std::string::npos) {
     return false;
   }
 
   if (pos >= 1) {
-    std::size_t id_before_sequence = pos - 1;
+    const std::size_t id_before_sequence = pos - 1;
     if (name[id_before_sequence] != '_' && name[id_before_sequence] != '/') {
       return false;
     }
   }
 
-  std::size_t id_after_sequence = pos + sequence.length();
+  const std::size_t id_after_sequence = pos + sequence.length();
   if (id_after_sequence < name.length() && name[id_after_sequence] != '_') {
     return false;
   }
