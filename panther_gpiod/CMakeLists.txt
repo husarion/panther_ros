@@ -52,7 +52,7 @@ if(NOT LIBGPIOD_INSTALLED)
 endif()
 
 # find dependencies
-set(PACKAGE_INCLUDE_DEPENDS ament_cmake PkgConfig realtime_tools)
+set(PACKAGE_INCLUDE_DEPENDS ament_cmake PkgConfig panther_utils)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -66,7 +66,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} libgpiod)
 
-ament_target_dependencies(${PROJECT_NAME} realtime_tools)
+ament_target_dependencies(${PROJECT_NAME} panther_utils)
 
 install(DIRECTORY include/ DESTINATION include)
 
@@ -80,6 +80,6 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(realtime_tools)
+ament_export_dependencies(panther_utils)
 
 ament_package()

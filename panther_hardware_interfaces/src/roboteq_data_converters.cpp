@@ -67,6 +67,20 @@ MotorState::MotorState(const DrivetrainSettings & drivetrain_settings)
     drivetrain_settings.gearbox_efficiency;
 }
 
+FlagError::FlagError(
+  const std::vector<std::string> & flag_names,
+  const std::vector<std::string> & surpressed_flags_names)
+: flag_names_(flag_names)
+{
+  for (size_t i = 0; i < surpressed_flags_names.size(); ++i) {
+    for (size_t j = 0; j < flag_names_.size(); ++j) {
+      if (surpressed_flags_names[i] == flag_names_[j]) {
+        surpressed_flags_.set(j);
+      }
+    }
+  }
+}
+
 std::string FlagError::GetErrorLog() const
 {
   std::string error_msg = "";
@@ -76,6 +90,20 @@ std::string FlagError::GetErrorLog() const
     }
   }
   return error_msg;
+}
+
+FaultFlag::FaultFlag()
+: FlagError({
+    "overheat",
+    "overvoltage",
+    "undervoltage",
+    "short_circuit",
+    "emergency_stop",
+    "motor_or_sensor_setup_fault",
+    "mosfet_failure",
+    "default_config_loaded_at_startup",
+  })
+{
 }
 
 panther_msgs::msg::FaultFlag FaultFlag::GetMessage() const
@@ -94,6 +122,8 @@ panther_msgs::msg::FaultFlag FaultFlag::GetMessage() const
   return fault_flags_msg;
 }
 
+ScriptFlag::ScriptFlag() : FlagError({"loop_error", "encoder_disconected", "amp_limiter"}) {}
+
 panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
 {
   panther_msgs::msg::ScriptFlag script_flags_msg;
@@ -103,6 +133,27 @@ panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
   script_flags_msg.amp_limiter = flags_.test(2);
 
   return script_flags_msg;
+}
+
+RuntimeError::RuntimeError()
+: FlagError(
+    {
+      "amps_limit_active",
+      "motor_stall",
+      "loop_error",
+      "safety_stop_active",
+      "forward_limit_triggered",
+      "reverse_limit_triggered",
+      "amps_trigger_activated",
+    },
+    {
+      "amps_limit_active",
+      "safety_stop_active",
+      "forward_limit_triggered",
+      "reverse_limit_triggered",
+      "amps_trigger_activated",
+    })
+{
 }
 
 panther_msgs::msg::RuntimeError RuntimeError::GetMessage() const
@@ -118,6 +169,39 @@ panther_msgs::msg::RuntimeError RuntimeError::GetMessage() const
   runtime_errors_msg.amps_trigger_activated = flags_.test(6);
 
   return runtime_errors_msg;
+}
+
+void RoboteqData::SetMotorsStates(
+  const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
+  const bool data_timed_out)
+{
+  left_motor_state_.SetData(left_state);
+  right_motor_state_.SetData(right_state);
+  motor_states_data_timed_out_ = data_timed_out;
+}
+
+void RoboteqData::SetDriverState(const RoboteqDriverState & state, const bool data_timed_out)
+{
+  driver_state_.SetTemperature(state.mcu_temp);
+  driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
+  driver_state_.SetVoltage(state.battery_voltage);
+  driver_state_.SetBatteryCurrent1(state.battery_current_1);
+  driver_state_.SetBatteryCurrent2(state.battery_current_2);
+
+  fault_flags_.SetData(state.fault_flags);
+  script_flags_.SetData(state.script_flags);
+  left_runtime_error_.SetData(state.runtime_stat_flag_motor_2);
+  right_runtime_error_.SetData(state.runtime_stat_flag_motor_1);
+
+  driver_state_data_timed_out_ = data_timed_out;
+}
+
+std::string RoboteqData::GetFlagErrorLog() const
+{
+  return "Fault flags: " + fault_flags_.GetErrorLog() +
+         "Script flags: " + script_flags_.GetErrorLog() +
+         "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
+         "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
 }
 
 }  // namespace panther_hardware_interfaces

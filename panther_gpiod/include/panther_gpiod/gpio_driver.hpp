@@ -213,7 +213,6 @@ private:
   void ConfigureLineRequest(
     gpiod::chip & chip, gpiod::request_builder & builder, GPIOInfo & gpio_info);
   void MonitorAsyncEvents();
-  void ConfigureRt();
   void HandleEdgeEvent(const gpiod::edge_event & event);
   bool IsGPIOMonitorThreadRunning() const;
 

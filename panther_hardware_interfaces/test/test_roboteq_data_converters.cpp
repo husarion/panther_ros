@@ -252,7 +252,7 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
   roboteq_data.SetMotorsStates(left_state, right_state, false, true);
 
   ASSERT_TRUE(roboteq_data.IsError());
-  ASSERT_TRUE(roboteq_data.IsCanNetErr());
+  ASSERT_TRUE(roboteq_data.IsCANNetErr());
 
   roboteq_data.SetMotorsStates(left_state, right_state, false, false);
   ASSERT_FALSE(roboteq_data.IsError());

@@ -76,6 +76,22 @@ TEST(TestUtils, operation_with_attempts_on_error_throw_test)
     []() { throw std::runtime_error(""); }, 5, []() { throw std::runtime_error(""); }));
 }
 
+TEST(TestUtils, check_if_joint_name_contain_valid_sequence_test)
+{
+  using panther_hardware_interfaces::CheckIfJointNameContainValidSequence;
+
+  ASSERT_TRUE(CheckIfJointNameContainValidSequence("fr_wheel_joint", "fr"));
+  ASSERT_TRUE(CheckIfJointNameContainValidSequence("namespace/fr_wheel_joint", "fr"));
+  ASSERT_TRUE(CheckIfJointNameContainValidSequence("wheel_fr_joint", "fr"));
+  ASSERT_TRUE(CheckIfJointNameContainValidSequence("wheel_joint_fr", "fr"));
+
+  ASSERT_FALSE(CheckIfJointNameContainValidSequence("wheel_joint", "fr"));
+  ASSERT_FALSE(CheckIfJointNameContainValidSequence("rfr_wheel_joint", "fr"));
+  ASSERT_FALSE(CheckIfJointNameContainValidSequence("frwheel_joint", "fr"));
+  ASSERT_FALSE(CheckIfJointNameContainValidSequence("wheel_froint", "fr"));
+  ASSERT_FALSE(CheckIfJointNameContainValidSequence("wheeljointfr", "fr"));
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

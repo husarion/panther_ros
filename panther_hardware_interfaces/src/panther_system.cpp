@@ -14,6 +14,15 @@
 
 #include <panther_hardware_interfaces/panther_system.hpp>
 
+#include <array>
+#include <chrono>
+#include <functional>
+#include <limits>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include <rclcpp/logging.hpp>
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
@@ -25,38 +34,34 @@
 namespace panther_hardware_interfaces
 {
 
-using namespace std::literals;
-
 void PantherSystem::CheckJointSize() const
 {
   if (info_.joints.size() != kJointsSize) {
     throw std::runtime_error(
-      "Wrong number of joints defined: "s + std::to_string(info_.joints.size()) + ", "s +
-      std::to_string(kJointsSize) + "expected."s);
+      "Wrong number of joints defined: " + std::to_string(info_.joints.size()) + ", " +
+      std::to_string(kJointsSize) + "expected.");
   }
 }
 
-void PantherSystem::SortJointNames()
+void PantherSystem::SortAndCheckJointNames()
 {
   // Sort joints names - later hw_states and hw_commands are accessed by static indexes, so it
   // is necessary to make sure that joints are in specific order and order of definitions in URDF
   // doesn't matter
   for (std::size_t i = 0; i < kJointsSize; i++) {
+    std::size_t match_count = 0;
+
     for (std::size_t j = 0; j < kJointsSize; j++) {
-      if (info_.joints[j].name.find(joint_order_[i]) != std::string::npos) {
+      if (CheckIfJointNameContainValidSequence(info_.joints[j].name, joint_order_[i])) {
         joints_names_sorted_[i] = info_.joints[j].name;
+        ++match_count;
       }
     }
-  }
-}
 
-void PantherSystem::CheckJointNames() const
-{
-  for (std::size_t i = 0; i < kJointsSize; i++) {
-    if (joints_names_sorted_[i] == "") {
+    if (match_count != 1) {
       throw std::runtime_error(
-        joint_order_[i] +
-        " joint not defined (exactly one joint containing this string is required)"s);
+        "There should be exactly one joint containing " + joint_order_[i] + ", " +
+        std::to_string(match_count) + " found.");
     }
   }
 }
@@ -79,39 +84,40 @@ void PantherSystem::CheckInterfaces() const
     // Commands
     if (joint.command_interfaces.size() != 1) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " has "s + std::to_string(joint.command_interfaces.size()) +
-        " command interfaces found. 1 expected."s);
+        "Joint " + joint.name + " has " + std::to_string(joint.command_interfaces.size()) +
+        " command interfaces. 1 expected.");
     }
 
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.command_interfaces[0].name +
-        " command interfaces found. "s + hardware_interface::HW_IF_VELOCITY + " expected."s);
+        "Joint " + joint.name + " has " + joint.command_interfaces[0].name +
+        " command interface. " + hardware_interface::HW_IF_VELOCITY + " expected.");
     }
 
     // States
     if (joint.state_interfaces.size() != 3) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " has "s + std::to_string(joint.state_interfaces.size()) +
-        " state interface. 3 expected."s);
+        "Joint " + joint.name + " has " + std::to_string(joint.state_interfaces.size()) +
+        " state  " + (joint.state_interfaces.size() == 1 ? "interface." : "interfaces.") +
+        " 3 expected.");
     }
 
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.state_interfaces[0].name +
-        " as first state interface. "s + hardware_interface::HW_IF_POSITION + " expected."s);
+        "Joint " + joint.name + " has " + joint.state_interfaces[0].name +
+        " as first state interface. " + hardware_interface::HW_IF_POSITION + " expected.");
     }
 
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.state_interfaces[1].name +
-        " as second state interface. "s + hardware_interface::HW_IF_VELOCITY + " expected."s);
+        "Joint " + joint.name + " has " + joint.state_interfaces[1].name +
+        " as second state interface. " + hardware_interface::HW_IF_VELOCITY + " expected.");
     }
 
     if (joint.state_interfaces[2].name != hardware_interface::HW_IF_EFFORT) {
       throw std::runtime_error(
-        "Joint "s + joint.name + " have "s + joint.state_interfaces[2].name +
-        " as third state interface. "s + hardware_interface::HW_IF_EFFORT + " expected."s);
+        "Joint " + joint.name + " has " + joint.state_interfaces[2].name +
+        " as third state interface. " + hardware_interface::HW_IF_EFFORT + " expected.");
     }
   }
 }
@@ -129,19 +135,19 @@ void PantherSystem::ReadDrivetrainSettings()
     std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
 }
 
-void PantherSystem::ReadCanOpenSettings()
+void PantherSystem::ReadCANopenSettings()
 {
   canopen_settings_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
   canopen_settings_.front_driver_can_id =
     std::stoi(info_.hardware_parameters["front_driver_can_id"]);
   canopen_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
-  canopen_settings_.pdo_motor_states_timeout =
-    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_motor_states_timeout"]));
-  canopen_settings_.pdo_driver_state_timeout =
-    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_driver_state_timeout"]));
-  canopen_settings_.sdo_operation_timeout =
-    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout"]));
+  canopen_settings_.pdo_motor_states_timeout_ms =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_motor_states_timeout_ms"]));
+  canopen_settings_.pdo_driver_state_timeout_ms =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_driver_state_timeout_ms"]));
+  canopen_settings_.sdo_operation_timeout_ms =
+    std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout_ms"]));
 }
 
 void PantherSystem::ReadInitializationActivationAttempts()
@@ -162,10 +168,9 @@ void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()
   const unsigned max_read_pdo_driver_state_errors_count =
     std::stoi(info_.hardware_parameters["max_read_pdo_driver_state_errors_count"]);
 
-  roboteq_error_filter_ = std::make_shared<RoboteqErrorFilter>(std::vector<ErrorFilter>{
-    ErrorFilter(max_read_pdo_motor_states_errors_count),
-    ErrorFilter(max_write_pdo_cmds_errors_count),
-    ErrorFilter(max_read_pdo_driver_state_errors_count), ErrorFilter(1)});
+  roboteq_error_filter_ = std::make_shared<RoboteqErrorFilter>(
+    max_write_pdo_cmds_errors_count, max_read_pdo_motor_states_errors_count,
+    max_read_pdo_driver_state_errors_count, 1);
 }
 
 CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
@@ -178,8 +183,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
   try {
     CheckJointSize();
-    SortJointNames();
-    CheckJointNames();
+    SortAndCheckJointNames();
     SetInitialValues();
     CheckInterfaces();
   } catch (const std::runtime_error & e) {
@@ -189,7 +193,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 
   try {
     ReadDrivetrainSettings();
-    ReadCanOpenSettings();
+    ReadCANopenSettings();
     ReadInitializationActivationAttempts();
     ReadParametersAndCreateRoboteqErrorFilter();
 
@@ -212,11 +216,6 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
-  // Waiting for the final GPIO implementation, the current one doesn't work due to permission
-  // issues gpio_controller_ = std::make_unique<GPIOController>();
-
-  panther_system_ros_interface_.Initialize();
-
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Initialize, motors_controller_),
         max_roboteq_initialization_attempts_,
@@ -235,8 +234,6 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
-  panther_system_ros_interface_.Deinitialize();
-
   return CallbackReturn::SUCCESS;
 }
 
@@ -249,17 +246,18 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   hw_states_velocities_.fill(0.0);
   hw_states_efforts_.fill(0.0);
 
-  // gpio_controller_->start();
+  RCLCPP_INFO(logger_, "Activating Roboteq drivers");
 
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Activate, motors_controller_),
-        max_roboteq_activation_attempts_, []() {})) {
-    RCLCPP_FATAL_STREAM(logger_, "Roboteq drivers activation failed");
+        max_roboteq_activation_attempts_)) {
+    RCLCPP_FATAL_STREAM(logger_, "Activation failed");
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_.Activate(
-    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_));
+  panther_system_ros_interface_ = std::make_unique<PantherSystemRosInterface>(
+    std::bind(&RoboteqErrorFilter::SetClearErrorsFlag, roboteq_error_filter_),
+    "panther_system_node");
 
   return CallbackReturn::SUCCESS;
 }
@@ -271,11 +269,11 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
   try {
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "on_error failure " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Deactivation failed: " << e.what());
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_.Deactivate();
+  panther_system_ros_interface_.reset();
 
   return CallbackReturn::SUCCESS;
 }
@@ -286,16 +284,14 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   try {
     motors_controller_->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "on_error failure " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Shutdown failed: " << e.what());
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_.Deactivate();
+  panther_system_ros_interface_.reset();
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
-
-  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -306,17 +302,15 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 
   if (!OperationWithAttempts(
         std::bind(&MotorsController::TurnOnSafetyStop, motors_controller_),
-        max_safety_stop_attempts_, []() {})) {
+        max_safety_stop_attempts_)) {
     RCLCPP_FATAL_STREAM(logger_, "Setting safety stop failed");
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_.Deactivate();
+  panther_system_ros_interface_.reset();
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
-
-  panther_system_ros_interface_.Deinitialize();
 
   return CallbackReturn::SUCCESS;
 }
@@ -360,16 +354,13 @@ void PantherSystem::UpdateMotorsStates()
         logger_, (motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ? "Front " : "")
                    << (motors_controller_->GetRearData().IsMotorStatesDataTimedOut() ? "Rear " : "")
                    << "PDO motor state data timeout");
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES), true);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
     } else {
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, false);
     }
 
   } catch (const std::runtime_error & e) {
-    roboteq_error_filter_->UpdateError(
-      static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES), true);
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
     RCLCPP_WARN_STREAM(logger_, "Error when trying to read motors states: " << e.what());
   }
 }
@@ -379,21 +370,21 @@ void PantherSystem::UpdateDriverState()
   try {
     motors_controller_->UpdateDriversState();
 
-    panther_system_ros_interface_.UpdateMsgDriversParameters(
+    panther_system_ros_interface_->UpdateMsgDriversStates(
       motors_controller_->GetFrontData().GetDriverState(),
       motors_controller_->GetRearData().GetDriverState());
 
-    panther_system_ros_interface_.UpdateMsgErrorFlags(
+    panther_system_ros_interface_->UpdateMsgErrorFlags(
       motors_controller_->GetFrontData(), motors_controller_->GetRearData());
 
-    CanErrors can_errors;
+    CANErrors can_errors;
     can_errors.error = roboteq_error_filter_->IsError();
     can_errors.write_pdo_cmds_error =
-      roboteq_error_filter_->IsError(static_cast<std::size_t>(ErrorsFilterIds::WRITE_PDO_CMDS));
-    can_errors.read_pdo_motor_states_error = roboteq_error_filter_->IsError(
-      static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_MOTOR_STATES));
-    can_errors.read_pdo_driver_state_error = roboteq_error_filter_->IsError(
-      static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE));
+      roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_PDO_CMDS);
+    can_errors.read_pdo_motor_states_error =
+      roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_MOTOR_STATES);
+    can_errors.read_pdo_driver_state_error =
+      roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
 
     can_errors.front_motor_states_data_timed_out =
       motors_controller_->GetFrontData().IsMotorStatesDataTimedOut();
@@ -405,24 +396,22 @@ void PantherSystem::UpdateDriverState()
     can_errors.rear_driver_state_data_timed_out =
       motors_controller_->GetRearData().IsDriverStateDataTimedOut();
 
-    can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCanNetErr();
-    can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCanNetErr();
+    can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCANNetErr();
+    can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCANNetErr();
 
-    panther_system_ros_interface_.UpdateMsgErrors(can_errors);
+    panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 
     if (
       motors_controller_->GetFrontData().IsFlagError() ||
       motors_controller_->GetRearData().IsFlagError()) {
       RCLCPP_WARN_STREAM_THROTTLE(
         logger_, steady_clock_, 5000,
-        "Error state on one of the drivers"
-          << "\nFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
-          << "\nRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::ROBOTEQ_DRIVER), true);
+        "Error state on one of the drivers:\n"
+          << "\tFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
+          << "\tRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
     } else {
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::ROBOTEQ_DRIVER), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
     }
 
     if (
@@ -432,20 +421,16 @@ void PantherSystem::UpdateDriverState()
         logger_, (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "Front " : "")
                    << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "Rear " : "")
                    << "PDO driver state timeout");
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), true);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
     } else {
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, false);
     }
-
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN_STREAM(logger_, "Error when trying to read drivers states: " << e.what());
-    roboteq_error_filter_->UpdateError(
-      static_cast<std::size_t>(ErrorsFilterIds::READ_PDO_DRIVER_STATE), true);
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
   }
 
-  panther_system_ros_interface_.PublishDriverState();
+  panther_system_ros_interface_->PublishDriverState();
 }
 
 return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
@@ -468,12 +453,10 @@ return_type PantherSystem::write(
       motors_controller_->SendSpeedCommands(
         hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
         hw_commands_velocities_[3]);
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::WRITE_PDO_CMDS), false);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_PDO_CMDS, false);
     } catch (const std::runtime_error & e) {
       RCLCPP_WARN_STREAM(logger_, "Error when trying to write commands: " << e.what());
-      roboteq_error_filter_->UpdateError(
-        static_cast<std::size_t>(ErrorsFilterIds::WRITE_PDO_CMDS), true);
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_PDO_CMDS, true);
     }
   }
 
@@ -482,12 +465,7 @@ return_type PantherSystem::write(
   // time of writing there wasn't a better approach to handling estop. Moved after
   // SendSpeedCommands, so that safety stop can be set just after write error happens.
   if (roboteq_error_filter_->IsError()) {
-    if (
-      (motors_controller_->GetFrontData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
-       motors_controller_->GetFrontData().GetRightRuntimeError().GetMessage().safety_stop_active &&
-       motors_controller_->GetRearData().GetLeftRuntimeError().GetMessage().safety_stop_active &&
-       motors_controller_->GetRearData().GetRightRuntimeError().GetMessage().safety_stop_active) ==
-      false) {
+    if (!CheckIfSafetyStopActive()) {
       RCLCPP_ERROR(
         logger_,
         "Error detected and at least on of the channels is not in the safety stop state, sending "
@@ -507,6 +485,16 @@ return_type PantherSystem::write(
   }
 
   return return_type::OK;
+}
+
+bool PantherSystem::CheckIfSafetyStopActive()
+{
+  const auto & front_data = motors_controller_->GetFrontData();
+  const auto & rear_data = motors_controller_->GetRearData();
+  return front_data.GetLeftRuntimeError().GetMessage().safety_stop_active &&
+         front_data.GetRightRuntimeError().GetMessage().safety_stop_active &&
+         rear_data.GetLeftRuntimeError().GetMessage().safety_stop_active &&
+         rear_data.GetRightRuntimeError().GetMessage().safety_stop_active;
 }
 
 void PantherSystem::UpdateHwStates()

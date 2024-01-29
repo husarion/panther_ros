@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 #define PANTHER_HARDWARE_INTERFACES_UTILS_HPP_
 
+#include <cstdint>
 #include <functional>
 #include <stdexcept>
 #include <string>
@@ -47,7 +48,16 @@ std::uint8_t GetByte(const T data, const unsigned byte_no)
  */
 bool OperationWithAttempts(
   const std::function<void()> operation, const unsigned max_attempts,
-  const std::function<void()> on_error);
+  const std::function<void()> on_error = []() {});
+
+/**
+ * @brief Checks whether joint name contains valid sequence, it can be used in three ways:
+ * 1. Prefix sequence_jointname or namespace/sequence_jointname
+ * 2. Infix jointname1_sequence_jointname2
+ * 3. Postfix jointname_sequence
+ * @return true if sequence is present in name and is valid
+ */
+bool CheckIfJointNameContainValidSequence(const std::string & name, const std::string & sequence);
 
 }  // namespace panther_hardware_interfaces
 

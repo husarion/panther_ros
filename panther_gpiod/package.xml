@@ -15,7 +15,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>realtime_tools</depend>
+  <depend>panther_utils</depend>
 
   <build_depend>autoconf</build_depend>
   <build_depend>autoconf-archive</build_depend>

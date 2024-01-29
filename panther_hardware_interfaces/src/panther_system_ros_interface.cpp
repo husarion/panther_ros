@@ -14,43 +14,49 @@
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
+#include <functional>
+#include <memory>
+#include <string>
+#include <thread>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <realtime_tools/realtime_publisher.h>
+
+#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+
 namespace panther_hardware_interfaces
 {
 
-void PantherSystemRosInterface::Initialize()
+PantherSystemRosInterface::PantherSystemRosInterface(
+  std::function<void()> clear_errors, const std::string & node_name,
+  const rclcpp::NodeOptions & node_options)
 {
-  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
+  node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
-}
 
-void PantherSystemRosInterface::Activate(std::function<void()> clear_errors)
-{
   clear_errors_ = clear_errors;
 
-  driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
+  driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
   realtime_driver_state_publisher_ =
-    std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
-      driver_state_publisher_);
+    std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
-  clear_errors_srv_ = node_->create_service<std_srvs::srv::Trigger>(
+  clear_errors_srv_ = node_->create_service<TriggerSrv>(
     "~/clear_errors", std::bind(
                         &PantherSystemRosInterface::ClearErrorsCb, this, std::placeholders::_1,
                         std::placeholders::_2));
 }
 
-void PantherSystemRosInterface::Deactivate()
+PantherSystemRosInterface::~PantherSystemRosInterface()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
   clear_errors_srv_.reset();
-}
 
-void PantherSystemRosInterface::Deinitialize()
-{
   if (executor_) {
     executor_->cancel();
     executor_thread_->join();
@@ -76,7 +82,7 @@ void PantherSystemRosInterface::UpdateMsgErrorFlags(
   driver_state.rear.right_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
-void PantherSystemRosInterface::UpdateMsgDriversParameters(
+void PantherSystemRosInterface::UpdateMsgDriversStates(
   const DriverState & front, const DriverState & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
@@ -92,7 +98,7 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
   driver_state.rear.heatsink_temperature = rear.GetHeatsinkTemperature();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrors(const CanErrors & can_errors)
+void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
@@ -119,12 +125,17 @@ void PantherSystemRosInterface::PublishDriverState()
 }
 
 void PantherSystemRosInterface::ClearErrorsCb(
-  std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-  std_srvs::srv::Trigger::Response::SharedPtr response)
+  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Clearing errors");
-  clear_errors_();
-  response->success = true;
+  RCLCPP_INFO(node_->get_logger(), "Clearing errors");
+
+  try {
+    clear_errors_();
+    response->success = true;
+  } catch (const std::exception & e) {
+    response->message = "Exception caught in the callback function: " + std::string(e.what());
+    response->success = false;
+  }
 }
 
 }  // namespace panther_hardware_interfaces

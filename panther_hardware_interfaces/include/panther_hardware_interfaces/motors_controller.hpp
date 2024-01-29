@@ -25,17 +25,17 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @brief It abstract usage of two Roboteq controllers:
- * uses canopen_controller for communication with Roboteq controllers
- * implements activate procedure for controllers - resets script and sends initial 0 command
- * provides methods to get data feedback and send commands. Data is converted between raw
- * Roboteq formats and SI units using roboteq_data_converters
+ * @brief This class abstracts the usage of two Roboteq controllers.
+ * It uses canopen_controller for communication with Roboteq controllers,
+ * implements the activation procedure for controllers (resets script and sends initial 0 command),
+ * and provides methods to get data feedback and send commands.
+ * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
  */
 class MotorsController
 {
 public:
   MotorsController(
-    const CanOpenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
 
   ~MotorsController() { Deinitialize(); }
 
@@ -67,8 +67,7 @@ public:
   void UpdateMotorsStates();
 
   /**
-   * @brief Updates current Roboteq driver state (flags, temperatures, voltage,
-   * battery current)
+   * @brief Updates current Roboteq driver state (flags, temperatures, voltage, battery current)
    *
    * @exception std::runtime_error if CAN error was detected
    */
@@ -118,15 +117,17 @@ private:
   void SetDriverState(
     RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time);
 
-  CanOpenController canopen_controller_;
+  bool initialized_ = false;
+
+  CANopenController canopen_controller_;
 
   RoboteqData front_data_;
   RoboteqData rear_data_;
 
   RoboteqVeloctiyCommandConverter roboteq_vel_cmd_converter_;
 
-  const std::chrono::milliseconds pdo_motor_states_timeout_;
-  const std::chrono::milliseconds pdo_driver_state_timeout_;
+  const std::chrono::milliseconds pdo_motor_states_timeout_ms_;
+  const std::chrono::milliseconds pdo_driver_state_timeout_ms_;
 };
 
 }  // namespace panther_hardware_interfaces

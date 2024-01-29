@@ -15,6 +15,8 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <atomic>
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -31,7 +33,10 @@
 namespace panther_hardware_interfaces
 {
 
-struct CanErrors
+using TriggerSrv = std_srvs::srv::Trigger;
+using DriverStateMsg = panther_msgs::msg::DriverState;
+
+struct CANErrors
 {
   bool error;
 
@@ -56,35 +61,18 @@ struct CanErrors
 class PantherSystemRosInterface
 {
 public:
-  PantherSystemRosInterface() {}
-
-  ~PantherSystemRosInterface()
-  {
-    Deactivate();
-    Deinitialize();
-  }
-
   /**
-   * @brief Creates node and executor (in a separate thread)
-   */
-  void Initialize();
-
-  /**
-   * @brief Creates publishers, subscribers and services
+   * @brief Creates node and executor (in a separate thread), publishers, subscribers and services
+   *
    * @param clear_errors - functions that should be called, when clear errors
    * service is called
+   * @param node_name
+   * @param node_options
    */
-  void Activate(std::function<void()> clear_errors);
-
-  /**
-   * @brief Destroys publishers, subscribers and services
-   */
-  void Deactivate();
-
-  /**
-   * @brief Stops executor thread and destroys the node
-   */
-  void Deinitialize();
+  PantherSystemRosInterface(
+    std::function<void()> clear_errors, const std::string & node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
+  ~PantherSystemRosInterface();
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
@@ -94,29 +82,28 @@ public:
   /**
    * @brief Updates parameters of the drivers: voltage, current and temperature
    */
-  void UpdateMsgDriversParameters(const DriverState & front, const DriverState & rear);
+  void UpdateMsgDriversStates(const DriverState & front, const DriverState & rear);
 
   /**
    * @brief Updates the current state of communication errors and general error state
    */
-  void UpdateMsgErrors(const CanErrors & can_errors);
+  void UpdateMsgErrors(const CANErrors & can_errors);
 
   void PublishDriverState();
 
 private:
   void ClearErrorsCb(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
+    TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response);
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
 
-  rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
+  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
     realtime_driver_state_publisher_;
 
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_errors_srv_;
+  rclcpp::Service<TriggerSrv>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;
 };
 

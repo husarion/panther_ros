@@ -30,8 +30,8 @@ class TestRoboteqDriver : public ::testing::Test
 public:
   TestRoboteqDriver()
   {
-    canopen_controller_ = std::make_unique<panther_hardware_interfaces::CanOpenController>(
-      panther_hardware_interfaces_test::kCanopenSettings);
+    canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
+      panther_hardware_interfaces_test::kCANopenSettings);
 
     roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     roboteq_mock_->Start(std::chrono::milliseconds(100));
@@ -47,7 +47,7 @@ public:
 
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
 
-  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
+  std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
 // These tests are related to canopen_controller tests, where boot should be already tested

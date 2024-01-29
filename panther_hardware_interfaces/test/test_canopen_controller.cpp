@@ -24,20 +24,20 @@
 
 #include <iostream>
 
-class TestCanOpenController : public ::testing::Test
+class TestCANopenController : public ::testing::Test
 {
 public:
-  TestCanOpenController()
+  TestCANopenController()
   {
-    canopen_controller_ = std::make_unique<panther_hardware_interfaces::CanOpenController>(
-      panther_hardware_interfaces_test::kCanopenSettings);
+    canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
+      panther_hardware_interfaces_test::kCANopenSettings);
 
     roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
     // PDO running on 100Hz
     roboteq_mock_->Start(std::chrono::milliseconds(10));
   }
 
-  ~TestCanOpenController()
+  ~TestCANopenController()
   {
     roboteq_mock_->Stop();
     roboteq_mock_.reset();
@@ -45,10 +45,10 @@ public:
 
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
 
-  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
+  std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
-TEST_F(TestCanOpenController, test_canopen_controller)
+TEST_F(TestCANopenController, test_canopen_controller)
 {
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
@@ -58,7 +58,7 @@ TEST_F(TestCanOpenController, test_canopen_controller)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCanOpenController, test_canopen_controller_error_device_type)
+TEST_F(TestCANopenController, test_canopen_controller_error_device_type)
 {
   roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -69,7 +69,7 @@ TEST_F(TestCanOpenController, test_canopen_controller_error_device_type)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCanOpenController, test_canopen_controller_error_vendor_id)
+TEST_F(TestCANopenController, test_canopen_controller_error_vendor_id)
 {
   roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -80,12 +80,12 @@ TEST_F(TestCanOpenController, test_canopen_controller_error_vendor_id)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST(TestCanOpenControllerOthers, test_boot_timeout)
+TEST(TestCANopenControllerOthers, test_boot_timeout)
 {
-  std::unique_ptr<panther_hardware_interfaces::CanOpenController> canopen_controller_;
+  std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 
-  canopen_controller_ = std::make_unique<panther_hardware_interfaces::CanOpenController>(
-    panther_hardware_interfaces_test::kCanopenSettings);
+  canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
+    panther_hardware_interfaces_test::kCANopenSettings);
 
   // No roboteq mock, so it won't be possible to boot - here is checked if after some time it will
   // finish with exception

@@ -30,7 +30,7 @@ public:
   TestMotorsControllerInitialization()
   {
     motors_controller_ = std::make_unique<panther_hardware_interfaces::MotorsController>(
-      panther_hardware_interfaces_test::kCanopenSettings,
+      panther_hardware_interfaces_test::kCANopenSettings,
       panther_hardware_interfaces_test::kDrivetrainSettings);
 
     roboteq_mock_ = std::make_shared<panther_hardware_interfaces_test::RoboteqMock>();
@@ -234,7 +234,7 @@ TEST_F(TestMotorsController, test_update_system_feedback_timestamps)
   motors_controller_->UpdateMotorsStates();
 
   std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
+    panther_hardware_interfaces_test::kCANopenSettings.pdo_feedback_timeout_ms +
     std::chrono::milliseconds(10));
 
   motors_controller_->UpdateMotorsStates();
@@ -249,7 +249,7 @@ TEST(TestMotorsControllerOthers, test_update_system_pdo_feedback_timeout)
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
 
   motors_controller_ = std::make_unique<panther_hardware_interfaces::MotorsController>(
-    panther_hardware_interfaces_test::kCanopenSettings,
+    panther_hardware_interfaces_test::kCANopenSettings,
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
   roboteq_mock_ = std::make_shared<panther_hardware_interfaces_test::RoboteqMock>();
@@ -262,7 +262,7 @@ TEST(TestMotorsControllerOthers, test_update_system_pdo_feedback_timeout)
   motors_controller_->UpdateMotorsStates();
 
   std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCanopenSettings.pdo_feedback_timeout +
+    panther_hardware_interfaces_test::kCANopenSettings.pdo_feedback_timeout_ms +
     std::chrono::milliseconds(10));
 
   motors_controller_->UpdateMotorsStates();

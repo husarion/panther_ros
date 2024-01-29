@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,6 +35,7 @@
 
 namespace panther_hardware_interfaces
 {
+
 using return_type = hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 using StateInterface = hardware_interface::StateInterface;
@@ -64,18 +66,18 @@ public:
 
 protected:
   void CheckJointSize() const;
-  void SortJointNames();
-  void CheckJointNames() const;
+  void SortAndCheckJointNames();
   void SetInitialValues();
   void CheckInterfaces() const;
   void ReadDrivetrainSettings();
-  void ReadCanOpenSettings();
+  void ReadCANopenSettings();
   void ReadInitializationActivationAttempts();
   void ReadParametersAndCreateRoboteqErrorFilter();
 
   void UpdateHwStates();
   void UpdateDriverState();
   void UpdateMotorsStates();
+  bool CheckIfSafetyStopActive();
 
   static constexpr size_t kJointsSize = 4;
 
@@ -98,9 +100,9 @@ protected:
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
-  CanOpenSettings canopen_settings_;
+  CANopenSettings canopen_settings_;
 
-  PantherSystemRosInterface panther_system_ros_interface_;
+  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in these cases it is better to retry
@@ -120,12 +122,6 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-  enum class ErrorsFilterIds {
-    READ_PDO_MOTOR_STATES = 0,
-    WRITE_PDO_CMDS = 1,
-    READ_PDO_DRIVER_STATE = 2,
-    ROBOTEQ_DRIVER = 3
-  };
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Duration driver_states_update_period_{0, 0};
