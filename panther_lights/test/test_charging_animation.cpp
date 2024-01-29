@@ -170,7 +170,7 @@ TEST_F(TestChargingAnimation, UpdateFrame)
   animation_->Reset();
   animation_->SetParam("0.5");
   std::vector<std::uint8_t> frame;
-  // beginning of athe nimation should be dark
+  // the beginning of the animation should be dark
   frame = animation_->Call();
   ASSERT_EQ(num_led * 4, frame.size());
   TestRGBAFrame(frame, 0, 0, 0, 255);
@@ -180,7 +180,7 @@ TEST_F(TestChargingAnimation, UpdateFrame)
     frame = animation_->Call();
   }
 
-  // The middle of animation for param 0.5 should be yellow
+  // the middle of animation for param 0.5 should be yellow
   ASSERT_EQ(num_led * 4, frame.size());
   TestRGBAFrame(frame, 255, 255, 0, 255);
 
@@ -189,7 +189,7 @@ TEST_F(TestChargingAnimation, UpdateFrame)
     frame = animation_->Call();
   }
 
-  // end of the animation should be dark
+  // the end of the animation should be dark
   ASSERT_EQ(num_led * 4, frame.size());
   TestRGBAFrame(frame, 0, 0, 0, 255);
 }

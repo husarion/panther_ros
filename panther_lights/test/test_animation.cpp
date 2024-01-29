@@ -27,28 +27,36 @@ class AnimationWrapper : public panther_lights::Animation
 public:
   AnimationWrapper() {}
 
+  void Initialize(
+    const YAML::Node & animation_description, const std::size_t num_led,
+    const float controller_frequency) override
+  {
+    Animation::Initialize(animation_description, num_led, controller_frequency);
+    frame_size_ = this->GetNumberOfLeds() * 4;
+  }
+
   std::vector<std::uint8_t> UpdateFrame() override
   {
-    return std::vector<std::uint8_t>(frame_size, 147);
+    return std::vector<std::uint8_t>(frame_size_, 147);
   }
 
   std::size_t GetAnimationLength() const { return Animation::GetAnimationLength(); }
   std::size_t GetAnimationIteration() const { return Animation::GetAnimationIteration(); }
+  void SetFrameSize(const std::size_t frame_size) { frame_size_ = frame_size; }
 
-  std::size_t frame_size = 0;
+private:
+  std::size_t frame_size_;
 };
 
 class TestAnimation : public testing::Test
 {
 public:
-  TestAnimation();
+  TestAnimation() { animation_ = std::make_unique<AnimationWrapper>(); }
   ~TestAnimation() {}
 
 protected:
   std::unique_ptr<AnimationWrapper> animation_;
 };
-
-TestAnimation::TestAnimation() { animation_ = std::make_unique<AnimationWrapper>(); }
 
 TEST_F(TestAnimation, Initialize)
 {
@@ -93,6 +101,48 @@ TEST_F(TestAnimation, Initialize)
   EXPECT_NO_THROW(animation_->Initialize(animation_description, 10, 10.0));
 }
 
+TEST_F(TestAnimation, CheckInitialValues)
+{
+  const std::size_t num_led = 10;
+  const float controller_frequency = 10.0;
+  YAML::Node animation_description = YAML::Load("{duration: 2.0, repeat: 2}");
+
+  ASSERT_NO_THROW(animation_->Initialize(animation_description, num_led, controller_frequency));
+
+  EXPECT_EQ(num_led, animation_->GetNumberOfLeds());
+  EXPECT_EQ(std::size_t(20), animation_->GetAnimationLength());
+  EXPECT_EQ(std::size_t(0), animation_->GetAnimationIteration());
+  EXPECT_FALSE(animation_->IsFinished());
+  EXPECT_FLOAT_EQ(0.0, animation_->GetProgress());
+}
+
+TEST_F(TestAnimation, Reset)
+{
+  ASSERT_NO_THROW(animation_->Initialize(YAML::Load("{duration: 2.0}"), 10, 10.0f));
+  animation_->Call();
+  EXPECT_NO_THROW(animation_->Call());
+
+  // call animation
+  ASSERT_NO_THROW(animation_->Call());
+  EXPECT_NE(std::size_t(0), animation_->GetAnimationIteration());
+  EXPECT_NE(0.0F, animation_->GetProgress());
+
+  // reset animation
+  animation_->Reset();
+  EXPECT_EQ(std::size_t(0), animation_->GetAnimationIteration());
+  EXPECT_FLOAT_EQ(0.0, animation_->GetProgress());
+  EXPECT_FALSE(animation_->IsFinished());
+}
+
+TEST_F(TestAnimation, CallWithInvalidFrameSize)
+{
+  ASSERT_NO_THROW(animation_->Initialize(YAML::Load("{duration: 2.0}"), 10, 10.0f));
+  EXPECT_NO_THROW(animation_->Call());
+
+  animation_->SetFrameSize(11);
+  EXPECT_THROW(animation_->Call(), std::runtime_error);
+}
+
 TEST_F(TestAnimation, Call)
 {
   const std::size_t num_led = 10;
@@ -100,17 +150,8 @@ TEST_F(TestAnimation, Call)
   YAML::Node animation_description = YAML::Load("{duration: 2.0, repeat: 2}");
 
   ASSERT_NO_THROW(animation_->Initialize(animation_description, num_led, controller_frequency));
-  EXPECT_EQ(num_led, animation_->GetNumberOfLeds());
-  EXPECT_EQ(std::size_t(20), animation_->GetAnimationLength());
-  EXPECT_EQ(std::size_t(0), animation_->GetAnimationIteration());
-  EXPECT_FALSE(animation_->IsFinished());
-  EXPECT_FLOAT_EQ(0.0, animation_->GetProgress());
 
-  // expect call to fail as virtual UpdateFrame() method has incorrect frame size
-  EXPECT_THROW(animation_->Call(), std::runtime_error);
-
-  // correctly define frame size and call
-  animation_->frame_size = num_led * 4;
+  // check random progress
   for (std::size_t i = 0; i < 5; i++) {
     ASSERT_NO_THROW(animation_->Call());
   }
@@ -119,11 +160,7 @@ TEST_F(TestAnimation, Call)
   float expected_progress = 5.0 / (20 * 2);
   EXPECT_FLOAT_EQ(expected_progress, animation_->GetProgress());
 
-  // reset animation
   animation_->Reset();
-  EXPECT_EQ(std::size_t(0), animation_->GetAnimationIteration());
-  EXPECT_FALSE(animation_->IsFinished());
-  EXPECT_FLOAT_EQ(0.0, animation_->GetProgress());
 
   // reach end of first loop of animaiton
   for (std::size_t i = 0; i < 20; i++) {

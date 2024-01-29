@@ -46,6 +46,7 @@ public:
     const YAML::Node & animation_description, const std::size_t num_led,
     const float controller_frequency)
   {
+    Reset();
     num_led_ = num_led;
 
     if (!animation_description["duration"]) {
