@@ -51,13 +51,13 @@ struct RoboteqDriverState
   std::uint8_t runtime_stat_flag_motor_1;
   std::uint8_t runtime_stat_flag_motor_2;
 
-  int16_t battery_current_1;
-  int16_t battery_current_2;
+  std::int16_t battery_current_1;
+  std::int16_t battery_current_2;
 
-  uint16_t battery_voltage;
+  std::uint16_t battery_voltage;
 
-  int16_t mcu_temp;
-  int16_t heatsink_temp;
+  std::int16_t mcu_temp;
+  std::int16_t heatsink_temp;
 
   timespec flags_current_timestamp;
   timespec voltages_temps_timestamp;
