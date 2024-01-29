@@ -3,7 +3,8 @@
 
   <xacro:macro
     name="panther_robot"
-    params="wheel_config_file
+    params="panther_version
+            wheel_config_file
             controller_config_file
             battery_config_file
             use_sim:=false
@@ -78,6 +79,8 @@
 
         <xacro:unless value="$(arg use_sim)">
           <plugin>panther_hardware_interfaces/PantherSystem</plugin>
+
+          <param name="panther_version">${panther_version}</param>
 
           <param name="encoder_resolution">1600</param>
 
