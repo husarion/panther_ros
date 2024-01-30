@@ -153,7 +153,7 @@ def generate_launch_description():
         arguments=[
             "panther_base_controller",
             "--controller-manager",
-            "/controller_manager",
+            "controller_manager",
             "--controller-manager-timeout",
             "120",
         ],
@@ -165,7 +165,7 @@ def generate_launch_description():
         arguments=[
             "joint_state_broadcaster",
             "--controller-manager",
-            "/controller_manager",
+            "controller_manager",
             "--controller-manager-timeout",
             "120",
         ],
@@ -185,7 +185,7 @@ def generate_launch_description():
         arguments=[
             "imu_broadcaster",
             "--controller-manager",
-            "/controller_manager",
+            "controller_manager",
             "--controller-manager-timeout",
             "120",
         ],
