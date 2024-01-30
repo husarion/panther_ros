@@ -150,11 +150,11 @@ if(BUILD_TESTING)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     rclcpp
+    panther_gpiod
     panther_msgs
     panther_utils
     realtime_tools
-    std_srvs
-    panther_gpiod)
+    std_srvs)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp
