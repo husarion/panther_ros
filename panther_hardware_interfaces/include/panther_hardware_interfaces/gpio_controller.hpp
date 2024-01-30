@@ -40,8 +40,8 @@ public:
    * @brief Constructor for Watchdog class.
    *
    * @param gpio_driver Pointer to the GPIODriver object.
-   * @throws std::runtime_error if the Watchdog pin is not configured by GPIODriver or not described
-   * in GPIOController gpio_info storage
+   * @exception std::runtime_error if the Watchdog pin is not configured by GPIODriver or not
+   * described in GPIOController gpio_info storage
    */
   Watchdog(std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver);
 
@@ -54,8 +54,8 @@ public:
    * @brief Turns on the Watchdog.
    *
    * @return True if successful; otherwise, false.
-   * @throws std::runtime_error if the Watchdog pin is not configured by GPIODriver or not described
-   * in GPIOController gpio_info storage
+   * @exception std::runtime_error if the Watchdog pin is not configured by GPIODriver or not
+   * described in GPIOController gpio_info storage
    */
   bool TurnOn();
   bool TurnOff();
@@ -135,7 +135,7 @@ public:
    * @brief Disables the Watchdog thread for E-Stop mechanism trigger.
    *
    * @return true if the Watchdog thread is successfully disabled.
-   * @throws std::runtime_error when the Watchdog thread fails to stop.
+   * @exception std::runtime_error when the Watchdog thread fails to stop.
    */
   bool EStopTrigger() override;
 
@@ -148,7 +148,7 @@ public:
    * If the attempt to reset the E-Stop fails (the pin reads its value as an input again), it throws
    * a runtime error. The Watchdog thread is temporarily activated during the E-Stop reset process.
    * @return true if the E-Stop is successfully reset.
-   * @throws std::runtime_error when the E-Stop reset fails.
+   * @exception std::runtime_error when the E-Stop reset fails.
    */
   bool EStopReset() override;
 
@@ -230,7 +230,7 @@ public:
    * @brief Checks if the motors are powered up (when STAGE2 is active) without controlling any
    * GPIO.
    *
-   * @throws std::runtime_error when the motors are not powered up.
+   * @exception std::runtime_error when the motors are not powered up.
    * @return Always returns true when the motors are powered up.
    */
   bool EStopReset() override;
@@ -241,8 +241,8 @@ public:
    * This method checks if the motors are powered up by verifying the 'STAGE2_INPUT' pin.
    *
    * @param enable Set to 'true' to enable the motors, 'false' to disable.
-   * @throws std::runtime_error When attempting to enable the motors without the 'STAGE2_INPUT' pin
-   * active.
+   * @exception std::runtime_error When attempting to enable the motors without the 'STAGE2_INPUT'
+   * pin active.
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
    */
   bool MotorsEnable(const bool enable) override;
@@ -252,7 +252,7 @@ public:
    * version.
    *
    * @param enable Ignored parameter in this version.
-   * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
   bool FanEnable(const bool /* enable */) override;
@@ -262,7 +262,7 @@ public:
    * version.
    *
    * @param enable Ignored parameter in this version.
-   * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
   bool AUXEnable(const bool /* enable */) override;
@@ -272,7 +272,7 @@ public:
    * robot version.
    *
    * @param enable Ignored parameter in this version.
-   * @throws std::runtime_error Always throws a runtime error due to lack of support for fan
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
   bool VDIGEnable(const bool /* enable */) override;
