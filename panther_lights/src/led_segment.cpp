@@ -1,0 +1,117 @@
+// Copyright 2023 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <panther_lights/led_segment.hpp>
+
+#include <cmath>
+#include <cstdint>
+#include <stdexcept>
+
+#include <yaml-cpp/yaml.h>
+
+#include <panther_lights/animation/animation.hpp>
+
+#include <iostream>
+
+namespace panther_lights
+{
+
+LEDSegment::LEDSegment(const YAML::Node & segment_description)
+{
+  if (!segment_description["led"]) {
+    throw std::runtime_error("Missing 'led' in segment description");
+  }
+
+  if (!segment_description["channel"]) {
+    throw std::runtime_error("Missing 'channel' in segment description");
+  }
+
+  try {
+    channel_ = segment_description["channel"].as<std::size_t>();
+  } catch (const std::invalid_argument & e) {
+    throw std::runtime_error("Invalid channel expression: " + std::string(e.what()));
+  }
+
+  auto led = segment_description["led"].as<std::string>();
+  std::size_t split_char = led.find('-');
+
+  if (split_char == std::string::npos) {
+    throw std::invalid_argument("No '-' character found in the led range expression");
+  }
+
+  try {
+    first_led_iterator_ = std::stoi(led.substr(0, split_char));
+    last_led_iterator_ = std::stoi(led.substr(split_char + 1));
+
+    if (first_led_iterator_ > last_led_iterator_) {
+      invert_led_order_ = true;
+    }
+
+    std::cout << "First number: " << first_led_iterator_ << std::endl;
+    std::cout << "Second number: " << last_led_iterator_ << std::endl;
+
+  } catch (const std::invalid_argument & e) {
+    throw std::runtime_error("Error converting string to integer: " + std::string(e.what()));
+  } catch (const std::out_of_range & e) {
+    throw std::runtime_error("Error converting string to integer: " + std::string(e.what()));
+  }
+
+  num_led_ = std::abs(int(last_led_iterator_ - first_led_iterator_)) + 1;
+
+  animation_loader_ = std::make_shared<pluginlib::ClassLoader<panther_lights::Animation>>(
+    "panther_lights", "panther_lights::Animation");
+
+  std::cout << "segment initialized" << std::endl;
+}
+
+void LEDSegment::SetAnimation(
+  const YAML::Node & animation_description, const float controller_frequency)
+{
+  if (!animation_description["type"]) {
+    throw std::runtime_error("Missing 'type' in animaiton description");
+  }
+  auto type = animation_description["type"].as<std::string>();
+
+  animation_.reset();
+
+  try {
+    animation_ = animation_loader_->createSharedInstance(type);
+  } catch (pluginlib::PluginlibException & e) {
+    throw std::runtime_error("The plugin failed to load. Error: " + std::string(e.what()));
+  }
+
+  animation_->Initialize(animation_description, num_led_, controller_frequency);
+}
+
+std::vector<std::uint8_t> LEDSegment::UpdateAnimation()
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  if (animation_->IsFinished()) {
+    animation_->Reset();
+  }
+
+  animation_->Update();
+
+  return animation_->GetFrame(invert_led_order_);
+}
+
+std::size_t LEDSegment::GetFirstLEDPosition() const
+{
+  return (invert_led_order_ ? last_led_iterator_ : first_led_iterator_) * Animation::kRGBAColorLen;
+}
+
+}  // namespace panther_lights
