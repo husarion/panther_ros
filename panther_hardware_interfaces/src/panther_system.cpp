@@ -27,9 +27,6 @@
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
-#include <std_srvs/srv/set_bool.hpp>
-#include <std_srvs/srv/trigger.hpp>
-
 #include <panther_hardware_interfaces/utils.hpp>
 
 // todo: add user variable to the script that will trigger DOUT4 instead of safety stop
