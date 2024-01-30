@@ -16,15 +16,14 @@
 #define PANTHER_HARDWARE_INTERFACES_ROBOTEQ_DRIVER_HPP_
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
-#include <vector>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include <lely/coapp/fiber_driver.hpp>
-
-#include <panther_msgs/msg/fault_flag.hpp>
-#include <panther_msgs/msg/runtime_error.hpp>
-#include <panther_msgs/msg/script_flag.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -61,7 +60,7 @@ public:
   RoboteqDriver(
     const std::shared_ptr<lely::ev::Executor> & exec,
     const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
-    const std::chrono::milliseconds & sdo_operation_timeout);
+    const std::chrono::milliseconds & sdo_operation_timeout_ms);
 
   /**
    * @brief Trigger boot operations
@@ -77,7 +76,7 @@ public:
 
   bool IsBooted() const { return booted_.load(); }
 
-  bool IsCanError() const { return can_error_.load(); }
+  bool IsCANError() const { return can_error_.load(); }
 
   /**
    * @exception std::runtime_error if operation fails
@@ -90,11 +89,15 @@ public:
   std::uint16_t ReadVoltage();
 
   /**
+   * @brief Return current flowing from battery to channel 1 (it is not the same as motor current)
+   *
    * @exception std::runtime_error if operation fails
    */
   std::int16_t ReadBatAmps1();
 
   /**
+   * @brief Return current flowing from battery to channel 2 (it is not the same as motor current)
+   *
    * @exception std::runtime_error if operation fails
    */
   std::int16_t ReadBatAmps2();
@@ -106,13 +109,19 @@ public:
   RoboteqDriverFeedback ReadRoboteqDriverFeedback();
 
   /**
+   * @brief Sends a command to the motor connected to channel 1
+   *
    * @param cmd command value in the range [-1000, 1000]
+   *
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel1(const std::int32_t cmd);
 
   /**
+   * @brief Sends a command to the motor connected to channel 2
+   *
    * @param cmd command value in the range [-1000, 1000]
+   *
    * @exception std::runtime_error if operation fails
    */
   void SendRoboteqCmdChannel2(const std::int32_t cmd);
@@ -133,11 +142,15 @@ public:
   void TurnOffEstop();
 
   /**
+   * @brief Sends a safety stop command to the motor connected to channel 1
+   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOnSafetyStopChannel1();
 
   /**
+   * @brief Sends a safety stop command to the motor connected to channel 2
+   *
    * @exception std::runtime_error if any operation returns error
    */
   void TurnOnSafetyStopChannel2();
@@ -149,7 +162,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  T SyncSdoRead(const std::uint16_t index, const std::uint8_t subindex);
+  T SyncSDORead(const std::uint16_t index, const std::uint8_t subindex);
 
   /**
    * @brief Blocking SDO write operation
@@ -157,7 +170,7 @@ private:
    * @exception std::runtime_error if operation fails
    */
   template <typename T>
-  void SyncSdoWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
+  void SyncSDOWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
   void OnBoot(
     const lely::canopen::NmtState st, const char es, const std::string & what) noexcept override;
@@ -181,7 +194,7 @@ private:
   timespec last_rpdo_write_timestamp_;
   std::mutex rpdo_timestamp_mtx_;
 
-  const std::chrono::milliseconds sdo_operation_timeout_;
+  const std::chrono::milliseconds sdo_operation_timeout_ms_;
 
   // Wait timeout has to be longer - first we want to give a chance for lely to cancel operation
   static constexpr std::chrono::microseconds kSdoOperationAdditionalWait{750};

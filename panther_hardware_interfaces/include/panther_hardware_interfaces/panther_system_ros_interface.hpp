@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <thread>
@@ -36,7 +37,10 @@
 namespace panther_hardware_interfaces
 {
 
-struct CanErrors
+using TriggerSrv = std_srvs::srv::Trigger;
+using DriverStateMsg = panther_msgs::msg::DriverState;
+
+struct CANErrors
 {
   bool error;
   bool write_sdo_error;
@@ -85,29 +89,18 @@ private:
 class PantherSystemRosInterface
 {
 public:
-  PantherSystemRosInterface() {}
-
   /**
-   * @brief Creates node and executor (in a separate thread)
-   */
-  void Initialize();
-
-  /**
-   * @brief Creates publishers, subscribers and services
+   * @brief Creates node and executor (in a separate thread), publishers, subscribers and services
+   *
    * @param clear_errors - functions that should be called, when clear errors
    * service is called
+   * @param node_name
+   * @param node_options
    */
-  void Activate();
-
-  /**
-   * @brief Destroys publishers, subscribers and services
-   */
-  void Deactivate();
-
-  /**
-   * @brief Stops executor thread and destroys the node
-   */
-  void Deinitialize();
+  PantherSystemRosInterface(
+    const std::string & node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
+  ~PantherSystemRosInterface();
 
   /**
    * @brief Adds new service server to node
@@ -129,7 +122,7 @@ public:
   /**
    * @brief Updates the current state of communication errors and general error state
    */
-  void UpdateMsgErrors(const CanErrors & can_errors);
+  void UpdateMsgErrors(const CANErrors & can_errors);
 
   void PublishDriverState();
 
@@ -149,8 +142,8 @@ private:
 
   std::atomic_bool stop_executor_ = false;
 
-  rclcpp::Publisher<panther_msgs::msg::DriverState>::SharedPtr driver_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>
+  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
     realtime_driver_state_publisher_;
 
   rclcpp::Publisher<panther_msgs::msg::IOState>::SharedPtr io_state_publisher_;

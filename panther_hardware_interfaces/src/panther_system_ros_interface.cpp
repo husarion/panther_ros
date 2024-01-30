@@ -14,6 +14,17 @@
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
+#include <functional>
+#include <memory>
+#include <string>
+#include <thread>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <realtime_tools/realtime_publisher.h>
+
+#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+
 namespace panther_hardware_interfaces
 {
 
@@ -51,9 +62,10 @@ void SetBoolServiceWrapper::CallbackWrapper(
   }
 }
 
-void PantherSystemRosInterface::Initialize()
+PantherSystemRosInterface::PantherSystemRosInterface(
+  const std::string & node_name, const rclcpp::NodeOptions & node_options)
 {
-  node_ = std::make_shared<rclcpp::Node>("panther_system_node");
+  node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
@@ -62,15 +74,11 @@ void PantherSystemRosInterface::Initialize()
       executor_->spin_some();
     }
   });
-}
 
-void PantherSystemRosInterface::Activate()
-{
   driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
   realtime_driver_state_publisher_ =
-    std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::DriverState>>(
-      driver_state_publisher_);
+    std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
   io_state_publisher_ = node_->create_publisher<panther_msgs::msg::IOState>(
     "~/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
@@ -85,7 +93,7 @@ void PantherSystemRosInterface::Activate()
       estop_state_publisher_);
 }
 
-void PantherSystemRosInterface::Deactivate()
+PantherSystemRosInterface::~PantherSystemRosInterface()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
@@ -93,10 +101,7 @@ void PantherSystemRosInterface::Deactivate()
   io_state_publisher_.reset();
   realtime_estop_state_publisher_.reset();
   estop_state_publisher_.reset();
-}
 
-void PantherSystemRosInterface::Deinitialize()
-{
   stop_executor_.store(true);
   executor_thread_->join();
   stop_executor_.store(false);
@@ -161,7 +166,7 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
   driver_state.rear.temperature = rear.GetTemperature();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrors(const CanErrors & can_errors)
+void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 

@@ -677,7 +677,7 @@ TEST(TestPantherSystemOthers, sdo_write_timeout_test)
   param_map["max_read_pdo_errors_count"] = "100";
   param_map["max_read_sdo_errors_count"] = "100";
   param_map["max_write_sdo_errors_count"] = "2";
-  param_map["sdo_operation_timeout"] = "4";
+  param_map["sdo_operation_timeout_ms"] = "4";
 
   const std::string panther_system_urdf_ = pth_test_.BuildUrdf(param_map, kDefaultJoints);
   const float period_ = 0.01;
@@ -820,7 +820,7 @@ TEST(TestPantherSystemOthers, pdo_read_timeout_test)
   // It is necessary to set max_read_pdo_errors_count to some higher value, because
   // adding wait time to Roboteq mock block all communication (also PDO), and PDO timeouts
   // happen
-  param_map["pdo_feedback_timeout"] = "15";
+  param_map["pdo_feedback_timeout_ms"] = "15";
   param_map["max_read_pdo_errors_count"] = "2";
   param_map["max_read_sdo_errors_count"] = "100";
   param_map["max_write_sdo_errors_count"] = "100";

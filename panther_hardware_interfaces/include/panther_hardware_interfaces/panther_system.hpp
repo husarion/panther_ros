@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,6 +36,7 @@
 
 namespace panther_hardware_interfaces
 {
+
 using return_type = hardware_interface::return_type;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 using StateInterface = hardware_interface::StateInterface;
@@ -65,13 +67,12 @@ public:
 
 protected:
   void CheckJointSize() const;
-  void SortJointNames();
-  void CheckJointNames() const;
+  void SortAndCheckJointNames();
   void SetInitialValues();
   void CheckInterfaces() const;
   void ReadPantherVersion();
   void ReadDrivetrainSettings();
-  void ReadCanOpenSettings();
+  void ReadCANopenSettings();
   void ReadInitializationActivationAttempts();
   void ReadParametersAndCreateRoboteqErrorFilter();
 
@@ -79,6 +80,11 @@ protected:
   void UpdateDriverState();
   void UpdateSystemFeedback();
   void UpdateMsgErrors();
+  bool CheckIfSafetyStopActive();
+
+  void SetEStop();
+  void ResetEStop();
+  bool ReadEStop();
 
   static constexpr size_t kJointsSize = 4;
 
@@ -102,9 +108,9 @@ protected:
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
-  CanOpenSettings canopen_settings_;
+  CANopenSettings canopen_settings_;
 
-  PantherSystemRosInterface panther_system_ros_interface_;
+  std::shared_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in these cases it is better to retry
@@ -124,15 +130,10 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-  enum class ErrorsFilterIds { READ_SDO = 0, WRITE_SDO = 1, READ_PDO = 2, ROBOTEQ_DRIVER = 3 };
 
   float panther_version_;
 
   bool estop_ = true;
-
-  void SetEStop();
-  void ResetEStop();
-  bool ReadEStop();
 };
 
 }  // namespace panther_hardware_interfaces

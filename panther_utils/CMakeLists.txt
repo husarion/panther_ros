@@ -8,6 +8,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(realtime_tools REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -31,5 +32,7 @@ if(BUILD_TESTING)
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_test_utils rclcpp std_msgs)
 endif()
+
+ament_export_dependencies(realtime_tools)
 
 ament_package()

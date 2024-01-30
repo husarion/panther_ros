@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10.2)
 project(panther_hardware_interfaces)
 
 # Default to C++17
@@ -15,14 +15,15 @@ set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
     hardware_interface
+    panther_gpiod
+    panther_msgs
+    panther_utils
+    PkgConfig
     pluginlib
     rclcpp
     rclcpp_lifecycle
-    std_srvs
-    PkgConfig
-    panther_msgs
-    panther_gpiod
-    realtime_tools)
+    realtime_tools
+    std_srvs)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -39,6 +40,7 @@ add_library(
   src/gpio_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
+  src/roboteq_error_filter.cpp
   src/utils.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
@@ -51,14 +53,13 @@ ament_target_dependencies(
   std_srvs
   panther_gpiod
   panther_msgs
+  panther_utils
   realtime_tools)
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
 
-# target_compile_definitions(${PROJECT_NAME} PUBLIC
-# "PLUGINLIB__DISABLE_BOOST_FUNCTIONS"s)
 pluginlib_export_plugin_description_file(hardware_interface
                                          panther_hardware_interfaces.xml)
 
@@ -76,8 +77,9 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(panther_utils REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_roboteq_error_filter
-                  test/test_roboteq_error_filter.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_roboteq_error_filter
+    test/test_roboteq_error_filter.cpp src/roboteq_error_filter.cpp)
   target_include_directories(${PROJECT_NAME}_test_roboteq_error_filter
                              PRIVATE include)
 
@@ -102,7 +104,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_canopen_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller rclcpp
-                            panther_msgs realtime_tools)
+                            panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_canopen_controller
                         PkgConfig::LIBLELY_COAPP)
 
@@ -114,7 +116,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_roboteq_driver
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver rclcpp
-                            panther_msgs realtime_tools)
+                            panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_driver
                         PkgConfig::LIBLELY_COAPP)
 
@@ -131,7 +133,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_motors_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_motors_controller rclcpp
-                            panther_msgs realtime_tools)
+                            panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_motors_controller
                         PkgConfig::LIBLELY_COAPP)
 
@@ -175,7 +177,13 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(hardware_interface controller_interface
-                          realtime_tools rclcpp_lifecycle rclcpp std_msgs)
+ament_export_dependencies(
+  hardware_interface
+  controller_interface
+  realtime_tools
+  panther_utils
+  rclcpp_lifecycle
+  rclcpp
+  std_msgs)
 
 ament_package()

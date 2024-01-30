@@ -15,8 +15,13 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 #define PANTHER_HARDWARE_INTERFACES_CANOPEN_CONTROLLER_HPP_
 
+#include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <memory>
+#include <mutex>
+#include <string>
 #include <thread>
 
 #include <lely/coapp/fiber_driver.hpp>
@@ -33,7 +38,7 @@
 namespace panther_hardware_interfaces
 {
 
-struct CanOpenSettings
+struct CANopenSettings
 {
   std::string can_interface_name;
 
@@ -41,18 +46,18 @@ struct CanOpenSettings
   std::uint8_t front_driver_can_id;
   std::uint8_t rear_driver_can_id;
 
-  std::chrono::milliseconds pdo_feedback_timeout;
-  std::chrono::milliseconds sdo_operation_timeout;
+  std::chrono::milliseconds pdo_feedback_timeout_ms;
+  std::chrono::milliseconds sdo_operation_timeout_ms;
 };
 
 /**
- * @brief CanOpenController takes care of CANopen communication - creates master controller
+ * @brief CANopenController takes care of CANopen communication - creates master controller
  * and two Roboteq drivers (front and rear)
  */
-class CanOpenController
+class CANopenController
 {
 public:
-  CanOpenController(const CanOpenSettings & canopen_settings);
+  CANopenController(const CANopenSettings & canopen_settings);
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
@@ -70,12 +75,7 @@ public:
   std::shared_ptr<RoboteqDriver> GetRearDriver() { return rear_driver_; }
 
 private:
-  void InitializeCanCommunication();
-
-  /**
-   * @brief When RT kernel is used configures thread to have kCanOpenThreadSchedPriority priority
-   */
-  void ConfigureRT();
+  void InitializeCANCommunication();
 
   /**
    * @brief Sets CAN communication started status and notifies other thread through the condition
@@ -83,7 +83,7 @@ private:
    *
    * @param result status of CAN communication started
    */
-  void NotifyCanCommunicationStarted(const bool result);
+  void NotifyCANCommunicationStarted(const bool result);
 
   /**
    * @brief Triggers boot on front and rear Roboteq drivers and waits for finish
@@ -93,7 +93,9 @@ private:
   void BootDrivers();
 
   // Priority set to be higher than the priority of the main ros2 control node (50)
-  static constexpr unsigned kCanOpenThreadSchedPriority = 60;
+  static constexpr unsigned kCANopenThreadSchedPriority = 60;
+
+  bool initialized_ = false;
 
   std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;
@@ -113,7 +115,7 @@ private:
   std::shared_ptr<RoboteqDriver> front_driver_;
   std::shared_ptr<RoboteqDriver> rear_driver_;
 
-  CanOpenSettings canopen_settings_;
+  const CANopenSettings canopen_settings_;
 };
 
 }  // namespace panther_hardware_interfaces

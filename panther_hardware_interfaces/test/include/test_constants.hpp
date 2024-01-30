@@ -27,7 +27,7 @@
 namespace panther_hardware_interfaces_test
 {
 
-const panther_hardware_interfaces::CanOpenSettings kCanopenSettings{
+const panther_hardware_interfaces::CANopenSettings kCANopenSettings{
   "panther_can", 3, 1, 2, std::chrono::milliseconds(15), std::chrono::milliseconds(4)};
 
 const panther_hardware_interfaces::DrivetrainSettings kDrivetrainSettings{
@@ -70,8 +70,8 @@ const std::map<std::string, std::string> kDefaultParamMap = {
   {"master_can_id", "3"},
   {"front_driver_can_id", "1"},
   {"rear_driver_can_id", "2"},
-  {"sdo_operation_timeout", "4"},
-  {"pdo_feedback_timeout", "15"},
+  {"sdo_operation_timeout_ms", "4"},
+  {"pdo_feedback_timeout_ms", "15"},
   {"max_roboteq_initialization_attempts", "3"},
   {"max_roboteq_activation_attempts", "3"},
   {"max_safety_stop_attempts", "20"},
