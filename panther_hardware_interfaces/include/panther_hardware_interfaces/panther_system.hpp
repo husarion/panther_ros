@@ -138,6 +138,8 @@ protected:
   std::atomic_bool estop_ = true;
 
   std::atomic_bool last_commands_zero_ = false;
+
+  std::mutex motor_controller_write_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces
