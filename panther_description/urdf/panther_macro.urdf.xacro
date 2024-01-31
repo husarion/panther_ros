@@ -109,7 +109,7 @@
           <param name="max_roboteq_activation_attempts">5</param>
           <param name="max_safety_stop_attempts">20</param>
 
-          <!-- TODO: after all tests update parameters, these ones are quite high for the worst case scenario -->
+          <!-- TODO after all tests update parameters, these ones are quite high for the worst case scenario -->
           <param name="max_write_pdo_cmds_errors_count">4</param>
           <param name="max_read_pdo_motor_states_errors_count">4</param>
           <param name="max_read_pdo_driver_state_errors_count">20</param>
