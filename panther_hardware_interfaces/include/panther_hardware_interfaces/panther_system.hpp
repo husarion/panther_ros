@@ -135,7 +135,7 @@ protected:
 
   float panther_version_;
 
-  bool estop_ = true;
+  std::atomic_bool estop_ = true;
 
   std::atomic_bool last_commands_zero_ = false;
 };
