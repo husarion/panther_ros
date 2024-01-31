@@ -96,20 +96,6 @@ void MotorsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-void MotorsController::SetMotorsStates(
-  RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time)
-{
-  bool data_timed_out =
-    (lely::util::from_timespec(current_time) - lely::util::from_timespec(states.pos_timestamp) >
-     pdo_motor_states_timeout_ms_) ||
-    (lely::util::from_timespec(current_time) -
-       lely::util::from_timespec(states.vel_current_timestamp) >
-     pdo_motor_states_timeout_ms_);
-
-  // Channel 1 - right, Channel 2 - left
-  data.SetMotorsStates(states.motor_2, states.motor_1, data_timed_out);
-}
-
 void MotorsController::UpdateMotorsStates()
 {
   timespec current_time;
@@ -126,19 +112,6 @@ void MotorsController::UpdateMotorsStates()
   if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
     throw std::runtime_error("CAN error detected when trying to read motors states");
   }
-}
-
-void MotorsController::SetDriverState(
-  RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time)
-{
-  bool data_timed_out = (lely::util::from_timespec(current_time) -
-                           lely::util::from_timespec(state.flags_current_timestamp) >
-                         pdo_driver_state_timeout_ms_) ||
-                        (lely::util::from_timespec(current_time) -
-                           lely::util::from_timespec(state.voltages_temps_timestamp) >
-                         pdo_driver_state_timeout_ms_);
-
-  data.SetDriverState(state, data_timed_out);
 }
 
 void MotorsController::UpdateDriversState()
@@ -234,6 +207,33 @@ void MotorsController::TurnOnSafetyStop()
     throw std::runtime_error(
       "Exception when trying to turn on safety stop on the rear driver: " + std::string(e.what()));
   }
+}
+
+void MotorsController::SetMotorsStates(
+  RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time)
+{
+  bool data_timed_out =
+    (lely::util::from_timespec(current_time) - lely::util::from_timespec(states.pos_timestamp) >
+     pdo_motor_states_timeout_ms_) ||
+    (lely::util::from_timespec(current_time) -
+       lely::util::from_timespec(states.vel_current_timestamp) >
+     pdo_motor_states_timeout_ms_);
+
+  // Channel 1 - right, Channel 2 - left
+  data.SetMotorsStates(states.motor_2, states.motor_1, data_timed_out);
+}
+
+void MotorsController::SetDriverState(
+  RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time)
+{
+  bool data_timed_out = (lely::util::from_timespec(current_time) -
+                           lely::util::from_timespec(state.flags_current_timestamp) >
+                         pdo_driver_state_timeout_ms_) ||
+                        (lely::util::from_timespec(current_time) -
+                           lely::util::from_timespec(state.voltages_temps_timestamp) >
+                         pdo_driver_state_timeout_ms_);
+
+  data.SetDriverState(state, data_timed_out);
 }
 
 }  // namespace panther_hardware_interfaces

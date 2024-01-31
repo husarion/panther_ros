@@ -69,13 +69,13 @@ MotorState::MotorState(const DrivetrainSettings & drivetrain_settings)
 
 FlagError::FlagError(
   const std::vector<std::string> & flag_names,
-  const std::vector<std::string> & surpressed_flags_names)
+  const std::vector<std::string> & suppressed_flags_names)
 : flag_names_(flag_names)
 {
-  for (size_t i = 0; i < surpressed_flags_names.size(); ++i) {
+  for (size_t i = 0; i < suppressed_flags_names.size(); ++i) {
     for (size_t j = 0; j < flag_names_.size(); ++j) {
-      if (surpressed_flags_names[i] == flag_names_[j]) {
-        surpressed_flags_.set(j);
+      if (suppressed_flags_names[i] == flag_names_[j]) {
+        suppressed_flags_.set(j);
       }
     }
   }
@@ -85,7 +85,7 @@ std::string FlagError::GetErrorLog() const
 {
   std::string error_msg = "";
   for (std::size_t i = 0; i < flag_names_.size(); i++) {
-    if ((flags_ & (~surpressed_flags_)).test(i)) {
+    if ((flags_ & (~suppressed_flags_)).test(i)) {
       error_msg += flag_names_[i] + " ";
     }
   }

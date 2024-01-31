@@ -172,6 +172,9 @@ void RoboteqDriver::SendRoboteqCmd(
 {
   tpdo_mapped[RoboteqCANObjects::cmd_1.id][RoboteqCANObjects::cmd_1.subid] = cmd_channel_1;
   tpdo_mapped[RoboteqCANObjects::cmd_2.id][RoboteqCANObjects::cmd_2.subid] = cmd_channel_2;
+
+  // Both commands are in the TPDO 1, so write event for only one subid is triggered, as it will
+  // result in sending the whole TPDO 1 (both commands)
   tpdo_mapped[RoboteqCANObjects::cmd_2.id][RoboteqCANObjects::cmd_2.subid].WriteEvent();
 }
 
@@ -225,44 +228,6 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
     throw std::runtime_error(
       "Error when trying to turn on safety stop on channel 2: " + std::string(e.what()));
   }
-}
-
-template <typename T>
-T RoboteqDriver::SyncSDORead(const std::uint16_t index, const std::uint8_t subindex)
-{
-  std::mutex mtx;
-  std::condition_variable cv;
-  T data;
-  std::error_code err_code;
-
-  try {
-    SubmitRead<T>(
-      index, subindex,
-      [&mtx, &cv, &err_code, &data](
-        std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec, T value) mutable {
-        {
-          std::lock_guard<std::mutex> lck_g(mtx);
-          if (ec) {
-            err_code = ec;
-          } else {
-            data = value;
-          }
-        }
-        cv.notify_one();
-      },
-      sdo_operation_timeout_ms_);
-  } catch (const lely::canopen::SdoError & e) {
-    throw std::runtime_error("SDO read error, message: " + std::string(e.what()));
-  }
-
-  std::unique_lock<std::mutex> lck(mtx);
-  cv.wait(lck);
-
-  if (err_code) {
-    throw std::runtime_error("Error msg: " + err_code.message());
-  }
-
-  return data;
 }
 
 template <typename T>
