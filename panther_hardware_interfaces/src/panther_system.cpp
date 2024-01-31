@@ -603,7 +603,15 @@ void PantherSystem::UpdateHwStates()
 void PantherSystem::SetEStop()
 {
   RCLCPP_INFO(logger_, "Setting estop");
-  bool motors_controller_error = false;
+  bool gpio_controller_error = false;
+
+  try {
+    gpio_controller_->EStopTrigger();
+  } catch (const std::runtime_error & e) {
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set safety stop using GPIO: " << e.what());
+    gpio_controller_error = true;
+  }
+
   try {
     {
       std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
@@ -611,17 +619,8 @@ void PantherSystem::SetEStop()
     }
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(
-      logger_, "Error when trying to set safety stop using CAN command: "
-                 << e.what() << " Will retry with GPIO.");
-    motors_controller_error = true;
-  }
-
-  try {
-    gpio_controller_->EStopTrigger();
-  } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set safety stop using GPIO: " << e.what());
-
-    if (motors_controller_error) {
+      logger_, "Error when trying to set safety stop using CAN command: " << e.what());
+    if (gpio_controller_error) {
       RCLCPP_ERROR_STREAM(logger_, "Both attempts at setting estop failed");
       throw std::runtime_error("Both attempts at setting estop failed");
     }
