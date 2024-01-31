@@ -86,6 +86,8 @@ protected:
   void ResetEStop();
   bool ReadEStop();
 
+  bool AreVelocityCommandsNearZero();
+
   static constexpr size_t kJointsSize = 4;
 
   // Currently only velocity command mode is supported - although Roboteq driver support position
@@ -134,6 +136,8 @@ protected:
   float panther_version_;
 
   bool estop_ = true;
+
+  std::atomic_bool last_commands_zero_ = false;
 };
 
 }  // namespace panther_hardware_interfaces

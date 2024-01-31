@@ -480,6 +480,8 @@ return_type PantherSystem::read(
 return_type PantherSystem::write(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
+  last_commands_zero_ = AreVelocityCommandsNearZero();
+
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued - hardware interface's onError isn't triggered estop is handled similarly - at the
   // time of writing there wasn't a better approach to handling estop.
@@ -580,10 +582,18 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
-  // TODO: check if commands 0.0
   RCLCPP_INFO(logger_, "Resetting estop");
 
   // On side of the motors controller safety stop is reset by sending 0.0 commands
+  if (!last_commands_zero_) {
+    RCLCPP_ERROR(
+      logger_,
+      "Can't reset estop - last velocity commands are different than zero. Make sure that your "
+      "controller sends zero commands before trying to reset estop.");
+    throw std::runtime_error(
+      "Can't reset estop - last velocity commands are different than zero. Make sure that your "
+      "controller sends zero commands before trying to reset estop.");
+  }
 
   try {
     gpio_controller_->EStopReset();
@@ -605,6 +615,16 @@ bool PantherSystem::ReadEStop()
     // For older panther versions there is no hardware EStop
     return estop_;
   }
+}
+
+bool PantherSystem::AreVelocityCommandsNearZero()
+{
+  for (const auto & cmd : hw_commands_velocities_) {
+    if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace panther_hardware_interfaces
