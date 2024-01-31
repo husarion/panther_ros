@@ -30,8 +30,10 @@ add_executable(driver_node src/driver_node_main.cpp src/driver_node.cpp
 ament_target_dependencies(driver_node image_transport panther_gpiod
                           panther_msgs rclcpp sensor_msgs)
 
-add_executable(controller_node src/controller_node_main.cpp
-                               src/controller_node.cpp src/led_segment.cpp)
+add_executable(
+  controller_node
+  src/controller_node_main.cpp src/controller_node.cpp src/led_segment.cpp
+  src/led_panel.cpp src/segment_converter.cpp)
 
 ament_target_dependencies(controller_node rclcpp pluginlib sensor_msgs)
 target_link_libraries(controller_node yaml-cpp)
