@@ -629,36 +629,40 @@ ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=4
 
 [1601Value]
-NrOfEntries=2
-1=0x20010120
-2=0x20010220
+NrOfEntries=4
+1=0x20010110
+2=0x20010210
+3=0x20010310
+4=0x20010410
 
 [1602]
 ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [1602Value]
-NrOfEntries=2
+NrOfEntries=3
 1=0x20020120
-2=0x20020220
+2=0x20020210
+3=0x20020310
 
 [1603]
 ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [1603Value]
-NrOfEntries=2
-1=0x20030120
-2=0x20030220
+NrOfEntries=3
+1=0x20030110
+2=0x20030210
+3=0x20030310
 
 [1604]
 ParameterName=RPDO mapping parameter
@@ -677,36 +681,40 @@ ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=4
 
 [1605Value]
-NrOfEntries=2
-1=0x20050120
-2=0x20050220
+NrOfEntries=4
+1=0x20050110
+2=0x20050210
+3=0x20050310
+4=0x20050410
 
 [1606]
 ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [1606Value]
-NrOfEntries=2
+NrOfEntries=3
 1=0x20060120
-2=0x20060220
+2=0x20060210
+3=0x20060310
 
 [1607]
 ParameterName=RPDO mapping parameter
 ObjectType=0x09
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [1607Value]
-NrOfEntries=2
-1=0x20070120
-2=0x20070220
+NrOfEntries=3
+1=0x20070110
+2=0x20070210
+3=0x20070310
 
 [1800]
 SubNumber=7
@@ -1287,19 +1295,19 @@ AccessType=const
 DefaultValue=2
 
 [2000sub1]
-ParameterName=slave_1: User Integer Variable 1
+ParameterName=slave_1: Encoder 1
 DataType=0x0004
 AccessType=rww
 PDOMapping=1
 
 [2000sub2]
-ParameterName=slave_1: User Integer Variable 2
+ParameterName=slave_1: Encoder 2
 DataType=0x0004
 AccessType=rww
 PDOMapping=1
 
 [2001]
-SubNumber=3
+SubNumber=5
 ParameterName=Mapped application objects for RPDO 2
 ObjectType=0x09
 
@@ -1307,22 +1315,34 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=4
 
 [2001sub1]
-ParameterName=slave_1: User Integer Variable 3
-DataType=0x0004
+ParameterName=slave_1: Encoder 1
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2001sub2]
-ParameterName=slave_1: User Integer Variable 4
-DataType=0x0004
+ParameterName=slave_1: Encoder 2
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2001sub3]
+ParameterName=slave_1: Channel 1
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2001sub4]
+ParameterName=slave_1: Channel 2
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2002]
-SubNumber=3
+SubNumber=4
 ParameterName=Mapped application objects for RPDO 3
 ObjectType=0x09
 
@@ -1330,22 +1350,28 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=3
 
 [2002sub1]
-ParameterName=slave_1: User Integer Variable 5
+ParameterName=slave_1: User Integer Variable 7
 DataType=0x0004
 AccessType=rww
 PDOMapping=1
 
 [2002sub2]
-ParameterName=slave_1: User Integer Variable 6
-DataType=0x0004
+ParameterName=slave_1: Channel 1
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2002sub3]
+ParameterName=slave_1: Channel 2
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2003]
-SubNumber=3
+SubNumber=4
 ParameterName=Mapped application objects for RPDO 4
 ObjectType=0x09
 
@@ -1353,17 +1379,23 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=3
 
 [2003sub1]
-ParameterName=slave_1: User Integer Variable 7
-DataType=0x0004
+ParameterName=slave_1: V Bat
+DataType=0x0006
 AccessType=rww
 PDOMapping=1
 
 [2003sub2]
-ParameterName=slave_1: User Integer Variable 8
-DataType=0x0004
+ParameterName=slave_1: MCU
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2003sub3]
+ParameterName=slave_1: Sensor 1
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
@@ -1379,19 +1411,19 @@ AccessType=const
 DefaultValue=2
 
 [2004sub1]
-ParameterName=slave_2: User Integer Variable 1
+ParameterName=slave_2: Encoder 1
 DataType=0x0004
 AccessType=rww
 PDOMapping=1
 
 [2004sub2]
-ParameterName=slave_2: User Integer Variable 2
+ParameterName=slave_2: Encoder 2
 DataType=0x0004
 AccessType=rww
 PDOMapping=1
 
 [2005]
-SubNumber=3
+SubNumber=5
 ParameterName=Mapped application objects for RPDO 6
 ObjectType=0x09
 
@@ -1399,22 +1431,34 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=4
 
 [2005sub1]
-ParameterName=slave_2: User Integer Variable 3
-DataType=0x0004
+ParameterName=slave_2: Encoder 1
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2005sub2]
-ParameterName=slave_2: User Integer Variable 4
-DataType=0x0004
+ParameterName=slave_2: Encoder 2
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2005sub3]
+ParameterName=slave_2: Channel 1
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2005sub4]
+ParameterName=slave_2: Channel 2
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2006]
-SubNumber=3
+SubNumber=4
 ParameterName=Mapped application objects for RPDO 7
 ObjectType=0x09
 
@@ -1422,22 +1466,28 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=3
 
 [2006sub1]
-ParameterName=slave_2: User Integer Variable 5
+ParameterName=slave_2: User Integer Variable 7
 DataType=0x0004
 AccessType=rww
 PDOMapping=1
 
 [2006sub2]
-ParameterName=slave_2: User Integer Variable 6
-DataType=0x0004
+ParameterName=slave_2: Channel 1
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2006sub3]
+ParameterName=slave_2: Channel 2
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
 [2007]
-SubNumber=3
+SubNumber=4
 ParameterName=Mapped application objects for RPDO 8
 ObjectType=0x09
 
@@ -1445,17 +1495,23 @@ ObjectType=0x09
 ParameterName=Highest sub-index supported
 DataType=0x0005
 AccessType=const
-DefaultValue=2
+DefaultValue=3
 
 [2007sub1]
-ParameterName=slave_2: User Integer Variable 7
-DataType=0x0004
+ParameterName=slave_2: V Bat
+DataType=0x0006
 AccessType=rww
 PDOMapping=1
 
 [2007sub2]
-ParameterName=slave_2: User Integer Variable 8
-DataType=0x0004
+ParameterName=slave_2: MCU
+DataType=0x0003
+AccessType=rww
+PDOMapping=1
+
+[2007sub3]
+ParameterName=slave_2: Sensor 1
+DataType=0x0003
 AccessType=rww
 PDOMapping=1
 
@@ -1471,13 +1527,13 @@ AccessType=const
 DefaultValue=2
 
 [2200sub1]
-ParameterName=slave_1: User Integer Variable 9
+ParameterName=slave_1: Channel 1
 DataType=0x0004
 AccessType=rwr
 PDOMapping=1
 
 [2200sub2]
-ParameterName=slave_1: User Integer Variable 10
+ParameterName=slave_1: Channel 2
 DataType=0x0004
 AccessType=rwr
 PDOMapping=1
@@ -1563,13 +1619,13 @@ AccessType=const
 DefaultValue=2
 
 [2204sub1]
-ParameterName=slave_2: User Integer Variable 9
+ParameterName=slave_2: Channel 1
 DataType=0x0004
 AccessType=rwr
 PDOMapping=1
 
 [2204sub2]
-ParameterName=slave_2: User Integer Variable 10
+ParameterName=slave_2: Channel 2
 DataType=0x0004
 AccessType=rwr
 PDOMapping=1
@@ -1700,44 +1756,48 @@ CompactSubObj=2
 
 [5A00Value]
 NrOfEntries=2
-1=0x21060120
-2=0x21060220
+1=0x21040120
+2=0x21040220
 
 [5A01]
 ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=4
 
 [5A01Value]
-NrOfEntries=2
-1=0x21060320
-2=0x21060420
+NrOfEntries=4
+1=0x21070110
+2=0x21070210
+3=0x21000110
+4=0x21000210
 
 [5A02]
 ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [5A02Value]
-NrOfEntries=2
-1=0x21060520
-2=0x21060620
+NrOfEntries=3
+1=0x21060720
+2=0x210C0110
+3=0x210C0210
 
 [5A03]
 ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [5A03Value]
-NrOfEntries=2
-1=0x21060720
-2=0x21060820
+NrOfEntries=3
+1=0x210D0210
+2=0x210F0110
+3=0x210F0210
 
 [5A04]
 ParameterName=Remote TPDO mapping parameter
@@ -1748,44 +1808,48 @@ CompactSubObj=2
 
 [5A04Value]
 NrOfEntries=2
-1=0x21060120
-2=0x21060220
+1=0x21040120
+2=0x21040220
 
 [5A05]
 ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=4
 
 [5A05Value]
-NrOfEntries=2
-1=0x21060320
-2=0x21060420
+NrOfEntries=4
+1=0x21070110
+2=0x21070210
+3=0x21000110
+4=0x21000210
 
 [5A06]
 ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [5A06Value]
-NrOfEntries=2
-1=0x21060520
-2=0x21060620
+NrOfEntries=3
+1=0x21060720
+2=0x210C0110
+3=0x210C0210
 
 [5A07]
 ParameterName=Remote TPDO mapping parameter
 ObjectType=0x08
 DataType=0x0007
 AccessType=rw
-CompactSubObj=2
+CompactSubObj=3
 
 [5A07Value]
-NrOfEntries=2
-1=0x21060720
-2=0x21060820
+NrOfEntries=3
+1=0x210D0210
+2=0x210F0110
+3=0x210F0210
 
 [5C00]
 ParameterName=Remote RPDO number and node-ID
@@ -1844,8 +1908,8 @@ CompactSubObj=2
 
 [5E00Value]
 NrOfEntries=2
-1=0x20050920
-2=0x20050A20
+1=0x20000120
+2=0x20000220
 
 [5E01]
 ParameterName=Remote RPDO mapping parameter
@@ -1892,8 +1956,8 @@ CompactSubObj=2
 
 [5E04Value]
 NrOfEntries=2
-1=0x20050920
-2=0x20050A20
+1=0x20000120
+2=0x20000220
 
 [5E05]
 ParameterName=Remote RPDO mapping parameter

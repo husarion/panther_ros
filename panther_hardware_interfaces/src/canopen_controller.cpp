@@ -93,9 +93,11 @@ void CANopenController::Deinitialize()
   if (master_) {
     master_->AsyncDeconfig().submit(*exec_, [this]() { ctx_->shutdown(); });
   }
+
   if (canopen_communication_thread_.joinable()) {
     canopen_communication_thread_.join();
   }
+
   canopen_communication_started_.store(false);
 
   rear_driver_.reset();
@@ -128,7 +130,7 @@ void CANopenController::InitializeCANCommunication()
 
   chan_->open(*ctrl_);
 
-  // Master dcf is generated from roboteq_motor_controllers_v80_21 using following command:
+  // Master dcf is generated from roboteq_motor_controllers_v80_21a using following command:
   // dcfgen canopen_configuration.yaml -r
   // dcfgen comes with lely, -r option tells to enable remote PDO mapping
   std::string master_dcf_path = std::filesystem::path(ament_index_cpp::get_package_share_directory(
@@ -139,11 +141,9 @@ void CANopenController::InitializeCANCommunication()
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
   front_driver_ = std::make_shared<RoboteqDriver>(
-    exec_, master_, canopen_settings_.front_driver_can_id,
-    canopen_settings_.sdo_operation_timeout_ms);
+    master_, canopen_settings_.front_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
   rear_driver_ = std::make_shared<RoboteqDriver>(
-    exec_, master_, canopen_settings_.rear_driver_can_id,
-    canopen_settings_.sdo_operation_timeout_ms);
+    master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();

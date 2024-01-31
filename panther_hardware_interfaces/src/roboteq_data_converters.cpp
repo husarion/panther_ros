@@ -147,8 +147,11 @@ RuntimeError::RuntimeError()
       "amps_trigger_activated",
     },
     {
-      "safety_stop_active",
       "amps_limit_active",
+      "safety_stop_active",
+      "forward_limit_triggered",
+      "reverse_limit_triggered",
+      "amps_trigger_activated",
     })
 {
 }
@@ -168,24 +171,29 @@ panther_msgs::msg::RuntimeError RuntimeError::GetMessage() const
   return runtime_errors_msg;
 }
 
-void RoboteqData::SetMotorStates(
+void RoboteqData::SetMotorsStates(
   const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
-  const bool data_timed_out, const bool can_net_err)
+  const bool data_timed_out)
 {
   left_motor_state_.SetData(left_state);
   right_motor_state_.SetData(right_state);
-  data_timed_out_ = data_timed_out;
-  can_net_err_ = can_net_err;
+  motor_states_data_timed_out_ = data_timed_out;
 }
 
-void RoboteqData::SetFlags(
-  const std::uint8_t fault_flags, const std::uint8_t script_flags,
-  const std::uint8_t left_runtime_errors_flags, const std::uint8_t right_runtime_errors_flags)
+void RoboteqData::SetDriverState(const RoboteqDriverState & state, const bool data_timed_out)
 {
-  fault_flags_.SetData(fault_flags);
-  script_flags_.SetData(script_flags);
-  left_runtime_error_.SetData(left_runtime_errors_flags);
-  right_runtime_error_.SetData(right_runtime_errors_flags);
+  driver_state_.SetTemperature(state.mcu_temp);
+  driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
+  driver_state_.SetVoltage(state.battery_voltage);
+  driver_state_.SetBatteryCurrent1(state.battery_current_1);
+  driver_state_.SetBatteryCurrent2(state.battery_current_2);
+
+  fault_flags_.SetData(state.fault_flags);
+  script_flags_.SetData(state.script_flags);
+  left_runtime_error_.SetData(state.runtime_stat_flag_motor_2);
+  right_runtime_error_.SetData(state.runtime_stat_flag_motor_1);
+
+  driver_state_data_timed_out_ = data_timed_out;
 }
 
 std::string RoboteqData::GetFlagErrorLog() const

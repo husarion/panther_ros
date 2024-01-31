@@ -164,8 +164,20 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   panther_hardware_interfaces::RoboteqData rear(
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
-  front.SetFlags(0b00000001, 0b00000010, 0b00000100, 0b00001000);
-  rear.SetFlags(0b00000010, 0b00000001, 0b00010000, 0b00100000);
+  panther_hardware_interfaces::RoboteqDriverState front_driver_state;
+  front_driver_state.fault_flags = 0b00000001;
+  front_driver_state.script_flags = 0b00000010;
+  front_driver_state.runtime_stat_flag_motor_1 = 0b00001000;
+  front_driver_state.runtime_stat_flag_motor_2 = 0b00000100;
+
+  panther_hardware_interfaces::RoboteqDriverState rear_driver_state;
+  rear_driver_state.fault_flags = 0b00000010;
+  rear_driver_state.script_flags = 0b00000001;
+  rear_driver_state.runtime_stat_flag_motor_1 = 0b00100000;
+  rear_driver_state.runtime_stat_flag_motor_2 = 0b00010000;
+
+  front.SetDriverState(front_driver_state, false);
+  rear.SetDriverState(rear_driver_state, false);
 
   panther_system_ros_interface->UpdateMsgErrorFlags(front, rear);
   panther_system_ros_interface->PublishDriverState();
@@ -186,7 +198,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   rclcpp::shutdown();
 }
 
-TEST(TestPantherSystemRosInterface, test_drivers_parameters)
+TEST(TestPantherSystemRosInterface, test_drivers_states)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
@@ -205,25 +217,29 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   panther_hardware_interfaces::DriverState rear;
 
   const std::int16_t f_temp = 36;
+  const std::int16_t f_heatsink_temp = 37;
   const std::uint16_t f_volt = 405;
-  const std::int16_t f_bat_amps_1 = 15;
-  const std::int16_t f_bat_amps_2 = 12;
+  const std::int16_t f_battery_current_1 = 15;
+  const std::int16_t f_battery_current_2 = 12;
   const std::int16_t r_temp = 35;
+  const std::int16_t r_heatsink_temp = 36;
   const std::uint16_t r_volt = 404;
-  const std::int16_t r_bat_amps_1 = 14;
-  const std::int16_t r_bat_amps_2 = 11;
+  const std::int16_t r_battery_current_1 = 14;
+  const std::int16_t r_battery_current_2 = 11;
 
   front.SetTemperature(f_temp);
+  front.SetHeatsinkTemperature(f_heatsink_temp);
   front.SetVoltage(f_volt);
-  front.SetBatAmps1(f_bat_amps_1);
-  front.SetBatAmps2(f_bat_amps_2);
+  front.SetBatteryCurrent1(f_battery_current_1);
+  front.SetBatteryCurrent2(f_battery_current_2);
 
   rear.SetTemperature(r_temp);
+  rear.SetHeatsinkTemperature(r_heatsink_temp);
   rear.SetVoltage(r_volt);
-  rear.SetBatAmps1(r_bat_amps_1);
-  rear.SetBatAmps2(r_bat_amps_2);
+  rear.SetBatteryCurrent1(r_battery_current_1);
+  rear.SetBatteryCurrent2(r_battery_current_2);
 
-  panther_system_ros_interface->UpdateMsgDriversParameters(front, rear);
+  panther_system_ros_interface->UpdateMsgDriversStates(front, rear);
   panther_system_ros_interface->PublishDriverState();
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
@@ -231,13 +247,19 @@ TEST(TestPantherSystemRosInterface, test_drivers_parameters)
   ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->front.temperature), f_temp);
   ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->rear.temperature), r_temp);
 
+  ASSERT_FLOAT_EQ(
+    static_cast<std::int16_t>(state_msg->front.heatsink_temperature), f_heatsink_temp);
+  ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->rear.heatsink_temperature), r_heatsink_temp);
+
   ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->front.voltage * 10.0), f_volt);
   ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
 
   ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->front.current * 10.0), (f_bat_amps_1 + f_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->front.current * 10.0),
+    (f_battery_current_1 + f_battery_current_2));
   ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->rear.current * 10.0), (r_bat_amps_1 + r_bat_amps_2));
+    static_cast<std::int16_t>(state_msg->rear.current * 10.0),
+    (r_battery_current_1 + r_battery_current_2));
 
   panther_system_ros_interface.reset();
   rclcpp::shutdown();
@@ -260,11 +282,17 @@ TEST(TestPantherSystemRosInterface, test_errors)
 
   panther_hardware_interfaces::CANErrors can_errors;
   can_errors.error = true;
-  can_errors.write_sdo_error = true;
-  can_errors.read_sdo_error = false;
-  can_errors.read_pdo_error = false;
-  can_errors.front_data_timed_out = true;
-  can_errors.rear_data_timed_out = false;
+
+  can_errors.write_pdo_cmds_error = true;
+  can_errors.read_pdo_motor_states_error = false;
+  can_errors.read_pdo_driver_state_error = false;
+
+  can_errors.front_motor_states_data_timed_out = true;
+  can_errors.rear_motor_states_data_timed_out = false;
+
+  can_errors.front_driver_state_data_timed_out = false;
+  can_errors.rear_driver_state_data_timed_out = true;
+
   can_errors.front_can_net_err = false;
   can_errors.rear_can_net_err = true;
 
@@ -275,12 +303,16 @@ TEST(TestPantherSystemRosInterface, test_errors)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_TRUE(state_msg->error);
-  ASSERT_TRUE(state_msg->write_sdo_error);
-  ASSERT_FALSE(state_msg->read_sdo_error);
-  ASSERT_FALSE(state_msg->read_pdo_error);
 
-  ASSERT_TRUE(state_msg->front.data_timed_out);
-  ASSERT_FALSE(state_msg->rear.data_timed_out);
+  ASSERT_TRUE(state_msg->write_pdo_cmds_error);
+  ASSERT_FALSE(state_msg->read_pdo_motor_states_error);
+  ASSERT_FALSE(state_msg->read_pdo_driver_state_error);
+
+  ASSERT_TRUE(state_msg->front.motor_states_data_timed_out);
+  ASSERT_FALSE(state_msg->rear.motor_states_data_timed_out);
+
+  ASSERT_FALSE(state_msg->front.driver_state_data_timed_out);
+  ASSERT_TRUE(state_msg->rear.driver_state_data_timed_out);
 
   ASSERT_FALSE(state_msg->front.can_net_err);
   ASSERT_TRUE(state_msg->rear.can_net_err);

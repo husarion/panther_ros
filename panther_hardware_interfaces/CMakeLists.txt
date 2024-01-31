@@ -83,6 +83,9 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test_roboteq_error_filter
                              PRIVATE include)
 
+  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
+  target_include_directories(${PROJECT_NAME}_test_utils PRIVATE include)
+
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
     test/test_roboteq_data_converters.cpp src/roboteq_data_converters.cpp
@@ -92,9 +95,6 @@ if(BUILD_TESTING)
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
                             panther_msgs)
-
-  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_utils PRIVATE include)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller test/test_canopen_controller.cpp

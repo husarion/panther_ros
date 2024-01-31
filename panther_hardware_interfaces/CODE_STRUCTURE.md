@@ -4,11 +4,14 @@ A brief introduction to the code structure of the Panther system.
 
 ## RoboteqDriver
 
-Low-level CANopen driver implementing FiberDriver from [Lely](https://opensource.lely.com/canopen/) ([here](https://en.wikipedia.org/wiki/Fiber_%28computer_science%29) you can read more about fibers). It takes care of translating CANopen indexes into meaningful data. It handles PDO and SDO communication and provides methods for sending commands and reading all the useful parameters from the Roboteq drivers. It saves the timestamp of the last RPDO, which can be later used to detect timeout errors.
+Low-level CANopen driver implementing LoopDriver from [Lely](https://opensource.lely.com/canopen/).
+It takes care of translating CANopen indexes into meaningful data.
+Provided methods can be used for sending commands and reading all the useful parameters from the Roboteq drivers (they abstract low level SDO and PDO communication).
+Timestamp of all received PDO data is also saved, which can be later used for detecting timeout errors.
 
 ## CANopenController
 
-Takes care of CANopen communication - creates and initializes master controller and two Roboteq drivers (front and rear). For handling CANopen communication separate thread is created.
+Takes care of CANopen communication - creates and initializes master controller and two Roboteq drivers (front and rear). For handling CANopen communication separate thread is created with configurable RT priority (additionally two threads for each driver is also created).
 
 ## MotorsController
 
@@ -35,7 +38,7 @@ Feedback converters are combined in the `RoboteqData` class to provide the full 
 A class that keeps track of different types of errors. In some rare cases, Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in a timeout.
 As they usually are rare and singular occurrences, it is better to filter some of these errors and escalate only when a certain number of errors happen.
 
-## GpioDriver
+## GPIODriver
 
 WIP - it will handle reading/writing pins of the RPi GPIO.
 
@@ -46,5 +49,5 @@ A class that takes care of additional ROS interface of panther system, such as p
 ## PantherSystem
 
 The main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
-
-<!-- todo: when an exception is thrown it is not RT safe (situation may change when we switch to PDO - on hold) -->
+Handles transitions (initialization, activation, shutdown, error, etc.), provides interfaces for feedback (position, velocity, effort) and commands (velocity).
+In the main loop controller should call read and write functions to communicate with motor drivers.

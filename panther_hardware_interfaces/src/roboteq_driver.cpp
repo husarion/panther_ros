@@ -44,22 +44,22 @@ struct RoboteqCANObjects
   static constexpr CANopenObject cmd_1 = {0x2000, 1};
   static constexpr CANopenObject cmd_2 = {0x2000, 2};
 
-  static constexpr CANopenObject position_1 = {0x2106, 1};
-  static constexpr CANopenObject position_2 = {0x2106, 2};
+  static constexpr CANopenObject position_1 = {0x2104, 1};
+  static constexpr CANopenObject position_2 = {0x2104, 2};
 
-  static constexpr CANopenObject velocity_1 = {0x2106, 3};
-  static constexpr CANopenObject velocity_2 = {0x2106, 4};
+  static constexpr CANopenObject velocity_1 = {0x2107, 1};
+  static constexpr CANopenObject velocity_2 = {0x2107, 2};
 
-  static constexpr CANopenObject current_1 = {0x2106, 5};
-  static constexpr CANopenObject current_2 = {0x2106, 6};
+  static constexpr CANopenObject current_1 = {0x2100, 1};
+  static constexpr CANopenObject current_2 = {0x2100, 2};
 
-  static constexpr CANopenObject fault_script_flags = {0x2106, 7};
-  static constexpr CANopenObject motor_flags = {0x2106, 8};
+  static constexpr CANopenObject flags = {0x2106, 7};
 
-  static constexpr CANopenObject temperature = {0x210F, 1};
-  static constexpr CANopenObject voltage = {0x210D, 2};
-  static constexpr CANopenObject bat_amps_1 = {0x210C, 1};
-  static constexpr CANopenObject bat_amps_2 = {0x210C, 2};
+  static constexpr CANopenObject mcu_temp = {0x210F, 1};
+  static constexpr CANopenObject heatsink_temp = {0x210F, 2};
+  static constexpr CANopenObject battery_voltage = {0x210D, 2};
+  static constexpr CANopenObject battery_current_1 = {0x210C, 1};
+  static constexpr CANopenObject battery_current_2 = {0x210C, 2};
 
   static constexpr CANopenObject reset_script = {0x2018, 0};
   static constexpr CANopenObject turn_on_estop = {0x200C, 0};        // Cmd_ESTOP
@@ -68,18 +68,16 @@ struct RoboteqCANObjects
 };
 
 RoboteqDriver::RoboteqDriver(
-  const std::shared_ptr<lely::ev::Executor> & exec,
   const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
   const std::chrono::milliseconds & sdo_operation_timeout_ms)
-: lely::canopen::FiberDriver(*exec, *master, id),
-  sdo_operation_timeout_ms_(sdo_operation_timeout_ms)
+: lely::canopen::LoopDriver(*master, id), sdo_operation_timeout_ms_(sdo_operation_timeout_ms)
 {
 }
 
 bool RoboteqDriver::Boot()
 {
   booted_.store(false);
-  return FiberDriver::Boot();
+  return LoopDriver::Boot();
 }
 
 bool RoboteqDriver::WaitForBoot()
@@ -100,110 +98,81 @@ bool RoboteqDriver::WaitForBoot()
   }
 }
 
-std::int16_t RoboteqDriver::ReadTemperature()
+RoboteqMotorsStates RoboteqDriver::ReadRoboteqMotorsStates()
 {
-  try {
-    return SyncSDORead<std::int8_t>(
-      RoboteqCANObjects::temperature.id, RoboteqCANObjects::temperature.subid);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read temperature: " + std::string(e.what()));
-  }
-}
-
-std::uint16_t RoboteqDriver::ReadVoltage()
-{
-  try {
-    return SyncSDORead<std::uint16_t>(
-      RoboteqCANObjects::voltage.id, RoboteqCANObjects::voltage.subid);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read voltage: " + std::string(e.what()));
-  }
-}
-
-std::int16_t RoboteqDriver::ReadBatAmps1()
-{
-  try {
-    return SyncSDORead<std::int16_t>(
-      RoboteqCANObjects::bat_amps_1.id, RoboteqCANObjects::bat_amps_1.subid);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read bat amps 1: " + std::string(e.what()));
-  }
-}
-
-std::int16_t RoboteqDriver::ReadBatAmps2()
-{
-  try {
-    return SyncSDORead<std::int16_t>(
-      RoboteqCANObjects::bat_amps_2.id, RoboteqCANObjects::bat_amps_2.subid);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Error when trying to read bat amps 2: " + std::string(e.what()));
-  }
-}
-
-RoboteqDriverFeedback RoboteqDriver::ReadRoboteqDriverFeedback()
-{
-  RoboteqDriverFeedback fb;
+  RoboteqMotorsStates states;
 
   // already does locking when accessing rpdo
-  fb.motor_1.pos =
+  states.motor_1.pos =
     rpdo_mapped[RoboteqCANObjects::position_1.id][RoboteqCANObjects::position_1.subid];
-  fb.motor_2.pos =
+  states.motor_2.pos =
     rpdo_mapped[RoboteqCANObjects::position_2.id][RoboteqCANObjects::position_2.subid];
 
-  fb.motor_1.vel =
+  states.motor_1.vel =
     rpdo_mapped[RoboteqCANObjects::velocity_1.id][RoboteqCANObjects::velocity_1.subid];
-  fb.motor_2.vel =
+  states.motor_2.vel =
     rpdo_mapped[RoboteqCANObjects::velocity_2.id][RoboteqCANObjects::velocity_2.subid];
 
-  fb.motor_1.current =
+  states.motor_1.current =
     rpdo_mapped[RoboteqCANObjects::current_1.id][RoboteqCANObjects::current_1.subid];
-  fb.motor_2.current =
+  states.motor_2.current =
     rpdo_mapped[RoboteqCANObjects::current_2.id][RoboteqCANObjects::current_2.subid];
 
-  fb.fault_flags = GetByte(
-    static_cast<int32_t>(rpdo_mapped[RoboteqCANObjects::fault_script_flags.id]
-                                    [RoboteqCANObjects::fault_script_flags.subid]),
-    0);
-  fb.script_flags = GetByte(
-    static_cast<int32_t>(rpdo_mapped[RoboteqCANObjects::fault_script_flags.id]
-                                    [RoboteqCANObjects::fault_script_flags.subid]),
-    2);
+  std::unique_lock<std::mutex> lck_p(position_timestamp_mtx_);
+  states.pos_timestamp = last_position_timestamp_;
 
-  fb.runtime_stat_flag_motor_1 = GetByte(
-    static_cast<int32_t>(
-      rpdo_mapped[RoboteqCANObjects::motor_flags.id][RoboteqCANObjects::motor_flags.subid]),
+  std::unique_lock<std::mutex> lck_sc(speed_current_timestamp_mtx_);
+  states.vel_current_timestamp = last_speed_current_timestamp_;
+
+  return states;
+}
+
+RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
+{
+  RoboteqDriverState state;
+
+  state.fault_flags = GetByte(
+    static_cast<std::int32_t>(
+      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
     0);
-  fb.runtime_stat_flag_motor_2 = GetByte(
-    static_cast<int32_t>(
-      rpdo_mapped[RoboteqCANObjects::motor_flags.id][RoboteqCANObjects::motor_flags.subid]),
+  state.runtime_stat_flag_motor_1 = GetByte(
+    static_cast<std::int32_t>(
+      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
     1);
+  state.runtime_stat_flag_motor_2 = GetByte(
+    static_cast<std::int32_t>(
+      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
+    2);
+  state.script_flags = GetByte(
+    static_cast<std::int32_t>(
+      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
+    3);
 
-  std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
-  fb.timestamp = last_rpdo_write_timestamp_;
+  state.mcu_temp = rpdo_mapped[RoboteqCANObjects::mcu_temp.id][RoboteqCANObjects::mcu_temp.subid];
+  state.heatsink_temp =
+    rpdo_mapped[RoboteqCANObjects::heatsink_temp.id][RoboteqCANObjects::heatsink_temp.subid];
+  state.battery_voltage =
+    rpdo_mapped[RoboteqCANObjects::battery_voltage.id][RoboteqCANObjects::battery_voltage.subid];
+  state.battery_current_1 = rpdo_mapped[RoboteqCANObjects::battery_current_1.id]
+                                       [RoboteqCANObjects::battery_current_1.subid];
+  state.battery_current_2 = rpdo_mapped[RoboteqCANObjects::battery_current_2.id]
+                                       [RoboteqCANObjects::battery_current_2.subid];
 
-  return fb;
+  std::unique_lock<std::mutex> lck_fa(flags_current_timestamp_mtx_);
+  state.flags_current_timestamp = flags_current_timestamp_;
+
+  std::unique_lock<std::mutex> lck_vt(voltages_temps_timestamp_mtx_);
+  state.voltages_temps_timestamp = last_voltages_temps_timestamp_;
+
+  return state;
 }
 
-// todo check what happens when publishing is stopped (on hold - waiting for decision on changing to
-// PDO)
-void RoboteqDriver::SendRoboteqCmdChannel1(const std::int32_t cmd)
+void RoboteqDriver::SendRoboteqCmd(
+  const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2)
 {
-  try {
-    SyncSDOWrite<std::int32_t>(RoboteqCANObjects::cmd_1.id, RoboteqCANObjects::cmd_1.subid, cmd);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to send channel 1 Roboteq command: " + std::string(e.what()));
-  }
-}
-
-void RoboteqDriver::SendRoboteqCmdChannel2(const std::int32_t cmd)
-{
-  try {
-    SyncSDOWrite<std::int32_t>(RoboteqCANObjects::cmd_2.id, RoboteqCANObjects::cmd_2.subid, cmd);
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to send channel 2 Roboteq command: " + std::string(e.what()));
-  }
+  tpdo_mapped[RoboteqCANObjects::cmd_1.id][RoboteqCANObjects::cmd_1.subid] = cmd_channel_1;
+  tpdo_mapped[RoboteqCANObjects::cmd_2.id][RoboteqCANObjects::cmd_2.subid] = cmd_channel_2;
+  tpdo_mapped[RoboteqCANObjects::cmd_2.id][RoboteqCANObjects::cmd_2.subid].WriteEvent();
 }
 
 void RoboteqDriver::ResetRoboteqScript()
@@ -261,38 +230,16 @@ void RoboteqDriver::TurnOnSafetyStopChannel2()
 template <typename T>
 T RoboteqDriver::SyncSDORead(const std::uint16_t index, const std::uint8_t subindex)
 {
-  std::unique_lock<std::mutex> sdo_read_lck(sdo_read_mtx_, std::defer_lock);
-  if (!sdo_read_lck.try_lock()) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - the previous one is still being processed");
-  }
-
   std::mutex mtx;
   std::condition_variable cv;
   T data;
   std::error_code err_code;
 
-  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
-  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
-  // set to false in result. Solution currently on hold - switching to PDO will also solve this
-  // issue
-  if (sdo_read_timed_out_) {
-    throw std::runtime_error(
-      "Can't submit new SDO read operation - previous one that timed out is still in queue");
-  }
-
   try {
     SubmitRead<T>(
       index, subindex,
-      [&sdo_read_timed_out_ = sdo_read_timed_out_, &mtx, &cv, &err_code, &data](
+      [&mtx, &cv, &err_code, &data](
         std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec, T value) mutable {
-        // In this case function has already finished, and other variables don't exist
-        // and we have to end
-
-        if (sdo_read_timed_out_) {
-          sdo_read_timed_out_.store(false);
-          return;
-        }
         {
           std::lock_guard<std::mutex> lck_g(mtx);
           if (ec) {
@@ -309,12 +256,7 @@ T RoboteqDriver::SyncSDORead(const std::uint16_t index, const std::uint8_t subin
   }
 
   std::unique_lock<std::mutex> lck(mtx);
-  if (
-    cv.wait_for(lck, sdo_operation_timeout_ms_ + kSdoOperationAdditionalWait) ==
-    std::cv_status::timeout) {
-    sdo_read_timed_out_.store(true);
-    throw std::runtime_error("Timeout while waiting for SDO read operation to finish");
-  }
+  cv.wait(lck);
 
   if (err_code) {
     throw std::runtime_error("Error msg: " + err_code.message());
@@ -327,36 +269,15 @@ template <typename T>
 void RoboteqDriver::SyncSDOWrite(
   const std::uint16_t index, const std::uint8_t subindex, const T data)
 {
-  std::unique_lock<std::mutex> sdo_write_lck(sdo_write_mtx_, std::defer_lock);
-  if (!sdo_write_lck.try_lock()) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - the previous one is still being processed");
-  }
-
   std::mutex mtx;
   std::condition_variable cv;
   std::error_code err_code;
 
-  // todo: In some cases (especially with frequencies higher than 100Hz, mostly during activation)
-  // deadlock can happen, when submitted function won't be executed and sdo_read_timed_out_ won't be
-  // set to false in result. Solution currently on hold - switching to PDO will also solve this
-  // issue
-  if (sdo_write_timed_out_) {
-    throw std::runtime_error(
-      "Can't submit new SDO write operation - previous one that timed out is still in queue");
-  }
-
   try {
     SubmitWrite(
       index, subindex, data,
-      [&sdo_write_timed_out_ = sdo_write_timed_out_, &mtx, &cv, &err_code](
+      [&mtx, &cv, &err_code](
         std::uint8_t, std::uint16_t, std::uint8_t, std::error_code ec) mutable {
-        // In this case function has already finished, and other variables don't exist
-        // and we have to end
-        if (sdo_write_timed_out_) {
-          sdo_write_timed_out_.store(false);
-          return;
-        }
         {
           std::lock_guard<std::mutex> lck_g(mtx);
           if (ec) {
@@ -371,13 +292,7 @@ void RoboteqDriver::SyncSDOWrite(
   }
 
   std::unique_lock<std::mutex> lck(mtx);
-
-  if (
-    cv.wait_for(lck, sdo_operation_timeout_ms_ + kSdoOperationAdditionalWait) ==
-    std::cv_status::timeout) {
-    sdo_write_timed_out_.store(true);
-    throw std::runtime_error("Timeout while waiting for SDO read operation to finish");
-  }
+  cv.wait(lck);
 
   if (err_code) {
     throw std::runtime_error("Error msg: " + err_code.message());
@@ -387,7 +302,7 @@ void RoboteqDriver::SyncSDOWrite(
 void RoboteqDriver::OnBoot(
   const lely::canopen::NmtState st, const char es, const std::string & what) noexcept
 {
-  FiberDriver::OnBoot(st, es, what);
+  LoopDriver::OnBoot(st, es, what);
 
   if (!es || es == 'L') {
     booted_.store(true);
@@ -403,8 +318,20 @@ void RoboteqDriver::OnBoot(
 void RoboteqDriver::OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subidx) noexcept
 {
   if (idx == RoboteqCANObjects::position_1.id && subidx == RoboteqCANObjects::position_1.subid) {
-    std::unique_lock<std::mutex> lck(rpdo_timestamp_mtx_);
-    clock_gettime(CLOCK_MONOTONIC, &last_rpdo_write_timestamp_);
+    std::unique_lock<std::mutex> lck(position_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_position_timestamp_);
+  } else if (
+    idx == RoboteqCANObjects::velocity_1.id && subidx == RoboteqCANObjects::velocity_1.subid) {
+    std::unique_lock<std::mutex> lck(speed_current_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_speed_current_timestamp_);
+  } else if (idx == RoboteqCANObjects::flags.id && subidx == RoboteqCANObjects::flags.subid) {
+    std::unique_lock<std::mutex> lck(flags_current_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &flags_current_timestamp_);
+  } else if (
+    idx == RoboteqCANObjects::battery_voltage.id &&
+    subidx == RoboteqCANObjects::battery_voltage.subid) {
+    std::unique_lock<std::mutex> lck(voltages_temps_timestamp_mtx_);
+    clock_gettime(CLOCK_MONOTONIC, &last_voltages_temps_timestamp_);
   }
 }
 

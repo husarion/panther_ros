@@ -2,7 +2,7 @@
   controller_manager:
     ros__parameters:
       use_sim_time: false
-      update_rate: 50
+      update_rate: 100
 
       joint_state_broadcaster:
         type: joint_state_broadcaster/JointStateBroadcaster
@@ -31,7 +31,7 @@
       left_wheel_radius_multiplier: 1.0
       right_wheel_radius_multiplier: 1.0
 
-      publish_rate: 50.0
+      publish_rate: 100.0
       odom_frame_id: odom
       base_frame_id: base_link
       pose_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]

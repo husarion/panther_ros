@@ -61,7 +61,7 @@ public:
   std::vector<StateInterface> export_state_interfaces() override;
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
+  return_type read(const rclcpp::Time & time, const rclcpp::Duration & /* period */) override;
   return_type write(
     const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
@@ -78,8 +78,7 @@ protected:
 
   void UpdateHwStates();
   void UpdateDriverState();
-  void UpdateSystemFeedback();
-  void UpdateMsgErrors();
+  void UpdateMotorsStates();
   bool CheckIfSafetyStopActive();
 
   void SetEStop();
@@ -140,6 +139,9 @@ protected:
   std::atomic_bool last_commands_zero_ = false;
 
   std::mutex motor_controller_write_mtx_;
+
+  rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
+  rclcpp::Duration driver_states_update_period_{0, 0};
 };
 
 }  // namespace panther_hardware_interfaces

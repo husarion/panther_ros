@@ -28,7 +28,14 @@ namespace panther_hardware_interfaces_test
 {
 
 const panther_hardware_interfaces::CANopenSettings kCANopenSettings{
-  "panther_can", 3, 1, 2, std::chrono::milliseconds(15), std::chrono::milliseconds(4)};
+  "panther_can",
+  3,
+  1,
+  2,
+  std::chrono::milliseconds(15),
+  std::chrono::milliseconds(75),
+  std::chrono::milliseconds(100),
+};
 
 const panther_hardware_interfaces::DrivetrainSettings kDrivetrainSettings{
   0.11, 30.08, 0.75, 1600.0, 3600.0};
@@ -61,6 +68,7 @@ const std::string kPluginName =
 )";
 
 const std::map<std::string, std::string> kDefaultParamMap = {
+  {"panther_version", "1.2"},
   {"encoder_resolution", "1600"},
   {"gear_ratio", "30.08"},
   {"gearbox_efficiency", "0.75"},
@@ -70,14 +78,16 @@ const std::map<std::string, std::string> kDefaultParamMap = {
   {"master_can_id", "3"},
   {"front_driver_can_id", "1"},
   {"rear_driver_can_id", "2"},
-  {"sdo_operation_timeout_ms", "4"},
-  {"pdo_feedback_timeout_ms", "15"},
-  {"max_roboteq_initialization_attempts", "3"},
-  {"max_roboteq_activation_attempts", "3"},
+  {"sdo_operation_timeout_ms", "100"},
+  {"pdo_motor_states_timeout_ms", "15"},
+  {"pdo_driver_state_timeout_ms", "75"},
+  {"driver_states_update_frequency", "20.0"},
+  {"max_roboteq_initialization_attempts", "5"},
+  {"max_roboteq_activation_attempts", "5"},
   {"max_safety_stop_attempts", "20"},
-  {"max_write_sdo_errors_count", "2"},
-  {"max_read_sdo_errors_count", "2"},
-  {"max_read_pdo_errors_count", "1"},
+  {"max_write_pdo_cmds_errors_count", "4"},
+  {"max_read_pdo_motor_states_errors_count", "4"},
+  {"max_read_pdo_driver_state_errors_count", "20"},
 };
 
 const std::vector<std::string> kDefaultJoints = {
