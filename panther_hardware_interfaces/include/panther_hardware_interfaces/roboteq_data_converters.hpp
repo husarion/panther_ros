@@ -103,20 +103,20 @@ public:
    */
   FlagError(
     const std::vector<std::string> & flag_names,
-    const std::vector<std::string> & surpressed_flags_names = {});
+    const std::vector<std::string> & suppressed_flags_names = {});
 
   virtual ~FlagError() = default;
 
   void SetData(const std::uint8_t flags) { flags_ = flags; }
 
-  bool IsError() const { return (flags_ & (~surpressed_flags_)).any(); }
+  bool IsError() const { return (flags_ & (~suppressed_flags_)).any(); }
 
   std::string GetErrorLog() const;
 
 protected:
   const std::vector<std::string> flag_names_;
 
-  std::bitset<8> surpressed_flags_ = 0;
+  std::bitset<8> suppressed_flags_ = 0;
   std::bitset<8> flags_ = 0;
 };
 

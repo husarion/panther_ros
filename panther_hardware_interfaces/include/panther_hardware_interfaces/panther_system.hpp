@@ -75,10 +75,20 @@ protected:
   void ReadCANopenSettings();
   void ReadInitializationActivationAttempts();
   void ReadParametersAndCreateRoboteqErrorFilter();
+  void ReadDriverStatesUpdateFrequency();
+
+  void UpdateMotorsStates();
+  void UpdatDriverState();
 
   void UpdateHwStates();
-  void UpdateDriverState();
-  void UpdateMotorsStates();
+  void UpdateMotorsStatesDataTimedOut();
+
+  void UpdateDriverStateMsg();
+  void UpdateFlagErrors();
+  void UpdateDriverStateDataTimedOut();
+
+  void SendCommands();
+  void SendSafetyStopIfNotSet();
   bool CheckIfSafetyStopActive();
 
   void SetEStop();

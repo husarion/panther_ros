@@ -50,4 +50,4 @@ A class that takes care of additional ROS interface of panther system, such as p
 
 The main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
 Handles transitions (initialization, activation, shutdown, error, etc.), provides interfaces for feedback (position, velocity, effort) and commands (velocity).
-In the main loop controller should call read and write functions to communicate with motor drivers.
+In the main loop controller should call `read` and `write` functions to communicate with motor drivers.

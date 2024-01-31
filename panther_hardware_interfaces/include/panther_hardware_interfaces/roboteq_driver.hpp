@@ -142,14 +142,6 @@ public:
 
 private:
   /**
-   * @brief Blocking SDO read operation
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  template <typename T>
-  T SyncSDORead(const std::uint16_t index, const std::uint8_t subindex);
-
-  /**
    * @brief Blocking SDO write operation
    *
    * @exception std::runtime_error if operation fails

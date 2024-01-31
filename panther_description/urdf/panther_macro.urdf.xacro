@@ -98,7 +98,10 @@
           <param name="front_driver_can_id">1</param>
           <param name="rear_driver_can_id">2</param>
           <param name="sdo_operation_timeout_ms">100</param>
-          <!-- Depends on frequency of the controller, more critical motors state are sent with higher frequency, other parameters are sent with lower, here allowed time is set to be expected period +50% margin -->
+
+          <!-- Depends on frequency of the controller, more critical motors state are sent with
+           higher frequency, other parameters are sent with lower, here allowed time is set
+           to be expected period +50% margin -->
           <param name="pdo_motor_states_timeout_ms">15</param>
           <param name="pdo_driver_state_timeout_ms">75</param>
 
