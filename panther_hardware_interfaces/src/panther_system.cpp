@@ -197,9 +197,10 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Handling Panther System error");
 
-  if (!OperationWithAttempts(
-        std::bind(&PantherSystem::SetEStop, this), max_safety_stop_attempts_)) {
-    RCLCPP_FATAL_STREAM(logger_, "Setting safety stop failed");
+  try {
+    SetEStop();
+  } catch (const std::runtime_error & e) {
+    RCLCPP_ERROR_STREAM(logger_, "Setting EStop failed: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -405,7 +406,6 @@ void PantherSystem::ReadInitializationActivationAttempts()
     std::stoi(info_.hardware_parameters["max_roboteq_initialization_attempts"]);
   max_roboteq_activation_attempts_ =
     std::stoi(info_.hardware_parameters["max_roboteq_activation_attempts"]);
-  max_safety_stop_attempts_ = std::stoi(info_.hardware_parameters["max_safety_stop_attempts"]);
 }
 
 void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()

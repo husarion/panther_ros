@@ -84,7 +84,6 @@ const std::map<std::string, std::string> kDefaultParamMap = {
   {"driver_states_update_frequency", "20.0"},
   {"max_roboteq_initialization_attempts", "5"},
   {"max_roboteq_activation_attempts", "5"},
-  {"max_safety_stop_attempts", "20"},
   {"max_write_pdo_cmds_errors_count", "4"},
   {"max_read_pdo_motor_states_errors_count", "4"},
   {"max_read_pdo_driver_state_errors_count", "20"},
