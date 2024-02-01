@@ -261,13 +261,11 @@ return_type PantherSystem::write(
 {
   last_commands_zero_ = AreVelocityCommandsNearZero();
 
-  if (roboteq_error_filter_->IsError() && !estop_) {
-    try {
-      SendSafetyStopIfNotSet();
-    } catch (const std::runtime_error & e) {
-      RCLCPP_FATAL_STREAM(logger_, "Error when trying to turn on safety stop: " << e.what());
-      return return_type::ERROR;
-    }
+  try {
+    CheckErrorsAndSetEStop();
+  } catch (const std::runtime_error & e) {
+    RCLCPP_FATAL_STREAM(logger_, "Error when handling EStop: " << e.what());
+    return return_type::ERROR;
   }
 
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
@@ -583,18 +581,19 @@ void PantherSystem::SendCommands()
   }
 }
 
-void PantherSystem::SendSafetyStopIfNotSet()
+void PantherSystem::CheckErrorsAndSetEStop()
 {
-  if (!CheckIfSafetyStopActive()) {
-    RCLCPP_ERROR(
-      logger_,
-      "Error detected and at least on of the channels is not in the safety stop state, sending "
-      "safety stop request...");
-    // 0 command is set with safety stop
-    try {
-      SetEStop();
-    } catch (const std::runtime_error & e) {
-      throw e;
+  if (roboteq_error_filter_->IsError() && !estop_) {
+    if (!CheckIfSafetyStopActive()) {
+      RCLCPP_ERROR(
+        logger_,
+        "Error detected and at least on of the channels is not in the safety stop state, sending "
+        "EStop request...");
+      try {
+        SetEStop();
+      } catch (const std::runtime_error & e) {
+        throw e;
+      }
     }
   }
 }

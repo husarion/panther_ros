@@ -88,7 +88,7 @@ protected:
   void UpdateDriverStateDataTimedOut();
 
   void SendCommands();
-  void SendSafetyStopIfNotSet();
+  void CheckErrorsAndSetEStop();
   bool CheckIfSafetyStopActive();
   bool AreVelocityCommandsNearZero();
 
