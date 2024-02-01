@@ -184,31 +184,6 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
   driver_state.rear.can_net_err = can_errors.rear_can_net_err;
 }
 
-void PantherSystemRosInterface::PublishDriverState()
-{
-  if (realtime_driver_state_publisher_->trylock()) {
-    realtime_driver_state_publisher_->unlockAndPublish();
-  }
-}
-
-void PantherSystemRosInterface::InitializeAndPublishEstopStateMsg(const bool estop)
-{
-  realtime_estop_state_publisher_->msg_.data = estop;
-  if (realtime_estop_state_publisher_->trylock()) {
-    realtime_estop_state_publisher_->unlockAndPublish();
-  }
-}
-
-void PantherSystemRosInterface::PublishEstopStateIfChanged(const bool estop)
-{
-  if (realtime_estop_state_publisher_->msg_.data != estop) {
-    realtime_estop_state_publisher_->msg_.data = estop;
-    if (realtime_estop_state_publisher_->trylock()) {
-      realtime_estop_state_publisher_->unlockAndPublish();
-    }
-  }
-}
-
 void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
   std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version)
 {
@@ -234,6 +209,31 @@ void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
 
   if (realtime_io_state_publisher_->trylock()) {
     realtime_io_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::InitializeAndPublishEstopStateMsg(const bool estop)
+{
+  realtime_estop_state_publisher_->msg_.data = estop;
+  if (realtime_estop_state_publisher_->trylock()) {
+    realtime_estop_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::PublishEstopStateIfChanged(const bool estop)
+{
+  if (realtime_estop_state_publisher_->msg_.data != estop) {
+    realtime_estop_state_publisher_->msg_.data = estop;
+    if (realtime_estop_state_publisher_->trylock()) {
+      realtime_estop_state_publisher_->unlockAndPublish();
+    }
+  }
+}
+
+void PantherSystemRosInterface::PublishDriverState()
+{
+  if (realtime_driver_state_publisher_->trylock()) {
+    realtime_driver_state_publisher_->unlockAndPublish();
   }
 }
 
