@@ -14,9 +14,8 @@
 
 #include <panther_lights/led_panel.hpp>
 
-#include <cmath>
+#include <algorithm>
 #include <cstdint>
-#include <stdexcept>
 #include <vector>
 
 namespace panther_lights
@@ -27,7 +26,7 @@ LEDPanel::LEDPanel(const std::size_t num_led) : num_led_(num_led)
   frame_ = std::vector<std::uint8_t>(num_led_ * 4, 0);
 }
 
-void LEDPanel::UpdatePanel(
+void LEDPanel::UpdateFrame(
   const std::size_t iterator_first, const std::vector<std::uint8_t> & values)
 {
   std::copy(values.begin(), values.end(), frame_.begin() + iterator_first);

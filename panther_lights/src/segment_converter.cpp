@@ -22,15 +22,18 @@
 namespace panther_lights
 {
 
-SegmentConverter::SegmentConverter() { led_panel_ = std::make_unique<LEDPanel>(46); }
-
-void SegmentConverter::Convert(std::vector<std::shared_ptr<LEDSegment>> & segments)
+void SegmentConverter::Convert(
+  const std::vector<std::shared_ptr<LEDSegment>> & segments,
+  const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels)
 {
-  auto frame_ = std::vector<std::uint8_t>(46 * 4, 0);
-
   for (auto & segment : segments) {
-    auto frame = segment->UpdateAnimation();
-    led_panel_->UpdatePanel(segment->GetFirstLEDPosition(), frame);
+    try {
+      auto frame = segment->UpdateAnimation();
+      panels.at(segment->GetChannel())->UpdateFrame(segment->GetFirstLEDPosition(), frame);
+    } catch (const std::runtime_error & e) {
+      throw std::runtime_error(
+        "Failed to convert segment animation to panel frame. Error: " + std::string(e.what()));
+    }
   }
 }
 

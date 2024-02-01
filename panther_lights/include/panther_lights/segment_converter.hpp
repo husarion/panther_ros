@@ -27,20 +27,12 @@ namespace panther_lights
 class SegmentConverter
 {
 public:
-  SegmentConverter();
-  ~SegmentConverter() {}
+  SegmentConverter() = default;
+  ~SegmentConverter() = default;
 
-  void Convert(std::vector<std::shared_ptr<LEDSegment>> & segments);
-
-  std::vector<std::uint8_t> GetPanelFrame() { return led_panel_->GetFrame(); }
-
-  void AddLEDPanel(const std::shared_ptr<LEDPanel> & panel);
-
-private:
-  std::unique_ptr<LEDPanel> led_panel_;
-
-  std::map<std::size_t, LEDPanel> led_panels_;  // some way to access panels using some id
-                                                // preferably struct or panel->GetChannel()
+  void Convert(
+    const std::vector<std::shared_ptr<LEDSegment>> & segments,
+    const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels);
 };
 
 }  // namespace panther_lights

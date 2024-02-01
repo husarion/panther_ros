@@ -26,11 +26,9 @@ class LEDPanel
 public:
   LEDPanel(const std::size_t num_led);
 
-  ~LEDPanel() {}
+  ~LEDPanel() = default;
 
-  // void GetImageMsg();
-
-  void UpdatePanel(const std::size_t iterator_first, const std::vector<std::uint8_t> & values);
+  void UpdateFrame(const std::size_t iterator_first, const std::vector<std::uint8_t> & values);
 
   std::vector<std::uint8_t> GetFrame() const { return frame_; }
 
