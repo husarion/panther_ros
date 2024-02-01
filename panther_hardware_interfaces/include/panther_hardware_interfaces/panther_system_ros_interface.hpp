@@ -132,8 +132,8 @@ public:
 
   void InitializeAndPublishIOStateMsg(
     std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version);
-  void InitializeAndPublishEstopStateMsg(const bool estop);
-  void PublishEstopStateIfChanged(const bool estop);
+  void InitializeAndPublishEStopStateMsg(const bool e_stop);
+  void PublishEStopStateIfChanged(const bool e_stop);
   void PublishDriverState();
   void PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info);
 
@@ -150,9 +150,9 @@ private:
   std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>
     realtime_io_state_publisher_;
 
-  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr estop_state_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr e_stop_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>
-    realtime_estop_state_publisher_;
+    realtime_e_stop_state_publisher_;
 
   std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
   std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;

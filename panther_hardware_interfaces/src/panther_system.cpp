@@ -151,8 +151,8 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(gpio_controller_, panther_version_);
 
-  estop_ = ReadEStop();
-  panther_system_ros_interface_->InitializeAndPublishEstopStateMsg(estop_);
+  e_stop_ = ReadEStop();
+  panther_system_ros_interface_->InitializeAndPublishEStopStateMsg(e_stop_);
 
   return CallbackReturn::SUCCESS;
 }
@@ -200,7 +200,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   try {
     SetEStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Setting EStop failed: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Setting E-stop failed: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -244,8 +244,8 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 {
   UpdateMotorsStates();
 
-  estop_ = ReadEStop();
-  panther_system_ros_interface_->PublishEstopStateIfChanged(estop_);
+  e_stop_ = ReadEStop();
+  panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop_);
 
   if (time >= next_driver_state_update_time_) {
     UpdatDriverState();
@@ -264,13 +264,13 @@ return_type PantherSystem::write(
   try {
     CheckErrorsAndSetEStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL_STREAM(logger_, "Error when handling EStop: " << e.what());
+    RCLCPP_FATAL_STREAM(logger_, "Error when handling E-stop: " << e.what());
     return return_type::ERROR;
   }
 
   // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
   // continued, only commands are ignored
-  if (!estop_) {
+  if (!e_stop_) {
     SendCommands();
   }
 
@@ -566,7 +566,7 @@ void PantherSystem::SendCommands()
         motor_controller_write_mtx_, std::defer_lock);
       if (!motor_controller_write_lck.try_lock()) {
         throw std::runtime_error(
-          "Can't acquire mutex for writing commands - estop is being triggered");
+          "Can't acquire mutex for writing commands - E-stop is being triggered");
       }
 
       motors_controller_->SendSpeedCommands(
@@ -583,12 +583,12 @@ void PantherSystem::SendCommands()
 
 void PantherSystem::CheckErrorsAndSetEStop()
 {
-  if (roboteq_error_filter_->IsError() && !estop_) {
+  if (roboteq_error_filter_->IsError() && !e_stop_) {
     if (!CheckIfSafetyStopActive()) {
       RCLCPP_ERROR(
         logger_,
         "Error detected and at least on of the channels is not in the safety stop state, sending "
-        "EStop request...");
+        "E-stop request...");
       try {
         SetEStop();
       } catch (const std::runtime_error & e) {
@@ -620,13 +620,13 @@ bool PantherSystem::AreVelocityCommandsNearZero()
 
 void PantherSystem::SetEStop()
 {
-  RCLCPP_INFO(logger_, "Setting estop");
+  RCLCPP_INFO(logger_, "Setting E-stop");
   bool gpio_controller_error = false;
 
   try {
     gpio_controller_->EStopTrigger();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set safety stop using GPIO: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set E-stop stop using GPIO: " << e.what());
     gpio_controller_error = true;
   }
 
@@ -639,38 +639,38 @@ void PantherSystem::SetEStop()
     RCLCPP_ERROR_STREAM(
       logger_, "Error when trying to set safety stop using CAN command: " << e.what());
     if (gpio_controller_error) {
-      RCLCPP_ERROR_STREAM(logger_, "Both attempts at setting estop failed");
-      throw std::runtime_error("Both attempts at setting estop failed");
+      RCLCPP_ERROR_STREAM(logger_, "Both attempts at setting E-stop failed");
+      throw std::runtime_error("Both attempts at setting E-stop failed");
     }
   }
 
-  estop_ = true;
+  e_stop_ = true;
 }
 
 void PantherSystem::ResetEStop()
 {
-  RCLCPP_INFO(logger_, "Resetting estop");
+  RCLCPP_INFO(logger_, "Resetting E-stop");
 
   // On side of the motors controller safety stop is reset by sending 0.0 commands
   if (!last_commands_zero_) {
     RCLCPP_ERROR(
       logger_,
-      "Can't reset estop - last velocity commands are different than zero. Make sure that your "
-      "controller sends zero commands before trying to reset estop.");
+      "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
+      "controller sends zero commands before trying to reset E-stop.");
     throw std::runtime_error(
-      "Can't reset estop - last velocity commands are different than zero. Make sure that your "
-      "controller sends zero commands before trying to reset estop.");
+      "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
+      "controller sends zero commands before trying to reset E-stop.");
   }
 
   try {
     gpio_controller_->EStopReset();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to reset estop using GPIO: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to reset E-stop using GPIO: " << e.what());
     throw e;
   }
 
   roboteq_error_filter_->SetClearErrorsFlag();
-  estop_ = false;
+  e_stop_ = false;
 }
 
 bool PantherSystem::ReadEStop()
@@ -679,8 +679,8 @@ bool PantherSystem::ReadEStop()
     // TODO: it has reversed logic
     return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
   } else {
-    // For older panther versions there is no hardware EStop
-    return estop_;
+    // For older panther versions there is no hardware E-stop
+    return e_stop_;
   }
 }
 

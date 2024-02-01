@@ -82,11 +82,11 @@ PantherSystemRosInterface::PantherSystemRosInterface(
     std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>(
       io_state_publisher_);
 
-  estop_state_publisher_ = node_->create_publisher<std_msgs::msg::Bool>(
+  e_stop_state_publisher_ = node_->create_publisher<std_msgs::msg::Bool>(
     "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  realtime_estop_state_publisher_ =
+  realtime_e_stoppp_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>(
-      estop_state_publisher_);
+      e_stop_state_publisher_);
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()
@@ -95,8 +95,8 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   driver_state_publisher_.reset();
   realtime_io_state_publisher_.reset();
   io_state_publisher_.reset();
-  realtime_estop_state_publisher_.reset();
-  estop_state_publisher_.reset();
+  realtime_e_stop_state_publisher_.reset();
+  e_stop_state_publisher_.reset();
 
   if (executor_) {
     executor_->cancel();
@@ -212,20 +212,20 @@ void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
   }
 }
 
-void PantherSystemRosInterface::InitializeAndPublishEstopStateMsg(const bool estop)
+void PantherSystemRosInterface::InitializeAndPublishEStopStateMsg(const bool e_stop)
 {
-  realtime_estop_state_publisher_->msg_.data = estop;
-  if (realtime_estop_state_publisher_->trylock()) {
-    realtime_estop_state_publisher_->unlockAndPublish();
+  realtime_e_stop_state_publisher_->msg_.data = e_stop;
+  if (realtime_e_stop_state_publisher_->trylock()) {
+    realtime_e_stop_state_publisher_->unlockAndPublish();
   }
 }
 
-void PantherSystemRosInterface::PublishEstopStateIfChanged(const bool estop)
+void PantherSystemRosInterface::PublishEStopStateIfChanged(const bool e_stop)
 {
-  if (realtime_estop_state_publisher_->msg_.data != estop) {
-    realtime_estop_state_publisher_->msg_.data = estop;
-    if (realtime_estop_state_publisher_->trylock()) {
-      realtime_estop_state_publisher_->unlockAndPublish();
+  if (realtime_e_stop_state_publisher_->msg_.data != e_stop) {
+    realtime_e_stop_state_publisher_->msg_.data = e_stop;
+    if (realtime_e_stop_state_publisher_->trylock()) {
+      realtime_e_stop_state_publisher_->unlockAndPublish();
     }
   }
 }

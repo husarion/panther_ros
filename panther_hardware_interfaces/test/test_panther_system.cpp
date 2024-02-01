@@ -743,7 +743,7 @@ TEST(TestPantherSystemOthers, wrong_order_urdf)
 //   pth_test_.Stop();
 // }
 
-// todo estop tests - it will the best to add them along with GPIO, as it will change the estop
+// todo E-stop tests - it will the best to add them along with GPIO, as it will change the E-stop
 // procedure
 
 int main(int argc, char ** argv)

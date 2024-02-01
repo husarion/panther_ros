@@ -119,12 +119,12 @@ public:
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnEstop();
+  void TurnOnEStop();
 
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOffEstop();
+  void TurnOffEStop();
 
   /**
    * @brief Sends a safety stop command to the motor connected to channel 1

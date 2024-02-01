@@ -62,8 +62,8 @@ struct RoboteqCANObjects
   static constexpr CANopenObject battery_current_2 = {0x210C, 2};
 
   static constexpr CANopenObject reset_script = {0x2018, 0};
-  static constexpr CANopenObject turn_on_estop = {0x200C, 0};        // Cmd_ESTOP
-  static constexpr CANopenObject turn_off_estop = {0x200D, 0};       // Cmd_MGO
+  static constexpr CANopenObject turn_on_e_stop = {0x200C, 0};       // Cmd_ESTOP
+  static constexpr CANopenObject turn_off_e_stop = {0x200D, 0};      // Cmd_MGO
   static constexpr CANopenObject turn_on_safety_stop = {0x202C, 0};  // Cmd_SFT
 };
 
@@ -188,21 +188,21 @@ void RoboteqDriver::ResetRoboteqScript()
   }
 }
 
-void RoboteqDriver::TurnOnEstop()
+void RoboteqDriver::TurnOnEStop()
 {
   try {
     SyncSDOWrite<std::uint8_t>(
-      RoboteqCANObjects::turn_on_estop.id, RoboteqCANObjects::turn_on_estop.subid, 1);
+      RoboteqCANObjects::turn_on_e_stop.id, RoboteqCANObjects::turn_on_e_stop.subid, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn on E-stop: " + std::string(e.what()));
   }
 }
 
-void RoboteqDriver::TurnOffEstop()
+void RoboteqDriver::TurnOffEStop()
 {
   try {
     SyncSDOWrite<std::uint8_t>(
-      RoboteqCANObjects::turn_off_estop.id, RoboteqCANObjects::turn_off_estop.subid, 1);
+      RoboteqCANObjects::turn_off_e_stop.id, RoboteqCANObjects::turn_off_e_stop.subid, 1);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Error when trying to turn off E-stop: " + std::string(e.what()));
   }

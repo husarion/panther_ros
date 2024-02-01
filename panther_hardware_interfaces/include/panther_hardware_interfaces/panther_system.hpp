@@ -139,7 +139,7 @@ protected:
 
   float panther_version_;
 
-  std::atomic_bool estop_ = true;
+  std::atomic_bool e_stop_ = true;
 
   std::atomic_bool last_commands_zero_ = false;
 

@@ -401,38 +401,38 @@ TEST_F(TestMotorsController, test_write_speed)
 // Similar to test_roboteq_driver, can_error in write speed isn't tested, because it reacts to lower
 // level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
-TEST_F(TestMotorsController, test_turn_on_estop)
+TEST_F(TestMotorsController, test_turn_on_e_stop)
 {
-  roboteq_mock_->front_driver_->SetTurnOnEstop(65);
-  roboteq_mock_->rear_driver_->SetTurnOnEstop(23);
+  roboteq_mock_->front_driver_->SetTurnOnEStop(65);
+  roboteq_mock_->rear_driver_->SetTurnOnEStop(23);
 
-  ASSERT_NO_THROW(motors_controller_->TurnOnEstop());
+  ASSERT_NO_THROW(motors_controller_->TurnOnEStop());
 
-  ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnEstop(), 1);
-  ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnEstop(), 1);
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOnEStop(), 1);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOnEStop(), 1);
 }
 
-TEST_F(TestMotorsController, test_turn_off_estop)
+TEST_F(TestMotorsController, test_turn_off_e_stop)
 {
-  roboteq_mock_->front_driver_->SetTurnOffEstop(65);
-  roboteq_mock_->rear_driver_->SetTurnOffEstop(23);
+  roboteq_mock_->front_driver_->SetTurnOffEStop(65);
+  roboteq_mock_->rear_driver_->SetTurnOffEStop(23);
 
-  ASSERT_NO_THROW(motors_controller_->TurnOffEstop());
+  ASSERT_NO_THROW(motors_controller_->TurnOffEStop());
 
-  ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOffEstop(), 1);
-  ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOffEstop(), 1);
+  ASSERT_EQ(roboteq_mock_->front_driver_->GetTurnOffEStop(), 1);
+  ASSERT_EQ(roboteq_mock_->rear_driver_->GetTurnOffEStop(), 1);
 }
 
-TEST_F(TestMotorsController, test_turn_on_estop_timeout)
+TEST_F(TestMotorsController, test_turn_on_e_stop_timeout)
 {
   roboteq_mock_->front_driver_->SetOnWriteWait<std::uint8_t>(0x200C, 0, 100000);
-  ASSERT_THROW(motors_controller_->TurnOnEstop(), std::runtime_error);
+  ASSERT_THROW(motors_controller_->TurnOnEStop(), std::runtime_error);
 }
 
-TEST_F(TestMotorsController, test_turn_off_estop_timeout)
+TEST_F(TestMotorsController, test_turn_off_e_stop_timeout)
 {
   roboteq_mock_->front_driver_->SetOnWriteWait<std::uint8_t>(0x200D, 0, 100000);
-  ASSERT_THROW(motors_controller_->TurnOffEstop(), std::runtime_error);
+  ASSERT_THROW(motors_controller_->TurnOffEStop(), std::runtime_error);
 }
 
 TEST_F(TestMotorsController, test_safety_stop)
