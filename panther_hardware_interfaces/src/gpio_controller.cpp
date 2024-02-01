@@ -173,7 +173,6 @@ bool GPIOControllerPTH12X::VDIGEnable(const bool enable)
 
 bool GPIOControllerPTH12X::ChargerEnable(const bool enable)
 {
-  // TODO: check this functionality
   return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::CHRG_DISABLE, !enable);
 }
 

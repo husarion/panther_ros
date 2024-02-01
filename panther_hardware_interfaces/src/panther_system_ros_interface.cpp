@@ -249,7 +249,7 @@ void PantherSystemRosInterface::PublishGPIOState(const panther_gpiod::GPIOInfo &
     case panther_gpiod::GPIOPin::CHRG_SENSE:
       io_state.charger_connected = pin_value;
       break;
-    case panther_gpiod::GPIOPin::CHRG_DISABLE:  // TODO: should be negative?
+    case panther_gpiod::GPIOPin::CHRG_DISABLE:
       io_state.charger_enabled = pin_value;
       break;
     case panther_gpiod::GPIOPin::VDIG_OFF:

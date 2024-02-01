@@ -34,8 +34,6 @@
 namespace panther_hardware_interfaces_test
 {
 
-// TODO: documentation
-
 enum class DriverFaultFlags {
   OVERHEAT = 0,
   OVERVOLTAGE,

@@ -29,8 +29,6 @@
 
 #include <panther_hardware_interfaces/utils.hpp>
 
-// todo: add user variable to the script that will trigger DOUT4 instead of safety stop
-
 namespace panther_hardware_interfaces
 {
 
