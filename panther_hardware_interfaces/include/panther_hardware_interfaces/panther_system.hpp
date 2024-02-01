@@ -90,12 +90,11 @@ protected:
   void SendCommands();
   void SendSafetyStopIfNotSet();
   bool CheckIfSafetyStopActive();
+  bool AreVelocityCommandsNearZero();
 
   void SetEStop();
   void ResetEStop();
   bool ReadEStop();
-
-  bool AreVelocityCommandsNearZero();
 
   static constexpr size_t kJointsSize = 4;
 

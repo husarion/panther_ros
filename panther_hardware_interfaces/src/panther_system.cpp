@@ -58,12 +58,7 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
     ReadCANopenSettings();
     ReadInitializationActivationAttempts();
     ReadParametersAndCreateRoboteqErrorFilter();
-
-    const float driver_states_update_frequency =
-      std::stof(info_.hardware_parameters["driver_states_update_frequency"]);
-    driver_states_update_period_ =
-      rclcpp::Duration::from_seconds(1.0f / driver_states_update_frequency);
-
+    ReadDriverStatesUpdateFrequency();
   } catch (const std::invalid_argument & e) {
     RCLCPP_FATAL(logger_, "One of the required hardware parameters was not defined");
     return CallbackReturn::ERROR;
@@ -118,8 +113,6 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   hw_states_positions_.fill(0.0);
   hw_states_velocities_.fill(0.0);
   hw_states_efforts_.fill(0.0);
-
-  RCLCPP_INFO(logger_, "Activating Roboteq drivers");
 
   if (!OperationWithAttempts(
         std::bind(&MotorsController::Activate, motors_controller_),
@@ -251,9 +244,6 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   UpdateMotorsStates();
 
   estop_ = ReadEStop();
-  if (estop_) {
-    RCLCPP_WARN_STREAM_THROTTLE(logger_, steady_clock_, 5000, "EStop active");
-  }
   panther_system_ros_interface_->PublishEstopStateIfChanged(estop_);
 
   if (time >= next_driver_state_update_time_) {
@@ -619,6 +609,16 @@ bool PantherSystem::CheckIfSafetyStopActive()
          rear_data.GetRightRuntimeError().GetMessage().safety_stop_active;
 }
 
+bool PantherSystem::AreVelocityCommandsNearZero()
+{
+  for (const auto & cmd : hw_commands_velocities_) {
+    if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void PantherSystem::SetEStop()
 {
   RCLCPP_INFO(logger_, "Setting estop");
@@ -683,16 +683,6 @@ bool PantherSystem::ReadEStop()
     // For older panther versions there is no hardware EStop
     return estop_;
   }
-}
-
-bool PantherSystem::AreVelocityCommandsNearZero()
-{
-  for (const auto & cmd : hw_commands_velocities_) {
-    if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
-      return false;
-    }
-  }
-  return true;
 }
 
 }  // namespace panther_hardware_interfaces
