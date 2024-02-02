@@ -84,7 +84,7 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
   e_stop_state_publisher_ = node_->create_publisher<std_msgs::msg::Bool>(
     "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  realtime_e_stoppp_state_publisher_ =
+  realtime_e_stop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>(
       e_stop_state_publisher_);
 }
