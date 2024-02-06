@@ -87,6 +87,32 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_charging_animation
                             ament_index_cpp pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_charging_animation yaml-cpp)
+
+  ament_add_gtest(${PROJECT_NAME}_test_led_panel test/test_led_panel.cpp
+                  src/led_panel.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_led_panel
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+
+  ament_add_gtest(${PROJECT_NAME}_test_led_segment test/test_led_segment.cpp
+                  src/led_segment.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_led_segment
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_led_segment pluginlib)
+  target_link_libraries(${PROJECT_NAME}_test_led_segment yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_segment_converter test/test_segment_converter.cpp
+    src/segment_converter.cpp src/led_panel.cpp src/led_segment.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_segment_converter
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_segment_converter pluginlib)
+  target_link_libraries(${PROJECT_NAME}_test_segment_converter yaml-cpp)
 endif()
 
 ament_package()

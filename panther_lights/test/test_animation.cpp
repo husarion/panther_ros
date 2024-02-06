@@ -40,6 +40,11 @@ public:
     return std::vector<std::uint8_t>(frame_size_, 147);
   }
 
+  std::vector<std::uint8_t> InvertRGBAFrame(const std::vector<std::uint8_t> & frame) const
+  {
+    return Animation::InvertRGBAFrame(frame);
+  }
+
   std::size_t GetAnimationLength() const { return Animation::GetAnimationLength(); }
   std::size_t GetAnimationIteration() const { return Animation::GetAnimationIteration(); }
   void SetFrameSize(const std::size_t frame_size) { frame_size_ = frame_size; }
@@ -186,7 +191,20 @@ TEST_F(TestAnimation, Update)
   }
 }
 
-// todo: add tests for inverting and optionally getting inverted frame
+TEST_F(TestAnimation, InvertRGBAFrame)
+{
+  std::vector<std::uint8_t> test_frame = {0,   10,  20,  255, 30,  40,  50,  255,
+                                          60,  70,  80,  255, 100, 110, 120, 255,
+                                          130, 140, 150, 255, 160, 170, 180, 255};
+  std::vector<std::uint8_t> expected_frame = {160, 170, 180, 255, 130, 140, 150, 255,
+                                              100, 110, 120, 255, 60,  70,  80,  255,
+                                              30,  40,  50,  255, 0,   10,  20,  255};
+
+  auto inverted_frame = animation_->InvertRGBAFrame(test_frame);
+  for (std::size_t i = 0; i < inverted_frame.size(); i++) {
+    EXPECT_EQ(expected_frame[i], inverted_frame[i]);
+  }
+}
 
 int main(int argc, char ** argv)
 {
