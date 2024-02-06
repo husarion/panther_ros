@@ -19,21 +19,6 @@
 namespace panther_hardware_interfaces_test
 {
 
-void RoboteqSlave::SetPosition(DriverChannel channel, std::int32_t value)
-{
-  (*this)[0x2104][static_cast<std::uint8_t>(channel)] = value;
-}
-
-void RoboteqSlave::SetVelocity(DriverChannel channel, std::int16_t value)
-{
-  (*this)[0x2107][static_cast<std::uint8_t>(channel)] = value;
-}
-
-void RoboteqSlave::SetCurrent(DriverChannel channel, std::int16_t value)
-{
-  (*this)[0x2100][static_cast<std::uint8_t>(channel)] = value;
-}
-
 void RoboteqSlave::SetDriverFaultFlag(DriverFaultFlags flag)
 {
   std::int32_t current_data = (*this)[0x2106][7];

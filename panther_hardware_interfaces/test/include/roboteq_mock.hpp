@@ -73,9 +73,18 @@ class RoboteqSlave : public lely::canopen::BasicSlave
 public:
   using BasicSlave::BasicSlave;
 
-  void SetPosition(DriverChannel channel, std::int32_t value);
-  void SetVelocity(DriverChannel channel, std::int16_t value);
-  void SetCurrent(DriverChannel channel, std::int16_t value);
+  void SetPosition(DriverChannel channel, std::int32_t value)
+  {
+    (*this)[0x2104][static_cast<std::uint8_t>(channel)] = value;
+  }
+  void SetVelocity(DriverChannel channel, std::int16_t value)
+  {
+    (*this)[0x2107][static_cast<std::uint8_t>(channel)] = value;
+  }
+  void SetCurrent(DriverChannel channel, std::int16_t value)
+  {
+    (*this)[0x2100][static_cast<std::uint8_t>(channel)] = value;
+  }
   void SetDriverFaultFlag(DriverFaultFlags flag);
   void SetDriverScriptFlag(DriverScriptFlags flag);
   void SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag);
