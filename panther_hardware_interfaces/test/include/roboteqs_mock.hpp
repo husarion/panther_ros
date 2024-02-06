@@ -34,8 +34,6 @@
 namespace panther_hardware_interfaces_test
 {
 
-// TODO: documentation
-
 enum class DriverFaultFlags {
   OVERHEAT = 0,
   OVERVOLTAGE,
@@ -73,36 +71,36 @@ class RoboteqSlave : public lely::canopen::BasicSlave
 public:
   using BasicSlave::BasicSlave;
 
-  void SetPosition(DriverChannel channel, std::int32_t value)
+  void SetPosition(const DriverChannel channel, const std::int32_t value)
   {
     (*this)[0x2104][static_cast<std::uint8_t>(channel)] = value;
   }
-  void SetVelocity(DriverChannel channel, std::int16_t value)
+  void SetVelocity(const DriverChannel channel, const std::int16_t value)
   {
     (*this)[0x2107][static_cast<std::uint8_t>(channel)] = value;
   }
-  void SetCurrent(DriverChannel channel, std::int16_t value)
+  void SetCurrent(const DriverChannel channel, const std::int16_t value)
   {
     (*this)[0x2100][static_cast<std::uint8_t>(channel)] = value;
   }
-  void SetDriverFaultFlag(DriverFaultFlags flag);
-  void SetDriverScriptFlag(DriverScriptFlags flag);
-  void SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag);
-  void SetTemperature(std::int16_t value) { (*this)[0x210F][1] = value; }
-  void SetHeatsinkTemperature(std::int16_t value) { (*this)[0x210F][2] = value; }
-  void SetVoltage(std::uint16_t value) { (*this)[0x210D][2] = value; }
-  void SetBatteryCurrent1(std::int16_t value) { (*this)[0x210C][1] = value; }
-  void SetBatteryCurrent2(std::int16_t value) { (*this)[0x210C][2] = value; }
-  void SetRoboteqCmd(DriverChannel channel, std::int32_t value)
+  void SetDriverFaultFlag(const DriverFaultFlags flag);
+  void SetDriverScriptFlag(const DriverScriptFlags flag);
+  void SetDriverRuntimeError(const DriverChannel channel, const DriverRuntimeErrors flag);
+  void SetTemperature(const std::int16_t value) { (*this)[0x210F][1] = value; }
+  void SetHeatsinkTemperature(const std::int16_t value) { (*this)[0x210F][2] = value; }
+  void SetVoltage(const std::uint16_t value) { (*this)[0x210D][2] = value; }
+  void SetBatteryCurrent1(const std::int16_t value) { (*this)[0x210C][1] = value; }
+  void SetBatteryCurrent2(const std::int16_t value) { (*this)[0x210C][2] = value; }
+  void SetRoboteqCmd(const DriverChannel channel, const std::int32_t value)
   {
     (*this)[0x2000][static_cast<std::uint8_t>(channel)] = value;
   }
-  void SetResetRoboteqScript(std::uint8_t value) { (*this)[0x2018][0] = value; }
-  void SetTurnOnEstop(std::uint8_t value) { (*this)[0x200C][0] = value; }
-  void SetTurnOffEstop(std::uint8_t value) { (*this)[0x200D][0] = value; }
-  void SetTurnOnSafetyStop(std::uint8_t value) { (*this)[0x202C][0] = value; }
+  void SetResetRoboteqScript(const std::uint8_t value) { (*this)[0x2018][0] = value; }
+  void SetTurnOnEstop(const std::uint8_t value) { (*this)[0x200C][0] = value; }
+  void SetTurnOffEstop(const std::uint8_t value) { (*this)[0x200D][0] = value; }
+  void SetTurnOnSafetyStop(const std::uint8_t value) { (*this)[0x202C][0] = value; }
 
-  std::int32_t GetRoboteqCmd(DriverChannel channel)
+  std::int32_t GetRoboteqCmd(const DriverChannel channel)
   {
     return (*this)[0x2000][static_cast<std::uint8_t>(channel)];
   }
@@ -111,19 +109,43 @@ public:
   std::uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
   std::uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
 
+  /**
+   * @brief Sets 0 to all flags
+   */
   void ClearErrorFlags() { (*this)[0x2106][7] = 0; }
 
+  /**
+   * @brief Sets initial values (positions, temperetures, etc.) to zeros
+   */
   void InitializeValues();
 
+  /**
+   * @brief Creates two threads, one that will trigger motors states PDOs and second that triggers
+   * driver state PDOs
+   *
+   * @param motors_states_period period of motors states publishing thread
+   * @param driver_state_period period of driver state publishing thread
+   */
   void StartPublishing(
-    std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period);
+    const std::chrono::milliseconds motors_states_period,
+    const std::chrono::milliseconds driver_state_period);
+
+  /**
+   * @brief Stops publishing threads
+   */
   void StopPublishing();
 
-  void TriggerMotorsStatesPublish();
-  void TriggerDriverStatePublish();
-
+  /**
+   * @brief Adds sleep when write event for given CANopen object was registered. Can be used for
+   * testing timeouts.
+   *
+   * @param idx
+   * @param subidx
+   * @param wait_time_microseconds
+   */
   template <typename T>
-  void SetOnWriteWait(std::uint16_t idx, std::uint8_t subidx, std::uint32_t wait_time_microseconds)
+  void SetOnWriteWait(
+    const std::uint16_t idx, const std::uint8_t subidx, const std::uint32_t wait_time_microseconds)
   {
     OnWrite<T>(
       idx, subidx,
@@ -136,8 +158,17 @@ public:
       });
   }
 
+  /**
+   * @brief Adds sleep when read event for given CANopen object was registered. Can be used for
+   * testing timeouts.
+   *
+   * @param idx
+   * @param subidx
+   * @param wait_time_microseconds
+   */
   template <typename T>
-  void SetOnReadWait(std::uint16_t idx, std::uint8_t subidx, std::uint32_t wait_time_microseconds)
+  void SetOnReadWait(
+    const std::uint16_t idx, const std::uint8_t subidx, const std::uint32_t wait_time_microseconds)
   {
     OnRead<T>(
       idx, subidx, [wait_time_microseconds](std::uint16_t, std::uint8_t, T &) -> std::error_code {
@@ -147,24 +178,42 @@ public:
   }
 
 private:
+  void TriggerMotorsStatesPublish();
+  void TriggerDriverStatePublish();
+
   std::thread motors_states_publishing_thread_;
   std::thread driver_state_publishing_thread_;
 
   std::atomic_bool stop_publishing_ = false;
 };
 
-class RoboteqMock
+/**
+ * @brief Class that simulates two Roboteqs
+ */
+class RoboteqsMock
 {
 public:
-  RoboteqMock() {}
-  ~RoboteqMock() {}
+  RoboteqsMock() {}
+  ~RoboteqsMock() {}
 
+  /**
+   * @brief Starts CAN communication and creates two simulated Roboteqs, that publish PDOs with set
+   * frequencies
+   *
+   * @param motors_states_period period of motors states publishing thread
+   * @param driver_state_period period of driver state publishing thread
+   */
   void Start(
-    std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period);
+    const std::chrono::milliseconds motors_states_period,
+    const std::chrono::milliseconds driver_state_period);
+
+  /**
+   * @brief Stops CAN communication and removes simulated Roboteqs
+   */
   void Stop();
 
-  std::unique_ptr<RoboteqSlave> front_driver_;
-  std::unique_ptr<RoboteqSlave> rear_driver_;
+  std::shared_ptr<RoboteqSlave> GetFrontDriver() { return front_driver_; }
+  std::shared_ptr<RoboteqSlave> GetRearDriver() { return rear_driver_; }
 
 private:
   std::shared_ptr<lely::io::Context> ctx_;
@@ -174,6 +223,9 @@ private:
   std::atomic_bool canopen_communication_started_ = false;
   std::condition_variable canopen_communication_started_cond_;
   std::mutex canopen_communication_started_mtx_;
+
+  std::shared_ptr<RoboteqSlave> front_driver_;
+  std::shared_ptr<RoboteqSlave> rear_driver_;
 };
 
 }  // namespace panther_hardware_interfaces_test

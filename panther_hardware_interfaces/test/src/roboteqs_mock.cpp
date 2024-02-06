@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <roboteq_mock.hpp>
+#include <roboteqs_mock.hpp>
 
 #include <cstdint>
 
 namespace panther_hardware_interfaces_test
 {
 
-void RoboteqSlave::SetDriverFaultFlag(DriverFaultFlags flag)
+void RoboteqSlave::SetDriverFaultFlag(const DriverFaultFlags flag)
 {
   std::int32_t current_data = (*this)[0x2106][7];
-  current_data |= (0b00000001 << std::uint8_t(flag));
+  current_data |= (0b00000001 << static_cast<std::uint8_t>(flag));
   (*this)[0x2106][7] = current_data;
 }
 
-void RoboteqSlave::SetDriverScriptFlag(DriverScriptFlags flag)
+void RoboteqSlave::SetDriverScriptFlag(const DriverScriptFlags flag)
 {
   std::int32_t current_data = (*this)[0x2106][7];
-  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag)) << 3 * 8;
+  current_data |= std::int32_t(0b00000001 << static_cast<std::uint8_t>(flag)) << 3 * 8;
   (*this)[0x2106][7] = current_data;
 }
 
-void RoboteqSlave::SetDriverRuntimeError(DriverChannel channel, DriverRuntimeErrors flag)
+void RoboteqSlave::SetDriverRuntimeError(
+  const DriverChannel channel, const DriverRuntimeErrors flag)
 {
   std::int32_t current_data = (*this)[0x2106][7];
-  current_data |= std::int32_t(0b00000001 << std::uint8_t(flag))
+  current_data |= static_cast<std::int32_t>(0b00000001 << static_cast<std::uint8_t>(flag))
                   << (static_cast<std::uint8_t>(channel)) * 8;
   (*this)[0x2106][7] = current_data;
 }
@@ -66,7 +67,6 @@ void RoboteqSlave::StartPublishing(
     auto next = std::chrono::steady_clock::now();
     while (!stop_publishing_) {
       next += motors_states_period;
-      // std::cout << "Publishing PDO" << std::endl;
       TriggerMotorsStatesPublish();
       std::this_thread::sleep_until(next);
     }
@@ -76,7 +76,6 @@ void RoboteqSlave::StartPublishing(
     auto next = std::chrono::steady_clock::now();
     while (!stop_publishing_) {
       next += driver_state_period;
-      // std::cout << "Publishing PDO" << std::endl;
       TriggerDriverStatePublish();
       std::this_thread::sleep_until(next);
     }
@@ -104,14 +103,13 @@ void RoboteqSlave::TriggerMotorsStatesPublish()
 void RoboteqSlave::TriggerDriverStatePublish()
 {
   // Every PDO holds two values - it is enough to send an event to just one and both will be sent
-  // this->WriteEvent(0x2106, 5);
-  // this->WriteEvent(0x2106, 7);
   this->WriteEvent(0x2106, 7);
   this->WriteEvent(0x210D, 2);
 }
 
-void RoboteqMock::Start(
-  std::chrono::milliseconds motors_states_period, std::chrono::milliseconds driver_state_period)
+void RoboteqsMock::Start(
+  const std::chrono::milliseconds motors_states_period,
+  const std::chrono::milliseconds driver_state_period)
 {
   canopen_communication_started_.store(false);
   ctx_ = std::make_shared<lely::io::Context>();
@@ -141,13 +139,13 @@ void RoboteqMock::Start(
     lely::io::CanChannel chan1(poll, exec);
     chan1.open(ctrl);
     lely::io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
-    front_driver_ = std::make_unique<RoboteqSlave>(
+    front_driver_ = std::make_shared<RoboteqSlave>(
       timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
     lely::io::CanChannel chan2(poll, exec);
     chan2.open(ctrl);
     lely::io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
-    rear_driver_ = std::make_unique<RoboteqSlave>(
+    rear_driver_ = std::make_shared<RoboteqSlave>(
       timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
 
     front_driver_->Reset();
@@ -179,7 +177,7 @@ void RoboteqMock::Start(
   }
 }
 
-void RoboteqMock::Stop()
+void RoboteqsMock::Stop()
 {
   ctx_->shutdown();
   if (canopen_communication_thread_.joinable()) {
