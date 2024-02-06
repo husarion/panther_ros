@@ -131,22 +131,12 @@ RoboteqDriverState RoboteqDriver::ReadRoboteqDriverState()
 {
   RoboteqDriverState state;
 
-  state.fault_flags = GetByte(
-    static_cast<std::int32_t>(
-      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
-    0);
-  state.runtime_stat_flag_motor_1 = GetByte(
-    static_cast<std::int32_t>(
-      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
-    1);
-  state.runtime_stat_flag_motor_2 = GetByte(
-    static_cast<std::int32_t>(
-      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
-    2);
-  state.script_flags = GetByte(
-    static_cast<std::int32_t>(
-      rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]),
-    3);
+  std::int32_t flags = static_cast<std::int32_t>(
+    rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]);
+  state.fault_flags = GetByte(flags, 0);
+  state.runtime_stat_flag_motor_1 = GetByte(flags, 1);
+  state.runtime_stat_flag_motor_2 = GetByte(flags, 2);
+  state.script_flags = GetByte(flags, 3);
 
   state.mcu_temp = rpdo_mapped[RoboteqCANObjects::mcu_temp.id][RoboteqCANObjects::mcu_temp.subid];
   state.heatsink_temp =
