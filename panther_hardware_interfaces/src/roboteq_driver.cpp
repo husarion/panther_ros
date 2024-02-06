@@ -16,7 +16,6 @@
 
 #include <chrono>
 #include <cmath>
-#include <condition_variable>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -74,28 +73,13 @@ RoboteqDriver::RoboteqDriver(
 {
 }
 
-bool RoboteqDriver::Boot()
+std::future<void> RoboteqDriver::Boot()
 {
-  booted_.store(false);
-  return LoopDriver::Boot();
-}
-
-bool RoboteqDriver::WaitForBoot()
-{
-  if (booted_.load()) {
-    return true;
+  std::future<void> future = boot_promise_.get_future();
+  if (!LoopDriver::Boot()) {
+    throw std::runtime_error("Boot failed");
   }
-  std::unique_lock<std::mutex> lck(boot_mtx_);
-
-  if (boot_cond_var_.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
-    throw std::runtime_error("Timeout while waiting for boot");
-  }
-
-  if (booted_.load()) {
-    return true;
-  } else {
-    throw std::runtime_error(boot_error_str_);
-  }
+  return future;
 }
 
 RoboteqMotorsStates RoboteqDriver::ReadRoboteqMotorsStates()
@@ -268,13 +252,9 @@ void RoboteqDriver::OnBoot(
   LoopDriver::OnBoot(st, es, what);
 
   if (!es || es == 'L') {
-    booted_.store(true);
-  }
-
-  {
-    std::lock_guard<std::mutex> lck(boot_mtx_);
-    boot_error_str_ = what;
-    boot_cond_var_.notify_all();
+    boot_promise_.set_value();
+  } else {
+    boot_promise_.set_exception(std::make_exception_ptr(std::runtime_error(what)));
   }
 }
 

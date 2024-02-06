@@ -17,8 +17,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <cstdint>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -74,18 +74,11 @@ public:
     const std::chrono::milliseconds & sdo_operation_timeout_ms);
 
   /**
-   * @brief Trigger boot operations
-   */
-  bool Boot();
-
-  /**
-   * @brief Waits until the booting procedure finishes
+   * @brief Triggers boot operations
    *
-   * @exception std::runtime_error if boot fails
+   * @exception std::runtime_error if triggering boot fails
    */
-  bool WaitForBoot();
-
-  bool IsBooted() const { return booted_.load(); }
+  std::future<void> Boot();
 
   bool IsCANError() const { return can_error_.load(); }
 
@@ -157,10 +150,7 @@ private:
     can_error_.store(true);
   }
 
-  std::atomic_bool booted_ = false;
-  std::condition_variable boot_cond_var_;
-  std::mutex boot_mtx_;
-  std::string boot_error_str_;
+  std::promise<void> boot_promise_;
 
   std::atomic_bool can_error_;
 
