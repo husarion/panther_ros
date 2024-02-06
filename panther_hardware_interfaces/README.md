@@ -32,7 +32,7 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags
+- `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -40,7 +40,7 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `/panther_system_node/clear_errors` [*std_srvs/Trigger*]: clear current errors
+- `/panther_system_node/clear_errors` [*std_srvs/Trigger*]: clear current errors.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 
@@ -51,28 +51,28 @@ That said apart from the usual interface provided by the ros2_control, this plug
 Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
- - `encoder_resolution` [*int*, default: **1600**]: property of the encoder used, shouldn't be changed
- - `gear_ratio` [*float*, default: **30.08**]: property of the gearbox used, shouldn't be changed
- - `motor_torque_constant` [*float*, default: **0.11**]: same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor
- - `max_rpm_motor_speed` [*float*, default: **3600.0**]: max RPM speed set in the Roboteq driver (MXRPM parameter)
- - `gearbox_efficiency` [*float*, default: **0.75**]: measured efficiency, used for converting read current to torque, can vary depending on different factors such as temperature and wear
+ - `encoder_resolution` [*int*, default: **1600**]: property of the encoder used, shouldn't be changed.
+ - `gear_ratio` [*float*, default: **30.08**]: property of the gearbox used, shouldn't be changed.
+ - `motor_torque_constant` [*float*, default: **0.11**]: same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor.
+ - `max_rpm_motor_speed` [*float*, default: **3600.0**]: max RPM speed set in the Roboteq driver (MXRPM parameter).
+ - `gearbox_efficiency` [*float*, default: **0.75**]: measured efficiency, used for converting read current to torque, can vary depending on different factors such as temperature and wear.
 
 CAN settings
- - `can_interface_name` [*string*, default: **panther_can**]: name of the CAN interface
- - `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml))
- - `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml))
- - `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml))
- - `sdo_operation_timeout_ms` [*int*, default: **100**]: timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value
- - `pdo_motor_states_timeout_ms` [*int*, default: **15**]: depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. Default value is set to be expected period +50% margin.
- - `pdo_driver_state_timeout_ms` [*int*, default: **75**]: depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. Default value is set to be expected period +50% margin.
- - `driver_states_update_frequency` [*float*, default: **20.0**]: as by default driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. Exact frequency at which driver state is published won't match this value - it will depend also on the frequency of the controller (exact value of period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`)
- - `max_roboteq_initialization_attempts` [*int*, default: **5**]: in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to general error
- - `max_roboteq_activation_attempts` [*int*, default: **5**]: similar to initialization, it is possible to allow some SDO errors before escalating to error
+ - `can_interface_name` [*string*, default: **panther_can**]: name of the CAN interface.
+ - `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+ - `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+ - `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+ - `sdo_operation_timeout_ms` [*int*, default: **100**]: timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
+ - `pdo_motor_states_timeout_ms` [*int*, default: **15**]: depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
+ - `pdo_driver_state_timeout_ms` [*int*, default: **75**]: depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default, there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. The default value is set to be expected period +50% margin.
+ - `driver_states_update_frequency` [*float*, default: **20.0**]: as by default, the driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. The exact frequency at which driver state is published won't match this value - it will also depend on the frequency of the controller (the exact value of the period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`).
+ - `max_roboteq_initialization_attempts` [*int*, default: **5**]: in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to a general error.
+ - `max_roboteq_activation_attempts` [*int*, default: **5**]: similar to initialization, it is possible to allow some SDO errors before escalating to error.
  <!-- TODO: with GPIODriver it should no longer be needed -->
- - `max_safety_stop_attempts` [*int*, default: **20**]: how many attempts to activate safety stop will be taken before failing
- - `max_write_pdo_cmds_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error
- - `max_read_pdo_motor_states_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error
- - `max_read_pdo_driver_state_errors_count` [*int*, default: **20**]: how many consecutive errors can happen before escalating to general error
+ - `max_safety_stop_attempts` [*int*, default: **20**]: how many attempts to activate safety stop will be taken before failing.
+ - `max_write_pdo_cmds_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error.
+ - `max_read_pdo_motor_states_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error.
+ - `max_read_pdo_driver_state_errors_count` [*int*, default: **20**]: how many consecutive errors can happen before escalating to general error.
 
 
 > [!CAUTION]
@@ -140,4 +140,4 @@ Copy eds file to config and run
 ```bash
 dcfgen canopen_configuration.yaml -r
 ```
-Remove master.dcf
+Remove `master.dcf`
