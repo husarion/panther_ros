@@ -16,6 +16,7 @@
 #define PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include <panther_lights/led_panel.hpp>

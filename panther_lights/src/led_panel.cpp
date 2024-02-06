@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 namespace panther_lights
@@ -29,6 +30,16 @@ LEDPanel::LEDPanel(const std::size_t num_led) : num_led_(num_led)
 void LEDPanel::UpdateFrame(
   const std::size_t iterator_first, const std::vector<std::uint8_t> & values)
 {
+  if (values.empty()) {
+    throw std::runtime_error("Values vector can't be empty");
+  }
+  if (values.size() > frame_.size()) {
+    throw std::runtime_error("Values size is greater than frame size");
+  }
+  if (values.size() + iterator_first > frame_.size()) {
+    throw std::runtime_error("Values can't be fit into the frame at given position");
+  }
+
   std::copy(values.begin(), values.end(), frame_.begin() + iterator_first);
 }
 

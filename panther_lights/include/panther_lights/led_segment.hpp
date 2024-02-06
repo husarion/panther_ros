@@ -43,7 +43,7 @@ public:
    */
   LEDSegment(const YAML::Node & segment_description, const float controller_frequency);
 
-  ~LEDSegment() {}
+  ~LEDSegment();
 
   /**
    * @brief Overwrite current animation
@@ -57,14 +57,18 @@ public:
   void SetAnimation(const YAML::Node & animation_description);
 
   /**
-   * @brief Update and get animation frame
+   * @brief Update animation frame
    *
    * @exception std::runtime_error if fails to update animation
    */
-  std::vector<std::uint8_t> UpdateAnimation();
+  void UpdateAnimation(const std::string & param = "");
 
   std::size_t GetFirstLEDPosition() const;
   std::size_t GetChannel() const { return channel_; }
+  std::vector<std::uint8_t> GetAnimationFrame() const
+  {
+    return animation_->GetFrame(invert_led_order_);
+  }
 
 private:
   const float controller_frequency_;

@@ -15,8 +15,12 @@
 #include <panther_lights/segment_converter.hpp>
 
 #include <memory>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
+#include <panther_lights/led_panel.hpp>
 #include <panther_lights/led_segment.hpp>
 
 namespace panther_lights
@@ -28,8 +32,8 @@ void SegmentConverter::Convert(
 {
   for (auto & segment : segments) {
     try {
-      auto frame = segment->UpdateAnimation();
-      panels.at(segment->GetChannel())->UpdateFrame(segment->GetFirstLEDPosition(), frame);
+      panels.at(segment->GetChannel())
+        ->UpdateFrame(segment->GetFirstLEDPosition(), segment->GetAnimationFrame());
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
         "Failed to convert segment animation to panel frame. Error: " + std::string(e.what()));

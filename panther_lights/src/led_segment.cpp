@@ -40,7 +40,7 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
 
   try {
     channel_ = segment_description["channel"].as<std::size_t>();
-  } catch (const std::invalid_argument & e) {
+  } catch (const YAML::BadConversion & e) {
     throw std::invalid_argument("Invalid channel expression: " + std::string(e.what()));
   }
 
@@ -48,7 +48,7 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
   std::size_t split_char = led_range.find('-');
 
   if (split_char == std::string::npos) {
-    throw std::invalid_argument("No '-' character found in the led range expression");
+    throw std::invalid_argument("No '-' character found in the led_range expression");
   }
 
   try {
@@ -58,18 +58,21 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
     if (first_led_iterator_ > last_led_iterator_) {
       invert_led_order_ = true;
     }
-
-    // std::cout << "First number: " << first_led_iterator_ << std::endl;
-    // std::cout << "Second number: " << last_led_iterator_ << std::endl;
-
   } catch (const std::invalid_argument & e) {
-    throw std::runtime_error("Error converting string to integer.");
+    throw std::invalid_argument("Error converting string to integer");
   }
 
   num_led_ = std::abs(int(last_led_iterator_ - first_led_iterator_)) + 1;
 
   animation_loader_ = std::make_shared<pluginlib::ClassLoader<panther_lights::Animation>>(
     "panther_lights", "panther_lights::Animation");
+}
+
+LEDSegment::~LEDSegment()
+{
+  // make sure that animation is destroyed before pluginlib loader
+  animation_.reset();
+  animation_loader_.reset();
 }
 
 void LEDSegment::SetAnimation(const YAML::Node & animation_description)
@@ -97,7 +100,7 @@ void LEDSegment::SetAnimation(const YAML::Node & animation_description)
   }
 }
 
-std::vector<std::uint8_t> LEDSegment::UpdateAnimation()
+void LEDSegment::UpdateAnimation(const std::string & param)
 {
   if (!animation_) {
     throw std::runtime_error("Segment animation not defined");
@@ -107,13 +110,15 @@ std::vector<std::uint8_t> LEDSegment::UpdateAnimation()
     animation_->Reset();
   }
 
+  if (!param.empty()) {
+    animation_->SetParam(param);
+  }
+
   try {
     animation_->Update();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to update animation: " + std::string(e.what()));
   }
-
-  return animation_->GetFrame(invert_led_order_);
 }
 
 std::size_t LEDSegment::GetFirstLEDPosition() const
