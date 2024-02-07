@@ -29,9 +29,10 @@ namespace panther_battery
 {
 
 DualBatteryPublisher::DualBatteryPublisher(
-  const rclcpp::Node::SharedPtr & node, const std::shared_ptr<Battery> & battery_1,
-  const std::shared_ptr<Battery> & battery_2)
-: BatteryPublisher(std::move(node)),
+  const rclcpp::Node::SharedPtr & node,
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater,
+  const std::shared_ptr<Battery> & battery_1, const std::shared_ptr<Battery> & battery_2)
+: BatteryPublisher(std::move(node), diagnostic_updater),
   battery_1_(std::move(battery_1)),
   battery_2_(std::move(battery_2))
 {
@@ -151,6 +152,32 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
   } else {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   }
+}
+
+void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Battery is OK"};
+
+  if (battery_1_->HasErrorMsg() || battery_2_->HasErrorMsg()) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Battery error";
+
+    diagnostic_msgs::msg::KeyValue battery_1_key_value;
+    battery_1_key_value.key = "Battery 1 error message";
+    battery_1_key_value.value = battery_1_->GetErrorMsg();
+
+    diagnostic_msgs::msg::KeyValue battery_2_key_value;
+    battery_2_key_value.key = "Battery 2 error message";
+    battery_2_key_value.value = battery_2_->GetErrorMsg();
+
+    key_values.push_back(battery_1_key_value);
+    key_values.push_back(battery_2_key_value);
+  }
+
+  status.values = key_values;
+  status.summary(error_level, message);
 }
 
 }  // namespace panther_battery

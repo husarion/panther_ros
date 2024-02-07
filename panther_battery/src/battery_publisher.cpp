@@ -22,7 +22,10 @@
 namespace panther_battery
 {
 
-BatteryPublisher::BatteryPublisher(const rclcpp::Node::SharedPtr & node) : node_(std::move(node))
+BatteryPublisher::BatteryPublisher(
+  const rclcpp::Node::SharedPtr & node,
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater)
+: node_(std::move(node))
 {
   node_->declare_parameter<float>("battery_timeout", 1.0);
   battery_timeout_ = node_->get_parameter("battery_timeout").as_double();
@@ -33,6 +36,8 @@ BatteryPublisher::BatteryPublisher(const rclcpp::Node::SharedPtr & node) : node_
   io_state_sub_ = node_->create_subscription<IOStateMsg>(
     "hardware/io_state", 3,
     [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
+
+  diagnostic_updater->add("Battery Health", this, &BatteryPublisher::DiagnoseBattery);
 }
 
 void BatteryPublisher::Publish()

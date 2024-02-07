@@ -29,8 +29,10 @@ namespace panther_battery
 {
 
 SingleBatteryPublisher::SingleBatteryPublisher(
-  const rclcpp::Node::SharedPtr & node, const std::shared_ptr<Battery> & battery)
-: BatteryPublisher(std::move(node)), battery_(std::move(battery))
+  const rclcpp::Node::SharedPtr & node,
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater,
+  const std::shared_ptr<Battery> & battery)
+: BatteryPublisher(std::move(node), diagnostic_updater), battery_(std::move(battery))
 {
   battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
   battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
@@ -63,6 +65,25 @@ void SingleBatteryPublisher::LogErrors()
       node_->get_logger(), *node_->get_clock(), 10000, "Battery error: %s",
       battery_->GetErrorMsg().c_str());
   }
+}
+
+void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Battery is OK"};
+
+  if (battery_->HasErrorMsg()) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Battery error";
+
+    diagnostic_msgs::msg::KeyValue battery_key_value;
+    battery_key_value.key = "Battery 1 error message";
+    battery_key_value.value = battery_->GetErrorMsg();
+  }
+
+  status.values = key_values;
+  status.summary(error_level, message);
 }
 
 }  // namespace panther_battery
