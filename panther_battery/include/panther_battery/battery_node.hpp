@@ -56,7 +56,7 @@ private:
   rclcpp::Subscription<DriverStateMsg>::SharedPtr driver_state_sub_;
   rclcpp::TimerBase::SharedPtr battery_pub_timer_;
 
-  std::shared_ptr<diagnostic_updater::Updater> diagnostics_updater_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
 };
 
 }  // namespace panther_battery

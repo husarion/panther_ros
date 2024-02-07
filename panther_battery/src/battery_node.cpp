@@ -35,8 +35,7 @@ namespace panther_battery
 {
 
 BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options),
-  diagnostics_updater_(std::make_shared<diagnostic_updater::Updater>(this))
+: Node(node_name, options), diagnostic_updater_(std::make_shared<diagnostic_updater::Updater>(this))
 {
   this->declare_parameter<float>("panther_version", 1.2);
   this->declare_parameter<int>("ma_window_len/voltage", 10);
@@ -46,7 +45,7 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
   battery_pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(100), std::bind(&BatteryNode::BatteryPubTimerCB, this));
 
-  diagnostics_updater_->setHardwareID("Battery");
+  diagnostic_updater_->setHardwareID("Battery");
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
@@ -102,7 +101,7 @@ void BatteryNode::InitializeWithADCBattery()
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
     battery_publisher_ = std::make_shared<DualBatteryPublisher>(
-      this->shared_from_this(), diagnostics_updater_, battery_1_, battery_2_);
+      this->shared_from_this(), diagnostic_updater_, battery_1_, battery_2_);
   } else {
     battery_2_.reset();
     battery_1_ = std::make_shared<ADCBattery>(
@@ -114,7 +113,7 @@ void BatteryNode::InitializeWithADCBattery()
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 1, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 3, 0), battery_params);
     battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
-      this->shared_from_this(), diagnostics_updater_, battery_1_);
+      this->shared_from_this(), diagnostic_updater_, battery_1_);
   }
 }
 
@@ -137,7 +136,7 @@ void BatteryNode::InitializeWithRoboteqBattery()
   battery_1_ = std::make_shared<RoboteqBattery>([&]() { return driver_state_; }, battery_params);
 
   battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
-    this->shared_from_this(), diagnostics_updater_, battery_1_);
+    this->shared_from_this(), diagnostic_updater_, battery_1_);
 }
 
 void BatteryNode::BatteryPubTimerCB()
