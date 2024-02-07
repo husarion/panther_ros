@@ -77,9 +77,11 @@ void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatu
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Battery error";
 
-    diagnostic_msgs::msg::KeyValue battery_key_value;
-    battery_key_value.key = "Battery 1 error message";
-    battery_key_value.value = battery_->GetErrorMsg();
+    diagnostic_msgs::msg::KeyValue battery_kv;
+    battery_kv.key = "Battery 1 error message";
+    battery_kv.value = battery_->GetErrorMsg();
+
+    key_values.push_back(battery_kv);
   }
 
   status.values = key_values;

@@ -164,16 +164,16 @@ void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusW
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Battery error";
 
-    diagnostic_msgs::msg::KeyValue battery_1_key_value;
-    battery_1_key_value.key = "Battery 1 error message";
-    battery_1_key_value.value = battery_1_->GetErrorMsg();
+    diagnostic_msgs::msg::KeyValue battery_1_kv;
+    battery_1_kv.key = "Battery 1 error message";
+    battery_1_kv.value = battery_1_->GetErrorMsg();
 
-    diagnostic_msgs::msg::KeyValue battery_2_key_value;
-    battery_2_key_value.key = "Battery 2 error message";
-    battery_2_key_value.value = battery_2_->GetErrorMsg();
+    diagnostic_msgs::msg::KeyValue battery_2_kv;
+    battery_2_kv.key = "Battery 2 error message";
+    battery_2_kv.value = battery_2_->GetErrorMsg();
 
-    key_values.push_back(battery_1_key_value);
-    key_values.push_back(battery_2_key_value);
+    key_values.push_back(battery_1_kv);
+    key_values.push_back(battery_2_kv);
   }
 
   status.values = key_values;

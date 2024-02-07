@@ -170,9 +170,14 @@ void DriverNode::SetBrightnessCB(
 
 void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  if (panels_initialised_) {
-    status.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "LED panels are working properly");
-  } else {
+  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"LED panels are working properly"};
+
+  if (!panels_initialised_) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "LED panels are not initialised";
+
     auto pin_available = gpio_driver_->IsPinAvaible(panther_gpiod::GPIOPin::LED_SBC_SEL);
     auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
 
@@ -184,10 +189,12 @@ void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & st
     pin_active_kv.key = "LED_SBC_SEL pin active";
     pin_active_kv.value = pin_active ? "true" : "false";
 
-    status.values.push_back(pin_available_kv);
-    status.values.push_back(pin_active_kv);
-    status.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LED panels are not initialised");
+    key_values.push_back(pin_available_kv);
+    key_values.push_back(pin_active_kv);
   }
+
+  status.values = key_values;
+  status.summary(error_level, message);
 }
 
 }  // namespace panther_lights
