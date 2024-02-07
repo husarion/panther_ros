@@ -39,13 +39,19 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options), front_panel_("/dev/spidev0.0"), rear_panel_("/dev/spidev0.1")
+: Node(node_name, options),
+  front_panel_("/dev/spidev0.0"),
+  rear_panel_("/dev/spidev0.1"),
+  diagnostic_updater_(this)
 {
   rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
 
   this->declare_parameter<double>("global_brightness", 1.0);
   this->declare_parameter<double>("frame_timeout", 0.1);
   this->declare_parameter<int>("num_led", 46);
+
+  diagnostic_updater_.setHardwareID("Lights");
+  diagnostic_updater_.add("Lights Health", this, &DriverNode::DiagnoseLigths);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
@@ -160,6 +166,28 @@ void DriverNode::SetBrightnessCB(
   str_bright = str_bright.substr(0, str_bright.find(".") + 3);
   res->success = true;
   res->message = "Changed brightness to " + str_bright;
+}
+
+void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  if (panels_initialised_) {
+    status.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "LED panels are working properly");
+  } else {
+    auto pin_available = gpio_driver_->IsPinAvaible(panther_gpiod::GPIOPin::LED_SBC_SEL);
+    auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
+
+    diagnostic_msgs::msg::KeyValue pin_available_kv;
+    pin_available_kv.key = "LED_SBC_SEL pin available";
+    pin_available_kv.value = pin_available ? "true" : "false";
+
+    diagnostic_msgs::msg::KeyValue pin_active_kv;
+    pin_active_kv.key = "LED_SBC_SEL pin active";
+    pin_active_kv.value = pin_active ? "true" : "false";
+
+    status.values.push_back(pin_available_kv);
+    status.values.push_back(pin_active_kv);
+    status.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LED panels are not initialised");
+  }
 }
 
 }  // namespace panther_lights
