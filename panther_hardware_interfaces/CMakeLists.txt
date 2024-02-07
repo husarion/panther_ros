@@ -28,7 +28,48 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
+# install liblely
+find_library(LIBLELY_INSTALLED liblely-coapp HINTS ${CMAKE_INSTALL_PREFIX}/lib)
+if(NOT LIBLELY_INSTALLED)
+  message(WARNING "liblely is not installed. Installing...")
+
+  include(ExternalProject)
+
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
+
+  ExternalProject_Add(
+    lely_core_libraries
+    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/upstream
+    # INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/"  # Installation prefix
+    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
+    GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
+    GIT_TAG v2.3.3
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
+    CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
+    COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
+            --disable-tests --disable-static
+    BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
+    INSTALL_COMMAND make install INSTALL_PREFIX=<SOURCE_DIR>)
+
+  add_library(liblely-coapp STATIC IMPORTED GLOBAL)
+  add_dependencies(liblely-coapp lely_core_libraries)
+
+  set_target_properties(
+    liblely-coapp
+    PROPERTIES
+      IMPORTED_LOCATION
+      ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib/liblely-coapp.so)
+  set_target_properties(
+    liblely-coapp
+    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+               ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
+
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib
+          DESTINATION ${CMAKE_INSTALL_PREFIX})
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include
+          DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+endif()
 
 add_library(
   ${PROJECT_NAME} SHARED
@@ -52,7 +93,7 @@ ament_target_dependencies(
   panther_msgs
   panther_utils
   realtime_tools)
-target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
+target_link_libraries(${PROJECT_NAME} liblely-coapp)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
@@ -102,8 +143,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller rclcpp
                             panther_msgs panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_canopen_controller
-                        PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_test_canopen_controller liblely-coapp)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver test/test_roboteq_driver.cpp
@@ -114,8 +154,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver rclcpp
                             panther_msgs panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_roboteq_driver
-                        PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_test_roboteq_driver liblely-coapp)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_motors_controller
@@ -131,8 +170,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_motors_controller rclcpp
                             panther_msgs panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_motors_controller
-                        PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_test_motors_controller liblely-coapp)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system_ros_interface
@@ -158,8 +196,7 @@ if(BUILD_TESTING)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
     panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_panther_system
-                        PkgConfig::LIBLELY_COAPP)
+  target_link_libraries(${PROJECT_NAME}_test_panther_system liblely-coapp)
 
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
 endif()
