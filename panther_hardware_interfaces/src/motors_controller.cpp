@@ -34,7 +34,8 @@ MotorsController::MotorsController(
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_vel_cmd_converter_(drivetrain_settings),
-  pdo_feedback_timeout_ms_(canopen_settings.pdo_feedback_timeout_ms)
+  pdo_motor_states_timeout_ms_(canopen_settings.pdo_motor_states_timeout_ms),
+  pdo_driver_state_timeout_ms_(canopen_settings.pdo_driver_state_timeout_ms)
 {
 }
 
@@ -81,15 +82,13 @@ void MotorsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   try {
-    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel1(0);
-    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel2(0);
+    canopen_controller_.GetFrontDriver()->SendRoboteqCmd(0, 0);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver send 0 command exception: " + std::string(e.what()));
   }
 
   try {
-    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(0);
-    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(0);
+    canopen_controller_.GetRearDriver()->SendRoboteqCmd(0, 0);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver send 0 command exception: " + std::string(e.what()));
   }
@@ -97,111 +96,55 @@ void MotorsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-void MotorsController::UpdateSystemFeedback()
+void MotorsController::UpdateMotorsStates()
 {
-  const RoboteqDriverFeedback front_driver_feedback =
-    canopen_controller_.GetFrontDriver()->ReadRoboteqDriverFeedback();
-  const RoboteqDriverFeedback rear_driver_feedback =
-    canopen_controller_.GetRearDriver()->ReadRoboteqDriverFeedback();
-
-  const timespec front_driver_ts = front_driver_feedback.timestamp;
-  const timespec rear_driver_ts = rear_driver_feedback.timestamp;
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  const bool front_data_timed_out =
-    (lely::util::from_timespec(current_time) - lely::util::from_timespec(front_driver_ts) >
-     pdo_feedback_timeout_ms_);
-  const bool rear_data_timed_out =
-    (lely::util::from_timespec(current_time) - lely::util::from_timespec(rear_driver_ts) >
-     pdo_feedback_timeout_ms_);
+  SetMotorsStates(
+    front_data_, canopen_controller_.GetFrontDriver()->ReadRoboteqMotorsStates(), current_time);
+  SetMotorsStates(
+    rear_data_, canopen_controller_.GetRearDriver()->ReadRoboteqMotorsStates(), current_time);
 
-  const bool front_can_error = canopen_controller_.GetFrontDriver()->IsCANError();
-  const bool rear_can_error = canopen_controller_.GetRearDriver()->IsCANError();
+  front_data_.SetCANNetErr(canopen_controller_.GetFrontDriver()->IsCANError());
+  rear_data_.SetCANNetErr(canopen_controller_.GetRearDriver()->IsCANError());
 
-  // Channel 1 - right motor, Channel 2 - left motor
-  front_data_.SetMotorStates(
-    front_driver_feedback.motor_2, front_driver_feedback.motor_1, front_data_timed_out,
-    front_can_error);
-  rear_data_.SetMotorStates(
-    rear_driver_feedback.motor_2, rear_driver_feedback.motor_1, rear_data_timed_out,
-    rear_can_error);
-
-  front_data_.SetFlags(
-    front_driver_feedback.fault_flags, front_driver_feedback.script_flags,
-    front_driver_feedback.runtime_stat_flag_motor_2,
-    front_driver_feedback.runtime_stat_flag_motor_1);
-
-  rear_data_.SetFlags(
-    rear_driver_feedback.fault_flags, rear_driver_feedback.script_flags,
-    rear_driver_feedback.runtime_stat_flag_motor_2, rear_driver_feedback.runtime_stat_flag_motor_1);
-
-  if (front_can_error || rear_can_error) {
-    throw std::runtime_error("CAN error detected when trying to read Roboteq feedback");
+  if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
+    throw std::runtime_error("CAN error detected when trying to read motors states");
   }
 }
 
-bool MotorsController::UpdateDriversState()
+void MotorsController::UpdateDriversState()
 {
-  try {
-    switch (current_update_) {
-      case 0:
-        front_data_.SetTemperature(canopen_controller_.GetFrontDriver()->ReadTemperature());
-        break;
-      case 1:
-        front_data_.SetVoltage(canopen_controller_.GetFrontDriver()->ReadVoltage());
-        break;
-      case 2:
-        front_data_.SetBatAmps1(canopen_controller_.GetFrontDriver()->ReadBatAmps1());
-        break;
-      case 3:
-        front_data_.SetBatAmps2(canopen_controller_.GetFrontDriver()->ReadBatAmps2());
-        break;
-      case 4:
-        rear_data_.SetTemperature(canopen_controller_.GetRearDriver()->ReadTemperature());
-        break;
-      case 5:
-        rear_data_.SetVoltage(canopen_controller_.GetRearDriver()->ReadVoltage());
-        break;
-      case 6:
-        rear_data_.SetBatAmps1(canopen_controller_.GetRearDriver()->ReadBatAmps1());
-        break;
-      case 7:
-        rear_data_.SetBatAmps2(canopen_controller_.GetRearDriver()->ReadBatAmps2());
-        break;
-    }
+  timespec current_time;
+  clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-    ++current_update_;
-    if (current_update_ > 7) {
-      current_update_ = 0;
-      return true;
-    }
+  SetDriverState(
+    front_data_, canopen_controller_.GetFrontDriver()->ReadRoboteqDriverState(), current_time);
+  SetDriverState(
+    rear_data_, canopen_controller_.GetRearDriver()->ReadRoboteqDriverState(), current_time);
 
-    return false;
+  front_data_.SetCANNetErr(canopen_controller_.GetFrontDriver()->IsCANError());
+  rear_data_.SetCANNetErr(canopen_controller_.GetRearDriver()->IsCANError());
 
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to read Roboteq drivers feedback: " + std::string(e.what()));
+  if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
+    throw std::runtime_error("CAN error detected when trying to read drivers states");
   }
 }
 
-void MotorsController::WriteSpeed(
+void MotorsController::SendSpeedCommands(
   const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr)
 {
   // Channel 1 - right motor, Channel 2 - left motor
   try {
-    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel1(
-      roboteq_vel_cmd_converter_.Convert(speed_fr));
-    canopen_controller_.GetFrontDriver()->SendRoboteqCmdChannel2(
-      roboteq_vel_cmd_converter_.Convert(speed_fl));
+    canopen_controller_.GetFrontDriver()->SendRoboteqCmd(
+      roboteq_vel_cmd_converter_.Convert(speed_fr), roboteq_vel_cmd_converter_.Convert(speed_fl));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver send Roboteq cmd failed: " + std::string(e.what()));
   }
   try {
-    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel1(
-      roboteq_vel_cmd_converter_.Convert(speed_rr));
-    canopen_controller_.GetRearDriver()->SendRoboteqCmdChannel2(
-      roboteq_vel_cmd_converter_.Convert(speed_rl));
+    canopen_controller_.GetRearDriver()->SendRoboteqCmd(
+      roboteq_vel_cmd_converter_.Convert(speed_rr), roboteq_vel_cmd_converter_.Convert(speed_rl));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver send Roboteq cmd failed: " + std::string(e.what()));
   }
@@ -264,6 +207,33 @@ void MotorsController::TurnOnSafetyStop()
     throw std::runtime_error(
       "Exception when trying to turn on safety stop on the rear driver: " + std::string(e.what()));
   }
+}
+
+void MotorsController::SetMotorsStates(
+  RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time)
+{
+  bool data_timed_out =
+    (lely::util::from_timespec(current_time) - lely::util::from_timespec(states.pos_timestamp) >
+     pdo_motor_states_timeout_ms_) ||
+    (lely::util::from_timespec(current_time) -
+       lely::util::from_timespec(states.vel_current_timestamp) >
+     pdo_motor_states_timeout_ms_);
+
+  // Channel 1 - right, Channel 2 - left
+  data.SetMotorsStates(states.motor_2, states.motor_1, data_timed_out);
+}
+
+void MotorsController::SetDriverState(
+  RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time)
+{
+  bool data_timed_out = (lely::util::from_timespec(current_time) -
+                           lely::util::from_timespec(state.flags_current_timestamp) >
+                         pdo_driver_state_timeout_ms_) ||
+                        (lely::util::from_timespec(current_time) -
+                           lely::util::from_timespec(state.voltages_temps_timestamp) >
+                         pdo_driver_state_timeout_ms_);
+
+  data.SetDriverState(state, data_timed_out);
 }
 
 }  // namespace panther_hardware_interfaces

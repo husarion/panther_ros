@@ -19,7 +19,7 @@
 
 #include <panther_hardware_interfaces/canopen_controller.hpp>
 
-#include <roboteq_mock.hpp>
+#include <roboteqs_mock.hpp>
 #include <test_constants.hpp>
 
 #include <iostream>
@@ -32,18 +32,17 @@ public:
     canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
       panther_hardware_interfaces_test::kCANopenSettings);
 
-    roboteq_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqMock>();
-    // PDO running on 100Hz
-    roboteq_mock_->Start(std::chrono::milliseconds(10));
+    roboteqs_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqsMock>();
+    roboteqs_mock_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
   }
 
   ~TestCANopenController()
   {
-    roboteq_mock_->Stop();
-    roboteq_mock_.reset();
+    roboteqs_mock_->Stop();
+    roboteqs_mock_.reset();
   }
 
-  std::unique_ptr<panther_hardware_interfaces_test::RoboteqMock> roboteq_mock_;
+  std::unique_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
 
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
@@ -60,22 +59,22 @@ TEST_F(TestCANopenController, test_canopen_controller)
 
 TEST_F(TestCANopenController, test_canopen_controller_error_device_type)
 {
-  roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
+  roboteqs_mock_->GetFrontDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 
-  roboteq_mock_->front_driver_->SetOnReadWait<std::uint32_t>(0x1000, 0, 0);
+  roboteqs_mock_->GetFrontDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 0);
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
 TEST_F(TestCANopenController, test_canopen_controller_error_vendor_id)
 {
-  roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
+  roboteqs_mock_->GetRearDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 
-  roboteq_mock_->rear_driver_->SetOnReadWait<std::uint32_t>(0x1018, 1, 0);
+  roboteqs_mock_->GetRearDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 0);
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }

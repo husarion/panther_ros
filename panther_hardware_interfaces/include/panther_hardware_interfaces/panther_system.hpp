@@ -60,7 +60,7 @@ public:
   std::vector<StateInterface> export_state_interfaces() override;
   std::vector<CommandInterface> export_command_interfaces() override;
 
-  return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
+  return_type read(const rclcpp::Time & time, const rclcpp::Duration & /* period */) override;
   return_type write(
     const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
@@ -73,11 +73,20 @@ protected:
   void ReadCANopenSettings();
   void ReadInitializationActivationAttempts();
   void ReadParametersAndCreateRoboteqErrorFilter();
+  void ReadDriverStatesUpdateFrequency();
+
+  void UpdateMotorsStates();
+  void UpdatDriverState();
 
   void UpdateHwStates();
-  void UpdateDriverState();
-  void UpdateSystemFeedback();
-  void UpdateMsgErrors();
+  void UpdateMotorsStatesDataTimedOut();
+
+  void UpdateDriverStateMsg();
+  void UpdateFlagErrors();
+  void UpdateDriverStateDataTimedOut();
+
+  void SendCommands();
+  void SendSafetyStopIfNotSet();
   bool CheckIfSafetyStopActive();
 
   static constexpr size_t kJointsSize = 4;
@@ -123,6 +132,9 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
+
+  rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
+  rclcpp::Duration driver_states_update_period_{0, 0};
 };
 
 }  // namespace panther_hardware_interfaces

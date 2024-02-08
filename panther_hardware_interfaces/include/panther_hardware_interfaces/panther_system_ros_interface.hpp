@@ -39,11 +39,17 @@ using DriverStateMsg = panther_msgs::msg::DriverState;
 struct CANErrors
 {
   bool error;
-  bool write_sdo_error;
-  bool read_sdo_error;
-  bool read_pdo_error;
-  bool front_data_timed_out;
-  bool rear_data_timed_out;
+
+  bool write_pdo_cmds_error;
+  bool read_pdo_motor_states_error;
+  bool read_pdo_driver_state_error;
+
+  bool front_motor_states_data_timed_out;
+  bool rear_motor_states_data_timed_out;
+
+  bool front_driver_state_data_timed_out;
+  bool rear_driver_state_data_timed_out;
+
   bool front_can_net_err;
   bool rear_can_net_err;
 };
@@ -76,7 +82,7 @@ public:
   /**
    * @brief Updates parameters of the drivers: voltage, current and temperature
    */
-  void UpdateMsgDriversParameters(const DriverState & front, const DriverState & rear);
+  void UpdateMsgDriversStates(const DriverState & front, const DriverState & rear);
 
   /**
    * @brief Updates the current state of communication errors and general error state
@@ -92,8 +98,6 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
-
-  std::atomic_bool stop_executor_ = false;
 
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>

@@ -40,12 +40,17 @@ void ErrorFilter::ClearError()
 }
 
 RoboteqErrorFilter::RoboteqErrorFilter(
-  const unsigned max_read_sdo_errors_count, const unsigned max_write_sdo_errors_count,
-  const unsigned max_read_pdo_errors_count, const unsigned max_roboteq_driver_error_count)
+  const unsigned max_write_pdo_cmds_errors_count,
+  const unsigned max_read_pdo_motor_states_errors_count,
+  const unsigned max_read_pdo_driver_state_errors_count,
+  const unsigned max_roboteq_driver_error_count)
 {
-  error_filters_.insert({ErrorsFilterIds::READ_SDO, ErrorFilter(max_read_sdo_errors_count)});
-  error_filters_.insert({ErrorsFilterIds::WRITE_SDO, ErrorFilter(max_write_sdo_errors_count)});
-  error_filters_.insert({ErrorsFilterIds::READ_PDO, ErrorFilter(max_read_pdo_errors_count)});
+  error_filters_.insert(
+    {ErrorsFilterIds::WRITE_PDO_CMDS, ErrorFilter(max_write_pdo_cmds_errors_count)});
+  error_filters_.insert(
+    {ErrorsFilterIds::READ_PDO_MOTOR_STATES, ErrorFilter(max_read_pdo_motor_states_errors_count)});
+  error_filters_.insert(
+    {ErrorsFilterIds::READ_PDO_DRIVER_STATE, ErrorFilter(max_read_pdo_driver_state_errors_count)});
   error_filters_.insert(
     {ErrorsFilterIds::ROBOTEQ_DRIVER, ErrorFilter(max_roboteq_driver_error_count)});
 }

@@ -80,6 +80,9 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test_roboteq_error_filter
                              PRIVATE include)
 
+  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
+  target_include_directories(${PROJECT_NAME}_test_utils PRIVATE include)
+
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
     test/test_roboteq_data_converters.cpp src/roboteq_data_converters.cpp
@@ -90,13 +93,10 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
                             panther_msgs)
 
-  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_utils PRIVATE include)
-
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller test/test_canopen_controller.cpp
-    test/src/roboteq_mock.cpp src/canopen_controller.cpp src/roboteq_driver.cpp
-    src/utils.cpp)
+    test/src/roboteqs_mock.cpp src/canopen_controller.cpp
+    src/roboteq_driver.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_canopen_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -107,8 +107,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver test/test_roboteq_driver.cpp
-    test/src/roboteq_mock.cpp src/canopen_controller.cpp src/roboteq_driver.cpp
-    src/utils.cpp)
+    test/src/roboteqs_mock.cpp src/canopen_controller.cpp
+    src/roboteq_driver.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_driver
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -120,7 +120,7 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_motors_controller
     test/test_motors_controller.cpp
-    test/src/roboteq_mock.cpp
+    test/src/roboteqs_mock.cpp
     src/canopen_controller.cpp
     src/roboteq_driver.cpp
     src/roboteq_data_converters.cpp
@@ -149,7 +149,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp
-    test/src/roboteq_mock.cpp test/src/panther_system_test_utils.cpp)
+    test/src/roboteqs_mock.cpp test/src/panther_system_test_utils.cpp)
   set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
                                                                       120)
   target_include_directories(

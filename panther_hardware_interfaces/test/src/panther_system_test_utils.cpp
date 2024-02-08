@@ -23,11 +23,10 @@
 namespace panther_hardware_interfaces_test
 {
 
-void PantherSystemTestUtils::Start(std::string urdf)
+void PantherSystemTestUtils::Start(const std::string & urdf)
 {
-  roboteq_mock_ = std::make_unique<RoboteqMock>();
-  // PDO running on 100Hz
-  roboteq_mock_->Start(std::chrono::milliseconds(10));
+  roboteqs_mock_ = std::make_unique<RoboteqsMock>();
+  roboteqs_mock_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
   rclcpp::init(0, nullptr);
 
   rm_ = std::make_shared<hardware_interface::ResourceManager>(urdf);
@@ -36,13 +35,13 @@ void PantherSystemTestUtils::Start(std::string urdf)
 void PantherSystemTestUtils::Stop()
 {
   rclcpp::shutdown();
-  roboteq_mock_->Stop();
-  roboteq_mock_.reset();
+  roboteqs_mock_->Stop();
+  roboteqs_mock_.reset();
   rm_.reset();
 }
 
 std::string PantherSystemTestUtils::BuildUrdf(
-  std::map<std::string, std::string> param_map, std::vector<std::string> joints)
+  const std::map<std::string, std::string> & param_map, const std::vector<std::string> & joints)
 {
   std::stringstream urdf;
 

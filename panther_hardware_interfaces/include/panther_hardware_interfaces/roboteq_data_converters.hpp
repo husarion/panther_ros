@@ -103,20 +103,20 @@ public:
    */
   FlagError(
     const std::vector<std::string> & flag_names,
-    const std::vector<std::string> & surpressed_flags_names = {});
+    const std::vector<std::string> & suppressed_flags_names = {});
 
   virtual ~FlagError() = default;
 
   void SetData(const std::uint8_t flags) { flags_ = flags; }
 
-  bool IsError() const { return (flags_ & (~surpressed_flags_)).any(); }
+  bool IsError() const { return (flags_ & (~suppressed_flags_)).any(); }
 
   std::string GetErrorLog() const;
 
 protected:
   const std::vector<std::string> flag_names_;
 
-  std::bitset<8> surpressed_flags_ = 0;
+  std::bitset<8> suppressed_flags_ = 0;
   std::bitset<8> flags_ = 0;
 };
 
@@ -151,19 +151,28 @@ public:
   DriverState() {}
 
   void SetTemperature(const std::int16_t temp) { temp_ = temp; };
+  void SetHeatsinkTemperature(const std::int16_t heatsink_temp) { heatsink_temp_ = heatsink_temp; };
   void SetVoltage(const std::uint16_t voltage) { voltage_ = voltage; };
-  void SetBatAmps1(const std::int16_t bat_amps_1) { bat_amps_1_ = bat_amps_1; };
-  void SetBatAmps2(const std::int16_t bat_amps_2) { bat_amps_2_ = bat_amps_2; };
+  void SetBatteryCurrent1(const std::int16_t battery_current_1)
+  {
+    battery_current_1_ = battery_current_1;
+  };
+  void SetBatteryCurrent2(const std::int16_t battery_current_2)
+  {
+    battery_current_2_ = battery_current_2;
+  };
 
   float GetTemperature() const { return temp_; }
+  float GetHeatsinkTemperature() const { return heatsink_temp_; }
   float GetVoltage() const { return voltage_ / 10.0; }
-  float GetCurrent() const { return (bat_amps_1_ + bat_amps_2_) / 10.0; }
+  float GetCurrent() const { return (battery_current_1_ + battery_current_2_) / 10.0; }
 
 private:
   std::int16_t temp_ = 0;
+  std::int16_t heatsink_temp_ = 0;
   std::uint16_t voltage_ = 0;
-  std::int16_t bat_amps_1_ = 0;
-  std::int16_t bat_amps_2_ = 0;
+  std::int16_t battery_current_1_ = 0;
+  std::int16_t battery_current_2_ = 0;
 };
 
 /**
@@ -177,16 +186,11 @@ public:
   {
   }
 
-  void SetMotorStates(
+  void SetMotorsStates(
     const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
-    const bool data_timed_out, const bool can_net_err);
-  void SetFlags(
-    const std::uint8_t fault_flags, const std::uint8_t script_flags,
-    const std::uint8_t left_runtime_errors_flags, const std::uint8_t right_runtime_errors_flags);
-  void SetTemperature(const std::int16_t temp) { driver_state_.SetTemperature(temp); };
-  void SetVoltage(const std::uint16_t voltage) { driver_state_.SetVoltage(voltage); };
-  void SetBatAmps1(const std::int16_t bat_amps_1) { driver_state_.SetBatAmps1(bat_amps_1); };
-  void SetBatAmps2(const std::int16_t bat_amps_2) { driver_state_.SetBatAmps2(bat_amps_2); };
+    const bool data_timed_out);
+  void SetDriverState(const RoboteqDriverState & state, const bool data_timed_out);
+  void SetCANNetErr(const bool can_net_err) { can_net_err_ = can_net_err; }
 
   bool IsFlagError() const
   {
@@ -194,13 +198,18 @@ public:
            right_runtime_error_.IsError();
   }
 
-  bool IsError() const { return IsFlagError() || data_timed_out_ || can_net_err_; }
+  bool IsError() const
+  {
+    return IsFlagError() || motor_states_data_timed_out_ || driver_state_data_timed_out_ ||
+           can_net_err_;
+  }
 
   const MotorState & GetLeftMotorState() const { return left_motor_state_; }
   const MotorState & GetRightMotorState() const { return right_motor_state_; }
   const DriverState & GetDriverState() const { return driver_state_; }
 
-  bool IsDataTimedOut() const { return data_timed_out_; }
+  bool IsMotorStatesDataTimedOut() const { return motor_states_data_timed_out_; }
+  bool IsDriverStateDataTimedOut() const { return driver_state_data_timed_out_; }
   bool IsCANNetErr() const { return can_net_err_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
@@ -221,7 +230,8 @@ private:
   RuntimeError left_runtime_error_;
   RuntimeError right_runtime_error_;
 
-  bool data_timed_out_ = false;
+  bool motor_states_data_timed_out_ = false;
+  bool driver_state_data_timed_out_ = false;
   bool can_net_err_ = false;
 };
 

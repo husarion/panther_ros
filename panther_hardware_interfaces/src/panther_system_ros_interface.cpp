@@ -36,11 +36,7 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
-  executor_thread_ = std::make_unique<std::thread>([this]() {
-    while (!stop_executor_) {
-      executor_->spin_some();
-    }
-  });
+  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 
   clear_errors_ = clear_errors;
 
@@ -61,11 +57,12 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   driver_state_publisher_.reset();
   clear_errors_srv_.reset();
 
-  stop_executor_.store(true);
-  executor_thread_->join();
-  stop_executor_.store(false);
+  if (executor_) {
+    executor_->cancel();
+    executor_thread_->join();
+    executor_.reset();
+  }
 
-  executor_.reset();
   node_.reset();
 }
 
@@ -85,7 +82,7 @@ void PantherSystemRosInterface::UpdateMsgErrorFlags(
   driver_state.rear.right_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
-void PantherSystemRosInterface::UpdateMsgDriversParameters(
+void PantherSystemRosInterface::UpdateMsgDriversStates(
   const DriverState & front, const DriverState & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
@@ -93,10 +90,12 @@ void PantherSystemRosInterface::UpdateMsgDriversParameters(
   driver_state.front.voltage = front.GetVoltage();
   driver_state.front.current = front.GetCurrent();
   driver_state.front.temperature = front.GetTemperature();
+  driver_state.front.heatsink_temperature = front.GetHeatsinkTemperature();
 
   driver_state.rear.voltage = rear.GetVoltage();
   driver_state.rear.current = rear.GetCurrent();
   driver_state.rear.temperature = rear.GetTemperature();
+  driver_state.rear.heatsink_temperature = rear.GetHeatsinkTemperature();
 }
 
 void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
@@ -104,12 +103,15 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
   driver_state.error = can_errors.error;
-  driver_state.write_sdo_error = can_errors.write_sdo_error;
-  driver_state.read_sdo_error = can_errors.read_sdo_error;
-  driver_state.read_pdo_error = can_errors.read_pdo_error;
+  driver_state.write_pdo_cmds_error = can_errors.write_pdo_cmds_error;
+  driver_state.read_pdo_motor_states_error = can_errors.read_pdo_motor_states_error;
+  driver_state.read_pdo_driver_state_error = can_errors.read_pdo_driver_state_error;
 
-  driver_state.front.data_timed_out = can_errors.front_data_timed_out;
-  driver_state.rear.data_timed_out = can_errors.rear_data_timed_out;
+  driver_state.front.motor_states_data_timed_out = can_errors.front_motor_states_data_timed_out;
+  driver_state.rear.motor_states_data_timed_out = can_errors.rear_motor_states_data_timed_out;
+
+  driver_state.front.driver_state_data_timed_out = can_errors.front_driver_state_data_timed_out;
+  driver_state.rear.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
 
   driver_state.front.can_net_err = can_errors.front_can_net_err;
   driver_state.rear.can_net_err = can_errors.rear_can_net_err;
