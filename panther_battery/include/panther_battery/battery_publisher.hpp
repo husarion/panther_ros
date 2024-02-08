@@ -53,6 +53,7 @@ protected:
   bool ChargerConnected() const;
 
   rclcpp::Node::SharedPtr node_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
 
 private:
   bool charger_connected_;

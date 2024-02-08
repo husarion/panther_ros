@@ -71,7 +71,7 @@ void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatu
 {
   std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery is OK"};
+  std::string message{"Battery has no error messages"};
 
   if (battery_->HasErrorMsg()) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;

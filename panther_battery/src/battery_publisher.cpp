@@ -25,7 +25,7 @@ namespace panther_battery
 BatteryPublisher::BatteryPublisher(
   const rclcpp::Node::SharedPtr & node,
   std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater)
-: node_(std::move(node))
+: node_(std::move(node)), diagnostic_updater_(std::move(diagnostic_updater))
 {
   node_->declare_parameter<float>("battery_timeout", 1.0);
   battery_timeout_ = node_->get_parameter("battery_timeout").as_double();
@@ -37,7 +37,7 @@ BatteryPublisher::BatteryPublisher(
     "hardware/io_state", 3,
     [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
 
-  diagnostic_updater->add("Battery status", this, &BatteryPublisher::DiagnoseBattery);
+  diagnostic_updater_->add("Battery status", this, &BatteryPublisher::DiagnoseBattery);
 }
 
 void BatteryPublisher::Publish()
@@ -48,6 +48,10 @@ void BatteryPublisher::Publish()
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_THROTTLE(
       node_->get_logger(), *node_->get_clock(), 1000, "Error reading battery data: %s. ", e.what());
+
+    diagnostic_updater_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "Error reading battery data: " + std::string(e.what()));
   }
 
   if (TimeoutReached()) {
@@ -66,25 +70,31 @@ bool BatteryPublisher::TimeoutReached() const
 
 void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state) const
 {
+  std::string msg{};
+
   switch (battery_state.power_supply_status) {
     case BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING:
-      RCLCPP_WARN_THROTTLE(
-        node_->get_logger(), *node_->get_clock(), 10000,
+      msg =
         "The charger has been plugged in, but the charging process has not started. Check if the "
-        "charger is connected to a power source.");
+        "charger is connected to a power source.";
+
+      diagnostic_updater_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, msg);
+      RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 10000, msg.c_str());
       break;
 
     case BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING:
-      RCLCPP_INFO_THROTTLE(
-        node_->get_logger(), *node_->get_clock(), 180000,
-        "Robot is charging. Current battery percentage: %d%%.",
-        static_cast<int>(round(battery_state.percentage * 100.0)));
+      msg = "The robot is charging. Current battery percentage: " +
+            std::to_string(static_cast<int>(round(battery_state.percentage * 100.0))) + "%.";
+
+      diagnostic_updater_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::OK, msg);
+      RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg.c_str());
       break;
 
     case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
-      RCLCPP_INFO_THROTTLE(
-        node_->get_logger(), *node_->get_clock(), 180000,
-        "The battery is fully charged. Robot can be disconnected from the charger.");
+      msg = "The battery is fully charged. Robot can be disconnected from the charger.";
+
+      diagnostic_updater_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::OK, msg);
+      RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg.c_str());
       break;
 
     default:
