@@ -177,11 +177,11 @@ void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & st
 {
   std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"LED panels are working properly"};
+  std::string message{"LED panels are initialised properly"};
 
   if (!panels_initialised_) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "LED panels are not initialised";
+    message = "LED panels initialisation failed";
 
     auto pin_available = gpio_driver_->IsPinAvaible(panther_gpiod::GPIOPin::LED_SBC_SEL);
     auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
