@@ -16,6 +16,7 @@
 
 #include <condition_variable>
 #include <filesystem>
+#include <future>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -161,29 +162,28 @@ void CANopenController::NotifyCANCommunicationStarted(const bool result)
 void CANopenController::BootDrivers()
 {
   try {
-    front_driver_->Boot();
+    auto front_driver_future = front_driver_->Boot();
+    auto rear_driver_future = rear_driver_->Boot();
+
+    auto front_driver_status = front_driver_future.wait_for(std::chrono::seconds(5));
+    auto rear_driver_status = rear_driver_future.wait_for(std::chrono::seconds(5));
+
+    if (
+      front_driver_status == std::future_status::ready &&
+      rear_driver_status == std::future_status::ready) {
+      try {
+        front_driver_future.get();
+        rear_driver_future.get();
+      } catch (const std::exception & e) {
+        throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
+      }
+    } else {
+      throw std::runtime_error("Boot timed out or failed.");
+    }
+
   } catch (const std::system_error & e) {
     throw std::runtime_error(
-      "Exception caught when trying to Boot front driver " + std::string(e.what()));
-  }
-
-  try {
-    rear_driver_->Boot();
-  } catch (const std::system_error & e) {
-    throw std::runtime_error(
-      "Exception caught when trying to Boot rear driver " + std::string(e.what()));
-  }
-
-  try {
-    front_driver_->WaitForBoot();
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Front driver boot failed " + std::string(e.what()));
-  }
-
-  try {
-    rear_driver_->WaitForBoot();
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error("Rear driver boot failed " + std::string(e.what()));
+      "Exception caught when trying to Boot driver " + std::string(e.what()));
   }
 }
 

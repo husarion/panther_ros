@@ -26,7 +26,7 @@
 
 #include <hardware_interface/resource_manager.hpp>
 
-#include <roboteq_mock.hpp>
+#include <roboteqs_mock.hpp>
 #include <test_constants.hpp>
 
 namespace panther_hardware_interfaces_test
@@ -47,7 +47,7 @@ public:
    * @brief Starts Roboteq Mock, initializes rclcpp and creates resource manager
    * @param urdf urdf used to create resource manager
    */
-  void Start(std::string urdf);
+  void Start(const std::string & urdf);
 
   /**
    * @brief Shuts down rclcpp, stops Roboteq mock and destroys resource manager
@@ -60,7 +60,7 @@ public:
    * @param joints vector of joint names
    */
   std::string BuildUrdf(
-    std::map<std::string, std::string> param_map, std::vector<std::string> joints);
+    const std::map<std::string, std::string> & param_map, const std::vector<std::string> & joints);
 
   void ConfigurePantherSystem();
   void UnconfigurePantherSystem();
@@ -70,7 +70,7 @@ public:
   void ConfigureActivatePantherSystem();
 
   std::shared_ptr<hardware_interface::ResourceManager> GetResourceManager() { return rm_; }
-  std::shared_ptr<RoboteqMock> GetRoboteqMock() { return roboteq_mock_; }
+  std::shared_ptr<RoboteqsMock> GetRoboteqsMock() { return roboteqs_mock_; }
 
   std::string GetDefaultPantherSystemUrdf() const { return default_panther_system_urdf_; }
 
@@ -83,7 +83,7 @@ private:
    */
   void SetState(const std::uint8_t state_id, const std::string & state_name);
 
-  std::shared_ptr<RoboteqMock> roboteq_mock_;
+  std::shared_ptr<RoboteqsMock> roboteqs_mock_;
   std::shared_ptr<hardware_interface::ResourceManager> rm_;
 
   std::string default_panther_system_urdf_;
