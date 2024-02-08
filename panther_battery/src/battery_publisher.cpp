@@ -37,7 +37,7 @@ BatteryPublisher::BatteryPublisher(
     "hardware/io_state", 3,
     [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
 
-  diagnostic_updater->add("Battery Health", this, &BatteryPublisher::DiagnoseBattery);
+  diagnostic_updater->add("Battery status", this, &BatteryPublisher::DiagnoseBattery);
 }
 
 void BatteryPublisher::Publish()
