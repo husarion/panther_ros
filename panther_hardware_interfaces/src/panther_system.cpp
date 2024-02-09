@@ -142,7 +142,8 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     std::bind(&GPIOControllerInterface::AUXPowerEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddSetBoolService(
     "~/digital_power_enable",
-    std::bind(&GPIOControllerInterface::DigitalPowerEnable, gpio_controller_, std::placeholders::_1));
+    std::bind(
+      &GPIOControllerInterface::DigitalPowerEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddSetBoolService(
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
