@@ -39,9 +39,8 @@ void TriggerServiceWrapper::CallbackWrapper(
     response->success = false;
     response->message = err.what();
 
-    RCLCPP_INFO(
-      rclcpp::get_logger("PantherSystem"), "Trigger service response: %s",
-      response->message.c_str());
+    RCLCPP_WARN_STREAM(
+      rclcpp::get_logger("PantherSystem"), "Trigger service failed: " << response->message);
   }
 }
 
@@ -56,9 +55,8 @@ void SetBoolServiceWrapper::CallbackWrapper(
     response->success = false;
     response->message = err.what();
 
-    RCLCPP_INFO(
-      rclcpp::get_logger("PantherSystem"), "SetBool service response: %s",
-      response->message.c_str());
+    RCLCPP_WARN_STREAM(
+      rclcpp::get_logger("PantherSystem"), "SetBool service response: " << response->message);
   }
 }
 
@@ -71,15 +69,15 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 
-  driver_state_publisher_ = node_->create_publisher<panther_msgs::msg::DriverState>(
+  driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
   realtime_driver_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
-  io_state_publisher_ = node_->create_publisher<panther_msgs::msg::IOState>(
+  io_state_publisher_ = node_->create_publisher<IOStateMsg>(
     "~/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   realtime_io_state_publisher_ =
-    std::make_unique<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>(
+    std::make_unique<realtime_tools::RealtimePublisher<IOStateMsg>>(
       io_state_publisher_);
 
   e_stop_state_publisher_ = node_->create_publisher<std_msgs::msg::Bool>(
@@ -240,7 +238,7 @@ void PantherSystemRosInterface::PublishDriverState()
 void PantherSystemRosInterface::PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info)
 {
   auto & io_state = realtime_io_state_publisher_->msg_;
-  bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
+  const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
 
   switch (gpio_info.pin) {
     case panther_gpiod::GPIOPin::AUX_PW_EN:

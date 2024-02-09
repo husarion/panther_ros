@@ -76,7 +76,12 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
   }
 
-  gpio_controller_->Start();
+  try {
+    gpio_controller_->Start();
+  } catch (const std::runtime_error & e) {
+    RCLCPP_FATAL(logger_, "GPIO controller initialization failed");
+    return CallbackReturn::ERROR;
+  }
 
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
@@ -128,16 +133,16 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_->AddSetBoolService(
     "~/motor_power_enable",
-    std::bind(&GPIOControllerInterface::MotorsEnable, gpio_controller_, std::placeholders::_1));
+    std::bind(&GPIOControllerInterface::MotorPowerEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddSetBoolService(
     "~/fan_enable",
     std::bind(&GPIOControllerInterface::FanEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddSetBoolService(
     "~/aux_power_enable",
-    std::bind(&GPIOControllerInterface::AUXEnable, gpio_controller_, std::placeholders::_1));
+    std::bind(&GPIOControllerInterface::AUXPowerEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddSetBoolService(
     "~/digital_power_enable",
-    std::bind(&GPIOControllerInterface::VDIGEnable, gpio_controller_, std::placeholders::_1));
+    std::bind(&GPIOControllerInterface::DigitalPowerEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddSetBoolService(
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
@@ -674,7 +679,6 @@ void PantherSystem::ResetEStop()
 bool PantherSystem::ReadEStop()
 {
   if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    // TODO: it has reversed logic
     return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
   } else {
     // For older panther versions there is no hardware E-stop

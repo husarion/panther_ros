@@ -81,14 +81,16 @@ private:
 class GPIOControllerInterface
 {
 public:
+  virtual void ~GPIOControllerInterface() = default;
+
   virtual void Start() = 0;
-  virtual bool MotorsEnable(const bool enable) = 0;
+  virtual bool MotorPowerEnable(const bool enable) = 0;
   virtual bool FanEnable(const bool enable) = 0;
-  virtual bool AUXEnable(const bool enable) = 0;
-  virtual bool VDIGEnable(const bool enable) = 0;
+  virtual bool AUXPowerEnable(const bool enable) = 0;
+  virtual bool DigitalPowerEnable(const bool enable) = 0;
   virtual bool ChargerEnable(const bool enable) = 0;
-  virtual bool EStopTrigger() = 0;
-  virtual bool EStopReset() = 0;
+  virtual void EStopTrigger() = 0;
+  virtual void EStopReset() = 0;
 
   /**
    * @brief This method sets the provided callback function to be executed upon GPIO edge events.
@@ -108,16 +110,16 @@ public:
    *
    * MyClass my_obj;
    * GPIOControllerPTH12X gpio_controller;
-   * gpio_controller.ConfigureGpioStateCallback(
+   * gpio_controller.ConfigureGPIOStateCallback(
    *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
    */
-  void ConfigureGpioStateCallback(
+  void ConfigureGPIOStateCallback(
     const std::function<void(const panther_gpiod::GPIOInfo &)> & callback);
 
   bool IsPinActive(const panther_gpiod::GPIOPin pin) const;
 
-  bool IsPinAvaible(const panther_gpiod::GPIOPin pin) const;
+  bool IsPinAvailable(const panther_gpiod::GPIOPin pin) const;
 
 protected:
   std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver_;
@@ -132,25 +134,25 @@ public:
   void Start() override;
 
   /**
-   * @brief Disables the Watchdog thread for E-Stop mechanism trigger.
+   * @brief Disables the Watchdog thread for E-stop mechanism trigger.
    *
    * @return true if the Watchdog thread is successfully disabled.
    * @exception std::runtime_error when the Watchdog thread fails to stop.
    */
-  bool EStopTrigger() override;
+  void EStopTrigger() override;
 
   /**
-   * @brief Resets the E-Stop.
+   * @brief Resets the E-stop.
    *
    * This method verifies the status of the E_STOP_RESET pin, which is configured as an input.
-   * If the pin is active, it attempts to reset the E-Stop by momentarily setting it to an inactive
+   * If the pin is active, it attempts to reset the E-stop by momentarily setting it to an inactive
    * state. During this reset process, the pin is configured as an output for a specific duration.
-   * If the attempt to reset the E-Stop fails (the pin reads its value as an input again), it throws
-   * a runtime error. The Watchdog thread is temporarily activated during the E-Stop reset process.
-   * @return true if the E-Stop is successfully reset.
-   * @exception std::runtime_error when the E-Stop reset fails.
+   * If the attempt to reset the E-stop fails (the pin reads its value as an input again), it throws
+   * a runtime error. The Watchdog thread is temporarily activated during the E-stop reset process.
+   * @return true if the E-stop is successfully reset.
+   * @exception std::runtime_error when the E-stop reset fails.
    */
-  bool EStopReset() override;
+  void EStopReset() override;
 
   /**
    * @brief Controls the motor power by enabling or disabling them based on the 'enable' parameter.
@@ -158,7 +160,7 @@ public:
    * @param enable Set to 'true' to enable the motors, 'false' to disable.
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
    */
-  bool MotorsEnable(const bool enable) override;
+  bool MotorPowerEnable(const bool enable) override;
 
   /**
    * @brief Controls the fan based on the 'enable' parameter.
@@ -174,7 +176,7 @@ public:
    * @param enable Set to 'true' to enable the motors, 'false' to disable.
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
    */
-  bool AUXEnable(const bool enable) override;
+  bool AUXPowerEnable(const bool enable) override;
 
   /**
    * @brief Controls the digital power source based on the 'enable' parameter.
@@ -182,7 +184,7 @@ public:
    * @param enable Set to 'true' to enable the motors, 'false' to disable.
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
    */
-  bool VDIGEnable(const bool enable) override;
+  bool DigitalPowerEnable(const bool enable) override;
 
   bool ChargerEnable(const bool enable) override;
 
@@ -219,12 +221,12 @@ public:
   void Start() override;
 
   /**
-   * @brief Placeholder method indicating lack of hardware E-Stop support for the robot in this
+   * @brief Placeholder method indicating lack of hardware E-stop support for the robot in this
    * version.
    *
    * @return Always returns true.
    */
-  bool EStopTrigger() override;
+  void EStopTrigger() override;
 
   /**
    * @brief Checks if the motors are powered up (when STAGE2 is active) without controlling any
@@ -233,7 +235,7 @@ public:
    * @exception std::runtime_error when the motors are not powered up.
    * @return Always returns true when the motors are powered up.
    */
-  bool EStopReset() override;
+  void EStopReset() override;
 
   /**
    * @brief Controls the motor power by enabling or disabling them based on the 'enable' parameter.
@@ -245,7 +247,7 @@ public:
    * pin active.
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
    */
-  bool MotorsEnable(const bool enable) override;
+  bool MotorPowerEnable(const bool enable) override;
 
   /**
    * @brief Placeholder method indicating lack of support for controlling the fan in this robot
@@ -265,7 +267,7 @@ public:
    * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool AUXEnable(const bool /* enable */) override;
+  bool AUXPowerEnable(const bool /* enable */) override;
 
   /**
    * @brief Placeholder method indicating lack of support for controlling Digital Power in this
@@ -275,7 +277,7 @@ public:
    * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
    * control.
    */
-  bool VDIGEnable(const bool /* enable */) override;
+  bool DigitalPowerEnable(const bool /* enable */) override;
 
   bool ChargerEnable(const bool /* enable */) override;
 

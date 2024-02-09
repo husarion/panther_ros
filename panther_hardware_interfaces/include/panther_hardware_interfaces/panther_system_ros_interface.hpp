@@ -37,8 +37,9 @@
 namespace panther_hardware_interfaces
 {
 
-using TriggerSrv = std_srvs::srv::Trigger;
 using DriverStateMsg = panther_msgs::msg::DriverState;
+using IOStateMsg = panther_msgs::msg::IOState;
+using TriggerSrv = std_srvs::srv::Trigger;
 
 struct CANErrors
 {
