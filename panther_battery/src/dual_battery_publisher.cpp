@@ -30,9 +30,9 @@ namespace panther_battery
 
 DualBatteryPublisher::DualBatteryPublisher(
   const rclcpp::Node::SharedPtr & node,
-  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater,
+  const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater,
   const std::shared_ptr<Battery> & battery_1, const std::shared_ptr<Battery> & battery_2)
-: BatteryPublisher(std::move(node), diagnostic_updater),
+: BatteryPublisher(std::move(node), std::move(diagnostic_updater)),
   battery_1_(std::move(battery_1)),
   battery_2_(std::move(battery_2))
 {

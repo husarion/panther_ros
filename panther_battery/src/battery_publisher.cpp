@@ -24,7 +24,7 @@ namespace panther_battery
 
 BatteryPublisher::BatteryPublisher(
   const rclcpp::Node::SharedPtr & node,
-  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater)
+  const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater)
 : node_(std::move(node)), diagnostic_updater_(std::move(diagnostic_updater))
 {
   node_->declare_parameter<float>("battery_timeout", 1.0);

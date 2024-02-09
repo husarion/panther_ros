@@ -30,7 +30,7 @@ class DualBatteryPublisher : public BatteryPublisher
 public:
   DualBatteryPublisher(
     const rclcpp::Node::SharedPtr & node,
-    std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater,
+    const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater,
     const std::shared_ptr<Battery> & battery_1, const std::shared_ptr<Battery> & battery_2);
 
   ~DualBatteryPublisher() {}

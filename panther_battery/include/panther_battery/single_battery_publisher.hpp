@@ -30,7 +30,7 @@ class SingleBatteryPublisher : public BatteryPublisher
 public:
   SingleBatteryPublisher(
     const rclcpp::Node::SharedPtr & node,
-    std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater,
+    const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater,
     const std::shared_ptr<Battery> & battery);
 
   ~SingleBatteryPublisher() {}
