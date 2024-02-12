@@ -29,6 +29,7 @@
 #include <hardware_interface/sensor_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
+#include <panther_hardware_interfaces/panther_imu_ros_interface.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -60,9 +61,11 @@ public:
 
 protected:
   std::vector<double> imu_sensor_state_;
-  // std::unique_ptr<PantherImuSensorRosInterface> panther_system_ros_interface_;
+  std::unique_ptr<PantherImuRosInterface> panther_imu_ros_interface_;
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
+
+  static void Calibrate();
 };
 
 }  // namespace panther_hardware_interfaces

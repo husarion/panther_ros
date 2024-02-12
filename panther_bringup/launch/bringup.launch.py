@@ -257,9 +257,9 @@ def generate_launch_description():
     other_action_timer = TimerAction(
         period=20.0,
         actions=[
-            battery_launch,
+            # battery_launch,
             imu_launch,
-            lights_launch,
+            # lights_launch,
             robot_localization_node,
         ],
     )
