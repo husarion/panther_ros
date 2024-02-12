@@ -35,12 +35,6 @@ def generate_launch_description():
         executable="component_container",
         composable_node_descriptions=[
             ComposableNode(
-                package="phidgets_spatial",
-                plugin="phidgets::SpatialRosI",
-                name="phidgets_spatial_node",
-                parameters=[imu_config_path],
-            ),
-            ComposableNode(
                 package="imu_filter_madgwick",
                 plugin="ImuFilterMadgwickRos",
                 name="imu_filter_node",

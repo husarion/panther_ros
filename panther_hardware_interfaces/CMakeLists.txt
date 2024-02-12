@@ -22,7 +22,8 @@ set(PACKAGE_INCLUDE_DEPENDS
     rclcpp
     rclcpp_lifecycle
     realtime_tools
-    std_srvs)
+    std_srvs
+    phidgets_api)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -39,7 +40,9 @@ add_library(
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
   src/roboteq_error_filter.cpp
-  src/utils.cpp)
+  src/utils.cpp
+  src/panther_imu.cpp
+)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(
@@ -51,7 +54,9 @@ ament_target_dependencies(
   std_srvs
   panther_msgs
   panther_utils
-  realtime_tools)
+  realtime_tools
+  phidgets_api
+)
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
 
 target_compile_definitions(${PROJECT_NAME}
@@ -66,7 +71,8 @@ install(
   TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
+  LIBRARY DESTINATION lib
+)
 
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
@@ -175,6 +181,8 @@ ament_export_dependencies(
   panther_utils
   rclcpp_lifecycle
   rclcpp
-  std_msgs)
+  std_msgs,
+  phidgets_api
+)
 
 ament_package()

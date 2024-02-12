@@ -2,7 +2,7 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: ros2
+    version: ros2-control-pdo-commands
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
