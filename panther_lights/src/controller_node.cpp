@@ -21,8 +21,6 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <pluginlib/class_loader.hpp>
-
 #include <sensor_msgs/msg/image.hpp>
 
 #include <panther_lights/led_segment.hpp>
@@ -34,54 +32,62 @@ namespace panther_lights
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
-  animation_loader_ = std::make_shared<pluginlib::ClassLoader<panther_lights::Animation>>(
-    "panther_lights", "panther_lights::Animation");
-
   YAML::Node anim_desc = YAML::LoadFile("/home/ros/ros2_ws/src/test2.yaml");
   std::cout << "yaml loaded" << std::endl;
 
-  // create led segment
-  // auto seg_desc = YAML::Load("{led: 0-45, channel: 1}");
-  // auto a_desc = YAML::Load("{type: panther_lights::ImageAnimation, image: $(find
-  // panther_lights)/animations/triangle01_green.png, duration: 2.0}"); std::cout << "yaml files
-  // loaded" << std::endl;
-
-  // auto led_segment = std::make_shared<LEDSegment>(anim_desc);
   std::map<std::string, std::shared_ptr<LEDSegment>> segments;
 
   for (auto & segment : anim_desc["segments"].as<std::vector<YAML::Node>>()) {
-    std::cout << "creating seg" << std::endl;
-    segments.insert({segment["name"].as<std::string>(), std::make_shared<LEDSegment>(segment)});
+    segments.insert(
+      {segment["name"].as<std::string>(), std::make_shared<LEDSegment>(segment, 50.0)});
     // default anim i guess
-    segments[segment["name"].as<std::string>()]->SetAnimation(anim_desc["animation"], 50.0);
-    std::cout << "done" << std::endl;
+    segments[segment["name"].as<std::string>()]->SetAnimation(anim_desc["animation"]);
   }
   std::cout << "segments created" << std::endl;
 
+  auto segment_converter = std::make_shared<SegmentConverter>();
+  // std::vector<rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr> panel_publishers;
+  std::unordered_map<std::size_t, rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr>
+    panel_publishers;
+  std::unordered_set<std::size_t> led_panels_channels;
+
   int num_led = anim_desc["num_led"].as<int>();
 
-  std::vector<std::shared_ptr<LEDSegment>> segments_vec = {segments["fr"], segments["fl"]};
+  std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> led_panels;
 
-  auto segment_converter = std::make_shared<SegmentConverter>();
+  for (auto & panel : anim_desc["panels"].as<std::vector<YAML::Node>>()) {
+    // parse params
+    auto channel = panel["channel"].as<std::size_t>();
+    auto number_of_leds = panel["number_of_leds"].as<std::size_t>();
+    // led_panels_channels.insert(channel);
+
+    // create panels and publishers
+    led_panels.insert({channel, std::make_unique<LEDPanel>(number_of_leds)});
+    panel_publishers.insert(
+      {channel, this->create_publisher<sensor_msgs::msg::Image>(
+                  "lights/driver/channel_" + std::to_string(channel) + "_frame", 10)});
+  }
+
+  // // for  reconsideration - creating PanelPublisher(channel, num_led)
+  // for (auto & [key, pub] : panel_publishers) {
+  //   std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> led_panelssss = {
+  //     pub->GetChannel(), pub->GetPanel()};
+  // }
+
+  // std::vector<std::shared_ptr<LEDSegment>> segments_vec = {segments["fr"], segments["fl"],
+  // segments["rr"], segments["rl"]};
+  std::vector<std::shared_ptr<LEDSegment>> segments_vec = {segments["front"], segments["rear"]};
 
   std::cout << "init finished, entering loop" << std::endl;
 
   try {
-    // std::shared_ptr<panther_lights::Animation> image_anim =
-    //   animation_loader_->createSharedInstance("panther_lights::ImageAnimation");
-    // image_anim->Initialize(anim_desc, num_led, 50.0);
-
-    auto front_pub = this->create_publisher<sensor_msgs::msg::Image>(
-      "lights/driver/front_panel_frame", 10);
-    auto rear_pub = this->create_publisher<sensor_msgs::msg::Image>(
-      "lights/driver/rear_panel_frame", 10);
-
     auto frame = std::vector<std::uint8_t>(num_led * 4, 0);
     sensor_msgs::msg::Image image;
     image.header.frame_id = "frame_id";
     // image.header.stamp = rospy.Time.now();
     image.encoding = "rgba8";
     image.height = 1;
+
     image.width = num_led;
     image.step = 4 * num_led;
     image.data = frame;
@@ -91,39 +97,21 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
       //   image_anim->Reset();
       // }
 
-      segment_converter->Convert(segments_vec);
-      auto frame = segment_converter->GetPanelFrame();
+      for (auto & segment : segments) {
+        segment.second->UpdateAnimation();
+      }
+      segment_converter->Convert(segments_vec, led_panels);
+      for (auto & [channel, panel] : led_panels) {
+        const auto frame = panel->GetFrame();
 
-      // // std::cout << "update anim" << std::endl;
-      // auto a = segments["fr"]->UpdateAnimation();
-      // auto b = segments["fl"]->UpdateAnimation();
+        image.data = frame;
+        image.header.stamp = this->get_clock()->now();
 
-      // // std::cout << "updated" << std::endl;
-      // std::copy(a.begin(), a.end(), image.data.begin() + segments["fr"]->GetFirstLEDPosition());
-      // std::copy(b.begin(), b.end(), image.data.begin() + segments["fl"]->GetFirstLEDPosition());
-
-      image.data = frame;
-      image.header.stamp = this->get_clock()->now();
-      front_pub->publish(image);
-      rear_pub->publish(image);
+        panel_publishers.at(channel)->publish(image);
+      }
 
       std::this_thread::sleep_for(std::chrono::milliseconds(20));
-
-      // for (auto & item : a) {
-      //   std::cout << unsigned(item) << ", ";
-      // }
-      // std::cout << "]]]" << std::endl;
-      // for (auto & item : image.data) {
-      //   std::cout << unsigned(item) << ", ";
-      // }
-      // std::cout << "]]]" << std::endl;
     }
-
-    // auto a = led_segment->UpdateAnimation();
-    // for (auto & item : a) {
-    //   std::cout << unsigned(item) << ", ";
-    // }
-    // std::cout << std::endl;
 
   } catch (pluginlib::PluginlibException & e) {
     printf("The plugin failed to load. Error: %s\n", e.what());
