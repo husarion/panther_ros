@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ public:
    * @param invert_frame_order if true will return frame with inverted RGBA values order (last 4
    * values will become first etc.)
    *
-   * @returns the newest animation frame, if animation is finished will return vector filled with 0
+   * @return the newest animation frame, if animation is finished will return vector filled with 0
    */
   std::vector<std::uint8_t> GetFrame(const bool invert_frame_order = false)
   {

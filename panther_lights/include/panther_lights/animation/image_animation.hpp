@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ protected:
    * @param image_path raw path to an image, it should be a global path or should contain '$(find
    * ros_package)` syntax
    *
-   * @returns global path to an image file
+   * @return global path to an image file
    * @exception std::runtime_error if provided image_path is invalid or file does not exists
    */
   std::filesystem::path ParseImagePath(const std::string & image_path) const;
