@@ -21,13 +21,11 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-
 namespace panther_hardware_interfaces
 {
 
-PantherImuRosInterface::PantherImuRosInterface(
-  std::function<void()> calibrate, const std::string & node_name,
-  const rclcpp::NodeOptions & node_options)
+PantherImuRosInterface::PantherImuRosInterface(std::function<void()> calibrate, const std::string& node_name,
+                                               const rclcpp::NodeOptions& node_options)
 {
   node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
@@ -37,24 +35,20 @@ PantherImuRosInterface::PantherImuRosInterface(
 
   calibrate_ = calibrate;
 
-  param_listener_ =
-      std::make_shared<phidgets_spatial::ParamListener>(node_->get_node_parameters_interface());
+  param_listener_ = std::make_shared<phidgets_spatial::ParamListener>(node_->get_node_parameters_interface());
   params_ = param_listener_->get_params();
-
-  [[maybe_unused]] phidgets_spatial::StackParams s_params = param_listener_->get_stack_params();
-
-
-  calibrate_srv_ = node_->create_service<TriggerSrv>(
-    "~/calibrate", std::bind(
-                        &PantherImuRosInterface::CalibrateCb, this, std::placeholders::_1,
-                        std::placeholders::_2));
+  
+  calibrate_srv_ =
+      node_->create_service<TriggerSrv>("~/calibrate", std::bind(&PantherImuRosInterface::CalibrateCb, this,
+                                                                 std::placeholders::_1, std::placeholders::_2));
 }
 
 PantherImuRosInterface::~PantherImuRosInterface()
 {
   calibrate_srv_.reset();
 
-  if (executor_) {
+  if (executor_)
+  {
     executor_->cancel();
     executor_thread_->join();
     executor_.reset();
@@ -63,16 +57,25 @@ PantherImuRosInterface::~PantherImuRosInterface()
   node_.reset();
 }
 
-void PantherImuRosInterface::CalibrateCb(
-  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+phidgets_spatial::Params &PantherImuRosInterface::GetParams()
+{
+  params_ = param_listener_->get_params();
+  return params_;
+}
+
+void PantherImuRosInterface::CalibrateCb(TriggerSrv::Request::ConstSharedPtr /* request */,
+                                         TriggerSrv::Response::SharedPtr response)
 {
   RCLCPP_INFO(node_->get_logger(), "Calibrating...");
 
-  try {
+  try
+  {
     calibrate_();
     response->success = true;
     response->message = "Succesfully calibrated.";
-  } catch (const std::exception & e) {
+  }
+  catch (const std::exception& e)
+  {
     response->message = "Exception caught in the callback function: " + std::string(e.what());
     response->success = false;
   }

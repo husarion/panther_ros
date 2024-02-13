@@ -22,6 +22,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include <std_msgs/msg/bool.hpp>
 
 #include <phidgets_spatial_parameters.hpp>
 
@@ -48,6 +49,13 @@ public:
     std::function<void()> calibrate, const std::string & node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
   ~PantherImuRosInterface();
+
+  /**
+   * @brief Get the Params object with parameters for imu
+   *
+   * @return phidgets_spatial::Params& - reference to parameters of imu sensor
+   */
+  phidgets_spatial::Params &GetParams();
 
 private:
   void CalibrateCb(

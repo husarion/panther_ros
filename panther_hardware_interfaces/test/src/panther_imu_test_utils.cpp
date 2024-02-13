@@ -26,6 +26,7 @@ namespace panther_hardware_interfaces_test
 void PantherImuTestUtils::Start(const std::string & urdf)
 {
   rm_ = std::make_shared<hardware_interface::ResourceManager>(urdf);
+  rclcpp::init(0, nullptr);
 }
 
 void PantherImuTestUtils::Stop()
@@ -35,70 +36,70 @@ void PantherImuTestUtils::Stop()
 }
 
 std::string PantherImuTestUtils::BuildUrdf(
-  const std::map<std::string, std::string> & param_map)
+  const std::map<std::string, std::string> & param_map, const std::list<std::string> & interfaces_list)
 {
   std::stringstream urdf;
 
   urdf << kUrdfHeader << "<hardware>" << std::endl << kPluginName;
 
-  // for (auto const & [key, val] : param_map) {
-  //   urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
-  // }
+  for (auto const & [key, val] : param_map) {
+    urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
+  }
 
   urdf << "</hardware>" << std::endl;
 
-  urdf << kImuInterfaces << std::endl;
+  urdf << "<sensor name=\"imu\" >" << std::endl;
+
+  for (auto const & val : interfaces_list) {
+    urdf << "<state_interface name=\"" << val << "\"/>" << std::endl;
+  }
+  urdf << "</sensor>" << std::endl;
+
 
   urdf << kUrdfFooter;
 
   return urdf.str();
 }
 
-void PantherImuTestUtils::ConfigurePantherImu()
+hardware_interface::return_type PantherImuTestUtils::ConfigurePantherImu()
 {
-  SetState(
+  return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
     hardware_interface::lifecycle_state_names::INACTIVE);
 }
 
-void PantherImuTestUtils::UnconfigurePantherImu()
+hardware_interface::return_type PantherImuTestUtils::UnconfigurePantherImu()
 {
-  SetState(
+ return  SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 }
 
-void PantherImuTestUtils::ActivatePantherImu()
+hardware_interface::return_type PantherImuTestUtils::ActivatePantherImu()
 {
-  SetState(
+  return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE,
     hardware_interface::lifecycle_state_names::ACTIVE);
 }
 
-void PantherImuTestUtils::DeactivatePantherImu()
+hardware_interface::return_type PantherImuTestUtils::DeactivatePantherImu()
 {
-  SetState(
+  return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
     hardware_interface::lifecycle_state_names::INACTIVE);
 }
 
-void PantherImuTestUtils::ShutdownPantherImu()
+hardware_interface::return_type PantherImuTestUtils::ShutdownPantherImu()
 {
-  SetState(
+  return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
-void PantherImuTestUtils::ConfigureActivatePantherImu()
-{
-  ConfigurePantherImu();
-  ActivatePantherImu();
-}
-
-void PantherImuTestUtils::SetState(const std::uint8_t state_id, const std::string & state_name)
+hardware_interface::return_type PantherImuTestUtils::SetState(const std::uint8_t state_id, const std::string & state_name)
 {
   rclcpp_lifecycle::State state(state_id, state_name);
-  rm_->set_component_state(kPantherImuName, state);
+  return rm_->set_component_state(kPantherImuName, state);
 }
 
 }  // namespace panther_hardware_interfaces_test

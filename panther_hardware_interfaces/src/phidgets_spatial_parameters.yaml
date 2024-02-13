@@ -22,7 +22,7 @@ phidgets_spatial:
     type: string,
     default_value: ahrs,
     description: "Name of the spatial algorithm used for orientation estimation
-     (one of \"none\", \"ahrs\", \"imu\"); Just used if use_orientation is set to true. Defaults to ahrs."
+     (one of 'none', 'ahrs', 'imu'); Just used if use_orientation is set to true. Defaults to ahrs."
   }
   ahrs_angular_velocity_threshold: {
     type: double,
@@ -69,7 +69,7 @@ phidgets_spatial:
     type: int,
     default_value: 5000,
     description: "The number of milliseconds to wait between resynchronizing the time on the Phidgets spatial with the local time.
-      Larger values have less \"jumps\", but will have more timestamp drift. Setting this to 0 disables resynchronization. Defaults to 5000 ms."
+      Larger values have less 'jumps', but will have more timestamp drift. Setting this to 0 disables resynchronization. Defaults to 5000 ms."
   }
   data_interval_ms: {
     type: int,

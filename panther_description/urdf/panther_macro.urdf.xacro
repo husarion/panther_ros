@@ -73,6 +73,10 @@
       <ros2_control name="imu" type="sensor">
         <hardware>
           <plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
+          <param name="serial">-1</param>
+          <param name="hub_port">0</param>
+          <param name="use_orientation">true</param>
+          <param name="spatial_algorithm">ahrs</param>
         </hardware>
 
         <sensor name="imu">

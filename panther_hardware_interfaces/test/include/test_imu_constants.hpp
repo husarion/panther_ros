@@ -20,6 +20,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <list>
 
 namespace panther_hardware_interfaces_test
 {
@@ -27,28 +28,27 @@ const std::string kPantherImuName = "imu";
 
 const std::string kUrdfHeader = R"(<?xml version="1.0" encoding="utf-8"?>
 <robot name="Panther">
-<ros2_control name="imu" type="system">
+<ros2_control name="imu" type="sensor">
 )";
 
 const std::string kUrdfFooter = R"(</ros2_control>
 </robot>
 )";
 
-const std::string kImuInterfaces =
-  R"(<state_interface name="orientation.x" />
-<state_interface name="orientation.y" />
-<state_interface name="orientation.z" />
-<state_interface name="orientation.w" />
-<state_interface name="angular_velocity.x" />
-<state_interface name="angular_velocity.y" />
-<state_interface name="angular_velocity.z" />
-<state_interface name="linear_acceleration.x" />
-<state_interface name="linear_acceleration.y" />
-<state_interface name="linear_acceleration.z" />
-)";
+const std::list<std::string> kImuInterfaces = {
+  "orientation.x",      "orientation.y",      "orientation.z",         "orientation.w",         "angular_velocity.x",
+  "angular_velocity.y", "angular_velocity.z", "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
+};
+
+const std::map<std::string, std::string> kImuObligatoryParams{
+  { "serial", "-1" },
+  { "hub_port", "0" },
+  { "use_orientation", "true" },
+  { "spatial_algorithm", "ahrs" },
+};
 
 const std::string kPluginName =
-  R"(<plugin>panther_hardware_interfaces/PantherImu</plugin>
+    R"(<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
 )";
 
 const std::string kCalibrateService = "/panther_imu_node/calibrate";
