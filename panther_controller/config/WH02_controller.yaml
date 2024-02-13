@@ -1,7 +1,6 @@
 /**:
   controller_manager:
     ros__parameters:
-      use_sim_time: false
       update_rate: 50
 
       joint_state_broadcaster:
@@ -27,8 +26,8 @@
       wheel_separation_y: 0.6785
       wheel_radius: 0.1016
 
-      wheel_separation_multiplier_x: 1.0
-      wheel_separation_multiplier_y: 1.0
+      wheel_separation_x_multiplier: 1.0
+      wheel_separation_y_multiplier: 1.0
 
       wheel_radius_multiplier: 1.0
 
@@ -60,15 +59,21 @@
           has_velocity_limits: true
           has_acceleration_limits: true
           has_jerk_limits: false
+          # top speed is around 2.0m/s (manual)
           max_velocity: 1.1 # m/s
+          # min_velocity -  When unspecified `min_velocity=-max_velocity`
           max_acceleration: 1.5 # m/s^2
+          # min_acceleration - When unspecified, `min_acceleration=-max_acceleration`
           max_jerk: 0.0 # m/s^3
         y:
           has_velocity_limits: true
           has_acceleration_limits: true
           has_jerk_limits: false
+          # top speed is around 2.0m/s (manual)
           max_velocity: 1.1 # m/s
+          # min_velocity -  When unspecified `min_velocity=-max_velocity`
           max_acceleration: 1.5 # m/s^2
+          # min_acceleration - When unspecified, `min_acceleration=-max_acceleration`
           max_jerk: 0.0 # m/s^3
 
       angular:
@@ -77,5 +82,7 @@
           has_acceleration_limits: true
           has_jerk_limits: false
           max_velocity: 2.2 # rad/s
+          # min_velocity -  When unspecified `min_velocity=-max_velocity`
           max_acceleration: 3.2 # rad/s^2
+          # min_acceleration - When unspecified, `min_acceleration=-max_acceleration`
           max_jerk: 0.0 # rad/s^3
