@@ -28,48 +28,40 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-# install liblely
-find_library(LIBLELY_INSTALLED liblely-coapp HINTS ${CMAKE_INSTALL_PREFIX}/lib)
-if(NOT LIBLELY_INSTALLED)
-  message(WARNING "liblely is not installed. Installing...")
+# Install liblely
+include(ExternalProject)
 
-  include(ExternalProject)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
 
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
+ExternalProject_Add(
+  lely_core_libraries
+  SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/upstream
+  GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
+  GIT_TAG v2.3.3
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
+  CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
+  COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
+          --disable-tests --disable-static
+  BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
+  INSTALL_COMMAND make install INSTALL_PREFIX=<SOURCE_DIR>)
 
-  ExternalProject_Add(
-    lely_core_libraries
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/upstream
-    # INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/"  # Installation prefix
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
-    GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
-    GIT_TAG v2.3.3
-    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
-    CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
-    COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
-            --disable-tests --disable-static
-    BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
-    INSTALL_COMMAND make install INSTALL_PREFIX=<SOURCE_DIR>)
+add_library(liblely-coapp STATIC IMPORTED GLOBAL)
+add_dependencies(liblely-coapp lely_core_libraries)
 
-  add_library(liblely-coapp STATIC IMPORTED GLOBAL)
-  add_dependencies(liblely-coapp lely_core_libraries)
+set_target_properties(
+  liblely-coapp
+  PROPERTIES
+    IMPORTED_LOCATION
+    ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib/liblely-coapp.so)
+set_target_properties(
+  liblely-coapp
+  PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+             ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
 
-  set_target_properties(
-    liblely-coapp
-    PROPERTIES
-      IMPORTED_LOCATION
-      ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib/liblely-coapp.so)
-  set_target_properties(
-    liblely-coapp
-    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-               ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
-
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib
-          DESTINATION ${CMAKE_INSTALL_PREFIX})
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include
-          DESTINATION ${CMAKE_INSTALL_PREFIX})
-
-endif()
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib
+        DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include
+        DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 add_library(
   ${PROJECT_NAME} SHARED
