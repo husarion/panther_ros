@@ -28,6 +28,14 @@ public:
 
   ~LEDPanel() = default;
 
+  /**
+   * @brief Updates LED panel frame
+   *
+   * @param iterator_first position at which values will be inserted
+   * @param values vector with values that will be inserted into the frame
+   *
+   * @exception std::runtime_error if values vector is empty or can't be fit into the farme
+   */
   void UpdateFrame(const std::size_t iterator_first, const std::vector<std::uint8_t> & values);
 
   std::vector<std::uint8_t> GetFrame() const { return frame_; }

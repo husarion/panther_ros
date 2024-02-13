@@ -42,6 +42,7 @@ public:
 protected:
   YAML::Node CreateSegmentDescription(
     const std::size_t first_led, const std::size_t last_led, const std::size_t channel) const;
+  YAML::Node CreateImageAnimationDescription();
 
   std::size_t panel_1_num_led_ = 20;
   std::size_t panel_2_num_led_ = 30;
@@ -60,14 +61,19 @@ YAML::Node TestSegmentConverter::CreateSegmentDescription(
   return desc;
 }
 
+YAML::Node TestSegmentConverter::CreateImageAnimationDescription()
+{
+  return YAML::Load(
+    "{type: panther_lights::ImageAnimation, "
+    "image: $(find panther_lights)/animations/triangle01_red.png, "
+    "duration: 2}");
+}
+
 TEST_F(TestSegmentConverter, ConvertInvalidChannel)
 {
   segments_.push_back(
     std::make_shared<panther_lights::LEDSegment>(CreateSegmentDescription(0, 10, 123), 50.0));
-  auto anim_desc = YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
-    "duration: 2}");
+  const auto anim_desc = CreateImageAnimationDescription();
   ASSERT_NO_THROW(segments_.at(0)->SetAnimation(anim_desc));
 
   EXPECT_THROW(segment_converter_->Convert(segments_, led_panels_), std::out_of_range);
@@ -77,10 +83,7 @@ TEST_F(TestSegmentConverter, ConvertInvalidLedRange)
 {
   segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
     CreateSegmentDescription(panel_1_num_led_, panel_1_num_led_ + 10, 1), 50.0));
-  auto anim_desc = YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
-    "duration: 2}");
+  const auto anim_desc = CreateImageAnimationDescription();
   ASSERT_NO_THROW(segments_.at(0)->SetAnimation(anim_desc));
 
   EXPECT_THROW(segment_converter_->Convert(segments_, led_panels_), std::runtime_error);
@@ -93,10 +96,7 @@ TEST_F(TestSegmentConverter, ConvertSingleSegmentForEachPanel)
   segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
     CreateSegmentDescription(0, panel_2_num_led_ - 1, 2), 50.0));
 
-  auto anim_desc = YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
-    "duration: 2}");
+  const auto anim_desc = CreateImageAnimationDescription();
 
   for (auto & segment : segments_) {
     ASSERT_NO_THROW(segment->SetAnimation(anim_desc));
@@ -120,11 +120,7 @@ TEST_F(TestSegmentConverter, ConvertMultipleSegments)
   segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
     CreateSegmentDescription((panel_2_num_led_ / 2), panel_2_num_led_ - 1, 2), 50.0));
 
-  const auto anim_desc = YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
-    "duration: 2}");
-
+  const auto anim_desc = CreateImageAnimationDescription();
   for (auto & segment : segments_) {
     ASSERT_NO_THROW(segment->SetAnimation(anim_desc));
     ASSERT_NO_THROW(segment->UpdateAnimation());

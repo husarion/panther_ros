@@ -67,19 +67,19 @@ TEST(TestLEDPanelInitialization, FrameSize)
 TEST_F(TestLEDPanel, UpdateFrame)
 {
   // full frame
-  auto test_full_frame = std::vector<std::uint8_t>(num_led_ * 4, 64);
+  const auto test_full_frame = std::vector<std::uint8_t>(num_led_ * 4, 64);
   UpdateAndTestFrame(0, test_full_frame);
 
   // test updating shorter frame at different positions
-  std::size_t test_frame_size = 16;
-  auto test_frame = std::vector<std::uint8_t>(test_frame_size, 77);
+  const std::size_t test_frame_size = 16;
+  const auto test_frame = std::vector<std::uint8_t>(test_frame_size, 77);
   UpdateAndTestFrame(0, test_frame);
 
   // shorter test frame in the middle
   UpdateAndTestFrame(12, test_frame);
 
   // shorter test frame at the end of the frame
-  UpdateAndTestFrame(frame_size_ - (test_frame_size), test_frame);
+  UpdateAndTestFrame(frame_size_ - test_frame_size, test_frame);
 
   // frame with one element inserted at the back of the frame
   auto frame_with_one_element = std::vector<std::uint8_t>(1, 88);
@@ -94,18 +94,18 @@ TEST_F(TestLEDPanel, UpdateFrameEmptyFrame)
 
 TEST_F(TestLEDPanel, UpdateFrameInvalidValuesSize)
 {
-  auto frame = std::vector<std::uint8_t>(num_led_ * 4 + 1, 0);
+  const auto frame = std::vector<std::uint8_t>(num_led_ * 4 + 1, 0);
   EXPECT_THROW(led_panel_->UpdateFrame(0, frame), std::runtime_error);
 }
 
 TEST_F(TestLEDPanel, UpdateFrameValuesOutOfRange)
 {
-  auto frame = std::vector<std::uint8_t>(num_led_ * 4, 0);
+  const auto frame = std::vector<std::uint8_t>(num_led_ * 4, 0);
   EXPECT_THROW(led_panel_->UpdateFrame(7, frame), std::runtime_error);
 
   // put frame the way only last value is out of range
-  auto frame_2_size = 10;
-  auto frame_2 = std::vector<std::uint8_t>(10, 0);
+  const auto frame_2_size = 10;
+  const auto frame_2 = std::vector<std::uint8_t>(10, 0);
   EXPECT_THROW(
     led_panel_->UpdateFrame(frame_size_ - (frame_2_size - 1), frame_2), std::runtime_error);
 
@@ -113,7 +113,7 @@ TEST_F(TestLEDPanel, UpdateFrameValuesOutOfRange)
   EXPECT_THROW(led_panel_->UpdateFrame(frame_size_, frame_2), std::runtime_error);
 
   // iterator out of range with single element frame
-  auto frame_with_one_element = std::vector<std::uint8_t>(1, 0);
+  const auto frame_with_one_element = std::vector<std::uint8_t>(1, 0);
   EXPECT_THROW(led_panel_->UpdateFrame(frame_size_, frame_with_one_element), std::runtime_error);
 }
 

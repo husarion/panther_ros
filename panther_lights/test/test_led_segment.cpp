@@ -38,9 +38,14 @@ protected:
 
 TestLEDSegment::TestLEDSegment()
 {
-  auto segment_desc =
+  const auto segment_desc =
     YAML::Load("{led_range: 0-" + std::to_string(segment_led_num_ - 1) + ", channel: 1}");
   led_segment_ = std::make_shared<panther_lights::LEDSegment>(segment_desc, controller_freq);
+}
+
+YAML::Node CreateSegmentDescription(const std::string & led_range, const std::string & channel)
+{
+  return YAML::Load("{led_range: " + led_range + ", channel: " + channel + "}");
 }
 
 // this method may be moved to utils
@@ -74,7 +79,7 @@ TEST(TestLEDSegmentInitialization, DescriptionMissingRequiredKey)
 
 TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 {
-  auto segment_desc = YAML::Load("{led_range: 0-10, channel: s1}");
+  auto segment_desc = CreateSegmentDescription("0-10", "s1");
   ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Invalid channel expression: ");
@@ -87,7 +92,7 @@ TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 
 TEST(TestLEDSegmentInitialization, InvalidLedRangeExpression)
 {
-  auto segment_desc = YAML::Load("{led_range: 010, channel: 1}");
+  auto segment_desc = CreateSegmentDescription("010", "1");
   ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "No '-' character found in the led_range expression");
@@ -105,13 +110,13 @@ TEST(TestLEDSegmentInitialization, InvalidLedRangeExpression)
 
 TEST(TestLEDSegmentInitialization, ValidDescription)
 {
-  auto segment_desc = YAML::Load("{led_range: 0-10, channel: 1}");
+  const auto segment_desc = CreateSegmentDescription("0-10", "1");
   EXPECT_NO_THROW(panther_lights::LEDSegment(segment_desc, 10.0));
 }
 
 TEST(TestLEDSegmentInitialization, FirstLedPosition)
 {
-  auto segment_desc = YAML::Load("{led_range: 0-10, channel: 1}");
+  auto segment_desc = CreateSegmentDescription("0-10", "1");
   std::shared_ptr<panther_lights::LEDSegment> led_segment;
 
   ASSERT_NO_THROW(led_segment = std::make_shared<panther_lights::LEDSegment>(segment_desc, 10.0));
@@ -140,7 +145,7 @@ TEST(TestLEDSegmentInitialization, FirstLedPosition)
 
 TEST_F(TestLEDSegment, SetAnimationMissingTypeKey)
 {
-  auto animation_desc = YAML::Load("");
+  const auto animation_desc = YAML::Load("");
   ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->SetAnimation(animation_desc); },
     "Missing 'type' in animaiton description");
@@ -148,14 +153,14 @@ TEST_F(TestLEDSegment, SetAnimationMissingTypeKey)
 
 TEST_F(TestLEDSegment, SetAnimationInvalidType)
 {
-  auto animation_desc = YAML::Load("{type: panther_lights::WrongAnimationType}");
+  const auto animation_desc = YAML::Load("{type: panther_lights::WrongAnimationType}");
   ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->SetAnimation(animation_desc); }, "The plugin failed to load. Error: ");
 }
 
 TEST_F(TestLEDSegment, SetAnimationFailAnimationInitialization)
 {
-  auto animation_desc = YAML::Load("{type: panther_lights::ImageAnimation}");
+  const auto animation_desc = YAML::Load("{type: panther_lights::ImageAnimation}");
   ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->SetAnimation(animation_desc); }, "Failed to initialize animation: ");
 }
@@ -163,13 +168,13 @@ TEST_F(TestLEDSegment, SetAnimationFailAnimationInitialization)
 TEST_F(TestLEDSegment, SetAnimation)
 {
   // test each known animtion type
-  auto image_anim_desc = YAML::Load(
+  const auto image_anim_desc = YAML::Load(
     "{type: panther_lights::ImageAnimation, "
     "image: $(find panther_lights)/animations/triangle01_red.png, "
     "duration: 2}");
   EXPECT_NO_THROW(led_segment_->SetAnimation(image_anim_desc));
 
-  auto charging_anim_desc = YAML::Load(
+  const auto charging_anim_desc = YAML::Load(
     "{type: panther_lights::ChargingAnimation, "
     "duration: 2}");
   EXPECT_NO_THROW(led_segment_->SetAnimation(charging_anim_desc));
@@ -183,7 +188,7 @@ TEST_F(TestLEDSegment, UpdateAnimationAnimationNotSet)
 
 TEST_F(TestLEDSegment, UpdateAnimation)
 {
-  auto anim_desc = YAML::Load(
+  const auto anim_desc = YAML::Load(
     "{type: panther_lights::ImageAnimation, "
     "image: $(find panther_lights)/animations/triangle01_red.png, "
     "duration: 2}");

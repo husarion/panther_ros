@@ -27,11 +27,14 @@
 namespace panther_lights
 {
 
+/**
+ * @brief Class that represents virtual LED segment of the robot
+ */
 class LEDSegment
 {
 public:
   /**
-   * @brief Virtual LED segment of the robot
+   * @brief Parses basic parameters of the LED segment
    *
    * @param segment_description YAML description of the segment. Must contain given keys:
    * - led_range (string) - two numbers with hyphen in between, eg.: '0-45',

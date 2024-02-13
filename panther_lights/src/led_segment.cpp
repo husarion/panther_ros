@@ -22,8 +22,6 @@
 
 #include <panther_lights/animation/animation.hpp>
 
-#include <iostream>
-
 namespace panther_lights
 {
 
@@ -44,8 +42,8 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
     throw std::invalid_argument("Invalid channel expression: " + std::string(e.what()));
   }
 
-  auto led_range = segment_description["led_range"].as<std::string>();
-  std::size_t split_char = led_range.find('-');
+  const auto led_range = segment_description["led_range"].as<std::string>();
+  const std::size_t split_char = led_range.find('-');
 
   if (split_char == std::string::npos) {
     throw std::invalid_argument("No '-' character found in the led_range expression");
