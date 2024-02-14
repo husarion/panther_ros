@@ -11,6 +11,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(panther_utils REQUIRED)
 
 find_library(LIBGPIOD_INSTALLED libgpiod)
 if(NOT LIBGPIOD_INSTALLED)
@@ -88,7 +89,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_gpiod
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_gpiod ${PROJECT_NAME} libgpiod)
 endif()
 
