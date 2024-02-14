@@ -37,7 +37,7 @@ PantherImuRosInterface::PantherImuRosInterface(std::function<void()> calibrate, 
 
   param_listener_ = std::make_shared<phidgets_spatial::ParamListener>(node_->get_node_parameters_interface());
   params_ = param_listener_->get_params();
-  
+
   calibrate_srv_ =
       node_->create_service<TriggerSrv>("~/calibrate", std::bind(&PantherImuRosInterface::CalibrateCb, this,
                                                                  std::placeholders::_1, std::placeholders::_2));
@@ -57,7 +57,7 @@ PantherImuRosInterface::~PantherImuRosInterface()
   node_.reset();
 }
 
-phidgets_spatial::Params &PantherImuRosInterface::GetParams()
+phidgets_spatial::Params& PantherImuRosInterface::GetParams()
 {
   params_ = param_listener_->get_params();
   return params_;
@@ -66,8 +66,9 @@ phidgets_spatial::Params &PantherImuRosInterface::GetParams()
 void PantherImuRosInterface::CalibrateCb(TriggerSrv::Request::ConstSharedPtr /* request */,
                                          TriggerSrv::Response::SharedPtr response)
 {
-  RCLCPP_INFO(node_->get_logger(), "Calibrating...");
-
+  RCLCPP_INFO(node_->get_logger(),
+              "Calibrating IMU, this takes around 2 seconds to finish. "
+              "Make sure that the device is not moved during this time.");
   try
   {
     calibrate_();

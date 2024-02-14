@@ -80,6 +80,7 @@ protected:
   std::unique_ptr<phidgets::Spatial> spatial_;
   bool imu_connected_;
   bool has_ahrs_params_;
+  bool has_set_algorithm_magnetometer_gain_params_;
 
   void CheckSensor() const;
   void CheckStatesSize() const;
@@ -87,6 +88,9 @@ protected:
   void CheckInterfaces();
   void ReadObligatoryParams();
   void ReadAhrsParams();
+  bool IsParamDefined(const std::string &param_name);
+
+  void ConfigureAhrsAlgorythm();
 
   void SpatialDataCallback(const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
                            double timestamp);
@@ -94,7 +98,7 @@ protected:
   void SpatialAttachCallback();
   void SpatialDetachCallback();
 
-  static void Calibrate();
+  void Calibrate();
 };
 
 }  // namespace panther_hardware_interfaces

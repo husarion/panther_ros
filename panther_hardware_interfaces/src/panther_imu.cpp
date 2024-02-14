@@ -67,6 +67,11 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State&)
     RCLCPP_FATAL_STREAM(logger_, "Exception during reading obligatory parameters: " << e.what());
     return CallbackReturn::ERROR;
   }
+  catch (const std::runtime_error& e)
+  {
+    RCLCPP_FATAL_STREAM(logger_, "Exception during interpreting obligatory parameters: " << e.what());
+    return CallbackReturn::ERROR;
+  }
 
   RCLCPP_INFO_STREAM(logger_, "Phidgets Spatial IMU obligatory params: ");
   RCLCPP_INFO_STREAM(logger_, "\tserial_num: " << params_.serial);
@@ -74,21 +79,6 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State&)
   RCLCPP_INFO_STREAM(logger_, "\tuse_orientation: " << params_.use_orientation);
   RCLCPP_INFO_STREAM(logger_, "\tspatial_algorithm " << params_.spatial_algorithm);
 
-  try
-  {
-    ReadAhrsParams();
-    has_ahrs_params_ = true;
-  }
-  catch (const std::out_of_range& e)
-  {
-    RCLCPP_INFO_STREAM(logger_, "Did not configurated additional ahrs params");
-    has_ahrs_params_ = false;
-  }
-  catch (const std::invalid_argument& e)
-  {
-    RCLCPP_FATAL_STREAM(logger_, "Exception during reading ahrs parameters: " << e.what());
-    return CallbackReturn::ERROR;
-  }
   return CallbackReturn::SUCCESS;
 }
 
@@ -103,7 +93,7 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State&)
 {
   RCLCPP_INFO(logger_, "Activating Panther Imu");
   rclcpp::NodeOptions ros_interface_options;
-  panther_imu_ros_interface_ = std::make_unique<PantherImuRosInterface>(PantherImuSensor::Calibrate,
+  panther_imu_ros_interface_ = std::make_unique<PantherImuRosInterface>(std::bind(&PantherImuSensor::Calibrate, this),
                                                                         "panther_imu_"
                                                                         "node");
 
@@ -129,7 +119,11 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State&)
     RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
     imu_connected_ = true;
 
-    // spatial_->setDataInterval(data_interval_ms);
+    spatial_->setDataInterval(params_.data_interval_ms);
+
+    Calibrate();
+
+    ConfigureAhrsAlgorythm();
   }
   catch (const phidgets::Phidget22Error& err)
   {
@@ -228,6 +222,15 @@ void PantherImuSensor::ReadObligatoryParams()
   params_.hub_port = std::stoi(info_.hardware_parameters["hub_port"]);
   params_.use_orientation = info_.hardware_parameters["use_orientation"] == "true";
   params_.spatial_algorithm = info_.hardware_parameters["spatial_algorithm"];
+  params_.data_interval_ms = std::stoi(info_.hardware_parameters["data_interval_ms"]);
+  params_.callback_delta_epsilon_ms = std::stoi(info_.hardware_parameters["callback_delta_epsilon_ms"]);
+
+  if (params_.callback_delta_epsilon_ms >= params_.data_interval_ms)
+  {
+    throw std::runtime_error(
+        "Callback epsilon is larger than the data interval; this can never "
+        "work");
+  }
 }
 
 void PantherImuSensor::ReadAhrsParams()
@@ -255,7 +258,56 @@ void PantherImuSensor::SetInitialValues()
 
 void PantherImuSensor::Calibrate()
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherImuSensor TEST"), "Calibrating..");
+  if (spatial_ == nullptr)
+  {
+    throw std::runtime_error("Imu hardware is not active yet!");
+  }
+
+  spatial_->zero();
+  // The API call returns directly, so we "enforce" the recommended 2 sec
+  // here. See: https://github.com/ros-drivers/phidgets_drivers/issues/40
+
+  // FIXME: Ideally we'd use an rclcpp method that honors use_sim_time here,
+  // but that doesn't actually exist.  Once
+  // https://github.com/ros2/rclcpp/issues/465 is solved, we can revisit this.
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
+bool PantherImuSensor::IsParamDefined(const std::string& param_name)
+{
+  return info_.hardware_parameters.find(param_name) != info_.hardware_parameters.end();
+}
+
+void PantherImuSensor::ConfigureAhrsAlgorythm()
+{
+  if (params_.use_orientation)
+  {
+    spatial_->setSpatialAlgorithm(params_.spatial_algorithm);
+    if (IsParamDefined("ahrs_angular_velocity_threshold") and
+        IsParamDefined("ahrs_angular_velocity_delta_threshold") and IsParamDefined("ahrs_acceleration_threshold") and
+        IsParamDefined("ahrs_mag_time") and IsParamDefined("ahrs_accel_time") and IsParamDefined("ahrs_bias_time"))
+    {
+      ReadAhrsParams();
+
+      spatial_->setAHRSParameters(params_.ahrs_angular_velocity_threshold,
+                                  params_.ahrs_angular_velocity_delta_threshold, params_.ahrs_acceleration_threshold,
+                                  params_.ahrs_mag_time, params_.ahrs_accel_time, params_.ahrs_bias_time);
+    }
+    else
+    {
+      RCLCPP_INFO(logger_, "No ahrs parameters found. Skipping...");
+    }
+
+    if (IsParamDefined("algorithm_magnetometer_gain"))
+    {
+      params_.algorithm_magnetometer_gain = std::stod(info_.hardware_parameters["algorithm_magnetometer_gain"]);
+      spatial_->setAlgorithmMagnetometerGain(params_.algorithm_magnetometer_gain);
+    }
+    else
+    {
+      RCLCPP_INFO(logger_, "No magnetoreter gain found. Skipping...");
+    }
+  }
 }
 
 void PantherImuSensor::SpatialDataCallback(const double acceleration[3], const double angular_rate[3],

@@ -40,12 +40,12 @@ const std::list<std::string> kImuInterfaces = {
   "angular_velocity.y", "angular_velocity.z", "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
 };
 
-const std::map<std::string, std::string> kImuObligatoryParams{
-  { "serial", "-1" },
-  { "hub_port", "0" },
-  { "use_orientation", "true" },
-  { "spatial_algorithm", "ahrs" },
-};
+const std::map<std::string, std::string> kImuObligatoryParams{ { "serial", "-1" },
+                                                               { "hub_port", "0" },
+                                                               { "use_orientation", "true" },
+                                                               { "spatial_algorithm", "ahrs" },
+                                                               { "data_interval_ms", "8" },
+                                                               { "callback_delta_epsilon_ms", "1" } };
 
 const std::string kPluginName =
     R"(<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
