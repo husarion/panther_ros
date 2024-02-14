@@ -16,7 +16,7 @@
       sensor_name: imu
       frame_id: imu_link
       static_covariance_angular_velocity: [2.25e-4, 0.0, 0.0, 0.0, 2.25e-4, 0.0, 0.0, 0.0, 2.25e-4]  # Values measured experimentally
-      static_covariance_linear_acceleration: [1.23e-5, 0.0, 0.0, 0.0, 1.23e-5, 0.0, 0.0, 0.0, 0.0] # Values measured experimentally
+      static_covariance_linear_acceleration: [1.23e-5, 0.0, 0.0, 0.0, 1.23e-5, 0.0, 0.0, 0.0, 1.23e-5] # Values measured experimentally
 
   panther_base_controller:
     ros__parameters:
