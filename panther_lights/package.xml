@@ -20,6 +20,7 @@
   <depend>libpng-dev</depend>
   <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
+  <depend>panther_utils</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>

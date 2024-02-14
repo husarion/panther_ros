@@ -22,6 +22,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <panther_lights/led_segment.hpp>
+#include <panther_utils/test/test_utils.hpp>
 
 class TestLEDSegment : public testing::Test
 {
@@ -48,31 +49,15 @@ YAML::Node CreateSegmentDescription(const std::string & led_range, const std::st
   return YAML::Load("{led_range: " + led_range + ", channel: " + channel + "}");
 }
 
-// this method may be moved to utils
-template <typename ExceptionType, typename Func>
-void ExpectThrowWithDescription(const Func & func, const std::string & error)
-{
-  EXPECT_THROW(
-    {
-      try {
-        func();
-      } catch (const ExceptionType & e) {
-        EXPECT_TRUE(std::string(e.what()).find(error) != std::string::npos);
-        throw;
-      }
-    },
-    ExceptionType);
-}
-
 TEST(TestLEDSegmentInitialization, DescriptionMissingRequiredKey)
 {
   auto segment_desc = YAML::Load("");
-  ExpectThrowWithDescription<std::runtime_error>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Missing 'led_range' in segment description");
 
   segment_desc = YAML::Load("led_range: 0-10");
-  ExpectThrowWithDescription<std::runtime_error>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Missing 'channel' in segment description");
 }
@@ -80,12 +65,12 @@ TEST(TestLEDSegmentInitialization, DescriptionMissingRequiredKey)
 TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 {
   auto segment_desc = CreateSegmentDescription("0-10", "s1");
-  ExpectThrowWithDescription<std::invalid_argument>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Invalid channel expression: ");
 
   segment_desc["channel"] = "-1";
-  ExpectThrowWithDescription<std::invalid_argument>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Invalid channel expression: ");
 }
@@ -93,17 +78,17 @@ TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 TEST(TestLEDSegmentInitialization, InvalidLedRangeExpression)
 {
   auto segment_desc = CreateSegmentDescription("010", "1");
-  ExpectThrowWithDescription<std::invalid_argument>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "No '-' character found in the led_range expression");
 
   segment_desc["led_range"] = "s0-10";
-  ExpectThrowWithDescription<std::invalid_argument>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Error converting string to integer");
 
   segment_desc["led_range"] = "0-p10";
-  ExpectThrowWithDescription<std::invalid_argument>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
     "Error converting string to integer");
 }
@@ -146,7 +131,7 @@ TEST(TestLEDSegmentInitialization, FirstLedPosition)
 TEST_F(TestLEDSegment, SetAnimationMissingTypeKey)
 {
   const auto animation_desc = YAML::Load("");
-  ExpectThrowWithDescription<std::runtime_error>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->SetAnimation(animation_desc); },
     "Missing 'type' in animaiton description");
 }
@@ -154,14 +139,14 @@ TEST_F(TestLEDSegment, SetAnimationMissingTypeKey)
 TEST_F(TestLEDSegment, SetAnimationInvalidType)
 {
   const auto animation_desc = YAML::Load("{type: panther_lights::WrongAnimationType}");
-  ExpectThrowWithDescription<std::runtime_error>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->SetAnimation(animation_desc); }, "The plugin failed to load. Error: ");
 }
 
 TEST_F(TestLEDSegment, SetAnimationFailAnimationInitialization)
 {
   const auto animation_desc = YAML::Load("{type: panther_lights::ImageAnimation}");
-  ExpectThrowWithDescription<std::runtime_error>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->SetAnimation(animation_desc); }, "Failed to initialize animation: ");
 }
 
@@ -182,7 +167,7 @@ TEST_F(TestLEDSegment, SetAnimation)
 
 TEST_F(TestLEDSegment, UpdateAnimationAnimationNotSet)
 {
-  ExpectThrowWithDescription<std::runtime_error>(
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
     [&]() { led_segment_->UpdateAnimation(); }, "Segment animation not defined");
 }
 

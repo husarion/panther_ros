@@ -9,6 +9,7 @@ find_package(ament_cmake REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(panther_gpiod REQUIRED)
 find_package(panther_msgs REQUIRED)
+find_package(panther_utils REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -101,7 +102,8 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_led_segment
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_led_segment pluginlib)
+  ament_target_dependencies(${PROJECT_NAME}_test_led_segment pluginlib
+                            panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_led_segment yaml-cpp)
 
   ament_add_gtest(
