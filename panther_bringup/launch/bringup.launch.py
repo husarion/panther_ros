@@ -255,24 +255,12 @@ def generate_launch_description():
     )
 
     other_action_timer = TimerAction(
-        period=20.0,
+        period=7.0,
         actions=[
             battery_launch,
             imu_launch,
             lights_launch,
             robot_localization_node,
-        ],
-    )
-
-    waiting_msg = TimerAction(
-        period=10.0,
-        actions=[
-            LogInfo(
-                msg=(
-                    "We're working on ensuring everything functions properly... Please wait a few"
-                    " seconds more!"
-                )
-            )
         ],
     )
 
@@ -291,7 +279,6 @@ def generate_launch_description():
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,
-        waiting_msg,
         other_action_timer,
     ]
 
