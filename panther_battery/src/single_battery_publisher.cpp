@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/battery_state.hpp>
@@ -58,15 +59,6 @@ void SingleBatteryPublisher::PublishBatteryState()
   BatteryStatusLogger(battery_msg);
 }
 
-void SingleBatteryPublisher::LogErrors()
-{
-  if (battery_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery error: %s",
-      battery_->GetErrorMsg().c_str());
-  }
-}
-
 void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   std::vector<diagnostic_msgs::msg::KeyValue> key_values;
@@ -82,6 +74,10 @@ void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatu
     battery_kv.value = battery_->GetErrorMsg();
 
     key_values.push_back(battery_kv);
+
+    RCLCPP_ERROR_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 10000, "Battery error: %s",
+      battery_kv.value.c_str());
   }
 
   status.values = key_values;

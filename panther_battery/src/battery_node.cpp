@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <string>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <panther_battery/adc_battery.hpp>
@@ -60,10 +61,6 @@ void BatteryNode::Initialize()
     } catch (std::runtime_error & err) {
       RCLCPP_WARN(this->get_logger(), "Failed to initialize ADC Battery: %s", err.what());
       RCLCPP_INFO(this->get_logger(), "Using Roboteq drivers to publish battery data.");
-
-      diagnostic_updater_->broadcast(
-        diagnostic_msgs::msg::DiagnosticStatus::WARN,
-        "Failed to initialize ADC Battery: " + std::string(err.what()));
     }
   }
   InitializeWithRoboteqBattery();

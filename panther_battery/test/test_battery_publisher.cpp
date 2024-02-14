@@ -51,7 +51,6 @@ public:
   void Update(){};
   void Reset(){};
   void PublishBatteryState(){};
-  void LogErrors(){};
   void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
   {
     status.summary(0, "");

@@ -39,7 +39,6 @@ protected:
   void Update() override;
   void Reset() override;
   void PublishBatteryState() override;
-  void LogErrors() override;
   void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status) override;
 
 private:

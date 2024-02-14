@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/battery_state.hpp>
@@ -63,20 +64,6 @@ void DualBatteryPublisher::PublishBatteryState()
   battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
   battery_2_pub_->publish(battery_2_->GetBatteryMsgRaw());
   BatteryStatusLogger(battery_msg);
-}
-
-void DualBatteryPublisher::LogErrors()
-{
-  if (battery_1_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
-      battery_1_->GetErrorMsg().c_str());
-  }
-  if (battery_2_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 2 error: %s",
-      battery_2_->GetErrorMsg().c_str());
-  }
 }
 
 BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
@@ -164,16 +151,27 @@ void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusW
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Battery has error";
 
-    diagnostic_msgs::msg::KeyValue battery_1_kv;
-    battery_1_kv.key = "Error message: battery 1";
-    battery_1_kv.value = battery_1_->GetErrorMsg();
+    if (battery_1_->HasErrorMsg()) {
+      diagnostic_msgs::msg::KeyValue battery_1_kv;
+      battery_1_kv.key = "Error message: battery 1";
+      battery_1_kv.value = battery_1_->GetErrorMsg();
+      key_values.push_back(battery_1_kv);
 
-    diagnostic_msgs::msg::KeyValue battery_2_kv;
-    battery_2_kv.key = "Error message: battery 2";
-    battery_2_kv.value = battery_2_->GetErrorMsg();
+      RCLCPP_ERROR_THROTTLE(
+        node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
+        battery_1_kv.value.c_str());
+    }
 
-    key_values.push_back(battery_1_kv);
-    key_values.push_back(battery_2_kv);
+    if (battery_2_->HasErrorMsg()) {
+      diagnostic_msgs::msg::KeyValue battery_2_kv;
+      battery_2_kv.key = "Error message: battery 2";
+      battery_2_kv.value = battery_2_->GetErrorMsg();
+      key_values.push_back(battery_2_kv);
+
+      RCLCPP_ERROR_THROTTLE(
+        node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
+        battery_2_kv.value.c_str());
+    }
   }
 
   status.values = key_values;

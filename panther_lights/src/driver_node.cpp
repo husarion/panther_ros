@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <gpiod.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -50,7 +51,7 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   this->declare_parameter<double>("frame_timeout", 0.1);
   this->declare_parameter<int>("num_led", 46);
 
-  diagnostic_updater_.setHardwareID("Lights");
+  diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights status", this, &DriverNode::DiagnoseLigths);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
@@ -122,17 +123,10 @@ void DriverNode::FrameCB(
   }
 
   if (!meessage.empty()) {
-    if (panel_name == "front") {
-      RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on front panel!", meessage.c_str());
+    auto warn_msg = meessage + " on " + panel_name + " panel!";
 
-    } else if (panel_name == "rear") {
-      RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on rear panel!", meessage.c_str());
-    }
-
-    diagnostic_updater_.broadcast(
-      diagnostic_msgs::msg::DiagnosticStatus::WARN, "Front panel: " + meessage);
+    diagnostic_updater_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, warn_msg);
+    RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000, warn_msg.c_str());
 
     return;
   }

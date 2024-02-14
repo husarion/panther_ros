@@ -17,6 +17,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace panther_battery
@@ -59,7 +60,6 @@ void BatteryPublisher::Publish()
   }
 
   this->PublishBatteryState();
-  this->LogErrors();
 }
 
 bool BatteryPublisher::TimeoutReached() const

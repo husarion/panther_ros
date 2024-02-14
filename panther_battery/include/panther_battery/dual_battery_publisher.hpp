@@ -39,8 +39,7 @@ protected:
   void Update() override;
   void Reset() override;
   void PublishBatteryState() override;
-  void LogErrors() override;
-  void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status);
+  void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status) override;
 
   BatteryStateMsg MergeBatteryMsgs(
     const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2);
