@@ -73,7 +73,7 @@ void PantherImuRosInterface::CalibrateCb(TriggerSrv::Request::ConstSharedPtr /* 
   {
     calibrate_();
     response->success = true;
-    response->message = "Succesfully calibrated.";
+    response->message = "Successfully calibrated.";
   }
   catch (const std::exception& e)
   {

@@ -12,54 +12,6 @@ phidgets_spatial:
     description: "The phidgets VINT hub port to connect to.
      Only used if the spatial phidget is connected to a VINT hub. Defaults to 0."
   }
-  use_orientation: {
-    type: bool,
-    default_value: false,
-    description: "Use the phidget spatials onboard orientation estimation;
-     Just available on MOT0109 onwards. Set to false for older versions. Defaults to false."
-  }
-  spatial_algorithm: {
-    type: string,
-    default_value: ahrs,
-    description: "Name of the spatial algorithm used for orientation estimation
-     (one of 'none', 'ahrs', 'imu'); Just used if use_orientation is set to true. Defaults to ahrs."
-  }
-  ahrs_angular_velocity_threshold: {
-    type: double,
-    default_value: 0.0,
-    description: "Parameter for AHRS orientation estimation; Just used if use_orientation is set to true."
-  }
-  ahrs_angular_velocity_delta_threshold: {
-    type: double,
-    default_value: 0.0,
-    description: "Parameter for AHRS orientation estimation; Just used if use_orientation is set to true."
-  }
-  ahrs_acceleration_threshold: {
-    type: double,
-    default_value: 0.0,
-    description: "Parameter for AHRS orientation estimation; Just used if use_orientation is set to true."
-  }
-  ahrs_mag_time: {
-    type: double,
-    default_value: 0.0,
-    description: "Parameter for AHRS orientation estimation; Just used if use_orientation is set to true."
-  }
-  ahrs_accel_time: {
-    type: double,
-    default_value: 0.0,
-    description: "Parameter for AHRS orientation estimation; Just used if use_orientation is set to true."
-  }
-  ahrs_bias_time: {
-    type: double,
-    default_value: 0.0,
-    description: "Parameter for AHRS orientation estimation; Just used if use_orientation is set to true."
-  }
-  algorithm_magnetometer_gain: {
-    type: double,
-    default_value: 0.005,
-    description: "Gain of magnetometer in orientation estimation algorithm; Just used if use_orientation is set to true.
-     Defaults to 0.005"
-  }
   heating_enabled: {
     type: bool,
     default_value: false,

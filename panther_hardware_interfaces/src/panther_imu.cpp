@@ -76,8 +76,8 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State&)
   RCLCPP_INFO_STREAM(logger_, "Phidgets Spatial IMU obligatory params: ");
   RCLCPP_INFO_STREAM(logger_, "\tserial_num: " << params_.serial);
   RCLCPP_INFO_STREAM(logger_, "\thub_port: " << params_.hub_port);
-  RCLCPP_INFO_STREAM(logger_, "\tuse_orientation: " << params_.use_orientation);
-  RCLCPP_INFO_STREAM(logger_, "\tspatial_algorithm " << params_.spatial_algorithm);
+  RCLCPP_INFO_STREAM(logger_, "\tdata_interval_ms: " << params_.data_interval_ms << "ms");
+  RCLCPP_INFO_STREAM(logger_, "\tcallback_delta_epsilon_ms " << params_.callback_delta_epsilon_ms << "ms");
 
   return CallbackReturn::SUCCESS;
 }
@@ -102,19 +102,12 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State&)
 
   try
   {
-    std::function<void(const double[4], double)> algorithm_data_handler = nullptr;
-    if (params_.use_orientation)
-    {
-      algorithm_data_handler = std::bind(&PantherImuSensor::SpatialAlgorithmDataCallback, this, std::placeholders::_1,
-                                         std::placeholders::_2);
-    }
-
-    spatial_ = std::make_unique<phidgets::Spatial>(
-        params_.serial, params_.hub_port, false,
-        std::bind(&PantherImuSensor::SpatialDataCallback, this, std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3, std::placeholders::_4),
-        algorithm_data_handler, std::bind(&PantherImuSensor::SpatialAttachCallback, this),
-        std::bind(&PantherImuSensor::SpatialDetachCallback, this));
+    spatial_ = std::make_unique<phidgets::Spatial>(params_.serial, params_.hub_port, false,
+                                                   std::bind(&PantherImuSensor::SpatialDataCallback, this,
+                                                             std::placeholders::_1, std::placeholders::_2,
+                                                             std::placeholders::_3, std::placeholders::_4),
+                                                   nullptr, std::bind(&PantherImuSensor::SpatialAttachCallback, this),
+                                                   std::bind(&PantherImuSensor::SpatialDetachCallback, this));
 
     RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
     imu_connected_ = true;
@@ -123,11 +116,12 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State&)
 
     Calibrate();
 
-    ConfigureAhrsAlgorythm();
+    ConfigureCompassParams();
+    ConfigureHeating();
   }
   catch (const phidgets::Phidget22Error& err)
   {
-    RCLCPP_ERROR_STREAM(logger_, "Spatial:" << err.what());
+    RCLCPP_ERROR_STREAM(logger_, "Spatial: " << err.what());
     return CallbackReturn::ERROR;
   }
   return CallbackReturn::SUCCESS;
@@ -220,8 +214,6 @@ void PantherImuSensor::ReadObligatoryParams()
 {
   params_.serial = std::stoi(info_.hardware_parameters["serial"]);
   params_.hub_port = std::stoi(info_.hardware_parameters["hub_port"]);
-  params_.use_orientation = info_.hardware_parameters["use_orientation"] == "true";
-  params_.spatial_algorithm = info_.hardware_parameters["spatial_algorithm"];
   params_.data_interval_ms = std::stoi(info_.hardware_parameters["data_interval_ms"]);
   params_.callback_delta_epsilon_ms = std::stoi(info_.hardware_parameters["callback_delta_epsilon_ms"]);
 
@@ -233,22 +225,35 @@ void PantherImuSensor::ReadObligatoryParams()
   }
 }
 
-void PantherImuSensor::ReadAhrsParams()
+void PantherImuSensor::ReadCompassParams()
 {
-  const auto ahrs_angular_velocity_threshold = info_.hardware_parameters.at("ahrs_angular_velocity_threshold");
-  const auto ahrs_angular_velocity_delta_threshold =
-      info_.hardware_parameters.at("ahrs_angular_velocity_delta_threshold");
-  const auto ahrs_acceleration_threshold = info_.hardware_parameters.at("ahrs_acceleration_threshold");
-  const auto ahrs_mag_time = info_.hardware_parameters.at("ahrs_mag_time");
-  const auto ahrs_accel_time = info_.hardware_parameters.at("ahrs_accel_time");
-  const auto ahrs_bias_time = info_.hardware_parameters.at("ahrs_bias_time");
+  const auto cc_mag_field = info_.hardware_parameters.at("cc_mag_field");
+  const auto cc_offset0 = info_.hardware_parameters.at("cc_offset0");
+  const auto cc_offset1 = info_.hardware_parameters.at("cc_offset1");
+  const auto cc_offset2 = info_.hardware_parameters.at("cc_offset2");
+  const auto cc_gain0 = info_.hardware_parameters.at("cc_gain0");
+  const auto cc_gain1 = info_.hardware_parameters.at("cc_gain1");
+  const auto cc_gain2 = info_.hardware_parameters.at("cc_gain2");
+  const auto cc_t0 = info_.hardware_parameters.at("cc_t0");
+  const auto cc_t1 = info_.hardware_parameters.at("cc_t1");
+  const auto cc_t2 = info_.hardware_parameters.at("cc_t2");
+  const auto cc_t3 = info_.hardware_parameters.at("cc_t3");
+  const auto cc_t4 = info_.hardware_parameters.at("cc_t4");
+  const auto cc_t5 = info_.hardware_parameters.at("cc_t5");
 
-  params_.ahrs_angular_velocity_threshold = std::stod(ahrs_angular_velocity_threshold);
-  params_.ahrs_angular_velocity_delta_threshold = std::stod(ahrs_angular_velocity_delta_threshold);
-  params_.ahrs_acceleration_threshold = std::stod(ahrs_acceleration_threshold);
-  params_.ahrs_mag_time = std::stod(ahrs_mag_time);
-  params_.ahrs_accel_time = std::stod(ahrs_accel_time);
-  params_.ahrs_bias_time = std::stod(ahrs_bias_time);
+  params_.cc_mag_field = std::stod(cc_mag_field);
+  params_.cc_offset0 = std::stod(cc_offset0);
+  params_.cc_offset1 = std::stod(cc_offset1);
+  params_.cc_offset2 = std::stod(cc_offset2);
+  params_.cc_gain0 = std::stod(cc_gain0);
+  params_.cc_gain1 = std::stod(cc_gain1);
+  params_.cc_gain2 = std::stod(cc_gain2);
+  params_.cc_t0 = std::stod(cc_t0);
+  params_.cc_t1 = std::stod(cc_t1);
+  params_.cc_t2 = std::stod(cc_t2);
+  params_.cc_t3 = std::stod(cc_t3);
+  params_.cc_t4 = std::stod(cc_t4);
+  params_.cc_t5 = std::stod(cc_t5);
 }
 
 void PantherImuSensor::SetInitialValues()
@@ -278,35 +283,36 @@ bool PantherImuSensor::IsParamDefined(const std::string& param_name)
   return info_.hardware_parameters.find(param_name) != info_.hardware_parameters.end();
 }
 
-void PantherImuSensor::ConfigureAhrsAlgorythm()
+void PantherImuSensor::ConfigureCompassParams()
 {
-  if (params_.use_orientation)
+  if (IsParamDefined("cc_mag_field") and IsParamDefined("cc_offset0") and IsParamDefined("cc_offset1") and
+      IsParamDefined("cc_offset2") and IsParamDefined("cc_gain0") and IsParamDefined("cc_gain1") and
+      IsParamDefined("cc_gain2") and IsParamDefined("cc_t0") and IsParamDefined("cc_t1") and IsParamDefined("cc_t2") and
+      IsParamDefined("cc_t3") and IsParamDefined("cc_t4") and IsParamDefined("cc_t5"))
   {
-    spatial_->setSpatialAlgorithm(params_.spatial_algorithm);
-    if (IsParamDefined("ahrs_angular_velocity_threshold") and
-        IsParamDefined("ahrs_angular_velocity_delta_threshold") and IsParamDefined("ahrs_acceleration_threshold") and
-        IsParamDefined("ahrs_mag_time") and IsParamDefined("ahrs_accel_time") and IsParamDefined("ahrs_bias_time"))
-    {
-      ReadAhrsParams();
+    ReadCompassParams();
 
-      spatial_->setAHRSParameters(params_.ahrs_angular_velocity_threshold,
-                                  params_.ahrs_angular_velocity_delta_threshold, params_.ahrs_acceleration_threshold,
-                                  params_.ahrs_mag_time, params_.ahrs_accel_time, params_.ahrs_bias_time);
-    }
-    else
-    {
-      RCLCPP_INFO(logger_, "No ahrs parameters found. Skipping...");
-    }
+    spatial_->setCompassCorrectionParameters(params_.cc_mag_field, params_.cc_offset0, params_.cc_offset1,
+                                             params_.cc_offset2, params_.cc_gain0, params_.cc_gain1, params_.cc_gain2,
+                                             params_.cc_t0, params_.cc_t1, params_.cc_t2, params_.cc_t3, params_.cc_t4,
+                                             params_.cc_t5);
+  }
+  else
+  {
+    RCLCPP_INFO(logger_, "No compass correction params found. Skipping...");
+  }
+}
 
-    if (IsParamDefined("algorithm_magnetometer_gain"))
-    {
-      params_.algorithm_magnetometer_gain = std::stod(info_.hardware_parameters["algorithm_magnetometer_gain"]);
-      spatial_->setAlgorithmMagnetometerGain(params_.algorithm_magnetometer_gain);
-    }
-    else
-    {
-      RCLCPP_INFO(logger_, "No magnetoreter gain found. Skipping...");
-    }
+void PantherImuSensor::ConfigureHeating()
+{
+  if (IsParamDefined("heating_enabled"))
+  {
+    params_.heating_enabled = std::stod(info_.hardware_parameters["heating_enabled"]);
+    spatial_->setHeatingEnabled(params_.heating_enabled);
+  }
+  else
+  {
+    RCLCPP_INFO(logger_, "No heating enabled found. Skipping...");
   }
 }
 
@@ -314,22 +320,32 @@ void PantherImuSensor::SpatialDataCallback(const double acceleration[3], const d
                                            const double magnetic_field[3], double timestamp)
 {
   RCLCPP_INFO(rclcpp::get_logger("PantherImuSensor TEST"), "SpatialDataCallback..");
-  for (auto i = 0u; i < 3; ++i)
-  {
-    imu_sensor_state_[i + 4] = angular_rate[i] * (M_PI / 180.0);
-  }
-  for (auto i = 0u; i < 3; ++i)
-  {
-    imu_sensor_state_[i + 4 + 3] = -acceleration[i] * G;
-  }
-}
 
-void PantherImuSensor::SpatialAlgorithmDataCallback(const double quaternion[4], double timestamp)
-{
-  RCLCPP_INFO(rclcpp::get_logger("PantherImuSensor TEST"), "SpatialAlgorithmDataCallback..");
-  for (auto i = 0u; i < 4; ++i)
+  std::lock_guard<std::mutex> lock(spatial_mutex_);
+  rclcpp::Time now = this->now();
+
+  if (magnetic_field[0] != KImuMagneticFieldUnknownValue)
   {
-    imu_sensor_state_[i] = quaternion[i];
+    for (auto i = 0u; i < 3; ++i)
+    {
+      imu_sensor_state_[i] = magnetic_field[i] * 1e-4;
+    }
+  }
+  else
+  {
+    double nan = std::numeric_limits<double>::quiet_NaN();
+    for (auto i = 0u; i < 3; ++i)
+    {
+      imu_sensor_state_[i] = nan;
+    }
+  }
+  for (auto i = 0u; i < 3; ++i)
+  {
+    imu_sensor_state_[i + 3] = angular_rate[i] * (M_PI / 180.0);
+  }
+  for (auto i = 0u; i < 3; ++i)
+  {
+    imu_sensor_state_[i + 3 + 3] = -acceleration[i] * G;
   }
 }
 

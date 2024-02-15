@@ -67,17 +67,20 @@ protected:
   rclcpp::Logger logger_{ rclcpp::get_logger("PantherImuSensor") };
   rclcpp::Clock steady_clock_{ RCL_STEADY_TIME };
 
-  static constexpr size_t kImuInterfacesSize = 10;
+  static constexpr size_t kImuInterfacesSize = 9;
+  static constexpr double KImuMagneticFieldUnknownValue = 1e300;
   static constexpr float G = 9.80665;
   inline static std::string kImuSensorName = "imu";
   inline static std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
-    "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
-    "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z", "linear_acceleration.x",
-    "linear_acceleration.y", "linear_acceleration.z",
+    "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z",
+    "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
+    "magnetic_field.x",      "magnetic_field.y",      "magnetic_field.z",
   };
 
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
+  std::mutex > spatial_mutex_;
+
   bool imu_connected_;
   bool has_ahrs_params_;
   bool has_set_algorithm_magnetometer_gain_params_;
@@ -87,14 +90,14 @@ protected:
   void SetInitialValues();
   void CheckInterfaces();
   void ReadObligatoryParams();
-  void ReadAhrsParams();
-  bool IsParamDefined(const std::string &param_name);
+  void ReadCompassParams();
+  bool IsParamDefined(const std::string& param_name);
 
-  void ConfigureAhrsAlgorythm();
+  void ConfigureCompassParams();
+  void ConfigureHeating();
 
   void SpatialDataCallback(const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
                            double timestamp);
-  void SpatialAlgorithmDataCallback(const double quaternion[4], double timestamp);
   void SpatialAttachCallback();
   void SpatialDetachCallback();
 
