@@ -165,8 +165,8 @@ public:
   /**
    * @brief Controls the fan based on the 'enable' parameter.
    *
-   * @param enable Set to 'true' to enable the motors, 'false' to disable.
-   * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
+   * @param enable Set to 'true' to enable the fan, 'false' to disable.
+   * @return 'true' if the fan control pin value is successfully set, 'false' otherwise.
    */
   bool FanEnable(const bool enable) override;
 
