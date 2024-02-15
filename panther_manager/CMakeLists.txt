@@ -24,6 +24,9 @@ add_library(behaviortree_ros2 src/bt_ros2.cpp)
 add_library(call_set_bool_service_bt_node SHARED src/plugins/call_set_bool_service_node.cpp)
 list(APPEND plugin_libs call_set_bool_service_bt_node)
 
+add_library(call_trigger_service_bt_node SHARED src/plugins/call_trigger_service_node.cpp)
+list(APPEND plugin_libs call_trigger_service_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
   ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
