@@ -81,7 +81,7 @@ private:
 class GPIOControllerInterface
 {
 public:
-  virtual void ~GPIOControllerInterface() = default;
+  virtual ~GPIOControllerInterface() = default;
 
   virtual void Start() = 0;
   virtual bool MotorPowerEnable(const bool enable) = 0;
@@ -173,19 +173,25 @@ public:
   /**
    * @brief Controls AUX power source based on the 'enable' parameter.
    *
-   * @param enable Set to 'true' to enable the motors, 'false' to disable.
-   * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
+   * @param enable Set to 'true' to enable the AUX power, 'false' to disable.
+   * @return 'true' if the AUX control pin value is successfully set, 'false' otherwise.
    */
   bool AUXPowerEnable(const bool enable) override;
 
   /**
    * @brief Controls the digital power source based on the 'enable' parameter.
    *
-   * @param enable Set to 'true' to enable the motors, 'false' to disable.
-   * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
+   * @param enable Set to 'true' to enable the VDIG, 'false' to disable.
+   * @return 'true' if the VDIG control pin value is successfully set, 'false' otherwise.
    */
   bool DigitalPowerEnable(const bool enable) override;
 
+  /**
+   * @brief Controls the charging process based on the 'enable' parameter.
+   *
+   * @param enable Set to 'true' to enable the charging process, 'false' to disable.
+   * @return 'true' if the charger control pin value is successfully set, 'false' otherwise.
+   */
   bool ChargerEnable(const bool enable) override;
 
 private:
@@ -229,8 +235,8 @@ public:
   void EStopTrigger() override;
 
   /**
-   * @brief Checks if the motors are powered up (when STAGE2 is active) without controlling any
-   * GPIO.
+   * @brief Checks if the motors are powered up (when STAGE2_INPUT is active/main switch is set to
+   * STAGE2 position) without controlling any GPIO.
    *
    * @exception std::runtime_error when the motors are not powered up.
    * @return Always returns true when the motors are powered up.
@@ -264,8 +270,8 @@ public:
    * version.
    *
    * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
-   * control.
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for AUX
+   * power control.
    */
   bool AUXPowerEnable(const bool /* enable */) override;
 
@@ -274,11 +280,19 @@ public:
    * robot version.
    *
    * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
-   * control.
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for digital
+   * power control.
    */
   bool DigitalPowerEnable(const bool /* enable */) override;
 
+  /**
+   * @brief Placeholder method indicating lack of support for controlling charging process in this
+   * robot version.
+   *
+   * @param enable Ignored parameter in this version.
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for charging
+   * process control.
+   */
   bool ChargerEnable(const bool /* enable */) override;
 
 private:

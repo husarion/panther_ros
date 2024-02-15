@@ -79,7 +79,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   try {
     gpio_controller_->Start();
   } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL(logger_, "GPIO controller initialization failed");
+    RCLCPP_FATAL_STREAM(logger_, "GPIO controller initialization failed. Error: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -127,8 +127,8 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_ =
     std::make_shared<PantherSystemRosInterface>("panther_system_node");
 
-  gpio_controller_->ConfigureGpioStateCallback(std::bind(
-    &PantherSystemRosInterface::PublishGPIOState, panther_system_ros_interface_,
+  gpio_controller_->ConfigureGPIOStateCallback(std::bind(
+    &PantherSystemRosInterface::PublishIOState, panther_system_ros_interface_,
     std::placeholders::_1));
 
   panther_system_ros_interface_->AddSetBoolService(
@@ -630,7 +630,7 @@ void PantherSystem::SetEStop()
   try {
     gpio_controller_->EStopTrigger();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set E-stop stop using GPIO: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set E-stop using GPIO: " << e.what());
     gpio_controller_error = true;
   }
 
@@ -643,7 +643,6 @@ void PantherSystem::SetEStop()
     RCLCPP_ERROR_STREAM(
       logger_, "Error when trying to set safety stop using CAN command: " << e.what());
     if (gpio_controller_error) {
-      RCLCPP_ERROR_STREAM(logger_, "Both attempts at setting E-stop failed");
       throw std::runtime_error("Both attempts at setting E-stop failed");
     }
   }
@@ -655,12 +654,8 @@ void PantherSystem::ResetEStop()
 {
   RCLCPP_INFO(logger_, "Resetting E-stop");
 
-  // On side of the motors controller safety stop is reset by sending 0.0 commands
+  // On the side of the motors controller safety stop is reset by sending 0.0 commands
   if (!last_commands_zero_) {
-    RCLCPP_ERROR(
-      logger_,
-      "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
-      "controller sends zero commands before trying to reset E-stop.");
     throw std::runtime_error(
       "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
       "controller sends zero commands before trying to reset E-stop.");

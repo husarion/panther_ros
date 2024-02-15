@@ -29,8 +29,7 @@ namespace panther_hardware_interfaces
 {
 
 void TriggerServiceWrapper::CallbackWrapper(
-  std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-  std_srvs::srv::Trigger::Response::SharedPtr response)
+  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
 {
   try {
     callback_();
@@ -45,8 +44,7 @@ void TriggerServiceWrapper::CallbackWrapper(
 }
 
 void SetBoolServiceWrapper::CallbackWrapper(
-  std_srvs::srv::SetBool::Request::ConstSharedPtr request,
-  std_srvs::srv::SetBool::Response::SharedPtr response)
+  SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response)
 {
   try {
     callback_(request->data);
@@ -79,11 +77,10 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   realtime_io_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<IOStateMsg>>(io_state_publisher_);
 
-  e_stop_state_publisher_ = node_->create_publisher<std_msgs::msg::Bool>(
+  e_stop_state_publisher_ = node_->create_publisher<BoolMsg>(
     "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   realtime_e_stop_state_publisher_ =
-    std::make_unique<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>(
-      e_stop_state_publisher_);
+    std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()
@@ -109,7 +106,7 @@ void PantherSystemRosInterface::AddTriggerService(
 {
   auto wrapper = std::make_shared<TriggerServiceWrapper>(callback);
 
-  wrapper->service = node_->create_service<std_srvs::srv::Trigger>(
+  wrapper->service = node_->create_service<TriggerSrv>(
     service_name, std::bind(
                     &TriggerServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
                     std::placeholders::_2));
@@ -122,7 +119,7 @@ void PantherSystemRosInterface::AddSetBoolService(
 {
   auto wrapper = std::make_shared<SetBoolServiceWrapper>(callback);
 
-  wrapper->service = node_->create_service<std_srvs::srv::SetBool>(
+  wrapper->service = node_->create_service<SetBoolSrv>(
     service_name, std::bind(
                     &SetBoolServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
                     std::placeholders::_2));
@@ -234,7 +231,7 @@ void PantherSystemRosInterface::PublishDriverState()
   }
 }
 
-void PantherSystemRosInterface::PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info)
+void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & gpio_info)
 {
   auto & io_state = realtime_io_state_publisher_->msg_;
   const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);

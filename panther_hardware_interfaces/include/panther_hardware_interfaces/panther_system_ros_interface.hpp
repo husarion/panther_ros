@@ -37,8 +37,10 @@
 namespace panther_hardware_interfaces
 {
 
+using BoolMsg = std_msgs::msg::Bool;
 using DriverStateMsg = panther_msgs::msg::DriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
+using SetBoolSrv = std_srvs::srv::SetBool;
 using TriggerSrv = std_srvs::srv::Trigger;
 
 struct CANErrors
@@ -65,10 +67,10 @@ public:
   TriggerServiceWrapper(const std::function<void()> & callback) : callback_(callback){};
 
   void CallbackWrapper(
-    std_srvs::srv::Trigger::Request::ConstSharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
+    const TriggerSrv::Request::ConstSharedPtr /* request */,
+    TriggerSrv::Response::SharedPtr response);
 
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service;
+  rclcpp::Service<TriggerSrv>::SharedPtr service;
 
 private:
   std::function<void()> callback_;
@@ -80,13 +82,12 @@ public:
   SetBoolServiceWrapper(const std::function<void(const bool)> & callback) : callback_(callback){};
 
   void CallbackWrapper(
-    std_srvs::srv::SetBool::Request::ConstSharedPtr request,
-    std_srvs::srv::SetBool::Response::SharedPtr response);
+    const SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response);
 
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr service;
+  rclcpp::Service<SetBoolSrv>::SharedPtr service;
 
 private:
-  std::function<void(bool enable)> callback_;
+  std::function<void(const bool)> callback_;
 };
 
 /**
@@ -136,7 +137,7 @@ public:
   void InitializeAndPublishEStopStateMsg(const bool e_stop);
   void PublishEStopStateIfChanged(const bool e_stop);
   void PublishDriverState();
-  void PublishGPIOState(const panther_gpiod::GPIOInfo & gpio_info);
+  void PublishIOState(const panther_gpiod::GPIOInfo & gpio_info);
 
 private:
   rclcpp::Node::SharedPtr node_;
@@ -147,13 +148,11 @@ private:
   std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
     realtime_driver_state_publisher_;
 
-  rclcpp::Publisher<panther_msgs::msg::IOState>::SharedPtr io_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<panther_msgs::msg::IOState>>
-    realtime_io_state_publisher_;
+  rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<IOStateMsg>> realtime_io_state_publisher_;
 
-  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr e_stop_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Bool>>
-    realtime_e_stop_state_publisher_;
+  rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<BoolMsg>> realtime_e_stop_state_publisher_;
 
   std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
   std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;

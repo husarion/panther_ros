@@ -180,16 +180,14 @@ void GPIOControllerPTH10X::Start()
   gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::MOTOR_ON, true);
 }
 
-bool GPIOControllerPTH10X::EStopTrigger() { return true; }
+void GPIOControllerPTH10X::EStopTrigger() {}
 
-bool GPIOControllerPTH10X::EStopReset()
+void GPIOControllerPTH10X::EStopReset()
 {
   if (!gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT)) {
     throw std::runtime_error(
       "Motors are not powered up. Please verify if the main switch is in the 'STAGE2' position");
   }
-
-  return true;
 }
 
 bool GPIOControllerPTH10X::MotorPowerEnable(const bool enable)
