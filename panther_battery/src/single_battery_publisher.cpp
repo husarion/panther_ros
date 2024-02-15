@@ -59,9 +59,17 @@ void SingleBatteryPublisher::PublishBatteryState()
   BatteryStatusLogger(battery_msg);
 }
 
+void SingleBatteryPublisher::LogErrors()
+{
+  if (battery_->HasErrorMsg()) {
+    RCLCPP_ERROR_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 10000, "Battery error: %s",
+      battery_->GetErrorMsg().c_str());
+  }
+}
+
 void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Battery has no error messages"};
 
@@ -69,18 +77,9 @@ void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatu
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Battery has error";
 
-    diagnostic_msgs::msg::KeyValue battery_kv;
-    battery_kv.key = "Error message";
-    battery_kv.value = battery_->GetErrorMsg();
-
-    key_values.push_back(battery_kv);
-
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery error: %s",
-      battery_kv.value.c_str());
+    status.add("Error message", battery_->GetErrorMsg());
   }
 
-  status.values = key_values;
   status.summary(error_level, message);
 }
 

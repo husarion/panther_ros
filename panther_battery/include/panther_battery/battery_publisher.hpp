@@ -45,6 +45,7 @@ protected:
   virtual void Update() = 0;
   virtual void Reset() = 0;
   virtual void PublishBatteryState() = 0;
+  virtual void LogErrors() = 0;
   virtual void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
 
   bool TimeoutReached() const;

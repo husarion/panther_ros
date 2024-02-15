@@ -60,6 +60,7 @@ void BatteryPublisher::Publish()
   }
 
   this->PublishBatteryState();
+  this->LogErrors();
 }
 
 bool BatteryPublisher::TimeoutReached() const

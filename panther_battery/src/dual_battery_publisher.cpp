@@ -66,6 +66,20 @@ void DualBatteryPublisher::PublishBatteryState()
   BatteryStatusLogger(battery_msg);
 }
 
+void DualBatteryPublisher::LogErrors()
+{
+  if (battery_1_->HasErrorMsg()) {
+    RCLCPP_ERROR_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
+      battery_1_->GetErrorMsg().c_str());
+  }
+  if (battery_2_->HasErrorMsg()) {
+    RCLCPP_ERROR_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 2 error: %s",
+      battery_2_->GetErrorMsg().c_str());
+  }
+}
+
 BatteryStateMsg DualBatteryPublisher::MergeBatteryMsgs(
   const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2)
 {
@@ -143,7 +157,6 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
 
 void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Battery has no error messages"};
 
@@ -152,29 +165,14 @@ void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusW
     message = "Battery has error";
 
     if (battery_1_->HasErrorMsg()) {
-      diagnostic_msgs::msg::KeyValue battery_1_kv;
-      battery_1_kv.key = "Error message: battery 1";
-      battery_1_kv.value = battery_1_->GetErrorMsg();
-      key_values.push_back(battery_1_kv);
-
-      RCLCPP_ERROR_THROTTLE(
-        node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
-        battery_1_kv.value.c_str());
+      status.add("Error message: battery 1", battery_1_->GetErrorMsg());
     }
 
     if (battery_2_->HasErrorMsg()) {
-      diagnostic_msgs::msg::KeyValue battery_2_kv;
-      battery_2_kv.key = "Error message: battery 2";
-      battery_2_kv.value = battery_2_->GetErrorMsg();
-      key_values.push_back(battery_2_kv);
-
-      RCLCPP_ERROR_THROTTLE(
-        node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
-        battery_2_kv.value.c_str());
+      status.add("Error message: battery 2", battery_2_->GetErrorMsg());
     }
   }
 
-  status.values = key_values;
   status.summary(error_level, message);
 }
 
