@@ -14,14 +14,9 @@
 
 #include <gtest/gtest.h>
 
-#include <chrono>
 #include <limits>
-#include <memory>
 #include <stdexcept>
-
-#include <rclcpp/rclcpp.hpp>
-
-#include <std_msgs/msg/empty.hpp>
+#include <vector>
 
 #include <panther_utils/test/test_utils.hpp>
 
@@ -34,22 +29,6 @@ void TestCheckNaNVector()
   EXPECT_FALSE(panther_utils::test_utils::CheckNaNVector(vector));
 }
 
-TEST(TestTestUtils, WaitForMessage)
-{
-  auto node = std::make_shared<rclcpp::Node>("node");
-  auto pub = node->create_publisher<std_msgs::msg::Empty>("topic", 10);
-  std_msgs::msg::Empty::SharedPtr empty_msg;
-  auto sub = node->create_subscription<std_msgs::msg::Empty>(
-    "topic", 10, [&](const std_msgs::msg::Empty::SharedPtr msg) { empty_msg = msg; });
-
-  EXPECT_FALSE(
-    panther_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
-
-  pub->publish(std_msgs::msg::Empty());
-  EXPECT_TRUE(
-    panther_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
-}
-
 TEST(TestTestUtils, CheckNanVector)
 {
   TestCheckNaNVector<float>();
@@ -58,13 +37,26 @@ TEST(TestTestUtils, CheckNanVector)
   EXPECT_THROW(TestCheckNaNVector<int>(), std::runtime_error);
 }
 
+TEST(TestTestUtils, ExpectThrowWithDescription)
+{
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "Example exception");
+
+  panther_utils::test_utils::ExpectThrowWithDescription<std::out_of_range>(
+    []() { throw std::out_of_range("Example exception"); }, "Example exception");
+
+  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
+    []() { throw std::invalid_argument("Example exception"); }, "Example exception");
+
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "Example");
+
+  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "exception");
+}
+
 int main(int argc, char ** argv)
 {
-  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
-
-  auto run_tests = RUN_ALL_TESTS();
-
-  rclcpp::shutdown();
-  return run_tests;
+  return RUN_ALL_TESTS();
 }

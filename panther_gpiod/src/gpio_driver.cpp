@@ -27,8 +27,6 @@
 #include <utility>
 #include <vector>
 
-#include <poll.h>
-
 #include <gpiod.hpp>
 #include <realtime_tools/thread_priority.hpp>
 
@@ -54,8 +52,8 @@ GPIODriver::~GPIODriver()
     }
   }
 
-  line_request_->release();
   GPIOMonitorOff();
+  line_request_->release();
 }
 
 void GPIODriver::GPIOMonitorEnable(
@@ -69,6 +67,10 @@ void GPIODriver::GPIOMonitorEnable(
 
 void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback)
 {
+  if (!IsGPIOMonitorThreadRunning()) {
+    throw std::runtime_error("GPIO monitor thread is not running!");
+  }
+
   GPIOEdgeEventCallback = callback;
 }
 
@@ -224,26 +226,18 @@ void GPIODriver::MonitorAsyncEvents()
 
   auto edge_event_buffer = gpiod::edge_event_buffer(edge_event_buffer_size_);
 
-  struct pollfd pollfd;
-  pollfd.fd = line_request_->fd();
-  pollfd.events = POLLIN;
-
   {
     std::lock_guard<std::mutex> lck(monitor_init_mtx_);
     monitor_init_cond_var_.notify_all();
   }
 
   while (gpio_monitor_thread_enabled_) {
-    auto ret = poll(&pollfd, 1, -1);
+    if (line_request_->wait_edge_events(std::chrono::milliseconds(10))) {
+      line_request_->read_edge_events(edge_event_buffer);
 
-    if (ret == -1) {
-      throw std::runtime_error("Error waiting for edge events.");
-    }
-
-    line_request_->read_edge_events(edge_event_buffer);
-
-    for (const auto & event : edge_event_buffer) {
-      HandleEdgeEvent(event);
+      for (const auto & event : edge_event_buffer) {
+        HandleEdgeEvent(event);
+      }
     }
   }
 }
@@ -251,7 +245,7 @@ void GPIODriver::MonitorAsyncEvents()
 void GPIODriver::ConfigureRt()
 {
   if (gpio_monit_thread_sched_priority_ > 99) {
-    throw std::runtime_error(
+    throw std::invalid_argument(
       "Invalid priority value. Please set a value between 0 and 99 for RT scheduling (GPIO monitor "
       "thread)");
   }
@@ -317,7 +311,7 @@ GPIOInfo & GPIODriver::GetGPIOInfoRef(const GPIOPin pin)
     }
   }
 
-  throw std::runtime_error("Pin not found in GPIO info storage.");
+  throw std::invalid_argument("Pin not found in GPIO info storage.");
 }
 
 GPIOPin GPIODriver::GetPinFromOffset(const gpiod::line::offset & offset) const
