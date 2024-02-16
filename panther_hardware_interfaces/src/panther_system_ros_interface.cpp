@@ -178,34 +178,6 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
   driver_state.rear.can_net_err = can_errors.rear_can_net_err;
 }
 
-void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
-  std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version)
-{
-  auto & io_state = realtime_io_state_publisher_->msg_;
-
-  if (panther_version >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    io_state.aux_power = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::AUX_PW_EN);
-    io_state.charger_connected = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::CHRG_SENSE);
-    io_state.charger_enabled = !gpio_controller->IsPinActive(panther_gpiod::GPIOPin::CHRG_DISABLE);
-    io_state.digital_power = !gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VDIG_OFF);
-    io_state.fan = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::FAN_SW);
-    io_state.power_button = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::SHDN_INIT);
-    io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::VMOT_ON);
-  } else {
-    io_state.aux_power = true;
-    io_state.charger_connected = false;
-    io_state.charger_enabled = false;
-    io_state.digital_power = true;
-    io_state.fan = false;
-    io_state.power_button = false;
-    io_state.motor_on = gpio_controller->IsPinActive(panther_gpiod::GPIOPin::MOTOR_ON);
-  }
-
-  if (realtime_io_state_publisher_->trylock()) {
-    realtime_io_state_publisher_->unlockAndPublish();
-  }
-}
-
 void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)
 {
   realtime_e_stop_state_publisher_->msg_.data = e_stop;
@@ -228,40 +200,59 @@ void PantherSystemRosInterface::PublishDriverState()
   }
 }
 
-void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & gpio_info)
+void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
+  const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state)
 {
-  auto & io_state = realtime_io_state_publisher_->msg_;
-  const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
-
-  switch (gpio_info.pin) {
-    case panther_gpiod::GPIOPin::AUX_PW_EN:
-      io_state.aux_power = pin_value;
-      break;
-    case panther_gpiod::GPIOPin::CHRG_SENSE:
-      io_state.charger_connected = pin_value;
-      break;
-    case panther_gpiod::GPIOPin::CHRG_DISABLE:
-      io_state.charger_enabled = pin_value;
-      break;
-    case panther_gpiod::GPIOPin::VDIG_OFF:
-      io_state.digital_power = pin_value;
-      break;
-    case panther_gpiod::GPIOPin::FAN_SW:
-      io_state.fan = pin_value;
-      break;
-    case panther_gpiod::GPIOPin::VMOT_ON:
-    case panther_gpiod::GPIOPin::MOTOR_ON:
-      io_state.motor_on = pin_value;
-      break;
-    case panther_gpiod::GPIOPin::SHDN_INIT:
-      io_state.power_button = pin_value;
-      break;
-    default:
-      return;
+  for (const auto & [pin, pin_value] : io_state) {
+    UpdateIOStateMsg(pin, pin_value);
   }
 
   if (realtime_io_state_publisher_->trylock()) {
     realtime_io_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & gpio_info)
+{
+  const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
+
+  UpdateIOStateMsg(gpio_info.pin, pin_value);
+
+  if (realtime_io_state_publisher_->trylock()) {
+    realtime_io_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::UpdateIOStateMsg(
+  const panther_gpiod::GPIOPin pin, const bool pin_value)
+{
+  auto & io_state_msg = realtime_io_state_publisher_->msg_;
+
+  switch (pin) {
+    case panther_gpiod::GPIOPin::AUX_PW_EN:
+      io_state_msg.aux_power = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::CHRG_SENSE:
+      io_state_msg.charger_connected = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::CHRG_DISABLE:
+      io_state_msg.charger_enabled = !pin_value;
+      break;
+    case panther_gpiod::GPIOPin::VDIG_OFF:
+      io_state_msg.digital_power = !pin_value;
+      break;
+    case panther_gpiod::GPIOPin::FAN_SW:
+      io_state_msg.fan = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::VMOT_ON:
+    case panther_gpiod::GPIOPin::MOTOR_ON:
+      io_state_msg.motor_on = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::SHDN_INIT:
+      io_state_msg.power_button = pin_value;
+      break;
+    default:
+      break;
   }
 }
 

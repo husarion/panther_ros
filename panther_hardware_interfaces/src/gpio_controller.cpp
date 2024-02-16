@@ -172,6 +172,26 @@ bool GPIOControllerPTH12X::ChargerEnable(const bool enable)
   return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::CHRG_DISABLE, !enable);
 }
 
+std::unordered_map<panther_gpiod::GPIOPin, bool>
+GPIOControllerPTH12X::QueryControlInterfaceIOStates() const
+{
+  std::unordered_map<panther_gpiod::GPIOPin, bool> io_state;
+
+  std::vector<panther_gpiod::GPIOPin> pins_to_querry = {
+    panther_gpiod::GPIOPin::AUX_PW_EN,    panther_gpiod::GPIOPin::CHRG_SENSE,
+    panther_gpiod::GPIOPin::CHRG_DISABLE, panther_gpiod::GPIOPin::VDIG_OFF,
+    panther_gpiod::GPIOPin::FAN_SW,       panther_gpiod::GPIOPin::SHDN_INIT,
+    panther_gpiod::GPIOPin::VMOT_ON,
+  };
+
+  std::for_each(pins_to_querry.begin(), pins_to_querry.end(), [&](panther_gpiod::GPIOPin pin) {
+    bool is_active = gpio_driver_->IsPinActive(pin);
+    io_state.emplace(pin, is_active);
+  });
+
+  return io_state;
+}
+
 void GPIOControllerPTH10X::Start()
 {
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_config_info_storage_);
@@ -218,6 +238,23 @@ bool GPIOControllerPTH10X::DigitalPowerEnable(const bool /* enable */)
 bool GPIOControllerPTH10X::ChargerEnable(const bool /* enable */)
 {
   throw std::runtime_error("This robot version does not support this functionality");
+}
+
+std::unordered_map<panther_gpiod::GPIOPin, bool>
+GPIOControllerPTH10X::QueryControlInterfaceIOStates() const
+{
+  std::unordered_map<panther_gpiod::GPIOPin, bool> io_state;
+
+  io_state.emplace(panther_gpiod::GPIOPin::AUX_PW_EN, true);
+  io_state.emplace(panther_gpiod::GPIOPin::CHRG_SENSE, false);
+  io_state.emplace(panther_gpiod::GPIOPin::CHRG_DISABLE, false);
+  io_state.emplace(panther_gpiod::GPIOPin::VDIG_OFF, false);
+  io_state.emplace(panther_gpiod::GPIOPin::FAN_SW, false);
+  io_state.emplace(panther_gpiod::GPIOPin::SHDN_INIT, false);
+  io_state.emplace(
+    panther_gpiod::GPIOPin::MOTOR_ON, gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::MOTOR_ON));
+
+  return io_state;
 }
 
 }  // namespace panther_hardware_interfaces

@@ -132,12 +132,13 @@ public:
    */
   void UpdateMsgErrors(const CANErrors & can_errors);
 
-  void InitializeAndPublishIOStateMsg(
-    std::shared_ptr<GPIOControllerInterface> gpio_controller, const float panther_version);
   void PublishEStopStateMsg(const bool e_stop);
   void PublishEStopStateIfChanged(const bool e_stop);
   void PublishDriverState();
+  void InitializeAndPublishIOStateMsg(
+    const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state);
   void PublishIOState(const panther_gpiod::GPIOInfo & gpio_info);
+  void UpdateIOStateMsg(const panther_gpiod::GPIOPin pin, const bool pin_value);
 
 private:
   rclcpp::Node::SharedPtr node_;

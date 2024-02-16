@@ -22,9 +22,9 @@
 
 #include <atomic>
 #include <functional>
-#include <map>
 #include <memory>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include <gpiod.hpp>
@@ -93,6 +93,9 @@ public:
   virtual void EStopTrigger() = 0;
   virtual void EStopReset() = 0;
 
+  virtual std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates()
+    const = 0;
+
   /**
    * @brief This method sets the provided callback function to be executed upon GPIO edge events.
    *
@@ -117,8 +120,6 @@ public:
    */
   void RegisterGPIOEventCallback(
     const std::function<void(const panther_gpiod::GPIOInfo &)> & callback);
-
-  std::map<panther_gpiod::GPIOPin, bool> GetIOState() const;
 
   bool IsPinActive(const panther_gpiod::GPIOPin pin) const;
 
@@ -196,6 +197,8 @@ public:
    * @return 'true' if the charger control pin value is successfully set, 'false' otherwise.
    */
   bool ChargerEnable(const bool enable) override;
+
+  std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
   /**
@@ -297,6 +300,8 @@ public:
    * process control.
    */
   bool ChargerEnable(const bool /* enable */) override;
+
+  std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
   /**
