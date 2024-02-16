@@ -127,7 +127,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_ =
     std::make_shared<PantherSystemRosInterface>("panther_system_node");
 
-  gpio_controller_->ConfigureGPIOStateCallback(std::bind(
+  gpio_controller_->RegisterGPIOEventCallback(std::bind(
     &PantherSystemRosInterface::PublishIOState, panther_system_ros_interface_,
     std::placeholders::_1));
 
@@ -156,7 +156,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(gpio_controller_, panther_version_);
 
   e_stop_ = ReadEStop();
-  panther_system_ros_interface_->InitializeAndPublishEStopStateMsg(e_stop_);
+  panther_system_ros_interface_->PublishEStopStateMsg(e_stop_);
 
   return CallbackReturn::SUCCESS;
 }

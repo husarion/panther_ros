@@ -22,6 +22,7 @@
 
 #include <atomic>
 #include <functional>
+#include <map>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -110,12 +111,14 @@ public:
    *
    * MyClass my_obj;
    * GPIOControllerPTH12X gpio_controller;
-   * gpio_controller.ConfigureGPIOStateCallback(
+   * gpio_controller.RegisterGPIOEventCallback(
    *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
    */
-  void ConfigureGPIOStateCallback(
+  void RegisterGPIOEventCallback(
     const std::function<void(const panther_gpiod::GPIOInfo &)> & callback);
+
+  std::map<panther_gpiod::GPIOPin, bool> GetIOState() const;
 
   bool IsPinActive(const panther_gpiod::GPIOPin pin) const;
 

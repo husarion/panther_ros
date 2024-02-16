@@ -206,7 +206,7 @@ void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
   }
 }
 
-void PantherSystemRosInterface::InitializeAndPublishEStopStateMsg(const bool e_stop)
+void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)
 {
   realtime_e_stop_state_publisher_->msg_.data = e_stop;
   if (realtime_e_stop_state_publisher_->trylock()) {
@@ -217,10 +217,7 @@ void PantherSystemRosInterface::InitializeAndPublishEStopStateMsg(const bool e_s
 void PantherSystemRosInterface::PublishEStopStateIfChanged(const bool e_stop)
 {
   if (realtime_e_stop_state_publisher_->msg_.data != e_stop) {
-    realtime_e_stop_state_publisher_->msg_.data = e_stop;
-    if (realtime_e_stop_state_publisher_->trylock()) {
-      realtime_e_stop_state_publisher_->unlockAndPublish();
-    }
+    PublishEStopStateMsg(e_stop);
   }
 }
 

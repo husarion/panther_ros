@@ -82,7 +82,7 @@ bool Watchdog::IsWatchdogEnabled() const
   return watchdog_thread_ && watchdog_thread_->joinable();
 }
 
-void GPIOControllerInterface::ConfigureGPIOStateCallback(
+void GPIOControllerInterface::RegisterGPIOEventCallback(
   const std::function<void(const panther_gpiod::GPIOInfo &)> & callback)
 {
   if (!gpio_driver_) {
