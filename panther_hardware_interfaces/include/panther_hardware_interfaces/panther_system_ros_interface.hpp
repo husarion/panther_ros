@@ -20,6 +20,7 @@
 #include <memory>
 #include <thread>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <realtime_tools/realtime_publisher.h>
@@ -105,6 +106,8 @@ private:
 
   rclcpp::Service<TriggerSrv>::SharedPtr clear_errors_srv_;
   std::function<void()> clear_errors_;
+
+  diagnostic_updater::Updater diagnostic_updater_;
 };
 
 }  // namespace panther_hardware_interfaces

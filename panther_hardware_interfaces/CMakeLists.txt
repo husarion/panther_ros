@@ -14,6 +14,7 @@ endif()
 set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
+    diagnostic_updater
     hardware_interface
     panther_msgs
     panther_utils
@@ -44,6 +45,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(
   ${PROJECT_NAME}
+  diagnostic_updater
   hardware_interface
   rclcpp_lifecycle
   rclcpp
@@ -144,8 +146,13 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_panther_system_ros_interface
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system_ros_interface rclcpp panther_msgs
-    panther_utils realtime_tools std_srvs)
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    diagnostic_updater
+    rclcpp
+    panther_msgs
+    panther_utils
+    realtime_tools
+    std_srvs)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp
@@ -169,6 +176,7 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 
 ament_export_dependencies(
+  diagnostic_updater
   hardware_interface
   controller_interface
   realtime_tools
