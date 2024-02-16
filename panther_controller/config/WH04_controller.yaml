@@ -59,7 +59,6 @@
           has_velocity_limits: true
           has_acceleration_limits: true
           has_jerk_limits: false
-          # top speed is around 2.0m/s (manual)
           max_velocity: 1.1 # m/s
           # min_velocity -  When unspecified `min_velocity=-max_velocity`
           max_acceleration: 1.5 # m/s^2
