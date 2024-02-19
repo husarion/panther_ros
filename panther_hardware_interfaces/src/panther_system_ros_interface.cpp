@@ -28,34 +28,31 @@
 namespace panther_hardware_interfaces
 {
 
-void TriggerServiceWrapper::CallbackWrapper(
-  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+template <typename SrvT, typename Func>
+void ProcessServiceCallback(Func callback, SrvT response)
 {
   try {
-    callback_();
+    callback();
     response->success = true;
   } catch (const std::exception & err) {
     response->success = false;
     response->message = err.what();
 
     RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Trigger service failed: " << response->message);
+      rclcpp::get_logger("PantherSystem"), "Service response: " << response->message);
   }
+}
+
+void TriggerServiceWrapper::CallbackWrapper(
+  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+{
+  ProcessServiceCallback([this]() { callback_(); }, response);
 }
 
 void SetBoolServiceWrapper::CallbackWrapper(
   SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response)
 {
-  try {
-    callback_(request->data);
-    response->success = true;
-  } catch (const std::exception & err) {
-    response->success = false;
-    response->message = err.what();
-
-    RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("PantherSystem"), "SetBool service failed: " << response->message);
-  }
+  ProcessServiceCallback([this, data = request->data]() { callback_(data); }, response);
 }
 
 PantherSystemRosInterface::PantherSystemRosInterface(

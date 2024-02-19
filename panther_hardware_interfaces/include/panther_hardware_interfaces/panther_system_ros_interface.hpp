@@ -61,6 +61,9 @@ struct CANErrors
   bool rear_can_net_err;
 };
 
+template <typename SrvT, typename Func>
+void ProcessServiceCallback(Func function, SrvT response);
+
 class TriggerServiceWrapper
 {
 public:
