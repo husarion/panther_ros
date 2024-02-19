@@ -12,6 +12,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     ament_index_cpp
     behaviortree_cpp
     std_srvs
+    panther_msgs
 )
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
@@ -27,10 +28,45 @@ list(APPEND plugin_libs call_set_bool_service_bt_node)
 add_library(call_trigger_service_bt_node SHARED src/plugins/call_trigger_service_node.cpp)
 list(APPEND plugin_libs call_trigger_service_bt_node)
 
+add_library(call_set_led_animation_service_bt_node SHARED src/plugins/call_set_led_animation_service_node.cpp)
+list(APPEND plugin_libs call_set_led_animation_service_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
   ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
 endforeach()
+
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  add_library(${PROJECT_NAME}_test_plugin_utils test/plugins/src/panther_manager_plugin_test_utils.cpp)
+  target_include_directories(${PROJECT_NAME}_test_plugin_utils PUBLIC test/plugins/include)
+
+  target_link_libraries(${PROJECT_NAME}_test_plugin_utils
+    call_set_bool_service_bt_node
+    call_trigger_service_bt_node
+    call_set_led_animation_service_bt_node
+  )
+
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_plugin_utils ${PACKAGE_INCLUDE_DEPENDS}
+  )
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_set_bool_plugin
+    test/plugins/test_set_bool_plugin.cpp
+  )
+
+  target_link_libraries(${PROJECT_NAME}_test_set_bool_plugin
+    ${PROJECT_NAME}_test_plugin_utils
+  )
+
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_set_bool_plugin ${PACKAGE_INCLUDE_DEPENDS}
+  )
+endif()
+
 
 install(TARGETS
   DESTINATION lib/${PROJECT_NAME}

@@ -23,7 +23,6 @@ public:
 
   virtual bool setRequest(typename Request::SharedPtr& request) override;
   virtual BT::NodeStatus onResponseReceived(const typename Response::SharedPtr& response) override;
-  virtual BT::NodeStatus onFailure(BT::ServiceNodeErrorCode /*error*/) override;
 };
 
 }  // namespace panther_manager

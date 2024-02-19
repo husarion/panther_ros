@@ -6,6 +6,7 @@ bool CallSetBoolService::setRequest(typename Request::SharedPtr& request)
 {
   if (!getInput<bool>("data", request->data))
   {
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to get input [data]");
     return false;
   }
   return true;
@@ -22,12 +23,6 @@ BT::NodeStatus CallSetBoolService::onResponseReceived(const typename Response::S
   RCLCPP_DEBUG_STREAM(node_->get_logger(),
                       "Successfully called " << prev_service_name_ << " service, message: " << response->message);
   return BT::NodeStatus::SUCCESS;
-}
-
-BT::NodeStatus CallSetBoolService::onFailure(BT::ServiceNodeErrorCode /*error*/)
-{
-  RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to get input [data]");
-  return BT::NodeStatus::FAILURE;
 }
 
 }  // namespace panther_manager
