@@ -94,8 +94,8 @@ void GPIODriver::ConfigureLineRequest(
   std::string pin_name;
   try {
     pin_name = pin_names_.at(gpio_info.pin);
-  } catch (const std::out_of_range & err) {
-    throw std::runtime_error("No name defined for one of pins: " + std::string(err.what()));
+  } catch (const std::out_of_range & e) {
+    throw std::runtime_error("No name defined for one of pins: " + std::string(e.what()));
   }
 
   gpiod::line::offset offset = chip.get_line_offset_from_name(pin_name);
@@ -187,8 +187,8 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
     }
 
     return true;
-  } catch (const std::exception & err) {
-    std::cerr << "Error while setting GPIO pin value: " << err.what() << std::endl;
+  } catch (const std::exception & e) {
+    std::cerr << "Error while setting GPIO pin value: " << e.what() << std::endl;
     return false;
   }
 }
@@ -268,8 +268,8 @@ void GPIODriver::HandleEdgeEvent(const gpiod::edge_event & event)
   GPIOPin pin;
   try {
     pin = GetPinFromOffset(event.line_offset());
-  } catch (const std::out_of_range & err) {
-    std::cerr << "An edge event occurred with an unknown pin: " << err.what() << std::endl;
+  } catch (const std::out_of_range & e) {
+    std::cerr << "An edge event occurred with an unknown pin: " << e.what() << std::endl;
     return;
   }
 
