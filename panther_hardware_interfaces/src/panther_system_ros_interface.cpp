@@ -14,7 +14,6 @@
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
