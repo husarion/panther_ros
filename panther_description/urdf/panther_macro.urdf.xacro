@@ -127,11 +127,9 @@
     </ros2_control>
 
     <xacro:if value="${use_sim}">
-
-      <xacro:gazebo.battery config_file="${battery_config_file}"/>
-      <xacro:gazebo.controller config_file="${controller_config_file}"/>
-      <xacro:gazebo.imu reference_frame="imu_link" name="imu"/>
-
+      <xacro:gazebo.battery config_file="${battery_config_file}" />
+      <xacro:gazebo.controller config_file="${controller_config_file}" />
+      <xacro:gazebo.imu reference_frame="imu_link" name="imu" />
     </xacro:if>
   </xacro:macro>
 
