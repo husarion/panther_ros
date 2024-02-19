@@ -11,7 +11,7 @@ bool CallSetLedAnimationService::setRequest(typename Request::SharedPtr& request
     return false;
   }
 
-  request->animation.id = animation_id;
+  request->animation.id = static_cast<uint16_t>(animation_id);
 
   if (!getInput<std::string>("param", request->animation.param))
   {
