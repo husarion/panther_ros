@@ -4,11 +4,15 @@ namespace panther_manager
 
 bool CallSetLedAnimationService::setRequest(typename Request::SharedPtr& request)
 {
-  if (!getInput<uint16_t>("id", request->animation.id))
+  unsigned animation_id;
+  if (!getInput<unsigned>("id", animation_id))
   {
     RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to get input [id]");
     return false;
   }
+
+  request->animation.id = animation_id;
+
   if (!getInput<std::string>("param", request->animation.param))
   {
     RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to get input [param]");

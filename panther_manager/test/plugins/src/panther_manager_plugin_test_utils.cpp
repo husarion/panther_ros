@@ -7,27 +7,16 @@ std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
     const std::string& plugin_name, const std::map<std::string, std::string>& name_and_data_map)
 {
   std::stringstream bt;
-  auto header = R"(
-      <root BTCPP_format="4">
-        <BehaviorTree>
-          <Sequence>
-  )";
 
-  auto footer = R"(
-            </Sequence>
-        </BehaviorTree>
-      </root>
-  )";
-
-  bt << header << std::endl;
+  bt << header_ << std::endl;
 
   for (auto const& [name, value] : name_and_data_map)
   {
-    bt << "\t\t\t\t<" << plugin_name << " name=\"" << name << "\" service_name=\"" << name << "\" data=\"" << value
+    bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << name << "\" data=\"" << value
        << "\" />" << std::endl;
   }
 
-  bt << footer;
+  bt << footer_;
 
   return bt.str();
 }
@@ -36,26 +25,33 @@ std::string PantherManagerPluginTestUtils::BuildBehaviorTree(const std::string& 
                                                              const std::vector<std::string>& names)
 {
   std::stringstream bt;
-  auto header = R"(
-      <root BTCPP_format="4">
-        <BehaviorTree>
-          <Sequence>
-  )";
 
-  auto footer = R"(
-            </Sequence>
-        </BehaviorTree>
-      </root>
-  )";
-
-  bt << header << std::endl;
+  bt << header_ << std::endl;
 
   for (auto const& name : names)
   {
-    bt << "\t\t\t\t<" << plugin_name << " name=\"" << name << "\" service_name=\"" << name << "\" />" << std::endl;
+    bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << name << "\" />" << std::endl;
   }
 
-  bt << footer;
+  bt << footer_;
+
+  return bt.str();
+}
+
+std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
+    const std::string& plugin_name, const std::map<std::string, SetLEDAnimationTestUtils>& animation_params)
+{
+  std::stringstream bt;
+
+  bt << header_ << std::endl;
+
+  for (auto const& [name, param] : animation_params)
+  {
+    bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << name << "\" id=\"" << param[0] << "\" param=\""
+       << param[1] << "\" repeating=\"" << param[2] << "\" />" << std::endl;
+  }
+
+  bt << footer_;
 
   return bt.str();
 }
@@ -72,6 +68,14 @@ BT::Tree& PantherManagerPluginTestUtils::CreateTree(const std::string& plugin_na
                                                     const std::vector<std::string>& names)
 {
   auto xml_text = BuildBehaviorTree(plugin_name, names);
+  tree_ = factory_.createTreeFromText(xml_text);
+  return tree_;
+}
+
+BT::Tree& PantherManagerPluginTestUtils::CreateTree(
+    const std::string& plugin_name, const std::map<std::string, SetLEDAnimationTestUtils>& animation_params)
+{
+  auto xml_text = BuildBehaviorTree(plugin_name, animation_params);
   tree_ = factory_.createTreeFromText(xml_text);
   return tree_;
 }
@@ -119,7 +123,7 @@ void PantherManagerPluginTestUtils::CreateTriggerServiceServer(
     std::function<void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
         service_callback)
 {
-  service_server_node_ = std::make_shared<rclcpp::Node>("test_set_bool_service");
+  service_server_node_ = std::make_shared<rclcpp::Node>("test_trigger_service");
   trigger_server_ = service_server_node_->create_service<std_srvs::srv::Trigger>("trigger", service_callback);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(service_server_node_);
@@ -131,6 +135,11 @@ void PantherManagerPluginTestUtils::CreateSetLEDAnimationServiceServer(
                        panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
         service_callback)
 {
+    service_server_node_ = std::make_shared<rclcpp::Node>("test_set_led_animation_service");
+  set_led_animation_server_ = service_server_node_->create_service<panther_msgs::srv::SetLEDAnimation>("set_led_animation", service_callback);
+  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+  executor_->add_node(service_server_node_);
+  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 }
 
 void PantherManagerPluginTestUtils::spin_executor()

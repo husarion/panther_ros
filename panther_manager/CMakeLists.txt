@@ -65,6 +65,11 @@ if(BUILD_TESTING)
   )
   list(APPEND plugin_tests ${PROJECT_NAME}_test_trigger_plugin)
 
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_set_led_animation_plugin
+    test/plugins/test_set_led_animation_plugin.cpp
+  )
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_set_led_animation_plugin)
 
   foreach(bt_plugin_test ${plugin_tests})
     target_link_libraries(${bt_plugin_test} ${PROJECT_NAME}_test_plugin_utils)

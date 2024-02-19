@@ -38,10 +38,7 @@ void ServiceSuccessCallbackCheckTrueValue(const std_srvs::srv::SetBool::Request:
   response->success = true;
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_set_bool_plugin"), response->message << " data: " << request->data);
 
-  if (request->data != true)
-  {
-    FAIL() << "Service data should be true!";
-  }
+  EXPECT_EQ(request->data, true);
 }
 
 void ServiceSuccessCallbackCheckFalseValue(const std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -51,10 +48,7 @@ void ServiceSuccessCallbackCheckFalseValue(const std_srvs::srv::SetBool::Request
   response->success = true;
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_set_bool_plugin"), response->message << " data: " << request->data);
 
-  if (request->data != false)
-  {
-    FAIL() << "Service data should be false!";
-  }
+  EXPECT_EQ(request->data, false);
 }
 
 TEST(TestCallSetBoolService, good_loading_call_set_bool_service_plugin)

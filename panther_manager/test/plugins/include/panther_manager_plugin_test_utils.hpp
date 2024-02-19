@@ -31,16 +31,22 @@
 
 namespace panther_manager_plugin_test
 {
+
+typedef std::array<std::string, 3> SetLEDAnimationTestUtils;
+
 class PantherManagerPluginTestUtils
 {
 public:
   std::string BuildBehaviorTree(const std::string& plugin_name,
                                 const std::map<std::string, std::string>& name_and_data_map);
+  std::string BuildBehaviorTree(const std::string& plugin_name, const std::vector<std::string>& names);
   std::string BuildBehaviorTree(const std::string& plugin_name,
-                                const std::vector<std::string>& names);
+                                const std::map<std::string, SetLEDAnimationTestUtils>& animation_params);
 
   BT::Tree& CreateTree(const std::string& plugin_name, const std::map<std::string, std::string>& name_and_data_map);
   BT::Tree& CreateTree(const std::string& plugin_name, const std::vector<std::string>& names);
+  BT::Tree& CreateTree(const std::string& plugin_name,
+                       const std::map<std::string, SetLEDAnimationTestUtils>& animation_params);
   BT::BehaviorTreeFactory& GetFactory();
 
   void Start();
@@ -49,8 +55,12 @@ public:
   void CreateSetBoolServiceServer(
       std::function<void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
           service_callback);
-  void CreateTriggerServiceServer(std::function<void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)> service_callback);
-  void CreateSetLEDAnimationServiceServer(std::function<void(panther_msgs::srv::SetLEDAnimation::Request::SharedPtr, panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)> service_callback);
+  void CreateTriggerServiceServer(
+      std::function<void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
+          service_callback);
+  void CreateSetLEDAnimationServiceServer(std::function<void(panther_msgs::srv::SetLEDAnimation::Request::SharedPtr,
+                                                             panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
+                                              service_callback);
 
 private:
   rclcpp::Node::SharedPtr bt_node_;
@@ -66,6 +76,18 @@ private:
   std::unique_ptr<std::thread> executor_thread_;
 
   void spin_executor();
+
+  std::string header_ = R"(
+      <root BTCPP_format="4">
+        <BehaviorTree>
+          <Sequence>
+  )";
+
+  std::string footer_ = R"(
+            </Sequence>
+        </BehaviorTree>
+      </root>
+  )";
 };
 }  // namespace panther_manager_plugin_test
 
