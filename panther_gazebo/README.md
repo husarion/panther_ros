@@ -60,6 +60,7 @@ The NavSat system is utilized to publish the Panther robot's position within the
 The NavSat sensors requires the spherical coordinates of the world origin to be configured. This configuration can be accomplished, for instance, by employing the `<spherical_coordinates>` tag within the world's SDF or by utilizing the Ignition `/world/world_name/set_spherical_coordinates` service.
 
 To obtain GPS data in Ignition, follow these steps:
+
 - Include the [external_antenna](../panther_description/urdf/components/external_antenna.urdf.xacro) macro in your robot model by adding the following lines to your [panther.urdf.xacro](../panther_description/urdf/panther.urdf.xacro)  file within the `<robot>` tag:
 
 ```xml
@@ -71,6 +72,7 @@ To obtain GPS data in Ignition, follow these steps:
 ```
 
 - Add the following tag to your world's SDF file and specify this file using the `world` parameter (the default `husarion_world.sdf` file already includes this tag):
+
 ```xml
 <spherical_coordinates>
   <surface_model>EARTH_WGS84</surface_model>

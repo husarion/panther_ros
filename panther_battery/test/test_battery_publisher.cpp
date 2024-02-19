@@ -31,8 +31,10 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class BatteryPublisherWrapper : public panther_battery::BatteryPublisher
 {
 public:
-  BatteryPublisherWrapper(const rclcpp::Node::SharedPtr & node)
-  : panther_battery::BatteryPublisher(node)
+  BatteryPublisherWrapper(
+    const rclcpp::Node::SharedPtr & node,
+    std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater)
+  : panther_battery::BatteryPublisher(node, diagnostic_updater)
   {
   }
 
@@ -50,6 +52,10 @@ public:
   void Reset(){};
   void PublishBatteryState(){};
   void LogErrors(){};
+  void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+  {
+    status.summary(0, "");
+  };
 };
 
 class TestBatteryPublisher : public testing::Test
@@ -61,6 +67,7 @@ public:
 protected:
   static constexpr float kBatteryTimeout = 0.5;
   rclcpp::Node::SharedPtr node_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
   rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_pub_;
   std::shared_ptr<BatteryPublisherWrapper> battery_publisher_;
 };
@@ -74,8 +81,9 @@ TestBatteryPublisher::TestBatteryPublisher()
   options.parameter_overrides(params);
 
   node_ = std::make_shared<rclcpp::Node>("node", options);
+  diagnostic_updater_ = std::make_shared<diagnostic_updater::Updater>(node_);
   io_state_pub_ = node_->create_publisher<IOStateMsg>("/hardware/io_state", 10);
-  battery_publisher_ = std::make_shared<BatteryPublisherWrapper>(node_);
+  battery_publisher_ = std::make_shared<BatteryPublisherWrapper>(node_, diagnostic_updater_);
 }
 
 TEST_F(TestBatteryPublisher, TimeoutReached)

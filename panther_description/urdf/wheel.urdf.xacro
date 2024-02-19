@@ -49,10 +49,9 @@
       </visual>
 
       <collision>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <origin xyz="0.0 0.0 0.0" rpy="-${pi/2} 0.0 0.0" />
         <geometry>
-          <mesh
-            filename="package://${wheel_config['mesh_package']}/${wheel_config['folder_path']}/wheel_collision.stl" />
+          <cylinder radius="${wheel_config['wheel_radius']}" length="${wheel_config['wheel_width']}"/>
         </geometry>
       </collision>
 

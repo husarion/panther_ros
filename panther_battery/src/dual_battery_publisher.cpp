@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/battery_state.hpp>
@@ -29,9 +30,10 @@ namespace panther_battery
 {
 
 DualBatteryPublisher::DualBatteryPublisher(
-  const rclcpp::Node::SharedPtr & node, const std::shared_ptr<Battery> & battery_1,
-  const std::shared_ptr<Battery> & battery_2)
-: BatteryPublisher(std::move(node)),
+  const rclcpp::Node::SharedPtr & node,
+  const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater,
+  const std::shared_ptr<Battery> & battery_1, const std::shared_ptr<Battery> & battery_2)
+: BatteryPublisher(std::move(node), std::move(diagnostic_updater)),
   battery_1_(std::move(battery_1)),
   battery_2_(std::move(battery_2))
 {
@@ -151,6 +153,27 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
   } else {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   }
+}
+
+void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Battery has no error messages"};
+
+  if (battery_1_->HasErrorMsg() || battery_2_->HasErrorMsg()) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Battery has error";
+
+    if (battery_1_->HasErrorMsg()) {
+      status.add("Error message: battery 1", battery_1_->GetErrorMsg());
+    }
+
+    if (battery_2_->HasErrorMsg()) {
+      status.add("Error message: battery 2", battery_2_->GetErrorMsg());
+    }
+  }
+
+  status.summary(error_level, message);
 }
 
 }  // namespace panther_battery
