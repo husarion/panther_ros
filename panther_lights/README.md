@@ -32,6 +32,8 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 - `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: lights diagnostic messages.
 
+[//]: # (ROS_API_NODE_PUBLISHERS_END)
+
 #### Subscribers
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
