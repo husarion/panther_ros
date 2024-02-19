@@ -72,8 +72,14 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO_STREAM(logger_, "Creating GPIO controller for Panther version: " << panther_version_);
   if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
     gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
+
+    ReadEStop = [this]() {
+      return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
+    };
   } else {
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
+
+    ReadEStop = [this]() { return e_stop_.load(); };
   }
 
   try {
@@ -154,7 +160,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
 
   const auto io_state = gpio_controller_->QueryControlInterfaceIOStates();
-  panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state, panther_version_);
+  panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state);
 
   e_stop_ = ReadEStop();
   panther_system_ros_interface_->PublishEStopStateMsg(e_stop_);
@@ -671,16 +677,6 @@ void PantherSystem::ResetEStop()
 
   roboteq_error_filter_->SetClearErrorsFlag();
   e_stop_ = false;
-}
-
-bool PantherSystem::ReadEStop()
-{
-  if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
-  } else {
-    // For older panther versions there is no hardware E-stop
-    return e_stop_;
-  }
 }
 
 }  // namespace panther_hardware_interfaces

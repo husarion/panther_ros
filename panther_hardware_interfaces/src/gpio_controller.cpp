@@ -48,7 +48,7 @@ bool Watchdog::TurnOn()
   }
 
   watchdog_thread_enabled_ = true;
-  watchdog_thread_ = std::make_unique<std::thread>(&Watchdog::WatchdogThread, this);
+  watchdog_thread_ = std::thread(&Watchdog::WatchdogThread, this);
 
   return IsWatchdogEnabled();
 }
@@ -60,7 +60,7 @@ bool Watchdog::TurnOff()
   }
 
   watchdog_thread_enabled_ = false;
-  watchdog_thread_->join();
+  watchdog_thread_.join();
 
   return !IsWatchdogEnabled();
 }
@@ -77,10 +77,7 @@ void Watchdog::WatchdogThread()
   gpio_driver_->SetPinValue(watchdog_pin_, false);
 }
 
-bool Watchdog::IsWatchdogEnabled() const
-{
-  return watchdog_thread_ && watchdog_thread_->joinable();
-}
+bool Watchdog::IsWatchdogEnabled() const { return watchdog_thread_.joinable(); }
 
 void GPIOControllerInterface::RegisterGPIOEventCallback(
   const std::function<void(const panther_gpiod::GPIOInfo &)> & callback)
@@ -126,7 +123,7 @@ void GPIOControllerPTH12X::EStopReset()
   bool e_stop_state = !gpio_driver_->IsPinActive(e_stop_pin);
 
   if (!e_stop_state) {
-    std::cout << "[GPIOController] E-STOP is not active, reset is not needed" << std::endl;
+    std::cout << "[GPIOController] E-stop is not active, reset is not needed" << std::endl;
     return;
   }
 
@@ -143,7 +140,7 @@ void GPIOControllerPTH12X::EStopReset()
   if (e_stop_state) {
     watchdog_->TurnOff();
     throw std::runtime_error(
-      "E-STOP reset failed, check for pressed E-STOP buttons or other triggers");
+      "E-stop reset failed, check for pressed E-stop buttons or other triggers");
   }
 }
 
@@ -177,14 +174,14 @@ GPIOControllerPTH12X::QueryControlInterfaceIOStates() const
 {
   std::unordered_map<panther_gpiod::GPIOPin, bool> io_state;
 
-  std::vector<panther_gpiod::GPIOPin> pins_to_querry = {
+  std::vector<panther_gpiod::GPIOPin> pins_to_query = {
     panther_gpiod::GPIOPin::AUX_PW_EN,    panther_gpiod::GPIOPin::CHRG_SENSE,
     panther_gpiod::GPIOPin::CHRG_DISABLE, panther_gpiod::GPIOPin::VDIG_OFF,
     panther_gpiod::GPIOPin::FAN_SW,       panther_gpiod::GPIOPin::SHDN_INIT,
     panther_gpiod::GPIOPin::VMOT_ON,
   };
 
-  std::for_each(pins_to_querry.begin(), pins_to_querry.end(), [&](panther_gpiod::GPIOPin pin) {
+  std::for_each(pins_to_query.begin(), pins_to_query.end(), [&](panther_gpiod::GPIOPin pin) {
     bool is_active = gpio_driver_->IsPinActive(pin);
     io_state.emplace(pin, is_active);
   });

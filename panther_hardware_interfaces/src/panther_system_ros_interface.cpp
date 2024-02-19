@@ -54,7 +54,7 @@ void SetBoolServiceWrapper::CallbackWrapper(
     response->message = err.what();
 
     RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("PantherSystem"), "SetBool service response: " << response->message);
+      rclcpp::get_logger("PantherSystem"), "SetBool service failed: " << response->message);
   }
 }
 
@@ -216,14 +216,16 @@ void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & g
 {
   const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
 
-  UpdateIOStateMsg(gpio_info.pin, pin_value);
+  if (!UpdateIOStateMsg(gpio_info.pin, pin_value)) {
+    return;
+  }
 
   if (realtime_io_state_publisher_->trylock()) {
     realtime_io_state_publisher_->unlockAndPublish();
   }
 }
 
-void PantherSystemRosInterface::UpdateIOStateMsg(
+bool PantherSystemRosInterface::UpdateIOStateMsg(
   const panther_gpiod::GPIOPin pin, const bool pin_value)
 {
   auto & io_state_msg = realtime_io_state_publisher_->msg_;
@@ -252,8 +254,10 @@ void PantherSystemRosInterface::UpdateIOStateMsg(
       io_state_msg.power_button = pin_value;
       break;
     default:
-      break;
+      return false;
   }
+
+  return true;
 }
 
 }  // namespace panther_hardware_interfaces

@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -94,7 +95,7 @@ protected:
 
   void SetEStop();
   void ResetEStop();
-  bool ReadEStop();
+  std::function<bool()> ReadEStop;
 
   static constexpr size_t kJointsSize = 4;
 

@@ -138,9 +138,19 @@ public:
   void InitializeAndPublishIOStateMsg(
     const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state);
   void PublishIOState(const panther_gpiod::GPIOInfo & gpio_info);
-  void UpdateIOStateMsg(const panther_gpiod::GPIOPin pin, const bool pin_value);
 
 private:
+  /**
+   * @brief Updates the IOState message and indicates whether its state has changed.
+   *
+   * @param pin The GPIO pin whose state is to be updated.
+   * @param pin_value The new value to be set for the pin. True indicates a high state, and false
+   * indicates a low state.
+   * @return True if the state update caused a change in the IO state message; returns
+   * false otherwise.
+   */
+  bool UpdateIOStateMsg(const panther_gpiod::GPIOPin pin, const bool pin_value);
+
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;

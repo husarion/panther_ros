@@ -75,7 +75,7 @@ private:
 
   panther_gpiod::GPIOPin watchdog_pin_ = panther_gpiod::GPIOPin::WATCHDOG;
   std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver_;
-  std::unique_ptr<std::thread> watchdog_thread_;
+  std::thread watchdog_thread_;
   std::atomic_bool watchdog_thread_enabled_ = false;
 };
 

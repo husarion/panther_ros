@@ -44,7 +44,7 @@ The GPIOController provides wrappers for the GPIO driver from the `panther_gpiod
 
 * `GPIOControllerInterface`: Interface for all wrappers that handle GPIO control tasks.
 * `GPIOControllerPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
-* `GPIOControllerPTH10X`: Class with specific logic for the Panther robot with version less than 1.20.
+* `GPIOControllerPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
 * `Watchdog`: Entity responsible for spinning the software Watchdog. It periodically sets the high and low states of specific GPIO Watchdog pin. Used only with `GPIOControllerPTH12X`.
 
 ## PantherSystemRosInterface
