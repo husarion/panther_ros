@@ -76,7 +76,7 @@ LEDSegment::~LEDSegment()
 void LEDSegment::SetAnimation(const YAML::Node & animation_description)
 {
   if (!animation_description["type"]) {
-    throw std::runtime_error("Missing 'type' in animaiton description");
+    throw std::runtime_error("Missing 'type' in animation description");
   }
 
   auto type = animation_description["type"].as<std::string>();

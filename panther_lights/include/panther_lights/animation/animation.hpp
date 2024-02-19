@@ -112,7 +112,7 @@ public:
         finished_ = true;
       }
 
-      std::copy(frame.begin(), frame.end(), frame_.begin());
+      frame_ = frame;
       return;
     }
 

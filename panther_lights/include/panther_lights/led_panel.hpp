@@ -21,6 +21,9 @@
 namespace panther_lights
 {
 
+/**
+ * @brief Class that represents LED panel of the robot
+ */
 class LEDPanel
 {
 public:
@@ -39,6 +42,7 @@ public:
   void UpdateFrame(const std::size_t iterator_first, const std::vector<std::uint8_t> & values);
 
   std::vector<std::uint8_t> GetFrame() const { return frame_; }
+  std::size_t GetNumberOfLeds() const { return num_led_; }
 
 private:
   const std::size_t num_led_;

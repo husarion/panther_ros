@@ -32,8 +32,8 @@ void SegmentConverter::Convert(
 {
   for (auto & segment : segments) {
     try {
-      panels.at(segment->GetChannel())
-        ->UpdateFrame(segment->GetFirstLEDPosition(), segment->GetAnimationFrame());
+      auto panel = panels.at(segment->GetChannel());
+      panel->UpdateFrame(segment->GetFirstLEDPosition(), segment->GetAnimationFrame());
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
         "Failed to convert segment animation to panel frame. Error: " + std::string(e.what()));
