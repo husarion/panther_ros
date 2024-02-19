@@ -23,7 +23,7 @@
 #include <panther_battery/adc_battery.hpp>
 #include <panther_battery/battery.hpp>
 #include <panther_battery/dual_battery_publisher.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include <panther_utils/test/ros_test_utils.hpp>
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
@@ -31,9 +31,11 @@ class DualBatteryPublisherWrapper : public panther_battery::DualBatteryPublisher
 {
 public:
   DualBatteryPublisherWrapper(
-    const rclcpp::Node::SharedPtr & node, std::shared_ptr<panther_battery::Battery> & battery_1,
+    const rclcpp::Node::SharedPtr & node,
+    std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater,
+    std::shared_ptr<panther_battery::Battery> & battery_1,
     std::shared_ptr<panther_battery::Battery> & battery_2)
-  : DualBatteryPublisher(node, battery_1, battery_2)
+  : DualBatteryPublisher(node, diagnostic_updater, battery_1, battery_2)
   {
   }
 
@@ -69,6 +71,7 @@ public:
 
 protected:
   rclcpp::Node::SharedPtr node_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_1_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_2_sub_;
@@ -92,13 +95,15 @@ TestDualBatteryPublisher::TestDualBatteryPublisher()
     params);
 
   node_ = std::make_shared<rclcpp::Node>("node");
+  diagnostic_updater_ = std::make_shared<diagnostic_updater::Updater>(node_);
   battery_sub_ = node_->create_subscription<BatteryStateMsg>(
     "/battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
   battery_1_sub_ = node_->create_subscription<BatteryStateMsg>(
     "/battery_1_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
   battery_2_sub_ = node_->create_subscription<BatteryStateMsg>(
     "/battery_2_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
-  battery_publisher_ = std::make_shared<DualBatteryPublisherWrapper>(node_, battery_1_, battery_2_);
+  battery_publisher_ = std::make_shared<DualBatteryPublisherWrapper>(
+    node_, diagnostic_updater_, battery_1_, battery_2_);
 }
 
 void TestDualBatteryPublisher::TestMergeBatteryPowerSupplyStatus(
