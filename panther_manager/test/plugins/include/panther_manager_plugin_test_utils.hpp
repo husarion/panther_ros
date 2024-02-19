@@ -34,11 +34,13 @@ namespace panther_manager_plugin_test
 class PantherManagerPluginTestUtils
 {
 public:
-  PantherManagerPluginTestUtils();
   std::string BuildBehaviorTree(const std::string& plugin_name,
                                 const std::map<std::string, std::string>& name_and_data_map);
+  std::string BuildBehaviorTree(const std::string& plugin_name,
+                                const std::vector<std::string>& names);
 
-  BT::Tree &CreateTree(const std::string& plugin_name, const std::map<std::string, std::string>& name_and_data_map);
+  BT::Tree& CreateTree(const std::string& plugin_name, const std::map<std::string, std::string>& name_and_data_map);
+  BT::Tree& CreateTree(const std::string& plugin_name, const std::vector<std::string>& names);
   BT::BehaviorTreeFactory& GetFactory();
 
   void Start();
@@ -47,8 +49,8 @@ public:
   void CreateSetBoolServiceServer(
       std::function<void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
           service_callback);
-  void CreateTriggerServiceServer(std::function<void()> service_callback);
-  void CreateSetLEDAnimationServiceServer(std::function<void()> service_callback);
+  void CreateTriggerServiceServer(std::function<void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)> service_callback);
+  void CreateSetLEDAnimationServiceServer(std::function<void(panther_msgs::srv::SetLEDAnimation::Request::SharedPtr, panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)> service_callback);
 
 private:
   rclcpp::Node::SharedPtr bt_node_;
@@ -59,6 +61,8 @@ private:
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
 
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_bool_server_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr trigger_server_;
+  rclcpp::Service<panther_msgs::srv::SetLEDAnimation>::SharedPtr set_led_animation_server_;
   std::unique_ptr<std::thread> executor_thread_;
 
   void spin_executor();

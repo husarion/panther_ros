@@ -57,14 +57,19 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_set_bool_plugin
     test/plugins/test_set_bool_plugin.cpp
   )
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_set_bool_plugin)
 
-  target_link_libraries(${PROJECT_NAME}_test_set_bool_plugin
-    ${PROJECT_NAME}_test_plugin_utils
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_trigger_plugin
+    test/plugins/test_trigger_plugin.cpp
   )
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_trigger_plugin)
 
-  ament_target_dependencies(
-    ${PROJECT_NAME}_test_set_bool_plugin ${PACKAGE_INCLUDE_DEPENDS}
-  )
+
+  foreach(bt_plugin_test ${plugin_tests})
+    target_link_libraries(${bt_plugin_test} ${PROJECT_NAME}_test_plugin_utils)
+    ament_target_dependencies(${bt_plugin_test} ${PACKAGE_INCLUDE_DEPENDS})
+  endforeach()
 endif()
 
 
