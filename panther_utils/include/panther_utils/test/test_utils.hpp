@@ -51,7 +51,7 @@ bool CheckNaNVector(const std::vector<T> & vector)
  * @param func The method that will be tested
  * @param error_msg The error message that has to be contained within the thrown message
  *
- * @returns True if method throws an exception of a given type and the error message contains the
+ * @return True if method throws an exception of a given type and the error message contains the
  * provided message, false otherwise
  */
 template <typename ExceptionType, typename Func>
