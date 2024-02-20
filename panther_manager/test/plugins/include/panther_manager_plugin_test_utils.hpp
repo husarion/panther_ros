@@ -26,6 +26,7 @@
 #include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
 #include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
+#include <panther_manager/plugins/action/signal_shutdown_node.hpp>
 
 #include <behaviortree_cpp/bt_factory.h>
 
@@ -42,10 +43,10 @@ class PantherManagerPluginTestUtils
 public:
 
   std::string BuildBehaviorTree(const std::string& plugin_name,
-                                const BehaviorTreePluginDescription& service);
+                                const   std::map<std::string, std::string> & service);
 
   BT::Tree& CreateTree(const std::string& plugin_name,
-                       const BehaviorTreePluginDescription& service);
+                       const   std::map<std::string, std::string> & service);
 
   BT::BehaviorTreeFactory& GetFactory();
 

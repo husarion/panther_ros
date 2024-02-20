@@ -14,7 +14,7 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
+#include <map>
 
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
@@ -44,7 +44,7 @@ void ServiceSuccessCallback(const std_srvs::srv::Trigger::Request::SharedPtr req
 
 TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "trigger", {} };
+  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -55,7 +55,7 @@ TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
 
 TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plugin)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "trigger", {} };
+  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -65,24 +65,21 @@ TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plug
 
 TEST(TestCallTriggerService, wrong_call_trigger_service_service_server_not_initialized)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "trigger", {} };
+  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   auto& tree = test_utils.CreateTree("CallTriggerService", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::FAILURE)
-  {
-    FAIL() << "Found trigger service but shouldn't!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
 }
 
 TEST(TestCallTriggerService, good_trigger_call_service_success)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "trigger", {} };
+  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -91,17 +88,14 @@ TEST(TestCallTriggerService, good_trigger_call_service_success)
   test_utils.CreateTriggerServiceServer(ServiceSuccessCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::SUCCESS)
-  {
-    FAIL() << "Cannot call trigger service!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 
   test_utils.Stop();
 }
 
 TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "trigger", {} };
+  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -110,10 +104,7 @@ TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
   test_utils.CreateTriggerServiceServer(ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::FAILURE)
-  {
-    FAIL() << "Cannot call trigger service!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
 }

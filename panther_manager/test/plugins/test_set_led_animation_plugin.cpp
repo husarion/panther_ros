@@ -76,8 +76,9 @@ void ServiceSuccessCallbackCheckId5(const panther_msgs::srv::SetLEDAnimation::Re
 
 TEST(TestCallSetLedAnimationService, good_loading_call_set_led_animation_service_plugin)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -87,8 +88,9 @@ TEST(TestCallSetLedAnimationService, good_loading_call_set_led_animation_service
 
 TEST(TestCallSetLedAnimationService, wrong_plugin_name_loading_call_set_led_animation_service_plugin)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -98,26 +100,25 @@ TEST(TestCallSetLedAnimationService, wrong_plugin_name_loading_call_set_led_anim
 
 TEST(TestCallSetLedAnimationService, wrong_call_set_led_animation_service_service_server_not_initialized)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   auto& tree = test_utils.CreateTree("CallSetLedAnimationService", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::FAILURE)
-  {
-    FAIL() << "Found set_led_animation service but shouldn't!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
 }
 
 TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success_with_true_repeating_value)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -126,18 +127,16 @@ TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success
   test_utils.CreateSetLEDAnimationServiceServer(ServiceSuccessCallbackCheckRepeatingTrueValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::SUCCESS)
-  {
-    FAIL() << "Cannot call set_led_animation service!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 
   test_utils.Stop();
 }
 
 TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success_with_false_repeating_value)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "false" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "false" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -146,18 +145,16 @@ TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success
   test_utils.CreateSetLEDAnimationServiceServer(ServiceSuccessCallbackCheckRepeatingFalseValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::SUCCESS)
-  {
-    FAIL() << "Cannot call set_led_animation service!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 
   test_utils.Stop();
 }
 
 TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success_with_5_id_value)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "5" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "5" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -166,18 +163,16 @@ TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success
   test_utils.CreateSetLEDAnimationServiceServer(ServiceSuccessCallbackCheckId5);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::SUCCESS)
-  {
-    FAIL() << "Cannot call set_led_animation service!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 
   test_utils.Stop();
 }
 
 TEST(TestCallSetLedAnimationService, wrong_set_led_animation_call_service_failure)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -186,46 +181,39 @@ TEST(TestCallSetLedAnimationService, wrong_set_led_animation_call_service_failur
   test_utils.CreateSetLEDAnimationServiceServer(ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::FAILURE)
-  {
-    FAIL() << "Cannot call set_led_animation service!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
 }
 
 TEST(TestCallSetLedAnimationService, wrong_repeating_service_value_defined)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "0" }, { "param", "" }, { "repeating", "wrong_bool" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "0" }, { "param", "" }, { "repeating", "wrong_bool" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   auto& tree = test_utils.CreateTree("CallSetLedAnimationService", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::FAILURE)
-  {
-    FAIL() << "Wrong value is parsed as good value!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
 }
 
 TEST(TestCallSetLedAnimationService, wrong_id_service_value_defined)
 {
-  panther_manager_plugin_test::BehaviorTreePluginDescription service = { "set_led_animation", {
-      { "id", "-5" }, { "param", "" }, { "repeating", "true" } } };
+  std::map<std::string, std::string> service = {
+    { "service_name", "set_led_animation" }, { "id", "-5" }, { "param", "" }, { "repeating", "true" }
+  };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   auto& tree = test_utils.CreateTree("CallSetLedAnimationService", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  if (status != BT::NodeStatus::FAILURE)
-  {
-    FAIL() << "Wrong value is parsed as good value!";
-  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
 }

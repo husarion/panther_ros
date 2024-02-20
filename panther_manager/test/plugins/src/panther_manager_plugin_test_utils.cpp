@@ -3,28 +3,30 @@
 namespace panther_manager_plugin_test
 {
 
-std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
-    const std::string& plugin_name, const BehaviorTreePluginDescription& service)
+std::string PantherManagerPluginTestUtils::BuildBehaviorTree(const std::string& plugin_name,
+                                                             const   std::map<std::string, std::string> & service)
 {
   std::stringstream bt;
 
   bt << header_ << std::endl;
-  bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << service.service_name <<"\" ";
+  bt << "\t\t\t\t<" << plugin_name << " ";
 
-  for (auto const& [key, value] : service.params)
+
+  for (auto const& [key, value] : service)
   {
-     bt << key << "=\"" << value << "\" ";
+    bt << key << "=\"" << value << "\" ";
   }
 
-  bt << " />" << std::endl <<  footer_;
+  bt << " />" << std::endl << footer_;
 
   return bt.str();
 }
 
-BT::Tree& PantherManagerPluginTestUtils::CreateTree(
-    const std::string& plugin_name, const BehaviorTreePluginDescription& service)
+BT::Tree& PantherManagerPluginTestUtils::CreateTree(const std::string& plugin_name,
+                                                    const   std::map<std::string, std::string> & service)
 {
   auto xml_text = BuildBehaviorTree(plugin_name, service);
+  std::cout << xml_text;
   tree_ = factory_.createTreeFromText(xml_text);
   return tree_;
 }
@@ -44,6 +46,7 @@ void PantherManagerPluginTestUtils::Start()
   factory_.registerNodeType<panther_manager::CallSetBoolService>("CallSetBoolService", params);
   factory_.registerNodeType<panther_manager::CallTriggerService>("CallTriggerService", params);
   factory_.registerNodeType<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService", params);
+  factory_.registerNodeType<panther_manager::SignalShutdown>("SignalShutdown");
 }
 
 void PantherManagerPluginTestUtils::Stop()
@@ -84,8 +87,9 @@ void PantherManagerPluginTestUtils::CreateSetLEDAnimationServiceServer(
                        panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
         service_callback)
 {
-    service_server_node_ = std::make_shared<rclcpp::Node>("test_set_led_animation_service");
-  set_led_animation_server_ = service_server_node_->create_service<panther_msgs::srv::SetLEDAnimation>("set_led_animation", service_callback);
+  service_server_node_ = std::make_shared<rclcpp::Node>("test_set_led_animation_service");
+  set_led_animation_server_ =
+      service_server_node_->create_service<panther_msgs::srv::SetLEDAnimation>("set_led_animation", service_callback);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(service_server_node_);
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });

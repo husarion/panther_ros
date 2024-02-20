@@ -50,6 +50,7 @@ if(BUILD_TESTING)
     call_set_bool_service_bt_node
     call_trigger_service_bt_node
     call_set_led_animation_service_bt_node
+    signal_shutdown_bt_node
   )
 
   ament_target_dependencies(
@@ -73,6 +74,12 @@ if(BUILD_TESTING)
     test/plugins/test_set_led_animation_plugin.cpp
   )
   list(APPEND plugin_tests ${PROJECT_NAME}_test_set_led_animation_plugin)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_signal_shutdown_plugin
+    test/plugins/test_signal_shutdown_plugin.cpp
+  )
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_signal_shutdown_plugin)
 
   foreach(bt_plugin_test ${plugin_tests})
     target_link_libraries(${bt_plugin_test} ${PROJECT_NAME}_test_plugin_utils)
