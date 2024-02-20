@@ -322,28 +322,28 @@ TEST_F(TestRoboteqDriver, test_reset_roboteq_script)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetResetRoboteqScript(), 2);
 }
 
-TEST_F(TestRoboteqDriver, test_read_roboteq_turn_on_estop)
+TEST_F(TestRoboteqDriver, test_read_roboteq_turn_on_e_stop)
 {
-  roboteqs_mock_->GetFrontDriver()->SetTurnOnEstop(65);
-  roboteqs_mock_->GetRearDriver()->SetTurnOnEstop(23);
+  roboteqs_mock_->GetFrontDriver()->SetTurnOnEStop(65);
+  roboteqs_mock_->GetRearDriver()->SetTurnOnEStop(23);
 
-  canopen_controller_->GetFrontDriver()->TurnOnEstop();
-  canopen_controller_->GetRearDriver()->TurnOnEstop();
+  canopen_controller_->GetFrontDriver()->TurnOnEStop();
+  canopen_controller_->GetRearDriver()->TurnOnEStop();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnEstop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEstop(), 1);
+  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnEStop(), 1);
+  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEStop(), 1);
 }
 
-TEST_F(TestRoboteqDriver, test_turn_off_estop)
+TEST_F(TestRoboteqDriver, test_turn_off_e_stop)
 {
-  roboteqs_mock_->GetFrontDriver()->SetTurnOffEstop(65);
-  roboteqs_mock_->GetRearDriver()->SetTurnOffEstop(23);
+  roboteqs_mock_->GetFrontDriver()->SetTurnOffEStop(65);
+  roboteqs_mock_->GetRearDriver()->SetTurnOffEStop(23);
 
-  canopen_controller_->GetFrontDriver()->TurnOffEstop();
-  canopen_controller_->GetRearDriver()->TurnOffEstop();
+  canopen_controller_->GetFrontDriver()->TurnOffEStop();
+  canopen_controller_->GetRearDriver()->TurnOffEStop();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOffEstop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEstop(), 1);
+  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOffEStop(), 1);
+  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_1)

@@ -41,9 +41,14 @@ Feedback converters are combined in the `RoboteqData` class to provide the full 
 A class that keeps track of different types of errors. In some rare cases, Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in a timeout.
 As they usually are rare and singular occurrences, it is better to filter some of these errors and escalate only when a certain number of errors happen.
 
-## GPIODriver
+## GPIOController
 
-WIP - it will handle reading/writing pins of the RPi GPIO.
+The GPIOController provides wrappers for the GPIO driver from the `panther_gpiod` package, handling reading and writing pins of the RPi GPIO. It includes the following utilities:
+
+* `GPIOControllerInterface`: Interface for all wrappers that handle GPIO control tasks.
+* `GPIOControllerPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
+* `GPIOControllerPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
+* `Watchdog`: Entity responsible for spinning the software Watchdog. It periodically sets the high and low states of specific GPIO Watchdog pin. Used only with `GPIOControllerPTH12X`.
 
 ## PantherSystemRosInterface
 

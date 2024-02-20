@@ -144,7 +144,7 @@ void GPIODriver::ChangePinDirection(const GPIOPin pin, const gpiod::line::direct
   gpio_info.value = line_request_->get_value(gpio_info.offset);
 }
 
-bool GPIODriver::IsPinAvaible(const GPIOPin pin) const
+bool GPIODriver::IsPinAvailable(const GPIOPin pin) const
 {
   return std::any_of(gpio_info_storage_.begin(), gpio_info_storage_.end(), [&](const auto & info) {
     return info.pin == pin;

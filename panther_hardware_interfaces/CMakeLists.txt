@@ -16,6 +16,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     controller_interface
     diagnostic_updater
     hardware_interface
+    panther_gpiod
     panther_msgs
     panther_utils
     PkgConfig
@@ -37,6 +38,7 @@ add_library(
   src/panther_system_ros_interface.cpp
   src/motors_controller.cpp
   src/canopen_controller.cpp
+  src/gpio_controller.cpp
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
   src/roboteq_error_filter.cpp
@@ -51,6 +53,7 @@ ament_target_dependencies(
   rclcpp
   pluginlib
   std_srvs
+  panther_gpiod
   panther_msgs
   panther_utils
   realtime_tools)
@@ -141,7 +144,8 @@ if(BUILD_TESTING)
     test/test_panther_system_ros_interface.cpp
     src/panther_system_ros_interface.cpp
     src/roboteq_data_converters.cpp
-    src/utils.cpp)
+    src/utils.cpp
+    src/gpio_controller.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -149,6 +153,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_panther_system_ros_interface
     diagnostic_updater
     rclcpp
+    panther_gpiod
     panther_msgs
     panther_utils
     realtime_tools
