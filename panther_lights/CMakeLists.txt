@@ -43,7 +43,8 @@ add_executable(
   src/controller_node_main.cpp src/controller_node.cpp src/led_segment.cpp
   src/led_panel.cpp src/segment_converter.cpp)
 
-ament_target_dependencies(controller_node rclcpp pluginlib sensor_msgs)
+ament_target_dependencies(controller_node rclcpp pluginlib panther_msgs
+                          sensor_msgs)
 target_link_libraries(controller_node yaml-cpp)
 
 add_executable(dummy_scheduler_node src/dummy_scheduler_node_main.cpp
@@ -57,7 +58,7 @@ install(TARGETS driver_node controller_node dummy_scheduler_node
 
 install(TARGETS panther_animation_plugins LIBRARY DESTINATION lib)
 
-install(DIRECTORY animations launch DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY animations config launch DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/ DESTINATION include)
 ament_export_include_directories(include)

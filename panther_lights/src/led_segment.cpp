@@ -81,21 +81,24 @@ void LEDSegment::SetAnimation(const YAML::Node & animation_description)
 
   auto type = animation_description["type"].as<std::string>();
 
-  animation_.reset();
+  std::shared_ptr<panther_lights::Animation> animation;
 
   try {
-    animation_ = animation_loader_->createSharedInstance(type);
+    animation = animation_loader_->createSharedInstance(type);
   } catch (pluginlib::PluginlibException & e) {
     throw std::runtime_error("The plugin failed to load. Error: " + std::string(e.what()));
   }
 
   try {
-    animation_->Initialize(animation_description, num_led_, controller_frequency_);
+    animation->Initialize(animation_description, num_led_, controller_frequency_);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to initialize animation: " + std::string(e.what()));
   } catch (const std::out_of_range & e) {
     throw std::runtime_error("Failed to initialize animation: " + std::string(e.what()));
   }
+
+  animation_.reset();
+  animation_ = std::move(animation);
 }
 
 void LEDSegment::UpdateAnimation(const std::string & param)
