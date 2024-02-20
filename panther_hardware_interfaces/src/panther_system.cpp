@@ -159,6 +159,12 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_->AddTriggerService(
     "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
 
+  panther_system_ros_interface_->AddDiagnosticTask(
+    std::string("system errors"), this, &PantherSystem::DiagnoseErrors);
+
+  panther_system_ros_interface_->AddDiagnosticTask(
+    std::string("system status"), this, &PantherSystem::DiagnoseStatus);
+
   const auto io_state = gpio_controller_->QueryControlInterfaceIOStates();
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state);
 
@@ -215,6 +221,10 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
     return CallbackReturn::ERROR;
   }
 
+  panther_system_ros_interface_->BroadcastOnDiagnosticTasks(
+    diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+    "An error has occurred during a node state transition.");
+
   panther_system_ros_interface_.reset();
 
   motors_controller_->Deinitialize();
@@ -259,7 +269,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop_);
 
   if (time >= next_driver_state_update_time_) {
-    UpdatDriverState();
+    UpdateDriverState();
     panther_system_ros_interface_->PublishDriverState();
     next_driver_state_update_time_ = time + driver_states_update_period_;
   }
@@ -451,7 +461,7 @@ void PantherSystem::UpdateMotorsStates()
   }
 }
 
-void PantherSystem::UpdatDriverState()
+void PantherSystem::UpdateDriverState()
 {
   try {
     motors_controller_->UpdateDriversState();
@@ -677,6 +687,48 @@ void PantherSystem::ResetEStop()
 
   roboteq_error_filter_->SetClearErrorsFlag();
   e_stop_ = false;
+}
+
+void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"No errors detected."};
+
+  if (roboteq_error_filter_->IsError()) {
+    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Errors detected.";
+
+    for (auto const & [error_id, error_name] : error_filter_ids_names) {
+      status.add(
+        error_name + " error", static_cast<bool>(roboteq_error_filter_->IsError(error_id)));
+    }
+  }
+
+  status.summary(level, message);
+}
+
+void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Panther system status monitoring."};
+
+  auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
+  auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
+
+  auto drivers_with_names = {
+    std::make_pair(std::string("Front"), front_driver_state),
+    std::make_pair(std::string("Rear"), rear_driver_state)};
+
+  for (const auto & [driver_name, driver_state] : drivers_with_names) {
+    status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
+    status.add(driver_name + " driver current (A)", driver_state.GetCurrent());
+    status.add(driver_name + " driver temperature (\u00B0C)", driver_state.GetTemperature());
+    status.add(
+      driver_name + " driver heatsink temperature (\u00B0C)",
+      driver_state.GetHeatsinkTemperature());
+  }
+
+  status.summary(level, message);
 }
 
 }  // namespace panther_hardware_interfaces

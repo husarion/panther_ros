@@ -79,7 +79,7 @@ protected:
   void ReadDriverStatesUpdateFrequency();
 
   void UpdateMotorsStates();
-  void UpdatDriverState();
+  void UpdateDriverState();
 
   void UpdateHwStates();
   void UpdateMotorsStatesDataTimedOut();
@@ -96,6 +96,9 @@ protected:
   void SetEStop();
   void ResetEStop();
   std::function<bool()> ReadEStop;
+
+  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status);
+  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status);
 
   static constexpr size_t kJointsSize = 4;
 

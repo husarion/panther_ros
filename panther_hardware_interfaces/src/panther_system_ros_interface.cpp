@@ -79,7 +79,7 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   realtime_e_stop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
 
-  diagnostic_updater_.setHardwareID("PantherSystem");
+  diagnostic_updater_.setHardwareID("Panther System");
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()

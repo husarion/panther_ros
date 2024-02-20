@@ -122,6 +122,32 @@ public:
     const std::string service_name, const std::function<void(const bool)> & callback);
 
   /**
+   * @brief Adds a new diagnostic task.
+   *
+   * @param name The name of the diagnostic task.
+   * @param task_owner A pointer to the object that posses the diagnostic task member function.
+   * @param task_fcn A pointer to the diagnostic task member function.
+   */
+  template <class T>
+  inline void AddDiagnosticTask(
+    const std::string & name, T * task_owner,
+    void (T::*task_fcn)(diagnostic_updater::DiagnosticStatusWrapper &))
+  {
+    diagnostic_updater_.add(name, task_owner, task_fcn);
+  }
+
+  /**
+   * @brief Broadcasts a message with the specified level on defined diagnostic tasks.
+   *
+   * @param level The level of the diagnostic message.
+   * @param message The message to be broadcasted.
+   */
+  inline void BroadcastOnDiagnosticTasks(unsigned char level, const std::string & message)
+  {
+    diagnostic_updater_.broadcast(level, message);
+  }
+
+  /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
    */
   void UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear);
