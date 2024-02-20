@@ -19,7 +19,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <behaviortree_cpp/bt_factory.h>
 
-#include <panther_manager/plugins/call_set_bool_service_node.hpp>
+#include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
 
 #include <panther_manager_plugin_test_utils.hpp>
 

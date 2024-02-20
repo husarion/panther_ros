@@ -22,13 +22,13 @@ endforeach()
 include_directories(include)
 add_library(behaviortree_ros2 src/bt_ros2.cpp)
 
-add_library(call_set_bool_service_bt_node SHARED src/plugins/call_set_bool_service_node.cpp)
+add_library(call_set_bool_service_bt_node SHARED src/plugins/action/call_set_bool_service_node.cpp)
 list(APPEND plugin_libs call_set_bool_service_bt_node)
 
-add_library(call_trigger_service_bt_node SHARED src/plugins/call_trigger_service_node.cpp)
+add_library(call_trigger_service_bt_node SHARED src/plugins/action/call_trigger_service_node.cpp)
 list(APPEND plugin_libs call_trigger_service_bt_node)
 
-add_library(call_set_led_animation_service_bt_node SHARED src/plugins/call_set_led_animation_service_node.cpp)
+add_library(call_set_led_animation_service_bt_node SHARED src/plugins/action/call_set_led_animation_service_node.cpp)
 list(APPEND plugin_libs call_set_led_animation_service_bt_node)
 
 foreach(bt_plugin ${plugin_libs})

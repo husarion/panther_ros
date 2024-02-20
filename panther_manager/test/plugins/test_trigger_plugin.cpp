@@ -20,7 +20,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <behaviortree_cpp/bt_factory.h>
 
-#include <panther_manager/plugins/call_trigger_service_node.hpp>
+#include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 
 #include <panther_manager_plugin_test_utils.hpp>
 
@@ -39,8 +39,6 @@ void ServiceSuccessCallback(const std_srvs::srv::Trigger::Request::SharedPtr req
   response->success = true;
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
-
-
 
 TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
 {

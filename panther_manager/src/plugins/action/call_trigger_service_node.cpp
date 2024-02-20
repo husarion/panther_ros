@@ -1,18 +1,13 @@
-#include <panther_manager/plugins/call_set_bool_service_node.hpp>
+#include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 namespace panther_manager
 {
 
-bool CallSetBoolService::setRequest(typename Request::SharedPtr& request)
+bool CallTriggerService::setRequest(typename Request::SharedPtr& /*request*/)
 {
-  if (!getInput<bool>("data", request->data))
-  {
-    RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to get input [data]");
-    return false;
-  }
   return true;
 }
 
-BT::NodeStatus CallSetBoolService::onResponseReceived(const typename Response::SharedPtr& response)
+BT::NodeStatus CallTriggerService::onResponseReceived(const typename Response::SharedPtr& response)
 {
   if (!response->success)
   {
@@ -28,4 +23,4 @@ BT::NodeStatus CallSetBoolService::onResponseReceived(const typename Response::S
 }  // namespace panther_manager
 
 #include <behaviortree_ros2/plugins.hpp>
-CreateRosNodePlugin(panther_manager::CallSetBoolService, "CallSetBoolService");
+CreateRosNodePlugin(panther_manager::CallTriggerService, "CallTriggerService");

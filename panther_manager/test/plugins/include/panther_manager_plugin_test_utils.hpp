@@ -23,9 +23,9 @@
 #include <std_srvs/srv/trigger.hpp>
 #include <panther_msgs/srv/set_led_animation.hpp>
 
-#include <panther_manager/plugins/call_set_bool_service_node.hpp>
-#include <panther_manager/plugins/call_set_led_animation_service_node.hpp>
-#include <panther_manager/plugins/call_trigger_service_node.hpp>
+#include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
+#include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
+#include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 
 #include <behaviortree_cpp/bt_factory.h>
 
