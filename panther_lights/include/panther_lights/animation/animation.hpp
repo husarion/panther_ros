@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #ifndef PANTHER_LIGHTS_ANIMATION_HPP_
 #define PANTHER_LIGHTS_ANIMATION_HPP_
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -48,6 +49,7 @@ public:
   {
     Reset();
     num_led_ = num_led;
+    frame_ = std::vector<std::uint8_t>(num_led_ * kRGBAColorLen, 0);
 
     if (!animation_description["duration"]) {
       throw std::runtime_error("Missing 'duration' in animation description");
@@ -84,17 +86,16 @@ public:
   }
 
   /**
-   * @brief Update and return animation frame
+   * @brief Update animation frame
    *
-   * @returns the newest animation frame, if animation is finished will return vector filled with 0
    * @exception std::runtime_error if UpdateFrame() method returns frame with invalid size
    */
-  std::vector<std::uint8_t> Call()
+  void Update()
   {
     if (current_cycle_ < loops_) {
       auto frame = UpdateFrame();
 
-      if (frame.size() != num_led_ * 4) {
+      if (frame.size() != num_led_ * kRGBAColorLen) {
         throw std::runtime_error(
           "Invalid frame size. Check animation UpdateFrame() method implementation");
       }
@@ -111,10 +112,11 @@ public:
         finished_ = true;
       }
 
-      return frame;
+      frame_ = frame;
+      return;
     }
 
-    return std::vector<std::uint8_t>(num_led_ * 4, 0);
+    std::fill(frame_.begin(), frame_.end(), 0);
   }
 
   /**
@@ -129,21 +131,45 @@ public:
     progress_ = 0.0;
   }
 
+  /**
+   * @brief Return animation frame
+   *
+   * @param invert_frame_order if true will return frame with inverted RGBA values order (last 4
+   * values will become first etc.)
+   *
+   * @return the newest animation frame, if animation is finished will return vector filled with 0
+   */
+  std::vector<std::uint8_t> GetFrame(const bool invert_frame_order = false)
+  {
+    return invert_frame_order ? InvertRGBAFrame(frame_) : frame_;
+  }
+
+  virtual void SetParam(const std::string & /*param*/){};
+
   bool IsFinished() const { return finished_; }
   std::size_t GetNumberOfLeds() const { return num_led_; }
   std::uint8_t GetBrightness() const { return brightness_; }
   float GetProgress() const { return progress_; }
 
-  virtual void SetParam(const std::string & /*param*/){};
+  static constexpr std::size_t kRGBAColorLen = 4;
 
 protected:
   Animation() {}
 
   /**
    * @brief Abstract method that has to be implemented inside child class
-   * it should return RGBA animation frame with size equal to num_led_ * 4
+   * it should return RGBA animation frame with size equal to num_led_ * kRGBAColorLen
    */
   virtual std::vector<std::uint8_t> UpdateFrame() = 0;
+
+  std::vector<std::uint8_t> InvertRGBAFrame(const std::vector<std::uint8_t> & frame) const
+  {
+    std::vector<std::uint8_t> inverted_frame(frame.size());
+    for (std::size_t i = 0; i < frame.size(); i += kRGBAColorLen) {
+      std::copy(frame.end() - i - kRGBAColorLen, frame.end() - i, inverted_frame.begin() + i);
+    }
+    return inverted_frame;
+  }
 
   std::size_t GetAnimationLength() const { return anim_len_; }
   std::size_t GetAnimationIteration() const { return anim_iteration_; }
@@ -161,6 +187,7 @@ private:
   std::uint8_t brightness_ = 255;
 
   std::string param_;
+  std::vector<std::uint8_t> frame_;
 };
 
 }  // namespace panther_lights

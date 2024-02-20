@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,11 @@ public:
   std::vector<std::uint8_t> UpdateFrame() override
   {
     return std::vector<std::uint8_t>(frame_size_, 147);
+  }
+
+  std::vector<std::uint8_t> InvertRGBAFrame(const std::vector<std::uint8_t> & frame) const
+  {
+    return Animation::InvertRGBAFrame(frame);
   }
 
   std::size_t GetAnimationLength() const { return Animation::GetAnimationLength(); }
@@ -119,11 +124,9 @@ TEST_F(TestAnimation, CheckInitialValues)
 TEST_F(TestAnimation, Reset)
 {
   ASSERT_NO_THROW(animation_->Initialize(YAML::Load("{duration: 2.0}"), 10, 10.0f));
-  animation_->Call();
-  EXPECT_NO_THROW(animation_->Call());
 
-  // call animation
-  ASSERT_NO_THROW(animation_->Call());
+  // update animation
+  ASSERT_NO_THROW(animation_->Update());
   EXPECT_NE(std::size_t(0), animation_->GetAnimationIteration());
   EXPECT_NE(0.0F, animation_->GetProgress());
 
@@ -134,16 +137,16 @@ TEST_F(TestAnimation, Reset)
   EXPECT_FALSE(animation_->IsFinished());
 }
 
-TEST_F(TestAnimation, CallWithInvalidFrameSize)
+TEST_F(TestAnimation, UpdateWithInvalidFrameSize)
 {
   ASSERT_NO_THROW(animation_->Initialize(YAML::Load("{duration: 2.0}"), 10, 10.0f));
-  EXPECT_NO_THROW(animation_->Call());
+  EXPECT_NO_THROW(animation_->Update());
 
   animation_->SetFrameSize(11);
-  EXPECT_THROW(animation_->Call(), std::runtime_error);
+  EXPECT_THROW(animation_->Update(), std::runtime_error);
 }
 
-TEST_F(TestAnimation, Call)
+TEST_F(TestAnimation, Update)
 {
   const std::size_t num_led = 10;
   const float controller_frequency = 10.0;
@@ -153,7 +156,7 @@ TEST_F(TestAnimation, Call)
 
   // check random progress
   for (std::size_t i = 0; i < 5; i++) {
-    ASSERT_NO_THROW(animation_->Call());
+    ASSERT_NO_THROW(animation_->Update());
   }
   EXPECT_EQ(std::size_t(5), animation_->GetAnimationIteration());
   EXPECT_FALSE(animation_->IsFinished());
@@ -164,7 +167,7 @@ TEST_F(TestAnimation, Call)
 
   // reach end of first loop of animaiton
   for (std::size_t i = 0; i < 20; i++) {
-    ASSERT_NO_THROW(animation_->Call());
+    ASSERT_NO_THROW(animation_->Update());
   }
   EXPECT_EQ(std::size_t(0), animation_->GetAnimationIteration());
   EXPECT_FALSE(animation_->IsFinished());
@@ -173,17 +176,33 @@ TEST_F(TestAnimation, Call)
 
   // reach animaiton end
   for (std::size_t i = 0; i < 20; i++) {
-    ASSERT_NO_THROW(animation_->Call());
+    ASSERT_NO_THROW(animation_->Update());
   }
   EXPECT_EQ(std::size_t(0), animation_->GetAnimationIteration());
   EXPECT_TRUE(animation_->IsFinished());
   EXPECT_FLOAT_EQ(1.0, animation_->GetProgress());
 
-  // after reaching animaiton end Call() method when invoked should return frame filled with 0
-  auto frame = animation_->Call();
+  // after reaching animaiton end Update() method when invoked should return frame filled with 0
+  animation_->Update();
+  auto frame = animation_->GetFrame();
   EXPECT_EQ(num_led * 4, frame.size());
   for (std::size_t i = 0; i < num_led * 3; i++) {
     EXPECT_EQ(0, frame[i]);
+  }
+}
+
+TEST_F(TestAnimation, InvertRGBAFrame)
+{
+  std::vector<std::uint8_t> test_frame = {0,   10,  20,  255, 30,  40,  50,  255,
+                                          60,  70,  80,  255, 100, 110, 120, 255,
+                                          130, 140, 150, 255, 160, 170, 180, 255};
+  std::vector<std::uint8_t> expected_frame = {160, 170, 180, 255, 130, 140, 150, 255,
+                                              100, 110, 120, 255, 60,  70,  80,  255,
+                                              30,  40,  50,  255, 0,   10,  20,  255};
+
+  auto inverted_frame = animation_->InvertRGBAFrame(test_frame);
+  for (std::size_t i = 0; i < inverted_frame.size(); i++) {
+    EXPECT_EQ(expected_frame[i], inverted_frame[i]);
   }
 }
 

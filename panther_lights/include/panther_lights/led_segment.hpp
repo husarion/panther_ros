@@ -1,0 +1,90 @@
+// Copyright 2024 Husarion sp. z o.o.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef PANTHER_LIGHTS_LED_SEGMENT_HPP_
+#define PANTHER_LIGHTS_LED_SEGMENT_HPP_
+
+#include <cstdint>
+#include <vector>
+
+#include <yaml-cpp/yaml.h>
+
+#include <pluginlib/class_loader.hpp>
+
+#include <panther_lights/animation/animation.hpp>
+
+namespace panther_lights
+{
+
+/**
+ * @brief Class that represents virtual LED segment of the robot
+ */
+class LEDSegment
+{
+public:
+  /**
+   * @brief Parses basic parameters of the LED segment
+   *
+   * @param segment_description YAML description of the segment. Must contain given keys:
+   * - led_range (string) - two numbers with hyphen in between, eg.: '0-45',
+   * - channel (int) - id of phisical LED channel to which segment is assigned.
+   * @param controller_frequency frequency at which animation will be updated.
+   *
+   * @exception std::runtime_error or std::invalid_argument if missing required description key or
+   * key couldn't be parsed
+   */
+  LEDSegment(const YAML::Node & segment_description, const float controller_frequency);
+
+  ~LEDSegment();
+
+  /**
+   * @brief Overwrite current animation
+   *
+   * @param animation_description YAML description of the animation. Must contain 'type' key -
+   * pluginlib animation type
+   *
+   * @exception std::runtime_error if 'type' key is missing, given pluginlib fails to load or
+   * animation fails to initialize
+   */
+  void SetAnimation(const YAML::Node & animation_description);
+
+  /**
+   * @brief Update animation frame
+   *
+   * @exception std::runtime_error if fails to update animation
+   */
+  void UpdateAnimation(const std::string & param = "");
+
+  std::size_t GetFirstLEDPosition() const;
+  std::size_t GetChannel() const { return channel_; }
+  std::vector<std::uint8_t> GetAnimationFrame() const
+  {
+    return animation_->GetFrame(invert_led_order_);
+  }
+
+private:
+  const float controller_frequency_;
+  bool invert_led_order_ = false;
+  std::size_t channel_;
+  std::size_t first_led_iterator_;
+  std::size_t last_led_iterator_;
+  std::size_t num_led_;
+
+  std::shared_ptr<panther_lights::Animation> animation_;
+  std::shared_ptr<pluginlib::ClassLoader<panther_lights::Animation>> animation_loader_;
+};
+
+}  // namespace panther_lights
+
+#endif  // PANTHER_LIGHTS_LED_SEGMENT_HPP_

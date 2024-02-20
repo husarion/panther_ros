@@ -12,32 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
-#define PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
+#ifndef PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_
+#define PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_
 
 #include <memory>
-#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include <rclcpp/rclcpp.hpp>
-
-#include <pluginlib/class_loader.hpp>
-
-#include <panther_lights/animation/animation.hpp>
+#include <panther_lights/led_panel.hpp>
+#include <panther_lights/led_segment.hpp>
 
 namespace panther_lights
 {
 
-class ControllerNode : public rclcpp::Node
+class SegmentConverter
 {
 public:
-  ControllerNode(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-  ~ControllerNode() {}
+  SegmentConverter() = default;
+  ~SegmentConverter() = default;
 
-private:
-  std::shared_ptr<pluginlib::ClassLoader<panther_lights::Animation>> animation_loader_;
+  void Convert(
+    const std::vector<std::shared_ptr<LEDSegment>> & segments,
+    const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels);
 };
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
+#endif  // PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_

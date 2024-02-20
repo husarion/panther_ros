@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -158,11 +158,12 @@ TEST_F(TestChargingAnimation, UpdateFrame)
 
   ASSERT_NO_THROW(animation_->Initialize(animation_description, num_led, 10.0));
 
-  // UpdateFrame depends on parent class variables which can be only updated using Call method.
+  // UpdateFrame depends on parent class variables which can be only updated using Update method.
   // For full battery whole animation should be a solid green color
   animation_->SetParam("1.0");
   for (std::uint8_t i = 0; i < animation_->GetAnimationLength(); i++) {
-    auto frame = animation_->Call();
+    animation_->Update();
+    auto frame = animation_->GetFrame();
     ASSERT_EQ(num_led * 4, frame.size());
     TestRGBAFrame(frame, 0, 255, 0, 255);
   }
@@ -170,14 +171,17 @@ TEST_F(TestChargingAnimation, UpdateFrame)
   animation_->Reset();
   animation_->SetParam("0.5");
   std::vector<std::uint8_t> frame;
+
   // the beginning of the animation should be dark
-  frame = animation_->Call();
+  animation_->Update();
+  frame = animation_->GetFrame();
   ASSERT_EQ(num_led * 4, frame.size());
   TestRGBAFrame(frame, 0, 0, 0, 255);
 
   // reach middle of the animation
   while (animation_->GetAnimationIteration() < animation_->GetAnimationLength() / 2) {
-    frame = animation_->Call();
+    animation_->Update();
+    frame = animation_->GetFrame();
   }
 
   // the middle of animation for param 0.5 should be yellow
@@ -186,7 +190,8 @@ TEST_F(TestChargingAnimation, UpdateFrame)
 
   // reach end of the animation
   while (!animation_->IsFinished()) {
-    frame = animation_->Call();
+    animation_->Update();
+    frame = animation_->GetFrame();
   }
 
   // the end of the animation should be dark
