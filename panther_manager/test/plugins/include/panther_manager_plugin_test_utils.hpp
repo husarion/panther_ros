@@ -32,21 +32,21 @@
 namespace panther_manager_plugin_test
 {
 
-typedef std::array<std::string, 3> SetLEDAnimationTestUtils;
+struct BehaviorTreePluginDescription{
+  std::string service_name;
+  std::map<std::string, std::string> params;
+};
 
 class PantherManagerPluginTestUtils
 {
 public:
-  std::string BuildBehaviorTree(const std::string& plugin_name,
-                                const std::map<std::string, std::string>& name_and_data_map);
-  std::string BuildBehaviorTree(const std::string& plugin_name, const std::vector<std::string>& names);
-  std::string BuildBehaviorTree(const std::string& plugin_name,
-                                const std::map<std::string, SetLEDAnimationTestUtils>& animation_params);
 
-  BT::Tree& CreateTree(const std::string& plugin_name, const std::map<std::string, std::string>& name_and_data_map);
-  BT::Tree& CreateTree(const std::string& plugin_name, const std::vector<std::string>& names);
+  std::string BuildBehaviorTree(const std::string& plugin_name,
+                                const BehaviorTreePluginDescription& service);
+
   BT::Tree& CreateTree(const std::string& plugin_name,
-                       const std::map<std::string, SetLEDAnimationTestUtils>& animation_params);
+                       const BehaviorTreePluginDescription& service);
+
   BT::BehaviorTreeFactory& GetFactory();
 
   void Start();

@@ -4,78 +4,27 @@ namespace panther_manager_plugin_test
 {
 
 std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
-    const std::string& plugin_name, const std::map<std::string, std::string>& name_and_data_map)
+    const std::string& plugin_name, const BehaviorTreePluginDescription& service)
 {
   std::stringstream bt;
 
   bt << header_ << std::endl;
+  bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << service.service_name <<"\" ";
 
-  for (auto const& [name, value] : name_and_data_map)
+  for (auto const& [key, value] : service.params)
   {
-    bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << name << "\" data=\"" << value
-       << "\" />" << std::endl;
+     bt << key << "=\"" << value << "\" ";
   }
 
-  bt << footer_;
+  bt << " />" << std::endl <<  footer_;
 
   return bt.str();
-}
-
-std::string PantherManagerPluginTestUtils::BuildBehaviorTree(const std::string& plugin_name,
-                                                             const std::vector<std::string>& names)
-{
-  std::stringstream bt;
-
-  bt << header_ << std::endl;
-
-  for (auto const& name : names)
-  {
-    bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << name << "\" />" << std::endl;
-  }
-
-  bt << footer_;
-
-  return bt.str();
-}
-
-std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
-    const std::string& plugin_name, const std::map<std::string, SetLEDAnimationTestUtils>& animation_params)
-{
-  std::stringstream bt;
-
-  bt << header_ << std::endl;
-
-  for (auto const& [name, param] : animation_params)
-  {
-    bt << "\t\t\t\t<" << plugin_name << " service_name=\"" << name << "\" id=\"" << param[0] << "\" param=\""
-       << param[1] << "\" repeating=\"" << param[2] << "\" />" << std::endl;
-  }
-
-  bt << footer_;
-
-  return bt.str();
-}
-
-BT::Tree& PantherManagerPluginTestUtils::CreateTree(const std::string& plugin_name,
-                                                    const std::map<std::string, std::string>& name_and_data_map)
-{
-  auto xml_text = BuildBehaviorTree(plugin_name, name_and_data_map);
-  tree_ = factory_.createTreeFromText(xml_text);
-  return tree_;
-}
-
-BT::Tree& PantherManagerPluginTestUtils::CreateTree(const std::string& plugin_name,
-                                                    const std::vector<std::string>& names)
-{
-  auto xml_text = BuildBehaviorTree(plugin_name, names);
-  tree_ = factory_.createTreeFromText(xml_text);
-  return tree_;
 }
 
 BT::Tree& PantherManagerPluginTestUtils::CreateTree(
-    const std::string& plugin_name, const std::map<std::string, SetLEDAnimationTestUtils>& animation_params)
+    const std::string& plugin_name, const BehaviorTreePluginDescription& service)
 {
-  auto xml_text = BuildBehaviorTree(plugin_name, animation_params);
+  auto xml_text = BuildBehaviorTree(plugin_name, service);
   tree_ = factory_.createTreeFromText(xml_text);
   return tree_;
 }

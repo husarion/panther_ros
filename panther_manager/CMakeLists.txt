@@ -31,6 +31,9 @@ list(APPEND plugin_libs call_trigger_service_bt_node)
 add_library(call_set_led_animation_service_bt_node SHARED src/plugins/action/call_set_led_animation_service_node.cpp)
 list(APPEND plugin_libs call_set_led_animation_service_bt_node)
 
+add_library(signal_shutdown_bt_node SHARED src/plugins/action/signal_shutdown_node.cpp)
+list(APPEND plugin_libs signal_shutdown_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
   ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
