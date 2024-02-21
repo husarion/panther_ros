@@ -198,6 +198,11 @@ public:
    */
   bool ChargerEnable(const bool enable) override;
 
+  /**
+   * @brief Queries the current IO states of the control interface.
+   *
+   * @return An unordered map containing the GPIOPin as the key and its active state as the value.
+   */
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
@@ -301,6 +306,12 @@ public:
    */
   bool ChargerEnable(const bool /* enable */) override;
 
+  /**
+   * @brief Returns imitation of the IO states of the control interface. In this version of the
+   * robot, there is a lack of support for controlling these IOs.
+   *
+   * @return An unordered map containing the GPIOPin as the key and its active state as the value.
+   */
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
