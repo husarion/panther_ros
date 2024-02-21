@@ -191,7 +191,7 @@ GPIOControllerPTH12X::QueryControlInterfaceIOStates() const
 
 void GPIOControllerPTH10X::Start()
 {
-  gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_config_info_storage_);
+  gpio_driver_ = std::make_shared<panther_gpiod::GPIODriver>(gpio_config_info_storage_);
   gpio_driver_->GPIOMonitorEnable(true, 60);
 
   gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::MOTOR_ON, true);

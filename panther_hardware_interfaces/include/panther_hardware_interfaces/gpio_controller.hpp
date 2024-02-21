@@ -191,9 +191,9 @@ public:
   bool DigitalPowerEnable(const bool enable) override;
 
   /**
-   * @brief Controls the charging process based on the 'enable' parameter.
+   * @brief Enables or disables the use of an external charger according to the 'enable' parameter.
    *
-   * @param enable Set to 'true' to enable the charging process, 'false' to disable.
+   * @param enable Set to 'true' to enable external charger, 'false' to disable.
    * @return 'true' if the charger control pin value is successfully set, 'false' otherwise.
    */
   bool ChargerEnable(const bool enable) override;
@@ -292,7 +292,7 @@ public:
   bool DigitalPowerEnable(const bool /* enable */) override;
 
   /**
-   * @brief Placeholder method indicating lack of support for controlling charging process in this
+   * @brief Placeholder method indicating lack of support for enabling external charger in this
    * robot version.
    *
    * @param enable Ignored parameter in this version.
