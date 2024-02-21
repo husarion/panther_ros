@@ -53,11 +53,12 @@ public:
    *
    * @param animation_description YAML description of the animation. Must contain 'type' key -
    * pluginlib animation type
+   * @param repeating if true, will set the default animation for the panel
    *
    * @exception std::runtime_error if 'type' key is missing, given pluginlib fails to load or
    * animation fails to initialize
    */
-  void SetAnimation(const YAML::Node & animation_description);
+  void SetAnimation(const YAML::Node & animation_description, const bool repeating);
 
   /**
    * @brief Update animation frame
@@ -66,12 +67,18 @@ public:
    */
   void UpdateAnimation(const std::string & param = "");
 
+  /**
+   * @brief Get current animation frame
+   *
+   * @return Current animation frame or default animation frame if it was defined and the main
+   * animation is finished
+   * @exception std::runtime_error if segment animation is not defined
+   */
+  std::vector<std::uint8_t> GetAnimationFrame() const;
+
   std::size_t GetFirstLEDPosition() const;
+
   std::size_t GetChannel() const { return channel_; }
-  std::vector<std::uint8_t> GetAnimationFrame() const
-  {
-    return animation_->GetFrame(invert_led_order_);
-  }
 
 private:
   const float controller_frequency_;
@@ -82,6 +89,7 @@ private:
   std::size_t num_led_;
 
   std::shared_ptr<panther_lights::Animation> animation_;
+  std::shared_ptr<panther_lights::Animation> default_animation_;
   std::shared_ptr<pluginlib::ClassLoader<panther_lights::Animation>> animation_loader_;
 };
 

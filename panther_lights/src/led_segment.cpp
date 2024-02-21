@@ -68,12 +68,13 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
 
 LEDSegment::~LEDSegment()
 {
-  // make sure that animation is destroyed before pluginlib loader
+  // make sure that animations are destroyed before pluginlib loader
   animation_.reset();
+  default_animation_.reset();
   animation_loader_.reset();
 }
 
-void LEDSegment::SetAnimation(const YAML::Node & animation_description)
+void LEDSegment::SetAnimation(const YAML::Node & animation_description, const bool repeating)
 {
   if (!animation_description["type"]) {
     throw std::runtime_error("Missing 'type' in animation description");
@@ -97,8 +98,13 @@ void LEDSegment::SetAnimation(const YAML::Node & animation_description)
     throw std::runtime_error("Failed to initialize animation: " + std::string(e.what()));
   }
 
-  animation_.reset();
   animation_ = std::move(animation);
+
+  if (repeating) {
+    default_animation_ = animation_;
+  } else if (default_animation_) {
+    default_animation_->Reset();
+  }
 }
 
 void LEDSegment::UpdateAnimation(const std::string & param)
@@ -107,19 +113,36 @@ void LEDSegment::UpdateAnimation(const std::string & param)
     throw std::runtime_error("Segment animation not defined");
   }
 
-  if (animation_->IsFinished()) {
-    animation_->Reset();
-  }
+  std::shared_ptr<panther_lights::Animation> animation;
 
-  if (!param.empty()) {
-    animation_->SetParam(param);
+  if (animation_->IsFinished() && default_animation_) {
+    animation = default_animation_;
+    if (animation->IsFinished()) {
+      animation->Reset();
+    }
+  } else {
+    animation = animation_;
   }
 
   try {
-    animation_->Update();
+    animation->SetParam(param);
+    animation->Update();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to update animation: " + std::string(e.what()));
   }
+}
+
+std::vector<std::uint8_t> LEDSegment::GetAnimationFrame() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  if (default_animation_ && animation_->IsFinished()) {
+    return default_animation_->GetFrame(invert_led_order_);
+  }
+
+  return animation_->GetFrame(invert_led_order_);
 }
 
 std::size_t LEDSegment::GetFirstLEDPosition() const
