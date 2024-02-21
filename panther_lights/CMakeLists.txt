@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(panther_gpiod REQUIRED)
 find_package(panther_msgs REQUIRED)
@@ -17,8 +18,14 @@ include_directories(include)
 add_executable(driver_node src/driver_node_main.cpp src/driver_node.cpp
                            src/apa102.cpp)
 
-ament_target_dependencies(driver_node image_transport panther_gpiod
-                          panther_msgs rclcpp sensor_msgs)
+ament_target_dependencies(
+  driver_node
+  diagnostic_updater
+  image_transport
+  panther_gpiod
+  panther_msgs
+  rclcpp
+  sensor_msgs)
 
 add_executable(dummy_scheduler_node src/dummy_scheduler_node_main.cpp
                                     src/dummy_scheduler_node.cpp)

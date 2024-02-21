@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -53,7 +54,7 @@ public:
 
 protected:
   void TestDefaultBatteryStateMsg(
-    const uint8_t & power_supply_status, const uint8_t & power_supply_health);
+    const std::uint8_t & power_supply_status, const std::uint8_t & power_supply_health);
 
   std::unique_ptr<BatteryWrapper> battery_;
   BatteryStateMsg battery_state_;
@@ -62,7 +63,7 @@ protected:
 TestBattery::TestBattery() { battery_ = std::make_unique<BatteryWrapper>(); }
 
 void TestBattery::TestDefaultBatteryStateMsg(
-  const uint8_t & power_supply_status, const uint8_t & power_supply_health)
+  const std::uint8_t & power_supply_status, const std::uint8_t & power_supply_health)
 {
   // Const values
   EXPECT_TRUE(std::isnan(battery_state_.temperature));

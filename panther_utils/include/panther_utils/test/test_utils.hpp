@@ -15,34 +15,25 @@
 #ifndef PANTHER_UTILS_TEST_UTILS_HPP_
 #define PANTHER_UTILS_TEST_UTILS_HPP_
 
-#include <chrono>
+#include <algorithm>
+#include <cmath>
 #include <limits>
-#include <memory>
 #include <stdexcept>
-
-#include <rclcpp/rclcpp.hpp>
+#include <string>
+#include <vector>
 
 namespace panther_utils::test_utils
 {
 
-template <typename NodeT, typename MsgT>
-bool WaitForMsg(
-  const std::shared_ptr<NodeT> & node, std::shared_ptr<MsgT> & msg,
-  const std::chrono::nanoseconds & timeout)
-{
-  msg = nullptr;
-  rclcpp::Time start_time = node->now();
-
-  while (rclcpp::ok() && node->now() - start_time <= rclcpp::Duration(timeout)) {
-    if (msg) {
-      return true;
-    }
-    rclcpp::spin_some(node->get_node_base_interface());
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-  return false;
-}
-
+/**
+ * @brief Check if all elements of vector are NaN
+ *
+ * @param vector Vector that will be checked
+ *
+ * @return True if all elements of the vector are NaN, false otherwise
+ * @exception std::runtime_error if method has invalid typename,
+ * valid options are: 'float', 'double', 'long double'
+ */
 template <typename T>
 bool CheckNaNVector(const std::vector<T> & vector)
 {
@@ -51,6 +42,28 @@ bool CheckNaNVector(const std::vector<T> & vector)
       "Invalid method typename. Valid are: 'float', 'double', 'long double'.");
   }
   return std::all_of(vector.begin(), vector.end(), [](const T value) { return std::isnan(value); });
+}
+
+/**
+ * @brief Tests if a method throws an exception of a given type and the error message contains the
+ * provided message
+ *
+ * @param func The method that will be tested
+ * @param error_msg The error message that has to be contained within the thrown message
+ */
+template <typename ExceptionType, typename Func>
+void ExpectThrowWithDescription(const Func & func, const std::string & error_msg)
+{
+  EXPECT_THROW(
+    {
+      try {
+        func();
+      } catch (const ExceptionType & e) {
+        EXPECT_TRUE(std::string(e.what()).find(error_msg) != std::string::npos);
+        throw;
+      }
+    },
+    ExceptionType);
 }
 
 }  // namespace panther_utils::test_utils

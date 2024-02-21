@@ -13,8 +13,10 @@
 
   imu_broadcaster:
     ros__parameters:
-      sensor_name: "imu"
-      frame_id: "imu_link"
+      sensor_name: imu
+      frame_id: imu_link
+      static_covariance_angular_velocity: [2.25e-4, 0.0, 0.0, 0.0, 2.25e-4, 0.0, 0.0, 0.0, 2.25e-4]  # Values measured experimentally
+      static_covariance_linear_acceleration: [1.23e-5, 0.0, 0.0, 0.0, 1.23e-5, 0.0, 0.0, 0.0, 1.23e-5] # Values measured experimentally
 
   panther_base_controller:
     ros__parameters:
@@ -34,8 +36,7 @@
       publish_rate: 100.0
       odom_frame_id: odom
       base_frame_id: base_link
-      pose_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-      twist_covariance_diagonal: [1.024e-5, 1.024e-5, 1e6, 1e6, 1e6, 7.225e-5]
+      twist_covariance_diagonal: [1.0e-5, 1.96e-6, 0.0, 0.0, 0.0, 7.23e-5] # Values measured experimentally
 
       # Whether to use feedback or commands for odometry calculations
       open_loop: false
