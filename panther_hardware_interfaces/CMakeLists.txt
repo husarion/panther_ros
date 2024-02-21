@@ -28,40 +28,49 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-# Install liblely
-include(ExternalProject)
+pkg_check_modules(LIBLELY_COAPP_PKG IMPORTED_TARGET liblely-coapp)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
+if(LIBLELY_COAPP_PKG_FOUND)
+  set(LIBLELY_COAPP PkgConfig::LIBLELY_COAPP_PKG)
+else()
+  message(WARNING "liblely-coapp is not installed. Installing...")
 
-ExternalProject_Add(
-  lely_core_libraries
-  SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/upstream
-  GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
-  GIT_TAG v2.3.3
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
-  CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
-  COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
-          --disable-tests --disable-static
-  BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
-  INSTALL_COMMAND make install INSTALL_PREFIX=<SOURCE_DIR>)
+  include(ExternalProject)
 
-add_library(liblely-coapp STATIC IMPORTED GLOBAL)
-add_dependencies(liblely-coapp lely_core_libraries)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
 
-set_target_properties(
-  liblely-coapp
-  PROPERTIES
-    IMPORTED_LOCATION
-    ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib/liblely-coapp.so)
-set_target_properties(
-  liblely-coapp
-  PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-             ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
+  ExternalProject_Add(
+    lely_core_libraries
+    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/upstream
+    GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
+    GIT_TAG v2.3.3
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
+    CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
+    COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
+            --disable-tests --disable-static
+    BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
+    INSTALL_COMMAND make install INSTALL_PREFIX=<SOURCE_DIR>)
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib
-        DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include
-        DESTINATION ${CMAKE_INSTALL_PREFIX})
+  add_library(liblely-coapp STATIC IMPORTED GLOBAL)
+  add_dependencies(liblely-coapp lely_core_libraries)
+
+  set_target_properties(
+    liblely-coapp
+    PROPERTIES
+      IMPORTED_LOCATION
+      ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib/liblely-coapp.so)
+  set_target_properties(
+    liblely-coapp
+    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+               ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
+
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib
+          DESTINATION ${CMAKE_INSTALL_PREFIX})
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include
+          DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+  set(LIBLELY_COAPP liblely-coapp)
+endif()
 
 add_library(
   ${PROJECT_NAME} SHARED
@@ -85,7 +94,7 @@ ament_target_dependencies(
   panther_msgs
   panther_utils
   realtime_tools)
-target_link_libraries(${PROJECT_NAME} liblely-coapp)
+target_link_libraries(${PROJECT_NAME} ${LIBLELY_COAPP})
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
