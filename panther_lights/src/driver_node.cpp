@@ -183,7 +183,7 @@ void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & st
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "LED panels initialisation failed";
 
-    auto pin_available = gpio_driver_->IsPinAvaible(panther_gpiod::GPIOPin::LED_SBC_SEL);
+    auto pin_available = gpio_driver_->IsPinAvailable(panther_gpiod::GPIOPin::LED_SBC_SEL);
     auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
 
     diagnostic_msgs::msg::KeyValue pin_available_kv;
