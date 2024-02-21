@@ -96,8 +96,8 @@ public:
     (*this)[0x2000][static_cast<std::uint8_t>(channel)] = value;
   }
   void SetResetRoboteqScript(const std::uint8_t value) { (*this)[0x2018][0] = value; }
-  void SetTurnOnEstop(const std::uint8_t value) { (*this)[0x200C][0] = value; }
-  void SetTurnOffEstop(const std::uint8_t value) { (*this)[0x200D][0] = value; }
+  void SetTurnOnEStop(const std::uint8_t value) { (*this)[0x200C][0] = value; }
+  void SetTurnOffEStop(const std::uint8_t value) { (*this)[0x200D][0] = value; }
   void SetTurnOnSafetyStop(const std::uint8_t value) { (*this)[0x202C][0] = value; }
 
   std::int32_t GetRoboteqCmd(const DriverChannel channel)
@@ -105,8 +105,8 @@ public:
     return (*this)[0x2000][static_cast<std::uint8_t>(channel)];
   }
   std::uint8_t GetResetRoboteqScript() { return (*this)[0x2018][0]; }
-  std::uint8_t GetTurnOnEstop() { return (*this)[0x200C][0]; }
-  std::uint8_t GetTurnOffEstop() { return (*this)[0x200D][0]; }
+  std::uint8_t GetTurnOnEStop() { return (*this)[0x200C][0]; }
+  std::uint8_t GetTurnOffEStop() { return (*this)[0x200D][0]; }
   std::uint8_t GetTurnOnSafetyStop() { return (*this)[0x202C][0]; }
 
   /**

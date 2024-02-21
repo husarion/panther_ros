@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_HPP_
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,6 +30,7 @@
 #include <hardware_interface/system_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
+#include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 #include <panther_hardware_interfaces/roboteq_error_filter.hpp>
@@ -69,6 +71,7 @@ protected:
   void SortAndCheckJointNames();
   void SetInitialValues();
   void CheckInterfaces() const;
+  void ReadPantherVersion();
   void ReadDrivetrainSettings();
   void ReadCANopenSettings();
   void ReadInitializationActivationAttempts();
@@ -86,8 +89,13 @@ protected:
   void UpdateDriverStateDataTimedOut();
 
   void SendCommands();
-  void SendSafetyStopIfNotSet();
+  void CheckErrorsAndSetEStop();
   bool CheckIfSafetyStopActive();
+  bool AreVelocityCommandsNearZero();
+
+  void SetEStop();
+  void ResetEStop();
+  std::function<bool()> ReadEStop;
 
   static constexpr size_t kJointsSize = 4;
 
@@ -107,12 +115,13 @@ protected:
   static const inline std::array<std::string, kJointsSize> joint_order_ = {"fl", "fr", "rl", "rr"};
   std::array<std::string, kJointsSize> joints_names_sorted_;
 
+  std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
 
   DrivetrainSettings drivetrain_settings_;
   CANopenSettings canopen_settings_;
 
-  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
+  std::shared_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in these cases it is better to retry
@@ -124,14 +133,16 @@ protected:
   unsigned max_roboteq_initialization_attempts_ = 2;
   unsigned max_roboteq_activation_attempts_ = 2;
 
-  // SDO error can happen also during setting safety stop (it may be not necessary to use attempts
-  // once we have GPIO controller)
-  unsigned max_safety_stop_attempts_ = 20;
-
   rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
+
+  float panther_version_;
+
+  std::atomic_bool e_stop_ = true;
+  std::atomic_bool last_commands_zero_ = false;
+  std::mutex motor_controller_write_mtx_;
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Duration driver_states_update_period_{0, 0};

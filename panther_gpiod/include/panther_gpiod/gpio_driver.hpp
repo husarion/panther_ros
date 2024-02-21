@@ -178,7 +178,7 @@ public:
    * @param pin The GPIO pin to check availability for
    * @return true if the pin is available, false otherwise
    */
-  bool IsPinAvaible(const GPIOPin pin) const;
+  bool IsPinAvailable(const GPIOPin pin) const;
 
   /**
    * @brief Checks if a specific GPIO pin is active. This method returns the value stored in the
