@@ -103,10 +103,10 @@ TEST_F(TestGPIODriver, SetWrongPinValue)
     "Pin not found in GPIO info storage.");
 }
 
-TEST_F(TestGPIODriver, IsPinAvaible)
+TEST_F(TestGPIODriver, IsPinAvailable)
 {
-  EXPECT_TRUE(this->gpio_driver_->IsPinAvaible(GPIOPin::LED_SBC_SEL));
-  EXPECT_FALSE(this->gpio_driver_->IsPinAvaible(static_cast<GPIOPin>(-1)));
+  EXPECT_TRUE(this->gpio_driver_->IsPinAvailable(GPIOPin::LED_SBC_SEL));
+  EXPECT_FALSE(this->gpio_driver_->IsPinAvailable(static_cast<GPIOPin>(-1)));
 }
 
 TEST_F(TestGPIODriver, GPIOMonitorEnableNoRT)
