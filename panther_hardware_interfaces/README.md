@@ -105,37 +105,3 @@ sudo apt-get install -y liblely-coapp-dev liblely-co-tools python3-dcf-tools
 ### RT
 
 To configure RT check out the instructions provided in the [ros2_control docs](https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html#determinism) (add group and change `/etc/security/limits.conf`).
-
-## Testing
-
-### Setup
-
-First, it is necessary to set up a virtual CAN:
-
-<!-- todo move setup somewhere so the test can be run more easily -->
-
-```bash
-sudo modprobe vcan
-sudo ip link add dev panther_can type vcan
-sudo ip link set up panther_can
-sudo ip link set panther_can down
-sudo ip link set panther_can txqueuelen 1000
-sudo ip link set panther_can up
-```
-
-### Running tests
-
-```bash
-colcon build --packages-select panther_hardware_interfaces --symlink-install
-colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces --parallel-workers 1
-colcon test-result --verbose --all
-```
-
-As some of the tests are accessing the virtual CAN interface, they can't be executed in parallel (that's why `--parallel-workers 1` flag).
-
-### Updating config
-Copy eds file to config and run
-```bash
-dcfgen canopen_configuration.yaml -r
-```
-Remove `master.dcf`
