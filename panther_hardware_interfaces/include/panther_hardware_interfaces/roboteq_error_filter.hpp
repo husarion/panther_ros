@@ -43,9 +43,9 @@ private:
 };
 
 enum class ErrorsFilterIds {
-  READ_SDO = 0,
-  WRITE_SDO,
-  READ_PDO,
+  WRITE_PDO_CMDS = 0,
+  READ_PDO_MOTOR_STATES,
+  READ_PDO_DRIVER_STATE,
   ROBOTEQ_DRIVER,
 };
 
@@ -59,8 +59,10 @@ class RoboteqErrorFilter
 {
 public:
   RoboteqErrorFilter(
-    const unsigned max_read_sdo_errors_count, const unsigned max_write_sdo_errors_count,
-    const unsigned max_read_pdo_errors_count, const unsigned max_roboteq_driver_error_count);
+    const unsigned max_write_pdo_cmds_errors_count,
+    const unsigned max_read_pdo_motor_states_errors_count,
+    const unsigned max_read_pdo_driver_state_errors_count,
+    const unsigned max_roboteq_driver_error_count);
 
   bool IsError() const;
 

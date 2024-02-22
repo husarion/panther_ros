@@ -24,28 +24,73 @@
 
 #include <realtime_tools/realtime_publisher.h>
 
+#include <std_msgs/msg/bool.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
 #include <panther_msgs/msg/driver_state.hpp>
+#include <panther_msgs/msg/io_state.hpp>
 
+#include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces
 {
 
-using TriggerSrv = std_srvs::srv::Trigger;
+using BoolMsg = std_msgs::msg::Bool;
 using DriverStateMsg = panther_msgs::msg::DriverState;
+using IOStateMsg = panther_msgs::msg::IOState;
+using SetBoolSrv = std_srvs::srv::SetBool;
+using TriggerSrv = std_srvs::srv::Trigger;
 
 struct CANErrors
 {
   bool error;
-  bool write_sdo_error;
-  bool read_sdo_error;
-  bool read_pdo_error;
-  bool front_data_timed_out;
-  bool rear_data_timed_out;
+
+  bool write_pdo_cmds_error;
+  bool read_pdo_motor_states_error;
+  bool read_pdo_driver_state_error;
+
+  bool front_motor_states_data_timed_out;
+  bool rear_motor_states_data_timed_out;
+
+  bool front_driver_state_data_timed_out;
+  bool rear_driver_state_data_timed_out;
+
   bool front_can_net_err;
   bool rear_can_net_err;
+};
+
+template <typename SrvT, typename Func>
+void ProcessServiceCallback(Func function, SrvT response);
+
+class TriggerServiceWrapper
+{
+public:
+  TriggerServiceWrapper(const std::function<void()> & callback) : callback_(callback){};
+
+  void CallbackWrapper(
+    const TriggerSrv::Request::ConstSharedPtr /* request */,
+    TriggerSrv::Response::SharedPtr response);
+
+  rclcpp::Service<TriggerSrv>::SharedPtr service;
+
+private:
+  std::function<void()> callback_;
+};
+
+class SetBoolServiceWrapper
+{
+public:
+  SetBoolServiceWrapper(const std::function<void(const bool)> & callback) : callback_(callback){};
+
+  void CallbackWrapper(
+    const SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response);
+
+  rclcpp::Service<SetBoolSrv>::SharedPtr service;
+
+private:
+  std::function<void(const bool)> callback_;
 };
 
 /**
@@ -64,9 +109,16 @@ public:
    * @param node_options
    */
   PantherSystemRosInterface(
-    std::function<void()> clear_errors, const std::string & node_name,
+    const std::string & node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
   ~PantherSystemRosInterface();
+
+  /**
+   * @brief Adds new service server to node
+   */
+  void AddTriggerService(const std::string service_name, const std::function<void()> & callback);
+  void AddSetBoolService(
+    const std::string service_name, const std::function<void(const bool)> & callback);
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
@@ -76,31 +128,48 @@ public:
   /**
    * @brief Updates parameters of the drivers: voltage, current and temperature
    */
-  void UpdateMsgDriversParameters(const DriverState & front, const DriverState & rear);
+  void UpdateMsgDriversStates(const DriverState & front, const DriverState & rear);
 
   /**
    * @brief Updates the current state of communication errors and general error state
    */
   void UpdateMsgErrors(const CANErrors & can_errors);
 
+  void PublishEStopStateMsg(const bool e_stop);
+  void PublishEStopStateIfChanged(const bool e_stop);
   void PublishDriverState();
+  void InitializeAndPublishIOStateMsg(
+    const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state);
+  void PublishIOState(const panther_gpiod::GPIOInfo & gpio_info);
 
 private:
-  void ClearErrorsCb(
-    TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response);
+  /**
+   * @brief Updates the IOState message and indicates whether its state has changed.
+   *
+   * @param pin The GPIO pin whose state is to be updated.
+   * @param pin_value The new value to be set for the pin. True indicates a high state, and false
+   * indicates a low state.
+   * @return True if the state update caused a change in the IO state message; returns
+   * false otherwise.
+   */
+  bool UpdateIOStateMsg(const panther_gpiod::GPIOPin pin, const bool pin_value);
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
   std::unique_ptr<std::thread> executor_thread_;
 
-  std::atomic_bool stop_executor_ = false;
-
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
     realtime_driver_state_publisher_;
 
-  rclcpp::Service<TriggerSrv>::SharedPtr clear_errors_srv_;
-  std::function<void()> clear_errors_;
+  rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<IOStateMsg>> realtime_io_state_publisher_;
+
+  rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<BoolMsg>> realtime_e_stop_state_publisher_;
+
+  std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
+  std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;
 };
 
 }  // namespace panther_hardware_interfaces

@@ -145,6 +145,8 @@ public:
    *
    * @param callback The callback function to handle GPIO edge events.
    *
+   * @throws std::runtime_error if GPIO monitor thread is not running.
+   *
    * @par Example
    * An example of using this method to bind a member function as a callback:
    * @code{.cpp}
@@ -158,6 +160,7 @@ public:
    *
    * MyClass my_obj;
    * GPIODriver gpio_driver;
+   * gpio_driver.GPIOMonitorEnable(true, 50);
    * gpio_driver.ConfigureEdgeEventCallback(
    *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
@@ -178,7 +181,7 @@ public:
    * @param pin The GPIO pin to check availability for
    * @return true if the pin is available, false otherwise
    */
-  bool IsPinAvaible(const GPIOPin pin) const;
+  bool IsPinAvailable(const GPIOPin pin) const;
 
   /**
    * @brief Checks if a specific GPIO pin is active. This method returns the value stored in the

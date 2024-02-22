@@ -46,7 +46,8 @@ struct CANopenSettings
   std::uint8_t front_driver_can_id;
   std::uint8_t rear_driver_can_id;
 
-  std::chrono::milliseconds pdo_feedback_timeout_ms;
+  std::chrono::milliseconds pdo_motor_states_timeout_ms;
+  std::chrono::milliseconds pdo_driver_state_timeout_ms;
   std::chrono::milliseconds sdo_operation_timeout_ms;
 };
 
@@ -58,6 +59,8 @@ class CANopenController
 {
 public:
   CANopenController(const CANopenSettings & canopen_settings);
+
+  ~CANopenController() { Deinitialize(); }
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish

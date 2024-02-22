@@ -11,8 +11,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(panther_utils REQUIRED)
 
-# install libgpiod
 find_library(LIBGPIOD_INSTALLED libgpiod)
 if(NOT LIBGPIOD_INSTALLED)
   message(WARNING "libgpiod is not installed. Installing...")
@@ -20,7 +20,6 @@ if(NOT LIBGPIOD_INSTALLED)
   include(ExternalProject)
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libgpiod-build/include)
-
   ExternalProject_Add(
     libgpiod-build
     GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
@@ -51,7 +50,6 @@ if(NOT LIBGPIOD_INSTALLED)
           DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
 
-# find dependencies
 set(PACKAGE_INCLUDE_DEPENDS ament_cmake PkgConfig panther_utils)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
@@ -81,5 +79,18 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 
 ament_export_dependencies(panther_utils)
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(${PROJECT_NAME}_test_gpiod test/test_gpio_driver.cpp)
+
+  target_include_directories(
+    ${PROJECT_NAME}_test_gpiod
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod ${PROJECT_NAME} libgpiod)
+endif()
 
 ament_package()

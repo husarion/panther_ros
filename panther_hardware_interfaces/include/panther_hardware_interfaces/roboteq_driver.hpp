@@ -17,13 +17,13 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <cstdint>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <string>
 
-#include <lely/coapp/fiber_driver.hpp>
+#include <lely/coapp/loop_driver.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -31,100 +31,78 @@ namespace panther_hardware_interfaces
 struct RoboteqMotorState
 {
   std::int32_t pos;
-  std::int32_t vel;
-  std::int32_t current;
+  std::int16_t vel;
+  std::int16_t current;
 };
 
-struct RoboteqDriverFeedback
+struct RoboteqMotorsStates
 {
   RoboteqMotorState motor_1;
   RoboteqMotorState motor_2;
 
+  timespec pos_timestamp;
+  timespec vel_current_timestamp;
+};
+
+struct RoboteqDriverState
+{
   std::uint8_t fault_flags;
   std::uint8_t script_flags;
   std::uint8_t runtime_stat_flag_motor_1;
   std::uint8_t runtime_stat_flag_motor_2;
 
-  timespec timestamp;
+  std::int16_t battery_current_1;
+  std::int16_t battery_current_2;
+
+  std::uint16_t battery_voltage;
+
+  std::int16_t mcu_temp;
+  std::int16_t heatsink_temp;
+
+  timespec flags_current_timestamp;
+  timespec voltages_temps_timestamp;
 };
 
-// todo: heartbeat timeout (on hold - waiting for decision on changing to PDO)
 /**
- * @brief Implementation of FiberDriver for Roboteq drivers
+ * @brief Implementation of LoopDriver for Roboteq drivers
  */
-class RoboteqDriver : public lely::canopen::FiberDriver
+class RoboteqDriver : public lely::canopen::LoopDriver
 {
 public:
-  using FiberDriver::FiberDriver;
-
   RoboteqDriver(
-    const std::shared_ptr<lely::ev::Executor> & exec,
     const std::shared_ptr<lely::canopen::AsyncMaster> & master, const std::uint8_t id,
     const std::chrono::milliseconds & sdo_operation_timeout_ms);
 
   /**
-   * @brief Trigger boot operations
-   */
-  bool Boot();
-
-  /**
-   * @brief Waits until the booting procedure finishes
+   * @brief Triggers boot operations
    *
-   * @exception std::runtime_error if boot fails
+   * @exception std::runtime_error if triggering boot fails
    */
-  bool WaitForBoot();
-
-  bool IsBooted() const { return booted_.load(); }
+  std::future<void> Boot();
 
   bool IsCANError() const { return can_error_.load(); }
 
   /**
-   * @exception std::runtime_error if operation fails
+   * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
+   * last timestamps
    */
-  std::int16_t ReadTemperature();
+  RoboteqMotorsStates ReadRoboteqMotorsStates();
 
   /**
-   * @exception std::runtime_error if operation fails
+   * @brief Reads driver state data returned from Roboteq (PDO 3 and 4): error flags, battery
+   * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
+   * temperatures. Also saves the last timestamps
    */
-  std::uint16_t ReadVoltage();
+  RoboteqDriverState ReadRoboteqDriverState();
 
   /**
-   * @brief Return current flowing from battery to channel 1 (it is not the same as motor current)
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  std::int16_t ReadBatAmps1();
-
-  /**
-   * @brief Return current flowing from battery to channel 2 (it is not the same as motor current)
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  std::int16_t ReadBatAmps2();
-
-  /**
-   * @brief Reads all the PDO data returned from Roboteq (motors feedback, error flags) and saves
-   * current timestamp
-   */
-  RoboteqDriverFeedback ReadRoboteqDriverFeedback();
-
-  /**
-   * @brief Sends a command to the motor connected to channel 1
+   * @brief Sends commands to the motors
    *
    * @param cmd command value in the range [-1000, 1000]
    *
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmdChannel1(const std::int32_t cmd);
-
-  /**
-   * @brief Sends a command to the motor connected to channel 2
-   *
-   * @param cmd command value in the range [-1000, 1000]
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  void SendRoboteqCmdChannel2(const std::int32_t cmd);
+  void SendRoboteqCmd(const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2);
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -134,12 +112,12 @@ public:
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnEstop();
+  void TurnOnEStop();
 
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOffEstop();
+  void TurnOffEStop();
 
   /**
    * @brief Sends a safety stop command to the motor connected to channel 1
@@ -157,14 +135,6 @@ public:
 
 private:
   /**
-   * @brief Blocking SDO read operation
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  template <typename T>
-  T SyncSDORead(const std::uint16_t index, const std::uint8_t subindex);
-
-  /**
    * @brief Blocking SDO write operation
    *
    * @exception std::runtime_error if operation fails
@@ -180,30 +150,23 @@ private:
     can_error_.store(true);
   }
 
-  // emcy - emergency - I don't think that it is used by Roboteq - haven't found any information
-  // about it while ros2_canopen has the ability to read it, I didn't see any attempts to handle it
-  // void OnEmcy(std::uint16_t eec, std::uint8_t er, std::uint8_t msef[5]) noexcept override;
-
-  std::atomic_bool booted_ = false;
-  std::condition_variable boot_cond_var_;
-  std::mutex boot_mtx_;
-  std::string boot_error_str_;
+  std::promise<void> boot_promise_;
 
   std::atomic_bool can_error_;
 
-  timespec last_rpdo_write_timestamp_;
-  std::mutex rpdo_timestamp_mtx_;
+  std::mutex position_timestamp_mtx_;
+  timespec last_position_timestamp_;
+
+  std::mutex speed_current_timestamp_mtx_;
+  timespec last_speed_current_timestamp_;
+
+  std::mutex flags_current_timestamp_mtx_;
+  timespec flags_current_timestamp_;
+
+  std::mutex voltages_temps_timestamp_mtx_;
+  timespec last_voltages_temps_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_ms_;
-
-  // Wait timeout has to be longer - first we want to give a chance for lely to cancel operation
-  static constexpr std::chrono::microseconds kSdoOperationAdditionalWait{750};
-
-  std::atomic_bool sdo_read_timed_out_ = false;
-  std::atomic_bool sdo_write_timed_out_ = false;
-
-  std::mutex sdo_read_mtx_;
-  std::mutex sdo_write_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces

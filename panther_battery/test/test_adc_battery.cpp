@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -36,12 +37,12 @@ protected:
     const float & voltage_raw, const float & current_raw, const float & temp_raw,
     const float & charge_raw, const bool & charging);
   void TestDefaultBatteryStateMsg(
-    const uint8_t & power_supply_status, const uint8_t & power_supply_health);
+    const std::uint8_t & power_supply_status, const std::uint8_t & power_supply_health);
 
   void TestBatteryStateMsg(
     const float & expected_voltage, const float & expected_current, const float & expected_temp,
-    const float & expected_percentage, const uint8_t & power_supply_status,
-    const uint8_t & power_supply_health);
+    const float & expected_percentage, const std::uint8_t & power_supply_status,
+    const std::uint8_t & power_supply_health);
 
   float battery_voltage_raw_;
   float battery_current_raw_;
@@ -75,7 +76,7 @@ void TestADCBattery::UpdateBattery(
 }
 
 void TestADCBattery::TestDefaultBatteryStateMsg(
-  const uint8_t & power_supply_status, const uint8_t & power_supply_health)
+  const std::uint8_t & power_supply_status, const std::uint8_t & power_supply_health)
 {
   // Const values
   EXPECT_TRUE(std::isnan(battery_state_.temperature));
@@ -99,8 +100,8 @@ void TestADCBattery::TestDefaultBatteryStateMsg(
 
 void TestADCBattery::TestBatteryStateMsg(
   const float & expected_voltage, const float & expected_current, const float & expected_temp,
-  const float & expected_percentage, const uint8_t & power_supply_status,
-  const uint8_t & power_supply_health)
+  const float & expected_percentage, const std::uint8_t & power_supply_status,
+  const std::uint8_t & power_supply_health)
 {
   // Const values
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
