@@ -44,7 +44,7 @@ add_executable(
   src/led_panel.cpp src/segment_converter.cpp)
 
 ament_target_dependencies(controller_node rclcpp pluginlib panther_msgs
-                          sensor_msgs)
+                          panther_utils sensor_msgs)
 target_link_libraries(controller_node yaml-cpp)
 
 add_executable(dummy_scheduler_node src/dummy_scheduler_node_main.cpp

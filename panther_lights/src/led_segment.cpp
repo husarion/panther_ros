@@ -74,14 +74,9 @@ LEDSegment::~LEDSegment()
   animation_loader_.reset();
 }
 
-void LEDSegment::SetAnimation(const YAML::Node & animation_description, const bool repeating)
+void LEDSegment::SetAnimation(
+  const std::string & type, const YAML::Node & animation_description, const bool repeating)
 {
-  if (!animation_description["type"]) {
-    throw std::runtime_error("Missing 'type' in animation description");
-  }
-
-  auto type = animation_description["type"].as<std::string>();
-
   std::shared_ptr<panther_lights::Animation> animation;
 
   try {
@@ -99,6 +94,7 @@ void LEDSegment::SetAnimation(const YAML::Node & animation_description, const bo
   }
 
   animation_ = std::move(animation);
+  animaiton_finished_ = false;
 
   if (repeating) {
     default_animation_ = animation_;
@@ -115,11 +111,12 @@ void LEDSegment::UpdateAnimation(const std::string & param)
 
   std::shared_ptr<panther_lights::Animation> animation;
 
-  if (animation_->IsFinished() && default_animation_) {
-    animation = default_animation_;
-    if (animation->IsFinished()) {
-      animation->Reset();
+  if (default_animation_ && animation_->IsFinished()) {
+    animaiton_finished_ = true;
+    if (default_animation_->IsFinished()) {
+      default_animation_->Reset();
     }
+    animation = default_animation_;
   } else {
     animation = animation_;
   }

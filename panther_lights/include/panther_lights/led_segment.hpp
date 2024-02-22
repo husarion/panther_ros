@@ -58,14 +58,24 @@ public:
    * @exception std::runtime_error if 'type' key is missing, given pluginlib fails to load or
    * animation fails to initialize
    */
-  void SetAnimation(const YAML::Node & animation_description, const bool repeating);
+  void SetAnimation(
+    const std::string & type, const YAML::Node & animation_description, const bool repeating);
 
   /**
    * @brief Update animation frame
    *
+   * @param param optional parameter to pass to animation when updating
+   *
    * @exception std::runtime_error if fails to update animation
    */
   void UpdateAnimation(const std::string & param = "");
+
+  /**
+   * @brief Check if animation is finished. This does not return state of the default animation
+   *
+   * @return True if animation is finished, false otherwise
+   */
+  bool IsAnimationFinished() const { return animaiton_finished_; }
 
   /**
    * @brief Get current animation frame
@@ -83,6 +93,7 @@ public:
 private:
   const float controller_frequency_;
   bool invert_led_order_ = false;
+  bool animaiton_finished_ = true;
   std::size_t channel_;
   std::size_t first_led_iterator_;
   std::size_t last_led_iterator_;
