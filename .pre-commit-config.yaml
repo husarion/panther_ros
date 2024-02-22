@@ -44,7 +44,11 @@ repos:
       - id: codespell
         name: codespell
         description: Checks for common misspellings in text files.
-        entry: codespell  *
+        entry: codespell
+        args:
+          [
+            "--exclude-file=panther_hardware_interfaces/config/roboteq_motor_controllers_v80_21a.eds",
+          ]
         language: python
         types: [text]
 

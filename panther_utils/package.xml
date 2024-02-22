@@ -16,6 +16,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
+  <depend>realtime_tools</depend>
   <depend>std_msgs</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>

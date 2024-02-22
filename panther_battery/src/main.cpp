@@ -28,8 +28,8 @@ int main(int argc, char ** argv)
 
   try {
     rclcpp::spin(battery_node);
-  } catch (const std::runtime_error & err) {
-    std::cerr << "[battery_node] Caught exception: " << err.what() << std::endl;
+  } catch (const std::runtime_error & e) {
+    std::cerr << "[battery_node] Caught exception: " << e.what() << std::endl;
   }
 
   std::cout << "[battery_node] Shutting down" << std::endl;

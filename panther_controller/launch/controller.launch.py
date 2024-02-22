@@ -56,7 +56,6 @@ def generate_launch_description():
         description="Path to controller configuration file.",
     )
 
-    # TODO: find some better solution than default to empty string
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -124,13 +123,21 @@ def generate_launch_description():
     )
     robot_description = {"robot_description": robot_description_content}
 
-    # TODO: namespace instead of remap to /panther
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controller_config_path],
         remappings=[
-            ("panther_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+            (
+                "panther_system_node/driver/motor_controllers_state",
+                "driver/motor_controllers_state",
+            ),
+            ("panther_base_controller/cmd_vel_unstamped", "cmd_vel"),
+            ("panther_base_controller/odom", "odom/wheels"),
+            ("panther_system_node/io_state", "hardware/io_state"),
+            ("panther_system_node/e_stop", "hardware/e_stop"),
+            ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
+            ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
         ],
         condition=UnlessCondition(use_sim),
     )
