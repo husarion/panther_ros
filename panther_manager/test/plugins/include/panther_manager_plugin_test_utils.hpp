@@ -27,6 +27,7 @@
 #include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
+#include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
 
 #include <behaviortree_cpp/bt_factory.h>
 

@@ -47,6 +47,7 @@ void PantherManagerPluginTestUtils::Start()
   factory_.registerNodeType<panther_manager::CallTriggerService>("CallTriggerService", params);
   factory_.registerNodeType<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService", params);
   factory_.registerNodeType<panther_manager::SignalShutdown>("SignalShutdown");
+  factory_.registerNodeType<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 }
 
 void PantherManagerPluginTestUtils::Stop()

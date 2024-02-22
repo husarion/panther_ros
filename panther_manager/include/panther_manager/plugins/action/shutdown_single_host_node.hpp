@@ -44,7 +44,7 @@ public:
       BT::InputPort<std::string>("command", "command to execute on shutdown"),
       BT::InputPort<float>("timeout", "time in seconds to wait for host to shutdown"),
       BT::InputPort<bool>(
-        "ping_for_success", "ping host unitl it is not available or timeout is reached"),
+        "ping_for_success", "ping host until it is not available or timeout is reached"),
     };
   }
 

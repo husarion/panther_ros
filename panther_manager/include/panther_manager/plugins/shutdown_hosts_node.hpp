@@ -42,7 +42,7 @@ public:
   {
     // TODO: @delihus What is the name of ros::this_node?
     node_name_ = name;
-    logger_ = std::make_shared<rclcpp::Logger>({ rclcpp::get_logger("node_name_") });
+    logger_ = std::make_shared<rclcpp::Logger>(rclcpp::get_logger(node_name_));
   }
 
   virtual ~ShutdownHosts() = default;
@@ -71,14 +71,14 @@ public:
   }
 
 private:
-  int check_host_index_ = 0;
+  std::size_t check_host_index_ = 0;
   std::string node_name_;
   std::vector<std::shared_ptr<ShutdownHost>> hosts_;
   std::vector<std::size_t> hosts_to_check_;
   std::vector<std::size_t> skipped_hosts_;
   std::vector<std::size_t> succeeded_hosts_;
   std::vector<std::size_t> failed_hosts_;
-  rclcpp::Logger::SharedPtr logger_;
+  std::shared_ptr<rclcpp::Logger> logger_;
 
   BT::NodeStatus onStart()
   {
@@ -86,7 +86,7 @@ private:
     remove_duplicate_hosts(hosts_);
     if (hosts_.size() <= 0)
     {
-      RCLCPP_ERROR_STREAM(&logger_, "Hosts list is empty! Check configuration!");
+      RCLCPP_ERROR_STREAM(*logger_, "Hosts list is empty! Check configuration!");
       return BT::NodeStatus::FAILURE;
     }
     hosts_to_check_.resize(hosts_.size());
@@ -113,26 +113,27 @@ private:
     switch (host->get_state())
     {
       case ShutdownHostState::RESPONSE_RECEIVED:
-        RCLCPP_INFO_STREAM(&logger_, "Device at: " << host->get_ip() << " response:\n" << host->get_response());
+        RCLCPP_INFO_STREAM(*logger_, "Device at: " << host->get_ip() << " response:\n" << host->get_response());
 
         check_host_index_++;
         break;
 
       case ShutdownHostState::SUCCESS:
-        RCLCPP_INFO_STREAM(&logger_, "Successfully shutdown device at: " << host->get_ip());
+        RCLCPP_INFO_STREAM(*logger_, "Successfully shutdown device at: " << host->get_ip());
         succeeded_hosts_.push_back(host_index);
         hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
         break;
 
       case ShutdownHostState::FAILURE:
-        ROS_WARN("[%s] Failed to shutdown device at: %s. Error: %s", node_name_.c_str(), host->get_ip().c_str(),
-                 host->get_error().c_str());
+        RCLCPP_WARN_STREAM(*logger_,
+                           "Failed to shutdown device at: " << host->get_ip() << " Error: " << host->get_error());
+
         failed_hosts_.push_back(host_index);
         hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
         break;
 
       case ShutdownHostState::SKIPPED:
-        RCLCPP_WARN_STREAM(&logger_, "Device at: " << host->get_ip() << " not available, skipping...");
+        RCLCPP_WARN_STREAM(*logger_, "Device at: " << host->get_ip() << " not available, skipping...");
 
         skipped_hosts_.push_back(host_index);
         hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
@@ -159,7 +160,7 @@ private:
                                  }
                                  else
                                  {
-                                   RCLCPP_WARN_STREAM(&logger_, "Found duplicate host: " << host->get_ip()
+                                   RCLCPP_WARN_STREAM(*logger_, "Found duplicate host: " << host->get_ip()
                                                                                          << " Processing only the "
                                                                                             "first "
                                                                                             "occurrence.");

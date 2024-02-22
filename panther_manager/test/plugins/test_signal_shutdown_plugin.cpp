@@ -44,7 +44,7 @@ TEST(TestSignalShutdown, wrong_plugin_name_loading_signal_shutdown_plugin)
   test_utils.Stop();
 }
 
-TEST(TestSignalShutdown, good_check_blackboard_value)
+TEST(TestSignalShutdown, good_check_reason_blackboard_value)
 {
   std::map<std::string, std::string> service = { { "reason", "Test shutdown." } };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
@@ -62,7 +62,7 @@ TEST(TestSignalShutdown, good_check_blackboard_value)
   test_utils.Stop();
 }
 
-TEST(TestSignalShutdown, wrong_check_blackboard_value)
+TEST(TestSignalShutdown, wrong_check_reason_blackboard_value)
 {
   std::map<std::string, std::string> service = { { "reason", "Test shutdown." } };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;

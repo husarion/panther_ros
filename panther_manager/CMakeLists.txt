@@ -13,6 +13,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     behaviortree_cpp
     std_srvs
     panther_msgs
+    libssh
 )
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
@@ -34,6 +35,10 @@ list(APPEND plugin_libs call_set_led_animation_service_bt_node)
 add_library(signal_shutdown_bt_node SHARED src/plugins/action/signal_shutdown_node.cpp)
 list(APPEND plugin_libs signal_shutdown_bt_node)
 
+add_library(shutdown_single_host_bt_node SHARED src/plugins/action/shutdown_single_host_node.cpp)
+target_link_libraries(shutdown_single_host_bt_node ssh)
+list(APPEND plugin_libs shutdown_single_host_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
   ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
@@ -51,6 +56,7 @@ if(BUILD_TESTING)
     call_trigger_service_bt_node
     call_set_led_animation_service_bt_node
     signal_shutdown_bt_node
+    shutdown_single_host_bt_node
   )
 
   ament_target_dependencies(
@@ -80,6 +86,12 @@ if(BUILD_TESTING)
     test/plugins/test_signal_shutdown_plugin.cpp
   )
   list(APPEND plugin_tests ${PROJECT_NAME}_test_signal_shutdown_plugin)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_shutdown_single_host_plugin
+    test/plugins/test_shutdown_single_host_plugin.cpp
+  )
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_single_host_plugin)
 
   foreach(bt_plugin_test ${plugin_tests})
     target_link_libraries(${bt_plugin_test} ${PROJECT_NAME}_test_plugin_utils)

@@ -86,7 +86,7 @@ public:
         {
           request_shutdown();
         }
-        catch (std::runtime_error err)
+        catch (const std::runtime_error &err)
         {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = err.what();
@@ -103,7 +103,7 @@ public:
             break;
           }
         }
-        catch (std::runtime_error err)
+        catch (const std::runtime_error &err)
         {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = err.what();
@@ -205,11 +205,12 @@ public:
 private:
   const std::string ip_;
   const std::string user_;
-  const std::string command_;
-  const std::size_t hash_;
   const int port_;
-  const bool ping_for_success_;
+  const std::string command_;
   const std::chrono::milliseconds timeout_;
+  const bool ping_for_success_;
+  const std::size_t hash_;
+  ShutdownHostState state_;
 
   char buffer_[1024];
   const int verbosity_ = SSH_LOG_NOLOG;
@@ -217,7 +218,6 @@ private:
   std::string output_;
   std::string failure_reason_;
   std::chrono::time_point<std::chrono::steady_clock> command_time_;
-  ShutdownHostState state_;
 
   ssh_session session_;
   ssh_channel channel_;
