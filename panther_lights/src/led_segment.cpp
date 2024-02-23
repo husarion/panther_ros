@@ -109,21 +109,20 @@ void LEDSegment::UpdateAnimation(const std::string & param)
     throw std::runtime_error("Segment animation not defined");
   }
 
-  std::shared_ptr<panther_lights::Animation> animation;
-
-  if (default_animation_ && animation_->IsFinished()) {
+  if (animation_->IsFinished()) {
     animaiton_finished_ = true;
-    if (default_animation_->IsFinished()) {
-      default_animation_->Reset();
-    }
-    animation = default_animation_;
-  } else {
-    animation = animation_;
+  }
+
+  std::shared_ptr<panther_lights::Animation> animation_to_update =
+    animaiton_finished_ && default_animation_ ? default_animation_ : animation_;
+
+  if (animaiton_finished_ && default_animation_ && default_animation_->IsFinished()) {
+    default_animation_->Reset();
   }
 
   try {
-    animation->SetParam(param);
-    animation->Update();
+    animation_to_update->SetParam(param);
+    animation_to_update->Update();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to update animation: " + std::string(e.what()));
   }

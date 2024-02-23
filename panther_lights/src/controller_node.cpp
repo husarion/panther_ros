@@ -83,9 +83,6 @@ void AnimationsQueue::Put(const std::shared_ptr<LEDAnimation> & animation)
       return a->GetPriority() < b->GetPriority() ||
              (a->GetPriority() == b->GetPriority() && a->GetInitTime() < b->GetInitTime());
     });
-
-  for (auto & a : queue_) {
-  }
 }
 
 std::shared_ptr<LEDAnimation> AnimationsQueue::Get()
@@ -327,19 +324,12 @@ void ControllerNode::ControllerTimerCB()
 
   auto brightness = 255;
 
-  if (!animation_queue_->Empty()) {
-    std::cout << "not emptinga" << std::endl;
-    current_animation_ = animation_queue_->Get();
-    SetLEDAnimation(current_animation_);
+  if (animation_finished_) {
+    animation_queue_->Validate();
 
-    // const auto segments = current_animation_->GetAnimation().segments;
-
-    // auto result = std::all_of(segments.begin(), segments.end(), [&](const std::string & segment)
-    // {
-    //   return segments_.at(segment)->IsAnimationFinished();
-    // });
-    // if (result) {
-    // }
+    if (!animation_queue_->Empty()) {
+      SetLEDAnimation(animation_queue_->Get());
+    }
   }
 
   if (!current_animation_) {
@@ -352,6 +342,8 @@ void ControllerNode::ControllerTimerCB()
   // }
 
   UpdateAndPublishAnimation();
+
+  animation_finished_ = current_animation_->IsFinished(segments_);
 }
 
 void ControllerNode::UpdateAndPublishAnimation()
@@ -365,7 +357,6 @@ void ControllerNode::UpdateAndPublishAnimation()
       RCLCPP_WARN(
         this->get_logger(), "Failed to update animation on %s segment: %s", segment_name.c_str(),
         e.what());
-      return;
     }
   }
 
@@ -391,6 +382,7 @@ void ControllerNode::AddAnimationToQueue(const std::size_t animation_id, const b
   animation->SetRepeating(repeating);
   // animation->SetParam(param);
   animation_queue_->Put(animation);
+  animation_queue_->Print();
 }
 
 void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation)

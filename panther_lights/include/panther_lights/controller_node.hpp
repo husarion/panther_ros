@@ -113,6 +113,14 @@ public:
 
   bool Empty() const { return queue_.empty(); }
 
+  void Print()
+  {
+    std::cout << "--------" << std::endl;
+    for (auto & anim : queue_) {
+      std::cout << anim->GetName() << std::endl;
+    }
+  }
+
 private:
   std::deque<std::shared_ptr<LEDAnimation>> queue_;
   const std::size_t max_queue_size_;
@@ -206,6 +214,8 @@ private:
   std::unique_ptr<AnimationsQueue> animation_queue_;
 
   std::mutex queue_mtx_;
+
+  bool animation_finished_ = true;
 };
 
 }  // namespace panther_lights
