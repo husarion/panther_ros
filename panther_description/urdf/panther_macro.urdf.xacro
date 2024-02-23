@@ -17,25 +17,11 @@
             simulation_engine:='ignition-gazebo'">
 
     <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
-
-    <xacro:if value="${use_sim}">
-      <xacro:property name="battery_config" value="${xacro.load_yaml(battery_config_file)}" />
-      <xacro:property name="bat_initial_charge"
-        value="${20.0*battery_config['initial_charge_percentage']/100.0}" />
-      <xacro:property name="bat_charging_time" value="${battery_config['charging_time']}" />
-
-      <xacro:if value="${battery_config['simulate_discharging']}">
-        <xacro:property name="bat_power_load" value="${battery_config['power_load']}" />
-      </xacro:if>
-      <xacro:unless value="${battery_config['simulate_discharging']}">
-        <xacro:property name="bat_power_load" value="0.0" />
-      </xacro:unless>
-    </xacro:if>
-
     <xacro:property name="wheel_separation_x" value="0.44" />
 
     <!-- INCLUDE ROBOT PARTS DEFINITIONS -->
     <xacro:include filename="$(find panther_description)/urdf/body.urdf.xacro" ns="body" />
+    <xacro:include filename="$(find panther_description)/urdf/gazebo.urdf.xacro" ns="gazebo" />
     <xacro:include filename="$(find panther_description)/urdf/wheel.urdf.xacro" ns="wheel" />
 
     <!-- BODY DECLARATION -->
@@ -160,48 +146,9 @@
     </ros2_control>
 
     <xacro:if value="${use_sim}">
-      <gazebo>
-        <plugin filename="ign_ros2_control-system"
-          name="ign_ros2_control::IgnitionROS2ControlPlugin">
-          <parameters>${controller_config_file}</parameters>
-          <ros>
-            <remapping>/panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
-          </ros>
-        </plugin>
-      </gazebo>
-      <gazebo>
-        <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-          name="gz::sim::systems::LinearBatteryPlugin">
-          <battery_name>panther_battery</battery_name>
-          <voltage>41.4</voltage>
-          <open_circuit_voltage_constant_coef>42.0</open_circuit_voltage_constant_coef>
-          <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
-          <initial_charge>${bat_initial_charge}</initial_charge>
-          <capacity>20.0</capacity>
-          <resistance>0.15</resistance>
-          <smooth_current_tau>2.0</smooth_current_tau>
-          <enable_recharge>true</enable_recharge>
-          <charging_time>${bat_charging_time}</charging_time>
-          <soc_threshold>2.0</soc_threshold>
-          <power_load>${bat_power_load}</power_load>
-          <start_on_motion>false</start_on_motion>
-
-          <!-- https://github.com/gazebosim/gz-sim/issues/225 -->
-          <fix_issue_225>true</fix_issue_225>
-        </plugin>
-      </gazebo>
-      <gazebo reference="imu_link">
-        <sensor name="imu" type="imu">
-          <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu" />
-          <always_on>true</always_on>
-          <update_rate>100</update_rate>
-          <topic>imu/data_raw</topic>
-          <visualize>false</visualize>
-          <enable_metrics>false</enable_metrics>
-          <frame_id>imu_link</frame_id>
-          <ignition_frame_id>imu_link</ignition_frame_id>
-        </sensor>
-      </gazebo>
+      <xacro:gazebo.battery config_file="${battery_config_file}" />
+      <xacro:gazebo.controller config_file="${controller_config_file}" />
+      <xacro:gazebo.imu reference_frame="imu_link" name="imu" />
     </xacro:if>
   </xacro:macro>
 

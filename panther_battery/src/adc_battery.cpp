@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 #include <limits>
 #include <thread>
@@ -151,7 +152,7 @@ void ADCBattery::UpdateBatteryStateRaw()
   battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
 }
 
-uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_connected)
+std::uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_connected)
 {
   if (charger_connected) {
     if (fabs(battery_state_.percentage - 1.0f) < std::numeric_limits<float>::epsilon()) {
@@ -166,7 +167,7 @@ uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_conn
   }
 }
 
-uint8_t ADCBattery::GetBatteryHealth(const float voltage, const float temp)
+std::uint8_t ADCBattery::GetBatteryHealth(const float voltage, const float temp)
 {
   if (voltage < kVBatFatalMin) {
     SetErrorMsg("Battery voltage is critically low!");

@@ -191,19 +191,22 @@ public:
   bool DigitalPowerEnable(const bool enable) override;
 
   /**
-   * @brief Controls the charging process based on the 'enable' parameter.
+   * @brief Enables or disables the use of an external charger according to the 'enable' parameter.
    *
-   * @param enable Set to 'true' to enable the charging process, 'false' to disable.
+   * @param enable Set to 'true' to enable external charger, 'false' to disable.
    * @return 'true' if the charger control pin value is successfully set, 'false' otherwise.
    */
   bool ChargerEnable(const bool enable) override;
 
+  /**
+   * @brief Queries the current IO states of the control interface.
+   *
+   * @return An unordered map containing the GPIOPin as the key and its active state as the value.
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
-   */
   const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage_{
     panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
     panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
@@ -292,7 +295,7 @@ public:
   bool DigitalPowerEnable(const bool /* enable */) override;
 
   /**
-   * @brief Placeholder method indicating lack of support for controlling charging process in this
+   * @brief Placeholder method indicating lack of support for enabling external charger in this
    * robot version.
    *
    * @param enable Ignored parameter in this version.
@@ -301,6 +304,12 @@ public:
    */
   bool ChargerEnable(const bool /* enable */) override;
 
+  /**
+   * @brief Returns imitation of the IO states of the control interface. In this version of the
+   * robot, there is a lack of support for controlling these IOs.
+   *
+   * @return An unordered map containing the GPIOPin as the key and its active state as the value.
+   */
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:

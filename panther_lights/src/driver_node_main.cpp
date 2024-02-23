@@ -27,8 +27,8 @@ int main(int argc, char ** argv)
 
   try {
     rclcpp::spin(lights_driver_node);
-  } catch (const std::runtime_error & err) {
-    std::cerr << "[lights_driver_node] Caught exception: " << err.what() << std::endl;
+  } catch (const std::runtime_error & e) {
+    std::cerr << "[lights_driver_node] Caught exception: " << e.what() << std::endl;
   }
 
   std::cout << "[lights_driver_node] Shutting down" << std::endl;

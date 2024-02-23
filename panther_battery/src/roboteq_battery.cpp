@@ -118,7 +118,7 @@ void RoboteqBattery::UpdateBatteryStateRaw()
   battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
 }
 
-uint8_t RoboteqBattery::GetBatteryHealth(const float voltage)
+std::uint8_t RoboteqBattery::GetBatteryHealth(const float voltage)
 {
   if (voltage < kVBatFatalMin) {
     SetErrorMsg("Battery voltage is critically low!");

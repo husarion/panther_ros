@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <image_transport/image_transport.hpp>
@@ -50,6 +51,7 @@ private:
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
   void SetPowerPin(const bool value);
+  void DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status);
 
   int num_led_;
   double frame_timeout_;
@@ -65,6 +67,7 @@ private:
   std::shared_ptr<image_transport::Subscriber> rear_light_sub_;
   std::shared_ptr<image_transport::Subscriber> front_light_sub_;
   std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
+  diagnostic_updater::Updater diagnostic_updater_;
 };
 
 }  // namespace panther_lights

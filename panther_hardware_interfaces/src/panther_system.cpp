@@ -683,8 +683,8 @@ void PantherSystem::ResetEStop()
   try {
     gpio_controller_->EStopReset();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to reset E-stop using GPIO: " << e.what());
-    throw e;
+    throw std::runtime_error(
+      "Error when trying to reset E-stop using GPIO: " + std::string(e.what()));
   }
 
   roboteq_error_filter_->SetClearErrorsFlag();

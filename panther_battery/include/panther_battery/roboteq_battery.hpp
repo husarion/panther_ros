@@ -58,7 +58,7 @@ private:
   void UpdateBatteryMsgs(const rclcpp::Time & header_stamp);
   void UpdateBatteryState(const rclcpp::Time & header_stamp);
   void UpdateBatteryStateRaw();
-  uint8_t GetBatteryHealth(const float voltage);
+  std::uint8_t GetBatteryHealth(const float voltage);
 
   std::function<DriverStateMsg::SharedPtr()> GetDriverState;
 
