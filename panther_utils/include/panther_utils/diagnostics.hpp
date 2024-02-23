@@ -27,7 +27,7 @@ namespace panther_utils::diagnostics
  * if the value is true. The key prefix and suffix can be optionally provided to modify the keys
  * before adding them to the status.
  *
- * @tparam ValueT The type of the values in the map.
+ * @tparam ValueT The type of the values in the map, must be evaluable to boolean context.
  * @param status The diagnostic status wrapper to add the key-value pairs to.
  * @param kv_map The map of key-value pairs.
  * @param key_prefix The optional prefix to add to each key.
