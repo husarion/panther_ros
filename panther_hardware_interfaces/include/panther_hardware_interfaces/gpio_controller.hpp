@@ -202,11 +202,13 @@ public:
    * @brief Queries the current IO states of the control interface.
    *
    * @return An unordered map containing the GPIOPin as the key and its active state as the value.
+   */
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
+   */
   const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage_{
     panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
     panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
