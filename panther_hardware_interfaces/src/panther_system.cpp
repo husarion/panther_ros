@@ -29,6 +29,7 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 #include <panther_hardware_interfaces/utils.hpp>
+#include <panther_utils/diagnostics.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -693,16 +694,32 @@ void PantherSystem::ResetEStop()
 void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"No errors detected."};
+  std::string message{"No error detected."};
+
+  auto front_driver_data = motors_controller_->GetFrontData();
+  if (front_driver_data.IsError()) {
+    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Error detected.";
+
+    panther_utils::diagnostics::AddKeyValueIfTrue(
+      status, front_driver_data.GetErrorMap(), "Front driver error: ");
+  }
+
+  auto rear_driver_data = motors_controller_->GetRearData();
+  if (rear_driver_data.IsError()) {
+    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Error detected.";
+
+    panther_utils::diagnostics::AddKeyValueIfTrue(
+      status, rear_driver_data.GetErrorMap(), "Rear driver error: ");
+  }
 
   if (roboteq_error_filter_->IsError()) {
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "Errors detected.";
+    message = "Error detected.";
 
-    for (auto const & [error_id, error_name] : error_filter_ids_names) {
-      status.add(
-        error_name + " error", static_cast<bool>(roboteq_error_filter_->IsError(error_id)));
-    }
+    panther_utils::diagnostics::AddKeyValueIfTrue(
+      status, roboteq_error_filter_->GetErrorMap(), "", " error");
   }
 
   status.summary(level, message);
@@ -716,11 +733,11 @@ void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper &
   auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
   auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
 
-  auto drivers_with_names = {
+  auto drivers_states_with_names = {
     std::make_pair(std::string("Front"), front_driver_state),
     std::make_pair(std::string("Rear"), rear_driver_state)};
 
-  for (const auto & [driver_name, driver_state] : drivers_with_names) {
+  for (const auto & [driver_name, driver_state] : drivers_states_with_names) {
     status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
     status.add(driver_name + " driver current (A)", driver_state.GetCurrent());
     status.add(driver_name + " driver temperature (\u00B0C)", driver_state.GetTemperature());

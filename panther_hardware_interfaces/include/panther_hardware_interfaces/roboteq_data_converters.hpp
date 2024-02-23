@@ -125,12 +125,14 @@ class FaultFlag : public FlagError
 public:
   FaultFlag();
   panther_msgs::msg::FaultFlag GetMessage() const;
+  std::map<std::string, bool> GetErrorMap() const;
 };
 
 class ScriptFlag : public FlagError
 {
 public:
   ScriptFlag();
+  std::map<std::string, bool> GetErrorMap() const;
   panther_msgs::msg::ScriptFlag GetMessage() const;
 };
 
@@ -139,6 +141,7 @@ class RuntimeError : public FlagError
 public:
   RuntimeError();
   panther_msgs::msg::RuntimeError GetMessage() const;
+  std::map<std::string, bool> GetErrorMap() const;
 };
 
 /**
@@ -218,6 +221,9 @@ public:
   const RuntimeError & GetRightRuntimeError() const { return right_runtime_error_; }
 
   std::string GetFlagErrorLog() const;
+
+  std::map<std::string, bool> GetFlagErrorMap() const;
+  std::map<std::string, bool> GetErrorMap() const;
 
 private:
   MotorState left_motor_state_;

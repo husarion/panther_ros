@@ -96,7 +96,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_roboteq_data_converters
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
-                            panther_msgs)
+                            panther_msgs panther_utils)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller test/test_canopen_controller.cpp

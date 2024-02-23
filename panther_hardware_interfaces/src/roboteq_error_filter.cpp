@@ -68,6 +68,19 @@ void RoboteqErrorFilter::UpdateError(const ErrorsFilterIds id, const bool curren
   error_filters_.at(id).UpdateError(current_error);
 }
 
+std::map<std::string, bool> RoboteqErrorFilter::GetErrorMap() const
+{
+  std::map<std::string, bool> error_map;
+
+  std::for_each(error_filters_.begin(), error_filters_.end(), [&error_map](const auto & filter) {
+    auto error_name = error_filter_id_names.at(filter.first);
+    auto error_value = filter.second.IsError();
+    error_map.emplace(error_name, error_value);
+  });
+
+  return error_map;
+}
+
 void RoboteqErrorFilter::ClearErrorsIfFlagSet()
 {
   if (clear_errors_) {
