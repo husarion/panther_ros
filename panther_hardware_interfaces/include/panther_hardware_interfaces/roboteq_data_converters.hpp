@@ -132,8 +132,8 @@ class ScriptFlag : public FlagError
 {
 public:
   ScriptFlag();
-  std::map<std::string, bool> GetErrorMap() const;
   panther_msgs::msg::ScriptFlag GetMessage() const;
+  std::map<std::string, bool> GetErrorMap() const;
 };
 
 class RuntimeError : public FlagError
