@@ -142,6 +142,24 @@ std::vector<std::uint8_t> LEDSegment::GetAnimationFrame() const
   return animation_->GetFrame(invert_led_order_);
 }
 
+float LEDSegment::GetAnimationProgress() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  return animation_->GetProgress();
+}
+
+void LEDSegment::ResetAnimation() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  animation_->Reset();
+}
+
 std::size_t LEDSegment::GetFirstLEDPosition() const
 {
   return (invert_led_order_ ? last_led_iterator_ : first_led_iterator_) * Animation::kRGBAColorLen;

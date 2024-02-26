@@ -48,52 +48,54 @@ struct AnimationDescription
 struct LEDAnimationDescription
 {
   std::size_t id;
-  std::size_t priority;
+  std::uint8_t priority;
   std::string name;
+  float timeout;
   std::vector<AnimationDescription> animations;
 };
 
 class LEDAnimation
 {
 public:
-  LEDAnimation(const LEDAnimationDescription & led_animation_description);
+  LEDAnimation(
+    const LEDAnimationDescription & led_animation_description,
+    const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
+    const rclcpp::Time & init_time);
 
   ~LEDAnimation() {}
 
-  bool IsFinished(std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments);
+  bool IsFinished();
 
-  void ResetTime()
-  {
-    // TODO:
-    init_time_ = rclcpp::Time(0);
-  }
+  void ResetTime(const rclcpp::Time & init_time) { init_time_ = init_time; }
 
   std::string GetName() const { return led_animation_description_.name; }
-  std::size_t GetPriority() const { return led_animation_description_.priority; }
+  std::uint8_t GetPriority() const { return led_animation_description_.priority; }
   std::vector<AnimationDescription> GetAnimations() const
   {
     return led_animation_description_.animations;
   }
   rclcpp::Time GetInitTime() const { return init_time_; }
-  float GetTimeout() const { return timeout_; }
+  float GetTimeout() const { return led_animation_description_.timeout; }
   LEDAnimationDescription GetAnimationDescription() const { return led_animation_description_; }
+  float GetProgress() const;
+  void Reset() const;
 
   bool IsRepeating() const { return repeating_; }
 
   void SetInitTime(const rclcpp::Time init_time) { init_time_ = init_time; }
   void SetRepeating(const bool value) { repeating_ = value; }
 
-  static constexpr char kAnimationDefaultName[] = "UNDEFINED";
-  static constexpr std::size_t kAnimationDefaultPriority = 3;
-  static constexpr float kAnimationDefaultTimeout = 120.0f;
+  static constexpr char kDefaultName[] = "UNDEFINED";
+  static constexpr std::uint8_t kDefaultPriority = 3;
+  static constexpr float kDefaultTimeout = 120.0f;
 
 private:
   const LEDAnimationDescription led_animation_description_;
-  const float timeout_;
   rclcpp::Time init_time_;
 
   bool repeating_;
   std::string param_;
+  std::vector<std::shared_ptr<LEDSegment>> animation_segments_;
 };
 
 class AnimationsQueue
@@ -101,12 +103,12 @@ class AnimationsQueue
 public:
   AnimationsQueue(const std::size_t max_queue_size = 5) : max_queue_size_(max_queue_size) {}
 
-  void Put(const std::shared_ptr<LEDAnimation> & animation);
+  void Put(const std::shared_ptr<LEDAnimation> & animation, const rclcpp::Time & time);
   std::shared_ptr<LEDAnimation> Get();
   void Clear(std::size_t priority = 2);
   void Remove(const std::shared_ptr<LEDAnimation> & animation);
 
-  void Validate();
+  void Validate(const rclcpp::Time & time);
 
   bool HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const;
   std::size_t GetFirstAnimationPriority() const;
@@ -203,7 +205,7 @@ private:
     panel_publishers_;
   std::unordered_map<std::string, std::shared_ptr<LEDSegment>> segments_;
   std::unordered_map<std::string, std::vector<std::string>> segments_map_;
-  std::unordered_map<std::size_t, std::shared_ptr<LEDAnimation>> animations_;
+  std::unordered_map<std::size_t, LEDAnimationDescription> animations_descriptions_;
   std::shared_ptr<SegmentConverter> segment_converter_;
 
   rclcpp::Service<SetLEDAnimationSrv>::SharedPtr set_led_animation_server_;

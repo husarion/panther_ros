@@ -42,35 +42,56 @@ namespace panther_lights
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-LEDAnimation::LEDAnimation(const LEDAnimationDescription & led_animation_description)
+LEDAnimation::LEDAnimation(
+  const LEDAnimationDescription & led_animation_description,
+  const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
+  const rclcpp::Time & init_time)
 : led_animation_description_(led_animation_description),
-  timeout_(kAnimationDefaultTimeout),
-  init_time_(rclcpp::Time(0)),
+  init_time_(init_time),
   repeating_(false),
   param_("")
 {
-}
-
-bool LEDAnimation::IsFinished(
-  std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments)
-{
   for (auto & animation : led_animation_description_.animations) {
     for (auto & segment : animation.segments) {
-      if (!segments.at(segment)->IsAnimationFinished()) {
-        return false;
-      }
+      animation_segments_.push_back(segments.at(segment));
     }
   }
-
-  return true;
 }
 
-void AnimationsQueue::Put(const std::shared_ptr<LEDAnimation> & animation)
+bool LEDAnimation::IsFinished()
+{
+  return std::all_of(
+    animation_segments_.begin(), animation_segments_.end(),
+    [](const std::shared_ptr<LEDSegment> & segment) { return segment->IsAnimationFinished(); });
+}
+
+float LEDAnimation::GetProgress() const
+{
+  float progress = 1.0f;
+  std::for_each(
+    animation_segments_.begin(), animation_segments_.end(),
+    [&progress](const std::shared_ptr<LEDSegment> & segment) {
+      auto anim_progress = segment->GetAnimationProgress();
+      progress = anim_progress < progress ? anim_progress : progress;
+    });
+
+  return progress;
+}
+
+void LEDAnimation::Reset() const
+{
+  std::for_each(
+    animation_segments_.begin(), animation_segments_.end(),
+    [](const std::shared_ptr<LEDSegment> & segment) { segment->ResetAnimation(); });
+}
+
+void AnimationsQueue::Put(
+  const std::shared_ptr<LEDAnimation> & animation, const rclcpp::Time & time)
 {
   if (animation->GetPriority() == 1) {
     Clear();
   }
-  Validate();
+  Validate(time);
 
   if (queue_.size() == max_queue_size_) {
     throw std::runtime_error("Animation queue overloaded");
@@ -117,11 +138,10 @@ bool AnimationsQueue::HasAnimation(const std::shared_ptr<LEDAnimation> & animati
   return std::find(queue_.begin(), queue_.end(), animation) != queue_.end();
 }
 
-void AnimationsQueue::Validate()
+void AnimationsQueue::Validate(const rclcpp::Time & time)
 {
-  const auto current_time = rclcpp::Time(0);  // TODO
   for (auto it = queue_.begin(); it != queue_.end();) {
-    if ((current_time - it->get()->GetInitTime()).seconds() > it->get()->GetTimeout()) {
+    if ((time - it->get()->GetInitTime()).seconds() > it->get()->GetTimeout()) {
       // TODO: log info - animation timeout
       it = queue_.erase(it);
     } else {
@@ -135,7 +155,7 @@ std::size_t AnimationsQueue::GetFirstAnimationPriority() const
   if (!Empty()) {
     return queue_.front()->GetPriority();
   }
-  return LEDAnimation::kAnimationDefaultPriority;
+  return LEDAnimation::kDefaultPriority;
 }
 
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
@@ -252,11 +272,13 @@ void ControllerNode::LoadAnimations(const YAML::Node & animations_description)
 
     try {
       led_animation_desc.name = panther_utils::GetYAMLKeyValue<std::string>(
-        animation_description, "name", LEDAnimation::kAnimationDefaultName);
+        animation_description, "name", LEDAnimation::kDefaultName);
       led_animation_desc.id = panther_utils::GetYAMLKeyValue<std::size_t>(
         animation_description, "id");
       led_animation_desc.priority = panther_utils::GetYAMLKeyValue<std::uint8_t>(
-        animation_description, "priority", LEDAnimation::kAnimationDefaultPriority);
+        animation_description, "priority", LEDAnimation::kDefaultPriority);
+      led_animation_desc.timeout = panther_utils::GetYAMLKeyValue<float>(
+        animation_description, "timeout", LEDAnimation::kDefaultTimeout);
 
       auto animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
         animation_description, "animations");
@@ -272,8 +294,8 @@ void ControllerNode::LoadAnimations(const YAML::Node & animations_description)
         led_animation_desc.animations.push_back(animation_desc);
       }
 
-      const auto result = animations_.emplace(
-        led_animation_desc.id, std::make_shared<LEDAnimation>(led_animation_desc));
+      const auto result = animations_descriptions_.emplace(
+        led_animation_desc.id, led_animation_desc);
       if (!result.second) {
         throw std::runtime_error("Animation with given ID already exists.");
       }
@@ -325,25 +347,35 @@ void ControllerNode::ControllerTimerCB()
   auto brightness = 255;
 
   if (animation_finished_) {
-    animation_queue_->Validate();
+    animation_queue_->Validate(this->get_clock()->now());
 
     if (!animation_queue_->Empty()) {
-      SetLEDAnimation(animation_queue_->Get());
+      try {
+        SetLEDAnimation(animation_queue_->Get());
+      } catch (const std::runtime_error & e) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to Set LED animation: %s", e.what());
+      }
     }
   }
 
+  // if(curent_animation) // optional
   if (!current_animation_) {
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "Waiting for animation");
     return;
   }
 
-  // if (current_animation_->IsFinished(segments_)) {
-  //   std::cout << "animation finished" << std::endl;
-  // }
+  if (current_animation_->GetPriority() > animation_queue_->GetFirstAnimationPriority()) {
+    if (current_animation_->GetProgress() < 0.65f) {
+      current_animation_->Reset();
+      animation_queue_->Put(current_animation_, this->get_clock()->now());
+    }
+    animation_finished_ = true;
+    return;
+  }
 
   UpdateAndPublishAnimation();
 
-  animation_finished_ = current_animation_->IsFinished(segments_);
+  animation_finished_ = current_animation_->IsFinished();
 }
 
 void ControllerNode::UpdateAndPublishAnimation()
@@ -374,14 +406,16 @@ void ControllerNode::UpdateAndPublishAnimation()
 
 void ControllerNode::AddAnimationToQueue(const std::size_t animation_id, const bool repeating)
 {
-  if (animations_.find(animation_id) == animations_.end()) {
+  if (animations_descriptions_.find(animation_id) == animations_descriptions_.end()) {
     throw std::runtime_error("No animation with ID: " + std::to_string(animation_id));
   }
 
-  const auto animation = animations_.at(animation_id);
+  auto animation_description = animations_descriptions_.at(animation_id);
+  auto animation = std::make_shared<LEDAnimation>(
+    animation_description, segments_, this->get_clock()->now());
   animation->SetRepeating(repeating);
   // animation->SetParam(param);
-  animation_queue_->Put(animation);
+  animation_queue_->Put(animation, this->get_clock()->now());
   animation_queue_->Print();
 }
 
@@ -404,6 +438,7 @@ void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_a
     }
   }
 
+  current_animation_.reset();
   current_animation_ = std::move(led_animation);
 }
 

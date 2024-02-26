@@ -86,6 +86,22 @@ public:
    */
   std::vector<std::uint8_t> GetAnimationFrame() const;
 
+  /**
+   * @brief Get current animation progress
+   *
+   * @return Current animation progress
+   *
+   * @exception std::runtime_error if segment animation is not defined
+   */
+  float GetAnimationProgress() const;
+
+  /**
+   * @brief Reset current animation
+   *
+   * @exception std::runtime_error if segment animation is not defined
+   */
+  void ResetAnimation() const;
+
   std::size_t GetFirstLEDPosition() const;
 
   std::size_t GetChannel() const { return channel_; }
