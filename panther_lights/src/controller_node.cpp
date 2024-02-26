@@ -251,7 +251,7 @@ void ControllerNode::ControllerTimerCB()
 
   if (current_animation_->GetPriority() > animations_queue_->GetFirstAnimationPriority()) {
     if (current_animation_->GetProgress() < 0.65f) {
-      current_animation_->Reset();
+      current_animation_->Reset(this->get_clock()->now());
       animations_queue_->Put(current_animation_, this->get_clock()->now());
     }
     animation_finished_ = true;

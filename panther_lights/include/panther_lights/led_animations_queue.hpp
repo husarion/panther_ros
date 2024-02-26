@@ -47,9 +47,19 @@ struct LEDAnimationDescription
   std::vector<AnimationDescription> animations;
 };
 
+/**
+ * @brief Class representing animation that can be displayed on robot segments
+ */
 class LEDAnimation
 {
 public:
+  /**
+   * @brief Initializes LED animaiton
+   *
+   * @param led_animation_description YAML description of the LED animation
+   * @param segments This parameter is used to create map of segments used by this LED animation
+   * @param init_time Time of creation of the LED animation
+   */
   LEDAnimation(
     const LEDAnimationDescription & led_animation_description,
     const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
@@ -57,9 +67,19 @@ public:
 
   ~LEDAnimation() {}
 
+  /**
+   * @brief Indicates if LED animation is finished
+   *
+   * @return True if all animations on all segments are finished, false otherwise
+   */
   bool IsFinished();
 
-  void ResetTime(const rclcpp::Time & init_time) { init_time_ = init_time; }
+  /**
+   * @brief Reset all animaitons on all LED segments
+   *
+   * @param time This time is used to set new animation initialization time
+   */
+  void Reset(const rclcpp::Time & time);
 
   std::string GetName() const { return led_animation_description_.name; }
   std::uint8_t GetPriority() const { return led_animation_description_.priority; }
@@ -69,13 +89,15 @@ public:
   }
   rclcpp::Time GetInitTime() const { return init_time_; }
   float GetTimeout() const { return led_animation_description_.timeout; }
-  LEDAnimationDescription GetAnimationDescription() const { return led_animation_description_; }
+
+  /**
+   * @brief Get LED animation progress
+   *
+   * @return The smallest progress of all animations on all segments
+   */
   float GetProgress() const;
-  void Reset() const;
 
   bool IsRepeating() const { return repeating_; }
-
-  void SetInitTime(const rclcpp::Time init_time) { init_time_ = init_time; }
   void SetRepeating(const bool value) { repeating_ = value; }
 
   static constexpr char kDefaultName[] = "UNDEFINED";
@@ -91,20 +113,62 @@ private:
   std::vector<std::shared_ptr<LEDSegment>> animation_segments_;
 };
 
+/**
+ * @brief Class used to manage queue of LED animations
+ */
 class LEDAnimationsQueue
 {
 public:
+  /**
+   * @brief Initializes LED animaitons queue
+   *
+   * @param max_queue_size Max size of the queue
+   */
   LEDAnimationsQueue(const std::size_t max_queue_size = 5) : max_queue_size_(max_queue_size) {}
 
+  /**
+   * @brief Add animation to the queue and sort animations according to their priority and time of
+   * initialization
+   *
+   * @param animation LED animation to add to queue
+   * @param time Time of initialization of the animation
+   *
+   * @exception std::runtime_error if queue has number of elements equal to max_queue_size
+   */
   void Put(const std::shared_ptr<LEDAnimation> & animation, const rclcpp::Time & time);
-  std::shared_ptr<LEDAnimation> Get();
-  void Clear(std::size_t priority = 2);
-  void Remove(const std::shared_ptr<LEDAnimation> & animation);
 
+  /**
+   * @brief Get and remove first LED animation from the queue
+   *
+   * @return First LED animation from the queue
+   *
+   * @exception std::runtime_error if queue is empty
+   */
+  std::shared_ptr<LEDAnimation> Get();
+
+  /**
+   * @brief Remove all animations with priority equal or lower to specified one
+   *
+   * @param priority Animation with this priority or lower will be removed from the queue
+   */
+  void Clear(std::size_t priority = 2);
+
+  /**
+   * @brief Removes animations that has reached theirs timeout from the queue
+   *
+   * @param time Time used to check if animation has timed out
+   */
   void Validate(const rclcpp::Time & time);
 
-  bool HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const;
+  /**
+   * @brief Return priority of the first animation in the queue
+   *
+   * @return Priority of the first animation or default animation priority if queue is empty
+   */
   std::size_t GetFirstAnimationPriority() const;
+
+  void Remove(const std::shared_ptr<LEDAnimation> & animation);
+  bool HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const;
 
   bool Empty() const { return queue_.empty(); }
 

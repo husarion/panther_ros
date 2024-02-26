@@ -64,11 +64,12 @@ float LEDAnimation::GetProgress() const
   return progress;
 }
 
-void LEDAnimation::Reset() const
+void LEDAnimation::Reset(const rclcpp::Time & time)
 {
   std::for_each(
     animation_segments_.begin(), animation_segments_.end(),
     [](const std::shared_ptr<LEDSegment> & segment) { segment->ResetAnimation(); });
+  init_time_ = time;
 }
 
 void LEDAnimationsQueue::Put(
@@ -111,19 +112,6 @@ void LEDAnimationsQueue::Clear(std::size_t priority)
   queue_.erase(new_end, queue_.end());
 }
 
-void LEDAnimationsQueue::Remove(const std::shared_ptr<LEDAnimation> & animation)
-{
-  auto it = std::find(queue_.begin(), queue_.end(), animation);
-  if (it != queue_.end()) {
-    queue_.erase(it);
-  }
-}
-
-bool LEDAnimationsQueue::HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const
-{
-  return std::find(queue_.begin(), queue_.end(), animation) != queue_.end();
-}
-
 void LEDAnimationsQueue::Validate(const rclcpp::Time & time)
 {
   for (auto it = queue_.begin(); it != queue_.end();) {
@@ -142,6 +130,19 @@ std::size_t LEDAnimationsQueue::GetFirstAnimationPriority() const
     return queue_.front()->GetPriority();
   }
   return LEDAnimation::kDefaultPriority;
+}
+
+void LEDAnimationsQueue::Remove(const std::shared_ptr<LEDAnimation> & animation)
+{
+  auto it = std::find(queue_.begin(), queue_.end(), animation);
+  if (it != queue_.end()) {
+    queue_.erase(it);
+  }
+}
+
+bool LEDAnimationsQueue::HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const
+{
+  return std::find(queue_.begin(), queue_.end(), animation) != queue_.end();
 }
 
 }  // namespace panther_lights
