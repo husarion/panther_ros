@@ -38,13 +38,33 @@ install(TARGETS driver_node dummy_scheduler_node
 
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
-# if(BUILD_TESTING) find_package(ament_lint_auto REQUIRED) # the following line
-# skips the linter which checks for copyrights # comment the line when a
-# copyright and license is added to all source files
-# set(ament_cmake_copyright_FOUND TRUE) # the following line skips cpplint (only
-# works in a git repo) # comment the line when this package is in a git repo and
-# when # a copyright and license is added to all source files
-# set(ament_cmake_cpplint_FOUND TRUE) ament_lint_auto_find_test_dependencies()
-# endif()
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(panther_utils REQUIRED)
+
+  ament_add_gtest(${PROJECT_NAME}_test_apa102 test/test_apa102.cpp
+                  src/apa102.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_apa102
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_apa102)
+
+  ament_add_gtest(${PROJECT_NAME}_test_driver test/test_driver.cpp
+                  src/apa102.cpp src/driver_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_driver
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_driver
+    rclcpp
+    image_transport
+    diagnostic_updater
+    panther_msgs
+    panther_gpiod
+    panther_utils)
+
+endif()
 
 ament_package()
