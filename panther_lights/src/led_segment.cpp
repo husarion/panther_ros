@@ -75,7 +75,8 @@ LEDSegment::~LEDSegment()
 }
 
 void LEDSegment::SetAnimation(
-  const std::string & type, const YAML::Node & animation_description, const bool repeating)
+  const std::string & type, const YAML::Node & animation_description, const bool repeating,
+  const std::string & param)
 {
   std::shared_ptr<panther_lights::Animation> animation;
 
@@ -87,6 +88,7 @@ void LEDSegment::SetAnimation(
 
   try {
     animation->Initialize(animation_description, num_led_, controller_frequency_);
+    animation->SetParam(param);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to initialize animation: " + std::string(e.what()));
   } catch (const std::out_of_range & e) {
@@ -104,7 +106,7 @@ void LEDSegment::SetAnimation(
   }
 }
 
-void LEDSegment::UpdateAnimation(const std::string & param)
+void LEDSegment::UpdateAnimation()
 {
   if (!animation_) {
     throw std::runtime_error("Segment animation not defined");
@@ -122,7 +124,6 @@ void LEDSegment::UpdateAnimation(const std::string & param)
   }
 
   try {
-    animation_to_update->SetParam(param);
     animation_to_update->Update();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to update animation: " + std::string(e.what()));
@@ -158,6 +159,15 @@ void LEDSegment::ResetAnimation() const
   }
 
   animation_->Reset();
+}
+
+std::uint8_t LEDSegment::GetAnimationBrightness() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  animation_->GetBrightness();
 }
 
 std::size_t LEDSegment::GetFirstLEDPosition() const

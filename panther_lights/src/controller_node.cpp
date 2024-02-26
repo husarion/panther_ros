@@ -199,8 +199,7 @@ void ControllerNode::SetLEDAnimationCB(
   SetLEDAnimationSrv::Response::SharedPtr response)
 {
   try {
-    // request->animation.param; TODO
-    AddAnimationToQueue(request->animation.id, request->repeating);
+    AddAnimationToQueue(request->animation.id, request->repeating, request->animation.param);
     response->success = true;
   } catch (const std::exception & e) {
     response->success = false;
@@ -289,7 +288,8 @@ void ControllerNode::UpdateAndPublishAnimation()
   }
 }
 
-void ControllerNode::AddAnimationToQueue(const std::size_t animation_id, const bool repeating)
+void ControllerNode::AddAnimationToQueue(
+  const std::size_t animation_id, const bool repeating, const std::string & param)
 {
   if (animations_descriptions_.find(animation_id) == animations_descriptions_.end()) {
     throw std::runtime_error("No animation with ID: " + std::to_string(animation_id));
@@ -299,7 +299,7 @@ void ControllerNode::AddAnimationToQueue(const std::size_t animation_id, const b
   auto animation = std::make_shared<LEDAnimation>(
     animation_description, segments_, this->get_clock()->now());
   animation->SetRepeating(repeating);
-  // animation->SetParam(param);
+  animation->SetParam(param);
   animations_queue_->Put(animation, this->get_clock()->now());
   animations_queue_->Print();
 }
@@ -315,7 +315,8 @@ void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_a
 
       try {
         segments_.at(segment)->SetAnimation(
-          animation.type, animation.animation, led_animation->IsRepeating());
+          animation.type, animation.animation, led_animation->IsRepeating(),
+          led_animation->GetParam());
       } catch (const std::runtime_error & e) {
         throw std::runtime_error(
           "Failed to set '" + led_animation->GetName() + "' animation: " + std::string(e.what()));

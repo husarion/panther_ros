@@ -101,7 +101,8 @@ private:
   void SetAnimation(const std::size_t animation_id, const bool repeating);
 
   void UpdateAndPublishAnimation();
-  void AddAnimationToQueue(const std::size_t animation_id, const bool repeating);
+  void AddAnimationToQueue(
+    const std::size_t animation_id, const bool repeating, const std::string & param);
   void SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation);
 
   void PublishPanelFrame(const std::size_t channel);

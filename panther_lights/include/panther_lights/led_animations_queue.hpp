@@ -98,7 +98,10 @@ public:
   float GetProgress() const;
 
   bool IsRepeating() const { return repeating_; }
+  std::string GetParam() const { return param_; }
+
   void SetRepeating(const bool value) { repeating_ = value; }
+  void SetParam(const std::string & param) { param_ = param; }
 
   static constexpr char kDefaultName[] = "UNDEFINED";
   static constexpr std::uint8_t kDefaultPriority = 3;

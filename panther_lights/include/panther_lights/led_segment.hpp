@@ -59,7 +59,8 @@ public:
    * animation fails to initialize
    */
   void SetAnimation(
-    const std::string & type, const YAML::Node & animation_description, const bool repeating);
+    const std::string & type, const YAML::Node & animation_description, const bool repeating,
+    const std::string & param = "");
 
   /**
    * @brief Update animation frame
@@ -68,7 +69,7 @@ public:
    *
    * @exception std::runtime_error if fails to update animation
    */
-  void UpdateAnimation(const std::string & param = "");
+  void UpdateAnimation();
 
   /**
    * @brief Check if animation is finished. This does not return state of the default animation
@@ -101,6 +102,13 @@ public:
    * @exception std::runtime_error if segment animation is not defined
    */
   void ResetAnimation() const;
+
+  /**
+   * @brief Get current animation brightness
+   *
+   * @exception std::runtime_error if segment animation is not defined
+   */
+  std::uint8_t GetAnimationBrightness() const;
 
   std::size_t GetFirstLEDPosition() const;
 

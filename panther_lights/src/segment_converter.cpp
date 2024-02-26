@@ -33,7 +33,13 @@ void SegmentConverter::Convert(
   for (auto & [segment_name, segment] : segments) {
     try {
       auto panel = panels.at(segment->GetChannel());
-      panel->UpdateFrame(segment->GetFirstLEDPosition(), segment->GetAnimationFrame());
+
+      auto frame = segment->GetAnimationFrame();
+      for (std::size_t i = 3; i < frame.size(); i += 4) {
+        frame[i] = segment->GetAnimationBrightness();
+      }
+
+      panel->UpdateFrame(segment->GetFirstLEDPosition(), frame);
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
         "Failed to convert '" + segment_name +
