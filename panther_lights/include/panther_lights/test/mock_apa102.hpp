@@ -33,7 +33,7 @@ public:
 
   void SPISendBuffer([[maybe_unused]] const std::vector<std::uint8_t> & buffer) const {}
 
-  std::uint16_t global_brightness_;
+  std::uint16_t GetGlobalBrightness() const { return global_brightness_; }
 };
 
 }  // namespace panther_lights::mock_apa102

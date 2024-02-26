@@ -36,19 +36,19 @@ TEST_F(APA102Test, PortsAvailable)
 TEST_F(APA102Test, SetGlobalBrightnessFloat)
 {
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0)));
-  EXPECT_EQ(apa102_->global_brightness_, 0);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 0);
 
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0.001)));
-  EXPECT_EQ(apa102_->global_brightness_, 1);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 1);
 
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0.5)));
-  EXPECT_EQ(apa102_->global_brightness_, 16);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 16);
 
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0.999)));
-  EXPECT_EQ(apa102_->global_brightness_, 31);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 31);
 
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(1.0)));
-  EXPECT_EQ(apa102_->global_brightness_, 31);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 31);
 
   EXPECT_THROW(apa102_->SetGlobalBrightness(static_cast<float>(-1.0)), std::out_of_range);
   EXPECT_THROW(apa102_->SetGlobalBrightness(static_cast<float>(1.1)), std::out_of_range);
@@ -57,13 +57,13 @@ TEST_F(APA102Test, SetGlobalBrightnessFloat)
 TEST_F(APA102Test, SetGlobalBrightnessUint8)
 {
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(0)));
-  EXPECT_EQ(apa102_->global_brightness_, 0);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 0);
 
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(16)));
-  EXPECT_EQ(apa102_->global_brightness_, 16);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 16);
 
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(31)));
-  EXPECT_EQ(apa102_->global_brightness_, 31);
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 31);
 
   EXPECT_THROW(apa102_->SetGlobalBrightness(std::uint8_t(32)), std::out_of_range);
 }
