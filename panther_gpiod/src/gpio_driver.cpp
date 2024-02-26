@@ -27,8 +27,6 @@
 #include <utility>
 #include <vector>
 
-#include <poll.h>
-
 #include <gpiod.hpp>
 
 #include <panther_utils/configure_rt.hpp>
@@ -55,8 +53,8 @@ GPIODriver::~GPIODriver()
     }
   }
 
-  line_request_->release();
   GPIOMonitorOff();
+  line_request_->release();
 }
 
 void GPIODriver::GPIOMonitorEnable(
@@ -70,6 +68,10 @@ void GPIODriver::GPIOMonitorEnable(
 
 void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback)
 {
+  if (!IsGPIOMonitorThreadRunning()) {
+    throw std::runtime_error("GPIO monitor thread is not running!");
+  }
+
   GPIOEdgeEventCallback = callback;
 }
 
@@ -93,8 +95,8 @@ void GPIODriver::ConfigureLineRequest(
   std::string pin_name;
   try {
     pin_name = pin_names_.at(gpio_info.pin);
-  } catch (const std::out_of_range & err) {
-    throw std::runtime_error("No name defined for one of pins: " + std::string(err.what()));
+  } catch (const std::out_of_range & e) {
+    throw std::runtime_error("No name defined for one of pins: " + std::string(e.what()));
   }
 
   gpiod::line::offset offset = chip.get_line_offset_from_name(pin_name);
@@ -144,7 +146,7 @@ void GPIODriver::ChangePinDirection(const GPIOPin pin, const gpiod::line::direct
   gpio_info.value = line_request_->get_value(gpio_info.offset);
 }
 
-bool GPIODriver::IsPinAvaible(const GPIOPin pin) const
+bool GPIODriver::IsPinAvailable(const GPIOPin pin) const
 {
   return std::any_of(gpio_info_storage_.begin(), gpio_info_storage_.end(), [&](const auto & info) {
     return info.pin == pin;
@@ -186,8 +188,8 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
     }
 
     return true;
-  } catch (const std::exception & err) {
-    std::cerr << "Error while setting GPIO pin value: " << err.what() << std::endl;
+  } catch (const std::exception & e) {
+    std::cerr << "Error while setting GPIO pin value: " << e.what() << std::endl;
     return false;
   }
 }
@@ -225,26 +227,18 @@ void GPIODriver::MonitorAsyncEvents()
 
   auto edge_event_buffer = gpiod::edge_event_buffer(edge_event_buffer_size_);
 
-  struct pollfd pollfd;
-  pollfd.fd = line_request_->fd();
-  pollfd.events = POLLIN;
-
   {
     std::lock_guard<std::mutex> lck(monitor_init_mtx_);
     monitor_init_cond_var_.notify_all();
   }
 
   while (gpio_monitor_thread_enabled_) {
-    auto ret = poll(&pollfd, 1, -1);
+    if (line_request_->wait_edge_events(std::chrono::milliseconds(10))) {
+      line_request_->read_edge_events(edge_event_buffer);
 
-    if (ret == -1) {
-      throw std::runtime_error("Error waiting for edge events.");
-    }
-
-    line_request_->read_edge_events(edge_event_buffer);
-
-    for (const auto & event : edge_event_buffer) {
-      HandleEdgeEvent(event);
+      for (const auto & event : edge_event_buffer) {
+        HandleEdgeEvent(event);
+      }
     }
   }
 }
@@ -255,8 +249,8 @@ void GPIODriver::HandleEdgeEvent(const gpiod::edge_event & event)
   GPIOPin pin;
   try {
     pin = GetPinFromOffset(event.line_offset());
-  } catch (const std::out_of_range & err) {
-    std::cerr << "An edge event occurred with an unknown pin: " << err.what() << std::endl;
+  } catch (const std::out_of_range & e) {
+    std::cerr << "An edge event occurred with an unknown pin: " << e.what() << std::endl;
     return;
   }
 
@@ -298,7 +292,7 @@ GPIOInfo & GPIODriver::GetGPIOInfoRef(const GPIOPin pin)
     }
   }
 
-  throw std::runtime_error("Pin not found in GPIO info storage.");
+  throw std::invalid_argument("Pin not found in GPIO info storage.");
 }
 
 GPIOPin GPIODriver::GetPinFromOffset(const gpiod::line::offset & offset) const

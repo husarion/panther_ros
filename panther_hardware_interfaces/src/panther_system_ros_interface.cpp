@@ -14,7 +14,6 @@
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
@@ -28,9 +27,35 @@
 namespace panther_hardware_interfaces
 {
 
+template <typename SrvT, typename Func>
+void ProcessServiceCallback(Func callback, SrvT response)
+{
+  try {
+    callback();
+    response->success = true;
+  } catch (const std::exception & err) {
+    response->success = false;
+    response->message = err.what();
+
+    RCLCPP_WARN_STREAM(
+      rclcpp::get_logger("PantherSystem"), "Service response: " << response->message);
+  }
+}
+
+void TriggerServiceWrapper::CallbackWrapper(
+  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+{
+  ProcessServiceCallback([this]() { callback_(); }, response);
+}
+
+void SetBoolServiceWrapper::CallbackWrapper(
+  SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response)
+{
+  ProcessServiceCallback([this, data = request->data]() { callback_(data); }, response);
+}
+
 PantherSystemRosInterface::PantherSystemRosInterface(
-  std::function<void()> clear_errors, const std::string & node_name,
-  const rclcpp::NodeOptions & node_options)
+  const std::string & node_name, const rclcpp::NodeOptions & node_options)
 {
   node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
@@ -38,24 +63,30 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 
-  clear_errors_ = clear_errors;
-
   driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
   realtime_driver_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
-  clear_errors_srv_ = node_->create_service<TriggerSrv>(
-    "~/clear_errors", std::bind(
-                        &PantherSystemRosInterface::ClearErrorsCb, this, std::placeholders::_1,
-                        std::placeholders::_2));
+  io_state_publisher_ = node_->create_publisher<IOStateMsg>(
+    "~/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  realtime_io_state_publisher_ =
+    std::make_unique<realtime_tools::RealtimePublisher<IOStateMsg>>(io_state_publisher_);
+
+  e_stop_state_publisher_ = node_->create_publisher<BoolMsg>(
+    "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  realtime_e_stop_state_publisher_ =
+    std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()
 {
   realtime_driver_state_publisher_.reset();
   driver_state_publisher_.reset();
-  clear_errors_srv_.reset();
+  realtime_io_state_publisher_.reset();
+  io_state_publisher_.reset();
+  realtime_e_stop_state_publisher_.reset();
+  e_stop_state_publisher_.reset();
 
   if (executor_) {
     executor_->cancel();
@@ -64,6 +95,32 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   }
 
   node_.reset();
+}
+
+void PantherSystemRosInterface::AddTriggerService(
+  const std::string service_name, const std::function<void()> & callback)
+{
+  auto wrapper = std::make_shared<TriggerServiceWrapper>(callback);
+
+  wrapper->service = node_->create_service<TriggerSrv>(
+    service_name, std::bind(
+                    &TriggerServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
+                    std::placeholders::_2));
+
+  trigger_wrappers_.push_back(wrapper);
+}
+
+void PantherSystemRosInterface::AddSetBoolService(
+  const std::string service_name, const std::function<void(const bool)> & callback)
+{
+  auto wrapper = std::make_shared<SetBoolServiceWrapper>(callback);
+
+  wrapper->service = node_->create_service<SetBoolSrv>(
+    service_name, std::bind(
+                    &SetBoolServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
+                    std::placeholders::_2));
+
+  set_bool_wrappers_.push_back(wrapper);
 }
 
 void PantherSystemRosInterface::UpdateMsgErrorFlags(
@@ -117,6 +174,21 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
   driver_state.rear.can_net_err = can_errors.rear_can_net_err;
 }
 
+void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)
+{
+  realtime_e_stop_state_publisher_->msg_.data = e_stop;
+  if (realtime_e_stop_state_publisher_->trylock()) {
+    realtime_e_stop_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::PublishEStopStateIfChanged(const bool e_stop)
+{
+  if (realtime_e_stop_state_publisher_->msg_.data != e_stop) {
+    PublishEStopStateMsg(e_stop);
+  }
+}
+
 void PantherSystemRosInterface::PublishDriverState()
 {
   if (realtime_driver_state_publisher_->trylock()) {
@@ -124,18 +196,64 @@ void PantherSystemRosInterface::PublishDriverState()
   }
 }
 
-void PantherSystemRosInterface::ClearErrorsCb(
-  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
+  const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state)
 {
-  RCLCPP_INFO(node_->get_logger(), "Clearing errors");
-
-  try {
-    clear_errors_();
-    response->success = true;
-  } catch (const std::exception & e) {
-    response->message = "Exception caught in the callback function: " + std::string(e.what());
-    response->success = false;
+  for (const auto & [pin, pin_value] : io_state) {
+    UpdateIOStateMsg(pin, pin_value);
   }
+
+  if (realtime_io_state_publisher_->trylock()) {
+    realtime_io_state_publisher_->unlockAndPublish();
+  }
+}
+
+void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & gpio_info)
+{
+  const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
+
+  if (!UpdateIOStateMsg(gpio_info.pin, pin_value)) {
+    return;
+  }
+
+  if (realtime_io_state_publisher_->trylock()) {
+    realtime_io_state_publisher_->unlockAndPublish();
+  }
+}
+
+bool PantherSystemRosInterface::UpdateIOStateMsg(
+  const panther_gpiod::GPIOPin pin, const bool pin_value)
+{
+  auto & io_state_msg = realtime_io_state_publisher_->msg_;
+
+  switch (pin) {
+    case panther_gpiod::GPIOPin::AUX_PW_EN:
+      io_state_msg.aux_power = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::CHRG_SENSE:
+      io_state_msg.charger_connected = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::CHRG_DISABLE:
+      io_state_msg.charger_enabled = !pin_value;
+      break;
+    case panther_gpiod::GPIOPin::VDIG_OFF:
+      io_state_msg.digital_power = !pin_value;
+      break;
+    case panther_gpiod::GPIOPin::FAN_SW:
+      io_state_msg.fan = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::VMOT_ON:
+    case panther_gpiod::GPIOPin::MOTOR_ON:
+      io_state_msg.motor_on = pin_value;
+      break;
+    case panther_gpiod::GPIOPin::SHDN_INIT:
+      io_state_msg.power_button = pin_value;
+      break;
+    default:
+      return false;
+  }
+
+  return true;
 }
 
 }  // namespace panther_hardware_interfaces

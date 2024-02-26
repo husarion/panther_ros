@@ -1,7 +1,6 @@
 /**:
   controller_manager:
     ros__parameters:
-      use_sim_time: false
       update_rate: 100
 
       joint_state_broadcaster:
@@ -13,8 +12,10 @@
 
   imu_broadcaster:
     ros__parameters:
-      sensor_name: "imu"
-      frame_id: "imu_link"
+      sensor_name: imu
+      frame_id: imu_link
+      static_covariance_angular_velocity: [1.1e-4, 0.0, 0.0, 0.0, 1.1e-4, 0.0, 0.0, 0.0, 1.1e-4]  # Values measured experimentally
+      static_covariance_linear_acceleration: [6.2e-6, 0.0, 0.0, 0.0, 6.2e-6, 0.0, 0.0, 0.0, 6.2e-6] # Values measured experimentally
 
   panther_base_controller:
     ros__parameters:
@@ -35,8 +36,7 @@
       publish_rate: 100.0
       odom_frame_id: odom
       base_frame_id: base_link
-      pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
-      twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+      twist_covariance_diagonal: [1.3e-6, 2.7e-7, 0.0, 0.0, 0.0, 9.3e-6] # Selected intuitively based on WH01 results
 
       # Whether to use feedback or commands for odometry calculations
       open_loop: false
@@ -61,7 +61,9 @@
           has_acceleration_limits: true
           has_jerk_limits: false
           max_velocity: 1.1 # m/s
+          # min_velocity -  When unspecified `min_velocity=-max_velocity`
           max_acceleration: 1.5 # m/s^2
+          # min_acceleration - When unspecified, `min_acceleration=-max_acceleration`
           max_jerk: 0.0 # m/s^3
 
       angular:
@@ -70,5 +72,7 @@
           has_acceleration_limits: true
           has_jerk_limits: false
           max_velocity: 2.2 # rad/s
+          # min_velocity -  When unspecified `min_velocity=-max_velocity`
           max_acceleration: 3.2 # rad/s^2
+          # min_acceleration - When unspecified, `min_acceleration=-max_acceleration`
           max_jerk: 0.0 # rad/s^3

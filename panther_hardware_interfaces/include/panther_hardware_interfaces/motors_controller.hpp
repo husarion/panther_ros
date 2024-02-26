@@ -90,18 +90,18 @@ public:
     const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr);
 
   /**
-   * @brief Turns on Roboteq estop
+   * @brief Turns on Roboteq E-stop
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnEstop();
+  void TurnOnEStop();
 
   /**
-   * @brief Turns off Roboteq estop
+   * @brief Turns off Roboteq E-stop
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOffEstop();
+  void TurnOffEStop();
 
   /**
    * @brief Turns on Roboteq safety stop. To turn it off, it is necessary to send

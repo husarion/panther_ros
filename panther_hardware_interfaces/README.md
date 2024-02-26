@@ -68,15 +68,13 @@ CAN settings
  - `driver_states_update_frequency` [*float*, default: **20.0**]: as by default, the driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. The exact frequency at which driver state is published won't match this value - it will also depend on the frequency of the controller (the exact value of the period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`).
  - `max_roboteq_initialization_attempts` [*int*, default: **5**]: in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to a general error.
  - `max_roboteq_activation_attempts` [*int*, default: **5**]: similar to initialization, it is possible to allow some SDO errors before escalating to error.
- <!-- TODO: with GPIODriver it should no longer be needed -->
- - `max_safety_stop_attempts` [*int*, default: **20**]: how many attempts to activate safety stop will be taken before failing.
  - `max_write_pdo_cmds_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error.
  - `max_read_pdo_motor_states_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error.
  - `max_read_pdo_driver_state_errors_count` [*int*, default: **20**]: how many consecutive errors can happen before escalating to general error.
 
 
 > [!CAUTION]
-> `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `max_safety_stop_attempts`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
+> `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
 
 [//]: # (ROS_API_NODE_PARAMETERS_END)
 [//]: # (ROS_API_NODE_END)
@@ -107,37 +105,3 @@ sudo apt-get install -y liblely-coapp-dev liblely-co-tools python3-dcf-tools
 ### RT
 
 To configure RT check out the instructions provided in the [ros2_control docs](https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html#determinism) (add group and change `/etc/security/limits.conf`).
-
-## Testing
-
-### Setup
-
-First, it is necessary to set up a virtual CAN:
-
-<!-- todo move setup somewhere so the test can be run more easily -->
-
-```bash
-sudo modprobe vcan
-sudo ip link add dev panther_can type vcan
-sudo ip link set up panther_can
-sudo ip link set panther_can down
-sudo ip link set panther_can txqueuelen 1000
-sudo ip link set panther_can up
-```
-
-### Running tests
-
-```bash
-colcon build --packages-select panther_hardware_interfaces --symlink-install
-colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces --parallel-workers 1
-colcon test-result --verbose --all
-```
-
-As some of the tests are accessing the virtual CAN interface, they can't be executed in parallel (that's why `--parallel-workers 1` flag).
-
-### Updating config
-Copy eds file to config and run
-```bash
-dcfgen canopen_configuration.yaml -r
-```
-Remove `master.dcf`

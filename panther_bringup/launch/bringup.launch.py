@@ -131,7 +131,6 @@ def generate_launch_description():
         ),
     )
 
-    # TODO: find some better solution than default to empty string
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -292,7 +291,7 @@ def generate_launch_description():
         welcome_msg,
         controller_launch,
         waiting_msg,
-        # other_action_timer,
+        other_action_timer,
     ]
 
     return LaunchDescription(actions)
