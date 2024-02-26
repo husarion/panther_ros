@@ -15,11 +15,11 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <rclcpp/executors.hpp>
 #include <rclcpp/allocator/allocator_common.hpp>
-#include "behaviortree_cpp/condition_node.h"
+#include <rclcpp/executors.hpp>
+#include <string>
 #include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/condition_node.h"
 #include "behaviortree_ros2/ros_node_params.hpp"
 
 namespace BT
@@ -29,10 +29,9 @@ namespace BT
  * @brief Abstract class to wrap a ROS publisher
  *
  */
-template<class TopicT>
+template <class TopicT>
 class RosTopicPubNode : public BT::ConditionNode
 {
-
 public:
   // Type definitions
   using Publisher = typename rclcpp::Publisher<TopicT>;
@@ -44,9 +43,8 @@ public:
    *
    * Note that if the external_action_client is not set, the constructor will build its own.
    * */
-  explicit RosTopicPubNode(const std::string & instance_name,
-                           const BT::NodeConfig& conf,
-                           const RosNodeParams& params);
+  explicit RosTopicPubNode(
+    const std::string & instance_name, const BT::NodeConfig & conf, const RosNodeParams & params);
 
   virtual ~RosTopicPubNode() = default;
 
@@ -60,8 +58,7 @@ public:
   static PortsList providedBasicPorts(PortsList addition)
   {
     PortsList basic = {
-      InputPort<std::string>("topic_name", "__default__placeholder__", "Topic name")
-    };
+      InputPort<std::string>("topic_name", "__default__placeholder__", "Topic name")};
     basic.insert(addition.begin(), addition.end());
     return basic;
   }
@@ -70,10 +67,7 @@ public:
    * @brief Creates list of BT ports
    * @return PortsList Containing basic ports along with node-specific ports
    */
-  static PortsList providedPorts()
-  {
-    return providedBasicPorts({});
-  }
+  static PortsList providedPorts() { return providedBasicPorts({}); }
 
   NodeStatus tick() override final;
 
@@ -85,103 +79,86 @@ public:
    * @return  return false if anything is wrong and we must not send the message.
    * the Condition will return FAILURE.
    */
-  virtual bool setMessage(TopicT& msg) = 0;
+  virtual bool setMessage(TopicT & msg) = 0;
 
 protected:
-
   std::shared_ptr<rclcpp::Node> node_;
   std::string prev_topic_name_;
   bool topic_name_may_change_ = false;
 
 private:
-
   std::shared_ptr<Publisher> publisher_;
 
-  bool createPublisher(const std::string& topic_name);
+  bool createPublisher(const std::string & topic_name);
 };
 
 //----------------------------------------------------------------
 //---------------------- DEFINITIONS -----------------------------
 //----------------------------------------------------------------
 
-template<class T> inline
-  RosTopicPubNode<T>::RosTopicPubNode(const std::string & instance_name,
-                                      const NodeConfig &conf,
-                                      const RosNodeParams& params)
-  : BT::ConditionNode(instance_name, conf),
-  node_(params.nh)
-{ 
+template <class T>
+inline RosTopicPubNode<T>::RosTopicPubNode(
+  const std::string & instance_name, const NodeConfig & conf, const RosNodeParams & params)
+: BT::ConditionNode(instance_name, conf), node_(params.nh)
+{
   // check port remapping
   auto portIt = config().input_ports.find("topic_name");
-  if(portIt != config().input_ports.end())
-  {
-    const std::string& bb_topic_name = portIt->second;
+  if (portIt != config().input_ports.end()) {
+    const std::string & bb_topic_name = portIt->second;
 
-    if(bb_topic_name.empty() || bb_topic_name == "__default__placeholder__")
-    {
-      if(params.default_port_value.empty()) {
+    if (bb_topic_name.empty() || bb_topic_name == "__default__placeholder__") {
+      if (params.default_port_value.empty()) {
         throw std::logic_error(
           "Both [topic_name] in the InputPort and the RosNodeParams are empty.");
-      }
-      else {
+      } else {
         createPublisher(params.default_port_value);
       }
-    }
-    else if(!isBlackboardPointer(bb_topic_name))
-    {
+    } else if (!isBlackboardPointer(bb_topic_name)) {
       // If the content of the port "topic_name" is not
       // a pointer to the blackboard, but a static string, we can
       // create the client in the constructor.
       createPublisher(bb_topic_name);
-    }
-    else {
+    } else {
       topic_name_may_change_ = true;
       // createPublisher will be invoked in the first tick().
     }
-  }
-  else {
-    if(params.default_port_value.empty()) {
-      throw std::logic_error(
-        "Both [topic_name] in the InputPort and the RosNodeParams are empty.");
-    }
-    else {
+  } else {
+    if (params.default_port_value.empty()) {
+      throw std::logic_error("Both [topic_name] in the InputPort and the RosNodeParams are empty.");
+    } else {
       createPublisher(params.default_port_value);
     }
   }
 }
 
-template<class T> inline
-  bool RosTopicPubNode<T>::createPublisher(const std::string& topic_name)
+template <class T>
+inline bool RosTopicPubNode<T>::createPublisher(const std::string & topic_name)
 {
-  if(topic_name.empty())
-  {
+  if (topic_name.empty()) {
     throw RuntimeError("topic_name is empty");
   }
-  
+
   publisher_ = node_->create_publisher<T>(topic_name, 1);
   prev_topic_name_ = topic_name;
   return true;
 }
 
-template<class T> inline
-  NodeStatus RosTopicPubNode<T>::tick()
+template <class T>
+inline NodeStatus RosTopicPubNode<T>::tick()
 {
   // First, check if the subscriber_ is valid and that the name of the
   // topic_name in the port didn't change.
   // otherwise, create a new subscriber
-  if(!publisher_ || (status() == NodeStatus::IDLE && topic_name_may_change_))
-  {
+  if (!publisher_ || (status() == NodeStatus::IDLE && topic_name_may_change_)) {
     std::string topic_name;
     getInput("topic_name", topic_name);
-    if(prev_topic_name_ != topic_name)
-    {
+    if (prev_topic_name_ != topic_name) {
       createPublisher(topic_name);
     }
   }
 
   T msg;
-  if (!setMessage(msg))
-  {
+  if (!setMessage(msg)) {
     return NodeStatus::FAILURE;
   }
   publisher_->publish(msg);
@@ -189,4 +166,3 @@ template<class T> inline
 }
 
 }  // namespace BT
-

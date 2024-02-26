@@ -13,13 +13,13 @@
 // limitations under the License.
 
 #include <cstdint>
-#include <string>
-#include <map>
 #include <filesystem>
+#include <map>
+#include <string>
 
+#include <behaviortree_cpp/bt_factory.h>
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
-#include <behaviortree_cpp/bt_factory.h>
 
 #include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
 #include <panther_manager_plugin_test_utils.hpp>
@@ -27,8 +27,8 @@
 TEST(TestShutdownSingleHost, good_loading_shutdown_single_host_plugin)
 {
   std::map<std::string, std::string> service = {
-    { "command", "pwd" }, { "ip", "localhost" }, { "ping_for_success", "false" },
-    { "port", "22" },    { "timeout", "5.0" },  { "user", "husarion" },
+    {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
+    {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
   };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -41,8 +41,8 @@ TEST(TestShutdownSingleHost, good_loading_shutdown_single_host_plugin)
 TEST(TestShutdownSingleHost, wrong_plugin_name_loading_shutdown_single_host_plugin)
 {
   std::map<std::string, std::string> service = {
-    { "command", "pwd" }, { "ip", "localhost" }, { "ping_for_success", "false" },
-    { "port", "22" },    { "timeout", "5.0" },  { "user", "husarion" },
+    {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
+    {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
   };
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
@@ -58,13 +58,17 @@ TEST(TestShutdownSingleHost, good_touch_command)
   EXPECT_FALSE(std::filesystem::exists(file_path));
 
   std::map<std::string, std::string> service = {
-    { "command", "touch " + file_path }, { "ip", "localhost" }, { "ping_for_success", "false" }, { "port", "22" },
-    { "timeout", "5.0" },          { "user", "husarion" },
+    {"command", "touch " + file_path},
+    {"ip", "localhost"},
+    {"ping_for_success", "false"},
+    {"port", "22"},
+    {"timeout", "5.0"},
+    {"user", "husarion"},
   };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   test_utils.CreateTree("ShutdownSingleHost", service);
-  auto& tree = test_utils.CreateTree("ShutdownSingleHost", service);
+  auto & tree = test_utils.CreateTree("ShutdownSingleHost", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -77,15 +81,19 @@ TEST(TestShutdownSingleHost, good_touch_command)
 TEST(TestShutdownSingleHost, wrong_command)
 {
   std::map<std::string, std::string> service = {
-    { "command", "command_what_does_not_exists"}, { "ip", "localhost" }, { "ping_for_success", "false" }, { "port", "22" },
-    { "timeout", "5.0" },          { "user", "husarion" },
+    {"command", "command_what_does_not_exists"},
+    {"ip", "localhost"},
+    {"ping_for_success", "false"},
+    {"port", "22"},
+    {"timeout", "0.2"},
+    {"user", "husarion"},
   };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   test_utils.CreateTree("ShutdownSingleHost", service);
-  auto& tree = test_utils.CreateTree("ShutdownSingleHost", service);
+  auto & tree = test_utils.CreateTree("ShutdownSingleHost", service);
 
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(300));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 
   test_utils.Stop();
@@ -94,13 +102,17 @@ TEST(TestShutdownSingleHost, wrong_command)
 TEST(TestShutdownSingleHost, wrong_user)
 {
   std::map<std::string, std::string> service = {
-    { "command", "echo Hello World!"}, { "ip", "localhost" }, { "ping_for_success", "false" }, { "port", "22" },
-    { "timeout", "5.0" },          { "user", "user_what_does_not_exists" },
+    {"command", "echo Hello World!"},
+    {"ip", "localhost"},
+    {"ping_for_success", "false"},
+    {"port", "22"},
+    {"timeout", "5.0"},
+    {"user", "user_what_does_not_exists"},
   };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   test_utils.CreateTree("ShutdownSingleHost", service);
-  auto& tree = test_utils.CreateTree("ShutdownSingleHost", service);
+  auto & tree = test_utils.CreateTree("ShutdownSingleHost", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
@@ -108,7 +120,7 @@ TEST(TestShutdownSingleHost, wrong_user)
   test_utils.Stop();
 }
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

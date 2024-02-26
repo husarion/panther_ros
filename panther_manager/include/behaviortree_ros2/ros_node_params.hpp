@@ -14,10 +14,10 @@
 
 #pragma once
 
-#include <rclcpp/rclcpp.hpp>
-#include <string>
 #include <chrono>
 #include <memory>
+#include <rclcpp/rclcpp.hpp>
+#include <string>
 
 namespace BT
 {
@@ -42,4 +42,4 @@ struct RosNodeParams
   std::chrono::milliseconds wait_for_server_timeout = std::chrono::milliseconds(500);
 };
 
-}
+}  // namespace BT

@@ -13,19 +13,19 @@
 // limitations under the License.
 
 #include <cstdint>
-#include <string>
 #include <map>
+#include <string>
 
+#include <behaviortree_cpp/bt_factory.h>
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
-#include <behaviortree_cpp/bt_factory.h>
 
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
 #include <panther_manager_plugin_test_utils.hpp>
 
 TEST(TestSignalShutdown, good_loading_signal_shutdown_plugin)
 {
-  std::map<std::string, std::string> service = { { "reason", "Test shutdown." } };
+  std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   test_utils.CreateTree("SignalShutdown", service);
@@ -46,10 +46,10 @@ TEST(TestSignalShutdown, wrong_plugin_name_loading_signal_shutdown_plugin)
 
 TEST(TestSignalShutdown, good_check_reason_blackboard_value)
 {
-  std::map<std::string, std::string> service = { { "reason", "Test shutdown." } };
+  std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  auto& tree = test_utils.CreateTree("SignalShutdown", service);
+  auto & tree = test_utils.CreateTree("SignalShutdown", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -64,10 +64,10 @@ TEST(TestSignalShutdown, good_check_reason_blackboard_value)
 
 TEST(TestSignalShutdown, wrong_check_reason_blackboard_value)
 {
-  std::map<std::string, std::string> service = { { "reason", "Test shutdown." } };
+  std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  auto& tree = test_utils.CreateTree("SignalShutdown", service);
+  auto & tree = test_utils.CreateTree("SignalShutdown", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -79,7 +79,7 @@ TEST(TestSignalShutdown, wrong_check_reason_blackboard_value)
   EXPECT_FALSE(got_value.second == "Wrong reason!");
 }
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

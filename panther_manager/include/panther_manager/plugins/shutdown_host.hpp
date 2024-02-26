@@ -15,21 +15,20 @@
 #ifndef PANTHER_MANAGER_SHUTDOWN_HOST_HPP_
 #define PANTHER_MANAGER_SHUTDOWN_HOST_HPP_
 
+#include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
-#include <chrono>
 
 #include <libssh/libsshpp.hpp>
 
 namespace panther_manager
 {
 
-enum class ShutdownHostState
-{
+enum class ShutdownHostState {
   IDLE = 0,
   COMMAND_EXECUTED,
   RESPONSE_RECEIVED,
@@ -44,50 +43,44 @@ class ShutdownHost
 public:
   // default constructor
   ShutdownHost()
-    : ip_("")
-    , user_("")
-    , port_(22)
-    , command_("")
-    , timeout_(5000)
-    , ping_for_success_(true)
-    , hash_(std::hash<std::string>{}(""))
+  : ip_(""),
+    user_(""),
+    port_(22),
+    command_(""),
+    timeout_(5000),
+    ping_for_success_(true),
+    hash_(std::hash<std::string>{}(""))
   {
   }
-  ShutdownHost(const std::string ip, const std::string user, const int port = 22,
-               const std::string command = "sudo shutdown now", const float timeout = 5.0,
-               const bool ping_for_success = true)
-    : ip_(ip)
-    , user_(user)
-    , port_(port)
-    , command_(command)
-    , timeout_(static_cast<long long>(timeout * 1000))
-    , ping_for_success_(ping_for_success)
-    , hash_(std::hash<std::string>{}(ip + user + std::to_string(port)))
-    , state_(ShutdownHostState::IDLE)
+  ShutdownHost(
+    const std::string ip, const std::string user, const int port = 22,
+    const std::string command = "sudo shutdown now", const float timeout = 5.0,
+    const bool ping_for_success = true)
+  : ip_(ip),
+    user_(user),
+    port_(port),
+    command_(command),
+    timeout_(static_cast<long long>(timeout * 1000)),
+    ping_for_success_(ping_for_success),
+    hash_(std::hash<std::string>{}(ip + user + std::to_string(port))),
+    state_(ShutdownHostState::IDLE)
   {
   }
 
-  ~ShutdownHost()
-  {
-  }
+  ~ShutdownHost() {}
 
   void call()
   {
-    switch (state_)
-    {
+    switch (state_) {
       case ShutdownHostState::IDLE:
-        if (!is_available())
-        {
+        if (!is_available()) {
           state_ = ShutdownHostState::SKIPPED;
           break;
         }
 
-        try
-        {
+        try {
           request_shutdown();
-        }
-        catch (const std::runtime_error &err)
-        {
+        } catch (const std::runtime_error & err) {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = err.what();
           break;
@@ -96,15 +89,11 @@ public:
         break;
 
       case ShutdownHostState::COMMAND_EXECUTED:
-        try
-        {
-          if (update_response())
-          {
+        try {
+          if (update_response()) {
             break;
           }
-        }
-        catch (const std::runtime_error &err)
-        {
+        } catch (const std::runtime_error & err) {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = err.what();
           break;
@@ -116,13 +105,11 @@ public:
         state_ = ShutdownHostState::PINGING;
         break;
       case ShutdownHostState::PINGING:
-        if (ping_for_success_ ? !is_available() : true)
-        {
+        if (ping_for_success_ ? !is_available() : true) {
           state_ = ShutdownHostState::SUCCESS;
           break;
         }
-        if (timeout_exceeded())
-        {
+        if (timeout_exceeded()) {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = "Timeout exceeded";
         }
@@ -140,8 +127,7 @@ public:
 
   void close_connection()
   {
-    if (ssh_channel_is_closed(channel_))
-    {
+    if (ssh_channel_is_closed(channel_)) {
       return;
     }
 
@@ -152,55 +138,25 @@ public:
     ssh_free(session_);
   }
 
-  int get_port() const
-  {
-    return port_;
-  }
+  int get_port() const { return port_; }
 
-  std::string get_ip() const
-  {
-    return ip_;
-  }
+  std::string get_ip() const { return ip_; }
 
-  std::string get_user() const
-  {
-    return user_;
-  }
+  std::string get_user() const { return user_; }
 
-  std::string get_command() const
-  {
-    return command_;
-  }
+  std::string get_command() const { return command_; }
 
-  std::string get_error() const
-  {
-    return failure_reason_;
-  }
+  std::string get_error() const { return failure_reason_; }
 
-  std::string get_response() const
-  {
-    return output_;
-  }
+  std::string get_response() const { return output_; }
 
-  ShutdownHostState get_state() const
-  {
-    return state_;
-  }
+  ShutdownHostState get_state() const { return state_; }
 
-  bool operator==(const ShutdownHost& other) const
-  {
-    return hash_ == other.hash_;
-  }
+  bool operator==(const ShutdownHost & other) const { return hash_ == other.hash_; }
 
-  bool operator!=(const ShutdownHost& other) const
-  {
-    return hash_ != other.hash_;
-  }
+  bool operator!=(const ShutdownHost & other) const { return hash_ != other.hash_; }
 
-  bool operator<(const ShutdownHost& other) const
-  {
-    return hash_ < other.hash_;
-  }
+  bool operator<(const ShutdownHost & other) const { return hash_ < other.hash_; }
 
 private:
   const std::string ip_;
@@ -230,25 +186,21 @@ private:
 
   bool update_response()
   {
-    if (!is_available())
-    {
+    if (!is_available()) {
       close_connection();
       throw std::runtime_error("Lost connection");
     }
 
-    if (!ssh_channel_is_open(channel_))
-    {
+    if (!ssh_channel_is_open(channel_)) {
       throw std::runtime_error("Channel closed");
     }
 
-    if (timeout_exceeded())
-    {
+    if (timeout_exceeded()) {
       close_connection();
       throw std::runtime_error("Timeout exceeded");
     }
 
-    if ((nbytes_ = ssh_channel_read_nonblocking(channel_, buffer_, sizeof(buffer_), 0)) >= 0)
-    {
+    if ((nbytes_ = ssh_channel_read_nonblocking(channel_, buffer_, sizeof(buffer_), 0)) >= 0) {
       output_.append(buffer_, nbytes_);
       return true;
     }
@@ -264,11 +216,10 @@ private:
     return elapsed > timeout_ && is_available();
   }
 
-  void ssh_execute_command(const std::string& command)
+  void ssh_execute_command(const std::string & command)
   {
     session_ = ssh_new();
-    if (session_ == NULL)
-    {
+    if (session_ == NULL) {
       throw std::runtime_error("Failed to open session");
     };
 
@@ -277,15 +228,13 @@ private:
     ssh_options_set(session_, SSH_OPTIONS_PORT, &port_);
     ssh_options_set(session_, SSH_OPTIONS_LOG_VERBOSITY, &verbosity_);
 
-    if (ssh_connect(session_) != SSH_OK)
-    {
+    if (ssh_connect(session_) != SSH_OK) {
       std::string err = ssh_get_error(session_);
       ssh_free(session_);
       throw std::runtime_error("Error connecting to host: " + err);
     }
 
-    if (ssh_userauth_publickey_auto(session_, NULL, NULL) != SSH_AUTH_SUCCESS)
-    {
+    if (ssh_userauth_publickey_auto(session_, NULL, NULL) != SSH_AUTH_SUCCESS) {
       std::string err = ssh_get_error(session_);
       ssh_disconnect(session_);
       ssh_free(session_);
@@ -293,16 +242,14 @@ private:
     }
 
     channel_ = ssh_channel_new(session_);
-    if (channel_ == NULL)
-    {
+    if (channel_ == NULL) {
       std::string err = ssh_get_error(session_);
       ssh_disconnect(session_);
       ssh_free(session_);
       throw std::runtime_error("Failed to create ssh channel: " + err);
     }
 
-    if (ssh_channel_open_session(channel_) != SSH_OK)
-    {
+    if (ssh_channel_open_session(channel_) != SSH_OK) {
       std::string err = ssh_get_error(session_);
       ssh_channel_free(channel_);
       ssh_disconnect(session_);
@@ -310,8 +257,7 @@ private:
       throw std::runtime_error("Failed to open ssh channel: " + err);
     }
 
-    if (ssh_channel_request_exec(channel_, command.c_str()) != SSH_OK)
-    {
+    if (ssh_channel_request_exec(channel_, command.c_str()) != SSH_OK) {
       std::string err = ssh_get_error(session_);
       ssh_channel_close(channel_);
       ssh_channel_free(channel_);

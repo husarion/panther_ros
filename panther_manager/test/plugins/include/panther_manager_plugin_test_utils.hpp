@@ -18,23 +18,25 @@
 #include <memory>
 #include <thread>
 
+#include <panther_msgs/srv/set_led_animation.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
-#include <panther_msgs/srv/set_led_animation.hpp>
 
 #include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
 #include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
-#include <panther_manager/plugins/action/signal_shutdown_node.hpp>
+#include <panther_manager/plugins/action/shutdown_hosts_from_file_node.hpp>
 #include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
+#include <panther_manager/plugins/action/signal_shutdown_node.hpp>
 
 #include <behaviortree_cpp/bt_factory.h>
 
 namespace panther_manager_plugin_test
 {
 
-struct BehaviorTreePluginDescription{
+struct BehaviorTreePluginDescription
+{
   std::string service_name;
   std::map<std::string, std::string> params;
 };
@@ -42,27 +44,30 @@ struct BehaviorTreePluginDescription{
 class PantherManagerPluginTestUtils
 {
 public:
+  std::string BuildBehaviorTree(
+    const std::string & plugin_name, const std::map<std::string, std::string> & service);
 
-  std::string BuildBehaviorTree(const std::string& plugin_name,
-                                const   std::map<std::string, std::string> & service);
+  BT::Tree & CreateTree(
+    const std::string & plugin_name, const std::map<std::string, std::string> & service);
 
-  BT::Tree& CreateTree(const std::string& plugin_name,
-                       const   std::map<std::string, std::string> & service);
-
-  BT::BehaviorTreeFactory& GetFactory();
+  BT::BehaviorTreeFactory & GetFactory();
 
   void Start();
   void Stop();
 
   void CreateSetBoolServiceServer(
-      std::function<void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
-          service_callback);
+    std::function<
+      void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
+      service_callback);
   void CreateTriggerServiceServer(
-      std::function<void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
-          service_callback);
-  void CreateSetLEDAnimationServiceServer(std::function<void(panther_msgs::srv::SetLEDAnimation::Request::SharedPtr,
-                                                             panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
-                                              service_callback);
+    std::function<
+      void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
+      service_callback);
+  void CreateSetLEDAnimationServiceServer(
+    std::function<void(
+      panther_msgs::srv::SetLEDAnimation::Request::SharedPtr,
+      panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
+      service_callback);
 
 private:
   rclcpp::Node::SharedPtr bt_node_;
@@ -79,13 +84,13 @@ private:
 
   void spin_executor();
 
-  std::string header_ = R"(
+  const std::string header_ = R"(
       <root BTCPP_format="4">
         <BehaviorTree>
           <Sequence>
   )";
 
-  std::string footer_ = R"(
+  const std::string footer_ = R"(
             </Sequence>
         </BehaviorTree>
       </root>

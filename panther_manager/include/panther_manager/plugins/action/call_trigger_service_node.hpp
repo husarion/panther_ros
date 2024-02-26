@@ -25,18 +25,16 @@ namespace panther_manager
 class CallTriggerService : public BT::RosServiceNode<std_srvs::srv::Trigger>
 {
 public:
-  CallTriggerService(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)
-    : BT::RosServiceNode<std_srvs::srv::Trigger>(name, conf, params)
+  CallTriggerService(
+    const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
+  : BT::RosServiceNode<std_srvs::srv::Trigger>(name, conf, params)
   {
   }
 
-  static BT::PortsList providedPorts()
-  {
-    return providedBasicPorts({});
-  }
+  static BT::PortsList providedPorts() { return providedBasicPorts({}); }
 
-  virtual bool setRequest(typename Request::SharedPtr& /* request*/ ) override;
-  virtual BT::NodeStatus onResponseReceived(const typename Response::SharedPtr& response) override;
+  virtual bool setRequest(typename Request::SharedPtr & /* request*/) override;
+  virtual BT::NodeStatus onResponseReceived(const typename Response::SharedPtr & response) override;
 };
 
 }  // namespace panther_manager

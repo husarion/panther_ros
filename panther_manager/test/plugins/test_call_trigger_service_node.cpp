@@ -13,19 +13,20 @@
 // limitations under the License.
 
 #include <cstdint>
-#include <string>
 #include <map>
+#include <string>
 
+#include <behaviortree_cpp/bt_factory.h>
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
-#include <behaviortree_cpp/bt_factory.h>
 
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 
 #include <panther_manager_plugin_test_utils.hpp>
 
-void ServiceFailedCallback(const std_srvs::srv::Trigger::Request::SharedPtr request,
-                           std_srvs::srv::Trigger::Response::SharedPtr response)
+void ServiceFailedCallback(
+  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  std_srvs::srv::Trigger::Response::SharedPtr response)
 {
   [[maybe_unused]] request;
   response->message = "Failed callback pass!";
@@ -33,8 +34,9 @@ void ServiceFailedCallback(const std_srvs::srv::Trigger::Request::SharedPtr requ
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
 
-void ServiceSuccessCallback(const std_srvs::srv::Trigger::Request::SharedPtr request,
-                            std_srvs::srv::Trigger::Response::SharedPtr response)
+void ServiceSuccessCallback(
+  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  std_srvs::srv::Trigger::Response::SharedPtr response)
 {
   [[maybe_unused]] request;
   response->message = "Successfully callback pass!";
@@ -44,7 +46,7 @@ void ServiceSuccessCallback(const std_srvs::srv::Trigger::Request::SharedPtr req
 
 TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
 {
-  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
+  std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -55,7 +57,7 @@ TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
 
 TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plugin)
 {
-  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
+  std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
@@ -65,11 +67,11 @@ TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plug
 
 TEST(TestCallTriggerService, wrong_call_trigger_service_service_server_not_initialized)
 {
-  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
+  std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  auto& tree = test_utils.CreateTree("CallTriggerService", service);
+  auto & tree = test_utils.CreateTree("CallTriggerService", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
@@ -79,11 +81,11 @@ TEST(TestCallTriggerService, wrong_call_trigger_service_service_server_not_initi
 
 TEST(TestCallTriggerService, good_trigger_call_service_success)
 {
-  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
+  std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  auto& tree = test_utils.CreateTree("CallTriggerService", service);
+  auto & tree = test_utils.CreateTree("CallTriggerService", service);
 
   test_utils.CreateTriggerServiceServer(ServiceSuccessCallback);
 
@@ -95,11 +97,11 @@ TEST(TestCallTriggerService, good_trigger_call_service_success)
 
 TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
 {
-  std::map<std::string, std::string> service = { { "service_name", "trigger" }};
+  std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  auto& tree = test_utils.CreateTree("CallTriggerService", service);
+  auto & tree = test_utils.CreateTree("CallTriggerService", service);
 
   test_utils.CreateTriggerServiceServer(ServiceFailedCallback);
 
@@ -109,7 +111,7 @@ TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
   test_utils.Stop();
 }
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

@@ -14,13 +14,14 @@
 
   <author email="jakub.delciat@husarion.com">Jakub Delicat</author>
 
+  <depend>behaviortree_cpp</depend>
+  <depend>iputils-ping</depend>
   <depend>libboost-dev</depend>
+  <depend>libssh-dev</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
-  <depend>behaviortree_cpp</depend>
   <depend>std_srvs</depend>
-  <depend>libssh-dev</depend>
-  <depend>iputils-ping</depend>
+  <depend>yaml-cpp</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
