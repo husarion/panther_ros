@@ -41,7 +41,7 @@ ament_target_dependencies(
 add_executable(
   controller_node
   src/controller_node_main.cpp src/controller_node.cpp src/led_segment.cpp
-  src/led_panel.cpp src/segment_converter.cpp)
+  src/led_panel.cpp src/segment_converter.cpp src/led_animations_queue.cpp)
 
 ament_target_dependencies(controller_node rclcpp pluginlib panther_msgs
                           panther_utils sensor_msgs)

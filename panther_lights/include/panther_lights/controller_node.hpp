@@ -29,104 +29,14 @@
 #include <panther_msgs/srv/set_led_animation.hpp>
 
 #include <panther_lights/animation/animation.hpp>
+#include <panther_lights/led_animations_queue.hpp>
 #include <panther_lights/segment_converter.hpp>
-
 #include <panther_utils/yaml_utils.hpp>
 
 namespace panther_lights
 {
 
 using SetLEDAnimationSrv = panther_msgs::srv::SetLEDAnimation;
-
-struct AnimationDescription
-{
-  std::string type;
-  std::vector<std::string> segments;
-  YAML::Node animation;
-};
-
-struct LEDAnimationDescription
-{
-  std::size_t id;
-  std::uint8_t priority;
-  std::string name;
-  float timeout;
-  std::vector<AnimationDescription> animations;
-};
-
-class LEDAnimation
-{
-public:
-  LEDAnimation(
-    const LEDAnimationDescription & led_animation_description,
-    const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
-    const rclcpp::Time & init_time);
-
-  ~LEDAnimation() {}
-
-  bool IsFinished();
-
-  void ResetTime(const rclcpp::Time & init_time) { init_time_ = init_time; }
-
-  std::string GetName() const { return led_animation_description_.name; }
-  std::uint8_t GetPriority() const { return led_animation_description_.priority; }
-  std::vector<AnimationDescription> GetAnimations() const
-  {
-    return led_animation_description_.animations;
-  }
-  rclcpp::Time GetInitTime() const { return init_time_; }
-  float GetTimeout() const { return led_animation_description_.timeout; }
-  LEDAnimationDescription GetAnimationDescription() const { return led_animation_description_; }
-  float GetProgress() const;
-  void Reset() const;
-
-  bool IsRepeating() const { return repeating_; }
-
-  void SetInitTime(const rclcpp::Time init_time) { init_time_ = init_time; }
-  void SetRepeating(const bool value) { repeating_ = value; }
-
-  static constexpr char kDefaultName[] = "UNDEFINED";
-  static constexpr std::uint8_t kDefaultPriority = 3;
-  static constexpr float kDefaultTimeout = 120.0f;
-
-private:
-  const LEDAnimationDescription led_animation_description_;
-  rclcpp::Time init_time_;
-
-  bool repeating_;
-  std::string param_;
-  std::vector<std::shared_ptr<LEDSegment>> animation_segments_;
-};
-
-class AnimationsQueue
-{
-public:
-  AnimationsQueue(const std::size_t max_queue_size = 5) : max_queue_size_(max_queue_size) {}
-
-  void Put(const std::shared_ptr<LEDAnimation> & animation, const rclcpp::Time & time);
-  std::shared_ptr<LEDAnimation> Get();
-  void Clear(std::size_t priority = 2);
-  void Remove(const std::shared_ptr<LEDAnimation> & animation);
-
-  void Validate(const rclcpp::Time & time);
-
-  bool HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const;
-  std::size_t GetFirstAnimationPriority() const;
-
-  bool Empty() const { return queue_.empty(); }
-
-  void Print()
-  {
-    std::cout << "--------" << std::endl;
-    for (auto & anim : queue_) {
-      std::cout << anim->GetName() << std::endl;
-    }
-  }
-
-private:
-  std::deque<std::shared_ptr<LEDAnimation>> queue_;
-  const std::size_t max_queue_size_;
-};
 
 class ControllerNode : public rclcpp::Node
 {
@@ -212,8 +122,7 @@ private:
   rclcpp::TimerBase::SharedPtr controller_timer_;
 
   std::shared_ptr<LEDAnimation> current_animation_;
-  std::shared_ptr<LEDAnimation> default_animation_;
-  std::unique_ptr<AnimationsQueue> animation_queue_;
+  std::unique_ptr<LEDAnimationsQueue> animations_queue_;
 
   std::mutex queue_mtx_;
 
