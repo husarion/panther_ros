@@ -42,6 +42,12 @@ public:
 
   void Initialize();
 
+protected:
+  void SetPowerPin(const bool value);
+  int num_led_;
+  double frame_timeout_;
+  bool panels_initialised_ = false;
+
 private:
   void OnShutdown();
   void FrameCB(
@@ -50,12 +56,7 @@ private:
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
-  void SetPowerPin(const bool value);
   void DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status);
-
-  int num_led_;
-  double frame_timeout_;
-  bool panels_initialised_ = false;
 
   apa102::APA102 front_panel_;
   apa102::APA102 rear_panel_;

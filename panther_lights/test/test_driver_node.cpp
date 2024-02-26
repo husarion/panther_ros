@@ -15,12 +15,27 @@
 #include <gtest/gtest.h>
 #include <image_transport/image_transport.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 
 #include <panther_lights/driver_node.hpp>
+#include <panther_lights/test/mock_apa102.hpp>
 #include <panther_msgs/srv/set_led_brightness.hpp>
 #include <panther_utils/test/ros_test_utils.hpp>
 
+using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
+using MockAPA102 = panther_lights::mock_apa102::MockAPA102;
+
+class MockDriverNode : public panther_lights::DriverNode::DriverNode
+{
+public:
+  MockDriverNode(const std::string & device) : DriverNode(device) {}
+
+  void SetPowerPin([[maybe_unused]] const bool value)  {}
+  bool num_led_;
+  double frame_timeout_;
+  bool panels_initialised_;
+};
 
 class TestDriverNode : public ::testing::Test
 {
@@ -28,7 +43,7 @@ public:
   void SetUp() override
   {
     rclcpp::init(0, nullptr);
-    node_ = std::make_shared<panther_lights::DriverNode>("test_lights_driver_node");
+    node_ = std::make_shared<MockDriverNode>("test_lights_driver_node");
     it_ = std::make_shared<image_transport::ImageTransport>(node_->shared_from_this());
     front_light_pub_ = std::make_shared<image_transport::Publisher>(
       it_->advertise("lights/driver/front_panel_frame", 5));
@@ -46,12 +61,86 @@ public:
   }
 
 protected:
-  std::shared_ptr<panther_lights::DriverNode> node_;
-  std::shared_ptr<image_transport::ImageTransport> it_;
+  ImageMsg::SharedPtr CreateImageMsg()
+  {
+    auto msg = std::make_shared<ImageMsg>();
+
+    // Filling msg with dummy data
+    msg->header.stamp = node_->now();
+    msg->header.frame_id = "camera_frame";
+    msg->height = 1;
+    msg->width = node_->num_led_;
+    msg->encoding = sensor_msgs::image_encodings::RGBA8;
+    msg->is_bigendian = false;
+    msg->step = msg->width * 4;
+    msg->data = std::vector<uint8_t>(msg->width * msg->height * msg->step, 0);
+
+    return msg;
+  }
+
+  std::shared_ptr<MockDriverNode> node_;
   std::shared_ptr<image_transport::Publisher> rear_light_pub_;
   std::shared_ptr<image_transport::Publisher> front_light_pub_;
   rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
+  MockAPA102 rear_panel_ = MockAPA102("/dev/spidev0.0");
+  MockAPA102 front_panel_= MockAPA102("/dev/spidev0.1");
+
+private:
+  std::shared_ptr<image_transport::ImageTransport> it_;
 };
+
+TEST_F(TestDriverNode, PublishSuccess)
+{
+  auto msg = CreateImageMsg();
+
+  front_light_pub_->publish(msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  rear_light_pub_->publish(msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+
+  EXPECT_TRUE(node_->panels_initialised_);
+}
+
+TEST_F(TestDriverNode, PublishFail)
+{
+  ImageMsg::SharedPtr msg;
+
+  // Timeout Fail
+  msg = CreateImageMsg();
+  msg->header.stamp.sec = node_->get_clock()->now().seconds() - node_->frame_timeout_;
+  front_light_pub_->publish(msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  EXPECT_FALSE(node_->panels_initialised_);
+
+  // // Older Msg Fail
+  // msg = CreateImageMsg();
+  // msg->header.stamp.sec = node_->get_clock()->now().seconds() - node_->frame_timeout_;
+  // front_light_pub_->publish(msg);
+  // ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  // EXPECT_FALSE(node_->panels_initialised_);
+
+  // Encoding Fail
+  msg = CreateImageMsg();
+  msg->encoding = sensor_msgs::image_encodings::RGB8;
+  front_light_pub_->publish(msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  EXPECT_FALSE(node_->panels_initialised_);
+
+  // Hight Fail
+  msg = CreateImageMsg();
+  msg->height = 2;
+  front_light_pub_->publish(msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  EXPECT_FALSE(node_->panels_initialised_);
+
+  // Width Fail
+  msg = CreateImageMsg();
+  msg->width = node_->num_led_ + 1;
+  front_light_pub_->publish(msg);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  EXPECT_FALSE(node_->panels_initialised_);
+}
+
 
 TEST_F(TestDriverNode, ServiceTestSuccess)
 {
