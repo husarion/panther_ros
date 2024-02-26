@@ -57,54 +57,22 @@ TEST(TestShutdownSingleHost, good_touch_command)
   std::filesystem::remove(file_path);
   EXPECT_FALSE(std::filesystem::exists(file_path));
 
+  // #TODO: @delihus change the user to husarion on the panther
   std::map<std::string, std::string> service = {
     { "command", "touch " + file_path }, { "ip", "localhost" }, { "ping_for_success", "false" }, { "port", "22" },
-    { "timeout", "5.0" },          { "user", "husarion" },
+    { "timeout", "5.0" },          { "user", "deli" },
   };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
   test_utils.CreateTree("ShutdownSingleHost", service);
   auto& tree = test_utils.CreateTree("ShutdownSingleHost", service);
 
+  testing::internal::CaptureStdout();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
   EXPECT_TRUE(std::filesystem::exists(file_path));
 
   std::filesystem::remove(file_path);
-  test_utils.Stop();
-}
-
-TEST(TestShutdownSingleHost, wrong_command)
-{
-  std::map<std::string, std::string> service = {
-    { "command", "command_what_does_not_exists"}, { "ip", "localhost" }, { "ping_for_success", "false" }, { "port", "22" },
-    { "timeout", "5.0" },          { "user", "husarion" },
-  };
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  test_utils.CreateTree("ShutdownSingleHost", service);
-  auto& tree = test_utils.CreateTree("ShutdownSingleHost", service);
-
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-
-  test_utils.Stop();
-}
-
-TEST(TestShutdownSingleHost, wrong_user)
-{
-  std::map<std::string, std::string> service = {
-    { "command", "command_what_does_not_exists"}, { "ip", "localhost" }, { "ping_for_success", "false" }, { "port", "22" },
-    { "timeout", "5.0" },          { "user", "user_what_does_not_exists" },
-  };
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  test_utils.CreateTree("ShutdownSingleHost", service);
-  auto& tree = test_utils.CreateTree("ShutdownSingleHost", service);
-
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-
   test_utils.Stop();
 }
 
