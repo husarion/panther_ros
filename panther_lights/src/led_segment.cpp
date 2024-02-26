@@ -94,11 +94,12 @@ void LEDSegment::SetAnimation(
   }
 
   animation_ = std::move(animation);
-  animaiton_finished_ = false;
+  animation_finished_ = false;
 
   if (repeating) {
     default_animation_ = animation_;
-  } else if (default_animation_) {
+  }
+  if (default_animation_) {
     default_animation_->Reset();
   }
 }
@@ -110,13 +111,13 @@ void LEDSegment::UpdateAnimation(const std::string & param)
   }
 
   if (animation_->IsFinished()) {
-    animaiton_finished_ = true;
+    animation_finished_ = true;
   }
 
   std::shared_ptr<panther_lights::Animation> animation_to_update =
-    animaiton_finished_ && default_animation_ ? default_animation_ : animation_;
+    animation_finished_ && default_animation_ ? default_animation_ : animation_;
 
-  if (animaiton_finished_ && default_animation_ && default_animation_->IsFinished()) {
+  if (animation_finished_ && default_animation_ && default_animation_->IsFinished()) {
     default_animation_->Reset();
   }
 
@@ -134,7 +135,7 @@ std::vector<std::uint8_t> LEDSegment::GetAnimationFrame() const
     throw std::runtime_error("Segment animation not defined");
   }
 
-  if (default_animation_ && animation_->IsFinished()) {
+  if (default_animation_ && animation_finished_) {
     return default_animation_->GetFrame(invert_led_order_);
   }
 

@@ -75,7 +75,7 @@ public:
    *
    * @return True if animation is finished, false otherwise
    */
-  bool IsAnimationFinished() const { return animaiton_finished_; }
+  bool IsAnimationFinished() const { return animation_finished_; }
 
   /**
    * @brief Get current animation frame
@@ -93,7 +93,7 @@ public:
 private:
   const float controller_frequency_;
   bool invert_led_order_ = false;
-  bool animaiton_finished_ = true;
+  bool animation_finished_ = true;
   std::size_t channel_;
   std::size_t first_led_iterator_;
   std::size_t last_led_iterator_;

@@ -92,31 +92,31 @@ public:
    */
   void Update()
   {
-    if (current_cycle_ < loops_) {
-      auto frame = UpdateFrame();
-
-      if (frame.size() != num_led_ * kRGBAColorLen) {
-        throw std::runtime_error(
-          "Invalid frame size. Check animation UpdateFrame() method implementation");
-      }
-
-      anim_iteration_++;
-      progress_ = float(anim_iteration_ + anim_len_ * current_cycle_) / full_anim_len_;
-
-      if (anim_iteration_ >= anim_len_) {
-        anim_iteration_ = 0;
-        current_cycle_++;
-      }
-
-      if (current_cycle_ >= loops_) {
-        finished_ = true;
-      }
-
-      frame_ = frame;
+    if (current_cycle_ >= loops_) {
+      std::fill(frame_.begin(), frame_.end(), 0);
       return;
     }
 
-    std::fill(frame_.begin(), frame_.end(), 0);
+    auto frame = UpdateFrame();
+
+    if (frame.size() != num_led_ * kRGBAColorLen) {
+      throw std::runtime_error(
+        "Invalid frame size. Check animation UpdateFrame() method implementation");
+    }
+
+    anim_iteration_++;
+    progress_ = float(anim_iteration_ + anim_len_ * current_cycle_) / full_anim_len_;
+
+    if (anim_iteration_ >= anim_len_) {
+      anim_iteration_ = 0;
+      current_cycle_++;
+    }
+
+    if (current_cycle_ >= loops_) {
+      finished_ = true;
+    }
+
+    frame_ = frame;
   }
 
   /**
@@ -129,6 +129,7 @@ public:
     current_cycle_ = 0;
     finished_ = false;
     progress_ = 0.0;
+    std::fill(frame_.begin(), frame_.end(), 0);
   }
 
   /**
