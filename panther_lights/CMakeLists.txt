@@ -50,14 +50,14 @@ if(BUILD_TESTING)
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_apa102)
 
-  ament_add_gtest(${PROJECT_NAME}_test_driver test/test_driver.cpp
+  ament_add_gtest(${PROJECT_NAME}_test_driver_node test/test_driver_node.cpp
                   src/apa102.cpp src/driver_node.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_driver
+    ${PROJECT_NAME}_test_driver_node
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_driver
+    ${PROJECT_NAME}_test_driver_node
     rclcpp
     image_transport
     diagnostic_updater

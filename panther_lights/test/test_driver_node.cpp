@@ -53,24 +53,25 @@ protected:
   rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
 };
 
-TEST_F(TestDriverNode, ServiceTest)
+TEST_F(TestDriverNode, ServiceTestSuccess)
 {
   ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
-
   auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
   request->data = 0.5;
   auto future = set_brightness_client_->async_send_request(request);
-  bool is_response = panther_utils::test_utils::WaitForFuture(
-    node_, future, std::chrono::seconds(1));
-  ASSERT_TRUE(is_response);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1)));
   auto response = future.get();
   EXPECT_TRUE(response->success);
+}
 
-  request->data = 5;
-  future = set_brightness_client_->async_send_request(request);
-  is_response = panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1));
-  ASSERT_TRUE(is_response);
-  response = future.get();
+TEST_F(TestDriverNode, ServiceTestFail)
+{
+  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
+  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
+  request->data = 2;
+  auto future = set_brightness_client_->async_send_request(request);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1)));
+  auto response = future.get();
   EXPECT_FALSE(response->success);
 }
 
