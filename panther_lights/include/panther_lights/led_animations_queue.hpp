@@ -15,6 +15,7 @@
 #ifndef PANTHER_LIGHTS_LED_ANIMATIONS_QUEUE_HPP_
 #define PANTHER_LIGHTS_LED_ANIMATIONS_QUEUE_HPP_
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -40,7 +41,7 @@ struct AnimationDescription
 
 struct LEDAnimationDescription
 {
-  std::size_t id;
+  std::uint8_t id;
   std::uint8_t priority;
   std::string name;
   float timeout;
@@ -106,6 +107,7 @@ public:
   static constexpr char kDefaultName[] = "UNDEFINED";
   static constexpr std::uint8_t kDefaultPriority = 3;
   static constexpr float kDefaultTimeout = 120.0f;
+  static constexpr std::array<std::uint8_t, 3> kValidPriorities = {1, 2, 3};
 
 private:
   const LEDAnimationDescription led_animation_description_;

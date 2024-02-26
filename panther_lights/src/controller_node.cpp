@@ -49,9 +49,11 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
   this->declare_parameter<std::string>(
     "led_config_file",
     "/home/husarion/ros2_ws/src/panther_ros/panther_lights/config/led_config.yaml");
+  this->declare_parameter<std::string>("user_led_animaitons_file", "");
   this->declare_parameter<float>("controller_freq", 50.0);
 
   const auto led_config_file = this->get_parameter("led_config_file").as_string();
+  const auto user_led_animations_file = this->get_parameter("user_led_animaitons_file").as_string();
   const float controller_freq = this->get_parameter("controller_freq").as_double();
 
   YAML::Node led_config_desc = YAML::LoadFile(led_config_file);
@@ -59,7 +61,11 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
   InitializeLEDPanels(led_config_desc["panels"]);
   InitializeLEDSegments(led_config_desc["segments"], controller_freq);
   InitializeLEDSegmentsMap(led_config_desc["segments_map"]);
-  LoadAnimations(led_config_desc["animations"]);
+  LoadDefaultAnimations(led_config_desc["animations"]);
+
+  if (user_led_animations_file != "") {
+    LoadUserAnimations(user_led_animations_file);
+  }
 
   segment_converter_ = std::make_shared<SegmentConverter>();
 
@@ -149,49 +155,95 @@ void ControllerNode::InitializeLEDSegmentsMap(const YAML::Node & segments_map_de
   }
 }
 
-void ControllerNode::LoadAnimations(const YAML::Node & animations_description)
+void ControllerNode::LoadDefaultAnimations(const YAML::Node & animations_description)
 {
-  RCLCPP_INFO(this->get_logger(), "Loading LED animations");
+  RCLCPP_INFO(this->get_logger(), "Loading users LED animations");
+
   for (auto & animation_description : animations_description.as<std::vector<YAML::Node>>()) {
-    LEDAnimationDescription led_animation_desc;
-
-    try {
-      led_animation_desc.name = panther_utils::GetYAMLKeyValue<std::string>(
-        animation_description, "name", LEDAnimation::kDefaultName);
-      led_animation_desc.id = panther_utils::GetYAMLKeyValue<std::size_t>(
-        animation_description, "id");
-      led_animation_desc.priority = panther_utils::GetYAMLKeyValue<std::uint8_t>(
-        animation_description, "priority", LEDAnimation::kDefaultPriority);
-      led_animation_desc.timeout = panther_utils::GetYAMLKeyValue<float>(
-        animation_description, "timeout", LEDAnimation::kDefaultTimeout);
-
-      auto animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
-        animation_description, "animations");
-      for (auto & animation : animations) {
-        AnimationDescription animation_desc;
-        animation_desc.type = panther_utils::GetYAMLKeyValue<std::string>(animation, "type");
-        animation_desc.animation = panther_utils::GetYAMLKeyValue<YAML::Node>(
-          animation, "animation");
-
-        auto segments_group = panther_utils::GetYAMLKeyValue<std::string>(animation, "segments");
-        animation_desc.segments = segments_map_.at(segments_group);
-
-        led_animation_desc.animations.push_back(animation_desc);
-      }
-
-      const auto result = animations_descriptions_.emplace(
-        led_animation_desc.id, led_animation_desc);
-      if (!result.second) {
-        throw std::runtime_error("Animation with given ID already exists.");
-      }
-
-    } catch (const std::runtime_error & e) {
-      throw std::runtime_error(
-        "Failed to load '" + led_animation_desc.name + "' animation: " + std::string(e.what()));
-    }
+    LoadAnimation(animation_description);
   }
 
-  RCLCPP_INFO(this->get_logger(), "Animations Successfully loaded");
+  RCLCPP_INFO(this->get_logger(), "Animations successfully loaded");
+}
+
+void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_file)
+{
+  RCLCPP_INFO(this->get_logger(), "Loading users LED animations");
+
+  try {
+    YAML::Node user_led_animaitons = YAML::LoadFile(user_led_animations_file);
+    auto user_animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
+      user_led_animaitons, "user_animations");
+
+    for (auto & animation_description : user_animations) {
+      try {
+        auto id = panther_utils::GetYAMLKeyValue<std::size_t>(animation_description, "id");
+        if (id < 20) {
+          throw std::runtime_error("Animation ID must be greater than 19");
+        }
+
+        auto priority = panther_utils::GetYAMLKeyValue<std::size_t>(
+          animation_description, "priority", LEDAnimation::kDefaultPriority);
+        if (priority == 1) {
+          throw std::runtime_error("User animation can not have priority 1");
+        }
+
+        LoadAnimation(animation_description);
+      } catch (const std::runtime_error & e) {
+        RCLCPP_WARN(
+          this->get_logger(), "Skipping user animation that failed to load: %s", e.what());
+      }
+    }
+  } catch (const std::exception & e) {
+    RCLCPP_WARN(this->get_logger(), "Failed to load user animations: %s", e.what());
+  }
+
+  RCLCPP_INFO(this->get_logger(), "User animations successfully loaded");
+}
+
+void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
+{
+  LEDAnimationDescription led_animation_desc;
+
+  try {
+    led_animation_desc.name = panther_utils::GetYAMLKeyValue<std::string>(
+      animation_description, "name", LEDAnimation::kDefaultName);
+    led_animation_desc.id = panther_utils::GetYAMLKeyValue<std::size_t>(
+      animation_description, "id");
+    led_animation_desc.priority = panther_utils::GetYAMLKeyValue<std::uint8_t>(
+      animation_description, "priority", LEDAnimation::kDefaultPriority);
+    led_animation_desc.timeout = panther_utils::GetYAMLKeyValue<float>(
+      animation_description, "timeout", LEDAnimation::kDefaultTimeout);
+
+    if (
+      std::find(
+        LEDAnimation::kValidPriorities.begin(), LEDAnimation::kValidPriorities.end(),
+        led_animation_desc.priority) == LEDAnimation::kValidPriorities.end()) {
+      throw std::runtime_error("Invalid LED animation ID");
+    }
+
+    auto animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
+      animation_description, "animations");
+    for (auto & animation : animations) {
+      AnimationDescription animation_desc;
+      animation_desc.type = panther_utils::GetYAMLKeyValue<std::string>(animation, "type");
+      animation_desc.animation = panther_utils::GetYAMLKeyValue<YAML::Node>(animation, "animation");
+
+      auto segments_group = panther_utils::GetYAMLKeyValue<std::string>(animation, "segments");
+      animation_desc.segments = segments_map_.at(segments_group);
+
+      led_animation_desc.animations.push_back(animation_desc);
+    }
+
+    const auto result = animations_descriptions_.emplace(led_animation_desc.id, led_animation_desc);
+    if (!result.second) {
+      throw std::runtime_error("Animation with given ID already exists.");
+    }
+
+  } catch (const std::runtime_error & e) {
+    throw std::runtime_error(
+      "Failed to load '" + led_animation_desc.name + "' animation: " + std::string(e.what()));
+  }
 }
 
 void ControllerNode::SetLEDAnimationCB(
@@ -228,8 +280,6 @@ void ControllerNode::ControllerTimerCB()
 {
   std::lock_guard<std::mutex> lck_g(queue_mtx_);
 
-  auto brightness = 255;
-
   if (animation_finished_) {
     animations_queue_->Validate(this->get_clock()->now());
 
@@ -242,7 +292,6 @@ void ControllerNode::ControllerTimerCB()
     }
   }
 
-  // if(curent_animation) // optional
   if (!current_animation_) {
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "Waiting for animation");
     return;
@@ -268,7 +317,9 @@ void ControllerNode::UpdateAndPublishAnimation()
 
   for (auto & [segment_name, segment] : segments_) {
     try {
-      segment->UpdateAnimation();
+      if (segment->HasAnimation()) {
+        segment->UpdateAnimation();
+      }
     } catch (const std::runtime_error & e) {
       RCLCPP_WARN(
         this->get_logger(), "Failed to update animation on %s segment: %s", segment_name.c_str(),

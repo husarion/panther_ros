@@ -31,6 +31,11 @@ void SegmentConverter::Convert(
   const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels)
 {
   for (auto & [segment_name, segment] : segments) {
+    if (!segment->HasAnimation()) {
+      continue;
+      ;
+    }
+
     try {
       auto panel = panels.at(segment->GetChannel());
 

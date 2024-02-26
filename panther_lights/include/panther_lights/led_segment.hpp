@@ -114,6 +114,8 @@ public:
 
   std::size_t GetChannel() const { return channel_; }
 
+  bool HasAnimation() const { return animation_ || default_animation_; }
+
 private:
   const float controller_frequency_;
   bool invert_led_order_ = false;

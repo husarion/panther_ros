@@ -82,14 +82,31 @@ private:
   void InitializeLEDSegmentsMap(const YAML::Node & segments_map_description);
 
   /**
-   * @brief Adds animations from YAML description to an unordered map with animations
+   * @brief Adds animations to an unordered map with animations
    *
-   * @param animations_description YAML description with list of animations to be loaded
+   * @param animations_description YAML description with list of animations
    *
    * @exception std::runtime_error if fails to load an animation or animation with given ID already
    * exists in the map
    */
-  void LoadAnimations(const YAML::Node & animations_description);
+  void LoadDefaultAnimations(const YAML::Node & animations_description);
+
+  /**
+   * @brief Adds animations to an unordered map with animations
+   *
+   * @param user_led_animations_file path to YAML file with user animations description
+   */
+  void LoadUserAnimations(const std::string & user_led_animations_file);
+
+  /**
+   * @brief Adds animation to an unordered map with animations
+   *
+   * @param animations_description YAML description of the animation
+   *
+   * @exception std::runtime_error if fails to load an animation or animation with given ID already
+   * exists in the map
+   */
+  void LoadAnimation(const YAML::Node & animation_description);
 
   /**
    * @brief Sets animation with requested ID
@@ -100,9 +117,31 @@ private:
    */
   void SetAnimation(const std::size_t animation_id, const bool repeating);
 
+  /**
+   * @brief Updates all segments animations, converts then into panel frames and publishes panel
+   * frames on respective topics
+   */
   void UpdateAndPublishAnimation();
+
+  /**
+   * @brief Add animation to LED animations queue
+   *
+   * @param animation_id ID of the animations
+   * @param repeating Whether animations should repeat
+   * @param param Optional animaiton parameter
+   *
+   * @exception std::runtime_error if no animation with given ID exists
+   */
   void AddAnimationToQueue(
     const std::size_t animation_id, const bool repeating, const std::string & param);
+
+  /**
+   * @brief Add animations to LED segments based on LED animation
+   *
+   * @param led_animation LED animation
+   *
+   * @exception std::runtime_error animation has invalid segment name or it fails to load
+   */
   void SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation);
 
   void PublishPanelFrame(const std::size_t channel);
