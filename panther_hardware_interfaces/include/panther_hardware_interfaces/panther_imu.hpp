@@ -49,37 +49,37 @@ class PantherImuSensor : public hardware_interface::SensorInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(PantherImuSensor)
 
-  CallbackReturn on_init(const hardware_interface::HardwareInfo& hardware_info) override;
-  CallbackReturn on_configure(const rclcpp_lifecycle::State& previous_state) override;
-  CallbackReturn on_cleanup(const rclcpp_lifecycle::State& previous_state) override;
-  CallbackReturn on_activate(const rclcpp_lifecycle::State& previous_state) override;
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State& previous_state) override;
-  CallbackReturn on_shutdown(const rclcpp_lifecycle::State& previous_state) override;
-  CallbackReturn on_error(const rclcpp_lifecycle::State& previous_state) override;
+  CallbackReturn on_init(const hardware_interface::HardwareInfo & hardware_info) override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
+  CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
 
   std::vector<StateInterface> export_state_interfaces() override;
 
-  return_type read(const rclcpp::Time& time, const rclcpp::Duration& /* period */) override;
+  return_type read(const rclcpp::Time & time, const rclcpp::Duration & /* period */) override;
 
 protected:
   std::vector<double> imu_sensor_state_;
   std::unique_ptr<PantherImuRosInterface> panther_imu_ros_interface_;
-  rclcpp::Logger logger_{ rclcpp::get_logger("PantherImuSensor") };
-  rclcpp::Clock steady_clock_{ RCL_STEADY_TIME };
+  rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
+  rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
-  static constexpr size_t kImuInterfacesSize = 9;
+  static constexpr size_t kImuInterfacesSize = 10;
   static constexpr double KImuMagneticFieldUnknownValue = 1e300;
   static constexpr float G = 9.80665;
   inline static std::string kImuSensorName = "imu";
   inline static std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
-    "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z",
-    "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
-    "magnetic_field.x",      "magnetic_field.y",      "magnetic_field.z",
+    "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
+    "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z", "linear_acceleration.x",
+    "linear_acceleration.y", "linear_acceleration.z",
   };
 
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
-  std::mutex > spatial_mutex_;
+  std::mutex spatial_mutex_;
 
   bool imu_connected_;
   bool has_ahrs_params_;
@@ -91,13 +91,14 @@ protected:
   void CheckInterfaces();
   void ReadObligatoryParams();
   void ReadCompassParams();
-  bool IsParamDefined(const std::string& param_name);
+  bool IsParamDefined(const std::string & param_name);
 
   void ConfigureCompassParams();
   void ConfigureHeating();
 
-  void SpatialDataCallback(const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
-                           double timestamp);
+  void SpatialDataCallback(
+    const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
+    double timestamp);
   void SpatialAttachCallback();
   void SpatialDetachCallback();
 

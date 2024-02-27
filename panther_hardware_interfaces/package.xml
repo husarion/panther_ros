@@ -13,6 +13,7 @@
 
   <author email="maciej.stepien@husarion.com">Maciej Stępień</author>
   <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
+  <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

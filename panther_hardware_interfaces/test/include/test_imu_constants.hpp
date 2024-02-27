@@ -17,10 +17,10 @@
 
 #include <chrono>
 #include <cmath>
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
-#include <list>
 
 namespace panther_hardware_interfaces_test
 {
@@ -36,20 +36,18 @@ const std::string kUrdfFooter = R"(</ros2_control>
 )";
 
 const std::list<std::string> kImuInterfaces = {
-  "orientation.x",      "orientation.y",      "orientation.z",         "orientation.w",         "angular_velocity.x",
-  "angular_velocity.y", "angular_velocity.z", "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
+  "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
+  "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z", "linear_acceleration.x",
+  "linear_acceleration.y", "linear_acceleration.z",
 };
 
-const std::map<std::string, std::string> kImuObligatoryParams{ { "serial", "-1" },
-                                                               { "hub_port", "0" },
-                                                               { "use_orientation", "true" },
-                                                               { "spatial_algorithm", "ahrs" },
-                                                               { "data_interval_ms", "8" },
-                                                               { "callback_delta_epsilon_ms", "1" } };
+const std::map<std::string, std::string> kImuObligatoryParams{
+  {"serial", "-1"},
+  {"hub_port", "0"},
+  {"data_interval_ms", "8"},
+  {"callback_delta_epsilon_ms", "1"}};
 
-const std::string kPluginName =
-    R"(<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
-)";
+const std::string kPluginName = "<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>";
 
 const std::string kCalibrateService = "/panther_imu_node/calibrate";
 

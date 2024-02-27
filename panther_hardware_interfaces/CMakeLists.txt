@@ -63,6 +63,7 @@ ament_target_dependencies(
   panther_utils
   realtime_tools
   phidgets_api)
+
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
                       phidgets_spatial_parameters)
 
@@ -178,6 +179,7 @@ ament_export_dependencies(
   rclcpp_lifecycle
   rclcpp
   std_msgs,
+  std_srvs,
   phidgets_api)
 
 ament_package()
