@@ -21,6 +21,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <panther_lights/animation/animation.hpp>
+#include <panther_utils/yaml_utils.hpp>
 
 namespace panther_lights
 {
@@ -28,21 +29,10 @@ namespace panther_lights
 LEDSegment::LEDSegment(const YAML::Node & segment_description, const float controller_frequency)
 : controller_frequency_(controller_frequency)
 {
-  if (!segment_description["led_range"]) {
-    throw std::runtime_error("Missing 'led_range' in segment description");
-  }
+  channel_ = panther_utils::GetYAMLKeyValue<std::size_t>(segment_description, "channel");
+  const auto led_range = panther_utils::GetYAMLKeyValue<std::string>(
+    segment_description, "led_range");
 
-  if (!segment_description["channel"]) {
-    throw std::runtime_error("Missing 'channel' in segment description");
-  }
-
-  try {
-    channel_ = segment_description["channel"].as<std::size_t>();
-  } catch (const YAML::BadConversion & e) {
-    throw std::invalid_argument("Invalid channel expression: " + std::string(e.what()));
-  }
-
-  const auto led_range = segment_description["led_range"].as<std::string>();
   const std::size_t split_char = led_range.find('-');
 
   if (split_char == std::string::npos) {
@@ -100,6 +90,7 @@ void LEDSegment::SetAnimation(
 
   if (repeating) {
     default_animation_ = animation_;
+    animation_finished_ = true;
   }
   if (default_animation_) {
     default_animation_->Reset();
@@ -167,7 +158,7 @@ std::uint8_t LEDSegment::GetAnimationBrightness() const
     throw std::runtime_error("Segment animation not defined");
   }
 
-  animation_->GetBrightness();
+  return animation_->GetBrightness();
 }
 
 std::size_t LEDSegment::GetFirstLEDPosition() const

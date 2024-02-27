@@ -25,6 +25,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <panther_utils/yaml_utils.hpp>
+
 namespace panther_lights
 {
 
@@ -51,18 +53,12 @@ public:
     num_led_ = num_led;
     frame_ = std::vector<std::uint8_t>(num_led_ * kRGBAColorLen, 0);
 
-    if (!animation_description["duration"]) {
-      throw std::runtime_error("Missing 'duration' in animation description");
-    }
-
-    auto duration = animation_description["duration"].as<float>();
+    auto duration = panther_utils::GetYAMLKeyValue<float>(animation_description, "duration");
     if ((duration - std::numeric_limits<float>::epsilon()) <= 0.0) {
       throw std::out_of_range("Duration has to be positive");
     }
 
-    if (animation_description["repeat"]) {
-      loops_ = animation_description["repeat"].as<std::size_t>();
-    }
+    loops_ = panther_utils::GetYAMLKeyValue<std::size_t>(animation_description, "repeat", 1);
 
     if (duration * loops_ > 10.0) {
       throw std::runtime_error("Animation display duration (duration * repeat) exceeds 10 seconds");
@@ -182,7 +178,7 @@ private:
 
   bool finished_ = false;
   float progress_ = 0.0;
-  std::size_t loops_ = 1;
+  std::size_t loops_;
   std::size_t current_cycle_ = 0;
   std::size_t anim_iteration_ = 0;
   std::uint8_t brightness_ = 255;
