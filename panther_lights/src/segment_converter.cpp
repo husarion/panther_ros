@@ -33,7 +33,6 @@ void SegmentConverter::Convert(
   for (auto & [segment_name, segment] : segments) {
     if (!segment->HasAnimation()) {
       continue;
-      ;
     }
 
     try {

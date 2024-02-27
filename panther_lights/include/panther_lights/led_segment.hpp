@@ -116,6 +116,10 @@ public:
 
   bool HasAnimation() const { return animation_ || default_animation_; }
 
+protected:
+  std::shared_ptr<panther_lights::Animation> animation_;
+  std::shared_ptr<panther_lights::Animation> default_animation_;
+
 private:
   const float controller_frequency_;
   bool invert_led_order_ = false;
@@ -125,8 +129,6 @@ private:
   std::size_t last_led_iterator_;
   std::size_t num_led_;
 
-  std::shared_ptr<panther_lights::Animation> animation_;
-  std::shared_ptr<panther_lights::Animation> default_animation_;
   std::shared_ptr<pluginlib::ClassLoader<panther_lights::Animation>> animation_loader_;
 };
 
