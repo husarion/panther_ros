@@ -101,7 +101,7 @@ public:
    *
    * @exception std::runtime_error if segment animation is not defined
    */
-  void ResetAnimation() const;
+  void ResetAnimation();
 
   /**
    * @brief Get current animation brightness

@@ -143,13 +143,14 @@ float LEDSegment::GetAnimationProgress() const
   return animation_->GetProgress();
 }
 
-void LEDSegment::ResetAnimation() const
+void LEDSegment::ResetAnimation()
 {
   if (!animation_) {
     throw std::runtime_error("Segment animation not defined");
   }
 
   animation_->Reset();
+  animation_finished_ = false;
 }
 
 std::uint8_t LEDSegment::GetAnimationBrightness() const
