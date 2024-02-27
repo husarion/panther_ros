@@ -48,7 +48,7 @@ protected:
   std::size_t panel_2_num_led_ = 30;
 
   std::unique_ptr<panther_lights::SegmentConverter> segment_converter_;
-  std::vector<std::shared_ptr<panther_lights::LEDSegment>> segments_;
+  std::unordered_map<std::string, std::shared_ptr<panther_lights::LEDSegment>> segments_;
   std::unordered_map<std::size_t, std::shared_ptr<panther_lights::LEDPanel>> led_panels_;
 };
 
@@ -64,43 +64,49 @@ YAML::Node TestSegmentConverter::CreateSegmentDescription(
 YAML::Node TestSegmentConverter::CreateImageAnimationDescription()
 {
   return YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/animations/triangle01_red.png, "
     "duration: 2}");
 }
 
 TEST_F(TestSegmentConverter, ConvertInvalidChannel)
 {
-  segments_.push_back(
+  segments_.emplace(
+    "name",
     std::make_shared<panther_lights::LEDSegment>(CreateSegmentDescription(0, 10, 123), 50.0));
   const auto anim_desc = CreateImageAnimationDescription();
-  ASSERT_NO_THROW(segments_.at(0)->SetAnimation(anim_desc));
+  ASSERT_NO_THROW(
+    segments_.at("name")->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
 
   EXPECT_THROW(segment_converter_->Convert(segments_, led_panels_), std::out_of_range);
 }
 
 TEST_F(TestSegmentConverter, ConvertInvalidLedRange)
 {
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription(panel_1_num_led_, panel_1_num_led_ + 10, 1), 50.0));
+  segments_.emplace(
+    "name", std::make_shared<panther_lights::LEDSegment>(
+              CreateSegmentDescription(panel_1_num_led_, panel_1_num_led_ + 10, 1), 50.0));
   const auto anim_desc = CreateImageAnimationDescription();
-  ASSERT_NO_THROW(segments_.at(0)->SetAnimation(anim_desc));
+  ASSERT_NO_THROW(
+    segments_.at("name")->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
 
   EXPECT_THROW(segment_converter_->Convert(segments_, led_panels_), std::runtime_error);
 }
 
 TEST_F(TestSegmentConverter, ConvertSingleSegmentForEachPanel)
 {
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription(0, panel_1_num_led_ - 1, 1), 50.0));
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription(0, panel_2_num_led_ - 1, 2), 50.0));
+  segments_.emplace(
+    "name_1", std::make_shared<panther_lights::LEDSegment>(
+                CreateSegmentDescription(0, panel_1_num_led_ - 1, 1), 50.0));
+  segments_.emplace(
+    "name_2", std::make_shared<panther_lights::LEDSegment>(
+                CreateSegmentDescription(0, panel_2_num_led_ - 1, 2), 50.0));
 
   const auto anim_desc = CreateImageAnimationDescription();
 
   for (auto & segment : segments_) {
-    ASSERT_NO_THROW(segment->SetAnimation(anim_desc));
-    ASSERT_NO_THROW(segment->UpdateAnimation());
+    ASSERT_NO_THROW(
+      segment.second->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
+    ASSERT_NO_THROW(segment.second->UpdateAnimation());
   }
 
   EXPECT_NO_THROW(segment_converter_->Convert(segments_, led_panels_));
@@ -108,22 +114,30 @@ TEST_F(TestSegmentConverter, ConvertSingleSegmentForEachPanel)
 
 TEST_F(TestSegmentConverter, ConvertMultipleSegments)
 {
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription(0, std::size_t(panel_1_num_led_ / 2) - 1, 1), 50.0));
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription(std::size_t(panel_1_num_led_ / 2), panel_1_num_led_ - 1, 1), 50.0));
+  segments_.emplace(
+    "name_1", std::make_shared<panther_lights::LEDSegment>(
+                CreateSegmentDescription(0, std::size_t(panel_1_num_led_ / 2) - 1, 1), 50.0));
+  segments_.emplace(
+    "name_2",
+    std::make_shared<panther_lights::LEDSegment>(
+      CreateSegmentDescription(std::size_t(panel_1_num_led_ / 2), panel_1_num_led_ - 1, 1), 50.0));
 
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription(0, (panel_2_num_led_ / 4) - 1, 2), 50.0));
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription((panel_2_num_led_ / 4), (panel_2_num_led_ / 2) - 1, 2), 50.0));
-  segments_.push_back(std::make_shared<panther_lights::LEDSegment>(
-    CreateSegmentDescription((panel_2_num_led_ / 2), panel_2_num_led_ - 1, 2), 50.0));
+  segments_.emplace(
+    "name_3", std::make_shared<panther_lights::LEDSegment>(
+                CreateSegmentDescription(0, (panel_2_num_led_ / 4) - 1, 2), 50.0));
+  segments_.emplace(
+    "name_4",
+    std::make_shared<panther_lights::LEDSegment>(
+      CreateSegmentDescription((panel_2_num_led_ / 4), (panel_2_num_led_ / 2) - 1, 2), 50.0));
+  segments_.emplace(
+    "name_5", std::make_shared<panther_lights::LEDSegment>(
+                CreateSegmentDescription((panel_2_num_led_ / 2), panel_2_num_led_ - 1, 2), 50.0));
 
   const auto anim_desc = CreateImageAnimationDescription();
   for (auto & segment : segments_) {
-    ASSERT_NO_THROW(segment->SetAnimation(anim_desc));
-    ASSERT_NO_THROW(segment->UpdateAnimation());
+    ASSERT_NO_THROW(
+      segment.second->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
+    ASSERT_NO_THROW(segment.second->UpdateAnimation());
   }
 
   EXPECT_NO_THROW(segment_converter_->Convert(segments_, led_panels_));

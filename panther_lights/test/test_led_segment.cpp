@@ -54,25 +54,25 @@ TEST(TestLEDSegmentInitialization, DescriptionMissingRequiredKey)
   auto segment_desc = YAML::Load("");
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
-    "Missing 'led_range' in segment description"));
+    "Missing 'channel' in description"));
 
-  segment_desc = YAML::Load("led_range: 0-10");
+  segment_desc = YAML::Load("channel: 0");
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
-    "Missing 'channel' in segment description"));
+    "Missing 'led_range' in description"));
 }
 
 TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 {
   auto segment_desc = CreateSegmentDescription("0-10", "s1");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
-    "Invalid channel expression: "));
+    "Failed to convert 'channel' key"));
 
   segment_desc["channel"] = "-1";
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { panther_lights::LEDSegment(segment_desc, 10.0); },
-    "Invalid channel expression: "));
+    "Failed to convert 'channel' key"));
 }
 
 TEST(TestLEDSegmentInitialization, InvalidLedRangeExpression)
@@ -128,41 +128,36 @@ TEST(TestLEDSegmentInitialization, FirstLedPosition)
   EXPECT_EQ(std::size_t(0), led_segment->GetFirstLEDPosition());
 }
 
-TEST_F(TestLEDSegment, SetAnimationMissingTypeKey)
-{
-  const auto animation_desc = YAML::Load("");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { led_segment_->SetAnimation(animation_desc); },
-    "Missing 'type' in animation description"));
-}
-
 TEST_F(TestLEDSegment, SetAnimationInvalidType)
 {
-  const auto animation_desc = YAML::Load("{type: panther_lights::WrongAnimationType}");
+  const YAML::Node animation_desc;
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { led_segment_->SetAnimation(animation_desc); }, "The plugin failed to load. Error: "));
+    [&]() {
+      led_segment_->SetAnimation("panther_lights::WrongAnimationType}", animation_desc, false);
+    },
+    "The plugin failed to load. Error: "));
 }
 
 TEST_F(TestLEDSegment, SetAnimationFailAnimationInitialization)
 {
   const auto animation_desc = YAML::Load("{type: panther_lights::ImageAnimation}");
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { led_segment_->SetAnimation(animation_desc); }, "Failed to initialize animation: "));
+    [&]() { led_segment_->SetAnimation("panther_lights::ImageAnimation", animation_desc, false); },
+    "Failed to initialize animation: "));
 }
 
 TEST_F(TestLEDSegment, SetAnimation)
 {
   // test each known animtion type
   const auto image_anim_desc = YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/animations/triangle01_red.png, "
     "duration: 2}");
-  EXPECT_NO_THROW(led_segment_->SetAnimation(image_anim_desc));
+  EXPECT_NO_THROW(
+    led_segment_->SetAnimation("panther_lights::ImageAnimation", image_anim_desc, false));
 
-  const auto charging_anim_desc = YAML::Load(
-    "{type: panther_lights::ChargingAnimation, "
-    "duration: 2}");
-  EXPECT_NO_THROW(led_segment_->SetAnimation(charging_anim_desc));
+  const auto charging_anim_desc = YAML::Load("{duration: 2}");
+  EXPECT_NO_THROW(led_segment_->SetAnimation(
+    "panther_lights::ChargingAnimation", charging_anim_desc, false, "0.5"));
 }
 
 TEST_F(TestLEDSegment, UpdateAnimationAnimationNotSet)
@@ -174,10 +169,9 @@ TEST_F(TestLEDSegment, UpdateAnimationAnimationNotSet)
 TEST_F(TestLEDSegment, UpdateAnimation)
 {
   const auto anim_desc = YAML::Load(
-    "{type: panther_lights::ImageAnimation, "
-    "image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/animations/triangle01_red.png, "
     "duration: 2}");
-  ASSERT_NO_THROW(led_segment_->SetAnimation(anim_desc));
+  ASSERT_NO_THROW(led_segment_->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
   EXPECT_NO_THROW(led_segment_->UpdateAnimation());
   EXPECT_EQ(segment_led_num_ * 4, led_segment_->GetAnimationFrame().size());
 }

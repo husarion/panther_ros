@@ -74,7 +74,7 @@ TEST_F(TestAnimation, Initialize)
   animation_description["duration"] = "-1.0";
   EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::out_of_range);
   animation_description["duration"] = "word";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
 
   // invalid animation length
   animation_description["duration"] = "0.1";
@@ -85,9 +85,9 @@ TEST_F(TestAnimation, Initialize)
 
   // invalid repeat
   animation_description["repeat"] = "-2";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
   animation_description["repeat"] = "1.1";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
 
   // exceeded anim display duration
   animation_description["repeat"] = "6";
