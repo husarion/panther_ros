@@ -1,0 +1,41 @@
+//  Copyright 2010, CCNY Robotics Lab
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+//  Ivan Dryanovski <ivan.dryanovski@gmail.com>
+//  http://robotics.ccny.cuny.edu
+//
+//  Based on implementation of Madgwick's IMU and AHRS algorithms.
+//  http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
+
+#ifndef IMU_FILTER_MADWICK_STATELESS_ORIENTATION_H
+#define IMU_FILTER_MADWICK_STATELESS_ORIENTATION_H
+
+#include <imu_filter_madgwick/world_frame.h>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
+
+class StatelessOrientation
+{
+public:
+  static bool computeOrientation(
+    WorldFrame::WorldFrame frame, geometry_msgs::msg::Vector3 acceleration,
+    geometry_msgs::msg::Vector3 magneticField, geometry_msgs::msg::Quaternion & orientation);
+
+  static bool computeOrientation(
+    WorldFrame::WorldFrame frame, geometry_msgs::msg::Vector3 acceleration,
+    geometry_msgs::msg::Quaternion & orientation);
+};
+
+#endif  // IMU_FILTER_MADWICK_STATELESS_ORIENTATION_H

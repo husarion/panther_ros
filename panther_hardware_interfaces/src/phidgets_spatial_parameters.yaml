@@ -102,3 +102,44 @@ phidgets_spatial:
     default_value: 0.0,
     description: "T offset value 5; see device's user guide for information on how to calibrate."
   }
+  # TODO: @delihus always true
+  use_mag: {
+    type: bool,
+    default_value: false,
+    description: "Use magnitude to calculate orientation."
+  }
+  gain: {
+    type: double,
+    default_value: 0.1,
+    description: "Gain of the filter. Higher values lead to faster convergence but more noise. Lower values lead to slower convergence but smoother signal."
+  }
+  zeta: {
+    type: double,
+    default_value: 0.1,
+    description: "Gyro drift gain (approx. rad/s)."
+  }
+  mag_bias_x: {
+    type: double,
+    default_value: 0.0,
+    description: "Magnetometer bias (hard iron correction), x component.",
+  }
+  mag_bias_y: {
+    type: double,
+    default_value: 0.0,
+    description: "Magnetometer bias (hard iron correction), y component.",
+  }
+  mag_bias_z: {
+    type: double,
+    default_value: 0.0,
+    description: "Magnetometer bias (hard iron correction), z component.",
+  }
+  stateless: {
+    type: bool,
+    default_value: false,
+    description: " #TODO: @delihus"
+  }
+  remove_gravity_vector: {
+    type: bool,
+    default_value: false,
+    description: "The gravity vector is kept in the IMU message."
+  }

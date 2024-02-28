@@ -44,8 +44,17 @@ const std::list<std::string> kImuInterfaces = {
 const std::map<std::string, std::string> kImuObligatoryParams{
   {"serial", "-1"},
   {"hub_port", "0"},
-  {"data_interval_ms", "8"},
-  {"callback_delta_epsilon_ms", "1"}};
+  {"data_interval_ms", "1000"},
+  {"callback_delta_epsilon_ms", "1"},
+  {"gain", "0.1"},
+  {"zeta", "0.0"},
+  {"mag_bias_x", "0.0"},
+  {"mag_bias_y", "0.0"},
+  {"mag_bias_z", "0.0"},
+  {"use_mag", "1"},
+  {"stateless", "0"},
+  {"remove_gravity_vector", "1"},
+  {"world_frame", "enu"}};
 
 const std::string kPluginName = "<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>";
 

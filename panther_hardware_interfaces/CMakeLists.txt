@@ -25,7 +25,10 @@ set(PACKAGE_INCLUDE_DEPENDS
     realtime_tools
     std_srvs
     phidgets_api
-    generate_parameter_library)
+    generate_parameter_library
+    tf2_ros
+    tf2_geometry_msgs
+    geometry_msgs)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -48,21 +51,12 @@ add_library(
   src/roboteq_error_filter.cpp
   src/utils.cpp
   src/panther_imu.cpp
-  src/panther_imu_ros_interface.cpp)
+  src/panther_imu_ros_interface.cpp
+  src/imu_filter.cpp
+  src/stateless_orientation.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-ament_target_dependencies(
-  ${PROJECT_NAME}
-  hardware_interface
-  rclcpp_lifecycle
-  rclcpp
-  pluginlib
-  std_srvs
-  panther_gpiod
-  panther_msgs
-  panther_utils
-  realtime_tools
-  phidgets_api)
+ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})
 
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
                       phidgets_spatial_parameters)
@@ -171,15 +165,6 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(
-  hardware_interface
-  controller_interface
-  realtime_tools
-  panther_utils
-  rclcpp_lifecycle
-  rclcpp
-  std_msgs,
-  std_srvs,
-  phidgets_api)
+ament_export_dependencies(${PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()

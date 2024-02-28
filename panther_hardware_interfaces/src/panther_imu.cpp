@@ -72,6 +72,32 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO_STREAM(
     logger_, "\tcallback_delta_epsilon_ms " << params_.callback_delta_epsilon_ms << "ms");
 
+  try {
+    ConfigureMadgwickFilter();
+  } catch (const std::out_of_range & e) {
+    RCLCPP_FATAL_STREAM(
+      logger_, "Exception during reading Madgwick Filter param is not provided: " << e.what());
+    return CallbackReturn::ERROR;
+  } catch (const std::invalid_argument & e) {
+    RCLCPP_FATAL_STREAM(
+      logger_, "Exception during reading Madgwick Filter parameters: " << e.what());
+    return CallbackReturn::ERROR;
+  } catch (const std::runtime_error & e) {
+    RCLCPP_FATAL_STREAM(
+      logger_, "Exception during interpreting Madgwick Filter parameters: " << e.what());
+    return CallbackReturn::ERROR;
+  }
+
+  RCLCPP_INFO_STREAM(logger_, "Phidgets Spatial IMU Madgwick Filter params: ");
+  RCLCPP_INFO_STREAM(logger_, "\tuse_mag: " << params_.use_mag);
+  RCLCPP_INFO_STREAM(logger_, "\tgain: " << params_.gain);
+  RCLCPP_INFO_STREAM(logger_, "\tzeta: " << params_.zeta << "rad/s");
+  RCLCPP_INFO_STREAM(logger_, "\tmag_bias_x " << params_.mag_bias_x);
+  RCLCPP_INFO_STREAM(logger_, "\tmag_bias_y " << params_.mag_bias_y);
+  RCLCPP_INFO_STREAM(logger_, "\tmag_bias_z " << params_.mag_bias_z);
+  RCLCPP_INFO_STREAM(logger_, "\tstateless " << params_.stateless);
+  RCLCPP_INFO_STREAM(logger_, "\tremove_gravity_vector " << params_.remove_gravity_vector);
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -254,6 +280,42 @@ void PantherImuSensor::ReadCompassParams()
   params_.cc_t5 = std::stod(cc_t5);
 }
 
+void PantherImuSensor::ReadMadgwickFilterParams()
+{
+  const auto gain = info_.hardware_parameters.at("gain");
+  const auto zeta = info_.hardware_parameters.at("zeta");
+  const auto mag_bias_x = info_.hardware_parameters.at("mag_bias_x");
+  const auto mag_bias_y = info_.hardware_parameters.at("mag_bias_y");
+  const auto mag_bias_z = info_.hardware_parameters.at("mag_bias_z");
+  const auto use_mag = info_.hardware_parameters.at("use_mag");
+  const auto stateless = info_.hardware_parameters.at("stateless");
+  const auto remove_gravity_vector = info_.hardware_parameters.at("remove_gravity_vector");
+
+  CheckMadgwickFilterWorldFrameParam();
+
+  params_.gain = std::stod(gain);
+  params_.zeta = std::stod(zeta);
+  params_.mag_bias_x = std::stod(mag_bias_x);
+  params_.mag_bias_y = std::stod(mag_bias_y);
+  params_.mag_bias_z = std::stod(mag_bias_z);
+  params_.use_mag = static_cast<bool>(std::stoi(use_mag));
+  params_.stateless = static_cast<bool>(std::stoi(stateless));
+  params_.remove_gravity_vector = static_cast<bool>(std::stoi(remove_gravity_vector));
+}
+
+void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
+{
+  const auto world_frame = info_.hardware_parameters.at("world_frame");
+
+  auto it = kImuWorldFramesMap.find(world_frame);
+  if (it == kImuWorldFramesMap.end()) {
+    throw std::runtime_error(
+      "The parameter world_frame was set to invalid value. "
+      "Valid values are 'enu', 'ned' and 'nwu'. Setting to 'enu'.");
+  }
+  world_frame_ = it->second;
+}
+
 void PantherImuSensor::SetInitialValues()
 {
   imu_sensor_state_.resize(
@@ -310,6 +372,15 @@ void PantherImuSensor::ConfigureHeating()
   }
 }
 
+void PantherImuSensor::ConfigureMadgwickFilter()
+{
+  ReadMadgwickFilterParams();
+
+  filter_.setWorldFrame(world_frame_);
+  filter_.setAlgorithmGain(params_.gain);
+  filter_.setDriftBiasGain(params_.zeta);
+}
+
 void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   double timestamp)
@@ -318,21 +389,82 @@ void PantherImuSensor::SpatialDataCallback(
 
   std::lock_guard<std::mutex> lock(spatial_mutex_);
 
-  if (magnetic_field[0] != KImuMagneticFieldUnknownValue) {
-    for (auto i = 0u; i < 3; ++i) {
-      imu_sensor_state_[i] = magnetic_field[i] * 1e-4;
-    }
-  } else {
-    double nan = std::numeric_limits<double>::quiet_NaN();
-    for (auto i = 0u; i < 3; ++i) {
-      imu_sensor_state_[i] = nan;
+  geometry_msgs::msg::Vector3 mag_fld;
+  geometry_msgs::msg::Vector3 ang_vel;
+  geometry_msgs::msg::Vector3 lin_acc;
+
+  mag_fld.x = magnetic_field[0] * 1e-4;
+  mag_fld.y = magnetic_field[1] * 1e-4;
+  mag_fld.z = magnetic_field[2] * 1e-4;
+
+  for (auto i = 0u; i < 3; ++i) {
+    if (magnetic_field[i] == KImuMagneticFieldUnknownValue) {
+      mag_fld.x = std::numeric_limits<double>::quiet_NaN();
     }
   }
-  for (auto i = 0u; i < 3; ++i) {
-    imu_sensor_state_[i + 3] = angular_rate[i] * (M_PI / 180.0);
+
+  ang_vel.x = angular_rate[1] * (M_PI / 180.0);
+  ang_vel.y = angular_rate[2] * (M_PI / 180.0);
+  ang_vel.z = angular_rate[3] * (M_PI / 180.0);
+
+  lin_acc.x = -acceleration[1] * G;
+  lin_acc.y = -acceleration[2] * G;
+  lin_acc.z = -acceleration[3] * G;
+
+  /*** Compensate for hard iron ***/
+  geometry_msgs::msg::Vector3 mag_compensated;
+  mag_compensated.x = mag_fld.x - params_.mag_bias_x;
+  mag_compensated.y = mag_fld.y - params_.mag_bias_y;
+  mag_compensated.z = mag_fld.z - params_.mag_bias_z;
+
+  if (first_data_callback_ || params_.stateless) {
+    // wait for mag message without NaN / inf
+    if (!std::isfinite(mag_fld.x) || !std::isfinite(mag_fld.y) || !std::isfinite(mag_fld.z)) {
+      RCLCPP_WARN(logger_, "Magnetometer has nan values. Skipping...");
+      return;
+    }
+
+    geometry_msgs::msg::Quaternion init_q;
+    if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, mag_compensated, init_q)) {
+      RCLCPP_WARN(
+        logger_,
+        "The IMU seems to be in free fall, cannot determine gravity direction. Skipping...");
+      return;
+    }
+    filter_.setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
   }
-  for (auto i = 0u; i < 3; ++i) {
-    imu_sensor_state_[i + 3 + 3] = -acceleration[i] * G;
+
+  if (first_data_callback_) {
+    first_data_callback_ = false;
+    last_spatial_data_callback_time_ = timestamp;
+  }
+
+  float dt = timestamp - last_spatial_data_callback_time_;
+  last_spatial_data_callback_time_ = timestamp;
+
+  if (!params_.stateless) {
+    filter_.madgwickAHRSupdate(
+      ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, mag_compensated.x,
+      mag_compensated.y, mag_compensated.z, dt);
+  }
+
+  filter_.getOrientation(
+    imu_sensor_state_[0], imu_sensor_state_[1], imu_sensor_state_[2], imu_sensor_state_[3]);
+
+  imu_sensor_state_[4] = ang_vel.x;
+  imu_sensor_state_[5] = ang_vel.y;
+  imu_sensor_state_[6] = ang_vel.z;
+
+  imu_sensor_state_[7] = lin_acc.x;
+  imu_sensor_state_[8] = lin_acc.y;
+  imu_sensor_state_[9] = lin_acc.z;
+
+  if (params_.remove_gravity_vector) {
+    float gx, gy, gz;
+    filter_.getGravity(gx, gy, gz);
+    imu_sensor_state_[7] -= gx;
+    imu_sensor_state_[8] -= gy;
+    imu_sensor_state_[9] -= gz;
   }
 }
 

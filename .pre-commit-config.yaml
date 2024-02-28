@@ -48,6 +48,8 @@ repos:
         args:
           [
             "--exclude-file=panther_hardware_interfaces/config/roboteq_motor_controllers_v80_21a.eds",
+            "--ignore-words-list",
+            "ned" # north, east, down (NED)
           ]
         language: python
         types: [text]

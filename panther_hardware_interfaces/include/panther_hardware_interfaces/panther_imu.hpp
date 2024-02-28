@@ -20,6 +20,11 @@
 #include <string>
 #include <vector>
 
+#include <imu_filter_madgwick/imu_filter.h>
+#include <imu_filter_madgwick/stateless_orientation.h>
+#include <imu_filter_madgwick/world_frame.h>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
 #include <phidgets_api/spatial.hpp>
 
 #include <rclcpp/rclcpp.hpp>
@@ -77,13 +82,18 @@ protected:
     "linear_acceleration.y", "linear_acceleration.z",
   };
 
+  std::map<std::string, WorldFrame::WorldFrame> kImuWorldFramesMap = {
+    {"ned", WorldFrame::NED}, {"nwu", WorldFrame::NWU}, {"enu", WorldFrame::ENU}};
+
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
   std::mutex spatial_mutex_;
 
   bool imu_connected_;
-  bool has_ahrs_params_;
-  bool has_set_algorithm_magnetometer_gain_params_;
+  bool first_data_callback_{true};
+  ImuFilter filter_;
+  WorldFrame::WorldFrame world_frame_;
+  double last_spatial_data_callback_time_;
 
   void CheckSensor() const;
   void CheckStatesSize() const;
@@ -91,10 +101,13 @@ protected:
   void CheckInterfaces();
   void ReadObligatoryParams();
   void ReadCompassParams();
+  void ReadMadgwickFilterParams();
+  void CheckMadgwickFilterWorldFrameParam();
   bool IsParamDefined(const std::string & param_name);
 
   void ConfigureCompassParams();
   void ConfigureHeating();
+  void ConfigureMadgwickFilter();
 
   void SpatialDataCallback(
     const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],

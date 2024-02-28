@@ -52,7 +52,6 @@ TEST(TestPantherImu, check_interfaces)
   pth_test_.Stop();
 }
 
-// It generates    -- run_test.py: return code -11
 TEST(TestPantherImu, check_initial_values)
 {
   using hardware_interface::LoanedStateInterface;
@@ -99,6 +98,8 @@ TEST(TestPantherImu, check_initial_values)
   EXPECT_TRUE(std::isnan(linear_acceleration_y.get_value()));
   EXPECT_TRUE(std::isnan(linear_acceleration_z.get_value()));
 
+  EXPECT_EQ(pth_test_.ShutdownPantherImu(), return_type::OK);
+
   pth_test_.Stop();
 }
 
@@ -112,6 +113,8 @@ TEST(TestPantherImu, wrong_obligatory_params)
   pth_test_.Start(panther_system_urdf_);
 
   EXPECT_EQ(pth_test_.ConfigurePantherImu(), return_type::ERROR);
+  EXPECT_EQ(pth_test_.ShutdownPantherImu(), return_type::OK);
+
   pth_test_.Stop();
 }
 
