@@ -35,10 +35,9 @@ namespace panther_utils::test_utils
  *
  * @return True if message was received, false if timeout was reached
  */
-template <typename MsgT>
+template <typename NodeT, typename MsgT>
 bool WaitForMsg(
-  const rclcpp::Node::SharedPtr & node, std::shared_ptr<MsgT> & msg,
-  const std::chrono::nanoseconds & timeout)
+  const NodeT & node, std::shared_ptr<MsgT> & msg, const std::chrono::nanoseconds & timeout)
 {
   msg = nullptr;
   rclcpp::Time start_time = node->now();
@@ -63,9 +62,8 @@ bool WaitForMsg(
  *
  * @return True if message was received, false if timeout was reached
  */
-template <typename FutureT>
-bool WaitForFuture(
-  const rclcpp::Node::SharedPtr & node, FutureT & future, const std::chrono::nanoseconds & timeout)
+template <typename NodeT, typename FutureT>
+bool WaitForFuture(const NodeT & node, FutureT & future, const std::chrono::nanoseconds & timeout)
 {
   rclcpp::Time start_time = node->now();
 
