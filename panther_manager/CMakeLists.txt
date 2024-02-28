@@ -49,6 +49,10 @@ add_library(shutdown_hosts_from_file_node SHARED
 target_link_libraries(shutdown_hosts_from_file_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_node)
 
+add_library(tick_after_timeout_node SHARED
+            src/plugins/decorator/tick_after_timeout_node.cpp)
+list(APPEND plugin_libs tick_after_timeout_node)
+
 foreach(bt_node ${plugin_libs})
   target_compile_definitions(${bt_node} PRIVATE BT_PLUGIN_EXPORT)
   ament_target_dependencies(${bt_node} ${PACKAGE_INCLUDE_DEPENDS})

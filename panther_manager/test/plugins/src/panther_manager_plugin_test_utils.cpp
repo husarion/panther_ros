@@ -58,6 +58,7 @@ void PantherManagerPluginTestUtils::Start()
   factory_.registerNodeType<panther_manager::SignalShutdown>("SignalShutdown");
   factory_.registerNodeType<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
   factory_.registerNodeType<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
+  factory_.registerNodeType<panther_manager::TickAfterTimeout>("TickAfterTimeout");
 }
 
 void PantherManagerPluginTestUtils::Stop()

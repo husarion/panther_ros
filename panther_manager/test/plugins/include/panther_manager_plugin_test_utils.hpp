@@ -29,6 +29,7 @@
 #include <panther_manager/plugins/action/shutdown_hosts_from_file_node.hpp>
 #include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
+#include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
 
 #include <behaviortree_cpp/bt_factory.h>
 
