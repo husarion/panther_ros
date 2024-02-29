@@ -56,7 +56,7 @@ TestLEDAnimation::TestLEDAnimation()
 
   panther_lights::LEDAnimationDescription led_anim_desc;
   led_anim_desc.id = 0;
-  led_anim_desc.name = "ulala";
+  led_anim_desc.name = "TEST";
   led_anim_desc.priority = 1;
   led_anim_desc.timeout = 10.0;
   led_anim_desc.animations = {anim_desc};

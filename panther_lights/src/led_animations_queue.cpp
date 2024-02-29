@@ -103,7 +103,7 @@ std::shared_ptr<LEDAnimation> LEDAnimationsQueue::Get()
   throw std::runtime_error("Queue empty");
 }
 
-void LEDAnimationsQueue::Clear(std::size_t priority)
+void LEDAnimationsQueue::Clear(const std::size_t priority)
 {
   const auto new_end = std::remove_if(
     queue_.begin(), queue_.end(), [priority](const std::shared_ptr<LEDAnimation> & animation) {
