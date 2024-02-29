@@ -118,6 +118,21 @@ TEST(TestPantherImu, wrong_obligatory_params)
   pth_test_.Stop();
 }
 
+TEST(TestPantherImu, good_read_variables_params)
+{
+  using hardware_interface::return_type;
+  panther_hardware_interfaces_test::PantherImuTestUtils pth_test_;
+
+  pth_test_.Start(pth_test_.GetDefaultPantherImuUrdf());
+
+  EXPECT_EQ(pth_test_.ConfigurePantherImu(), return_type::OK);
+  EXPECT_EQ(pth_test_.ActivatePantherImu(), return_type::OK);
+  EXPECT_EQ(pth_test_.UnconfigurePantherImu(), return_type::OK);
+  EXPECT_EQ(pth_test_.ShutdownPantherImu(), return_type::OK);
+
+  pth_test_.Stop();
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
