@@ -61,7 +61,7 @@
           <plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
           <param name="serial">-1</param>
           <param name="hub_port">0</param>
-          <param name="data_interval_ms">1000</param>
+          <param name="data_interval_ms">8</param>
           <param name="callback_delta_epsilon_ms">1</param>
 
           <!-- Madgwick Filter Params -->

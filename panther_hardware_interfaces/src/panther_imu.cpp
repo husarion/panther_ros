@@ -385,7 +385,8 @@ void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   double timestamp)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherImuSensor TEST"), "SpatialDataCallback..");
+  auto timestamp_s = timestamp * 1e-3;
+  RCLCPP_DEBUG(logger_, "SpatialDataCallback...");
 
   std::lock_guard<std::mutex> lock(spatial_mutex_);
 
@@ -403,22 +404,21 @@ void PantherImuSensor::SpatialDataCallback(
     }
   }
 
-  ang_vel.x = angular_rate[1] * (M_PI / 180.0);
-  ang_vel.y = angular_rate[2] * (M_PI / 180.0);
-  ang_vel.z = angular_rate[3] * (M_PI / 180.0);
+  ang_vel.x = angular_rate[0] * (M_PI / 180.0);
+  ang_vel.y = angular_rate[1] * (M_PI / 180.0);
+  ang_vel.z = angular_rate[2] * (M_PI / 180.0);
 
-  lin_acc.x = -acceleration[1] * G;
-  lin_acc.y = -acceleration[2] * G;
-  lin_acc.z = -acceleration[3] * G;
+  lin_acc.x = -acceleration[0] * G;
+  lin_acc.y = -acceleration[1] * G;
+  lin_acc.z = -acceleration[2] * G;
 
-  /*** Compensate for hard iron ***/
+  // Compensate for hard iron
   geometry_msgs::msg::Vector3 mag_compensated;
   mag_compensated.x = mag_fld.x - params_.mag_bias_x;
   mag_compensated.y = mag_fld.y - params_.mag_bias_y;
   mag_compensated.z = mag_fld.z - params_.mag_bias_z;
 
   if (first_data_callback_ || params_.stateless) {
-    // wait for mag message without NaN / inf
     if (!std::isfinite(mag_fld.x) || !std::isfinite(mag_fld.y) || !std::isfinite(mag_fld.z)) {
       RCLCPP_WARN(logger_, "Magnetometer has nan values. Skipping...");
       return;
@@ -436,18 +436,52 @@ void PantherImuSensor::SpatialDataCallback(
 
   if (first_data_callback_) {
     first_data_callback_ = false;
-    last_spatial_data_callback_time_ = timestamp;
+    last_spatial_data_callback_time_s_ = timestamp_s;
   }
 
-  float dt = timestamp - last_spatial_data_callback_time_;
-  last_spatial_data_callback_time_ = timestamp;
+  float dt = timestamp_s - last_spatial_data_callback_time_s_;
+  last_spatial_data_callback_time_s_ = timestamp_s;
 
   if (!params_.stateless) {
+    UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
+  }
+
+  UpdateStatesValues(ang_vel, lin_acc);
+
+  if (params_.remove_gravity_vector) {
+    RemoveGravityVectorFromAccelerationState();
+  }
+}
+
+void PantherImuSensor::SpatialAttachCallback()
+{
+  RCLCPP_DEBUG(logger_, "SpatialAttachCallback...");
+  imu_connected_ = true;
+}
+
+void PantherImuSensor::SpatialDetachCallback()
+{
+  RCLCPP_DEBUG(logger_, "SpatialDetachCallback...");
+  imu_connected_ = false;
+}
+
+void PantherImuSensor::UpdateMadgwickAlgorithm(
+  const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
+  const geometry_msgs::msg::Vector3 & mag_compensated, double dt)
+{
+  if (params_.use_mag) {
     filter_.madgwickAHRSupdate(
       ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, mag_compensated.x,
       mag_compensated.y, mag_compensated.z, dt);
+  } else {
+    filter_.madgwickAHRSupdateIMU(
+      ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, dt);
   }
+}
 
+void PantherImuSensor::UpdateStatesValues(
+  const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
+{
   filter_.getOrientation(
     imu_sensor_state_[0], imu_sensor_state_[1], imu_sensor_state_[2], imu_sensor_state_[3]);
 
@@ -458,26 +492,15 @@ void PantherImuSensor::SpatialDataCallback(
   imu_sensor_state_[7] = lin_acc.x;
   imu_sensor_state_[8] = lin_acc.y;
   imu_sensor_state_[9] = lin_acc.z;
-
-  if (params_.remove_gravity_vector) {
-    float gx, gy, gz;
-    filter_.getGravity(gx, gy, gz);
-    imu_sensor_state_[7] -= gx;
-    imu_sensor_state_[8] -= gy;
-    imu_sensor_state_[9] -= gz;
-  }
 }
 
-void PantherImuSensor::SpatialAttachCallback()
+void PantherImuSensor::RemoveGravityVectorFromAccelerationState()
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherImuSensor TEST"), "SpatialAttachCallback..");
-  imu_connected_ = true;
-}
-
-void PantherImuSensor::SpatialDetachCallback()
-{
-  RCLCPP_INFO(rclcpp::get_logger("PantherImuSensor TEST"), "SpatialDetachCallback..");
-  imu_connected_ = false;
+  float gx, gy, gz;
+  filter_.getGravity(gx, gy, gz);
+  imu_sensor_state_[7] -= gx;
+  imu_sensor_state_[8] -= gy;
+  imu_sensor_state_[9] -= gz;
 }
 
 }  // namespace panther_hardware_interfaces

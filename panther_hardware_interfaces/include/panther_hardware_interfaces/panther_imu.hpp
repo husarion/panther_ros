@@ -90,10 +90,10 @@ protected:
   std::mutex spatial_mutex_;
 
   bool imu_connected_;
-  bool first_data_callback_{true};
   ImuFilter filter_;
   WorldFrame::WorldFrame world_frame_;
-  double last_spatial_data_callback_time_;
+  bool first_data_callback_{true};
+  double last_spatial_data_callback_time_s_;
 
   void CheckSensor() const;
   void CheckStatesSize() const;
@@ -114,6 +114,13 @@ protected:
     double timestamp);
   void SpatialAttachCallback();
   void SpatialDetachCallback();
+
+  void UpdateMadgwickAlgorithm(
+    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
+    const geometry_msgs::msg::Vector3 & mag_compensated, double dt);
+  void UpdateStatesValues(
+    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc);
+  void RemoveGravityVectorFromAccelerationState();
 
   void Calibrate();
 };

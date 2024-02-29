@@ -102,7 +102,6 @@ phidgets_spatial:
     default_value: 0.0,
     description: "T offset value 5; see device's user guide for information on how to calibrate."
   }
-  # TODO: @delihus always true
   use_mag: {
     type: bool,
     default_value: false,
