@@ -705,7 +705,7 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
       status, front_driver_data.GetErrorMap(), "Front driver error: ");
   }
 
-  auto rear_driver_data = motors_controller_->GetRearData();
+  const auto rear_driver_data = motors_controller_->GetRearData();
   if (rear_driver_data.IsError()) {
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
