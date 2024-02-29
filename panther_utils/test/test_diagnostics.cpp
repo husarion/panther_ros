@@ -68,6 +68,18 @@ TEST(TestAddKeyValueIfTrue, HandlesEmptyMap)
   ASSERT_EQ(0, status.values.size());
 }
 
+TEST(TestAddKeyValueIfTrue, HandlesPrefixAndSuffix)
+{
+  diagnostic_updater::DiagnosticStatusWrapper status;
+  std::map<std::string, bool> kv_map = {{"key1", true}, {"key2", false}, {"key3", true}};
+
+  panther_utils::diagnostics::AddKeyValueIfTrue(status, kv_map, "prefix_", "_suffix");
+
+  ASSERT_EQ(2, status.values.size());
+  EXPECT_EQ("prefix_key1_suffix", status.values.at(0).key);
+  EXPECT_EQ("prefix_key3_suffix", status.values.at(1).key);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
