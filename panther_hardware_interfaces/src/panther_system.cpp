@@ -696,7 +696,7 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"No error detected."};
 
-  auto front_driver_data = motors_controller_->GetFrontData();
+  const auto front_driver_data = motors_controller_->GetFrontData();
   if (front_driver_data.IsError()) {
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
