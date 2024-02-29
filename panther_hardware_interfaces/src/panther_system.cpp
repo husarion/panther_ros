@@ -730,8 +730,8 @@ void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper &
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Panther system status monitoring."};
 
-  auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
-  auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
+  const auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
+  const auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
 
   auto drivers_states_with_names = {
     std::make_pair(std::string("Front"), front_driver_state),
