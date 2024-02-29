@@ -74,7 +74,7 @@ class ROSServiceWrapper
 {
 public:
   using SrvSharedPtr = typename rclcpp::Service<SrvT>::SharedPtr;
-  using SrvRequestPtr = typename SrvT::Request::ConstSharedPtr;
+  using SrvRequestConstPtr = typename SrvT::Request::ConstSharedPtr;
   using SrvResponsePtr = typename SrvT::Response::SharedPtr;
 
   /**
@@ -83,7 +83,7 @@ public:
    * @param callback The callback function to be called whenever the service receives a request.
    * Currently supported callback function signatures include void() and void(bool).
    */
-  ROSServiceWrapper(const CallbackT & callback) : callback_(callback){};
+  ROSServiceWrapper(const CallbackT & callback) : callback_(callback) {}
 
   /**
    * @brief Register and advertises the service with the specified name under the given ROS node.
@@ -101,7 +101,7 @@ private:
    * @param request Shared pointer to the service request message.
    * @param response Shared pointer to the service response message.
    */
-  void CallbackWrapper(SrvRequestPtr request, SrvResponsePtr response);
+  void CallbackWrapper(SrvRequestConstPtr request, SrvResponsePtr response);
 
   /**
    * @brief Specializations of the `ProccessCallback` method for handling specific service request
@@ -117,7 +117,7 @@ private:
    * 2. For `std_srvs::srv::Trigger` service requests, it simply calls the callback function without
    * any parameters since `Trigger` requests do not carry additional data.
    */
-  void ProccessCallback(SrvRequestPtr request);
+  void ProccessCallback(SrvRequestConstPtr request);
 
   SrvSharedPtr service_;
   CallbackT callback_;

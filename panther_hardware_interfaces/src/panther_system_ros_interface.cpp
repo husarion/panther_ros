@@ -42,7 +42,7 @@ void ROSServiceWrapper<SrvT, CallbackT>::RegisterService(
 
 template <typename SrvT, typename CallbackT>
 void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
-  SrvRequestPtr request, SrvResponsePtr response)
+  SrvRequestConstPtr request, SrvResponsePtr response)
 {
   try {
     ProccessCallback(request);
@@ -58,14 +58,14 @@ void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
 
 template <>
 void ROSServiceWrapper<std_srvs::srv::SetBool, std::function<void(bool)>>::ProccessCallback(
-  SrvRequestPtr request)
+  SrvRequestConstPtr request)
 {
   callback_(request->data);
 }
 
 template <>
 void ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>::ProccessCallback(
-  SrvRequestPtr /* request */)
+  SrvRequestConstPtr /* request */)
 {
   callback_();
 }
