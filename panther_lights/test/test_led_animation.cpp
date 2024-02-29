@@ -119,20 +119,20 @@ TEST_F(TestLEDAnimation, Reset)
 {
   SetSegmentAnimations();
 
-  while (segments_.at("segment_1")->IsAnimationFinished()) {
+  while (!segments_.at("segment_1")->IsAnimationFinished()) {
     segments_.at("segment_1")->UpdateAnimation();
   }
 
-  while (segments_.at("segment_2")->IsAnimationFinished()) {
+  while (!segments_.at("segment_2")->IsAnimationFinished()) {
     segments_.at("segment_2")->UpdateAnimation();
   }
 
   EXPECT_TRUE(led_anim_->GetInitTime() == rclcpp::Time(0));
-  EXPECT_FALSE(led_anim_->IsFinished());
-  EXPECT_FALSE(segments_.at("segment_1")->IsAnimationFinished());
-  EXPECT_FALSE(segments_.at("segment_2")->IsAnimationFinished());
-  EXPECT_NE(1.0, segments_.at("segment_1")->GetAnimationProgress());
-  EXPECT_NE(1.0, segments_.at("segment_2")->GetAnimationProgress());
+  EXPECT_TRUE(led_anim_->IsFinished());
+  EXPECT_TRUE(segments_.at("segment_1")->IsAnimationFinished());
+  EXPECT_TRUE(segments_.at("segment_2")->IsAnimationFinished());
+  EXPECT_FLOAT_EQ(1.0, segments_.at("segment_1")->GetAnimationProgress());
+  EXPECT_FLOAT_EQ(1.0, segments_.at("segment_2")->GetAnimationProgress());
 
   auto reset_time = rclcpp::Time(1);
   led_anim_->Reset(reset_time);

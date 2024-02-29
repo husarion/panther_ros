@@ -147,7 +147,7 @@ TEST_F(TestChargingAnimation, CreateRGBAFrame)
 
 TEST_F(TestChargingAnimation, SetParam)
 {
-  EXPECT_THROW(animation_->SetParam("not_a_number"), std::invalid_argument);
+  EXPECT_THROW(animation_->SetParam("not_a_number"), std::runtime_error);
   EXPECT_NO_THROW(animation_->SetParam("0.7"));
 }
 
