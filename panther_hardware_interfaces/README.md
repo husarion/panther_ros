@@ -32,7 +32,7 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: panther system diagnostic messages.
+- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Panther system diagnostic messages.
 - `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
