@@ -255,7 +255,7 @@ std::map<std::string, bool> RoboteqData::GetErrorMap() const
 {
   std::map<std::string, bool> error_map;
 
-  auto flag_error_map = GetFlagErrorMap();
+  const auto flag_error_map = GetFlagErrorMap();
   error_map.insert(flag_error_map.begin(), flag_error_map.end());
 
   error_map.emplace("motor_states_data_timed_out", IsMotorStatesDataTimedOut());
