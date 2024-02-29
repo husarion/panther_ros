@@ -15,6 +15,9 @@
 #ifndef PANTHER_UTILS_DIAGNOSTICS_HPP_
 #define PANTHER_UTILS_DIAGNOSTICS_HPP_
 
+#include <map>
+#include <string>
+
 #include <diagnostic_updater/diagnostic_status_wrapper.hpp>
 
 namespace panther_utils::diagnostics
