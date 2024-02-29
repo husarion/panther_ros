@@ -120,13 +120,51 @@ TEST(TestPantherImu, wrong_obligatory_params)
 
 TEST(TestPantherImu, good_read_variables_params)
 {
+  using hardware_interface::LoanedStateInterface;
   using hardware_interface::return_type;
   panther_hardware_interfaces_test::PantherImuTestUtils pth_test_;
 
   pth_test_.Start(pth_test_.GetDefaultPantherImuUrdf());
-
   EXPECT_EQ(pth_test_.ConfigurePantherImu(), return_type::OK);
+
+  LoanedStateInterface orientation_x =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/orientation.x");
+  LoanedStateInterface orientation_y =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/orientation.y");
+  LoanedStateInterface orientation_z =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/orientation.z");
+  LoanedStateInterface orientation_w =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/orientation.w");
+
+  LoanedStateInterface angular_velocity_x =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/angular_velocity.x");
+  LoanedStateInterface angular_velocity_y =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/angular_velocity.y");
+  LoanedStateInterface angular_velocity_z =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/angular_velocity.z");
+
+  LoanedStateInterface linear_acceleration_x =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/linear_acceleration.x");
+  LoanedStateInterface linear_acceleration_y =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/linear_acceleration.y");
+  LoanedStateInterface linear_acceleration_z =
+    pth_test_.GetResourceManager()->claim_state_interface("imu/linear_acceleration.z");
+
   EXPECT_EQ(pth_test_.ActivatePantherImu(), return_type::OK);
+
+  EXPECT_FALSE(std::isnan(orientation_x.get_value()));
+  EXPECT_FALSE(std::isnan(orientation_y.get_value()));
+  EXPECT_FALSE(std::isnan(orientation_z.get_value()));
+  EXPECT_FALSE(std::isnan(orientation_w.get_value()));
+
+  EXPECT_FALSE(std::isnan(angular_velocity_x.get_value()));
+  EXPECT_FALSE(std::isnan(angular_velocity_y.get_value()));
+  EXPECT_FALSE(std::isnan(angular_velocity_z.get_value()));
+
+  EXPECT_FALSE(std::isnan(linear_acceleration_x.get_value()));
+  EXPECT_FALSE(std::isnan(linear_acceleration_y.get_value()));
+  EXPECT_FALSE(std::isnan(linear_acceleration_z.get_value()));
+
   EXPECT_EQ(pth_test_.UnconfigurePantherImu(), return_type::OK);
   EXPECT_EQ(pth_test_.ShutdownPantherImu(), return_type::OK);
 
