@@ -22,7 +22,7 @@ namespace panther_utils::common_utilities
 {
 
 /**
- * Prefixes the keys of a given map with a specified prefix.
+ * @brief Prefixes the keys of a given map with a specified prefix.
  *
  * @tparam T The value type of the map.
  * @param map The input map. Key of the map must be std::string type.
