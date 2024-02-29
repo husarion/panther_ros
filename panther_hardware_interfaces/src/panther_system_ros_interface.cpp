@@ -28,11 +28,25 @@
 namespace panther_hardware_interfaces
 {
 
-template <typename SrvT, typename Func>
-void ProcessServiceCallback(Func callback, SrvT response)
+template class ROSServiceWrapper<std_srvs::srv::SetBool, std::function<void(bool)>>;
+template class ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>;
+
+template <typename SrvT, typename CallbackT>
+void ROSServiceWrapper<SrvT, CallbackT>::RegisterService(
+  const rclcpp::Node::SharedPtr node, const std::string & service_name)
+{
+  service_ = node->create_service<SrvT>(
+    service_name, std::bind(
+                    &ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper, this,
+                    std::placeholders::_1, std::placeholders::_2));
+}
+
+template <typename SrvT, typename CallbackT>
+void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
+  SrvRequestConstPtr request, SrvResponsePtr response)
 {
   try {
-    callback();
+    ProccessCallback(request);
     response->success = true;
   } catch (const std::exception & err) {
     response->success = false;
@@ -43,16 +57,18 @@ void ProcessServiceCallback(Func callback, SrvT response)
   }
 }
 
-void TriggerServiceWrapper::CallbackWrapper(
-  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+template <>
+void ROSServiceWrapper<std_srvs::srv::SetBool, std::function<void(bool)>>::ProccessCallback(
+  SrvRequestConstPtr request)
 {
-  ProcessServiceCallback([this]() { callback_(); }, response);
+  callback_(request->data);
 }
 
-void SetBoolServiceWrapper::CallbackWrapper(
-  SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response)
+template <>
+void ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>::ProccessCallback(
+  SrvRequestConstPtr /* request */)
 {
-  ProcessServiceCallback([this, data = request->data]() { callback_(data); }, response);
+  callback_();
 }
 
 PantherSystemRosInterface::PantherSystemRosInterface(
@@ -98,32 +114,6 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   }
 
   node_.reset();
-}
-
-void PantherSystemRosInterface::AddTriggerService(
-  const std::string service_name, const std::function<void()> & callback)
-{
-  auto wrapper = std::make_shared<TriggerServiceWrapper>(callback);
-
-  wrapper->service = node_->create_service<TriggerSrv>(
-    service_name, std::bind(
-                    &TriggerServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
-                    std::placeholders::_2));
-
-  trigger_wrappers_.push_back(wrapper);
-}
-
-void PantherSystemRosInterface::AddSetBoolService(
-  const std::string service_name, const std::function<void(const bool)> & callback)
-{
-  auto wrapper = std::make_shared<SetBoolServiceWrapper>(callback);
-
-  wrapper->service = node_->create_service<SetBoolSrv>(
-    service_name, std::bind(
-                    &SetBoolServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
-                    std::placeholders::_2));
-
-  set_bool_wrappers_.push_back(wrapper);
 }
 
 void PantherSystemRosInterface::UpdateMsgErrorFlags(
