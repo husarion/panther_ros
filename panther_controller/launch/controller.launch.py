@@ -198,7 +198,7 @@ def generate_launch_description():
     # when spawning without delay ros2_control_node sometimes crashed
     delay_imu_broadcaster_spawner_after_robot_controller_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
+            target_action=robot_controller_spawner,
             on_exit=[imu_broadcaster_spawner],
         ),
     )
