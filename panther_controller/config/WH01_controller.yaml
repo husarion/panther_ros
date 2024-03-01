@@ -16,7 +16,7 @@
       frame_id: imu_link
 
       # orientation_stddev: 1.0e-2 for madgwick filter
-      static_covariance_orientation: [1.0e-8, 0.0, 0.0, 0.0, 1.0e-8, 0.0, 0.0, 0.0, 1.0e-8]
+      static_covariance_orientation: [1.0e-4, 0.0, 0.0, 0.0, 1.0e-4, 0.0, 0.0, 0.0, 1.0e-4]
       # angular_velocity_stdev: 0.095 deg/s gyroscope white noise sigma, as per manual
       static_covariance_angular_velocity: [2.76e-6, 0.0, 0.0, 0.0, 2.76e-6, 0.0, 0.0, 0.0, 2.76e-6]
       # linear_acceleration_stdev: 280 ug accelerometer white noise sigma, as per manual
