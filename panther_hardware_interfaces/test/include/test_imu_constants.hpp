@@ -51,9 +51,9 @@ const std::map<std::string, std::string> kImuObligatoryParams{
   {"mag_bias_x", "0.0"},
   {"mag_bias_y", "0.0"},
   {"mag_bias_z", "0.0"},
-  {"use_mag", "1"},
-  {"stateless", "0"},
-  {"remove_gravity_vector", "1"},
+  {"use_mag", "true"},
+  {"stateless", "false"},
+  {"remove_gravity_vector", "true"},
   {"world_frame", "enu"}};
 
 const std::string kPluginName = "<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>";

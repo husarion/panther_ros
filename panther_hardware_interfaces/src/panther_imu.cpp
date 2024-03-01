@@ -190,9 +190,9 @@ std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
   return state_interfaces;
 }
 
-return_type PantherImuSensor::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
+return_type PantherImuSensor::read(
+  const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
-  [[unused]] time;
   if (not imu_connected_) {
     return return_type::ERROR;
   }
@@ -265,19 +265,19 @@ void PantherImuSensor::ReadCompassParams()
   const auto cc_t4 = info_.hardware_parameters.at("cc_t4");
   const auto cc_t5 = info_.hardware_parameters.at("cc_t5");
 
-  params_.cc_mag_field = std::stod(cc_mag_field);
-  params_.cc_offset0 = std::stod(cc_offset0);
-  params_.cc_offset1 = std::stod(cc_offset1);
-  params_.cc_offset2 = std::stod(cc_offset2);
-  params_.cc_gain0 = std::stod(cc_gain0);
-  params_.cc_gain1 = std::stod(cc_gain1);
-  params_.cc_gain2 = std::stod(cc_gain2);
-  params_.cc_t0 = std::stod(cc_t0);
-  params_.cc_t1 = std::stod(cc_t1);
-  params_.cc_t2 = std::stod(cc_t2);
-  params_.cc_t3 = std::stod(cc_t3);
-  params_.cc_t4 = std::stod(cc_t4);
-  params_.cc_t5 = std::stod(cc_t5);
+  params_.cc_mag_field = hardware_interface::stod(cc_mag_field);
+  params_.cc_offset0 = hardware_interface::stod(cc_offset0);
+  params_.cc_offset1 = hardware_interface::stod(cc_offset1);
+  params_.cc_offset2 = hardware_interface::stod(cc_offset2);
+  params_.cc_gain0 = hardware_interface::stod(cc_gain0);
+  params_.cc_gain1 = hardware_interface::stod(cc_gain1);
+  params_.cc_gain2 = hardware_interface::stod(cc_gain2);
+  params_.cc_t0 = hardware_interface::stod(cc_t0);
+  params_.cc_t1 = hardware_interface::stod(cc_t1);
+  params_.cc_t2 = hardware_interface::stod(cc_t2);
+  params_.cc_t3 = hardware_interface::stod(cc_t3);
+  params_.cc_t4 = hardware_interface::stod(cc_t4);
+  params_.cc_t5 = hardware_interface::stod(cc_t5);
 }
 
 void PantherImuSensor::ReadMadgwickFilterParams()
@@ -293,14 +293,14 @@ void PantherImuSensor::ReadMadgwickFilterParams()
 
   CheckMadgwickFilterWorldFrameParam();
 
-  params_.gain = std::stod(gain);
-  params_.zeta = std::stod(zeta);
-  params_.mag_bias_x = std::stod(mag_bias_x);
-  params_.mag_bias_y = std::stod(mag_bias_y);
-  params_.mag_bias_z = std::stod(mag_bias_z);
-  params_.use_mag = static_cast<bool>(std::stoi(use_mag));
-  params_.stateless = static_cast<bool>(std::stoi(stateless));
-  params_.remove_gravity_vector = static_cast<bool>(std::stoi(remove_gravity_vector));
+  params_.gain = hardware_interface::stod(gain);
+  params_.zeta = hardware_interface::stod(zeta);
+  params_.mag_bias_x = hardware_interface::stod(mag_bias_x);
+  params_.mag_bias_y = hardware_interface::stod(mag_bias_y);
+  params_.mag_bias_z = hardware_interface::stod(mag_bias_z);
+  params_.use_mag = hardware_interface::parse_bool(use_mag);
+  params_.stateless = hardware_interface::parse_bool(stateless);
+  params_.remove_gravity_vector = hardware_interface::parse_bool(remove_gravity_vector);
 }
 
 void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
@@ -365,7 +365,8 @@ void PantherImuSensor::ConfigureCompassParams()
 void PantherImuSensor::ConfigureHeating()
 {
   if (IsParamDefined("heating_enabled")) {
-    params_.heating_enabled = std::stod(info_.hardware_parameters["heating_enabled"]);
+    params_.heating_enabled =
+      hardware_interface::stod(info_.hardware_parameters["heating_enabled"]);
     spatial_->setHeatingEnabled(params_.heating_enabled);
   } else {
     RCLCPP_INFO(logger_, "No heating enabled found. Skipping...");
@@ -455,14 +456,16 @@ void PantherImuSensor::SpatialDataCallback(
 
 void PantherImuSensor::SpatialAttachCallback()
 {
-  RCLCPP_DEBUG(logger_, "SpatialAttachCallback...");
+  RCLCPP_INFO(logger_, "IMU has attached!");
   imu_connected_ = true;
+  on_activate(rclcpp_lifecycle::State{});
 }
 
 void PantherImuSensor::SpatialDetachCallback()
 {
-  RCLCPP_DEBUG(logger_, "SpatialDetachCallback...");
+  RCLCPP_ERROR(logger_, "IMU has detached!");
   imu_connected_ = false;
+  on_deactivate(rclcpp_lifecycle::State{});
 }
 
 void PantherImuSensor::UpdateMadgwickAlgorithm(

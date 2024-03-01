@@ -160,9 +160,9 @@
           <param name="mag_bias_x">0.0</param>
           <param name="mag_bias_y">0.0</param>
           <param name="mag_bias_z">0.0</param>
-          <param name="use_mag">1</param>
-          <param name="stateless">0</param>
-          <param name="remove_gravity_vector">1</param>
+          <param name="use_mag">true</param>
+          <param name="stateless">false</param>
+          <param name="remove_gravity_vector">true</param>
           <param name="world_frame">enu</param>
         </hardware>
 

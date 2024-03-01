@@ -33,6 +33,7 @@
 #include <rclcpp_lifecycle/state.hpp>
 
 #include <hardware_interface/handle.hpp>
+#include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/sensor_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
@@ -64,7 +65,7 @@ public:
 
   std::vector<StateInterface> export_state_interfaces() override;
 
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & /* period */) override;
+  return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
 protected:
   std::vector<double> imu_sensor_state_;
