@@ -16,11 +16,11 @@
       frame_id: imu_link
 
       # orientation_stddev: 1.0e-2 for madgwick filter
-      static_covariance_orientation: [1.0e-4, 0.0, 0.0, 0.0, 1.0e-4, 0.0, 0.0, 0.0, 1.0e-4]
-      # 0.095 deg/s gyroscope white noise sigma, as per manual
-      static_covariance_angular_velocity: [1.66e-3, 0.0, 0.0, 0.0, 1.66e-3, 0.0, 0.0, 0.0, 1.66e-3]
-      # 280 ug accelerometer white noise sigma, as per manual
-      static_covariance_linear_acceleration: [2.75e-3, 0.0, 0.0, 0.0, 2.75e-3, 0.0, 0.0, 0.0, 2.75e-3]
+      static_covariance_orientation: [1.0e-8, 0.0, 0.0, 0.0, 1.0e-8, 0.0, 0.0, 0.0, 1.0e-8]
+      # angular_velocity_stdev: 0.095 deg/s gyroscope white noise sigma, as per manual
+      static_covariance_angular_velocity: [2.76e-6, 0.0, 0.0, 0.0, 2.76e-6, 0.0, 0.0, 0.0, 2.76e-6]
+      # linear_acceleration_stdev: 280 ug accelerometer white noise sigma, as per manual
+      static_covariance_linear_acceleration: [7.56e-6, 0.0, 0.0, 0.0, 7.56e-6, 0.0, 0.0, 0.0, 7.56e-6]
 
   panther_base_controller:
     ros__parameters:
