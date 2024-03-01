@@ -14,6 +14,7 @@ endif()
 set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
+    diagnostic_updater
     hardware_interface
     panther_gpiod
     panther_msgs
@@ -57,7 +58,6 @@ add_library(
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})
-
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
                       phidgets_spatial_parameters)
 
