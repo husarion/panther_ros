@@ -142,6 +142,24 @@ def generate_launch_description():
         default_value="",
     )
 
+    led_config_file = LaunchConfiguration("led_config_file")
+    declare_led_config_file_arg = DeclareLaunchArgument(
+        "led_config_file",
+        default_value=PathJoinSubstitution(
+            [
+                get_package_share_directory("panther_lights"),
+                "config",
+                PythonExpression(["'led_config.yaml'"]),
+            ]
+        ),
+    )
+
+    user_led_animaitons_file = LaunchConfiguration("user_led_animaitons_file")
+    declare_user_led_animaitons_file_arg = DeclareLaunchArgument(
+        "user_led_animaitons_file",
+        default_value="",
+    )
+
     simulation_engine = LaunchConfiguration("simulation_engine")
     declare_simulation_engine_arg = DeclareLaunchArgument(
         "simulation_engine",
@@ -227,6 +245,10 @@ def generate_launch_description():
             )
         ),
         condition=UnlessCondition(use_sim),
+        launch_arguments={
+            "led_config_file": led_config_file,
+            "user_led_animaitons_file": user_led_animaitons_file,
+        }.items(),
     )
 
     battery_launch = IncludeLaunchDescription(
@@ -283,6 +305,8 @@ def generate_launch_description():
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,
         declare_battery_config_path_arg,
+        declare_led_config_file_arg,
+        declare_user_led_animaitons_file_arg,
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
