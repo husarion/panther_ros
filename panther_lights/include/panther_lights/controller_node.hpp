@@ -45,10 +45,7 @@ public:
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
   ~ControllerNode() {}
 
-private:
-  void DeclareParameters();
-  void LoadParameters();
-
+protected:
   /**
    * @brief Initializes LED panel based on YAML description. This LED panel is a representation of
    * the real panel of the robot
@@ -144,6 +141,10 @@ private:
    */
   void SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation);
 
+  std::shared_ptr<LEDAnimation> current_animation_;
+  std::shared_ptr<LEDAnimationsQueue> animations_queue_;
+
+private:
   void PublishPanelFrame(const std::size_t channel);
   void SetLEDAnimationCB(
     const SetLEDAnimationSrv::Request::SharedPtr & request,
@@ -160,9 +161,6 @@ private:
 
   rclcpp::Service<SetLEDAnimationSrv>::SharedPtr set_led_animation_server_;
   rclcpp::TimerBase::SharedPtr controller_timer_;
-
-  std::shared_ptr<LEDAnimation> current_animation_;
-  std::unique_ptr<LEDAnimationsQueue> animations_queue_;
 
   std::mutex queue_mtx_;
 

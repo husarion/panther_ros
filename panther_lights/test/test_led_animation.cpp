@@ -76,6 +76,21 @@ void TestLEDAnimation::SetSegmentAnimations()
   }
 }
 
+TEST(TestLEDAnimationInitialization, InvalidSegmentName)
+{
+  std::unordered_map<std::string, std::shared_ptr<panther_lights::LEDSegment>> segments;
+
+  panther_lights::AnimationDescription anim_desc;
+  anim_desc.segments = {"invalid_segment"};
+
+  panther_lights::LEDAnimationDescription led_anim_desc;
+  led_anim_desc.animations = {anim_desc};
+
+  EXPECT_THROW(
+    std::make_shared<panther_lights::LEDAnimation>(led_anim_desc, segments, rclcpp::Time(0)),
+    std::runtime_error);
+}
+
 TEST_F(TestLEDAnimation, IsFinished)
 {
   SetSegmentAnimations();

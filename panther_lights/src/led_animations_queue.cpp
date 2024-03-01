@@ -20,7 +20,8 @@
 #include <string>
 #include <unordered_map>
 
-#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/logging.hpp>
+#include <rclcpp/time.hpp>
 
 namespace panther_lights
 {
@@ -39,6 +40,9 @@ LEDAnimation::LEDAnimation(
 {
   for (auto & animation : led_animation_description_.animations) {
     for (auto & segment : animation.segments) {
+      if (segments.find(segment) == segments.end()) {
+        throw std::runtime_error("No segment with name: " + segment);
+      }
       animation_segments_.push_back(segments.at(segment));
     }
   }
@@ -116,7 +120,10 @@ void LEDAnimationsQueue::Validate(const rclcpp::Time & time)
 {
   for (auto it = queue_.begin(); it != queue_.end();) {
     if ((time - it->get()->GetInitTime()).seconds() > it->get()->GetTimeout()) {
-      // TODO: log info - animation timeout
+      RCLCPP_WARN(
+        rclcpp::get_logger("controller_node"),
+        "Warning: Timeout for animation: %s. Removing from the queue",
+        it->get()->GetName().c_str());
       it = queue_.erase(it);
     } else {
       ++it;

@@ -25,7 +25,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
 
 #include <panther_lights/led_segment.hpp>
 
@@ -104,7 +104,6 @@ public:
   void SetRepeating(const bool value) { repeating_ = value; }
   void SetParam(const std::string & param) { param_ = param; }
 
-  static constexpr char kDefaultName[] = "UNDEFINED";
   static constexpr std::uint8_t kDefaultPriority = 3;
   static constexpr float kDefaultTimeout = 120.0f;
   static constexpr std::array<std::uint8_t, 3> kValidPriorities = {1, 2, 3};
@@ -156,7 +155,7 @@ public:
    *
    * @param priority Animation with this priority or lower will be removed from the queue
    */
-  void Clear(std::size_t priority = 2);
+  void Clear(const std::size_t priority = 2);
 
   /**
    * @brief Removes animations that has reached theirs timeout from the queue
@@ -176,14 +175,6 @@ public:
   bool HasAnimation(const std::shared_ptr<LEDAnimation> & animation) const;
 
   bool Empty() const { return queue_.empty(); }
-
-  void Print()
-  {
-    std::cout << "--------" << std::endl;
-    for (auto & anim : queue_) {
-      std::cout << anim->GetName() << std::endl;
-    }
-  }
 
 private:
   std::deque<std::shared_ptr<LEDAnimation>> queue_;

@@ -148,6 +148,22 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_led_animations_queue pluginlib
                             panther_utils rclcpp)
   target_link_libraries(${PROJECT_NAME}_test_led_animations_queue yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_controller_node
+    test/test_controller_node.cpp
+    src/controller_node.cpp
+    src/led_segment.cpp
+    src/led_panel.cpp
+    src/segment_converter.cpp
+    src/led_animations_queue.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_controller_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_controller_node pluginlib
+                            panther_msgs panther_utils rclcpp sensor_msgs)
+  target_link_libraries(${PROJECT_NAME}_test_controller_node yaml-cpp)
 endif()
 
 ament_package()

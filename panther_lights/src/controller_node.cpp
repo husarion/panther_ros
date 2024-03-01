@@ -46,6 +46,7 @@ using std::placeholders::_2;
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
+  // TODO, move default led_config_file to launch
   this->declare_parameter<std::string>(
     "led_config_file",
     "/home/husarion/ros2_ws/src/panther_ros/panther_lights/config/led_config.yaml");
@@ -61,7 +62,7 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
   InitializeLEDPanels(led_config_desc["panels"]);
   InitializeLEDSegments(led_config_desc["segments"], controller_freq);
   InitializeLEDSegmentsMap(led_config_desc["segments_map"]);
-  LoadDefaultAnimations(led_config_desc["animations"]);
+  LoadDefaultAnimations(led_config_desc["led_animations"]);
 
   if (user_led_animations_file != "") {
     LoadUserAnimations(user_led_animations_file);
@@ -69,7 +70,7 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
 
   segment_converter_ = std::make_shared<SegmentConverter>();
 
-  animations_queue_ = std::make_unique<LEDAnimationsQueue>(10);
+  animations_queue_ = std::make_shared<LEDAnimationsQueue>(10);
 
   set_led_animation_server_ = this->create_service<SetLEDAnimationSrv>(
     "lights/controller/set/animation", std::bind(&ControllerNode::SetLEDAnimationCB, this, _1, _2));
@@ -79,19 +80,6 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
     std::bind(&ControllerNode::ControllerTimerCB, this));
 
   RCLCPP_INFO(this->get_logger(), "Node started");
-
-  // animations are initialized when they are set. No way do check if they are correctly defined
-  // before?
-}
-
-void ControllerNode::DeclareParameters()
-{
-  // this->declare_parameter<std::string>("led_config_file");
-}
-
-void ControllerNode::LoadParameters()
-{
-  // led_config_file_ = this->get_parameter("led_config_file").as_string();
 }
 
 void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
@@ -206,10 +194,10 @@ void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
   LEDAnimationDescription led_animation_desc;
 
   try {
-    led_animation_desc.name = panther_utils::GetYAMLKeyValue<std::string>(
-      animation_description, "name", LEDAnimation::kDefaultName);
     led_animation_desc.id = panther_utils::GetYAMLKeyValue<std::size_t>(
       animation_description, "id");
+    led_animation_desc.name = panther_utils::GetYAMLKeyValue<std::string>(
+      animation_description, "name", "ANIMATION_" + std::to_string(led_animation_desc.id));
     led_animation_desc.priority = panther_utils::GetYAMLKeyValue<std::uint8_t>(
       animation_description, "priority", LEDAnimation::kDefaultPriority);
     led_animation_desc.timeout = panther_utils::GetYAMLKeyValue<float>(
@@ -219,7 +207,7 @@ void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
       std::find(
         LEDAnimation::kValidPriorities.begin(), LEDAnimation::kValidPriorities.end(),
         led_animation_desc.priority) == LEDAnimation::kValidPriorities.end()) {
-      throw std::runtime_error("Invalid LED animation ID");
+      throw std::runtime_error("Invalid LED animation priority");
     }
 
     auto animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
@@ -237,7 +225,7 @@ void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
 
     const auto result = animations_descriptions_.emplace(led_animation_desc.id, led_animation_desc);
     if (!result.second) {
-      throw std::runtime_error("Animation with given ID already exists.");
+      throw std::runtime_error("Animation with given ID already exists");
     }
 
   } catch (const std::runtime_error & e) {
@@ -352,7 +340,6 @@ void ControllerNode::AddAnimationToQueue(
   animation->SetRepeating(repeating);
   animation->SetParam(param);
   animations_queue_->Put(animation, this->get_clock()->now());
-  animations_queue_->Print();
 }
 
 void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation)
