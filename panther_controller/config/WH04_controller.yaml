@@ -14,8 +14,11 @@
     ros__parameters:
       sensor_name: imu
       frame_id: imu_link
-      static_covariance_angular_velocity: [1.1e-4, 0.0, 0.0, 0.0, 1.1e-4, 0.0, 0.0, 0.0, 1.1e-4]  # Values measured experimentally
-      static_covariance_linear_acceleration: [6.2e-6, 0.0, 0.0, 0.0, 6.2e-6, 0.0, 0.0, 0.0, 6.2e-6] # Values measured experimentally
+
+      # 0.095 deg/s gyroscope white noise sigma, as per manual
+      static_covariance_angular_velocity: [1.66e-3, 0.0, 0.0, 0.0, 1.66e-3, 0.0, 0.0, 0.0, 1.66e-3]
+      # 280 ug accelerometer white noise sigma, as per manual
+      static_covariance_linear_acceleration: [2.75e-3, 0.0, 0.0, 0.0, 2.75e-3, 0.0, 0.0, 0.0, 2.75e-3]
 
   panther_base_controller:
     ros__parameters:
