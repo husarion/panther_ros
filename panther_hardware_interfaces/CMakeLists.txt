@@ -14,6 +14,7 @@ endif()
 set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
+    diagnostic_updater
     hardware_interface
     panther_gpiod
     panther_msgs
@@ -46,6 +47,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(
   ${PROJECT_NAME}
+  diagnostic_updater
   hardware_interface
   rclcpp_lifecycle
   rclcpp
@@ -78,6 +80,7 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 
 ament_export_dependencies(
+  diagnostic_updater
   hardware_interface
   controller_interface
   realtime_tools

@@ -17,6 +17,7 @@
 #include <cmath>
 
 #include <panther_hardware_interfaces/utils.hpp>
+#include <panther_utils/common_utilities.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -122,6 +123,15 @@ panther_msgs::msg::FaultFlag FaultFlag::GetMessage() const
   return fault_flags_msg;
 }
 
+std::map<std::string, bool> FaultFlag::GetErrorMap() const
+{
+  std::map<std::string, bool> error_map;
+  for (std::size_t i = 0; i < flag_names_.size(); i++) {
+    error_map["fault_flag." + flag_names_[i]] = flags_.test(i);
+  }
+  return error_map;
+}
+
 ScriptFlag::ScriptFlag() : FlagError({"loop_error", "encoder_disconected", "amp_limiter"}) {}
 
 panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
@@ -133,6 +143,15 @@ panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
   script_flags_msg.amp_limiter = flags_.test(2);
 
   return script_flags_msg;
+}
+
+std::map<std::string, bool> ScriptFlag::GetErrorMap() const
+{
+  std::map<std::string, bool> error_map;
+  for (std::size_t i = 0; i < flag_names_.size(); i++) {
+    error_map["script_flag." + flag_names_[i]] = flags_.test(i);
+  }
+  return error_map;
 }
 
 RuntimeError::RuntimeError()
@@ -171,6 +190,15 @@ panther_msgs::msg::RuntimeError RuntimeError::GetMessage() const
   return runtime_errors_msg;
 }
 
+std::map<std::string, bool> RuntimeError::GetErrorMap() const
+{
+  std::map<std::string, bool> error_map;
+  for (std::size_t i = 0; i < flag_names_.size(); i++) {
+    error_map["runtime_error." + flag_names_[i]] = flags_.test(i);
+  }
+  return error_map;
+}
+
 void RoboteqData::SetMotorsStates(
   const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
   const bool data_timed_out)
@@ -202,6 +230,39 @@ std::string RoboteqData::GetFlagErrorLog() const
          "Script flags: " + script_flags_.GetErrorLog() +
          "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
          "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
+}
+
+std::map<std::string, bool> RoboteqData::GetFlagErrorMap() const
+{
+  std::map<std::string, bool> flag_error_map;
+
+  flag_error_map.merge(fault_flags_.GetErrorMap());
+  flag_error_map.merge(script_flags_.GetErrorMap());
+
+  auto left_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
+    left_runtime_error_.GetErrorMap(), "left_motor.");
+
+  auto right_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
+    right_runtime_error_.GetErrorMap(), "right_motor.");
+
+  flag_error_map.merge(std::move(left_runtime_error_map));
+  flag_error_map.merge(std::move(right_runtime_error_map));
+
+  return flag_error_map;
+}
+
+std::map<std::string, bool> RoboteqData::GetErrorMap() const
+{
+  std::map<std::string, bool> error_map;
+
+  const auto flag_error_map = GetFlagErrorMap();
+  error_map.insert(flag_error_map.begin(), flag_error_map.end());
+
+  error_map.emplace("motor_states_data_timed_out", IsMotorStatesDataTimedOut());
+  error_map.emplace("driver_state_data_timed_out", IsDriverStateDataTimedOut());
+  error_map.emplace("can_net_err", IsCANNetErr());
+
+  return error_map;
 }
 
 }  // namespace panther_hardware_interfaces

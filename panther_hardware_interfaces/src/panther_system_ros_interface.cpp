@@ -18,6 +18,7 @@
 #include <string>
 #include <thread>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <realtime_tools/realtime_publisher.h>
@@ -72,8 +73,8 @@ void ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>::ProccessC
 
 PantherSystemRosInterface::PantherSystemRosInterface(
   const std::string & node_name, const rclcpp::NodeOptions & node_options)
+: node_(rclcpp::Node::make_shared(node_name, node_options)), diagnostic_updater_(node_)
 {
-  node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
@@ -93,6 +94,8 @@ PantherSystemRosInterface::PantherSystemRosInterface(
     "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   realtime_e_stop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
+
+  diagnostic_updater_.setHardwareID("Panther System");
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()

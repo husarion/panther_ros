@@ -20,6 +20,7 @@
 #include <memory>
 #include <thread>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <realtime_tools/realtime_publisher.h>
@@ -167,6 +168,32 @@ public:
   }
 
   /**
+   * @brief Adds a new diagnostic task.
+   *
+   * @param name The name of the diagnostic task.
+   * @param task_owner A pointer to the object that posses the diagnostic task member function.
+   * @param task_fcn A pointer to the diagnostic task member function.
+   */
+  template <class T>
+  inline void AddDiagnosticTask(
+    const std::string & name, T * task_owner,
+    void (T::*task_fcn)(diagnostic_updater::DiagnosticStatusWrapper &))
+  {
+    diagnostic_updater_.add(name, task_owner, task_fcn);
+  }
+
+  /**
+   * @brief Broadcasts a message with the specified level on defined diagnostic tasks.
+   *
+   * @param level The level of the diagnostic message.
+   * @param message The message to be broadcasted.
+   */
+  inline void BroadcastOnDiagnosticTasks(unsigned char level, const std::string & message)
+  {
+    diagnostic_updater_.broadcast(level, message);
+  }
+
+  /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
    */
   void UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear);
@@ -213,6 +240,8 @@ private:
 
   rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<BoolMsg>> realtime_e_stop_state_publisher_;
+
+  diagnostic_updater::Updater diagnostic_updater_;
 
   std::vector<std::shared_ptr<void>> service_wrappers_storage_;
 };
