@@ -93,6 +93,7 @@ protected:
   bool CheckIfSafetyStopActive();
   bool AreVelocityCommandsNearZero();
 
+  void MotorsPowerEnable(const bool enable);
   void SetEStop();
   void ResetEStop();
   std::function<bool()> ReadEStop;
@@ -146,6 +147,8 @@ protected:
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Duration driver_states_update_period_{0, 0};
+
+  std::mutex e_stop_manipulation_mtx_;
 };
 
 }  // namespace panther_hardware_interfaces

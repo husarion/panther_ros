@@ -138,9 +138,6 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     std::placeholders::_1));
 
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
-    "~/motor_power_enable",
-    std::bind(&GPIOControllerInterface::MotorPowerEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/fan_enable",
     std::bind(&GPIOControllerInterface::FanEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
@@ -153,6 +150,9 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
+    "~/motor_power_enable",
+    std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
 
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
     "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this));
@@ -629,8 +629,32 @@ bool PantherSystem::AreVelocityCommandsNearZero()
   return true;
 }
 
+void PantherSystem::MotorsPowerEnable(const bool enable)
+{
+  try {
+    {
+      std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
+
+      if (!enable) {
+        motors_controller_->TurnOnEStop();
+      } else {
+        motors_controller_->TurnOffEStop();
+      }
+    }
+
+    SetEStop();
+
+    roboteq_error_filter_->SetClearErrorsFlag();
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
+  } catch (const std::runtime_error & e) {
+    RCLCPP_WARN_STREAM(logger_, "Error when trying to write commands: " << e.what());
+  }
+}
+
 void PantherSystem::SetEStop()
 {
+  std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
+
   RCLCPP_INFO(logger_, "Setting E-stop");
   bool gpio_controller_error = false;
 
@@ -659,6 +683,8 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
+  std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
+
   RCLCPP_INFO(logger_, "Resetting E-stop");
 
   // On the side of the motors controller safety stop is reset by sending 0.0 commands
