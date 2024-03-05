@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_hardware_interfaces)
+
+# Handle superbuild first
+option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
+
+if(USE_SUPERBUILD)
+  project(SUPERBUILD NONE)
+  include(cmake/SuperBuild.cmake)
+  return()
+else()
+  project(panther_hardware_interfaces)
+endif()
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
@@ -29,49 +39,10 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-pkg_check_modules(LIBLELY_COAPP_PKG IMPORTED_TARGET liblely-coapp)
+set(ENV{PKG_CONFIG_PATH}
+    "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
-if(LIBLELY_COAPP_PKG_FOUND)
-  set(LIBLELY_COAPP PkgConfig::LIBLELY_COAPP_PKG)
-else()
-  message(WARNING "liblely-coapp is not installed. Installing...")
-
-  include(ExternalProject)
-
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
-
-  ExternalProject_Add(
-    lely_core_libraries
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/upstream
-    GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
-    GIT_TAG v2.3.3
-    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries
-    CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
-    COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
-            --disable-tests --disable-static
-    BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
-    INSTALL_COMMAND make install INSTALL_PREFIX=<SOURCE_DIR>)
-
-  add_library(liblely-coapp STATIC IMPORTED GLOBAL)
-  add_dependencies(liblely-coapp lely_core_libraries)
-
-  set_target_properties(
-    liblely-coapp
-    PROPERTIES
-      IMPORTED_LOCATION
-      ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib/liblely-coapp.so)
-  set_target_properties(
-    liblely-coapp
-    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-               ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include)
-
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/lib
-          DESTINATION ${CMAKE_INSTALL_PREFIX})
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lely_core_libraries/include
-          DESTINATION ${CMAKE_INSTALL_PREFIX})
-
-  set(LIBLELY_COAPP liblely-coapp)
-endif()
+pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 
 add_library(
   ${PROJECT_NAME} SHARED
@@ -97,7 +68,7 @@ ament_target_dependencies(
   panther_msgs
   panther_utils
   realtime_tools)
-target_link_libraries(${PROJECT_NAME} ${LIBLELY_COAPP})
+target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
