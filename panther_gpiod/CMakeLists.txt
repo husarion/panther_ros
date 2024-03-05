@@ -27,6 +27,9 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+set(ENV{PKG_CONFIG_PATH}
+    "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+
 pkg_check_modules(LIBGPIOD REQUIRED IMPORTED_TARGET libgpiodcxx)
 
 add_library(${PROJECT_NAME} SHARED src/gpio_driver.cpp)
