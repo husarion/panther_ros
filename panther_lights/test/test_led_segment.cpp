@@ -191,10 +191,11 @@ TEST_F(TestLEDSegment, SetAnimation)
   const auto image_anim_desc = YAML::Load(
     "{image: $(find panther_lights)/animations/triangle01_red.png, "
     "duration: 2}");
+  const auto charging_anim_desc = YAML::Load("{duration: 2}");
+
   EXPECT_NO_THROW(
     led_segment_->SetAnimation("panther_lights::ImageAnimation", image_anim_desc, false));
 
-  const auto charging_anim_desc = YAML::Load("{duration: 2}");
   EXPECT_NO_THROW(led_segment_->SetAnimation(
     "panther_lights::ChargingAnimation", charging_anim_desc, false, "0.5"));
 }

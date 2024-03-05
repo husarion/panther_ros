@@ -25,12 +25,14 @@ def generate_launch_description():
     led_config_file = LaunchConfiguration("led_config_file")
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
+        description="Path to a YAML file with a description of led configuration",
     )
 
     user_led_animaitons_file = LaunchConfiguration("user_led_animaitons_file")
     declare_user_led_animaitons_file_arg = DeclareLaunchArgument(
         "user_led_animaitons_file",
         default_value="",
+        description="Path to a YAML file with a description of the user defined animations",
     )
 
     lights_driver_node = Node(

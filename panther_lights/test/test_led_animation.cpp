@@ -35,6 +35,9 @@ public:
   void SetSegmentAnimations();
 
 protected:
+  static constexpr char kTestSegmentName1[] = "segment_1";
+  static constexpr char kTestSegmentName2[] = "segment_2";
+
   std::shared_ptr<panther_lights::LEDAnimation> led_anim_;
   std::unordered_map<std::string, std::shared_ptr<panther_lights::LEDSegment>> segments_;
 };
@@ -44,12 +47,12 @@ TestLEDAnimation::TestLEDAnimation()
   auto segment_1_desc = YAML::Load("{channel: 1, led_range: 0-10}");
   auto segment_2_desc = YAML::Load("{channel: 2, led_range: 0-10}");
   segments_.emplace(
-    "segment_1", std::make_shared<panther_lights::LEDSegment>(segment_1_desc, 50.0));
+    kTestSegmentName1, std::make_shared<panther_lights::LEDSegment>(segment_1_desc, 50.0));
   segments_.emplace(
-    "segment_2", std::make_shared<panther_lights::LEDSegment>(segment_2_desc, 50.0));
+    kTestSegmentName2, std::make_shared<panther_lights::LEDSegment>(segment_2_desc, 50.0));
 
   panther_lights::AnimationDescription anim_desc;
-  anim_desc.segments = {"segment_1", "segment_2"};
+  anim_desc.segments = {kTestSegmentName1, kTestSegmentName2};
   anim_desc.type = "panther_lights::ImageAnimation";
   anim_desc.animation =
     YAML::Load("{image: $(find panther_lights)/animations/triangle01_red.png, duration: 2.0}");
@@ -97,14 +100,14 @@ TEST_F(TestLEDAnimation, IsFinished)
 
   EXPECT_FALSE(led_anim_->IsFinished());
 
-  while (!segments_.at("segment_1")->IsAnimationFinished()) {
-    segments_.at("segment_1")->UpdateAnimation();
+  while (!segments_.at(kTestSegmentName1)->IsAnimationFinished()) {
+    segments_.at(kTestSegmentName1)->UpdateAnimation();
   }
 
   EXPECT_FALSE(led_anim_->IsFinished());
 
-  while (!segments_.at("segment_2")->IsAnimationFinished()) {
-    segments_.at("segment_2")->UpdateAnimation();
+  while (!segments_.at(kTestSegmentName2)->IsAnimationFinished()) {
+    segments_.at(kTestSegmentName2)->UpdateAnimation();
   }
 
   EXPECT_TRUE(led_anim_->IsFinished());
@@ -116,15 +119,15 @@ TEST_F(TestLEDAnimation, GetProgress)
 
   EXPECT_FLOAT_EQ(0.0, led_anim_->GetProgress());
 
-  while (!segments_.at("segment_1")->IsAnimationFinished()) {
-    segments_.at("segment_1")->UpdateAnimation();
+  while (!segments_.at(kTestSegmentName1)->IsAnimationFinished()) {
+    segments_.at(kTestSegmentName1)->UpdateAnimation();
   }
 
   EXPECT_FLOAT_EQ(0.0, led_anim_->GetProgress());
   EXPECT_FALSE(led_anim_->IsFinished());
 
-  while (!segments_.at("segment_2")->IsAnimationFinished()) {
-    segments_.at("segment_2")->UpdateAnimation();
+  while (!segments_.at(kTestSegmentName2)->IsAnimationFinished()) {
+    segments_.at(kTestSegmentName2)->UpdateAnimation();
   }
 
   EXPECT_FLOAT_EQ(1.0, led_anim_->GetProgress());
@@ -134,30 +137,30 @@ TEST_F(TestLEDAnimation, Reset)
 {
   SetSegmentAnimations();
 
-  while (!segments_.at("segment_1")->IsAnimationFinished()) {
-    segments_.at("segment_1")->UpdateAnimation();
+  while (!segments_.at(kTestSegmentName1)->IsAnimationFinished()) {
+    segments_.at(kTestSegmentName1)->UpdateAnimation();
   }
 
-  while (!segments_.at("segment_2")->IsAnimationFinished()) {
-    segments_.at("segment_2")->UpdateAnimation();
+  while (!segments_.at(kTestSegmentName2)->IsAnimationFinished()) {
+    segments_.at(kTestSegmentName2)->UpdateAnimation();
   }
 
   EXPECT_TRUE(led_anim_->GetInitTime() == rclcpp::Time(0));
   EXPECT_TRUE(led_anim_->IsFinished());
-  EXPECT_TRUE(segments_.at("segment_1")->IsAnimationFinished());
-  EXPECT_TRUE(segments_.at("segment_2")->IsAnimationFinished());
-  EXPECT_FLOAT_EQ(1.0, segments_.at("segment_1")->GetAnimationProgress());
-  EXPECT_FLOAT_EQ(1.0, segments_.at("segment_2")->GetAnimationProgress());
+  EXPECT_TRUE(segments_.at(kTestSegmentName1)->IsAnimationFinished());
+  EXPECT_TRUE(segments_.at(kTestSegmentName2)->IsAnimationFinished());
+  EXPECT_FLOAT_EQ(1.0, segments_.at(kTestSegmentName1)->GetAnimationProgress());
+  EXPECT_FLOAT_EQ(1.0, segments_.at(kTestSegmentName2)->GetAnimationProgress());
 
   auto reset_time = rclcpp::Time(1);
   led_anim_->Reset(reset_time);
 
   EXPECT_TRUE(led_anim_->GetInitTime() == reset_time);
   EXPECT_FALSE(led_anim_->IsFinished());
-  EXPECT_FALSE(segments_.at("segment_1")->IsAnimationFinished());
-  EXPECT_FALSE(segments_.at("segment_2")->IsAnimationFinished());
-  EXPECT_FLOAT_EQ(0.0, segments_.at("segment_1")->GetAnimationProgress());
-  EXPECT_FLOAT_EQ(0.0, segments_.at("segment_2")->GetAnimationProgress());
+  EXPECT_FALSE(segments_.at(kTestSegmentName1)->IsAnimationFinished());
+  EXPECT_FALSE(segments_.at(kTestSegmentName2)->IsAnimationFinished());
+  EXPECT_FLOAT_EQ(0.0, segments_.at(kTestSegmentName1)->GetAnimationProgress());
+  EXPECT_FLOAT_EQ(0.0, segments_.at(kTestSegmentName2)->GetAnimationProgress());
 }
 
 int main(int argc, char ** argv)

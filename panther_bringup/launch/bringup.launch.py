@@ -151,12 +151,14 @@ def generate_launch_description():
                 PythonExpression(["'led_config.yaml'"]),
             ]
         ),
+        description="Path to a YAML file with a description of led configuration",
     )
 
     user_led_animaitons_file = LaunchConfiguration("user_led_animaitons_file")
     declare_user_led_animaitons_file_arg = DeclareLaunchArgument(
         "user_led_animaitons_file",
         default_value="",
+        description="Path to a YAML file with a description of the user defined animations",
     )
 
     simulation_engine = LaunchConfiguration("simulation_engine")

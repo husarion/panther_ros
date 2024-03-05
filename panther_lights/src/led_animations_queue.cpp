@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,9 +26,6 @@
 namespace panther_lights
 {
 
-using std::placeholders::_1;
-using std::placeholders::_2;
-
 LEDAnimation::LEDAnimation(
   const LEDAnimationDescription & led_animation_description,
   const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
@@ -38,8 +35,8 @@ LEDAnimation::LEDAnimation(
   repeating_(false),
   param_("")
 {
-  for (auto & animation : led_animation_description_.animations) {
-    for (auto & segment : animation.segments) {
+  for (const auto & animation : led_animation_description_.animations) {
+    for (const auto & segment : animation.segments) {
       if (segments.find(segment) == segments.end()) {
         throw std::runtime_error("No segment with name: " + segment);
       }

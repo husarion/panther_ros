@@ -30,7 +30,7 @@ void SegmentConverter::Convert(
   const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
   const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels)
 {
-  for (auto & [segment_name, segment] : segments) {
+  for (const auto & [segment_name, segment] : segments) {
     if (!segment->HasAnimation()) {
       continue;
     }

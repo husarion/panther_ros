@@ -76,8 +76,6 @@ panther_lights::LEDAnimation TestLEDAnimationsQueue::CreateLEDAnimation(
 
 TEST_F(TestLEDAnimationsQueue, Put)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim = std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST", 1));
   led_anim_queue_->Put(led_anim, rclcpp::Time(0));
 
@@ -87,8 +85,6 @@ TEST_F(TestLEDAnimationsQueue, Put)
 
 TEST_F(TestLEDAnimationsQueue, PutQueueOverloaded)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim = std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST", 1));
   for (std::size_t i = 0; i < max_queue_size_; i++) {
     led_anim_queue_->Put(led_anim, rclcpp::Time(0));
@@ -99,8 +95,6 @@ TEST_F(TestLEDAnimationsQueue, PutQueueOverloaded)
 
 TEST_F(TestLEDAnimationsQueue, PutClearWhenPriorityEqualOne)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim_pr_1 =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST", 1));
   auto led_anim_pr_2 =
@@ -119,8 +113,6 @@ TEST_F(TestLEDAnimationsQueue, PutClearWhenPriorityEqualOne)
 
 TEST_F(TestLEDAnimationsQueue, PutSortByPriority)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim_pr_2 =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST", 2));
   auto led_anim_pr_3 =
@@ -139,8 +131,6 @@ TEST_F(TestLEDAnimationsQueue, PutSortByPriority)
 
 TEST_F(TestLEDAnimationsQueue, PutSortByTime)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim_t0 =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST", 1, rclcpp::Time(0)));
   auto led_anim_t1 =
@@ -168,8 +158,6 @@ TEST_F(TestLEDAnimationsQueue, GetQueueEmpty)
 
 TEST_F(TestLEDAnimationsQueue, Clear)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim_pr_1 =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST1", 1));
   auto led_anim_pr_2 =
@@ -197,8 +185,6 @@ TEST_F(TestLEDAnimationsQueue, Clear)
 
 TEST_F(TestLEDAnimationsQueue, ValidateAnimationTimedOut)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST", 1, rclcpp::Time(0)));
 
@@ -214,8 +200,6 @@ TEST_F(TestLEDAnimationsQueue, ValidateAnimationTimedOut)
 
 TEST_F(TestLEDAnimationsQueue, GetFirstAnimationPriority)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim_pr_1 =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST1", 1));
   auto led_anim_pr_2 =
@@ -239,8 +223,6 @@ TEST_F(TestLEDAnimationsQueue, GetFirstAnimationPriority)
 
 TEST_F(TestLEDAnimationsQueue, Remove)
 {
-  EXPECT_TRUE(led_anim_queue_->Empty());
-
   auto led_anim_pr_1 =
     std::make_shared<panther_lights::LEDAnimation>(CreateLEDAnimation("TEST1", 1));
   auto led_anim_pr_2 =

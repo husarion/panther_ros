@@ -32,6 +32,10 @@
 namespace panther_lights
 {
 
+/**
+ * @brief Structure describing basic animation, including its type, description and list of segments
+ * it will be assigned to
+ */
 struct AnimationDescription
 {
   std::string type;
@@ -39,6 +43,10 @@ struct AnimationDescription
   YAML::Node animation;
 };
 
+/**
+ * @brief Structure describing a complete LED animation, containing its ID, priority, name, timeout
+ * and, a list of animations that will be displayed on LED segments
+ */
 struct LEDAnimationDescription
 {
   std::uint8_t id;

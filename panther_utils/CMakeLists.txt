@@ -10,6 +10,7 @@ find_package(diagnostic_updater REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(realtime_tools REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 

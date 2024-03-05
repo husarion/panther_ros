@@ -102,15 +102,8 @@ led_animations:
           duration: 2
           repeat: 2
 
-  # - id: 8
-  #   name: BATTERY_STATE
-  #   priority: 3
-  #   animations:
-  #     - type: panther_lights::ImageAnimation
-  #       segments: all
-  #       animation:
-  #         duration: 3
-  #         repeat: 3
+  # The BATTERY_STATE animation is no longer supported.
+  # Animation ID: 8 was intentionally omitted to keep numbering compatibility with ROS 1.
 
   - id: 9
     name: CHARGING_BATTERY

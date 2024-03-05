@@ -7,15 +7,15 @@ Basic animation type. This class consists of:
 Arguments:
 
 - `animation_description` [*dict*]: a dictionary with animation description. Contain following keys:
-  - `brightness` [*float*, optional]: will be assigned to the `self._brightness` variable as a value in a range **[0, 255]**.
-  - `duration` [*float*]: will be assigned to `self._duration` variable.
-  - `repeat` [*int*, optional]: will be assigned to `self._loops` variable.
+  - `brightness` [*float*, optional]: will be assigned to the `brightness_` variable as a value in a range **[0, 255]**.
+  - `duration` [*float*]: will be assigned to `duration_` variable.
+  - `repeat` [*int*, optional]: will be assigned to `loops_` variable.
 - `num_led` [*int*]: number of LEDs in a bumper.
 - `controller_frequency` [*float*]: controller frequency **[Hz]** at which animation frames will be processed.
 
 Functions:
 
-- `Initialize`
+- `Initialize` - this method handles animation initialization. It should be invoked right after the animation is created, as the constructors for pluginlib classes cannot have parameters.
 - `Update` - returns a list of length `num_led` with **RGBA** values of colors to be displayed on the Bumper Lights based on the `UpdateFrame` method. Handles looping over animation based on `repeating` parameter, iterating over animation, and updating its progress.
 - `UpdateFrame` - returns a list of shape (`num_led`, 4) with **RGBA** values of colors to be displayed on the Bumper Lights. Colors are described as a list of integers with respective **R**, **G**, and **B** color values and **A** alpha channel. By default, not implemented.
 - `Reset` - resets animation to its initial state. If overwritten, it requires calling the parent class implementation first.
@@ -44,8 +44,8 @@ Create a New Animation Type:
 ```c++
 # my_cool_animation.hpp
 
-#ifndef PANTHER_LIGHTS_CHARGING_ANIMATION_HPP_
-#define PANTHER_LIGHTS_CHARGING_ANIMATION_HPP_
+#ifndef MY_PACKAGE_MY_COOL_ANIMATION_HPP_
+#define MY_PACKAGE_MY_COOL_ANIMATION_HPP_
 
 #include <yaml-cpp/yaml.h>
 
@@ -65,7 +65,7 @@ private:
   std::uint8_t value_;
 };
 
-#endif  // PANTHER_LIGHTS_CHARGING_ANIMATION_HPP_
+#endif  // MY_PACKAGE_MY_COOL_ANIMATION_HPP_
 ```
 
 ```c++

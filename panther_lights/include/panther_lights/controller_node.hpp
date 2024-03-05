@@ -16,7 +16,6 @@
 #define PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -161,8 +160,6 @@ private:
 
   rclcpp::Service<SetLEDAnimationSrv>::SharedPtr set_led_animation_server_;
   rclcpp::TimerBase::SharedPtr controller_timer_;
-
-  std::mutex queue_mtx_;
 
   bool animation_finished_ = true;
 };

@@ -76,6 +76,11 @@ protected:
   void CallSetLEDAnimationSrv(
     const std::size_t animaiton_id, const bool repeating, const std::string & param = "");
 
+  static constexpr std::size_t kTestNumberOfLeds = 10;
+  static constexpr std::size_t kTestChannel = 1;
+  static constexpr char kTestSegmentName[] = "test";
+  static constexpr char kTestSegmentLedRange[] = "0-9";
+
   std::filesystem::path led_config_file_;
   std::shared_ptr<ControllerNodeWrapper> controller_node_;
   rclcpp::Client<panther_msgs::srv::SetLEDAnimation>::SharedPtr set_led_anim_client_;
@@ -104,16 +109,16 @@ TestControllerNode::~TestControllerNode() { std::filesystem::remove(led_config_f
 void TestControllerNode::CreateLEDConfig(const std::filesystem::path file_path)
 {
   YAML::Node panel;
-  panel["channel"] = 1;
-  panel["number_of_leds"] = 10;
+  panel["channel"] = kTestChannel;
+  panel["number_of_leds"] = kTestNumberOfLeds;
 
   YAML::Node segment;
-  segment["name"] = "test";
-  segment["channel"] = 1;
-  segment["led_range"] = "0-9";
+  segment["name"] = kTestSegmentName;
+  segment["channel"] = kTestChannel;
+  segment["led_range"] = kTestSegmentLedRange;
 
   YAML::Node segments_map;
-  segments_map["test"] = std::vector<std::string>(1, "test");
+  segments_map["test"] = std::vector<std::string>(1, kTestSegmentName);
 
   YAML::Node animation;
   animation["image"] = "$(find panther_lights)/animations/triangle01_red.png";
@@ -170,21 +175,15 @@ void TestControllerNode::CallSetLEDAnimationSrv(
   EXPECT_TRUE(result.get()->success);
 }
 
-TEST(TestControllerNodeInitialization, InitializeLEDPanels)
-{
-  // ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-  //   controller_node_, battery_state_, std::chrono::milliseconds(1000)));
-}
-
 TEST_F(TestControllerNode, InitializeLEDPanelsThrowRepeatingChannel)
 {
   YAML::Node panel_1_desc;
-  panel_1_desc["channel"] = 1;
-  panel_1_desc["number_of_leds"] = 10;
+  panel_1_desc["channel"] = kTestChannel;
+  panel_1_desc["number_of_leds"] = kTestNumberOfLeds;
 
   YAML::Node panel_2_desc;
-  panel_2_desc["channel"] = 1;
-  panel_2_desc["number_of_leds"] = 10;
+  panel_2_desc["channel"] = kTestChannel;
+  panel_2_desc["number_of_leds"] = kTestNumberOfLeds;
 
   std::vector<YAML::Node> panels;
   panels.push_back(panel_1_desc);
@@ -201,14 +200,14 @@ TEST_F(TestControllerNode, InitializeLEDPanelsThrowRepeatingChannel)
 TEST_F(TestControllerNode, InitializeLEDSegmentsThrowRepeatingName)
 {
   YAML::Node segment_1_desc;
-  segment_1_desc["name"] = "TEST";
-  segment_1_desc["channel"] = 1;
-  segment_1_desc["led_range"] = "0-9";
+  segment_1_desc["name"] = kTestSegmentName;
+  segment_1_desc["channel"] = kTestChannel;
+  segment_1_desc["led_range"] = kTestSegmentLedRange;
 
   YAML::Node segment_2_desc;
-  segment_2_desc["name"] = "TEST";
-  segment_2_desc["channel"] = 1;
-  segment_2_desc["led_range"] = "0-9";
+  segment_2_desc["name"] = kTestSegmentName;
+  segment_2_desc["channel"] = kTestChannel;
+  segment_2_desc["led_range"] = kTestSegmentLedRange;
 
   std::vector<YAML::Node> segments;
   segments.push_back(segment_1_desc);

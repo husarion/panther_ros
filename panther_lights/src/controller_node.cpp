@@ -40,16 +40,13 @@
 namespace panther_lights
 {
 
-using std::placeholders::_1;
-using std::placeholders::_2;
-
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
-  // TODO, move default led_config_file to launch
-  this->declare_parameter<std::string>(
-    "led_config_file",
-    "/home/husarion/ros2_ws/src/panther_ros/panther_lights/config/led_config.yaml");
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+
+  this->declare_parameter<std::string>("led_config_file");
   this->declare_parameter<std::string>("user_led_animaitons_file", "");
   this->declare_parameter<float>("controller_freq", 50.0);
 
@@ -266,8 +263,6 @@ void ControllerNode::PublishPanelFrame(const std::size_t channel)
 
 void ControllerNode::ControllerTimerCB()
 {
-  std::lock_guard<std::mutex> lck_g(queue_mtx_);
-
   if (animation_finished_) {
     animations_queue_->Validate(this->get_clock()->now());
 

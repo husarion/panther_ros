@@ -214,7 +214,7 @@ user_animations:
     name: ANIMATION_2
     priority: 3
     animation:
-      - type: image_animation
+      - type: panther_lights::ImageAnimation
         segments: all
         animation:
           image: /animations/custom_image.png
@@ -226,7 +226,7 @@ user_animations:
     name: ANIMATION_3
     priority: 3
     animation:
-      - type: image_animation
+      - type: panther_lights::ImageAnimation
         segments: all
         animation:
           image: $(find my_custom_animation_package)/animations/custom_image.png
@@ -238,13 +238,13 @@ user_animations:
     name: ANIMATION_4
     priority: 3
     animation:
-      - type: image_animation
+      - type: panther_lights::ImageAnimation
         segments: front
         animation:
           image: $(find panther_lights)/animations/triangle01_blue.png
           duration: 2
           repeat: 2
-      - type: image_animation
+      - type: panther_lights::ImageAnimation
         segments: rear
         animation:
           image: $(find panther_lights)/animations/triangle01_red.png
