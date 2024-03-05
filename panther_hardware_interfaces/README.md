@@ -88,20 +88,6 @@ The code structure is described in more detail in a [separate file](./CODE_STRUC
 Adjust your configuration and generate a new `master.dcf` using:
 `dcfgen canopen_configuration.yaml -r`
 
-## Setup
-
-<!-- todo: automate and move it to CMakeLists -->
-
-### Lely CANopen installation
-
-```bash
-sudo apt-get update && \
-sudo apt-get install -y software-properties-common && \
-sudo add-apt-repository ppa:lely/ppa && \
-sudo apt-get update && \
-sudo apt-get install -y liblely-coapp-dev liblely-co-tools python3-dcf-tools
-```
-
 ### RT
 
 To configure RT check out the instructions provided in the [ros2_control docs](https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html#determinism) (add group and change `/etc/security/limits.conf`).
