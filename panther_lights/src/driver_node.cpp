@@ -159,9 +159,9 @@ void DriverNode::SetBrightnessCB(
   try {
     front_panel_.SetGlobalBrightness(brightness);
     rear_panel_.SetGlobalBrightness(brightness);
-  } catch (const std::out_of_range & err) {
+  } catch (const std::out_of_range & e) {
     res->success = false;
-    res->message = "Failed to set brightness: " + std::string(err.what());
+    res->message = "Failed to set brightness: " + std::string(e.what());
     return;
   }
 
@@ -183,7 +183,7 @@ void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & st
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "LED panels initialisation failed";
 
-    auto pin_available = gpio_driver_->IsPinAvaible(panther_gpiod::GPIOPin::LED_SBC_SEL);
+    auto pin_available = gpio_driver_->IsPinAvailable(panther_gpiod::GPIOPin::LED_SBC_SEL);
     auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
 
     diagnostic_msgs::msg::KeyValue pin_available_kv;

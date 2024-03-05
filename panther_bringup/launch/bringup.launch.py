@@ -131,7 +131,6 @@ def generate_launch_description():
         ),
     )
 
-    # TODO: find some better solution than default to empty string
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -277,7 +276,7 @@ def generate_launch_description():
     )
 
     other_action_timer = TimerAction(
-        period=20.0,
+        period=10.0,
         actions=[
             battery_launch,
             imu_launch,
@@ -287,7 +286,7 @@ def generate_launch_description():
     )
 
     waiting_msg = TimerAction(
-        period=10.0,
+        period=7.0,
         actions=[
             LogInfo(
                 msg=(

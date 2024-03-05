@@ -1,0 +1,9 @@
+<library path="panther_hardware_interfaces">
+  <class name="panther_hardware_interfaces/PantherSystem"
+    type="panther_hardware_interfaces::PantherSystem"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware system controller for Panther
+    </description>
+  </class>
+</library>
