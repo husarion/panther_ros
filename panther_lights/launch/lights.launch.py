@@ -44,7 +44,10 @@ def generate_launch_description():
         package="panther_lights",
         executable="controller_node",
         name="lights_controller_node",
-        parameters=[led_config_file, user_led_animaitons_file],
+        parameters=[
+            {"led_config_file": led_config_file},
+            {"user_led_animaitons_file": user_led_animaitons_file},
+        ],
         on_exit=Shutdown(),
     )
 
