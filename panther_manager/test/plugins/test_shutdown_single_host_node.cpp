@@ -32,7 +32,6 @@ TEST(TestShutdownSingleHost, good_loading_shutdown_single_host_plugin)
   };
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  test_utils.CreateTree("ShutdownSingleHost", service);
 
   ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownSingleHost", service); });
   test_utils.Stop();

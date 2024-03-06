@@ -28,7 +28,6 @@ TEST(TestSignalShutdown, good_loading_signal_shutdown_plugin)
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
   test_utils.Start();
-  test_utils.CreateTree("SignalShutdown", service);
 
   ASSERT_NO_THROW({ test_utils.CreateTree("SignalShutdown", service); });
   test_utils.Stop();

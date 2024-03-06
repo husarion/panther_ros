@@ -38,7 +38,7 @@ namespace panther_manager_plugin_test
 
 struct BehaviorTreePluginDescription
 {
-  std::string service_name;
+  std::string name;
   std::map<std::string, std::string> params;
 };
 
@@ -46,10 +46,12 @@ class PantherManagerPluginTestUtils
 {
 public:
   std::string BuildBehaviorTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & service);
+    const std::string & plugin_name, const std::map<std::string, std::string> & service,
+    double tick_after_timeout);
 
   BT::Tree & CreateTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & service);
+    const std::string & plugin_name, const std::map<std::string, std::string> & service,
+    double tick_after_timeout = std::numeric_limits<double>::quiet_NaN());
 
   BT::BehaviorTreeFactory & GetFactory();
 

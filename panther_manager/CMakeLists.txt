@@ -73,7 +73,8 @@ if(BUILD_TESTING)
     call_set_led_animation_service_node
     signal_shutdown_node
     shutdown_single_host_node
-    shutdown_hosts_from_file_node)
+    shutdown_hosts_from_file_node
+    tick_after_timeout_node)
 
   ament_target_dependencies(${PROJECT_NAME}_test_plugin_utils
                             ${PACKAGE_INCLUDE_DEPENDS})
@@ -102,6 +103,10 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_shutdown_hosts_from_file_node
                   test/plugins/test_shutdown_hosts_from_file_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
+
+  ament_add_gtest(${PROJECT_NAME}_test_tick_after_timeout_node
+                  test/plugins/test_tick_after_timeout_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_tick_after_timeout_node)
 
   foreach(bt_node_test ${plugin_tests})
     target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)

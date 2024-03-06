@@ -18,26 +18,38 @@ namespace panther_manager_plugin_test
 {
 
 std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
-  const std::string & plugin_name, const std::map<std::string, std::string> & service)
+  const std::string & plugin_name, const std::map<std::string, std::string> & service,
+  double tick_after_timeout)
 {
   std::stringstream bt;
 
   bt << header_ << std::endl;
+  if (not std::isnan(tick_after_timeout)) {
+    bt << "\t\t\t<TickAfterTimeout timeout=\"" << tick_after_timeout << "\" >" << std::endl;
+  }
+
   bt << "\t\t\t\t<" << plugin_name << " ";
 
   for (auto const & [key, value] : service) {
     bt << key << "=\"" << value << "\" ";
   }
 
-  bt << " />" << std::endl << footer_;
+  bt << " />" << std::endl;
+
+  if (not std::isnan(tick_after_timeout)) {
+    bt << "\t\t\t</TickAfterTimeout>" << std::endl;
+  }
+
+  bt << footer_;
 
   return bt.str();
 }
 
 BT::Tree & PantherManagerPluginTestUtils::CreateTree(
-  const std::string & plugin_name, const std::map<std::string, std::string> & service)
+  const std::string & plugin_name, const std::map<std::string, std::string> & service,
+  double tick_after_timeout)
 {
-  auto xml_text = BuildBehaviorTree(plugin_name, service);
+  auto xml_text = BuildBehaviorTree(plugin_name, service, tick_after_timeout);
   tree_ = factory_.createTreeFromText(xml_text);
   return tree_;
 }
