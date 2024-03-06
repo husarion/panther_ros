@@ -47,11 +47,11 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
   using std::placeholders::_2;
 
   this->declare_parameter<std::string>("led_config_file");
-  this->declare_parameter<std::string>("user_led_animaitons_file", "");
+  this->declare_parameter<std::string>("user_led_animations_file", "");
   this->declare_parameter<float>("controller_freq", 50.0);
 
   const auto led_config_file = this->get_parameter("led_config_file").as_string();
-  const auto user_led_animations_file = this->get_parameter("user_led_animaitons_file").as_string();
+  const auto user_led_animations_file = this->get_parameter("user_led_animations_file").as_string();
   const float controller_freq = this->get_parameter("controller_freq").as_double();
 
   YAML::Node led_config_desc = YAML::LoadFile(led_config_file);
@@ -156,9 +156,9 @@ void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_
   RCLCPP_INFO(this->get_logger(), "Loading users LED animations");
 
   try {
-    YAML::Node user_led_animaitons = YAML::LoadFile(user_led_animations_file);
+    YAML::Node user_led_animations = YAML::LoadFile(user_led_animations_file);
     auto user_animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
-      user_led_animaitons, "user_animations");
+      user_led_animations, "user_animations");
 
     for (auto & animation_description : user_animations) {
       try {

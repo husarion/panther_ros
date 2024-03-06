@@ -124,7 +124,7 @@ protected:
    *
    * @param animation_id ID of the animations
    * @param repeating Whether animations should repeat
-   * @param param Optional animaiton parameter
+   * @param param Optional animation parameter
    *
    * @exception std::runtime_error if no animation with given ID exists
    */

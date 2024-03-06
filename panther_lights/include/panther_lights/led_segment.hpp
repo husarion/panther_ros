@@ -38,7 +38,7 @@ public:
    *
    * @param segment_description YAML description of the segment. Must contain given keys:
    * - led_range (string) - two numbers with hyphen in between, eg.: '0-45',
-   * - channel (int) - id of phisical LED channel to which segment is assigned.
+   * - channel (int) - id of physical LED channel to which segment is assigned.
    * @param controller_frequency frequency at which animation will be updated.
    *
    * @exception std::runtime_error or std::invalid_argument if missing required description key or

@@ -165,7 +165,7 @@ TEST_F(TestAnimation, Update)
 
   animation_->Reset();
 
-  // reach end of first loop of animaiton
+  // reach end of first loop of animation
   for (std::size_t i = 0; i < 20; i++) {
     ASSERT_NO_THROW(animation_->Update());
   }
@@ -174,7 +174,7 @@ TEST_F(TestAnimation, Update)
   expected_progress = 20.0 / (20 * 2);
   EXPECT_FLOAT_EQ(expected_progress, animation_->GetProgress());
 
-  // reach animaiton end
+  // reach animation end
   for (std::size_t i = 0; i < 20; i++) {
     ASSERT_NO_THROW(animation_->Update());
   }
@@ -182,7 +182,7 @@ TEST_F(TestAnimation, Update)
   EXPECT_TRUE(animation_->IsFinished());
   EXPECT_FLOAT_EQ(1.0, animation_->GetProgress());
 
-  // after reaching animaiton end Update() method when invoked should return frame filled with 0
+  // after reaching animation end Update() method when invoked should return frame filled with 0
   animation_->Update();
   auto frame = animation_->GetFrame();
   EXPECT_EQ(num_led * 4, frame.size());

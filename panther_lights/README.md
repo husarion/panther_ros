@@ -99,7 +99,7 @@ This node is responsible for processing animations and publishing frames to be d
 
 - `~controller_frequency` [*float*, default: **50.0**]: frequency [Hz] at which the lights controller node will process animations.
 - `~led_config_file` [*string*, default: **$(find panther_lights)/panther_lights/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
-- `~user_led_animaitons_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.
+- `~user_led_animations_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.
 
 [//]: # (ROS_API_NODE_PARAMETERS_END)
 [//]: # (ROS_API_NODE_END)
@@ -140,7 +140,7 @@ The `led_animations` section contains list with definitions for various animatio
 - `animations` [*list*, default: **None**]: definition of animation for each Bumper Lights. Supported keys are:
   - `type` [*string*, default **None**]: Specifies the type of animation. Default animation types are: `panther_lights::ImageAnimation`, `panther_lights::ChargingAnimation`.
   - `segments` [*string*, default **None**]: Indicates which segment mapping this particular animation applies to (e.g., all, front, rear).
-  - `animaiton` [*yaml*, default: **None**]: An animation to be displayed on segments. The keys for the configuration of different animation types are explained in detail under the [**Animation Types**](#animation-types) section.
+  - `animation` [*yaml*, default: **None**]: An animation to be displayed on segments. The keys for the configuration of different animation types are explained in detail under the [**Animation Types**](#animation-types) section.
 - `id` [*int*, default: **None**]: unique ID of an animation.
 - `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to **ANIMATION_<ID>**, where `<ID>` is equal to `id` parameter of the given animation.
 - `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows the behavior when an animation with a given ID arrives:

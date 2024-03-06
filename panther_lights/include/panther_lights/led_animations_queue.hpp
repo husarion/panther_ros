@@ -63,7 +63,7 @@ class LEDAnimation
 {
 public:
   /**
-   * @brief Initializes LED animaiton
+   * @brief Initializes LED animation
    *
    * @param led_animation_description YAML description of the LED animation
    * @param segments This parameter is used to create map of segments used by this LED animation
@@ -84,7 +84,7 @@ public:
   bool IsFinished();
 
   /**
-   * @brief Reset all animaitons on all LED segments
+   * @brief Reset all animations on all LED segments
    *
    * @param time This time is used to set new animation initialization time
    */
@@ -132,7 +132,7 @@ class LEDAnimationsQueue
 {
 public:
   /**
-   * @brief Initializes LED animaitons queue
+   * @brief Initializes LED animations queue
    *
    * @param max_queue_size Max size of the queue
    */

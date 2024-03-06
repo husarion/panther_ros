@@ -74,7 +74,7 @@ public:
 protected:
   void CreateLEDConfig(const std::filesystem::path file_path);
   void CallSetLEDAnimationSrv(
-    const std::size_t animaiton_id, const bool repeating, const std::string & param = "");
+    const std::size_t animation_id, const bool repeating, const std::string & param = "");
 
   static constexpr std::size_t kTestNumberOfLeds = 10;
   static constexpr std::size_t kTestChannel = 1;
@@ -251,7 +251,7 @@ TEST_F(TestControllerNode, LoadAnimationThrowRepeatingID)
     "Animation with given ID already exists"));
 }
 
-TEST_F(TestControllerNode, AddAnimationToQueueThrowBadAnimaitonID)
+TEST_F(TestControllerNode, AddAnimationToQueueThrowBadanimationID)
 {
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { controller_node_->AddAnimationToQueue(99, false); }, "No animation with ID:"));
@@ -265,7 +265,7 @@ TEST_F(TestControllerNode, AddAnimationToQueue)
   EXPECT_FALSE(queue->Empty());
 }
 
-TEST_F(TestControllerNode, CallSelLEDAnimaitonService)
+TEST_F(TestControllerNode, CallSelLEDAnimationService)
 {
   this->CallSetLEDAnimationSrv(0, false);
 
@@ -288,7 +288,7 @@ TEST_F(TestControllerNode, CallSelLEDAnimaitonService)
   EXPECT_FALSE(queue->Empty());
 }
 
-TEST_F(TestControllerNode, CallSelLEDAnimaitonServicePriorityInterrupt)
+TEST_F(TestControllerNode, CallSelLEDAnimationServicePriorityInterrupt)
 {
   this->CallSetLEDAnimationSrv(0, false);
 

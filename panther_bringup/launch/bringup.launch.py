@@ -154,9 +154,9 @@ def generate_launch_description():
         description="Path to a YAML file with a description of led configuration",
     )
 
-    user_led_animaitons_file = LaunchConfiguration("user_led_animaitons_file")
-    declare_user_led_animaitons_file_arg = DeclareLaunchArgument(
-        "user_led_animaitons_file",
+    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
+    declare_user_led_animations_file_arg = DeclareLaunchArgument(
+        "user_led_animations_file",
         default_value="",
         description="Path to a YAML file with a description of the user defined animations",
     )
@@ -248,7 +248,7 @@ def generate_launch_description():
         condition=UnlessCondition(use_sim),
         launch_arguments={
             "led_config_file": led_config_file,
-            "user_led_animaitons_file": user_led_animaitons_file,
+            "user_led_animations_file": user_led_animations_file,
         }.items(),
     )
 
@@ -307,7 +307,7 @@ def generate_launch_description():
         declare_controller_config_path_arg,
         declare_battery_config_path_arg,
         declare_led_config_file_arg,
-        declare_user_led_animaitons_file_arg,
+        declare_user_led_animations_file_arg,
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
