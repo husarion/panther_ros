@@ -35,6 +35,7 @@
 namespace panther_lights
 {
 
+using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDAnimationSrv = panther_msgs::srv::SetLEDAnimation;
 
 class ControllerNode : public rclcpp::Node
@@ -151,8 +152,7 @@ private:
   void ControllerTimerCB();
 
   std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> led_panels_;
-  std::unordered_map<std::size_t, rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr>
-    panel_publishers_;
+  std::unordered_map<std::size_t, rclcpp::Publisher<ImageMsg>::SharedPtr> panel_publishers_;
   std::unordered_map<std::string, std::shared_ptr<LEDSegment>> segments_;
   std::unordered_map<std::string, std::vector<std::string>> segments_map_;
   std::unordered_map<std::size_t, LEDAnimationDescription> animations_descriptions_;

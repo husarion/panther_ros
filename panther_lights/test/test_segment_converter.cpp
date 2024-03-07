@@ -84,7 +84,7 @@ TEST_F(TestSegmentConverter, ConvertInvalidLedRange)
 {
   segments_.emplace(
     "name", std::make_shared<panther_lights::LEDSegment>(
-              CreateSegmentDescription(panel_1_num_led_, panel_1_num_led_ + 10, 1), 50.0));
+              CreateSegmentDescription(panel_1_num_led_, panel_1_num_led_ + 1, 1), 50.0));
   const auto anim_desc = CreateImageAnimationDescription();
   ASSERT_NO_THROW(
     segments_.at("name")->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));

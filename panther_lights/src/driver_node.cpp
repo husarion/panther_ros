@@ -102,6 +102,8 @@ void DriverNode::OnShutdown()
 
   // Give back control over LEDs
   SetPowerPin(false);
+
+  gpio_driver_.reset();
 }
 
 void DriverNode::FrameCB(

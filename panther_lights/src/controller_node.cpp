@@ -43,8 +43,7 @@ namespace panther_lights
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
-  using std::placeholders::_1;
-  using std::placeholders::_2;
+  using namespace std::placeholders;
 
   this->declare_parameter<std::string>("led_config_file");
   this->declare_parameter<std::string>("user_led_animations_file", "");
@@ -95,7 +94,7 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
     }
 
     const auto pub_result = panel_publishers_.emplace(
-      channel, this->create_publisher<sensor_msgs::msg::Image>(
+      channel, this->create_publisher<ImageMsg>(
                  "lights/driver/channel_" + std::to_string(channel) + "_frame", 10));
     if (!pub_result.second) {
       throw std::runtime_error(
@@ -249,16 +248,16 @@ void ControllerNode::PublishPanelFrame(const std::size_t channel)
   auto panel = led_panels_.at(channel);
   const auto number_of_leds = panel->GetNumberOfLeds();
 
-  sensor_msgs::msg::Image image;
-  image.header.frame_id = "lights_channel_" + std::to_string(channel);
-  image.header.stamp = this->get_clock()->now();
-  image.encoding = "rgba8";
-  image.height = 1;
-  image.width = number_of_leds;
-  image.step = number_of_leds * 4;
-  image.data = panel->GetFrame();
+  ImageMsg::UniquePtr image(new ImageMsg);
+  image->header.frame_id = "lights_channel_" + std::to_string(channel);
+  image->header.stamp = this->get_clock()->now();
+  image->encoding = "rgba8";
+  image->height = 1;
+  image->width = number_of_leds;
+  image->step = number_of_leds * 4;
+  image->data = panel->GetFrame();
 
-  panel_publishers_.at(channel)->publish(image);
+  panel_publishers_.at(channel)->publish(std::move(image));
 }
 
 void ControllerNode::ControllerTimerCB()
