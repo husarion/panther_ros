@@ -105,7 +105,6 @@ This node is responsible for processing animations and publishing frames to be d
 [//]: # (ROS_API_NODE_END)
 [//]: # (ROS_API_PACKAGE_END)
 
-
 ## LED configuration
 
 Basic led configuration is loaded from [`led_config.yaml`](config/led_config.yaml) file. It includes definition of robot panels, virtual segments and default animations.
