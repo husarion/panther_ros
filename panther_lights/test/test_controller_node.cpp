@@ -251,7 +251,7 @@ TEST_F(TestControllerNode, LoadAnimationThrowRepeatingID)
     "Animation with given ID already exists"));
 }
 
-TEST_F(TestControllerNode, AddAnimationToQueueThrowBadanimationID)
+TEST_F(TestControllerNode, AddAnimationToQueueThrowBadAnimationID)
 {
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { controller_node_->AddAnimationToQueue(99, false); }, "No animation with ID:"));
