@@ -21,7 +21,7 @@ The package contains the default configuration and launch files necessary to sta
 - `battery_config_path` [*string*, default: **None**]: path to the Ignition LinearBatteryPlugin configuration file. This configuration is intended for use in simulations only.
 - `controller_config_path` [*string*, default: **panther_controller/config/<wheel_type arg>_controller.yaml**]: path to controller configuration file. A path to custom configuration can be specified here.
 - `ekf_config_path` [*string*, default: **panther_bringup/config/ekf.yaml**]: path to the EKF configuration file.
-- `led_config_file` [*string*, default: **panther_lighst/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
+- `led_config_file` [*string*, default: **panther_lights/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
 - `publish_robot_state` [*bool*, default: **true**]: whether to publish the default Panther robot description.
 - `simulation_engine` [*string*, default: **ignition-gazebo**]: simulation engine to use when running Gazebo.
 - `use_ekf` [*bool*, default: **true**]: enable or disable Extended Kalman Filter.
