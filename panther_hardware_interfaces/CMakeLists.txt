@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_hardware_interfaces)
+
+# Handle superbuild first
+option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
+
+if(USE_SUPERBUILD)
+  project(SUPERBUILD NONE)
+  include(cmake/SuperBuild.cmake)
+  return()
+else()
+  project(panther_hardware_interfaces)
+endif()
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
@@ -29,6 +39,9 @@ set(PACKAGE_INCLUDE_DEPENDS
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
+
+set(ENV{PKG_CONFIG_PATH}
+    "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 
