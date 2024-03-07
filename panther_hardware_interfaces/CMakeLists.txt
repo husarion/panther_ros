@@ -36,7 +36,7 @@ foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 generate_parameter_library(phidgets_spatial_parameters
-                           src/phidgets_spatial_parameters.yaml)
+                           config/phidgets_spatial_parameters.yaml)
 
 pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 
@@ -52,7 +52,6 @@ add_library(
   src/roboteq_error_filter.cpp
   src/utils.cpp
   src/panther_imu.cpp
-  src/panther_imu_ros_interface.cpp
   src/imu_filter.cpp
   src/stateless_orientation.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include)

@@ -37,7 +37,7 @@
 #include <hardware_interface/sensor_interface.hpp>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 
-#include <panther_hardware_interfaces/panther_imu_ros_interface.hpp>
+#include <phidgets_spatial_parameters.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -67,17 +67,56 @@ public:
 
   return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
-protected:
+private:
+  /**
+   * @brief Checks if the sensor name defined in the urdf matches the expected name.
+   * @throw std::runtime_error If the sensor name does not match the expected name.
+   */
+  void CheckSensor() const;
+
+  /**
+   * @brief Checks if the number of state interfaces defined in the urdf matches the expected size.
+   * @throw std::runtime_error If the number of state interfaces does not match the expected size.
+   */
+  void CheckStatesSize() const;
+
+  void SetInitialValues();
+  void CheckInterfaces() const;
+  void ReadObligatoryParams();
+  void ReadCompassParams();
+  void ReadMadgwickFilterParams();
+  void CheckMadgwickFilterWorldFrameParam();
+  bool IsParamDefined(const std::string & param_name) const;
+  bool AreParamsDefined(const std::unordered_set<std::string> & params_names) const;
+
+  void ConfigureCompassParams();
+  void ConfigureHeating();
+  void ConfigureMadgwickFilter();
+
+  void SpatialDataCallback(
+    const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
+    const double timestamp);
+  void SpatialAttachCallback();
+  void SpatialDetachCallback();
+
+  void UpdateMadgwickAlgorithm(
+    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
+    const geometry_msgs::msg::Vector3 & mag_compensated, const double dt);
+  void UpdateStatesValues(
+    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc);
+  void RemoveGravityVectorFromAccelerationState();
+
+  void Calibrate();
+
   std::vector<double> imu_sensor_state_;
-  std::unique_ptr<PantherImuRosInterface> panther_imu_ros_interface_;
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   static constexpr size_t kImuInterfacesSize = 10;
   static constexpr double KImuMagneticFieldUnknownValue = 1e300;
   static constexpr float G = 9.80665;
-  inline static std::string kImuSensorName = "imu";
-  inline static std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
+  inline static const std::string kImuSensorName = "imu";
+  inline static const std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
     "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
     "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z", "linear_acceleration.x",
     "linear_acceleration.y", "linear_acceleration.z",
@@ -88,42 +127,12 @@ protected:
 
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
-  std::mutex spatial_mutex_;
 
-  bool imu_connected_;
   ImuFilter filter_;
   WorldFrame::WorldFrame world_frame_;
-  bool first_data_callback_{true};
+  bool imu_connected_;
+  bool first_data_callback_ = true;
   double last_spatial_data_callback_time_s_;
-
-  void CheckSensor() const;
-  void CheckStatesSize() const;
-  void SetInitialValues();
-  void CheckInterfaces();
-  void ReadObligatoryParams();
-  void ReadCompassParams();
-  void ReadMadgwickFilterParams();
-  void CheckMadgwickFilterWorldFrameParam();
-  bool IsParamDefined(const std::string & param_name);
-
-  void ConfigureCompassParams();
-  void ConfigureHeating();
-  void ConfigureMadgwickFilter();
-
-  void SpatialDataCallback(
-    const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
-    double timestamp);
-  void SpatialAttachCallback();
-  void SpatialDetachCallback();
-
-  void UpdateMadgwickAlgorithm(
-    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
-    const geometry_msgs::msg::Vector3 & mag_compensated, double dt);
-  void UpdateStatesValues(
-    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc);
-  void RemoveGravityVectorFromAccelerationState();
-
-  void Calibrate();
 };
 
 }  // namespace panther_hardware_interfaces

@@ -16,6 +16,7 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -56,12 +57,8 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Configuring Panther IMU");
   try {
     ReadObligatoryParams();
-  } catch (const std::invalid_argument & e) {
-    RCLCPP_FATAL_STREAM(logger_, "Exception during reading obligatory parameters: " << e.what());
-    return CallbackReturn::ERROR;
   } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL_STREAM(
-      logger_, "Exception during interpreting obligatory parameters: " << e.what());
+    RCLCPP_FATAL_STREAM(logger_, "Exception during reading obligatory parameters: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -74,17 +71,8 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
 
   try {
     ConfigureMadgwickFilter();
-  } catch (const std::out_of_range & e) {
-    RCLCPP_FATAL_STREAM(
-      logger_, "Exception during reading Madgwick Filter param is not provided: " << e.what());
-    return CallbackReturn::ERROR;
-  } catch (const std::invalid_argument & e) {
-    RCLCPP_FATAL_STREAM(
-      logger_, "Exception during reading Madgwick Filter parameters: " << e.what());
-    return CallbackReturn::ERROR;
   } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL_STREAM(
-      logger_, "Exception during interpreting Madgwick Filter parameters: " << e.what());
+    RCLCPP_FATAL_STREAM(logger_, "Exception during reading Madgwick Filter params: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -112,14 +100,10 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Activating Panther Imu");
   rclcpp::NodeOptions ros_interface_options;
-  panther_imu_ros_interface_ = std::make_unique<PantherImuRosInterface>(
-    std::bind(&PantherImuSensor::Calibrate, this),
-    "panther_imu_"
-    "node");
 
   RCLCPP_INFO_STREAM(
     logger_, "Connecting to Phidgets Spatial serial " << params_.serial << ", hub port "
-                                                      << params_.hub_port << " ...");
+                                                      << params_.hub_port << "...");
 
   try {
     spatial_ = std::make_unique<phidgets::Spatial>(
@@ -149,7 +133,6 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Deactivating Panther Imu");
-  panther_imu_ros_interface_.reset();
   spatial_.reset();
 
   return CallbackReturn::SUCCESS;
@@ -158,7 +141,6 @@ CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherImuSensor::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Shutting down Panther Imu");
-  panther_imu_ros_interface_.reset();
   spatial_.reset();
 
   return CallbackReturn::SUCCESS;
@@ -167,7 +149,6 @@ CallbackReturn PantherImuSensor::on_shutdown(const rclcpp_lifecycle::State &)
 CallbackReturn PantherImuSensor::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Handling Panther Imu error");
-  panther_imu_ros_interface_.reset();
   spatial_.reset();
 
   return CallbackReturn::SUCCESS;
@@ -179,12 +160,9 @@ std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
   RCLCPP_INFO_STREAM(
     logger_, "State interfaces count: " << info_.sensors[0].state_interfaces.size());
 
-  for (auto i = 0u; i < info_.sensors[0].state_interfaces.size(); i++) {
-    RCLCPP_INFO_STREAM(
-      logger_, "State interface name: " << info_.sensors[0].state_interfaces[i].name);
-
-    state_interfaces.emplace_back(StateInterface(
-      info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &imu_sensor_state_[i]));
+  for (size_t i = 0; i < info_.sensors[0].state_interfaces.size(); i++) {
+    state_interfaces.emplace_back(
+      info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &imu_sensor_state_[i]);
   }
 
   return state_interfaces;
@@ -217,20 +195,19 @@ void PantherImuSensor::CheckStatesSize() const
   }
 }
 
-void PantherImuSensor::CheckInterfaces()
+void PantherImuSensor::CheckInterfaces() const
 {
-  auto names_iter = kImuInterfacesNames.begin();
-  auto states_iter = info_.sensors[0].state_interfaces.begin();
+  const auto names_start_iter = kImuInterfacesNames.begin();
+  const auto names_end_iter = kImuInterfacesNames.end();
+  const auto states_iter = info_.sensors[0].state_interfaces.begin();
   auto compare_name_with_interface_info =
     [](const std::string & name, const hardware_interface::InterfaceInfo & interface_info) {
       return name == interface_info.name;
     };
 
   if (not std::equal(
-        names_iter, kImuInterfacesNames.end(), states_iter, compare_name_with_interface_info)) {
-    throw std::runtime_error(
-      "Wrong state interface names defined: '" + states_iter->name + "', '" + *names_iter +
-      "' expected.");
+        names_start_iter, names_end_iter, states_iter, compare_name_with_interface_info)) {
+    throw std::runtime_error("Wrong state interfaces' names defined.");
   }
 }
 
@@ -251,69 +228,51 @@ void PantherImuSensor::ReadObligatoryParams()
 
 void PantherImuSensor::ReadCompassParams()
 {
-  const auto cc_mag_field = info_.hardware_parameters.at("cc_mag_field");
-  const auto cc_offset0 = info_.hardware_parameters.at("cc_offset0");
-  const auto cc_offset1 = info_.hardware_parameters.at("cc_offset1");
-  const auto cc_offset2 = info_.hardware_parameters.at("cc_offset2");
-  const auto cc_gain0 = info_.hardware_parameters.at("cc_gain0");
-  const auto cc_gain1 = info_.hardware_parameters.at("cc_gain1");
-  const auto cc_gain2 = info_.hardware_parameters.at("cc_gain2");
-  const auto cc_t0 = info_.hardware_parameters.at("cc_t0");
-  const auto cc_t1 = info_.hardware_parameters.at("cc_t1");
-  const auto cc_t2 = info_.hardware_parameters.at("cc_t2");
-  const auto cc_t3 = info_.hardware_parameters.at("cc_t3");
-  const auto cc_t4 = info_.hardware_parameters.at("cc_t4");
-  const auto cc_t5 = info_.hardware_parameters.at("cc_t5");
-
-  params_.cc_mag_field = hardware_interface::stod(cc_mag_field);
-  params_.cc_offset0 = hardware_interface::stod(cc_offset0);
-  params_.cc_offset1 = hardware_interface::stod(cc_offset1);
-  params_.cc_offset2 = hardware_interface::stod(cc_offset2);
-  params_.cc_gain0 = hardware_interface::stod(cc_gain0);
-  params_.cc_gain1 = hardware_interface::stod(cc_gain1);
-  params_.cc_gain2 = hardware_interface::stod(cc_gain2);
-  params_.cc_t0 = hardware_interface::stod(cc_t0);
-  params_.cc_t1 = hardware_interface::stod(cc_t1);
-  params_.cc_t2 = hardware_interface::stod(cc_t2);
-  params_.cc_t3 = hardware_interface::stod(cc_t3);
-  params_.cc_t4 = hardware_interface::stod(cc_t4);
-  params_.cc_t5 = hardware_interface::stod(cc_t5);
+  params_.cc_mag_field = hardware_interface::stod(info_.hardware_parameters.at("cc_mag_field"));
+  params_.cc_offset0 = hardware_interface::stod(info_.hardware_parameters.at("cc_offset0"));
+  params_.cc_offset1 = hardware_interface::stod(info_.hardware_parameters.at("cc_offset1"));
+  params_.cc_offset2 = hardware_interface::stod(info_.hardware_parameters.at("cc_offset2"));
+  params_.cc_gain0 = hardware_interface::stod(info_.hardware_parameters.at("cc_gain0"));
+  params_.cc_gain1 = hardware_interface::stod(info_.hardware_parameters.at("cc_gain1"));
+  params_.cc_gain2 = hardware_interface::stod(info_.hardware_parameters.at("cc_gain2"));
+  params_.cc_t0 = hardware_interface::stod(info_.hardware_parameters.at("cc_t0"));
+  params_.cc_t1 = hardware_interface::stod(info_.hardware_parameters.at("cc_t1"));
+  params_.cc_t2 = hardware_interface::stod(info_.hardware_parameters.at("cc_t2"));
+  params_.cc_t3 = hardware_interface::stod(info_.hardware_parameters.at("cc_t3"));
+  params_.cc_t4 = hardware_interface::stod(info_.hardware_parameters.at("cc_t4"));
+  params_.cc_t5 = hardware_interface::stod(info_.hardware_parameters.at("cc_t5"));
 }
 
 void PantherImuSensor::ReadMadgwickFilterParams()
 {
-  const auto gain = info_.hardware_parameters.at("gain");
-  const auto zeta = info_.hardware_parameters.at("zeta");
-  const auto mag_bias_x = info_.hardware_parameters.at("mag_bias_x");
-  const auto mag_bias_y = info_.hardware_parameters.at("mag_bias_y");
-  const auto mag_bias_z = info_.hardware_parameters.at("mag_bias_z");
-  const auto use_mag = info_.hardware_parameters.at("use_mag");
-  const auto stateless = info_.hardware_parameters.at("stateless");
-  const auto remove_gravity_vector = info_.hardware_parameters.at("remove_gravity_vector");
+  params_.gain = hardware_interface::stod(info_.hardware_parameters.at("gain"));
+  params_.zeta = hardware_interface::stod(info_.hardware_parameters.at("zeta"));
+  params_.mag_bias_x = hardware_interface::stod(info_.hardware_parameters.at("mag_bias_x"));
+  params_.mag_bias_y = hardware_interface::stod(info_.hardware_parameters.at("mag_bias_y"));
+  params_.mag_bias_z = hardware_interface::stod(info_.hardware_parameters.at("mag_bias_z"));
+  params_.use_mag = hardware_interface::parse_bool(info_.hardware_parameters.at("use_mag"));
+  params_.stateless = hardware_interface::parse_bool(info_.hardware_parameters.at("stateless"));
+  params_.remove_gravity_vector =
+    hardware_interface::parse_bool(info_.hardware_parameters.at("remove_gravity_vector"));
 
   CheckMadgwickFilterWorldFrameParam();
-
-  params_.gain = hardware_interface::stod(gain);
-  params_.zeta = hardware_interface::stod(zeta);
-  params_.mag_bias_x = hardware_interface::stod(mag_bias_x);
-  params_.mag_bias_y = hardware_interface::stod(mag_bias_y);
-  params_.mag_bias_z = hardware_interface::stod(mag_bias_z);
-  params_.use_mag = hardware_interface::parse_bool(use_mag);
-  params_.stateless = hardware_interface::parse_bool(stateless);
-  params_.remove_gravity_vector = hardware_interface::parse_bool(remove_gravity_vector);
 }
 
 void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
 {
   const auto world_frame = info_.hardware_parameters.at("world_frame");
 
-  auto it = kImuWorldFramesMap.find(world_frame);
-  if (it == kImuWorldFramesMap.end()) {
+  if (world_frame == "ned") {
+    world_frame_ = WorldFrame::NED;
+  } else if (world_frame == "nwu") {
+    world_frame_ = WorldFrame::NWU;
+  } else if (world_frame == "enu") {
+    world_frame_ = WorldFrame::ENU;
+  } else {
     throw std::runtime_error(
       "The parameter world_frame was set to invalid value. "
       "Valid values are 'enu', 'ned' and 'nwu'. Setting to 'enu'.");
   }
-  world_frame_ = it->second;
 }
 
 void PantherImuSensor::SetInitialValues()
@@ -324,10 +283,6 @@ void PantherImuSensor::SetInitialValues()
 
 void PantherImuSensor::Calibrate()
 {
-  if (spatial_ == nullptr) {
-    throw std::runtime_error("Imu hardware is not active yet!");
-  }
-
   spatial_->zero();
   // The API call returns directly, so we "enforce" the recommended 2 sec
   // here. See: https://github.com/ros-drivers/phidgets_drivers/issues/40
@@ -335,22 +290,31 @@ void PantherImuSensor::Calibrate()
   // FIXME: Ideally we'd use an rclcpp method that honors use_sim_time here,
   // but that doesn't actually exist.  Once
   // https://github.com/ros2/rclcpp/issues/465 is solved, we can revisit this.
+
+  RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot!");
   std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-bool PantherImuSensor::IsParamDefined(const std::string & param_name)
+bool PantherImuSensor::IsParamDefined(const std::string & param_name) const
 {
   return info_.hardware_parameters.find(param_name) != info_.hardware_parameters.end();
 }
 
+bool PantherImuSensor::AreParamsDefined(const std::unordered_set<std::string> & params_names) const
+{
+  for (const auto & param_name : params_names) {
+    if (not IsParamDefined(param_name)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void PantherImuSensor::ConfigureCompassParams()
 {
-  if (
-    IsParamDefined("cc_mag_field") and IsParamDefined("cc_offset0") and
-    IsParamDefined("cc_offset1") and IsParamDefined("cc_offset2") and IsParamDefined("cc_gain0") and
-    IsParamDefined("cc_gain1") and IsParamDefined("cc_gain2") and IsParamDefined("cc_t0") and
-    IsParamDefined("cc_t1") and IsParamDefined("cc_t2") and IsParamDefined("cc_t3") and
-    IsParamDefined("cc_t4") and IsParamDefined("cc_t5")) {
+  if (AreParamsDefined(
+        {"cc_mag_field", "cc_offset0", "cc_offset1", "cc_offset2", "cc_gain0", "cc_gain1",
+         "cc_gain2", "cc_t0", "cc_t1", "cc_t2", "cc_t3", "cc_t4", "cc_t5"})) {
     ReadCompassParams();
 
     spatial_->setCompassCorrectionParameters(
@@ -384,12 +348,10 @@ void PantherImuSensor::ConfigureMadgwickFilter()
 
 void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
-  double timestamp)
+  const double timestamp)
 {
   auto timestamp_s = timestamp * 1e-3;
   RCLCPP_DEBUG(logger_, "SpatialDataCallback...");
-
-  std::lock_guard<std::mutex> lock(spatial_mutex_);
 
   geometry_msgs::msg::Vector3 mag_fld;
   geometry_msgs::msg::Vector3 ang_vel;
@@ -402,6 +364,9 @@ void PantherImuSensor::SpatialDataCallback(
   for (auto i = 0u; i < 3; ++i) {
     if (magnetic_field[i] == KImuMagneticFieldUnknownValue) {
       mag_fld.x = std::numeric_limits<double>::quiet_NaN();
+      mag_fld.y = std::numeric_limits<double>::quiet_NaN();
+      mag_fld.z = std::numeric_limits<double>::quiet_NaN();
+      break;
     }
   }
 
@@ -470,7 +435,7 @@ void PantherImuSensor::SpatialDetachCallback()
 
 void PantherImuSensor::UpdateMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
-  const geometry_msgs::msg::Vector3 & mag_compensated, double dt)
+  const geometry_msgs::msg::Vector3 & mag_compensated, const double dt)
 {
   if (params_.use_mag) {
     filter_.madgwickAHRSupdate(
