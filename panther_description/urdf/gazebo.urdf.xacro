@@ -50,6 +50,7 @@
         <ros>
           <remapping>panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
           <remapping>panther_base_controller/odom:=odom/wheels</remapping>
+          <remapping>/imu_broadcaster/imu:=imu/data</remapping>
         </ros>
       </plugin>
     </gazebo>
