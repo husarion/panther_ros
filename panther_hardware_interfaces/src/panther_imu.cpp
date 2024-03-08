@@ -287,12 +287,11 @@ void PantherImuSensor::Calibrate()
   // The API call returns directly, so we "enforce" the recommended 2 sec
   // here. See: https://github.com/ros-drivers/phidgets_drivers/issues/40
 
-  // FIXME: Ideally we'd use an rclcpp method that honors use_sim_time here,
-  // but that doesn't actually exist.  Once
-  // https://github.com/ros2/rclcpp/issues/465 is solved, we can revisit this.
-
-  RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot!");
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot for 2 seconds!");
+  while (not imu_calibrated_) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  RCLCPP_INFO(logger_, "IMU is successfully callibrated.");
 }
 
 bool PantherImuSensor::IsParamDefined(const std::string & param_name) const
@@ -346,66 +345,95 @@ void PantherImuSensor::ConfigureMadgwickFilter()
   filter_.setDriftBiasGain(params_.zeta);
 }
 
-void PantherImuSensor::SpatialDataCallback(
-  const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
-  const double timestamp)
+geometry_msgs::msg::Vector3 PantherImuSensor::ParseMagnitude(const double magnetic_field[3])
 {
-  auto timestamp_s = timestamp * 1e-3;
-  RCLCPP_DEBUG(logger_, "SpatialDataCallback...");
-
   geometry_msgs::msg::Vector3 mag_fld;
-  geometry_msgs::msg::Vector3 ang_vel;
-  geometry_msgs::msg::Vector3 lin_acc;
 
-  mag_fld.x = magnetic_field[0] * 1e-4;
-  mag_fld.y = magnetic_field[1] * 1e-4;
-  mag_fld.z = magnetic_field[2] * 1e-4;
-
-  for (auto i = 0u; i < 3; ++i) {
-    if (magnetic_field[i] == KImuMagneticFieldUnknownValue) {
-      mag_fld.x = std::numeric_limits<double>::quiet_NaN();
-      mag_fld.y = std::numeric_limits<double>::quiet_NaN();
-      mag_fld.z = std::numeric_limits<double>::quiet_NaN();
-      break;
-    }
+  if (magnetic_field[0] == KImuMagneticFieldUnknownValue) {
+    mag_fld.x = std::numeric_limits<double>::quiet_NaN();
+    mag_fld.y = std::numeric_limits<double>::quiet_NaN();
+    mag_fld.z = std::numeric_limits<double>::quiet_NaN();
+  } else {
+    mag_fld.x = magnetic_field[0] * 1e-4 - params_.mag_bias_x;
+    mag_fld.y = magnetic_field[1] * 1e-4 - params_.mag_bias_y;
+    mag_fld.z = magnetic_field[2] * 1e-4 - params_.mag_bias_z;
   }
+
+  return mag_fld;
+}
+
+geometry_msgs::msg::Vector3 PantherImuSensor::ParseGyration(const double angular_rate[3])
+{
+  geometry_msgs::msg::Vector3 ang_vel;
 
   ang_vel.x = angular_rate[0] * (M_PI / 180.0);
   ang_vel.y = angular_rate[1] * (M_PI / 180.0);
   ang_vel.z = angular_rate[2] * (M_PI / 180.0);
+  return ang_vel;
+}
+
+geometry_msgs::msg::Vector3 PantherImuSensor::ParseAcceleration(const double acceleration[3])
+{
+  geometry_msgs::msg::Vector3 lin_acc;
 
   lin_acc.x = -acceleration[0] * G;
   lin_acc.y = -acceleration[1] * G;
   lin_acc.z = -acceleration[2] * G;
+  return lin_acc;
+}
 
-  // Compensate for hard iron
-  geometry_msgs::msg::Vector3 mag_compensated;
-  mag_compensated.x = mag_fld.x - params_.mag_bias_x;
-  mag_compensated.y = mag_fld.y - params_.mag_bias_y;
-  mag_compensated.z = mag_fld.z - params_.mag_bias_z;
+void PantherImuSensor::HandleFirstDataCallback(
+  const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
+  const double timestamp_s)
+{
+  if (
+    not std::isfinite(mag_compensated.x) or not std::isfinite(mag_compensated.y) or
+    not std::isfinite(mag_compensated.z)) {
+    // The nan values are provided when imu is not callibrated.
+    if (not imu_calibrated_) {
+      return;
+    } else {
+      throw std::runtime_error("Magnetometer has nan values.");
+    }
+  }
+
+  geometry_msgs::msg::Quaternion init_q;
+  if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, mag_compensated, init_q)) {
+    throw std::runtime_error(
+      "The IMU seems to be in free fall, cannot determine gravity direction.");
+  }
+  filter_.setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
+
+  first_data_callback_ = false;
+  last_spatial_data_callback_time_s_ = timestamp_s;
+  imu_calibrated_ = true;
+}
+
+void PantherImuSensor::SpatialDataCallback(
+  const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
+  const double timestamp)
+{
+  const auto timestamp_s = timestamp * 1e-3;
+
+  const auto mag_compensated = ParseMagnitude(magnetic_field);
+  const auto ang_vel = ParseGyration(angular_rate);
+  const auto lin_acc = ParseAcceleration(acceleration);
 
   if (first_data_callback_ || params_.stateless) {
-    if (!std::isfinite(mag_fld.x) || !std::isfinite(mag_fld.y) || !std::isfinite(mag_fld.z)) {
-      RCLCPP_WARN(logger_, "Magnetometer has nan values. Skipping...");
+    try {
+      HandleFirstDataCallback(mag_compensated, lin_acc, timestamp_s);
+    } catch (const std::runtime_error & e) {
+      RCLCPP_WARN_STREAM(
+        logger_, "Exception during first imu callback: " << e.what() << " Skipping...");
       return;
     }
 
-    geometry_msgs::msg::Quaternion init_q;
-    if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, mag_compensated, init_q)) {
-      RCLCPP_WARN(
-        logger_,
-        "The IMU seems to be in free fall, cannot determine gravity direction. Skipping...");
+    if (not imu_calibrated_) {
       return;
     }
-    filter_.setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
   }
 
-  if (first_data_callback_) {
-    first_data_callback_ = false;
-    last_spatial_data_callback_time_s_ = timestamp_s;
-  }
-
-  float dt = timestamp_s - last_spatial_data_callback_time_s_;
+  const float dt = timestamp_s - last_spatial_data_callback_time_s_;
   last_spatial_data_callback_time_s_ = timestamp_s;
 
   if (!params_.stateless) {

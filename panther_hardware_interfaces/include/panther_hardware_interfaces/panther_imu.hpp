@@ -99,6 +99,14 @@ private:
   void SpatialAttachCallback();
   void SpatialDetachCallback();
 
+  geometry_msgs::msg::Vector3 ParseMagnitude(const double magnetic_field[3]);
+  geometry_msgs::msg::Vector3 ParseGyration(const double angular_rate[3]);
+  geometry_msgs::msg::Vector3 ParseAcceleration(const double acceleration[3]);
+
+  void HandleFirstDataCallback(
+    const geometry_msgs::msg::Vector3 & mag_compensated,
+    const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s);
+
   void UpdateMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
     const geometry_msgs::msg::Vector3 & mag_compensated, const double dt);
@@ -131,6 +139,7 @@ private:
   ImuFilter filter_;
   WorldFrame::WorldFrame world_frame_;
   bool imu_connected_;
+  bool imu_calibrated_ = false;
   bool first_data_callback_ = true;
   double last_spatial_data_callback_time_s_;
 };
