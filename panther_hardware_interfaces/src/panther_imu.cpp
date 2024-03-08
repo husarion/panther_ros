@@ -157,10 +157,8 @@ CallbackReturn PantherImuSensor::on_error(const rclcpp_lifecycle::State &)
 std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
 {
   std::vector<StateInterface> state_interfaces;
-  RCLCPP_INFO_STREAM(
-    logger_, "State interfaces count: " << info_.sensors[0].state_interfaces.size());
 
-  for (size_t i = 0; i < info_.sensors[0].state_interfaces.size(); i++) {
+  for (size_t i = 0; i < kImuInterfacesSize; i++) {
     state_interfaces.emplace_back(
       info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &imu_sensor_state_[i]);
   }
@@ -187,6 +185,9 @@ void PantherImuSensor::CheckSensor() const
 
 void PantherImuSensor::CheckStatesSize() const
 {
+  RCLCPP_INFO_STREAM(
+    logger_, "State interfaces count: " << info_.sensors[0].state_interfaces.size());
+
   if (info_.sensors[0].state_interfaces.size() != kImuInterfacesSize) {
     throw std::runtime_error(
       "Wrong number of interfaces defined: " +
