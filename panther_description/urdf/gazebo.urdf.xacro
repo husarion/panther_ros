@@ -48,7 +48,8 @@
         name="ign_ros2_control::IgnitionROS2ControlPlugin">
         <parameters>${config_file}</parameters>
         <ros>
-          <remapping>/panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          <remapping>panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          <remapping>panther_base_controller/odom:=odom/wheels</remapping>
         </ros>
       </plugin>
     </gazebo>
