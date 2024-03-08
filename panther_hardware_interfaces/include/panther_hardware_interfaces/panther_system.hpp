@@ -95,6 +95,7 @@ protected:
   bool CheckIfSafetyStopActive();
   bool AreVelocityCommandsNearZero();
 
+  void MotorsPowerEnable(const bool enable);
   void SetEStop();
   void ResetEStop();
   std::function<bool()> ReadEStop;
@@ -147,6 +148,7 @@ protected:
 
   std::atomic_bool e_stop_ = true;
   std::atomic_bool last_commands_zero_ = false;
+  std::mutex e_stop_manipulation_mtx_;
   std::mutex motor_controller_write_mtx_;
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
