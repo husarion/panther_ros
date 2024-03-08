@@ -172,7 +172,7 @@ Basic animation definition. Keys are inherited from the basic **Animation** clas
 - `duration` [*float*, default: **None**]: duration of the animation.
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
 
-> **Note**
+> [!NOTE]
 > Overall display duration of an animation is a product of a single image duration and repeat count. The result of `duration` x `repeat`  can't exceed 10 **[s]**. If animation fails to fulfill the requirement it will result in an error.
 
 #### ImageAnimation
@@ -251,10 +251,10 @@ user_animations:
           repeat: 1
 ```
 
-> **Note**
+> [!NOTE]
 > ID numbers from 0 to 19 are reserved for system animations.
 
-> **Note**
+> [!NOTE]
 > Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
 
 Remember to modify launch command to use user animations:
