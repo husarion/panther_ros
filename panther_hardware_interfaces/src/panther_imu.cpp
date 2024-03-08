@@ -79,7 +79,7 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO_STREAM(logger_, "Phidgets Spatial IMU Madgwick Filter params: ");
   RCLCPP_INFO_STREAM(logger_, "\tuse_mag: " << params_.use_mag);
   RCLCPP_INFO_STREAM(logger_, "\tgain: " << params_.gain);
-  RCLCPP_INFO_STREAM(logger_, "\tzeta: " << params_.zeta << "rad/s");
+  RCLCPP_INFO_STREAM(logger_, "\tzeta: " << params_.zeta << " rad/s");
   RCLCPP_INFO_STREAM(logger_, "\tmag_bias_x " << params_.mag_bias_x);
   RCLCPP_INFO_STREAM(logger_, "\tmag_bias_y " << params_.mag_bias_y);
   RCLCPP_INFO_STREAM(logger_, "\tmag_bias_z " << params_.mag_bias_z);
