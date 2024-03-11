@@ -39,12 +39,16 @@ repos:
       - id: clang-format
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v1.16.0
+    rev: v2.2.6
     hooks:
       - id: codespell
         name: codespell
         description: Checks for common misspellings in text files.
-        entry: codespell  *
+        entry: codespell
+        args:
+          [
+            "--exclude-file=panther_hardware_interfaces/config/roboteq_motor_controllers_v80_21a.eds",
+          ]
         language: python
         types: [text]
 

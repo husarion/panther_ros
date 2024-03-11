@@ -74,7 +74,7 @@ TEST_F(TestAnimation, Initialize)
   animation_description["duration"] = "-1.0";
   EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::out_of_range);
   animation_description["duration"] = "word";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
 
   // invalid animation length
   animation_description["duration"] = "0.1";
@@ -85,9 +85,9 @@ TEST_F(TestAnimation, Initialize)
 
   // invalid repeat
   animation_description["repeat"] = "-2";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
   animation_description["repeat"] = "1.1";
-  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), YAML::BadConversion);
+  EXPECT_THROW(animation_->Initialize(animation_description, 10, 10.0), std::runtime_error);
 
   // exceeded anim display duration
   animation_description["repeat"] = "6";
@@ -165,7 +165,7 @@ TEST_F(TestAnimation, Update)
 
   animation_->Reset();
 
-  // reach end of first loop of animaiton
+  // reach end of first loop of animation
   for (std::size_t i = 0; i < 20; i++) {
     ASSERT_NO_THROW(animation_->Update());
   }
@@ -174,7 +174,7 @@ TEST_F(TestAnimation, Update)
   expected_progress = 20.0 / (20 * 2);
   EXPECT_FLOAT_EQ(expected_progress, animation_->GetProgress());
 
-  // reach animaiton end
+  // reach animation end
   for (std::size_t i = 0; i < 20; i++) {
     ASSERT_NO_THROW(animation_->Update());
   }
@@ -182,7 +182,7 @@ TEST_F(TestAnimation, Update)
   EXPECT_TRUE(animation_->IsFinished());
   EXPECT_FLOAT_EQ(1.0, animation_->GetProgress());
 
-  // after reaching animaiton end Update() method when invoked should return frame filled with 0
+  // after reaching animation end Update() method when invoked should return frame filled with 0
   animation_->Update();
   auto frame = animation_->GetFrame();
   EXPECT_EQ(num_led * 4, frame.size());

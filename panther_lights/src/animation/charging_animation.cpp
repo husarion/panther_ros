@@ -43,7 +43,7 @@ void ChargingAnimation::SetParam(const std::string & param)
   try {
     battery_percent = std::clamp(std::stof(param), 0.0f, 1.0f);
   } catch (const std::invalid_argument & /*e*/) {
-    throw std::invalid_argument("Can not cast param to float!");
+    throw std::runtime_error("Can not cast param to float!");
   }
 
   const auto anim_len = this->GetAnimationLength();

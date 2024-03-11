@@ -21,6 +21,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <panther_lights/animation/animation.hpp>
+#include <panther_utils/yaml_utils.hpp>
 
 namespace panther_lights
 {
@@ -28,21 +29,10 @@ namespace panther_lights
 LEDSegment::LEDSegment(const YAML::Node & segment_description, const float controller_frequency)
 : controller_frequency_(controller_frequency)
 {
-  if (!segment_description["led_range"]) {
-    throw std::runtime_error("Missing 'led_range' in segment description");
-  }
+  channel_ = panther_utils::GetYAMLKeyValue<std::size_t>(segment_description, "channel");
+  const auto led_range = panther_utils::GetYAMLKeyValue<std::string>(
+    segment_description, "led_range");
 
-  if (!segment_description["channel"]) {
-    throw std::runtime_error("Missing 'channel' in segment description");
-  }
-
-  try {
-    channel_ = segment_description["channel"].as<std::size_t>();
-  } catch (const YAML::BadConversion & e) {
-    throw std::invalid_argument("Invalid channel expression: " + std::string(e.what()));
-  }
-
-  const auto led_range = segment_description["led_range"].as<std::string>();
   const std::size_t split_char = led_range.find('-');
 
   if (split_char == std::string::npos) {
@@ -68,55 +58,108 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
 
 LEDSegment::~LEDSegment()
 {
-  // make sure that animation is destroyed before pluginlib loader
+  // make sure that animations are destroyed before pluginlib loader
   animation_.reset();
+  default_animation_.reset();
   animation_loader_.reset();
 }
 
-void LEDSegment::SetAnimation(const YAML::Node & animation_description)
+void LEDSegment::SetAnimation(
+  const std::string & type, const YAML::Node & animation_description, const bool repeating,
+  const std::string & param)
 {
-  if (!animation_description["type"]) {
-    throw std::runtime_error("Missing 'type' in animation description");
-  }
-
-  auto type = animation_description["type"].as<std::string>();
-
-  animation_.reset();
+  std::shared_ptr<panther_lights::Animation> animation;
 
   try {
-    animation_ = animation_loader_->createSharedInstance(type);
+    animation = animation_loader_->createSharedInstance(type);
   } catch (pluginlib::PluginlibException & e) {
     throw std::runtime_error("The plugin failed to load. Error: " + std::string(e.what()));
   }
 
   try {
-    animation_->Initialize(animation_description, num_led_, controller_frequency_);
+    animation->Initialize(animation_description, num_led_, controller_frequency_);
+    animation->SetParam(param);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to initialize animation: " + std::string(e.what()));
   } catch (const std::out_of_range & e) {
     throw std::runtime_error("Failed to initialize animation: " + std::string(e.what()));
   }
+
+  animation_ = std::move(animation);
+  animation_finished_ = false;
+
+  if (repeating) {
+    default_animation_ = animation_;
+    animation_finished_ = true;
+  }
+  if (default_animation_) {
+    default_animation_->Reset();
+  }
 }
 
-void LEDSegment::UpdateAnimation(const std::string & param)
+void LEDSegment::UpdateAnimation()
 {
   if (!animation_) {
     throw std::runtime_error("Segment animation not defined");
   }
 
   if (animation_->IsFinished()) {
-    animation_->Reset();
+    animation_finished_ = true;
   }
 
-  if (!param.empty()) {
-    animation_->SetParam(param);
+  std::shared_ptr<panther_lights::Animation> animation_to_update =
+    animation_finished_ && default_animation_ ? default_animation_ : animation_;
+
+  if (animation_finished_ && default_animation_ && default_animation_->IsFinished()) {
+    default_animation_->Reset();
   }
 
   try {
-    animation_->Update();
+    animation_to_update->Update();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to update animation: " + std::string(e.what()));
   }
+}
+
+std::vector<std::uint8_t> LEDSegment::GetAnimationFrame() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  if (default_animation_ && animation_finished_) {
+    return default_animation_->GetFrame(invert_led_order_);
+  }
+
+  return animation_->GetFrame(invert_led_order_);
+}
+
+float LEDSegment::GetAnimationProgress() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  return animation_->GetProgress();
+}
+
+void LEDSegment::ResetAnimation()
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  animation_->Reset();
+  animation_finished_ = false;
+}
+
+std::uint8_t LEDSegment::GetAnimationBrightness() const
+{
+  if (!animation_) {
+    throw std::runtime_error("Segment animation not defined");
+  }
+
+  return animation_->GetBrightness();
 }
 
 std::size_t LEDSegment::GetFirstLEDPosition() const

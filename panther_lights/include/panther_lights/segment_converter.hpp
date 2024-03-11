@@ -32,7 +32,7 @@ public:
   ~SegmentConverter() = default;
 
   void Convert(
-    const std::vector<std::shared_ptr<LEDSegment>> & segments,
+    const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
     const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels);
 };
 

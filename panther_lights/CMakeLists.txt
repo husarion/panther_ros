@@ -23,7 +23,7 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 add_library(
   panther_animation_plugins SHARED src/animation/image_animation.cpp
                                    src/animation/charging_animation.cpp)
-ament_target_dependencies(panther_animation_plugins pluginlib)
+ament_target_dependencies(panther_animation_plugins panther_utils pluginlib)
 target_link_libraries(panther_animation_plugins png yaml-cpp)
 
 add_executable(driver_node src/driver_node_main.cpp src/driver_node.cpp
@@ -41,23 +41,24 @@ ament_target_dependencies(
 add_executable(
   controller_node
   src/controller_node_main.cpp src/controller_node.cpp src/led_segment.cpp
-  src/led_panel.cpp src/segment_converter.cpp)
+  src/led_panel.cpp src/segment_converter.cpp src/led_animations_queue.cpp)
 
-ament_target_dependencies(controller_node rclcpp pluginlib sensor_msgs)
+ament_target_dependencies(controller_node rclcpp pluginlib panther_msgs
+                          panther_utils sensor_msgs)
 target_link_libraries(controller_node yaml-cpp)
 
 add_executable(dummy_scheduler_node src/dummy_scheduler_node_main.cpp
                                     src/dummy_scheduler_node.cpp)
 
 ament_target_dependencies(dummy_scheduler_node image_transport rclcpp
-                          sensor_msgs)
+                          panther_msgs sensor_msgs)
 
 install(TARGETS driver_node controller_node dummy_scheduler_node
         DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS panther_animation_plugins LIBRARY DESTINATION lib)
 
-install(DIRECTORY animations launch DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY animations config launch DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/ DESTINATION include)
 ament_export_include_directories(include)
@@ -72,6 +73,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_animation
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_animation panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_animation yaml-cpp)
 
   ament_add_gtest(
@@ -82,7 +84,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_image_animation
-                            ament_index_cpp pluginlib)
+                            ament_index_cpp panther_utils pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_image_animation png yaml-cpp)
 
   ament_add_gtest(
@@ -93,7 +95,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_charging_animation
-                            ament_index_cpp pluginlib)
+                            ament_index_cpp panther_utils pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_charging_animation yaml-cpp)
 
   ament_add_gtest(${PROJECT_NAME}_test_led_panel test/test_led_panel.cpp
@@ -120,8 +122,48 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_segment_converter
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_segment_converter pluginlib)
+  ament_target_dependencies(${PROJECT_NAME}_test_segment_converter pluginlib
+                            panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_segment_converter yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_led_animation test/test_led_animation.cpp
+    src/led_panel.cpp src/led_segment.cpp src/led_animations_queue.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_led_animation
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_led_animation pluginlib
+                            panther_utils rclcpp)
+  target_link_libraries(${PROJECT_NAME}_test_led_animation yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_led_animations_queue
+    test/test_led_animations_queue.cpp src/led_panel.cpp src/led_segment.cpp
+    src/led_animations_queue.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_led_animations_queue
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_led_animations_queue pluginlib
+                            panther_utils rclcpp)
+  target_link_libraries(${PROJECT_NAME}_test_led_animations_queue yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_controller_node
+    test/test_controller_node.cpp
+    src/controller_node.cpp
+    src/led_segment.cpp
+    src/led_panel.cpp
+    src/segment_converter.cpp
+    src/led_animations_queue.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_controller_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_controller_node pluginlib
+                            panther_msgs panther_utils rclcpp sensor_msgs)
+  target_link_libraries(${PROJECT_NAME}_test_controller_node yaml-cpp)
 endif()
 
 ament_package()

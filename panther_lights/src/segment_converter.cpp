@@ -27,16 +27,27 @@ namespace panther_lights
 {
 
 void SegmentConverter::Convert(
-  const std::vector<std::shared_ptr<LEDSegment>> & segments,
+  const std::unordered_map<std::string, std::shared_ptr<LEDSegment>> & segments,
   const std::unordered_map<std::size_t, std::shared_ptr<LEDPanel>> & panels)
 {
-  for (auto & segment : segments) {
+  for (const auto & [segment_name, segment] : segments) {
+    if (!segment->HasAnimation()) {
+      continue;
+    }
+
     try {
       auto panel = panels.at(segment->GetChannel());
-      panel->UpdateFrame(segment->GetFirstLEDPosition(), segment->GetAnimationFrame());
+
+      auto frame = segment->GetAnimationFrame();
+      for (std::size_t i = 3; i < frame.size(); i += 4) {
+        frame[i] = segment->GetAnimationBrightness();
+      }
+
+      panel->UpdateFrame(segment->GetFirstLEDPosition(), frame);
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
-        "Failed to convert segment animation to panel frame. Error: " + std::string(e.what()));
+        "Failed to convert '" + segment_name +
+        "' segment animation to panel frame. Error: " + std::string(e.what()));
     }
   }
 }
