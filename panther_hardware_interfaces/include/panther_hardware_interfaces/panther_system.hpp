@@ -136,8 +136,8 @@ protected:
   // node 02: SDO protocol timed out
   // SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to
   // node 02: SDO protocol timed out
-  unsigned max_roboteq_initialization_attempts_ = 2;
-  unsigned max_roboteq_activation_attempts_ = 2;
+  unsigned max_roboteq_initialization_attempts_;
+  unsigned max_roboteq_activation_attempts_;
 
   rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
