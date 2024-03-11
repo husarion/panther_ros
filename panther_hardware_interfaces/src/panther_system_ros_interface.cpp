@@ -78,7 +78,7 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
-  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
+  executor_thread_ = std::thread([this]() { executor_->spin(); });
 
   driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
@@ -107,9 +107,15 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   realtime_e_stop_state_publisher_.reset();
   e_stop_state_publisher_.reset();
 
+  service_wrappers_storage_.clear();
+
   if (executor_) {
     executor_->cancel();
-    executor_thread_->join();
+
+    if (executor_thread_.joinable()) {
+      executor_thread_.join();
+    }
+
     executor_.reset();
   }
 

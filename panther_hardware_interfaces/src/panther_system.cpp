@@ -133,11 +133,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   panther_system_ros_interface_ =
-    std::make_shared<PantherSystemRosInterface>("panther_system_node");
-
-  gpio_controller_->RegisterGPIOEventCallback(std::bind(
-    &PantherSystemRosInterface::PublishIOState, panther_system_ros_interface_,
-    std::placeholders::_1));
+    std::make_unique<PantherSystemRosInterface>("panther_system_node");
 
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/fan_enable",
@@ -166,6 +162,9 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
 
   panther_system_ros_interface_->AddDiagnosticTask(
     std::string("system status"), this, &PantherSystem::DiagnoseStatus);
+
+  gpio_controller_->RegisterGPIOEventCallback(
+    [this](const auto & state) { panther_system_ros_interface_->PublishIOState(state); });
 
   const auto io_state = gpio_controller_->QueryControlInterfaceIOStates();
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state);
@@ -202,12 +201,12 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_.reset();
+  gpio_controller_.reset();
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
-  gpio_controller_.reset();
+  panther_system_ros_interface_.reset();
 
   return CallbackReturn::SUCCESS;
 }
