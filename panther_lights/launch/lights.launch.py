@@ -16,15 +16,40 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import Shutdown
+from launch.actions import DeclareLaunchArgument, Shutdown
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    led_config_file = LaunchConfiguration("led_config_file")
+    declare_led_config_file_arg = DeclareLaunchArgument(
+        "led_config_file",
+        description="Path to a YAML file with a description of led configuration",
+    )
+
+    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
+    declare_user_led_animations_file_arg = DeclareLaunchArgument(
+        "user_led_animations_file",
+        default_value="",
+        description="Path to a YAML file with a description of the user defined animations",
+    )
+
     lights_driver_node = Node(
         package="panther_lights",
         executable="driver_node",
         name="lights_driver_node",
+        on_exit=Shutdown(),
+    )
+
+    lights_controller_node = Node(
+        package="panther_lights",
+        executable="controller_node",
+        name="lights_controller_node",
+        parameters=[
+            {"led_config_file": led_config_file},
+            {"user_led_animations_file": user_led_animations_file},
+        ],
         on_exit=Shutdown(),
     )
 
@@ -35,7 +60,10 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_led_config_file_arg,
+        declare_user_led_animations_file_arg,
         lights_driver_node,
+        lights_controller_node,
         dummy_scheduler_node,
     ]
 
