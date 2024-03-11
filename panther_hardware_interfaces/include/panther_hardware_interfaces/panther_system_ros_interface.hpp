@@ -15,6 +15,7 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <any>
 #include <atomic>
 #include <functional>
 #include <memory>
@@ -160,7 +161,7 @@ public:
    * response. Currently supported callback function signatures include void() and void(bool).
    */
   template <class SrvT, class CallbackT>
-  void AddService(const std::string & service_name, const CallbackT & callback)
+  inline void AddService(const std::string & service_name, const CallbackT & callback)
   {
     auto wrapper = std::make_shared<ROSServiceWrapper<SrvT, CallbackT>>(callback);
     wrapper->RegisterService(node_, service_name);
@@ -229,7 +230,7 @@ private:
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
-  std::unique_ptr<std::thread> executor_thread_;
+  std::thread executor_thread_;
 
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
@@ -243,7 +244,7 @@ private:
 
   diagnostic_updater::Updater diagnostic_updater_;
 
-  std::vector<std::shared_ptr<void>> service_wrappers_storage_;
+  std::vector<std::any> service_wrappers_storage_;
 };
 
 }  // namespace panther_hardware_interfaces
