@@ -127,6 +127,8 @@ void PantherSystemRosInterface::UpdateMsgErrorFlags(
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
+  driver_state.header.stamp = node_->get_clock()->now();
+
   driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
   driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
   driver_state.front.left_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
