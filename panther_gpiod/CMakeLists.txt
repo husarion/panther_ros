@@ -54,4 +54,18 @@ ament_export_libraries(${PROJECT_NAME})
 
 ament_export_dependencies(panther_utils)
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(${PROJECT_NAME}_test_gpiod test/test_gpio_driver.cpp)
+
+  target_include_directories(
+    ${PROJECT_NAME}_test_gpiod
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod ${PROJECT_NAME}
+                        PkgConfig::LIBGPIOD)
+endif()
+
 ament_package()
