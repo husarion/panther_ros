@@ -41,7 +41,7 @@ const std::list<std::string> kImuInterfaces = {
   "linear_acceleration.y", "linear_acceleration.z",
 };
 
-const std::map<std::string, std::string> kImuObligatoryParams{
+const std::unordered_map<std::string, std::string> kImuObligatoryParams{
   {"serial", "-1"},
   {"hub_port", "0"},
   {"data_interval_ms", "1000"},

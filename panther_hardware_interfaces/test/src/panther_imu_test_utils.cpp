@@ -36,7 +36,8 @@ void PantherImuTestUtils::Stop()
 }
 
 std::string PantherImuTestUtils::BuildUrdf(
-  const std::map<std::string, std::string> & param_map, const std::list<std::string> & interfaces_list)
+  const std::unordered_map<std::string, std::string> & param_map,
+  const std::list<std::string> & interfaces_list)
 {
   std::stringstream urdf;
 
@@ -55,7 +56,6 @@ std::string PantherImuTestUtils::BuildUrdf(
   }
   urdf << "</sensor>" << std::endl;
 
-
   urdf << kUrdfFooter;
 
   return urdf.str();
@@ -70,7 +70,7 @@ hardware_interface::return_type PantherImuTestUtils::ConfigurePantherImu()
 
 hardware_interface::return_type PantherImuTestUtils::UnconfigurePantherImu()
 {
- return  SetState(
+  return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 }
@@ -96,7 +96,8 @@ hardware_interface::return_type PantherImuTestUtils::ShutdownPantherImu()
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
-hardware_interface::return_type PantherImuTestUtils::SetState(const std::uint8_t state_id, const std::string & state_name)
+hardware_interface::return_type PantherImuTestUtils::SetState(
+  const std::uint8_t state_id, const std::string & state_name)
 {
   rclcpp_lifecycle::State state(state_id, state_name);
   return rm_->set_component_state(kPantherImuName, state);

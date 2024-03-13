@@ -42,8 +42,9 @@ public:
     default_panther_imu_urdf_ = BuildUrdf(kImuObligatoryParams, kImuInterfaces);
   }
 
-  PantherImuTestUtils(const std::map<std::string, std::string>& param_map,
-                      const std::list<std::string>& interfaces_list)
+  PantherImuTestUtils(
+    const std::unordered_map<std::string, std::string> & param_map,
+    const std::list<std::string> & interfaces_list)
   {
     default_panther_imu_urdf_ = BuildUrdf(param_map, interfaces_list);
   }
@@ -52,7 +53,7 @@ public:
    * @brief Starts Spacial Mock, initializes rclcpp and creates resource manager
    * @param urdf urdf used to create resource manager
    */
-  void Start(const std::string& urdf);
+  void Start(const std::string & urdf);
 
   /**
    * @brief Shuts down rclcpp, stops Spacial mock and destroys resource manager
@@ -63,8 +64,9 @@ public:
    * @brief Creates and returns URDF as a string
    * @param param_map map with hardware parameters
    */
-  std::string BuildUrdf(const std::map<std::string, std::string>& param_map,
-                        const std::list<std::string>& interfaces_list);
+  std::string BuildUrdf(
+    const std::unordered_map<std::string, std::string> & param_map,
+    const std::list<std::string> & interfaces_list);
 
   hardware_interface::return_type ConfigurePantherImu();
   hardware_interface::return_type UnconfigurePantherImu();
@@ -72,15 +74,9 @@ public:
   hardware_interface::return_type DeactivatePantherImu();
   hardware_interface::return_type ShutdownPantherImu();
 
-  std::shared_ptr<hardware_interface::ResourceManager> GetResourceManager()
-  {
-    return rm_;
-  }
+  std::shared_ptr<hardware_interface::ResourceManager> GetResourceManager() { return rm_; }
 
-  std::string GetDefaultPantherImuUrdf() const
-  {
-    return default_panther_imu_urdf_;
-  }
+  std::string GetDefaultPantherImuUrdf() const { return default_panther_imu_urdf_; }
 
 private:
   /**
@@ -89,7 +85,8 @@ private:
    * @param state_id
    * @param state_name
    */
-  hardware_interface::return_type SetState(const std::uint8_t state_id, const std::string& state_name);
+  hardware_interface::return_type SetState(
+    const std::uint8_t state_id, const std::string & state_name);
 
   std::shared_ptr<hardware_interface::ResourceManager> rm_;
 

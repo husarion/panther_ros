@@ -69,7 +69,7 @@ public:
 
   return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
 
-private:
+protected:
   /**
    * @brief Checks if the sensor name defined in the urdf matches the expected name.
    * @throw std::runtime_error If the sensor name does not match the expected name.

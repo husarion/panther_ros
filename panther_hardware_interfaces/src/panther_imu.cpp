@@ -57,7 +57,7 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Configuring Panther IMU");
   try {
     ReadObligatoryParams();
-  } catch (const std::runtime_error & e) {
+  } catch (const std::exception & e) {
     RCLCPP_FATAL_STREAM(logger_, "Exception during reading obligatory parameters: " << e.what());
     return CallbackReturn::ERROR;
   }
@@ -71,7 +71,7 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
 
   try {
     ConfigureMadgwickFilter();
-  } catch (const std::runtime_error & e) {
+  } catch (const std::exception & e) {
     RCLCPP_FATAL_STREAM(logger_, "Exception during reading Madgwick Filter params: " << e.what());
     return CallbackReturn::ERROR;
   }
@@ -175,6 +175,10 @@ return_type PantherImuSensor::read(
 
 void PantherImuSensor::CheckSensor() const
 {
+  if (!info_.sensors.size()) {
+    throw std::runtime_error("Sensor is not defined in urdf!");
+  }
+
   if (info_.sensors[0].name != kImuSensorName) {
     throw std::runtime_error(
       "Wrong sensor name: '" + info_.sensors[0].name + "', '" + kImuSensorName + "' expected.");
@@ -386,14 +390,11 @@ void PantherImuSensor::HandleFirstDataCallback(
   const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
   const double timestamp_s)
 {
-  if (!imu_calibrated_) {
-    return;
-  }
-
   if (
-    !std::isfinite(mag_compensated.x) || !std::isfinite(mag_compensated.y) ||
-    !std::isfinite(mag_compensated.z)) {
-    throw std::runtime_error("Magnetometer has nan values.");
+    (!std::isfinite(mag_compensated.x) || !std::isfinite(mag_compensated.y) ||
+     !std::isfinite(mag_compensated.z)) &&
+    !imu_calibrated_) {
+    return;
   }
 
   geometry_msgs::msg::Quaternion init_q;
@@ -418,14 +419,7 @@ void PantherImuSensor::SpatialDataCallback(
   const auto lin_acc = ParseAcceleration(acceleration);
 
   if (!imu_calibrated_ || params_.stateless) {
-    try {
-      HandleFirstDataCallback(mag_compensated, lin_acc, timestamp_s);
-    } catch (const std::runtime_error & e) {
-      RCLCPP_WARN_STREAM(
-        logger_, "Exception during first imu callback: " << e.what() << " Skipping...");
-      return;
-    }
-
+    HandleFirstDataCallback(mag_compensated, lin_acc, timestamp_s);
     if (!imu_calibrated_) {
       return;
     }

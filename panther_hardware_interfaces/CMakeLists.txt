@@ -100,7 +100,10 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_panther_imu
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_imu hardware_interface
-                            rclcpp panther_utils panther_msgs)
+                            rclcpp panther_utils panther_msgs phidgets_api)
+
+  target_link_libraries(${PROJECT_NAME}_test_panther_imu ${PROJECT_NAME}
+                        phidgets_spatial_parameters)
 
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
 endif()
