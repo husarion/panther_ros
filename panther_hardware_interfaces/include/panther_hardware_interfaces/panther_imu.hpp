@@ -39,6 +39,8 @@
 
 #include <phidgets_spatial_parameters.hpp>
 
+using namespace std::placeholders;
+
 namespace panther_hardware_interfaces
 {
 
@@ -118,7 +120,6 @@ private:
 
   std::vector<double> imu_sensor_state_;
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
-  rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   static constexpr size_t kImuInterfacesSize = 10;
   static constexpr double KImuMagneticFieldUnknownValue = 1e300;
@@ -130,9 +131,6 @@ private:
     "linear_acceleration.y", "linear_acceleration.z",
   };
 
-  std::map<std::string, WorldFrame::WorldFrame> kImuWorldFramesMap = {
-    {"ned", WorldFrame::NED}, {"nwu", WorldFrame::NWU}, {"enu", WorldFrame::ENU}};
-
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
 
@@ -140,7 +138,6 @@ private:
   WorldFrame::WorldFrame world_frame_;
   bool imu_connected_;
   bool imu_calibrated_ = false;
-  bool first_data_callback_ = true;
   double last_spatial_data_callback_time_s_;
 };
 

@@ -58,8 +58,6 @@ const std::map<std::string, std::string> kImuObligatoryParams{
 
 const std::string kPluginName = "<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>";
 
-const std::string kCalibrateService = "/panther_imu_node/calibrate";
-
 }  // namespace panther_hardware_interfaces_test
 
 #endif  // PANTHER_HARDWARE_INTERFACES_TEST_CONSTANTS_HPP_

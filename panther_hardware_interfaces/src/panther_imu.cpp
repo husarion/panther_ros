@@ -108,10 +108,8 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
   try {
     spatial_ = std::make_unique<phidgets::Spatial>(
       params_.serial, params_.hub_port, false,
-      std::bind(
-        &PantherImuSensor::SpatialDataCallback, this, std::placeholders::_1, std::placeholders::_2,
-        std::placeholders::_3, std::placeholders::_4),
-      nullptr, std::bind(&PantherImuSensor::SpatialAttachCallback, this),
+      std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
+      std::bind(&PantherImuSensor::SpatialAttachCallback, this),
       std::bind(&PantherImuSensor::SpatialDetachCallback, this));
 
     RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
@@ -169,7 +167,7 @@ std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
 return_type PantherImuSensor::read(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
-  if (not imu_connected_) {
+  if (!imu_connected_) {
     return return_type::ERROR;
   }
   return return_type::OK;
@@ -206,7 +204,7 @@ void PantherImuSensor::CheckInterfaces() const
       return name == interface_info.name;
     };
 
-  if (not std::equal(
+  if (!std::equal(
         names_start_iter, names_end_iter, states_iter, compare_name_with_interface_info)) {
     throw std::runtime_error("Wrong state interfaces' names defined.");
   }
@@ -270,7 +268,8 @@ void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
   } else if (world_frame == "enu") {
     world_frame_ = WorldFrame::ENU;
   } else {
-    throw std::runtime_error(
+    RCLCPP_WARN(
+      logger_,
       "The parameter world_frame was set to invalid value. "
       "Valid values are 'enu', 'ned' and 'nwu'. Setting to 'enu'.");
   }
@@ -289,7 +288,7 @@ void PantherImuSensor::Calibrate()
   // here. See: https://github.com/ros-drivers/phidgets_drivers/issues/40
 
   RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot for 2 seconds!");
-  while (not imu_calibrated_) {
+  while (!imu_calibrated_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   RCLCPP_INFO(logger_, "IMU is successfully callibrated.");
@@ -303,7 +302,7 @@ bool PantherImuSensor::IsParamDefined(const std::string & param_name) const
 bool PantherImuSensor::AreParamsDefined(const std::unordered_set<std::string> & params_names) const
 {
   for (const auto & param_name : params_names) {
-    if (not IsParamDefined(param_name)) {
+    if (!IsParamDefined(param_name)) {
       return false;
     }
   }
@@ -387,15 +386,14 @@ void PantherImuSensor::HandleFirstDataCallback(
   const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
   const double timestamp_s)
 {
+  if (!imu_calibrated_) {
+    return;
+  }
+
   if (
-    not std::isfinite(mag_compensated.x) or not std::isfinite(mag_compensated.y) or
-    not std::isfinite(mag_compensated.z)) {
-    // The nan values are provided when imu is not callibrated.
-    if (not imu_calibrated_) {
-      return;
-    } else {
-      throw std::runtime_error("Magnetometer has nan values.");
-    }
+    !std::isfinite(mag_compensated.x) || !std::isfinite(mag_compensated.y) ||
+    !std::isfinite(mag_compensated.z)) {
+    throw std::runtime_error("Magnetometer has nan values.");
   }
 
   geometry_msgs::msg::Quaternion init_q;
@@ -405,7 +403,6 @@ void PantherImuSensor::HandleFirstDataCallback(
   }
   filter_.setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
 
-  first_data_callback_ = false;
   last_spatial_data_callback_time_s_ = timestamp_s;
   imu_calibrated_ = true;
 }
@@ -420,7 +417,7 @@ void PantherImuSensor::SpatialDataCallback(
   const auto ang_vel = ParseGyration(angular_rate);
   const auto lin_acc = ParseAcceleration(acceleration);
 
-  if (first_data_callback_ || params_.stateless) {
+  if (!imu_calibrated_ || params_.stateless) {
     try {
       HandleFirstDataCallback(mag_compensated, lin_acc, timestamp_s);
     } catch (const std::runtime_error & e) {
@@ -429,7 +426,7 @@ void PantherImuSensor::SpatialDataCallback(
       return;
     }
 
-    if (not imu_calibrated_) {
+    if (!imu_calibrated_) {
       return;
     }
   }
