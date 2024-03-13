@@ -68,19 +68,9 @@ ament_target_dependencies(manager_bt_node panther_msgs panther_utils rclcpp
                           sensor_msgs std_msgs)
 target_link_libraries(manager_bt_node ${plugin_libs})
 
-install(
-  TARGETS manager_bt_node
-  RUNTIME DESTINATION bin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
-
-ament_export_libraries(manager_bt_node)
-ament_export_include_directories(include)
-ament_export_dependencies(${PACKAGE_INCLUDE_DEPENDS})
-
 install(TARGETS ${plugin_libs} DESTINATION lib)
 
-install(TARGETS DESTINATION lib/${PROJECT_NAME})
+install(TARGETS manager_bt_node DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
 

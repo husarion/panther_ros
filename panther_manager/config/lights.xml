@@ -69,14 +69,6 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                         repeating="false"
                                         service_name="lights/controller/set/animation"/>
           </TickAfterTimeout>
-          <TickAfterTimeout timeout="{BATTERY_STATE_ANIM_PERIOD}"
-                            _skipIf="battery_percent &lt; LOW_BATTERY_THRESHOLD_PERCENT">
-            <CallSetLedAnimationService name="SetBatteryStateAnimation"
-                                        id="{BATTERY_STATE_ANIM_ID}"
-                                        param="{battery_percent_round}"
-                                        repeating="false"
-                                        service_name="lights/controller/set/animation"/>
-          </TickAfterTimeout>
         </Sequence>
       </Sequence>
       <CallSetLedAnimationService name="SerErrorAnimation"
