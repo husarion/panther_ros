@@ -364,6 +364,10 @@ void ManagerBTNode::LightsTreeTimerCB()
       update_charging_anim_step_));
 
   lights_tree_status_ = lights_tree_.tickOnce();
+
+  if (lights_tree_status_ == BT::NodeStatus::FAILURE) {
+    RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
+  }
 }
 
 void ManagerBTNode::SafetyTreeTimerCB()
@@ -385,6 +389,10 @@ void ManagerBTNode::SafetyTreeTimerCB()
     std::max({front_driver_temp_ma_->GetAverage(), rear_driver_temp_ma_->GetAverage()}));
 
   safety_tree_status_ = safety_tree_.tickOnce();
+
+  if (safety_tree_status_ == BT::NodeStatus::FAILURE) {
+    RCLCPP_WARN(this->get_logger(), "Safety behavior tree returned FAILURE status");
+  }
 
   std::pair<bool, std::string> signal_shutdown;
   if (safety_config_.blackboard->get<std::pair<bool, std::string>>(
@@ -420,6 +428,13 @@ void ManagerBTNode::ShutdownRobot(const std::string & reason)
     shutdown_tree_status_ = shutdown_tree_.tickOnce();
     rate.sleep();
   }
+
+  if (shutdown_tree_status_ == BT::NodeStatus::FAILURE) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Shutdown behavior tree returned FAILURE status, robot may not be shutdown correctly");
+  }
+
   rclcpp::shutdown();
 }
 
