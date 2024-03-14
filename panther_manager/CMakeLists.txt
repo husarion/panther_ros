@@ -128,6 +128,21 @@ if(BUILD_TESTING)
     target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)
     ament_target_dependencies(${bt_node_test} ${PACKAGE_INCLUDE_DEPENDS})
   endforeach()
+
+  ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
+                  test/test_manager_bt_node.cpp src/manager_bt_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_manager_bt_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_manager_bt_node
+    behaviortree_cpp
+    panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
+    std_msgs)
 endif()
 
 ament_package()

@@ -268,7 +268,7 @@ void ManagerBTNode::CreateShutdownTree()
   const auto shutdown_hosts_path = this->get_parameter("shutdown_hosts_path").as_string();
 
   const std::map<std::string, std::any> shutdown_initial_bb = {
-    {"SHUTDOWN_HOSTS_path", shutdown_hosts_path.c_str()},
+    {"SHUTDOWN_HOSTS_PATH", shutdown_hosts_path.c_str()},
   };
 
   shutdown_config_ = CreateBTConfig(shutdown_initial_bb);
@@ -282,28 +282,26 @@ BT::NodeConfig ManagerBTNode::CreateBTConfig(
   BT::NodeConfig config;
   config.blackboard = BT::Blackboard::create();
 
-  for (auto & item : bb_values) {
-    const std::type_info & type = item.second.type();
+  for (auto & [name, value] : bb_values) {
+    const std::type_info & type = value.type();
     if (type == typeid(bool)) {
-      config.blackboard->set<bool>(item.first, std::any_cast<bool>(item.second));
+      config.blackboard->set<bool>(name, std::any_cast<bool>(value));
     } else if (type == typeid(int)) {
-      config.blackboard->set<int>(item.first, std::any_cast<int>(item.second));
+      config.blackboard->set<int>(name, std::any_cast<int>(value));
     } else if (type == typeid(unsigned)) {
-      config.blackboard->set<unsigned>(item.first, std::any_cast<unsigned>(item.second));
+      config.blackboard->set<unsigned>(name, std::any_cast<unsigned>(value));
     } else if (type == typeid(float)) {
-      config.blackboard->set<float>(item.first, std::any_cast<float>(item.second));
+      config.blackboard->set<float>(name, std::any_cast<float>(value));
     } else if (type == typeid(double)) {
-      config.blackboard->set<double>(item.first, std::any_cast<double>(item.second));
-    } else if (type == typeid(long)) {
-      config.blackboard->set<long>(item.first, std::any_cast<long>(item.second));
+      config.blackboard->set<double>(name, std::any_cast<double>(value));
     } else if (type == typeid(const char *)) {
-      config.blackboard->set<std::string>(item.first, std::any_cast<const char *>(item.second));
+      config.blackboard->set<std::string>(name, std::any_cast<const char *>(value));
     } else if (type == typeid(std::string)) {
-      config.blackboard->set<std::string>(item.first, std::any_cast<std::string>(item.second));
+      config.blackboard->set<std::string>(name, std::any_cast<std::string>(value));
     } else {
       throw std::invalid_argument(
-        "Invalid type for blackboard entry. Valid types are: bool, int, unsigned, float, double,"
-        " long, const char*, std::string");
+        "Invalid type for blackboard entry. Valid types are: bool, int, unsigned, float, double, "
+        "const char*, std::string");
     }
   }
 
@@ -397,7 +395,9 @@ void ManagerBTNode::SafetyTreeTimerCB()
   std::pair<bool, std::string> signal_shutdown;
   if (safety_config_.blackboard->get<std::pair<bool, std::string>>(
         "signal_shutdown", signal_shutdown)) {
-    if (signal_shutdown.first) ShutdownRobot(signal_shutdown.second);
+    if (signal_shutdown.first) {
+      ShutdownRobot(signal_shutdown.second);
+    }
   }
 }
 

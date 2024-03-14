@@ -6,8 +6,6 @@
       cpu_temp_window_len: 6
       driver_temp_window_len: 6
       shutdown_timeout: 15.0
-      # launch_safety_tree: false
-      # launch_shutdown_tree: false
       lights:
         critical_battery_anim_period: 15.0
         critical_battery_threshold_percent: 0.1

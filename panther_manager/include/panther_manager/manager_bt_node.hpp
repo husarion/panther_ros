@@ -55,14 +55,16 @@ public:
 
   void Initialize();
 
-private:
+protected:
   void DeclareParameters();
   void RegisterBehaviorTree();
   void CreateLightsTree();
   void CreateSafetyTree();
   void CreateShutdownTree();
   BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values = {}) const;
+  bool SystemReady();
 
+private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);
   void DriverStateCB(const DriverStateMsg::SharedPtr driver_state);
   void EStopCB(const BoolMsg::SharedPtr e_stop);
@@ -71,7 +73,6 @@ private:
   void SafetyTreeTimerCB();
   void LightsTreeTimerCB();
 
-  bool SystemReady();
   void ShutdownRobot(const std::string & reason);
 
   static constexpr float kCriticalBatteryTemp = 55.0;
