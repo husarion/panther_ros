@@ -268,7 +268,7 @@ void ManagerBTNode::CreateShutdownTree()
   const auto shutdown_hosts_path = this->get_parameter("shutdown_hosts_path").as_string();
 
   const std::map<std::string, std::any> shutdown_initial_bb = {
-    {"SHUTDOWN_HOSTS_PATH", shutdown_hosts_path.c_str()},
+    {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_path.c_str()},
   };
 
   shutdown_config_ = CreateBTConfig(shutdown_initial_bb);
