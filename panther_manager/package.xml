@@ -19,6 +19,8 @@
   <depend>iputils-ping</depend>
   <depend>libboost-dev</depend>
   <depend>libssh-dev</depend>
+  <depend>panther_msgs</depend>
+  <depend>panther_utils</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
   <depend>std_srvs</depend>
