@@ -44,33 +44,25 @@ void ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHos
     throw BT::RuntimeError("[" + this->name() + "] Error loading YAML file: " + e.what());
   }
 
-  for (const auto & host : shutdown_hosts["hosts"]) {
-    if (!host["ip"] || !host["username"]) {
-      RCLCPP_ERROR_STREAM(rclcpp::get_logger(this->name()), "Missing info for remote host!");
-      continue;
-    }
+  try {
+    for (const auto & host : shutdown_hosts["hosts"]) {
+      if (!host["ip"] || !host["username"]) {
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger(this->name()), "Missing info for remote host!");
+        continue;
+      }
 
-    auto ip = host["ip"].as<std::string>();
-    auto user = host["username"].as<std::string>();
-    unsigned port = 22;
-    if (host["port"]) {
-      port = host["port"].as<unsigned>();
+      auto ip = panther_utils::GetYAMLKeyValue<std::string>(host, "ip");
+      auto user = panther_utils::GetYAMLKeyValue<std::string>(host, "user");
+      auto port = panther_utils::GetYAMLKeyValue<unsigned>(host, "port", 22);
+      auto command = panther_utils::GetYAMLKeyValue<std::string>(
+        host, "command", "sudo shutdown now");
+      auto timeout = panther_utils::GetYAMLKeyValue<float>(host, "timeout", 5.0);
+      auto ping_for_success = panther_utils::GetYAMLKeyValue<bool>(host, "ping_for_success", true);
+      hosts.push_back(
+        std::make_shared<ShutdownHost>(ip, user, port, command, timeout, ping_for_success));
     }
-    std::string command = "sudo shutdown now";
-    if (host["command"]) {
-      command = host["command"].as<std::string>();
-    }
-    float timeout = 5.0;
-    if (host["timeout"]) {
-      timeout = host["timeout"].as<float>();
-    }
-    bool ping_for_success = true;
-    if (host["ping_for_success"]) {
-      ping_for_success = host["ping_for_success"].as<bool>();
-    }
-
-    hosts.push_back(
-      std::make_shared<ShutdownHost>(ip, user, port, command, timeout, ping_for_success));
+  } catch (const std::runtime_error & e) {
+    throw BT::RuntimeError("[" + this->name() + "]: " + e.what());
   }
 }
 

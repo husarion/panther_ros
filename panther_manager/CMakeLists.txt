@@ -15,7 +15,8 @@ set(PACKAGE_INCLUDE_DEPENDS
     panther_msgs
     libssh
     yaml-cpp
-    behaviortree_ros2)
+    behaviortree_ros2
+    panther_utils)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
