@@ -93,8 +93,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(panther_utils REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_imu test/test_panther_imu.cpp
-                  test/src/panther_imu_test_utils.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_panther_imu test/test_panther_imu.cpp)
   set_tests_properties(${PROJECT_NAME}_test_panther_imu PROPERTIES TIMEOUT 120)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_imu

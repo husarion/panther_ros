@@ -288,8 +288,6 @@ void PantherImuSensor::SetInitialValues()
 void PantherImuSensor::Calibrate()
 {
   spatial_->zero();
-  // The API call returns directly, so we "enforce" the recommended 2 sec
-  // here. See: https://github.com/ros-drivers/phidgets_drivers/issues/40
 
   RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot for 2 seconds!");
   while (!imu_calibrated_) {
