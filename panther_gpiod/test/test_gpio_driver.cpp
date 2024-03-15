@@ -98,15 +98,15 @@ TEST(TestGPIODriverInitialization, WrongPinConfigFail)
 
 TEST_F(TestGPIODriver, SetWrongPinValue)
 {
-  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { this->gpio_driver_->SetPinValue(static_cast<GPIOPin>(-1), true); },
-    "Pin not found in GPIO info storage.");
+    "Pin not found in GPIO info storage."));
 }
 
-TEST_F(TestGPIODriver, IsPinAvaible)
+TEST_F(TestGPIODriver, IsPinAvailable)
 {
-  EXPECT_TRUE(this->gpio_driver_->IsPinAvaible(GPIOPin::LED_SBC_SEL));
-  EXPECT_FALSE(this->gpio_driver_->IsPinAvaible(static_cast<GPIOPin>(-1)));
+  EXPECT_TRUE(this->gpio_driver_->IsPinAvailable(GPIOPin::LED_SBC_SEL));
+  EXPECT_FALSE(this->gpio_driver_->IsPinAvailable(static_cast<GPIOPin>(-1)));
 }
 
 TEST_F(TestGPIODriver, GPIOMonitorEnableNoRT)
@@ -136,12 +136,12 @@ TEST_F(TestGPIODriver, GPIOMonitorEnableUseRT)
 
 TEST_F(TestGPIODriver, GPIOEventCallbackFailWhenNoMonitorThread)
 {
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() {
       this->gpio_driver_->ConfigureEdgeEventCallback(
         std::bind(&TestGPIODriver::GPIOEventCallback, this, std::placeholders::_1));
     },
-    "GPIO monitor thread is not running!");
+    "GPIO monitor thread is not running!"));
 }
 
 TEST_F(TestGPIODriver, GPIOEventCallbackShareNewPinState)
@@ -170,9 +170,9 @@ TEST_F(TestGPIODriver, ChangePinDirection)
   this->gpio_driver_->GPIOMonitorEnable();
   this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::INPUT);
 
-  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { this->gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, true); },
-    "Cannot set value for INPUT pin.");
+    "Cannot set value for INPUT pin."));
 
   this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT);
 

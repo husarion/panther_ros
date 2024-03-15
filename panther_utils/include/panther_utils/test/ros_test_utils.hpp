@@ -38,7 +38,7 @@ namespace panther_utils::test_utils
 template <typename NodeT, typename MsgT>
 bool WaitForMsg(
   const std::shared_ptr<NodeT> & node, std::shared_ptr<MsgT> & msg,
-  const std::chrono::nanoseconds & timeout)
+  const std::chrono::milliseconds & timeout)
 {
   msg = nullptr;
   rclcpp::Time start_time = node->now();

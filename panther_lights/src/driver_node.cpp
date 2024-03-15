@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <gpiod.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -39,13 +40,19 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options), front_panel_("/dev/spidev0.0"), rear_panel_("/dev/spidev0.1")
+: Node(node_name, options),
+  front_panel_("/dev/spidev0.0"),
+  rear_panel_("/dev/spidev0.1"),
+  diagnostic_updater_(this)
 {
   rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
 
   this->declare_parameter<double>("global_brightness", 1.0);
   this->declare_parameter<double>("frame_timeout", 0.1);
   this->declare_parameter<int>("num_led", 46);
+
+  diagnostic_updater_.setHardwareID("Bumper Lights");
+  diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLigths);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
@@ -61,6 +68,7 @@ void DriverNode::Initialize()
   std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
     panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
+  gpio_driver_->GPIOMonitorEnable();
 
   front_panel_ts_ = this->get_clock()->now();
   rear_panel_ts_ = this->get_clock()->now();
@@ -69,13 +77,13 @@ void DriverNode::Initialize()
   rear_panel_.SetGlobalBrightness(global_brightness);
 
   front_light_sub_ = std::make_shared<image_transport::Subscriber>(
-    it_->subscribe("lights/driver/front_panel_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
+    it_->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, front_panel_, front_panel_ts_, "front");
       front_panel_ts_ = msg->header.stamp;
     }));
 
   rear_light_sub_ = std::make_shared<image_transport::Subscriber>(
-    it_->subscribe("lights/driver/rear_panel_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
+    it_->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, rear_panel_, rear_panel_ts_, "rear");
       rear_panel_ts_ = msg->header.stamp;
     }));
@@ -94,35 +102,41 @@ void DriverNode::OnShutdown()
 
   // Give back control over LEDs
   SetPowerPin(false);
+
+  gpio_driver_.reset();
 }
 
 void DriverNode::FrameCB(
   const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
   const rclcpp::Time & last_time, const std::string & panel_name)
 {
-  std::string meessage;
+  std::string message;
   if (
     (this->get_clock()->now() - rclcpp::Time(msg->header.stamp)) >
     rclcpp::Duration::from_seconds(frame_timeout_)) {
-    meessage = "Timeout exceeded, ignoring frame";
+    message = "Timeout exceeded, ignoring frame";
   } else if (rclcpp::Time(msg->header.stamp) < last_time) {
-    meessage = "Dropping message from past";
+    message = "Dropping message from past";
   } else if (msg->encoding != sensor_msgs::image_encodings::RGBA8) {
-    meessage = "Incorrect image encoding ('" + msg->encoding + "')";
+    message = "Incorrect image encoding ('" + msg->encoding + "')";
   } else if (msg->height != 1) {
-    meessage = "Incorrect image height " + std::to_string(msg->height);
+    message = "Incorrect image height " + std::to_string(msg->height);
   } else if (msg->width != (std::uint32_t)num_led_) {
-    meessage = "Incorrect image width " + std::to_string(msg->width);
+    message = "Incorrect image width " + std::to_string(msg->width);
   }
 
-  if (!meessage.empty()) {
+  if (!message.empty()) {
     if (panel_name == "front") {
       RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on front panel!", meessage.c_str());
+        this->get_logger(), *this->get_clock(), 5000, "%s on front panel!", message.c_str());
     } else if (panel_name == "rear") {
       RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on rear panel!", meessage.c_str());
+        this->get_logger(), *this->get_clock(), 5000, "%s on rear panel!", message.c_str());
     }
+
+    auto warn_msg = message + " on " + panel_name + " panel!";
+    diagnostic_updater_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, warn_msg);
+
     return;
   }
 
@@ -148,9 +162,9 @@ void DriverNode::SetBrightnessCB(
   try {
     front_panel_.SetGlobalBrightness(brightness);
     rear_panel_.SetGlobalBrightness(brightness);
-  } catch (const std::out_of_range & err) {
+  } catch (const std::out_of_range & e) {
     res->success = false;
-    res->message = "Failed to set brightness: " + std::string(err.what());
+    res->message = "Failed to set brightness: " + std::string(e.what());
     return;
   }
 
@@ -160,6 +174,35 @@ void DriverNode::SetBrightnessCB(
   str_bright = str_bright.substr(0, str_bright.find(".") + 3);
   res->success = true;
   res->message = "Changed brightness to " + str_bright;
+}
+
+void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"LED panels are initialised properly"};
+
+  if (!panels_initialised_) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "LED panels initialisation failed";
+
+    auto pin_available = gpio_driver_->IsPinAvailable(panther_gpiod::GPIOPin::LED_SBC_SEL);
+    auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
+
+    diagnostic_msgs::msg::KeyValue pin_available_kv;
+    pin_available_kv.key = "LED_SBC_SEL pin available";
+    pin_available_kv.value = pin_available ? "true" : "false";
+
+    diagnostic_msgs::msg::KeyValue pin_active_kv;
+    pin_active_kv.key = "LED_SBC_SEL pin active";
+    pin_active_kv.value = pin_active ? "true" : "false";
+
+    key_values.push_back(pin_available_kv);
+    key_values.push_back(pin_active_kv);
+  }
+
+  status.values = key_values;
+  status.summary(error_level, message);
 }
 
 }  // namespace panther_lights
