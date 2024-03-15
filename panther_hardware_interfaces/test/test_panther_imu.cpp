@@ -57,6 +57,51 @@ public:
 class TestPantherImuSensor : public testing::Test
 {
 public:
+  virtual void SetUp() override final;
+
+  virtual void TearDown() override final;
+
+  void CreateResourceManagerFromUrdf(const std::string & urdf);
+
+  hardware_interface::return_type ConfigurePantherImu();
+
+  hardware_interface::return_type UnconfigurePantherImu();
+
+  hardware_interface::return_type ActivatePantherImu();
+
+  hardware_interface::return_type DeactivatePantherImu();
+
+  hardware_interface::return_type ShutdownPantherImu();
+
+  /**
+   * @brief Creates and returns URDF as a string
+   * @param param_map map with hardware parameters
+   * @param list list of interfaces
+   */
+  static std::string BuildUrdf(
+    const std::unordered_map<std::string, std::string> & param_map,
+    const std::list<std::string> & interfaces_list);
+
+  std::string GetDefaultPantherImuUrdf();
+
+protected:
+  /**
+   * @brief Changes current state of the resource manager to the one set in parameters. It is
+   * recommended to use wrapper functions
+   * @param state_id
+   * @param state_name
+   */
+  hardware_interface::return_type SetState(
+    const std::uint8_t state_id, const std::string & state_name);
+
+  hardware_interface::HardwareInfo CreateExampleInterfaces(
+    const hardware_interface::HardwareInfo & info);
+
+  hardware_interface::HardwareInfo CreateCorrectInterfaces(
+    const hardware_interface::HardwareInfo & info);
+
+  std::list<hardware_interface::LoanedStateInterface> ClaimGoodStateInterfaces();
+
   inline static const std::string kPantherImuName = "imu";
 
   inline static const std::string kUrdfHeader = R"(<?xml version="1.0" encoding="utf-8"?>
@@ -92,140 +137,130 @@ public:
   inline static const std::string kPluginName =
     "<plugin>panther_hardware_interfaces/PantherImuSensor</plugin>";
 
-  virtual void SetUp() override final
-  {
-    imu_sensor_ = std::make_unique<PantherImuSensorWrapper>();
-    rclcpp::init(0, nullptr);
-  }
-
-  virtual void TearDown() override final { rclcpp::shutdown(); }
-
-  void CreateResourceManagerFromUrdf(const std::string & urdf)
-  {
-    rm_ = std::make_shared<hardware_interface::ResourceManager>(urdf);
-  }
-
-  hardware_interface::return_type ConfigurePantherImu()
-  {
-    return SetState(
-      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
-      hardware_interface::lifecycle_state_names::INACTIVE);
-  }
-
-  hardware_interface::return_type UnconfigurePantherImu()
-  {
-    return SetState(
-      lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
-      hardware_interface::lifecycle_state_names::UNCONFIGURED);
-  }
-
-  hardware_interface::return_type ActivatePantherImu()
-  {
-    return SetState(
-      lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE,
-      hardware_interface::lifecycle_state_names::ACTIVE);
-  }
-
-  hardware_interface::return_type DeactivatePantherImu()
-  {
-    return SetState(
-      lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
-      hardware_interface::lifecycle_state_names::INACTIVE);
-  }
-
-  hardware_interface::return_type ShutdownPantherImu()
-  {
-    return SetState(
-      lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
-      hardware_interface::lifecycle_state_names::FINALIZED);
-  }
-
-  /**
-   * @brief Creates and returns URDF as a string
-   * @param param_map map with hardware parameters
-   * @param list list of interfaces
-   */
-  static std::string BuildUrdf(
-    const std::unordered_map<std::string, std::string> & param_map,
-    const std::list<std::string> & interfaces_list)
-  {
-    std::stringstream urdf;
-
-    urdf << kUrdfHeader << "<hardware>" << std::endl << kPluginName;
-
-    for (auto const & [key, val] : param_map) {
-      urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
-    }
-
-    urdf << "</hardware>" << std::endl;
-
-    urdf << "<sensor name=\"imu\" >" << std::endl;
-
-    for (auto const & val : interfaces_list) {
-      urdf << "<state_interface name=\"" << val << "\"/>" << std::endl;
-    }
-    urdf << "</sensor>" << std::endl;
-
-    urdf << kUrdfFooter;
-
-    return urdf.str();
-  }
-
-  std::string GetDefaultPantherImuUrdf() { return BuildUrdf(kImuObligatoryParams, kImuInterfaces); }
-
-protected:
-  /**
-   * @brief Changes current state of the resource manager to the one set in parameters. It is
-   * recommended to use wrapper functions
-   * @param state_id
-   * @param state_name
-   */
-  hardware_interface::return_type SetState(
-    const std::uint8_t state_id, const std::string & state_name)
-  {
-    rclcpp_lifecycle::State state(state_id, state_name);
-    return rm_->set_component_state(kPantherImuName, state);
-  }
-
   std::unique_ptr<PantherImuSensorWrapper> imu_sensor_;
   std::shared_ptr<hardware_interface::ResourceManager> rm_;
-
-  hardware_interface::HardwareInfo CreateExampleInterfaces(
-    const hardware_interface::HardwareInfo & info)
-  {
-    hardware_interface::HardwareInfo new_info(info);
-    std::list<std::string> example_interfaces_names = {"state1", "state2", "state3", "state4",
-                                                       "state5", "state6", "state7", "state8",
-                                                       "state9", "state10"};
-    for (const auto & interface_name : example_interfaces_names) {
-      hardware_interface::InterfaceInfo interface_info;
-      interface_info.name = interface_name;
-      new_info.sensors.front().state_interfaces.push_back(interface_info);
-    }
-    return new_info;
-  }
-
-  hardware_interface::HardwareInfo CreateCorrectInterfaces(
-    const hardware_interface::HardwareInfo & info)
-  {
-    hardware_interface::HardwareInfo new_info(info);
-    for (const auto & interface_name : TestPantherImuSensor::kImuInterfaces) {
-      hardware_interface::InterfaceInfo interface_info;
-      interface_info.name = interface_name;
-      new_info.sensors.front().state_interfaces.push_back(interface_info);
-    }
-    return new_info;
-  }
-
-  std::list<hardware_interface::LoanedStateInterface> ClaimGoodStateInterfaces()
-  {
-    std::list<hardware_interface::LoanedStateInterface> list;
-    for (const auto & interface_name : kImuInterfaces) {
-      list.push_back(rm_->claim_state_interface(kPantherImuName + "/" + interface_name));
-    }
-    return list;
-  }
 };
+
+void TestPantherImuSensor::SetUp()
+{
+  imu_sensor_ = std::make_unique<PantherImuSensorWrapper>();
+  rclcpp::init(0, nullptr);
+}
+
+void TestPantherImuSensor::TearDown() { rclcpp::shutdown(); }
+
+void TestPantherImuSensor::CreateResourceManagerFromUrdf(const std::string & urdf)
+{
+  rm_ = std::make_shared<hardware_interface::ResourceManager>(urdf);
+}
+
+hardware_interface::return_type TestPantherImuSensor::ConfigurePantherImu()
+{
+  return SetState(
+    lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
+    hardware_interface::lifecycle_state_names::INACTIVE);
+}
+
+hardware_interface::return_type TestPantherImuSensor::UnconfigurePantherImu()
+{
+  return SetState(
+    lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
+    hardware_interface::lifecycle_state_names::UNCONFIGURED);
+}
+
+hardware_interface::return_type TestPantherImuSensor::ActivatePantherImu()
+{
+  return SetState(
+    lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE,
+    hardware_interface::lifecycle_state_names::ACTIVE);
+}
+
+hardware_interface::return_type TestPantherImuSensor::DeactivatePantherImu()
+{
+  return SetState(
+    lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
+    hardware_interface::lifecycle_state_names::INACTIVE);
+}
+
+hardware_interface::return_type TestPantherImuSensor::ShutdownPantherImu()
+{
+  return SetState(
+    lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
+    hardware_interface::lifecycle_state_names::FINALIZED);
+}
+
+std::string TestPantherImuSensor::BuildUrdf(
+  const std::unordered_map<std::string, std::string> & param_map,
+  const std::list<std::string> & interfaces_list)
+{
+  std::stringstream urdf;
+
+  urdf << kUrdfHeader << "<hardware>" << std::endl << kPluginName;
+
+  for (auto const & [key, val] : param_map) {
+    urdf << "<param name=\"" << key << "\">" << val << "</param>" << std::endl;
+  }
+
+  urdf << "</hardware>" << std::endl;
+
+  urdf << "<sensor name=\"imu\" >" << std::endl;
+
+  for (auto const & val : interfaces_list) {
+    urdf << "<state_interface name=\"" << val << "\"/>" << std::endl;
+  }
+  urdf << "</sensor>" << std::endl;
+
+  urdf << kUrdfFooter;
+
+  return urdf.str();
+}
+
+std::string TestPantherImuSensor::GetDefaultPantherImuUrdf()
+{
+  return BuildUrdf(kImuObligatoryParams, kImuInterfaces);
+}
+hardware_interface::return_type TestPantherImuSensor::SetState(
+  const std::uint8_t state_id, const std::string & state_name)
+{
+  rclcpp_lifecycle::State state(state_id, state_name);
+  return rm_->set_component_state(kPantherImuName, state);
+}
+
+hardware_interface::HardwareInfo TestPantherImuSensor::CreateExampleInterfaces(
+  const hardware_interface::HardwareInfo & info)
+{
+  hardware_interface::HardwareInfo new_info(info);
+  std::list<std::string> example_interfaces_names = {"state1", "state2", "state3", "state4",
+                                                     "state5", "state6", "state7", "state8",
+                                                     "state9", "state10"};
+  for (const auto & interface_name : example_interfaces_names) {
+    hardware_interface::InterfaceInfo interface_info;
+    interface_info.name = interface_name;
+    new_info.sensors.front().state_interfaces.push_back(interface_info);
+  }
+  return new_info;
+}
+
+hardware_interface::HardwareInfo TestPantherImuSensor::CreateCorrectInterfaces(
+  const hardware_interface::HardwareInfo & info)
+{
+  hardware_interface::HardwareInfo new_info(info);
+  for (const auto & interface_name : TestPantherImuSensor::kImuInterfaces) {
+    hardware_interface::InterfaceInfo interface_info;
+    interface_info.name = interface_name;
+    new_info.sensors.front().state_interfaces.push_back(interface_info);
+  }
+  return new_info;
+}
+
+std::list<hardware_interface::LoanedStateInterface> TestPantherImuSensor::ClaimGoodStateInterfaces()
+{
+  std::list<hardware_interface::LoanedStateInterface> list;
+  for (const auto & interface_name : kImuInterfaces) {
+    list.push_back(rm_->claim_state_interface(kPantherImuName + "/" + interface_name));
+  }
+  return list;
+}
 
 TEST_F(TestPantherImuSensor, CheckSensor)
 {

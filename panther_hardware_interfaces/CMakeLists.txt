@@ -103,8 +103,6 @@ if(BUILD_TESTING)
 
   target_link_libraries(${PROJECT_NAME}_test_panther_imu ${PROJECT_NAME}
                         phidgets_spatial_parameters)
-
-  install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
 endif()
 
 ament_export_include_directories(include)
