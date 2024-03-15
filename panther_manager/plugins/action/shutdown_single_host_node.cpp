@@ -30,32 +30,32 @@ void ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>>
 {
   std::string ip;
   if (!getInput<std::string>("ip", ip) || ip == "") {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [ip]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [ip]"));
   }
 
   std::string user;
   if (!getInput<std::string>("user", user) || user == "") {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [user]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [user]"));
   }
 
   unsigned port;
   if (!getInput<unsigned>("port", port)) {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [port]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [port]"));
   }
 
   std::string command;
   if (!getInput<std::string>("command", command) || command == "") {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [command]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [command]"));
   }
 
   float timeout;
   if (!getInput<float>("timeout", timeout)) {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [timeout]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [timeout]"));
   }
 
   bool ping_for_success;
   if (!getInput<bool>("ping_for_success", ping_for_success)) {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [ping_for_success]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [ping_for_success]"));
   }
 
   hosts.push_back(

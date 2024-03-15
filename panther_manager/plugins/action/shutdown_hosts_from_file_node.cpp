@@ -34,19 +34,19 @@ void ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHos
   if (
     !getInput<std::string>("shutdown_hosts_file", shutdown_hosts_file) ||
     shutdown_hosts_file == "") {
-    throw(BT::RuntimeError("[", name(), "] Failed to get input [shutdown_hosts_file]"));
+    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [shutdown_hosts_file]"));
   }
 
   YAML::Node shutdown_hosts;
   try {
     shutdown_hosts = YAML::LoadFile(shutdown_hosts_file);
   } catch (const YAML::Exception & e) {
-    throw BT::RuntimeError("[" + name() + "] Error loading YAML file: " + e.what());
+    throw BT::RuntimeError("[" + this->name() + "] Error loading YAML file: " + e.what());
   }
 
   for (const auto & host : shutdown_hosts["hosts"]) {
     if (!host["ip"] || !host["username"]) {
-      RCLCPP_ERROR_STREAM(rclcpp::get_logger(get_node_name()), "Missing info for remote host!");
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger(this->name()), "Missing info for remote host!");
       continue;
     }
 

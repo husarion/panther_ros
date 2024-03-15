@@ -18,19 +18,18 @@
 #include <utility>
 
 #include <behaviortree_cpp/basic_types.h>
-#include <behaviortree_cpp/exceptions.h>
 
 namespace panther_manager
 {
 
 BT::NodeStatus SignalShutdown::tick()
 {
-  auto reason = getInput<std::string>("reason").value();
+  auto reason = this->getInput<std::string>("reason").value();
 
   std::pair<bool, std::string> signal_shutdown;
   signal_shutdown.first = true;
   signal_shutdown.second = reason;
-  config().blackboard->set<std::pair<bool, std::string>>("signal_shutdown", signal_shutdown);
+  this->config().blackboard->set<std::pair<bool, std::string>>("signal_shutdown", signal_shutdown);
 
   return BT::NodeStatus::SUCCESS;
 }

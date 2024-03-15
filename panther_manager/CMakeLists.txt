@@ -14,43 +14,42 @@ set(PACKAGE_INCLUDE_DEPENDS
     std_srvs
     panther_msgs
     libssh
-    yaml-cpp)
+    yaml-cpp
+    behaviortree_ros2)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
 include_directories(include)
-add_library(behaviortree_ros2 src/bt_ros2.cpp)
 
 add_library(call_set_bool_service_node SHARED
-            src/plugins/action/call_set_bool_service_node.cpp)
+            plugins/action/call_set_bool_service_node.cpp)
 list(APPEND plugin_libs call_set_bool_service_node)
 
 add_library(call_trigger_service_node SHARED
-            src/plugins/action/call_trigger_service_node.cpp)
+            plugins/action/call_trigger_service_node.cpp)
 list(APPEND plugin_libs call_trigger_service_node)
 
 add_library(call_set_led_animation_service_node SHARED
-            src/plugins/action/call_set_led_animation_service_node.cpp)
+            plugins/action/call_set_led_animation_service_node.cpp)
 list(APPEND plugin_libs call_set_led_animation_service_node)
 
-add_library(signal_shutdown_node SHARED
-            src/plugins/action/signal_shutdown_node.cpp)
+add_library(signal_shutdown_node SHARED plugins/action/signal_shutdown_node.cpp)
 list(APPEND plugin_libs signal_shutdown_node)
 
 add_library(shutdown_single_host_node SHARED
-            src/plugins/action/shutdown_single_host_node.cpp)
+            plugins/action/shutdown_single_host_node.cpp)
 target_link_libraries(shutdown_single_host_node ssh)
 list(APPEND plugin_libs shutdown_single_host_node)
 
 add_library(shutdown_hosts_from_file_node SHARED
-            src/plugins/action/shutdown_hosts_from_file_node.cpp)
+            plugins/action/shutdown_hosts_from_file_node.cpp)
 target_link_libraries(shutdown_hosts_from_file_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_node)
 
 add_library(tick_after_timeout_node SHARED
-            src/plugins/decorator/tick_after_timeout_node.cpp)
+            plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_node)
 
 foreach(bt_node ${plugin_libs})
@@ -115,8 +114,6 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS DESTINATION lib/${PROJECT_NAME})
-
-ament_target_dependencies(behaviortree_ros2 ${PACKAGE_INCLUDE_DEPENDS})
 
 ament_export_include_directories(include)
 ament_export_dependencies(${PACKAGE_INCLUDE_DEPENDS})

@@ -15,9 +15,12 @@
 #ifndef PANTHER_MANAGER_CALL_SET_LED_ANIMATION_SERVICE_NODE_HPP_
 #define PANTHER_MANAGER_CALL_SET_LED_ANIMATION_SERVICE_NODE_HPP_
 
+#include <string>
+
 #include <behaviortree_ros2/bt_service_node.hpp>
-#include <panther_msgs/srv/set_led_animation.hpp>
 #include <rclcpp/rclcpp.hpp>
+
+#include <panther_msgs/srv/set_led_animation.hpp>
 
 namespace panther_manager
 {
