@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager_plugin_test_utils.hpp>
+#include <plugin_test_utils.hpp>
 
-namespace panther_manager_plugin_test
+namespace panther_manager::plugin_test_utils
 {
 
-std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
+std::string PluginTestUtils::BuildBehaviorTree(
   const std::string & plugin_name, const std::map<std::string, std::string> & service,
   double tick_after_timeout)
 {
   std::stringstream bt;
 
-  bt << header_ << std::endl;
+  bt << tree_header_ << std::endl;
   if (not std::isnan(tick_after_timeout)) {
     bt << "\t\t\t<TickAfterTimeout timeout=\"" << tick_after_timeout << "\" >" << std::endl;
   }
@@ -40,23 +40,24 @@ std::string PantherManagerPluginTestUtils::BuildBehaviorTree(
     bt << "\t\t\t</TickAfterTimeout>" << std::endl;
   }
 
-  bt << footer_;
+  bt << tree_footer_;
 
   return bt.str();
 }
 
-BT::Tree & PantherManagerPluginTestUtils::CreateTree(
+void PluginTestUtils::CreateTree(
   const std::string & plugin_name, const std::map<std::string, std::string> & service,
   double tick_after_timeout)
 {
   auto xml_text = BuildBehaviorTree(plugin_name, service, tick_after_timeout);
   tree_ = factory_.createTreeFromText(xml_text);
-  return tree_;
 }
 
-BT::BehaviorTreeFactory & PantherManagerPluginTestUtils::GetFactory() { return factory_; }
+BT::Tree & PluginTestUtils::GetTree() { return tree_; }
 
-void PantherManagerPluginTestUtils::Start()
+BT::BehaviorTreeFactory & PluginTestUtils::GetFactory() { return factory_; }
+
+PluginTestUtils::PluginTestUtils()
 {
   rclcpp::init(0, nullptr);
   bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
@@ -73,7 +74,7 @@ void PantherManagerPluginTestUtils::Start()
   factory_.registerNodeType<panther_manager::TickAfterTimeout>("TickAfterTimeout");
 }
 
-void PantherManagerPluginTestUtils::Stop()
+PluginTestUtils::~PluginTestUtils()
 {
   bt_node_.reset();
   rclcpp::shutdown();
@@ -83,7 +84,7 @@ void PantherManagerPluginTestUtils::Stop()
   }
 }
 
-void PantherManagerPluginTestUtils::CreateSetBoolServiceServer(
+void PluginTestUtils::CreateSetBoolServiceServer(
   std::function<
     void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
     service_callback)
@@ -96,7 +97,7 @@ void PantherManagerPluginTestUtils::CreateSetBoolServiceServer(
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 }
 
-void PantherManagerPluginTestUtils::CreateTriggerServiceServer(
+void PluginTestUtils::CreateTriggerServiceServer(
   std::function<
     void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
     service_callback)
@@ -109,7 +110,7 @@ void PantherManagerPluginTestUtils::CreateTriggerServiceServer(
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 }
 
-void PantherManagerPluginTestUtils::CreateSetLEDAnimationServiceServer(
+void PluginTestUtils::CreateSetLEDAnimationServiceServer(
   std::function<void(
     panther_msgs::srv::SetLEDAnimation::Request::SharedPtr,
     panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
@@ -124,6 +125,6 @@ void PantherManagerPluginTestUtils::CreateSetLEDAnimationServiceServer(
   executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 }
 
-void PantherManagerPluginTestUtils::spin_executor() { executor_->spin(); }
+void PluginTestUtils::spin_executor() { executor_->spin(); }
 
-}  // namespace panther_manager_plugin_test
+}  // namespace panther_manager::plugin_test_utils

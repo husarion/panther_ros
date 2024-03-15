@@ -22,7 +22,7 @@
 
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 #include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
-#include <panther_manager_plugin_test_utils.hpp>
+#include <plugin_test_utils.hpp>
 
 inline static std::size_t counter = 0;
 
@@ -43,31 +43,30 @@ TEST(TestTickAfterTimeout, good_loading_tick_after_timeout_plugin)
 {
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
   test_utils.CreateTree("CallTriggerService", trigger_node, 0.1);
   ASSERT_NO_THROW({ test_utils.CreateTree("CallTriggerService", trigger_node, 0.1); });
-  test_utils.Stop();
 }
 
 TEST(TestTickAfterTimeout, wrong_plugin_name_loading_tick_after_timeout_plugin)
 {
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
   EXPECT_THROW(
     { test_utils.CreateTree("WrongTriggerService", trigger_node, 0.1); }, BT::RuntimeError);
-  test_utils.Stop();
 }
 
 TEST(TestTickAfterTimeout, good_tick_after_timeout_plugin_service_calls)
 {
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("CallTriggerService", trigger_node, 0.1);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("CallTriggerService", trigger_node, 0.1);
+  auto & tree = test_utils.GetTree();
   test_utils.CreateTriggerServiceServer(CounterIncrease);
 
   EXPECT_EQ(counter, 0);
@@ -90,8 +89,6 @@ TEST(TestTickAfterTimeout, good_tick_after_timeout_plugin_service_calls)
     EXPECT_EQ(duration, 100);
   }
   EXPECT_EQ(counter, 4);
-
-  test_utils.Stop();
 }
 
 int main(int argc, char ** argv)

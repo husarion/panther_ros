@@ -20,8 +20,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
-
-#include <panther_manager_plugin_test_utils.hpp>
+#include <plugin_test_utils.hpp>
 
 void ServiceFailedCallback(
   const std_srvs::srv::SetBool::Request::SharedPtr request,
@@ -61,83 +60,76 @@ TEST(TestCallSetBoolService, good_loading_call_set_bool_service_plugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
 
   ASSERT_NO_THROW({ test_utils.CreateTree("CallSetBoolService", service); });
-  test_utils.Stop();
 }
 
 TEST(TestCallSetBoolService, wrong_plugin_name_loading_call_set_bool_service_plugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
   EXPECT_THROW({ test_utils.CreateTree("WrongCallSetBoolService", service); }, BT::RuntimeError);
-  test_utils.Stop();
 }
 
 TEST(TestCallSetBoolService, wrong_call_set_bool_service_service_server_not_initialized)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("CallSetBoolService", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("CallSetBoolService", service);
+  auto & tree = test_utils.GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-
-  test_utils.Stop();
 }
 
 TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_true_value)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("CallSetBoolService", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("CallSetBoolService", service);
+  auto & tree = test_utils.GetTree();
 
   test_utils.CreateSetBoolServiceServer(ServiceSuccessCallbackCheckTrueValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
-
-  test_utils.Stop();
 }
 
 TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_false_value)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "false"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("CallSetBoolService", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("CallSetBoolService", service);
+  auto & tree = test_utils.GetTree();
 
   test_utils.CreateSetBoolServiceServer(ServiceSuccessCallbackCheckFalseValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
-
-  test_utils.Stop();
 }
 
 TEST(TestCallSetBoolService, wrong_set_bool_call_service_failure)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "false"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("CallSetBoolService", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("CallSetBoolService", service);
+  auto & tree = test_utils.GetTree();
 
   test_utils.CreateSetBoolServiceServer(ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-
-  test_utils.Stop();
 }
 
 TEST(TestCallSetBoolService, wrong_service_value_defined)
@@ -145,14 +137,13 @@ TEST(TestCallSetBoolService, wrong_service_value_defined)
   std::map<std::string, std::string> service = {
     {"service_name", "set_bool"}, {"data", "wrong_bool"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("CallSetBoolService", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("CallSetBoolService", service);
+  auto & tree = test_utils.GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-
-  test_utils.Stop();
 }
 
 int main(int argc, char ** argv)

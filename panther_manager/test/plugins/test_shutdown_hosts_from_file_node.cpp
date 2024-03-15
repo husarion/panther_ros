@@ -22,28 +22,24 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <panther_manager/plugins/action/shutdown_hosts_from_file_node.hpp>
-
-#include <panther_manager_plugin_test_utils.hpp>
+#include <plugin_test_utils.hpp>
 
 TEST(TestShutdownHostsFromFile, good_loading_shutdown_hosts_from_file_plugin)
 {
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
 
   ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownHostsFromFile", service); });
-  test_utils.Stop();
 }
 
 TEST(TestShutdownHostsFromFile, wrong_plugin_name_loading_shutdown_hosts_from_file_plugin)
 {
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
   EXPECT_THROW({ test_utils.CreateTree("WrongShutdownHostsFromFile", service); }, BT::RuntimeError);
-  test_utils.Stop();
 }
 
 TEST(TestShutdownHostsFromFile, wrong_cannot_find_file_shutdown_hosts_from_file)
@@ -51,13 +47,12 @@ TEST(TestShutdownHostsFromFile, wrong_cannot_find_file_shutdown_hosts_from_file)
   const std::string file_path = "/tmp/test_wrong_cannot_find_file_shutdown_hosts_from_file";
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", file_path}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("ShutdownHostsFromFile", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  test_utils.CreateTree("ShutdownHostsFromFile", service);
+  auto & tree = test_utils.GetTree();
 
   EXPECT_THROW({ tree.tickWhileRunning(std::chrono::milliseconds(100)); }, BT::RuntimeError);
-
-  test_utils.Stop();
 }
 
 TEST(TestShutdownHostsFromFile, good_shutdown_hosts_from_file)
@@ -87,17 +82,16 @@ TEST(TestShutdownHostsFromFile, good_shutdown_hosts_from_file)
   config_file.close();
 
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", config_file_path}};
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("ShutdownHostsFromFile", service);
+  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+
+  auto & tree = test_utils.GetTree();
+  test_utils.CreateTree("ShutdownHostsFromFile", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
 
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
   std::filesystem::remove(test_file_path);
   std::filesystem::remove(config_file_path);
-
-  test_utils.Stop();
 }
 
 int main(int argc, char ** argv)

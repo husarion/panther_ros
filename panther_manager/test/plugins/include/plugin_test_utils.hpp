@@ -15,13 +15,20 @@
 #ifndef PANTHER_MANAGER_PLUGIN_TEST_UTILS_HPP_
 #define PANTHER_MANAGER_PLUGIN_TEST_UTILS_HPP_
 
+#include <functional>
+#include <limits>
+#include <map>
 #include <memory>
+#include <string>
 #include <thread>
 
-#include <panther_msgs/srv/set_led_animation.hpp>
+#include <behaviortree_cpp/bt_factory.h>
 #include <rclcpp/rclcpp.hpp>
+
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
+
+#include <panther_msgs/srv/set_led_animation.hpp>
 
 #include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
 #include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
@@ -31,9 +38,7 @@
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
 #include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
 
-#include <behaviortree_cpp/bt_factory.h>
-
-namespace panther_manager_plugin_test
+namespace panther_manager::plugin_test_utils
 {
 
 struct BehaviorTreePluginDescription
@@ -42,21 +47,24 @@ struct BehaviorTreePluginDescription
   std::map<std::string, std::string> params;
 };
 
-class PantherManagerPluginTestUtils
+class PluginTestUtils
 {
 public:
+  PluginTestUtils();
+
+  ~PluginTestUtils();
+
   std::string BuildBehaviorTree(
     const std::string & plugin_name, const std::map<std::string, std::string> & service,
     double tick_after_timeout);
 
-  BT::Tree & CreateTree(
+  void CreateTree(
     const std::string & plugin_name, const std::map<std::string, std::string> & service,
     double tick_after_timeout = std::numeric_limits<double>::quiet_NaN());
 
-  BT::BehaviorTreeFactory & GetFactory();
+  BT::Tree & GetTree();
 
-  void Start();
-  void Stop();
+  BT::BehaviorTreeFactory & GetFactory();
 
   void CreateSetBoolServiceServer(
     std::function<
@@ -87,18 +95,18 @@ private:
 
   void spin_executor();
 
-  const std::string header_ = R"(
+  const std::string tree_header_ = R"(
       <root BTCPP_format="4">
         <BehaviorTree>
           <Sequence>
   )";
 
-  const std::string footer_ = R"(
+  const std::string tree_footer_ = R"(
             </Sequence>
         </BehaviorTree>
       </root>
   )";
 };
-}  // namespace panther_manager_plugin_test
+}  // namespace panther_manager::plugin_test_utils
 
 #endif  // PANTHER_MANAGER_PLUGIN_TEST_UTILS_HPP_
