@@ -123,17 +123,24 @@ void GPIOControllerPTH12X::EStopReset()
   bool e_stop_state = !gpio_driver_->IsPinActive(e_stop_pin);
 
   if (!e_stop_state) {
-    std::cout << "[GPIOController] E-stop is not active, reset is not needed" << std::endl;
+    fprintf(stdout, "[GPIOController] E-stop is not active, reset is not needed\n");
     return;
   }
 
   gpio_driver_->ChangePinDirection(e_stop_pin, gpiod::line::direction::OUTPUT);
   watchdog_->TurnOn();
   gpio_driver_->SetPinValue(e_stop_pin, true);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  if (!WaitFor(std::chrono::milliseconds(100))) {
+    gpio_driver_->ChangePinDirection(e_stop_pin, gpiod::line::direction::INPUT);
+    throw e_stop_reset_interrupted("E-stop reset interrupted after setting pin high.");
+  }
 
   gpio_driver_->ChangePinDirection(e_stop_pin, gpiod::line::direction::INPUT);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  if (!WaitFor(std::chrono::milliseconds(100))) {
+    throw e_stop_reset_interrupted("E-stop reset interrupted after setting pin high.");
+  }
 
   e_stop_state = !gpio_driver_->IsPinActive(e_stop_pin);
 
@@ -187,6 +194,24 @@ GPIOControllerPTH12X::QueryControlInterfaceIOStates() const
   });
 
   return io_state;
+}
+
+void GPIOControllerPTH12X::InterruptEStopReset()
+{
+  std::lock_guard<std::mutex> lck(e_stop_cv_mtx_);
+  should_abort_e_stop_reset_ = true;
+  e_stop_cv_.notify_one();
+}
+
+bool GPIOControllerPTH12X::WaitFor(std::chrono::milliseconds timeout)
+{
+  std::unique_lock<std::mutex> lck(e_stop_cv_mtx_);
+  should_abort_e_stop_reset_ = false;
+
+  bool interrupted = e_stop_cv_.wait_for(
+    lck, timeout, [&]() { return should_abort_e_stop_reset_; });
+
+  return !interrupted;
 }
 
 void GPIOControllerPTH10X::Start()

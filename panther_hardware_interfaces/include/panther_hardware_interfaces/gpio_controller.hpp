@@ -34,6 +34,16 @@
 namespace panther_hardware_interfaces
 {
 
+class e_stop_reset_interrupted : public std::exception
+{
+public:
+  e_stop_reset_interrupted(const std::string & message = "") : msg_(message) {}
+  const char * what() const noexcept override { return msg_.c_str(); }
+
+private:
+  std::string msg_;
+};
+
 class Watchdog
 {
 public:
@@ -95,6 +105,8 @@ public:
 
   virtual std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates()
     const = 0;
+
+  virtual void InterruptEStopReset(){};
 
   /**
    * @brief This method sets the provided callback function to be executed upon GPIO edge events.
@@ -205,7 +217,14 @@ public:
    */
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
+  void InterruptEStopReset() override;
+
+protected:
+  std::unique_ptr<Watchdog> watchdog_;
+
 private:
+  bool WaitFor(std::chrono::milliseconds timeout);
+
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
    */
@@ -226,7 +245,10 @@ private:
     panther_gpiod::GPIOInfo{
       panther_gpiod::GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
   };
-  std::unique_ptr<Watchdog> watchdog_;
+
+  std::mutex e_stop_cv_mtx_;
+  std::condition_variable e_stop_cv_;
+  volatile std::atomic_bool should_abort_e_stop_reset_ = false;
 };
 
 class GPIOControllerPTH10X : public GPIOControllerInterface

@@ -664,6 +664,8 @@ void PantherSystem::MotorsPowerEnable(const bool enable)
 
 void PantherSystem::SetEStop()
 {
+  gpio_controller_->InterruptEStopReset();
+
   std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
 
   RCLCPP_INFO(logger_, "Setting E-stop");
@@ -676,15 +678,15 @@ void PantherSystem::SetEStop()
     gpio_controller_error = true;
   }
 
-  try {
-    {
-      std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
-      motors_controller_->TurnOnSafetyStop();
-    }
-  } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(
-      logger_, "Error when trying to set safety stop using CAN command: " << e.what());
-    if (gpio_controller_error) {
+  if (gpio_controller_error) {
+    try {
+      {
+        std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
+        motors_controller_->TurnOnSafetyStop();
+      }
+    } catch (const std::runtime_error & e) {
+      RCLCPP_ERROR_STREAM(
+        logger_, "Error when trying to set safety stop using CAN command: " << e.what());
       throw std::runtime_error("Both attempts at setting E-stop failed");
     }
   }
@@ -694,26 +696,33 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
-  std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
+  if (e_stop_manipulation_mtx_.try_lock()) {
+    std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);
 
-  RCLCPP_INFO(logger_, "Resetting E-stop");
+    RCLCPP_INFO(logger_, "Resetting E-stop");
 
-  // On the side of the motors controller safety stop is reset by sending 0.0 commands
-  if (!last_commands_zero_) {
-    throw std::runtime_error(
-      "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
-      "controller sends zero commands before trying to reset E-stop.");
+    // On the side of the motors controller safety stop is reset by sending 0.0 commands
+    if (!last_commands_zero_) {
+      throw std::runtime_error(
+        "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
+        "controller sends zero commands before trying to reset E-stop.");
+    }
+
+    try {
+      gpio_controller_->EStopReset();
+    } catch (const e_stop_reset_interrupted & e) {
+      RCLCPP_INFO(logger_, "E-stop reset has been interrupted");
+      return;
+    } catch (const std::runtime_error & e) {
+      throw std::runtime_error(
+        "Error when trying to reset E-stop using GPIO: " + std::string(e.what()));
+    }
+
+    roboteq_error_filter_->SetClearErrorsFlag();
+    e_stop_ = false;
+  } else {
+    RCLCPP_INFO(logger_, "E-stop trigger operation is in progress, skipping reset.");
   }
-
-  try {
-    gpio_controller_->EStopReset();
-  } catch (const std::runtime_error & e) {
-    throw std::runtime_error(
-      "Error when trying to reset E-stop using GPIO: " + std::string(e.what()));
-  }
-
-  roboteq_error_filter_->SetClearErrorsFlag();
-  e_stop_ = false;
 }
 
 void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
