@@ -222,7 +222,12 @@ void GPIOControllerPTH10X::Start()
   gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::MOTOR_ON, true);
 }
 
-void GPIOControllerPTH10X::EStopTrigger() {}
+void GPIOControllerPTH10X::EStopTrigger()
+{
+  throw std::runtime_error(
+    "This robot version does not support this functionality. Trying to set safety stop using CAN "
+    "command.");
+}
 
 void GPIOControllerPTH10X::EStopReset()
 {

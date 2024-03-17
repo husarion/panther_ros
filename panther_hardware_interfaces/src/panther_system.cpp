@@ -676,7 +676,7 @@ void PantherSystem::SetEStop()
   try {
     gpio_controller_->EStopTrigger();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Error when trying to set E-stop using GPIO: " << e.what());
+    RCLCPP_INFO_STREAM(logger_, "Trying to set E-stop using GPIO: " << e.what());
     gpio_controller_error = true;
   }
 
