@@ -206,8 +206,8 @@ void GPIOControllerPTH12X::InterruptEStopReset()
 bool GPIOControllerPTH12X::WaitFor(std::chrono::milliseconds timeout)
 {
   std::unique_lock<std::mutex> lck(e_stop_cv_mtx_);
-  should_abort_e_stop_reset_ = false;
 
+  should_abort_e_stop_reset_ = false;
   bool interrupted = e_stop_cv_.wait_for(
     lck, timeout, [&]() { return should_abort_e_stop_reset_; });
 

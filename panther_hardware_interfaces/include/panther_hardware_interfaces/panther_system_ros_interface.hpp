@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
+#include <unordered_map>
 
 #include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -35,6 +36,8 @@
 
 #include <panther_hardware_interfaces/gpio_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+
+using namespace std::placeholders;
 
 namespace panther_hardware_interfaces
 {
@@ -94,7 +97,9 @@ public:
    * @param service_name The name of the service. This is the name under which the service will be
    * advertised over ROS.
    */
-  void RegisterService(const rclcpp::Node::SharedPtr node, const std::string & service_name);
+  void RegisterService(
+    const rclcpp::Node::SharedPtr node, const std::string & service_name,
+    rclcpp::CallbackGroup::SharedPtr group = nullptr);
 
 private:
   /**
@@ -159,12 +164,23 @@ public:
    * @param callback The callback function to be executed when the service receives a request. This
    * function is responsible for processing the incoming request and producing an appropriate
    * response. Currently supported callback function signatures include void() and void(bool).
+   * @param group_id An unsigned integer representing the unique identifier of the callback group
+   * that the service should be associated with. A value of '0' indicates that the service should
+   * use the default node callback group.
+   * @param callback_group_t The type of the callback group to be used, expressed as an enumerated
+   * value of `rclcpp::CallbackGroupType`. If a new group must be created, this specifies whether
+   * it should be `MutuallyExclusive` or `Reentrant`. The default value is `MutuallyExclusive`.
    */
   template <class SrvT, class CallbackT>
-  inline void AddService(const std::string & service_name, const CallbackT & callback)
+  inline void AddService(
+    const std::string & service_name, const CallbackT & callback, const unsigned group_id = 0,
+    rclcpp::CallbackGroupType callback_group_t = rclcpp::CallbackGroupType::MutuallyExclusive)
   {
+    rclcpp::CallbackGroup::SharedPtr callback_group = GetOrCreateNodeCallbackGroup(
+      group_id, callback_group_t);
+
     auto wrapper = std::make_shared<ROSServiceWrapper<SrvT, CallbackT>>(callback);
-    wrapper->RegisterService(node_, service_name);
+    wrapper->RegisterService(node_, service_name, callback_group);
     service_wrappers_storage_.push_back(wrapper);
   }
 
@@ -228,8 +244,26 @@ private:
    */
   bool UpdateIOStateMsg(const panther_gpiod::GPIOPin pin, const bool pin_value);
 
+  /**
+   * @brief Retrieves an existing callback group from the internal map or creates
+   * a new one if it does not exist.
+   *
+   * When the `group_id` is set to 0 and the `callback_group_t` is set to `MutuallyExclusive`, the
+   * method returns a `nullptr`, indicating the usage of the default node callback group.
+   *
+   * @param group_id The numeric identifier of the callback group. If set to 0, the default
+   * node callback group is used.
+   * @param callback_group_t The type of the callback group, defined by the
+   * `rclcpp::CallbackGroupType` enumeration.
+   * @return Shared pointer to the requested callback group, or `nullptr` if the default node
+   * callback group is to be used.
+   */
+  rclcpp::CallbackGroup::SharedPtr GetOrCreateNodeCallbackGroup(
+    const unsigned group_id, rclcpp::CallbackGroupType callback_group_t);
+
   rclcpp::Node::SharedPtr node_;
-  rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
+  std::unordered_map<unsigned, rclcpp::CallbackGroup::SharedPtr> callback_groups_;
+  rclcpp::executors::MultiThreadedExecutor::UniquePtr executor_;
   std::thread executor_thread_;
 
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;

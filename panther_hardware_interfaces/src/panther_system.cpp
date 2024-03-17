@@ -153,9 +153,11 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
 
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
-    "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this));
+    "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this), 1,
+    rclcpp::CallbackGroupType::MutuallyExclusive);
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
-    "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
+    "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this), 2,
+    rclcpp::CallbackGroupType::MutuallyExclusive);
 
   panther_system_ros_interface_->AddDiagnosticTask(
     std::string("system errors"), this, &PantherSystem::DiagnoseErrors);

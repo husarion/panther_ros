@@ -37,7 +37,7 @@ namespace panther_hardware_interfaces
 class e_stop_reset_interrupted : public std::exception
 {
 public:
-  e_stop_reset_interrupted(const std::string & message = "") : msg_(message) {}
+  e_stop_reset_interrupted(const std::string & message) : msg_(message) {}
   const char * what() const noexcept override { return msg_.c_str(); }
 
 private:
