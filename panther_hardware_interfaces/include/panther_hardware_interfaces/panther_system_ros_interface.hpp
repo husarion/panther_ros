@@ -96,6 +96,8 @@ public:
    * @param node The shared pointer to the ROS node under which the service will be advertised.
    * @param service_name The name of the service. This is the name under which the service will be
    * advertised over ROS.
+   * @param group The shared pointer to the node's callback group. Defaults to nullptr, which
+   * indicates that the node's default callback group will be used.
    */
   void RegisterService(
     const rclcpp::Node::SharedPtr node, const std::string & service_name,
@@ -167,17 +169,18 @@ public:
    * @param group_id An unsigned integer representing the unique identifier of the callback group
    * that the service should be associated with. A value of '0' indicates that the service should
    * use the default node callback group.
-   * @param callback_group_t The type of the callback group to be used, expressed as an enumerated
-   * value of `rclcpp::CallbackGroupType`. If a new group must be created, this specifies whether
-   * it should be `MutuallyExclusive` or `Reentrant`. The default value is `MutuallyExclusive`.
+   * @param callback_group_type The type of the callback group to be used, expressed as an
+   * enumerated value of `rclcpp::CallbackGroupType`. If a new group must be created, this specifies
+   * whether it should be `MutuallyExclusive` or `Reentrant`. The default value is
+   * `MutuallyExclusive`.
    */
   template <class SrvT, class CallbackT>
   inline void AddService(
     const std::string & service_name, const CallbackT & callback, const unsigned group_id = 0,
-    rclcpp::CallbackGroupType callback_group_t = rclcpp::CallbackGroupType::MutuallyExclusive)
+    rclcpp::CallbackGroupType callback_group_type = rclcpp::CallbackGroupType::MutuallyExclusive)
   {
     rclcpp::CallbackGroup::SharedPtr callback_group = GetOrCreateNodeCallbackGroup(
-      group_id, callback_group_t);
+      group_id, callback_group_type);
 
     auto wrapper = std::make_shared<ROSServiceWrapper<SrvT, CallbackT>>(callback);
     wrapper->RegisterService(node_, service_name, callback_group);
@@ -248,18 +251,18 @@ private:
    * @brief Retrieves an existing callback group from the internal map or creates
    * a new one if it does not exist.
    *
-   * When the `group_id` is set to 0 and the `callback_group_t` is set to `MutuallyExclusive`, the
-   * method returns a `nullptr`, indicating the usage of the default node callback group.
+   * When the `group_id` is set to 0 and the `callback_group_type` is set to `MutuallyExclusive`,
+   * the method returns a `nullptr`, indicating the usage of the default node callback group.
    *
    * @param group_id The numeric identifier of the callback group. If set to 0, the default
    * node callback group is used.
-   * @param callback_group_t The type of the callback group, defined by the
+   * @param callback_group_type The type of the callback group, defined by the
    * `rclcpp::CallbackGroupType` enumeration.
    * @return Shared pointer to the requested callback group, or `nullptr` if the default node
    * callback group is to be used.
    */
   rclcpp::CallbackGroup::SharedPtr GetOrCreateNodeCallbackGroup(
-    const unsigned group_id, rclcpp::CallbackGroupType callback_group_t);
+    const unsigned group_id, rclcpp::CallbackGroupType callback_group_type);
 
   rclcpp::Node::SharedPtr node_;
   std::unordered_map<unsigned, rclcpp::CallbackGroup::SharedPtr> callback_groups_;

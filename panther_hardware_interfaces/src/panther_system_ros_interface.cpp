@@ -258,10 +258,10 @@ bool PantherSystemRosInterface::UpdateIOStateMsg(
 }
 
 rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallbackGroup(
-  const unsigned group_id, rclcpp::CallbackGroupType callback_group_t)
+  const unsigned group_id, rclcpp::CallbackGroupType callback_group_type)
 {
   if (group_id == 0) {
-    if (callback_group_t == rclcpp::CallbackGroupType::Reentrant) {
+    if (callback_group_type == rclcpp::CallbackGroupType::Reentrant) {
       throw std::runtime_error(
         "Node callback group with id 0 (default group) cannot be of "
         "rclcpp::CallbackGroupType::Reentrant type.");
@@ -271,14 +271,14 @@ rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallb
 
   auto search = callback_groups_.find(group_id);
   if (search != callback_groups_.end()) {
-    if (search->second->type() == callback_group_t) {
+    if (search->second->type() == callback_group_type) {
       return search->second;
     } else {
       throw std::runtime_error("Requested node callback group has incorrect type.");
     }
   }
 
-  auto callback_group = node_->create_callback_group(callback_group_t);
+  auto callback_group = node_->create_callback_group(callback_group_type);
   callback_groups_[group_id] = callback_group;
   return callback_group;
 }
