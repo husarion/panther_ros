@@ -15,13 +15,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>imu_filter_madgwick</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">imu_filter_madgwick</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
-  <exec_depend>panther_battery</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_battery</exec_depend>
   <exec_depend>panther_controller</exec_depend>
-  <exec_depend>panther_lights</exec_depend>
-  <exec_depend>phidgets_spatial</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_lights</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">phidgets_spatial</exec_depend>
   <exec_depend>python3-click</exec_depend>
   <exec_depend>robot_localization</exec_depend>
 
