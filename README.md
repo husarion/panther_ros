@@ -47,7 +47,7 @@ source install/setup.bash
 ```
 
 >[!NOTE]
-> To build code on real robot you need to running above commands on the Panther Built-in Computer.
+> To build code on a real robot you need to run above commands on the Panther Built-in Computer.
 
 ### Running
 
