@@ -311,7 +311,7 @@ TEST_F(TestMotorsController, test_update_driver_state)
     r_battery_current_1 + r_battery_current_2);
 
   ASSERT_TRUE(front.GetFaultFlag().GetMessage().overheat);
-  ASSERT_TRUE(front.GetScriptFlag().GetMessage().encoder_disconected);
+  ASSERT_TRUE(front.GetScriptFlag().GetMessage().encoder_disconnected);
   ASSERT_TRUE(front.GetRightRuntimeError().GetMessage().loop_error);
   ASSERT_TRUE(front.GetLeftRuntimeError().GetMessage().safety_stop_active);
 

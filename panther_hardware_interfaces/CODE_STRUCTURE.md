@@ -21,7 +21,7 @@ This class abstracts the usage of two Roboteq controllers. It uses canopen_contr
 
 Provides a few classes for converting data in raw Roboteq formats read from Roboteq drivers into appropriate units or message formats. It can be divided into two types, command and data feedback. The command provides one utility function that converts a command in rad/s into a Roboteq command and returns it:
 
-* `RoboteqVeloctiyCommandConverter`
+* `RoboteqVelocityCommandConverter`
 
 Data feedback converters also store data (it is passed using Set methods, and later converted data can be read using Get data).
 

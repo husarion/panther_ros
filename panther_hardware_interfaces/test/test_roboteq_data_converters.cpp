@@ -22,7 +22,7 @@
 
 TEST(TestRoboteqDataConverters, test_command_converter)
 {
-  panther_hardware_interfaces::RoboteqVeloctiyCommandConverter cmd_converter(
+  panther_hardware_interfaces::RoboteqVelocityCommandConverter cmd_converter(
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
   // radians_per_second_to_roboteq_cmd = 79.789678137
@@ -149,7 +149,7 @@ void TestScriptFlagMsg(
   }
 
   ASSERT_EQ(msg.loop_error, expected_values[0]);
-  ASSERT_EQ(msg.encoder_disconected, expected_values[1]);
+  ASSERT_EQ(msg.encoder_disconnected, expected_values[1]);
   ASSERT_EQ(msg.amp_limiter, expected_values[2]);
 }
 
@@ -282,7 +282,7 @@ TEST(TestRoboteqDataConverters, test_roboteq_data)
   ASSERT_TRUE(roboteq_data.IsError());
 
   ASSERT_TRUE(roboteq_data.GetFaultFlag().GetMessage().overheat);
-  ASSERT_TRUE(roboteq_data.GetScriptFlag().GetMessage().encoder_disconected);
+  ASSERT_TRUE(roboteq_data.GetScriptFlag().GetMessage().encoder_disconnected);
   ASSERT_TRUE(roboteq_data.GetLeftRuntimeError().GetMessage().loop_error);
   ASSERT_TRUE(roboteq_data.GetRightRuntimeError().GetMessage().forward_limit_triggered);
 

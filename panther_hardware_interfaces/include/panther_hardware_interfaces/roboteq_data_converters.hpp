@@ -43,10 +43,10 @@ struct DrivetrainSettings
 /**
  * @brief Class for converting velocity commands (between SI units and raw Roboteq cmd)
  */
-class RoboteqVeloctiyCommandConverter
+class RoboteqVelocityCommandConverter
 {
 public:
-  RoboteqVeloctiyCommandConverter(const DrivetrainSettings & drivetrain_settings);
+  RoboteqVelocityCommandConverter(const DrivetrainSettings & drivetrain_settings);
   std::int32_t Convert(const float cmd) const
   {
     return LimitCmd(cmd * radians_per_second_to_roboteq_cmd_);

@@ -22,7 +22,7 @@
 namespace panther_hardware_interfaces
 {
 
-RoboteqVeloctiyCommandConverter::RoboteqVeloctiyCommandConverter(
+RoboteqVelocityCommandConverter::RoboteqVelocityCommandConverter(
   const DrivetrainSettings & drivetrain_settings)
 {
   // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
@@ -132,14 +132,14 @@ std::map<std::string, bool> FaultFlag::GetErrorMap() const
   return error_map;
 }
 
-ScriptFlag::ScriptFlag() : FlagError({"loop_error", "encoder_disconected", "amp_limiter"}) {}
+ScriptFlag::ScriptFlag() : FlagError({"loop_error", "encoder_disconnected", "amp_limiter"}) {}
 
 panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
 {
   panther_msgs::msg::ScriptFlag script_flags_msg;
 
   script_flags_msg.loop_error = flags_.test(0);
-  script_flags_msg.encoder_disconected = flags_.test(1);
+  script_flags_msg.encoder_disconnected = flags_.test(1);
   script_flags_msg.amp_limiter = flags_.test(2);
 
   return script_flags_msg;

@@ -21,7 +21,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <panther_utils/test/test_utils.hpp>
+#include <panther_utils/test/ros_test_utils.hpp>
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
 
@@ -185,7 +185,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
 
   ASSERT_TRUE(state_msg->front.fault_flag.overheat);
-  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
+  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconnected);
   ASSERT_TRUE(state_msg->front.left_motor_runtime_error.loop_error);
   ASSERT_TRUE(state_msg->front.right_motor_runtime_error.safety_stop_active);
 

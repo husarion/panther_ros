@@ -26,7 +26,7 @@
 
 #include <panther_msgs/msg/driver_state.hpp>
 
-#include <panther_utils/test/test_utils.hpp>
+#include <panther_utils/test/ros_test_utils.hpp>
 
 #include <panther_system_test_utils.hpp>
 #include <roboteqs_mock.hpp>
@@ -493,7 +493,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
-  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
+  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconnected);
 
   // writing should be blocked - error
 
