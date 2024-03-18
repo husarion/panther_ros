@@ -20,7 +20,7 @@
 
 #include <panther_hardware_interfaces/utils.hpp>
 
-TEST(TestUtils, test_get_byte)
+TEST(TestUtils, GetByte)
 {
   using panther_hardware_interfaces::GetByte;
 
@@ -30,7 +30,7 @@ TEST(TestUtils, test_get_byte)
   ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 3), 0xFA);
 }
 
-TEST(TestUtils, test_get_byte_out_of_range)
+TEST(TestUtils, GetByteOutOfRange)
 {
   using panther_hardware_interfaces::GetByte;
 
@@ -38,7 +38,7 @@ TEST(TestUtils, test_get_byte_out_of_range)
   ASSERT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), -1), std::runtime_error);
 }
 
-TEST(TestUtils, operation_with_attempts_fail_test)
+TEST(TestUtils, OperationWithAttemptsFailTest)
 {
   unsigned max_attempts = 5;
   unsigned attempts_counter = 0;
@@ -54,7 +54,7 @@ TEST(TestUtils, operation_with_attempts_fail_test)
   ASSERT_EQ(on_error_counter, max_attempts);
 }
 
-TEST(TestUtils, operation_with_attempts_success_test)
+TEST(TestUtils, OperationWithAttemptsSuccessTest)
 {
   unsigned max_attempts = 5;
   unsigned attempts_counter = 0;
@@ -70,13 +70,13 @@ TEST(TestUtils, operation_with_attempts_success_test)
   ASSERT_EQ(attempts_counter, max_attempts);
 }
 
-TEST(TestUtils, operation_with_attempts_on_error_throw_test)
+TEST(TestUtils, OperationWithAttemptsOnErrorThrowTest)
 {
   ASSERT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
     []() { throw std::runtime_error(""); }, 5, []() { throw std::runtime_error(""); }));
 }
 
-TEST(TestUtils, check_if_joint_name_contain_valid_sequence_test)
+TEST(TestUtils, CheckIfJointNameContainValidSequence)
 {
   using panther_hardware_interfaces::CheckIfJointNameContainValidSequence;
 

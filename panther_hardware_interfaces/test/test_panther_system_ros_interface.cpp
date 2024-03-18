@@ -27,7 +27,7 @@
 
 #include <test_constants.hpp>
 
-TEST(TestPantherSystemRosInterface, test_node)
+TEST(TestPantherSystemRosInterface, TestNode)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
@@ -65,7 +65,7 @@ TEST(TestPantherSystemRosInterface, test_node)
   rclcpp::shutdown();
 }
 
-TEST(TestPantherSystemRosInterface, test_activation)
+TEST(TestPantherSystemRosInterface, Activation)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
   using panther_hardware_interfaces_test::kClearErrorsService;
@@ -144,7 +144,7 @@ TEST(TestPantherSystemRosInterface, test_activation)
 //   rclcpp::shutdown();
 // }
 
-TEST(TestPantherSystemRosInterface, test_error_flags)
+TEST(TestPantherSystemRosInterface, ErrorFlags)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
@@ -198,7 +198,7 @@ TEST(TestPantherSystemRosInterface, test_error_flags)
   rclcpp::shutdown();
 }
 
-TEST(TestPantherSystemRosInterface, test_drivers_states)
+TEST(TestPantherSystemRosInterface, DriversStates)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
@@ -265,7 +265,7 @@ TEST(TestPantherSystemRosInterface, test_drivers_states)
   rclcpp::shutdown();
 }
 
-TEST(TestPantherSystemRosInterface, test_errors)
+TEST(TestPantherSystemRosInterface, Errors)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 

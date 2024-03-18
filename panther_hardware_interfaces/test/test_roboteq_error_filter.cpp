@@ -18,7 +18,7 @@
 
 #include <panther_hardware_interfaces/roboteq_error_filter.hpp>
 
-TEST(TestRoboteqErrorFilter, test_initial_state)
+TEST(TestRoboteqErrorFilter, InitialState)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -32,7 +32,7 @@ TEST(TestRoboteqErrorFilter, test_initial_state)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_filter_error)
+TEST(TestRoboteqErrorFilter, FilterError)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -64,7 +64,7 @@ TEST(TestRoboteqErrorFilter, test_filter_error)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_error)
+TEST(TestRoboteqErrorFilter, Error)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -88,7 +88,7 @@ TEST(TestRoboteqErrorFilter, test_error)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_filter_second_error)
+TEST(TestRoboteqErrorFilter, FilterSecondError)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -120,7 +120,7 @@ TEST(TestRoboteqErrorFilter, test_filter_second_error)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_second_error)
+TEST(TestRoboteqErrorFilter, SecondError)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -144,7 +144,7 @@ TEST(TestRoboteqErrorFilter, test_second_error)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_error_single)
+TEST(TestRoboteqErrorFilter, ErrorSingle)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -160,7 +160,7 @@ TEST(TestRoboteqErrorFilter, test_error_single)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_clear_errors)
+TEST(TestRoboteqErrorFilter, ClearErrors)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;
@@ -194,7 +194,7 @@ TEST(TestRoboteqErrorFilter, test_clear_errors)
   ASSERT_FALSE(roboteq_error_filter.IsError(ErrorsFilterIds::ROBOTEQ_DRIVER));
 }
 
-TEST(TestRoboteqErrorFilter, test_clear_errors_counters)
+TEST(TestRoboteqErrorFilter, ClearErrorsCounters)
 {
   using panther_hardware_interfaces::ErrorFilter;
   using panther_hardware_interfaces::ErrorsFilterIds;

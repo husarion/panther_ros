@@ -47,7 +47,7 @@ public:
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
-TEST_F(TestCANopenController, test_canopen_controller)
+TEST_F(TestCANopenController, CANopenController)
 {
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
@@ -57,7 +57,7 @@ TEST_F(TestCANopenController, test_canopen_controller)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, test_canopen_controller_error_device_type)
+TEST_F(TestCANopenController, CANopenControllerErrorDeviceType)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -68,7 +68,7 @@ TEST_F(TestCANopenController, test_canopen_controller_error_device_type)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, test_canopen_controller_error_vendor_id)
+TEST_F(TestCANopenController, CANopenControllerErrorVendorId)
 {
   roboteqs_mock_->GetRearDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -79,7 +79,7 @@ TEST_F(TestCANopenController, test_canopen_controller_error_vendor_id)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST(TestCANopenControllerOthers, test_boot_timeout)
+TEST(TestCANopenControllerOthers, BootTimeout)
 {
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 

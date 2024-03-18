@@ -50,7 +50,7 @@ public:
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
-TEST_F(TestRoboteqDriver, test_read_roboteq_motor_states)
+TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
@@ -106,7 +106,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_motor_states)
   ASSERT_EQ(r_fb.motor_1.current, rr_current);
 }
 
-TEST_F(TestRoboteqDriver, test_read_roboteq_motor_states_timestamps)
+TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
@@ -158,7 +158,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_motor_states_timestamps)
     std::chrono::milliseconds(5));
 }
 
-TEST_F(TestRoboteqDriver, test_read_roboteq_driver_state)
+TEST_F(TestRoboteqDriver, ReadRoboteqDriverState)
 {
   using panther_hardware_interfaces_test::DriverChannel;
   using panther_hardware_interfaces_test::DriverFaultFlags;
@@ -234,7 +234,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_state)
   ASSERT_EQ(r_fb.runtime_stat_flag_motor_2, 0b00100000);
 }
 
-TEST_F(TestRoboteqDriver, test_read_roboteq_driver_state_timestamp)
+TEST_F(TestRoboteqDriver, ReadRoboteqDriverStateTimestamp)
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
@@ -290,7 +290,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_driver_state_timestamp)
     std::chrono::milliseconds(25));
 }
 
-TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
+TEST_F(TestRoboteqDriver, SendRoboteqCmd)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
@@ -310,7 +310,7 @@ TEST_F(TestRoboteqDriver, test_send_roboteq_cmd)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), rr_v);
 }
 
-TEST_F(TestRoboteqDriver, test_reset_roboteq_script)
+TEST_F(TestRoboteqDriver, ResetRoboteqScript)
 {
   roboteqs_mock_->GetFrontDriver()->SetResetRoboteqScript(65);
   roboteqs_mock_->GetRearDriver()->SetResetRoboteqScript(23);
@@ -322,7 +322,7 @@ TEST_F(TestRoboteqDriver, test_reset_roboteq_script)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetResetRoboteqScript(), 2);
 }
 
-TEST_F(TestRoboteqDriver, test_read_roboteq_turn_on_e_stop)
+TEST_F(TestRoboteqDriver, ReadRoboteqTurnOnEStop)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOnEStop(65);
   roboteqs_mock_->GetRearDriver()->SetTurnOnEStop(23);
@@ -334,7 +334,7 @@ TEST_F(TestRoboteqDriver, test_read_roboteq_turn_on_e_stop)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEStop(), 1);
 }
 
-TEST_F(TestRoboteqDriver, test_turn_off_e_stop)
+TEST_F(TestRoboteqDriver, TurnOffEStop)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOffEStop(65);
   roboteqs_mock_->GetRearDriver()->SetTurnOffEStop(23);
@@ -346,7 +346,7 @@ TEST_F(TestRoboteqDriver, test_turn_off_e_stop)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEStop(), 1);
 }
 
-TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_1)
+TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel1)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOnSafetyStop(67);
   roboteqs_mock_->GetRearDriver()->SetTurnOnSafetyStop(21);
@@ -358,7 +358,7 @@ TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_1)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 1);
 }
 
-TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_2)
+TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel2)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOnSafetyStop(65);
   roboteqs_mock_->GetRearDriver()->SetTurnOnSafetyStop(23);
@@ -370,7 +370,7 @@ TEST_F(TestRoboteqDriver, test_turn_on_safety_stop_channel_2)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 2);
 }
 
-TEST_F(TestRoboteqDriver, test_write_timeout)
+TEST_F(TestRoboteqDriver, WriteTimeout)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnWriteWait<std::uint8_t>(0x202C, 0, 200000);
   ASSERT_THROW(

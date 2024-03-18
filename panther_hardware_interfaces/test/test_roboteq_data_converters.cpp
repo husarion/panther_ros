@@ -20,7 +20,7 @@
 
 #include <test_constants.hpp>
 
-TEST(TestRoboteqDataConverters, test_command_converter)
+TEST(TestRoboteqDataConverters, CommandConverter)
 {
   panther_hardware_interfaces::RoboteqVelocityCommandConverter cmd_converter(
     panther_hardware_interfaces_test::kDrivetrainSettings);
@@ -34,7 +34,7 @@ TEST(TestRoboteqDataConverters, test_command_converter)
   ASSERT_EQ(cmd_converter.Convert(-100.0), -1000);
 }
 
-TEST(TestRoboteqDataConverters, test_motor_state)
+TEST(TestRoboteqDataConverters, MotorState)
 {
   panther_hardware_interfaces::MotorState motor_state(
     panther_hardware_interfaces_test::kDrivetrainSettings);
@@ -68,7 +68,7 @@ TEST(TestRoboteqDataConverters, test_motor_state)
   ASSERT_FLOAT_EQ(motor_state.GetTorque(), -0.24816);
 }
 
-TEST(TestRoboteqDataConverters, test_flag_error)
+TEST(TestRoboteqDataConverters, FlagError)
 {
   panther_hardware_interfaces::FlagError flag_error(
     {"error1", "error2", "error3", "error4", "error5", "error6", "error7", "error8"},
@@ -107,7 +107,7 @@ void TestFaultFlagMsg(
   ASSERT_EQ(msg.default_config_loaded_at_startup, expected_values[7]);
 }
 
-TEST(TestRoboteqDataConverters, test_fault_flag)
+TEST(TestRoboteqDataConverters, FaultFlag)
 {
   panther_hardware_interfaces::FaultFlag fault_flag;
   panther_msgs::msg::FaultFlag msg;
@@ -153,7 +153,7 @@ void TestScriptFlagMsg(
   ASSERT_EQ(msg.amp_limiter, expected_values[2]);
 }
 
-TEST(TestRoboteqDataConverters, test_script_flag)
+TEST(TestRoboteqDataConverters, ScriptFlag)
 {
   panther_hardware_interfaces::ScriptFlag script_flag;
   panther_msgs::msg::ScriptFlag msg;
@@ -185,7 +185,7 @@ void TestRuntimeErrorMsg(
   ASSERT_EQ(msg.amps_trigger_activated, expected_values[6]);
 }
 
-TEST(TestRoboteqDataConverters, test_runtime_error)
+TEST(TestRoboteqDataConverters, RuntimeError)
 {
   panther_hardware_interfaces::RuntimeError runtime_error;
   panther_msgs::msg::RuntimeError msg;
@@ -213,7 +213,7 @@ TEST(TestRoboteqDataConverters, test_runtime_error)
   TestRuntimeErrorMsg(runtime_error.GetMessage(), {false, false, false, true, false, false, false});
 }
 
-TEST(TestRoboteqDataConverters, test_driver_state)
+TEST(TestRoboteqDataConverters, DriverState)
 {
   panther_hardware_interfaces::DriverState driver_state;
 
@@ -231,7 +231,7 @@ TEST(TestRoboteqDataConverters, test_driver_state)
   ASSERT_FLOAT_EQ(driver_state.GetCurrent(), 3.5);
 }
 
-TEST(TestRoboteqDataConverters, test_roboteq_data)
+TEST(TestRoboteqDataConverters, RoboteqData)
 {
   panther_hardware_interfaces::RoboteqData roboteq_data(
     panther_hardware_interfaces_test::kDrivetrainSettings);
