@@ -256,7 +256,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    # FindPackageShare("panther_battery"),
+                    FindPackageShare("panther_battery"),
                     "launch",
                     "battery.launch.py",
                 ]
