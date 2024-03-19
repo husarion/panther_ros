@@ -10,12 +10,17 @@
       imu_broadcaster:
         type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+  # IMU specification: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications
   imu_broadcaster:
     ros__parameters:
       sensor_name: imu
       frame_id: imu_link
-      static_covariance_angular_velocity: [6.4e-4, 0.0, 0.0, 0.0, 6.4e-4, 0.0, 0.0, 0.0, 6.4e-4]  # Values measured experimentally
-      static_covariance_linear_acceleration: [2.54e-1, 0.0, 0.0, 0.0, 2.54e-1, 0.0, 0.0, 0.0, 2.54e-1] # Values measured experimentally
+      # orientation_stddev: 1.0e-2 for madgwick filter
+      static_covariance_orientation: [1.0e-4, 0.0, 0.0, 0.0, 1.0e-4, 0.0, 0.0, 0.0, 1.0e-4]
+      # angular_velocity_stdev: 0.59 deg/s (0.01 rad/s) gyroscope white noise sigma, as per manual
+      static_covariance_angular_velocity: [1.0e-4, 0.0, 0.0, 0.0, 1.0e-4, 0.0, 0.0, 0.0, 1.0e-4]
+      # linear_acceleration_stdev: 2.8 mg (27.5 mm/s^2) accelerometer white noise sigma, as per manual
+      static_covariance_linear_acceleration: [7.6e-4, 0.0, 0.0, 0.0, 7.6e-4, 0.0, 0.0, 0.0, 7.6e-4]
 
   panther_base_controller:
     ros__parameters:
