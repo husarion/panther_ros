@@ -23,7 +23,7 @@
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
 #include <plugin_test_utils.hpp>
 
-TEST(TestSignalShutdown, good_loading_signal_shutdown_plugin)
+TEST(TestSignalShutdown, GoodLoadingSignalShutdownPlugin)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
@@ -32,7 +32,7 @@ TEST(TestSignalShutdown, good_loading_signal_shutdown_plugin)
   ASSERT_NO_THROW({ test_utils.CreateTree("SignalShutdown", service); });
 }
 
-TEST(TestSignalShutdown, wrong_plugin_name_loading_signal_shutdown_plugin)
+TEST(TestSignalShutdown, WrongPluginNameLoadingSignalShutdownPlugin)
 {
   std::map<std::string, std::string> service = {};
 
@@ -41,7 +41,7 @@ TEST(TestSignalShutdown, wrong_plugin_name_loading_signal_shutdown_plugin)
   EXPECT_THROW({ test_utils.CreateTree("WrongSignalShutdown", service); }, BT::RuntimeError);
 }
 
-TEST(TestSignalShutdown, good_check_reason_blackboard_value)
+TEST(TestSignalShutdown, GoodCheckReasonBlackboardValue)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;

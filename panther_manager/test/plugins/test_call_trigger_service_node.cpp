@@ -41,7 +41,7 @@ void ServiceSuccessCallback(
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
 
-TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
+TEST(TestCallTriggerService, GoodLoadingCallTriggerServicePlugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
@@ -51,7 +51,7 @@ TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
   ASSERT_NO_THROW({ test_utils.CreateTree("CallTriggerService", service); });
 }
 
-TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plugin)
+TEST(TestCallTriggerService, WrongPluginNameLoadingCallTriggerServicePlugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
@@ -61,7 +61,7 @@ TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plug
   EXPECT_THROW({ test_utils.CreateTree("WrongCallTriggerService", service); }, BT::RuntimeError);
 }
 
-TEST(TestCallTriggerService, wrong_call_trigger_service_service_server_not_initialized)
+TEST(TestCallTriggerService, WrongCallTriggerServiceServiceServerNotInitialized)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
@@ -75,7 +75,7 @@ TEST(TestCallTriggerService, wrong_call_trigger_service_service_server_not_initi
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestCallTriggerService, good_trigger_call_service_success)
+TEST(TestCallTriggerService, GoodTriggerCallServiceSuccess)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
@@ -93,7 +93,7 @@ TEST(TestCallTriggerService, good_trigger_call_service_success)
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
+TEST(TestCallTriggerService, WrongTriggerCallServiceFailure)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 

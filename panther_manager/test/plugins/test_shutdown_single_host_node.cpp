@@ -24,7 +24,7 @@
 #include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
 #include <plugin_test_utils.hpp>
 
-TEST(TestShutdownSingleHost, good_loading_shutdown_single_host_plugin)
+TEST(TestShutdownSingleHost, GoodLoadingShutdownSingleHostPlugin)
 {
   std::map<std::string, std::string> service = {
     {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
@@ -35,7 +35,7 @@ TEST(TestShutdownSingleHost, good_loading_shutdown_single_host_plugin)
   ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownSingleHost", service); });
 }
 
-TEST(TestShutdownSingleHost, wrong_plugin_name_loading_shutdown_single_host_plugin)
+TEST(TestShutdownSingleHost, WrongPluginNameLoadingShutdownSingleHostPlugin)
 {
   std::map<std::string, std::string> service = {
     {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
@@ -47,9 +47,9 @@ TEST(TestShutdownSingleHost, wrong_plugin_name_loading_shutdown_single_host_plug
   EXPECT_THROW({ test_utils.CreateTree("WrongShutdownSingleHost", service); }, BT::RuntimeError);
 }
 
-TEST(TestShutdownSingleHost, good_touch_command)
+TEST(TestShutdownSingleHost, GoodTouchCommand)
 {
-  std::string file_path = "/tmp/test_panther_manager_good_touch_command";
+  std::string file_path = testing::TempDir() + "/test_panther_manager_good_touch_command";
   std::filesystem::remove(file_path);
   EXPECT_FALSE(std::filesystem::exists(file_path));
 
@@ -73,7 +73,7 @@ TEST(TestShutdownSingleHost, good_touch_command)
   std::filesystem::remove(file_path);
 }
 
-TEST(TestShutdownSingleHost, wrong_command)
+TEST(TestShutdownSingleHost, WrongCommand)
 {
   std::map<std::string, std::string> service = {
     {"command", "wrong_command"},
@@ -93,7 +93,7 @@ TEST(TestShutdownSingleHost, wrong_command)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestShutdownSingleHost, wrong_user)
+TEST(TestShutdownSingleHost, WrongUser)
 {
   std::map<std::string, std::string> service = {
     {"command", "echo Hello World!"},

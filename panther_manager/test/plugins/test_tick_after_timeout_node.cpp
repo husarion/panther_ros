@@ -38,7 +38,7 @@ void CounterIncrease(
     response->message << " Counter value: " << counter);
 }
 
-TEST(TestTickAfterTimeout, good_loading_tick_after_timeout_plugin)
+TEST(TestTickAfterTimeout, GoodLoadingTickAfterTimeoutPlugin)
 {
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
@@ -50,7 +50,7 @@ TEST(TestTickAfterTimeout, good_loading_tick_after_timeout_plugin)
   ASSERT_NO_THROW({ test_utils.CreateTree("CallTriggerService", trigger_node, 0.1); });
 }
 
-TEST(TestTickAfterTimeout, wrong_plugin_name_loading_tick_after_timeout_plugin)
+TEST(TestTickAfterTimeout, WrongPluginNameLoadingTickAfterTimeoutPlugin)
 {
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
@@ -62,7 +62,7 @@ TEST(TestTickAfterTimeout, wrong_plugin_name_loading_tick_after_timeout_plugin)
     { test_utils.CreateTree("WrongTriggerService", trigger_node, 0.1); }, BT::RuntimeError);
 }
 
-TEST(TestTickAfterTimeout, good_tick_after_timeout_plugin_service_calls)
+TEST(TestTickAfterTimeout, GoodTickAfterTimeoutPluginServiceCalls)
 {
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 

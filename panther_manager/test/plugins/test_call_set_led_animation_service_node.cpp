@@ -80,7 +80,7 @@ void ServiceSuccessCallbackCheckId5(
   EXPECT_EQ(request->animation.id, 5u);
 }
 
-TEST(TestCallSetLedAnimationService, good_loading_call_set_led_animation_service_plugin)
+TEST(TestCallSetLedAnimationService, GoodLoadingCallSetLedAnimationServicePlugin)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
@@ -92,8 +92,7 @@ TEST(TestCallSetLedAnimationService, good_loading_call_set_led_animation_service
   ASSERT_NO_THROW({ test_utils.CreateTree("CallSetLedAnimationService", service); });
 }
 
-TEST(
-  TestCallSetLedAnimationService, wrong_plugin_name_loading_call_set_led_animation_service_plugin)
+TEST(TestCallSetLedAnimationService, WrongPluginNameLoadingCallSetLedAnimationServicePlugin)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
@@ -106,9 +105,7 @@ TEST(
     { test_utils.CreateTree("WrongCallSetLedAnimationService", service); }, BT::RuntimeError);
 }
 
-TEST(
-  TestCallSetLedAnimationService,
-  wrong_call_set_led_animation_service_service_server_not_initialized)
+TEST(TestCallSetLedAnimationService, WrongCallSetLedAnimationServiceServiceServerNotInitialized)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
@@ -124,9 +121,7 @@ TEST(
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(
-  TestCallSetLedAnimationService,
-  good_set_led_animation_call_service_success_with_true_repeating_value)
+TEST(TestCallSetLedAnimationService, GoodSetLedAnimationCallServiceSuccessWithTrueRepeatingValue)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
@@ -146,9 +141,7 @@ TEST(
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(
-  TestCallSetLedAnimationService,
-  good_set_led_animation_call_service_success_with_false_repeating_value)
+TEST(TestCallSetLedAnimationService, GoodSetLedAnimationCallServiceSuccessWithFalseRepeatingValue)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "false"}};
@@ -168,7 +161,7 @@ TEST(
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success_with_5_id_value)
+TEST(TestCallSetLedAnimationService, GoodSetLedAnimationCallServiceSuccessWith_5IdValue)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "5"}, {"param", ""}, {"repeating", "true"}};
@@ -188,7 +181,7 @@ TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(TestCallSetLedAnimationService, wrong_set_led_animation_call_service_failure)
+TEST(TestCallSetLedAnimationService, WrongSetLedAnimationCallServiceFailure)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
@@ -208,7 +201,7 @@ TEST(TestCallSetLedAnimationService, wrong_set_led_animation_call_service_failur
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestCallSetLedAnimationService, wrong_repeating_service_value_defined)
+TEST(TestCallSetLedAnimationService, WrongRepeatingServiceValueDefined)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "wrong_bool"}};
@@ -220,11 +213,15 @@ TEST(TestCallSetLedAnimationService, wrong_repeating_service_value_defined)
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
 
+  using panther_msgs::srv::SetLEDAnimation;
+  test_utils.CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
+    "test_set_led_animation_service", ServiceFailedCallback);
+
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestCallSetLedAnimationService, wrong_id_service_value_defined)
+TEST(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_led_animation"}, {"id", "-5"}, {"param", ""}, {"repeating", "true"}};
@@ -235,6 +232,10 @@ TEST(TestCallSetLedAnimationService, wrong_id_service_value_defined)
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
+
+  using panther_msgs::srv::SetLEDAnimation;
+  test_utils.CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
+    "test_set_led_animation_service", ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);

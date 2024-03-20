@@ -56,7 +56,7 @@ void ServiceSuccessCallbackCheckFalseValue(
   EXPECT_EQ(request->data, false);
 }
 
-TEST(TestCallSetBoolService, good_loading_call_set_bool_service_plugin)
+TEST(TestCallSetBoolService, GoodLoadingCallSetBoolServicePlugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
@@ -66,7 +66,7 @@ TEST(TestCallSetBoolService, good_loading_call_set_bool_service_plugin)
   ASSERT_NO_THROW({ test_utils.CreateTree("CallSetBoolService", service); });
 }
 
-TEST(TestCallSetBoolService, wrong_plugin_name_loading_call_set_bool_service_plugin)
+TEST(TestCallSetBoolService, WrongPluginNameLoadingCallSetBoolServicePlugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
@@ -76,7 +76,7 @@ TEST(TestCallSetBoolService, wrong_plugin_name_loading_call_set_bool_service_plu
   EXPECT_THROW({ test_utils.CreateTree("WrongCallSetBoolService", service); }, BT::RuntimeError);
 }
 
-TEST(TestCallSetBoolService, wrong_call_set_bool_service_service_server_not_initialized)
+TEST(TestCallSetBoolService, WrongCallSetBoolServiceServiceServerNotInitialized)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
@@ -91,7 +91,7 @@ TEST(TestCallSetBoolService, wrong_call_set_bool_service_service_server_not_init
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_true_value)
+TEST(TestCallSetBoolService, GoodSetBoolCallServiceSuccessWithTrueValue)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
 
@@ -109,7 +109,7 @@ TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_true_value)
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_false_value)
+TEST(TestCallSetBoolService, GoodSetBoolCallServiceSuccessWithFalseValue)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "false"}};
 
@@ -127,7 +127,7 @@ TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_false_value
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(TestCallSetBoolService, wrong_set_bool_call_service_failure)
+TEST(TestCallSetBoolService, WrongSetBoolCallServiceFailure)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "false"}};
 
@@ -145,13 +145,17 @@ TEST(TestCallSetBoolService, wrong_set_bool_call_service_failure)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestCallSetBoolService, wrong_service_value_defined)
+TEST(TestCallSetBoolService, WrongServiceValueDefined)
 {
   std::map<std::string, std::string> service = {
     {"service_name", "set_bool"}, {"data", "wrong_bool"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
   test_utils.RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
+
+  using std_srvs::srv::SetBool;
+  test_utils.CreateService<SetBool, SetBool::Request, SetBool::Response>(
+    "test_set_bool_service", ServiceFailedCallback);
 
   test_utils.CreateTree("CallSetBoolService", service);
   auto & tree = test_utils.GetTree();
