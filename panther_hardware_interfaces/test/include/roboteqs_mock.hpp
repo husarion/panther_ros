@@ -115,7 +115,7 @@ public:
   void ClearErrorFlags() { (*this)[0x2106][7] = 0; }
 
   /**
-   * @brief Sets initial values (positions, temperetures, etc.) to zeros
+   * @brief Sets initial values (positions, temperatures, etc.) to zeros
    */
   void InitializeValues();
 

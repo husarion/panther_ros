@@ -35,7 +35,6 @@ TEST(TestPantherSystemRosInterface, TestNode)
   const std::string panther_system_node_name = "panther_system_node";
   const std::string panther_system_node_name_with_ns = "/" + panther_system_node_name;
 
-  rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface;
@@ -62,19 +61,16 @@ TEST(TestPantherSystemRosInterface, TestNode)
     node_names.end());
 
   panther_system_ros_interface.reset();
-  rclcpp::shutdown();
 }
 
 TEST(TestPantherSystemRosInterface, Activation)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
-  using panther_hardware_interfaces_test::kClearErrorsService;
   using panther_hardware_interfaces_test::kMotorControllersStateTopic;
 
   std::map<std::string, std::vector<std::string>> service_names_and_types;
   std::map<std::string, std::vector<std::string>> topic_names_and_types;
 
-  rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
@@ -83,10 +79,7 @@ TEST(TestPantherSystemRosInterface, Activation)
   // Necessary to add some waiting, so that topic lists are updated
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
-
-  ASSERT_TRUE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_TRUE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
@@ -94,10 +87,7 @@ TEST(TestPantherSystemRosInterface, Activation)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
-
-  ASSERT_FALSE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_FALSE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
@@ -105,50 +95,17 @@ TEST(TestPantherSystemRosInterface, Activation)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  service_names_and_types = test_node->get_service_names_and_types();
   topic_names_and_types = test_node->get_topic_names_and_types();
-
-  ASSERT_TRUE(service_names_and_types.find(kClearErrorsService) != service_names_and_types.end());
   ASSERT_TRUE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
   panther_system_ros_interface.reset();
-  rclcpp::shutdown();
 }
-
-// TODO: fix
-// TEST(TestPantherSystemRosInterface, test_clear_errors_srv)
-// {
-//   using panther_hardware_interfaces::PantherSystemRosInterface;
-
-//   rclcpp::init(0, nullptr);
-//   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
-
-//   bool clear_errors = false;
-//   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-//     std::make_unique<PantherSystemRosInterface>(
-//       [&clear_errors]() { clear_errors = true; }, "panther_system_node");
-
-//   auto clear_errors_client = test_node->create_client<std_srvs::srv::Trigger>(
-//     panther_hardware_interfaces_test::kClearErrorsService);
-
-//   clear_errors_client->wait_for_service();
-//   auto result =
-//     clear_errors_client->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
-
-//   ASSERT_TRUE(
-//     rclcpp::spin_until_future_complete(test_node, result) == rclcpp::FutureReturnCode::SUCCESS);
-//   ASSERT_TRUE(clear_errors);
-
-//   panther_system_ros_interface.reset();
-//   rclcpp::shutdown();
-// }
 
 TEST(TestPantherSystemRosInterface, ErrorFlags)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
-  rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
@@ -195,14 +152,12 @@ TEST(TestPantherSystemRosInterface, ErrorFlags)
   ASSERT_TRUE(state_msg->rear.right_motor_runtime_error.reverse_limit_triggered);
 
   panther_system_ros_interface.reset();
-  rclcpp::shutdown();
 }
 
 TEST(TestPantherSystemRosInterface, DriversStates)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
-  rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
@@ -262,14 +217,12 @@ TEST(TestPantherSystemRosInterface, DriversStates)
     (r_battery_current_1 + r_battery_current_2));
 
   panther_system_ros_interface.reset();
-  rclcpp::shutdown();
 }
 
 TEST(TestPantherSystemRosInterface, Errors)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
-  rclcpp::init(0, nullptr);
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   panther_msgs::msg::DriverState::SharedPtr state_msg;
@@ -323,6 +276,11 @@ TEST(TestPantherSystemRosInterface, Errors)
 
 int main(int argc, char ** argv)
 {
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  auto run_tests = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  return run_tests;
 }

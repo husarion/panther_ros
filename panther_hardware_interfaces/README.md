@@ -37,14 +37,6 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
-#### Service Servers
-
-[//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
-
-- `/panther_system_node/clear_errors` [*std_srvs/Trigger*]: clear current errors.
-
-[//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
-
 #### Parameters
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
@@ -93,3 +85,30 @@ Adjust your configuration and generate a new `master.dcf` using:
 ### RT
 
 To configure RT check out the instructions provided in the [ros2_control docs](https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html#determinism) (add group and change `/etc/security/limits.conf`).
+
+## Testing
+
+### Setup
+
+First, it is necessary to set up a virtual CAN:
+
+<!-- todo move setup somewhere so the test can be run more easily -->
+
+```bash
+sudo modprobe vcan
+sudo ip link add dev panther_can type vcan
+sudo ip link set up panther_can
+sudo ip link set panther_can down
+sudo ip link set panther_can txqueuelen 1000
+sudo ip link set panther_can up
+```
+
+### Running tests
+
+```bash
+colcon build --packages-select panther_hardware_interfaces --symlink-install
+colcon test --event-handlers console_direct+ --packages-select panther_hardware_interfaces --parallel-workers 1
+colcon test-result --verbose --all
+```
+
+As some of the tests are accessing the virtual CAN interface, they can't be executed in parallel (that's why `--parallel-workers 1` flag).

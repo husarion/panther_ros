@@ -135,8 +135,6 @@ public:
   /**
    * @brief Creates node and executor (in a separate thread), publishers, subscribers and services
    *
-   * @param clear_errors - functions that should be called, when clear errors
-   * service is called
    * @param node_name
    * @param node_options
    */
