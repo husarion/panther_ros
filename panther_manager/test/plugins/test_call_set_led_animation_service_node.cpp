@@ -130,7 +130,9 @@ TEST(
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetLEDAnimationServiceServer(ServiceSuccessCallbackCheckRepeatingTrueValue);
+  using panther_msgs::srv::SetLEDAnimation;
+  test_utils.CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
+    "test_set_led_animation_service", ServiceSuccessCallbackCheckRepeatingTrueValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -148,7 +150,9 @@ TEST(
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetLEDAnimationServiceServer(ServiceSuccessCallbackCheckRepeatingFalseValue);
+  using panther_msgs::srv::SetLEDAnimation;
+  test_utils.CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
+    "test_set_led_animation_service", ServiceSuccessCallbackCheckRepeatingFalseValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -164,7 +168,9 @@ TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetLEDAnimationServiceServer(ServiceSuccessCallbackCheckId5);
+  using panther_msgs::srv::SetLEDAnimation;
+  test_utils.CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
+    "test_set_led_animation_service", ServiceSuccessCallbackCheckId5);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -180,7 +186,9 @@ TEST(TestCallSetLedAnimationService, wrong_set_led_animation_call_service_failur
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetLEDAnimationServiceServer(ServiceFailedCallback);
+  using panther_msgs::srv::SetLEDAnimation;
+  test_utils.CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
+    "test_set_led_animation_service", ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);

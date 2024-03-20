@@ -84,47 +84,6 @@ PluginTestUtils::~PluginTestUtils()
   }
 }
 
-void PluginTestUtils::CreateSetBoolServiceServer(
-  std::function<
-    void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
-    service_callback)
-{
-  service_server_node_ = std::make_shared<rclcpp::Node>("test_set_bool_service");
-  set_bool_server_ = service_server_node_->create_service<std_srvs::srv::SetBool>(
-    "set_bool", service_callback);
-  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
-  executor_->add_node(service_server_node_);
-  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
-}
-
-void PluginTestUtils::CreateTriggerServiceServer(
-  std::function<
-    void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
-    service_callback)
-{
-  service_server_node_ = std::make_shared<rclcpp::Node>("test_trigger_service");
-  trigger_server_ = service_server_node_->create_service<std_srvs::srv::Trigger>(
-    "trigger", service_callback);
-  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
-  executor_->add_node(service_server_node_);
-  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
-}
-
-void PluginTestUtils::CreateSetLEDAnimationServiceServer(
-  std::function<void(
-    panther_msgs::srv::SetLEDAnimation::Request::SharedPtr,
-    panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
-    service_callback)
-{
-  service_server_node_ = std::make_shared<rclcpp::Node>("test_set_led_animation_service");
-  set_led_animation_server_ =
-    service_server_node_->create_service<panther_msgs::srv::SetLEDAnimation>(
-      "set_led_animation", service_callback);
-  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
-  executor_->add_node(service_server_node_);
-  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
-}
-
 void PluginTestUtils::spin_executor() { executor_->spin(); }
 
 }  // namespace panther_manager::plugin_test_utils

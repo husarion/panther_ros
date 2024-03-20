@@ -27,10 +27,9 @@
 inline static std::size_t counter = 0;
 
 void CounterIncrease(
-  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
-  [[maybe_unused]] request;
   response->message = "Successfully increased!";
   response->success = true;
   ++counter;
@@ -67,7 +66,10 @@ TEST(TestTickAfterTimeout, good_tick_after_timeout_plugin_service_calls)
 
   test_utils.CreateTree("CallTriggerService", trigger_node, 0.1);
   auto & tree = test_utils.GetTree();
-  test_utils.CreateTriggerServiceServer(CounterIncrease);
+
+  using std_srvs::srv::Trigger;
+  test_utils.CreateService<Trigger, Trigger::Request, Trigger::Response>(
+    "test_trigger_service", CounterIncrease);
 
   EXPECT_EQ(counter, 0);
 

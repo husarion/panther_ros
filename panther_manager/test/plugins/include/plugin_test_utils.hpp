@@ -66,19 +66,17 @@ public:
 
   BT::BehaviorTreeFactory & GetFactory();
 
-  void CreateSetBoolServiceServer(
-    std::function<
-      void(std_srvs::srv::SetBool::Request::SharedPtr, std_srvs::srv::SetBool::Response::SharedPtr)>
-      service_callback);
-  void CreateTriggerServiceServer(
-    std::function<
-      void(std_srvs::srv::Trigger::Request::SharedPtr, std_srvs::srv::Trigger::Response::SharedPtr)>
-      service_callback);
-  void CreateSetLEDAnimationServiceServer(
-    std::function<void(
-      panther_msgs::srv::SetLEDAnimation::Request::SharedPtr,
-      panther_msgs::srv::SetLEDAnimation::Response::SharedPtr)>
-      service_callback);
+  template <typename Service, typename Request, typename Response>
+  void CreateService(
+    const std::string & service_name,
+    std::function<void(std::shared_ptr<Request>, std::shared_ptr<Response>)> service_callback)
+  {
+    service_server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + service_name);
+    service_server_node_->create_service<Service>(service_name, service_callback);
+    executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+    executor_->add_node(service_server_node_);
+    executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
+  }
 
 private:
   rclcpp::Node::SharedPtr bt_node_;
@@ -88,9 +86,6 @@ private:
   rclcpp::Node::SharedPtr service_server_node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
 
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_bool_server_;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr trigger_server_;
-  rclcpp::Service<panther_msgs::srv::SetLEDAnimation>::SharedPtr set_led_animation_server_;
   std::unique_ptr<std::thread> executor_thread_;
 
   void spin_executor();
@@ -108,5 +103,4 @@ private:
   )";
 };
 }  // namespace panther_manager::plugin_test_utils
-
 #endif  // PANTHER_MANAGER_PLUGIN_TEST_UTILS_HPP_

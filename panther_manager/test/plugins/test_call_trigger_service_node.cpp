@@ -24,20 +24,18 @@
 #include <plugin_test_utils.hpp>
 
 void ServiceFailedCallback(
-  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
-  [[maybe_unused]] request;
   response->message = "Failed callback pass!";
   response->success = false;
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
 
 void ServiceSuccessCallback(
-  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
-  [[maybe_unused]] request;
   response->message = "Successfully callback pass!";
   response->success = true;
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
@@ -83,7 +81,9 @@ TEST(TestCallTriggerService, good_trigger_call_service_success)
   test_utils.CreateTree("CallTriggerService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateTriggerServiceServer(ServiceSuccessCallback);
+  using std_srvs::srv::Trigger;
+  test_utils.CreateService<Trigger, Trigger::Request, Trigger::Response>(
+    "test_trigger_service", ServiceSuccessCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -98,7 +98,9 @@ TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
   test_utils.CreateTree("CallTriggerService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateTriggerServiceServer(ServiceFailedCallback);
+  using std_srvs::srv::Trigger;
+  test_utils.CreateService<Trigger, Trigger::Request, Trigger::Response>(
+    "test_trigger_service", ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);

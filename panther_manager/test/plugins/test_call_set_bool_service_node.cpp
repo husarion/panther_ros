@@ -96,7 +96,9 @@ TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_true_value)
   test_utils.CreateTree("CallSetBoolService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetBoolServiceServer(ServiceSuccessCallbackCheckTrueValue);
+  using std_srvs::srv::SetBool;
+  test_utils.CreateService<SetBool, SetBool::Request, SetBool::Response>(
+    "test_set_bool_service", ServiceSuccessCallbackCheckTrueValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -111,7 +113,9 @@ TEST(TestCallSetBoolService, good_set_bool_call_service_success_with_false_value
   test_utils.CreateTree("CallSetBoolService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetBoolServiceServer(ServiceSuccessCallbackCheckFalseValue);
+  using std_srvs::srv::SetBool;
+  test_utils.CreateService<SetBool, SetBool::Request, SetBool::Response>(
+    "test_set_bool_service", ServiceSuccessCallbackCheckFalseValue);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -126,7 +130,9 @@ TEST(TestCallSetBoolService, wrong_set_bool_call_service_failure)
   test_utils.CreateTree("CallSetBoolService", service);
   auto & tree = test_utils.GetTree();
 
-  test_utils.CreateSetBoolServiceServer(ServiceFailedCallback);
+  using std_srvs::srv::SetBool;
+  test_utils.CreateService<SetBool, SetBool::Request, SetBool::Response>(
+    "test_set_bool_service", ServiceFailedCallback);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);

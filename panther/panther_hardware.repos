@@ -14,4 +14,4 @@ repositories:
   behaviortree_ros2:
     type: git
     url: https://github.com/BehaviorTree/BehaviorTree.ROS2
-    version: humble
+    version: ce923e19c12d28f4734a41b1442c123f2d4a41d2
