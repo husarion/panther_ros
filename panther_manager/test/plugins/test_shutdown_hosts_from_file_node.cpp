@@ -29,6 +29,8 @@ TEST(TestShutdownHostsFromFile, good_loading_shutdown_hosts_from_file_plugin)
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
+    "ShutdownHostsFromFile");
 
   ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownHostsFromFile", service); });
 }
@@ -38,6 +40,8 @@ TEST(TestShutdownHostsFromFile, wrong_plugin_name_loading_shutdown_hosts_from_fi
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
+    "ShutdownHostsFromFile");
 
   EXPECT_THROW({ test_utils.CreateTree("WrongShutdownHostsFromFile", service); }, BT::RuntimeError);
 }
@@ -48,6 +52,8 @@ TEST(TestShutdownHostsFromFile, wrong_cannot_find_file_shutdown_hosts_from_file)
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", file_path}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
+    "ShutdownHostsFromFile");
 
   test_utils.CreateTree("ShutdownHostsFromFile", service);
   auto & tree = test_utils.GetTree();
@@ -83,6 +89,8 @@ TEST(TestShutdownHostsFromFile, good_shutdown_hosts_from_file)
 
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", config_file_path}};
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
+    "ShutdownHostsFromFile");
 
   auto & tree = test_utils.GetTree();
   test_utils.CreateTree("ShutdownHostsFromFile", service);

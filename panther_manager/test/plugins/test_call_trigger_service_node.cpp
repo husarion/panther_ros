@@ -46,6 +46,7 @@ TEST(TestCallTriggerService, good_loading_call_trigger_service_plugin)
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
   ASSERT_NO_THROW({ test_utils.CreateTree("CallTriggerService", service); });
 }
@@ -55,6 +56,7 @@ TEST(TestCallTriggerService, wrong_plugin_name_loading_call_trigger_service_plug
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
   EXPECT_THROW({ test_utils.CreateTree("WrongCallTriggerService", service); }, BT::RuntimeError);
 }
@@ -64,6 +66,7 @@ TEST(TestCallTriggerService, wrong_call_trigger_service_service_server_not_initi
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
   test_utils.CreateTree("CallTriggerService", service);
   auto & tree = test_utils.GetTree();
@@ -77,6 +80,7 @@ TEST(TestCallTriggerService, good_trigger_call_service_success)
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
   test_utils.CreateTree("CallTriggerService", service);
   auto & tree = test_utils.GetTree();
@@ -94,6 +98,7 @@ TEST(TestCallTriggerService, wrong_trigger_call_service_failure)
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
   test_utils.CreateTree("CallTriggerService", service);
   auto & tree = test_utils.GetTree();

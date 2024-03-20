@@ -86,6 +86,8 @@ TEST(TestCallSetLedAnimationService, good_loading_call_set_led_animation_service
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   ASSERT_NO_THROW({ test_utils.CreateTree("CallSetLedAnimationService", service); });
 }
@@ -97,6 +99,8 @@ TEST(
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   EXPECT_THROW(
     { test_utils.CreateTree("WrongCallSetLedAnimationService", service); }, BT::RuntimeError);
@@ -110,6 +114,8 @@ TEST(
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
@@ -126,6 +132,8 @@ TEST(
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
@@ -146,6 +154,8 @@ TEST(
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "false"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
@@ -164,6 +174,8 @@ TEST(TestCallSetLedAnimationService, good_set_led_animation_call_service_success
     {"service_name", "set_led_animation"}, {"id", "5"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
@@ -182,6 +194,8 @@ TEST(TestCallSetLedAnimationService, wrong_set_led_animation_call_service_failur
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
@@ -200,6 +214,8 @@ TEST(TestCallSetLedAnimationService, wrong_repeating_service_value_defined)
     {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "wrong_bool"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();
@@ -214,6 +230,8 @@ TEST(TestCallSetLedAnimationService, wrong_id_service_value_defined)
     {"service_name", "set_led_animation"}, {"id", "-5"}, {"param", ""}, {"repeating", "true"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>(
+    "CallSetLedAnimationService");
 
   test_utils.CreateTree("CallSetLedAnimationService", service);
   auto & tree = test_utils.GetTree();

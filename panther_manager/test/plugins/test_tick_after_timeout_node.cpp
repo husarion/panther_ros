@@ -43,6 +43,8 @@ TEST(TestTickAfterTimeout, good_loading_tick_after_timeout_plugin)
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  test_utils.RegisterNodeWithoutParams<panther_manager::TickAfterTimeout>("TickAfterTimeout");
 
   test_utils.CreateTree("CallTriggerService", trigger_node, 0.1);
   ASSERT_NO_THROW({ test_utils.CreateTree("CallTriggerService", trigger_node, 0.1); });
@@ -53,6 +55,8 @@ TEST(TestTickAfterTimeout, wrong_plugin_name_loading_tick_after_timeout_plugin)
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  test_utils.RegisterNodeWithoutParams<panther_manager::TickAfterTimeout>("TickAfterTimeout");
 
   EXPECT_THROW(
     { test_utils.CreateTree("WrongTriggerService", trigger_node, 0.1); }, BT::RuntimeError);
@@ -63,6 +67,8 @@ TEST(TestTickAfterTimeout, good_tick_after_timeout_plugin_service_calls)
   std::map<std::string, std::string> trigger_node = {{"service_name", "trigger"}};
 
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  test_utils.RegisterNodeWithoutParams<panther_manager::TickAfterTimeout>("TickAfterTimeout");
 
   test_utils.CreateTree("CallTriggerService", trigger_node, 0.1);
   auto & tree = test_utils.GetTree();

@@ -78,6 +78,21 @@ public:
     executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
   }
 
+  template <typename Node>
+  void RegisterNodeWithParams(const std::string & node_type_name)
+  {
+    BT::RosNodeParams params;
+    params.nh = bt_node_;
+
+    factory_.registerNodeType<Node>(node_type_name, params);
+  }
+
+  template <typename Node>
+  void RegisterNodeWithoutParams(const std::string & node_type_name)
+  {
+    factory_.registerNodeType<Node>(node_type_name);
+  }
+
 private:
   rclcpp::Node::SharedPtr bt_node_;
   BT::BehaviorTreeFactory factory_;

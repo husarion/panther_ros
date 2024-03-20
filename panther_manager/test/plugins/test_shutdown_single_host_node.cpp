@@ -76,7 +76,7 @@ TEST(TestShutdownSingleHost, good_touch_command)
 TEST(TestShutdownSingleHost, wrong_command)
 {
   std::map<std::string, std::string> service = {
-    {"command", "command_what_does_not_exists"},
+    {"command", "wrong_command"},
     {"ip", "localhost"},
     {"ping_for_success", "false"},
     {"port", "22"},
@@ -84,6 +84,7 @@ TEST(TestShutdownSingleHost, wrong_command)
     {"user", "husarion"},
   };
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 
   test_utils.CreateTree("ShutdownSingleHost", service);
   auto & tree = test_utils.GetTree();
@@ -100,9 +101,10 @@ TEST(TestShutdownSingleHost, wrong_user)
     {"ping_for_success", "false"},
     {"port", "22"},
     {"timeout", "5.0"},
-    {"user", "user_what_does_not_exists"},
+    {"user", "wrong_user"},
   };
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 
   test_utils.CreateTree("ShutdownSingleHost", service);
   auto & tree = test_utils.GetTree();

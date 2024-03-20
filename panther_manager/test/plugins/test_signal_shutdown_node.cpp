@@ -27,6 +27,7 @@ TEST(TestSignalShutdown, good_loading_signal_shutdown_plugin)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
 
   ASSERT_NO_THROW({ test_utils.CreateTree("SignalShutdown", service); });
 }
@@ -44,18 +45,19 @@ TEST(TestSignalShutdown, good_check_reason_blackboard_value)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
   panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+  test_utils.RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
 
   test_utils.CreateTree("SignalShutdown", service);
   auto & tree = test_utils.GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(status, BT::NodeStatus::SUCCESS);
 
   auto blackboard = tree.rootBlackboard();
-  auto got_value = blackboard->get<std::pair<bool, std::string>>("signal_shutdown");
+  auto signal_shutdown_value = blackboard->get<std::pair<bool, std::string>>("signal_shutdown");
 
-  EXPECT_EQ(got_value.first, true);
-  EXPECT_EQ(got_value.second, service["reason"]);
+  EXPECT_EQ(signal_shutdown_value.first, true);
+  EXPECT_EQ(signal_shutdown_value.second, service["reason"]);
 }
 
 int main(int argc, char ** argv)
