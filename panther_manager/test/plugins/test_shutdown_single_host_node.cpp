@@ -24,30 +24,29 @@
 #include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
 #include <plugin_test_utils.hpp>
 
-TEST(TestShutdownSingleHost, GoodLoadingShutdownSingleHostPlugin)
-{
-  std::map<std::string, std::string> service = {
-    {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
-    {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
-  };
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
+typedef panther_manager::plugin_test_utils::PluginTestUtils TestShutdownSingleHost;
 
-  ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownSingleHost", service); });
-}
-
-TEST(TestShutdownSingleHost, WrongPluginNameLoadingShutdownSingleHostPlugin)
+TEST_F(TestShutdownSingleHost, GoodLoadingShutdownSingleHostPlugin)
 {
   std::map<std::string, std::string> service = {
     {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
     {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
   };
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-
-  EXPECT_THROW({ test_utils.CreateTree("WrongShutdownSingleHost", service); }, BT::RuntimeError);
+  ASSERT_NO_THROW({ CreateTree("ShutdownSingleHost", service); });
 }
 
-TEST(TestShutdownSingleHost, GoodTouchCommand)
+TEST_F(TestShutdownSingleHost, WrongPluginNameLoadingShutdownSingleHostPlugin)
+{
+  std::map<std::string, std::string> service = {
+    {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
+    {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
+  };
+
+  EXPECT_THROW({ CreateTree("WrongShutdownSingleHost", service); }, BT::RuntimeError);
+}
+
+TEST_F(TestShutdownSingleHost, GoodTouchCommand)
 {
   std::string file_path = testing::TempDir() + "/test_panther_manager_good_touch_command";
   std::filesystem::remove(file_path);
@@ -61,10 +60,9 @@ TEST(TestShutdownSingleHost, GoodTouchCommand)
     {"timeout", "5.0"},
     {"user", "husarion"},
   };
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
 
-  test_utils.CreateTree("ShutdownSingleHost", service);
-  auto & tree = test_utils.GetTree();
+  CreateTree("ShutdownSingleHost", service);
+  auto & tree = GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -73,7 +71,7 @@ TEST(TestShutdownSingleHost, GoodTouchCommand)
   std::filesystem::remove(file_path);
 }
 
-TEST(TestShutdownSingleHost, WrongCommand)
+TEST_F(TestShutdownSingleHost, WrongCommand)
 {
   std::map<std::string, std::string> service = {
     {"command", "wrong_command"},
@@ -83,17 +81,16 @@ TEST(TestShutdownSingleHost, WrongCommand)
     {"timeout", "0.2"},
     {"user", "husarion"},
   };
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
+  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 
-  test_utils.CreateTree("ShutdownSingleHost", service);
-  auto & tree = test_utils.GetTree();
+  CreateTree("ShutdownSingleHost", service);
+  auto & tree = GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(300));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestShutdownSingleHost, WrongUser)
+TEST_F(TestShutdownSingleHost, WrongUser)
 {
   std::map<std::string, std::string> service = {
     {"command", "echo Hello World!"},
@@ -103,12 +100,11 @@ TEST(TestShutdownSingleHost, WrongUser)
     {"timeout", "5.0"},
     {"user", "wrong_user"},
   };
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
+  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 
-  test_utils.CreateTree("ShutdownSingleHost", service);
-  auto & tree = test_utils.GetTree();
-  test_utils.CreateTree("ShutdownSingleHost", service);
+  CreateTree("ShutdownSingleHost", service);
+  auto & tree = GetTree();
+  CreateTree("ShutdownSingleHost", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);

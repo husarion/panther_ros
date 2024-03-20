@@ -24,45 +24,41 @@
 #include <panther_manager/plugins/action/shutdown_hosts_from_file_node.hpp>
 #include <plugin_test_utils.hpp>
 
-TEST(TestShutdownHostsFromFile, GoodLoadingShutdownHostsFromFilePlugin)
+typedef panther_manager::plugin_test_utils::PluginTestUtils TestShutdownHostsFromFile;
+
+TEST_F(TestShutdownHostsFromFile, GoodLoadingShutdownHostsFromFilePlugin)
 {
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
-    "ShutdownHostsFromFile");
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
 
-  ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownHostsFromFile", service); });
+  ASSERT_NO_THROW({ CreateTree("ShutdownHostsFromFile", service); });
 }
 
-TEST(TestShutdownHostsFromFile, WrongPluginNameLoadingShutdownHostsFromFilePlugin)
+TEST_F(TestShutdownHostsFromFile, WrongPluginNameLoadingShutdownHostsFromFilePlugin)
 {
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
-    "ShutdownHostsFromFile");
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
 
-  EXPECT_THROW({ test_utils.CreateTree("WrongShutdownHostsFromFile", service); }, BT::RuntimeError);
+  EXPECT_THROW({ CreateTree("WrongShutdownHostsFromFile", service); }, BT::RuntimeError);
 }
 
-TEST(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
+TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
 {
   const std::string file_path = testing::TempDir() +
                                 "/test_wrong_cannot_find_file_shutdown_hosts_from_file";
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", file_path}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
-    "ShutdownHostsFromFile");
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
 
-  test_utils.CreateTree("ShutdownHostsFromFile", service);
-  auto & tree = test_utils.GetTree();
+  CreateTree("ShutdownHostsFromFile", service);
+  auto & tree = GetTree();
 
   EXPECT_THROW({ tree.tickWhileRunning(std::chrono::milliseconds(100)); }, BT::RuntimeError);
 }
 
-TEST(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
+TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
 {
   const std::string config_file_path = testing::TempDir() +
                                        "/test_panther_manager_good_shutdown_hosts_from_file_config";
@@ -90,12 +86,10 @@ TEST(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
   config_file.close();
 
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", config_file_path}};
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>(
-    "ShutdownHostsFromFile");
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
 
-  auto & tree = test_utils.GetTree();
-  test_utils.CreateTree("ShutdownHostsFromFile", service);
+  auto & tree = GetTree();
+  CreateTree("ShutdownHostsFromFile", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
 

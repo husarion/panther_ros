@@ -17,6 +17,22 @@
 namespace panther_manager::plugin_test_utils
 {
 
+void PluginTestUtils::SetUp()
+{
+  rclcpp::init(0, nullptr);
+  bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
+}
+
+void PluginTestUtils::TearDown()
+{
+  bt_node_.reset();
+  rclcpp::shutdown();
+  if (executor_thread_) {
+    executor_.reset();
+    executor_thread_->join();
+  }
+}
+
 std::string PluginTestUtils::BuildBehaviorTree(
   const std::string & plugin_name, const std::map<std::string, std::string> & service,
   double tick_after_timeout)
@@ -56,33 +72,6 @@ void PluginTestUtils::CreateTree(
 BT::Tree & PluginTestUtils::GetTree() { return tree_; }
 
 BT::BehaviorTreeFactory & PluginTestUtils::GetFactory() { return factory_; }
-
-PluginTestUtils::PluginTestUtils()
-{
-  rclcpp::init(0, nullptr);
-  bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
-  BT::RosNodeParams params;
-  params.nh = bt_node_;
-
-  factory_.registerNodeType<panther_manager::CallSetBoolService>("CallSetBoolService", params);
-  factory_.registerNodeType<panther_manager::CallTriggerService>("CallTriggerService", params);
-  factory_.registerNodeType<panther_manager::CallSetLedAnimationService>(
-    "CallSetLedAnimationService", params);
-  factory_.registerNodeType<panther_manager::SignalShutdown>("SignalShutdown");
-  factory_.registerNodeType<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
-  factory_.registerNodeType<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
-  factory_.registerNodeType<panther_manager::TickAfterTimeout>("TickAfterTimeout");
-}
-
-PluginTestUtils::~PluginTestUtils()
-{
-  bt_node_.reset();
-  rclcpp::shutdown();
-  if (executor_thread_) {
-    executor_.reset();
-    executor_thread_->join();
-  }
-}
 
 void PluginTestUtils::spin_executor() { executor_->spin(); }
 

@@ -23,32 +23,32 @@
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
 #include <plugin_test_utils.hpp>
 
-TEST(TestSignalShutdown, GoodLoadingSignalShutdownPlugin)
+typedef panther_manager::plugin_test_utils::PluginTestUtils TestSignalShutdown;
+
+TEST_F(TestSignalShutdown, GoodLoadingSignalShutdownPlugin)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
 
-  ASSERT_NO_THROW({ test_utils.CreateTree("SignalShutdown", service); });
+  RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
+
+  ASSERT_NO_THROW({ CreateTree("SignalShutdown", service); });
 }
 
-TEST(TestSignalShutdown, WrongPluginNameLoadingSignalShutdownPlugin)
+TEST_F(TestSignalShutdown, WrongPluginNameLoadingSignalShutdownPlugin)
 {
   std::map<std::string, std::string> service = {};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-
-  EXPECT_THROW({ test_utils.CreateTree("WrongSignalShutdown", service); }, BT::RuntimeError);
+  EXPECT_THROW({ CreateTree("WrongSignalShutdown", service); }, BT::RuntimeError);
 }
 
-TEST(TestSignalShutdown, GoodCheckReasonBlackboardValue)
+TEST_F(TestSignalShutdown, GoodCheckReasonBlackboardValue)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
 
-  test_utils.CreateTree("SignalShutdown", service);
-  auto & tree = test_utils.GetTree();
+  RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
+
+  CreateTree("SignalShutdown", service);
+  auto & tree = GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   ASSERT_EQ(status, BT::NodeStatus::SUCCESS);

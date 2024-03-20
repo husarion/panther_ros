@@ -23,6 +23,7 @@
 #include <thread>
 
 #include <behaviortree_cpp/bt_factory.h>
+#include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
 
 #include <std_srvs/srv/set_bool.hpp>
@@ -47,12 +48,12 @@ struct BehaviorTreePluginDescription
   std::map<std::string, std::string> params;
 };
 
-class PluginTestUtils
+class PluginTestUtils : public testing::Test
 {
 public:
-  PluginTestUtils();
+  virtual void SetUp() override final;
 
-  ~PluginTestUtils();
+  virtual void TearDown() override final;
 
   std::string BuildBehaviorTree(
     const std::string & plugin_name, const std::map<std::string, std::string> & service,
@@ -72,7 +73,7 @@ public:
     std::function<void(std::shared_ptr<Request>, std::shared_ptr<Response>)> service_callback)
   {
     service_server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + service_name);
-    service_server_node_->create_service<Service>(service_name, service_callback);
+    service = service_server_node_->create_service<Service>(service_name, service_callback);
     executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
     executor_->add_node(service_server_node_);
     executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
@@ -93,7 +94,7 @@ public:
     factory_.registerNodeType<Node>(node_type_name);
   }
 
-private:
+protected:
   rclcpp::Node::SharedPtr bt_node_;
   BT::BehaviorTreeFactory factory_;
   BT::Tree tree_;
@@ -101,6 +102,7 @@ private:
   rclcpp::Node::SharedPtr service_server_node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
 
+  rclcpp::ServiceBase::SharedPtr service;
   std::unique_ptr<std::thread> executor_thread_;
 
   void spin_executor();

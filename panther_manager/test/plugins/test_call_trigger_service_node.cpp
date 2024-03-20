@@ -23,7 +23,18 @@
 #include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 #include <plugin_test_utils.hpp>
 
-void ServiceFailedCallback(
+class TestCallTriggerService : public panther_manager::plugin_test_utils::PluginTestUtils
+{
+public:
+  void ServiceFailedCallback(
+    const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
+  void ServiceSuccessCallback(
+    const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
+};
+
+void TestCallTriggerService::ServiceFailedCallback(
   const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
@@ -32,7 +43,7 @@ void ServiceFailedCallback(
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
 
-void ServiceSuccessCallback(
+void TestCallTriggerService::ServiceSuccessCallback(
   const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
   std_srvs::srv::Trigger::Response::SharedPtr response)
 {
@@ -41,71 +52,71 @@ void ServiceSuccessCallback(
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
 
-TEST(TestCallTriggerService, GoodLoadingCallTriggerServicePlugin)
+TEST_F(TestCallTriggerService, GoodLoadingCallTriggerServicePlugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
-  ASSERT_NO_THROW({ test_utils.CreateTree("CallTriggerService", service); });
+  ASSERT_NO_THROW({ CreateTree("CallTriggerService", service); });
 }
 
-TEST(TestCallTriggerService, WrongPluginNameLoadingCallTriggerServicePlugin)
+TEST_F(TestCallTriggerService, WrongPluginNameLoadingCallTriggerServicePlugin)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
-  EXPECT_THROW({ test_utils.CreateTree("WrongCallTriggerService", service); }, BT::RuntimeError);
+  EXPECT_THROW({ CreateTree("WrongCallTriggerService", service); }, BT::RuntimeError);
 }
 
-TEST(TestCallTriggerService, WrongCallTriggerServiceServiceServerNotInitialized)
+TEST_F(TestCallTriggerService, WrongCallTriggerServiceServiceServerNotInitialized)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
-  test_utils.CreateTree("CallTriggerService", service);
-  auto & tree = test_utils.GetTree();
+  CreateTree("CallTriggerService", service);
+  auto & tree = GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST(TestCallTriggerService, GoodTriggerCallServiceSuccess)
+TEST_F(TestCallTriggerService, GoodTriggerCallServiceSuccess)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
-  test_utils.CreateTree("CallTriggerService", service);
-  auto & tree = test_utils.GetTree();
+  CreateTree("CallTriggerService", service);
+  auto & tree = GetTree();
 
+  using std::placeholders::_1;
+  using std::placeholders::_2;
   using std_srvs::srv::Trigger;
-  test_utils.CreateService<Trigger, Trigger::Request, Trigger::Response>(
-    "test_trigger_service", ServiceSuccessCallback);
+
+  CreateService<Trigger, Trigger::Request, Trigger::Response>(
+    "trigger", std::bind(&TestCallTriggerService::ServiceSuccessCallback, this, _1, _2));
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST(TestCallTriggerService, WrongTriggerCallServiceFailure)
+TEST_F(TestCallTriggerService, WrongTriggerCallServiceFailure)
 {
   std::map<std::string, std::string> service = {{"service_name", "trigger"}};
 
-  panther_manager::plugin_test_utils::PluginTestUtils test_utils;
-  test_utils.RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
+  RegisterNodeWithParams<panther_manager::CallTriggerService>("CallTriggerService");
 
-  test_utils.CreateTree("CallTriggerService", service);
-  auto & tree = test_utils.GetTree();
+  CreateTree("CallTriggerService", service);
+  auto & tree = GetTree();
 
+  using std::placeholders::_1;
+  using std::placeholders::_2;
   using std_srvs::srv::Trigger;
-  test_utils.CreateService<Trigger, Trigger::Request, Trigger::Response>(
-    "test_trigger_service", ServiceFailedCallback);
+  CreateService<Trigger, Trigger::Request, Trigger::Response>(
+    "trigger", std::bind(&TestCallTriggerService::ServiceFailedCallback, this, _1, _2));
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
