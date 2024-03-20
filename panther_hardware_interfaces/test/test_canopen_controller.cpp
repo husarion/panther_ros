@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
+#include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -42,12 +45,12 @@ public:
     roboteqs_mock_.reset();
   }
 
+protected:
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
-
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
-TEST_F(TestCANopenController, CANopenController)
+TEST_F(TestCANopenController, InitializeAndDeinitialize)
 {
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
@@ -57,7 +60,7 @@ TEST_F(TestCANopenController, CANopenController)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, CANopenControllerErrorDeviceType)
+TEST_F(TestCANopenController, InitializeErrorDeviceType)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -68,7 +71,7 @@ TEST_F(TestCANopenController, CANopenControllerErrorDeviceType)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, CANopenControllerErrorVendorId)
+TEST_F(TestCANopenController, InitializeErrorVendorId)
 {
   roboteqs_mock_->GetRearDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);

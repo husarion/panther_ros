@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -27,7 +29,34 @@
 
 #include <test_constants.hpp>
 
-TEST(TestPantherSystemRosInterface, TestNode)
+class TestPantherSystemRosInterface : public ::testing::Test
+{
+public:
+  TestPantherSystemRosInterface()
+  {
+    using panther_hardware_interfaces::PantherSystemRosInterface;
+
+    test_node_ = std::make_shared<rclcpp::Node>("test_panther_system_node");
+
+    driver_state_sub_ = test_node_->create_subscription<panther_msgs::msg::DriverState>(
+      panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
+      [&](const panther_msgs::msg::DriverState::SharedPtr msg) { driver_state_msg_ = msg; });
+
+    panther_system_ros_interface_ =
+      std::make_unique<PantherSystemRosInterface>("panther_system_node");
+  }
+
+  ~TestPantherSystemRosInterface() { panther_system_ros_interface_.reset(); }
+
+protected:
+  rclcpp::Node::SharedPtr test_node_;
+  rclcpp::Subscription<panther_msgs::msg::DriverState>::SharedPtr driver_state_sub_;
+  panther_msgs::msg::DriverState::SharedPtr driver_state_msg_;
+  std::unique_ptr<panther_hardware_interfaces::PantherSystemRosInterface>
+    panther_system_ros_interface_;
+};
+
+TEST(TestPantherSystemRosInterfaceInitialization, NodeCreation)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
@@ -63,7 +92,7 @@ TEST(TestPantherSystemRosInterface, TestNode)
   panther_system_ros_interface.reset();
 }
 
-TEST(TestPantherSystemRosInterface, Activation)
+TEST(TestPantherSystemRosInterfaceInitialization, Activation)
 {
   using panther_hardware_interfaces::PantherSystemRosInterface;
   using panther_hardware_interfaces_test::kMotorControllersStateTopic;
@@ -102,20 +131,8 @@ TEST(TestPantherSystemRosInterface, Activation)
   panther_system_ros_interface.reset();
 }
 
-TEST(TestPantherSystemRosInterface, ErrorFlags)
+TEST_F(TestPantherSystemRosInterface, ErrorFlags)
 {
-  using panther_hardware_interfaces::PantherSystemRosInterface;
-
-  rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
-
-  panther_msgs::msg::DriverState::SharedPtr state_msg;
-  auto sub = test_node->create_subscription<panther_msgs::msg::DriverState>(
-    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
-    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
-
-  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
-
   panther_hardware_interfaces::RoboteqData front(
     panther_hardware_interfaces_test::kDrivetrainSettings);
   panther_hardware_interfaces::RoboteqData rear(
@@ -136,38 +153,25 @@ TEST(TestPantherSystemRosInterface, ErrorFlags)
   front.SetDriverState(front_driver_state, false);
   rear.SetDriverState(rear_driver_state, false);
 
-  panther_system_ros_interface->UpdateMsgErrorFlags(front, rear);
-  panther_system_ros_interface->PublishDriverState();
+  panther_system_ros_interface_->UpdateMsgErrorFlags(front, rear);
+  panther_system_ros_interface_->PublishDriverState();
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
+  ASSERT_TRUE(
+    panther_utils::test_utils::WaitForMsg(test_node_, driver_state_msg_, std::chrono::seconds(5)));
 
-  ASSERT_TRUE(state_msg->front.fault_flag.overheat);
-  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconnected);
-  ASSERT_TRUE(state_msg->front.left_motor_runtime_error.loop_error);
-  ASSERT_TRUE(state_msg->front.right_motor_runtime_error.safety_stop_active);
+  EXPECT_TRUE(driver_state_msg_->front.fault_flag.overheat);
+  EXPECT_TRUE(driver_state_msg_->front.script_flag.encoder_disconnected);
+  EXPECT_TRUE(driver_state_msg_->front.left_motor_runtime_error.loop_error);
+  EXPECT_TRUE(driver_state_msg_->front.right_motor_runtime_error.safety_stop_active);
 
-  ASSERT_TRUE(state_msg->rear.fault_flag.overvoltage);
-  ASSERT_TRUE(state_msg->rear.script_flag.loop_error);
-  ASSERT_TRUE(state_msg->rear.left_motor_runtime_error.forward_limit_triggered);
-  ASSERT_TRUE(state_msg->rear.right_motor_runtime_error.reverse_limit_triggered);
-
-  panther_system_ros_interface.reset();
+  EXPECT_TRUE(driver_state_msg_->rear.fault_flag.overvoltage);
+  EXPECT_TRUE(driver_state_msg_->rear.script_flag.loop_error);
+  EXPECT_TRUE(driver_state_msg_->rear.left_motor_runtime_error.forward_limit_triggered);
+  EXPECT_TRUE(driver_state_msg_->rear.right_motor_runtime_error.reverse_limit_triggered);
 }
 
-TEST(TestPantherSystemRosInterface, DriversStates)
+TEST_F(TestPantherSystemRosInterface, DriversStates)
 {
-  using panther_hardware_interfaces::PantherSystemRosInterface;
-
-  rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
-
-  panther_msgs::msg::DriverState::SharedPtr state_msg;
-  auto sub = test_node->create_subscription<panther_msgs::msg::DriverState>(
-    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
-    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
-
-  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
-
   panther_hardware_interfaces::DriverState front;
   panther_hardware_interfaces::DriverState rear;
 
@@ -194,45 +198,33 @@ TEST(TestPantherSystemRosInterface, DriversStates)
   rear.SetBatteryCurrent1(r_battery_current_1);
   rear.SetBatteryCurrent2(r_battery_current_2);
 
-  panther_system_ros_interface->UpdateMsgDriversStates(front, rear);
-  panther_system_ros_interface->PublishDriverState();
+  panther_system_ros_interface_->UpdateMsgDriversStates(front, rear);
+  panther_system_ros_interface_->PublishDriverState();
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
+  ASSERT_TRUE(
+    panther_utils::test_utils::WaitForMsg(test_node_, driver_state_msg_, std::chrono::seconds(5)));
 
-  ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->front.temperature), f_temp);
-  ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->rear.temperature), r_temp);
+  EXPECT_FLOAT_EQ(static_cast<std::int16_t>(driver_state_msg_->front.temperature), f_temp);
+  EXPECT_FLOAT_EQ(static_cast<std::int16_t>(driver_state_msg_->rear.temperature), r_temp);
 
-  ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->front.heatsink_temperature), f_heatsink_temp);
-  ASSERT_FLOAT_EQ(static_cast<std::int16_t>(state_msg->rear.heatsink_temperature), r_heatsink_temp);
+  EXPECT_FLOAT_EQ(
+    static_cast<std::int16_t>(driver_state_msg_->front.heatsink_temperature), f_heatsink_temp);
+  EXPECT_FLOAT_EQ(
+    static_cast<std::int16_t>(driver_state_msg_->rear.heatsink_temperature), r_heatsink_temp);
 
-  ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->front.voltage * 10.0), f_volt);
-  ASSERT_FLOAT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
+  EXPECT_FLOAT_EQ(static_cast<std::uint16_t>(driver_state_msg_->front.voltage * 10.0), f_volt);
+  EXPECT_FLOAT_EQ(static_cast<std::uint16_t>(driver_state_msg_->rear.voltage * 10.0), r_volt);
 
-  ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->front.current * 10.0),
+  EXPECT_FLOAT_EQ(
+    static_cast<std::int16_t>(driver_state_msg_->front.current * 10.0),
     (f_battery_current_1 + f_battery_current_2));
-  ASSERT_FLOAT_EQ(
-    static_cast<std::int16_t>(state_msg->rear.current * 10.0),
+  EXPECT_FLOAT_EQ(
+    static_cast<std::int16_t>(driver_state_msg_->rear.current * 10.0),
     (r_battery_current_1 + r_battery_current_2));
-
-  panther_system_ros_interface.reset();
 }
 
-TEST(TestPantherSystemRosInterface, Errors)
+TEST_F(TestPantherSystemRosInterface, Errors)
 {
-  using panther_hardware_interfaces::PantherSystemRosInterface;
-
-  rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
-
-  panther_msgs::msg::DriverState::SharedPtr state_msg;
-  auto sub = test_node->create_subscription<panther_msgs::msg::DriverState>(
-    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
-    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
-
-  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
-
   panther_hardware_interfaces::CANErrors can_errors;
   can_errors.error = true;
 
@@ -249,29 +241,27 @@ TEST(TestPantherSystemRosInterface, Errors)
   can_errors.front_can_net_err = false;
   can_errors.rear_can_net_err = true;
 
-  panther_system_ros_interface->UpdateMsgErrors(can_errors);
+  panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 
-  panther_system_ros_interface->PublishDriverState();
+  panther_system_ros_interface_->PublishDriverState();
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(test_node, state_msg, std::chrono::seconds(5)));
+  ASSERT_TRUE(
+    panther_utils::test_utils::WaitForMsg(test_node_, driver_state_msg_, std::chrono::seconds(5)));
 
-  ASSERT_TRUE(state_msg->error);
+  EXPECT_TRUE(driver_state_msg_->error);
 
-  ASSERT_TRUE(state_msg->write_pdo_cmds_error);
-  ASSERT_FALSE(state_msg->read_pdo_motor_states_error);
-  ASSERT_FALSE(state_msg->read_pdo_driver_state_error);
+  EXPECT_TRUE(driver_state_msg_->write_pdo_cmds_error);
+  EXPECT_FALSE(driver_state_msg_->read_pdo_motor_states_error);
+  EXPECT_FALSE(driver_state_msg_->read_pdo_driver_state_error);
 
-  ASSERT_TRUE(state_msg->front.motor_states_data_timed_out);
-  ASSERT_FALSE(state_msg->rear.motor_states_data_timed_out);
+  EXPECT_TRUE(driver_state_msg_->front.motor_states_data_timed_out);
+  EXPECT_FALSE(driver_state_msg_->rear.motor_states_data_timed_out);
 
-  ASSERT_FALSE(state_msg->front.driver_state_data_timed_out);
-  ASSERT_TRUE(state_msg->rear.driver_state_data_timed_out);
+  EXPECT_FALSE(driver_state_msg_->front.driver_state_data_timed_out);
+  EXPECT_TRUE(driver_state_msg_->rear.driver_state_data_timed_out);
 
-  ASSERT_FALSE(state_msg->front.can_net_err);
-  ASSERT_TRUE(state_msg->rear.can_net_err);
-
-  panther_system_ros_interface.reset();
-  rclcpp::shutdown();
+  EXPECT_FALSE(driver_state_msg_->front.can_net_err);
+  EXPECT_TRUE(driver_state_msg_->rear.can_net_err);
 }
 
 int main(int argc, char ** argv)

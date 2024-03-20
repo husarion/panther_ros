@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <thread>
 
 #include <gtest/gtest.h>
 
@@ -45,8 +48,8 @@ public:
     roboteqs_mock_.reset();
   }
 
+protected:
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
-
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
@@ -89,21 +92,21 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
   panther_hardware_interfaces::RoboteqMotorsStates r_fb =
     canopen_controller_->GetRearDriver()->ReadRoboteqMotorsStates();
 
-  ASSERT_EQ(f_fb.motor_2.pos, fl_pos);
-  ASSERT_EQ(f_fb.motor_2.vel, fl_vel);
-  ASSERT_EQ(f_fb.motor_2.current, fl_current);
+  EXPECT_EQ(f_fb.motor_2.pos, fl_pos);
+  EXPECT_EQ(f_fb.motor_2.vel, fl_vel);
+  EXPECT_EQ(f_fb.motor_2.current, fl_current);
 
-  ASSERT_EQ(f_fb.motor_1.pos, fr_pos);
-  ASSERT_EQ(f_fb.motor_1.vel, fr_vel);
-  ASSERT_EQ(f_fb.motor_1.current, fr_current);
+  EXPECT_EQ(f_fb.motor_1.pos, fr_pos);
+  EXPECT_EQ(f_fb.motor_1.vel, fr_vel);
+  EXPECT_EQ(f_fb.motor_1.current, fr_current);
 
-  ASSERT_EQ(r_fb.motor_2.pos, rl_pos);
-  ASSERT_EQ(r_fb.motor_2.vel, rl_vel);
-  ASSERT_EQ(r_fb.motor_2.current, rl_current);
+  EXPECT_EQ(r_fb.motor_2.pos, rl_pos);
+  EXPECT_EQ(r_fb.motor_2.vel, rl_vel);
+  EXPECT_EQ(r_fb.motor_2.current, rl_current);
 
-  ASSERT_EQ(r_fb.motor_1.pos, rr_pos);
-  ASSERT_EQ(r_fb.motor_1.vel, rr_vel);
-  ASSERT_EQ(r_fb.motor_1.current, rr_current);
+  EXPECT_EQ(r_fb.motor_1.pos, rr_pos);
+  EXPECT_EQ(r_fb.motor_1.vel, rr_vel);
+  EXPECT_EQ(r_fb.motor_1.current, rr_current);
 }
 
 TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
@@ -125,34 +128,34 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(f_fb2.pos_timestamp) - lely::util::from_timespec(f_fb1.pos_timestamp),
     std::chrono::milliseconds(15));
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(r_fb2.pos_timestamp) - lely::util::from_timespec(r_fb1.pos_timestamp),
     std::chrono::milliseconds(15));
 
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(f_fb2.pos_timestamp) - lely::util::from_timespec(f_fb1.pos_timestamp),
     std::chrono::milliseconds(5));
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(r_fb2.pos_timestamp) - lely::util::from_timespec(r_fb1.pos_timestamp),
     std::chrono::milliseconds(5));
 
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(f_fb2.vel_current_timestamp) -
       lely::util::from_timespec(f_fb1.vel_current_timestamp),
     std::chrono::milliseconds(15));
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(r_fb2.vel_current_timestamp) -
       lely::util::from_timespec(r_fb1.vel_current_timestamp),
     std::chrono::milliseconds(15));
 
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(f_fb2.vel_current_timestamp) -
       lely::util::from_timespec(f_fb1.vel_current_timestamp),
     std::chrono::milliseconds(5));
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(r_fb2.vel_current_timestamp) -
       lely::util::from_timespec(r_fb1.vel_current_timestamp),
     std::chrono::milliseconds(5));
@@ -208,30 +211,30 @@ TEST_F(TestRoboteqDriver, ReadRoboteqDriverState)
   panther_hardware_interfaces::RoboteqDriverState r_fb =
     canopen_controller_->GetRearDriver()->ReadRoboteqDriverState();
 
-  ASSERT_EQ(f_fb.mcu_temp, f_temp);
-  ASSERT_EQ(r_fb.mcu_temp, r_temp);
+  EXPECT_EQ(f_fb.mcu_temp, f_temp);
+  EXPECT_EQ(r_fb.mcu_temp, r_temp);
 
-  ASSERT_EQ(f_fb.heatsink_temp, f_heatsink_temp);
-  ASSERT_EQ(r_fb.heatsink_temp, r_heatsink_temp);
+  EXPECT_EQ(f_fb.heatsink_temp, f_heatsink_temp);
+  EXPECT_EQ(r_fb.heatsink_temp, r_heatsink_temp);
 
-  ASSERT_EQ(f_fb.battery_voltage, f_volt);
-  ASSERT_EQ(r_fb.battery_voltage, r_volt);
+  EXPECT_EQ(f_fb.battery_voltage, f_volt);
+  EXPECT_EQ(r_fb.battery_voltage, r_volt);
 
-  ASSERT_EQ(f_fb.battery_current_1, f_battery_current_1);
-  ASSERT_EQ(r_fb.battery_current_1, r_battery_current_1);
+  EXPECT_EQ(f_fb.battery_current_1, f_battery_current_1);
+  EXPECT_EQ(r_fb.battery_current_1, r_battery_current_1);
 
-  ASSERT_EQ(f_fb.battery_current_2, f_battery_current_2);
-  ASSERT_EQ(r_fb.battery_current_2, r_battery_current_2);
+  EXPECT_EQ(f_fb.battery_current_2, f_battery_current_2);
+  EXPECT_EQ(r_fb.battery_current_2, r_battery_current_2);
 
-  ASSERT_EQ(f_fb.fault_flags, 0b00000001);
-  ASSERT_EQ(f_fb.script_flags, 0b00000010);
-  ASSERT_EQ(f_fb.runtime_stat_flag_motor_1, 0b00000100);
-  ASSERT_EQ(f_fb.runtime_stat_flag_motor_2, 0b00001000);
+  EXPECT_EQ(f_fb.fault_flags, 0b00000001);
+  EXPECT_EQ(f_fb.script_flags, 0b00000010);
+  EXPECT_EQ(f_fb.runtime_stat_flag_motor_1, 0b00000100);
+  EXPECT_EQ(f_fb.runtime_stat_flag_motor_2, 0b00001000);
 
-  ASSERT_EQ(r_fb.fault_flags, 0b00000010);
-  ASSERT_EQ(r_fb.script_flags, 0b00000100);
-  ASSERT_EQ(r_fb.runtime_stat_flag_motor_1, 0b00010000);
-  ASSERT_EQ(r_fb.runtime_stat_flag_motor_2, 0b00100000);
+  EXPECT_EQ(r_fb.fault_flags, 0b00000010);
+  EXPECT_EQ(r_fb.script_flags, 0b00000100);
+  EXPECT_EQ(r_fb.runtime_stat_flag_motor_1, 0b00010000);
+  EXPECT_EQ(r_fb.runtime_stat_flag_motor_2, 0b00100000);
 }
 
 TEST_F(TestRoboteqDriver, ReadRoboteqDriverStateTimestamp)
@@ -253,38 +256,38 @@ TEST_F(TestRoboteqDriver, ReadRoboteqDriverStateTimestamp)
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(f_fb2.flags_current_timestamp) -
       lely::util::from_timespec(f_fb1.flags_current_timestamp),
     std::chrono::milliseconds(75));
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(r_fb2.flags_current_timestamp) -
       lely::util::from_timespec(r_fb1.flags_current_timestamp),
     std::chrono::milliseconds(75));
 
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(f_fb2.flags_current_timestamp) -
       lely::util::from_timespec(f_fb1.flags_current_timestamp),
     std::chrono::milliseconds(25));
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(r_fb2.flags_current_timestamp) -
       lely::util::from_timespec(r_fb1.flags_current_timestamp),
     std::chrono::milliseconds(25));
 
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(f_fb2.voltages_temps_timestamp) -
       lely::util::from_timespec(f_fb1.voltages_temps_timestamp),
     std::chrono::milliseconds(75));
-  ASSERT_LE(
+  EXPECT_LE(
     lely::util::from_timespec(r_fb2.voltages_temps_timestamp) -
       lely::util::from_timespec(r_fb1.voltages_temps_timestamp),
     std::chrono::milliseconds(75));
 
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(f_fb2.voltages_temps_timestamp) -
       lely::util::from_timespec(f_fb1.voltages_temps_timestamp),
     std::chrono::milliseconds(25));
-  ASSERT_GE(
+  EXPECT_GE(
     lely::util::from_timespec(r_fb2.voltages_temps_timestamp) -
       lely::util::from_timespec(r_fb1.voltages_temps_timestamp),
     std::chrono::milliseconds(25));
@@ -304,10 +307,10 @@ TEST_F(TestRoboteqDriver, SendRoboteqCmd)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2), fl_v);
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), fr_v);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2), rl_v);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), rr_v);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2), fl_v);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), fr_v);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2), rl_v);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), rr_v);
 }
 
 TEST_F(TestRoboteqDriver, ResetRoboteqScript)
@@ -318,8 +321,8 @@ TEST_F(TestRoboteqDriver, ResetRoboteqScript)
   canopen_controller_->GetFrontDriver()->ResetRoboteqScript();
   canopen_controller_->GetRearDriver()->ResetRoboteqScript();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetResetRoboteqScript(), 2);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetResetRoboteqScript(), 2);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetResetRoboteqScript(), 2);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetResetRoboteqScript(), 2);
 }
 
 TEST_F(TestRoboteqDriver, ReadRoboteqTurnOnEStop)
@@ -330,8 +333,8 @@ TEST_F(TestRoboteqDriver, ReadRoboteqTurnOnEStop)
   canopen_controller_->GetFrontDriver()->TurnOnEStop();
   canopen_controller_->GetRearDriver()->TurnOnEStop();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnEStop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, TurnOffEStop)
@@ -342,8 +345,8 @@ TEST_F(TestRoboteqDriver, TurnOffEStop)
   canopen_controller_->GetFrontDriver()->TurnOffEStop();
   canopen_controller_->GetRearDriver()->TurnOffEStop();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOffEStop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOffEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel1)
@@ -354,8 +357,8 @@ TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel1)
   canopen_controller_->GetFrontDriver()->TurnOnSafetyStopChannel1();
   canopen_controller_->GetRearDriver()->TurnOnSafetyStopChannel1();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnSafetyStop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnSafetyStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel2)
@@ -366,8 +369,8 @@ TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel2)
   canopen_controller_->GetFrontDriver()->TurnOnSafetyStopChannel2();
   canopen_controller_->GetRearDriver()->TurnOnSafetyStopChannel2();
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnSafetyStop(), 2);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 2);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnSafetyStop(), 2);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 2);
 }
 
 TEST_F(TestRoboteqDriver, WriteTimeout)

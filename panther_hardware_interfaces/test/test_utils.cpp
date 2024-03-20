@@ -14,6 +14,7 @@
 
 #include <bitset>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -24,18 +25,18 @@ TEST(TestUtils, GetByte)
 {
   using panther_hardware_interfaces::GetByte;
 
-  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 0), 0x86);
-  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 1), 0x41);
-  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 2), 0x3B);
-  ASSERT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 3), 0xFA);
+  EXPECT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 0), 0x86);
+  EXPECT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 1), 0x41);
+  EXPECT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 2), 0x3B);
+  EXPECT_EQ(GetByte(static_cast<std::int32_t>(0xFA3B4186), 3), 0xFA);
 }
 
 TEST(TestUtils, GetByteOutOfRange)
 {
   using panther_hardware_interfaces::GetByte;
 
-  ASSERT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), 4), std::runtime_error);
-  ASSERT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), -1), std::runtime_error);
+  EXPECT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), 4), std::runtime_error);
+  EXPECT_THROW(GetByte(static_cast<std::int32_t>(0xFA3B4186), -1), std::runtime_error);
 }
 
 TEST(TestUtils, OperationWithAttemptsFailTest)
@@ -44,14 +45,14 @@ TEST(TestUtils, OperationWithAttemptsFailTest)
   unsigned attempts_counter = 0;
   unsigned on_error_counter = 0;
 
-  ASSERT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
+  EXPECT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
     [&attempts_counter]() {
       ++attempts_counter;
       throw std::runtime_error("");
     },
     max_attempts, [&on_error_counter]() { ++on_error_counter; }));
-  ASSERT_EQ(attempts_counter, max_attempts);
-  ASSERT_EQ(on_error_counter, max_attempts);
+  EXPECT_EQ(attempts_counter, max_attempts);
+  EXPECT_EQ(on_error_counter, max_attempts);
 }
 
 TEST(TestUtils, OperationWithAttemptsSuccessTest)
@@ -59,7 +60,7 @@ TEST(TestUtils, OperationWithAttemptsSuccessTest)
   unsigned max_attempts = 5;
   unsigned attempts_counter = 0;
 
-  ASSERT_TRUE(panther_hardware_interfaces::OperationWithAttempts(
+  EXPECT_TRUE(panther_hardware_interfaces::OperationWithAttempts(
     [&attempts_counter, &max_attempts]() {
       ++attempts_counter;
       if (attempts_counter < max_attempts) {
@@ -67,12 +68,12 @@ TEST(TestUtils, OperationWithAttemptsSuccessTest)
       }
     },
     max_attempts, []() {}));
-  ASSERT_EQ(attempts_counter, max_attempts);
+  EXPECT_EQ(attempts_counter, max_attempts);
 }
 
 TEST(TestUtils, OperationWithAttemptsOnErrorThrowTest)
 {
-  ASSERT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
+  EXPECT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
     []() { throw std::runtime_error(""); }, 5, []() { throw std::runtime_error(""); }));
 }
 
@@ -80,16 +81,16 @@ TEST(TestUtils, CheckIfJointNameContainValidSequence)
 {
   using panther_hardware_interfaces::CheckIfJointNameContainValidSequence;
 
-  ASSERT_TRUE(CheckIfJointNameContainValidSequence("fr_wheel_joint", "fr"));
-  ASSERT_TRUE(CheckIfJointNameContainValidSequence("namespace/fr_wheel_joint", "fr"));
-  ASSERT_TRUE(CheckIfJointNameContainValidSequence("wheel_fr_joint", "fr"));
-  ASSERT_TRUE(CheckIfJointNameContainValidSequence("wheel_joint_fr", "fr"));
+  EXPECT_TRUE(CheckIfJointNameContainValidSequence("fr_wheel_joint", "fr"));
+  EXPECT_TRUE(CheckIfJointNameContainValidSequence("namespace/fr_wheel_joint", "fr"));
+  EXPECT_TRUE(CheckIfJointNameContainValidSequence("wheel_fr_joint", "fr"));
+  EXPECT_TRUE(CheckIfJointNameContainValidSequence("wheel_joint_fr", "fr"));
 
-  ASSERT_FALSE(CheckIfJointNameContainValidSequence("wheel_joint", "fr"));
-  ASSERT_FALSE(CheckIfJointNameContainValidSequence("rfr_wheel_joint", "fr"));
-  ASSERT_FALSE(CheckIfJointNameContainValidSequence("frwheel_joint", "fr"));
-  ASSERT_FALSE(CheckIfJointNameContainValidSequence("wheel_froint", "fr"));
-  ASSERT_FALSE(CheckIfJointNameContainValidSequence("wheeljointfr", "fr"));
+  EXPECT_FALSE(CheckIfJointNameContainValidSequence("wheel_joint", "fr"));
+  EXPECT_FALSE(CheckIfJointNameContainValidSequence("rfr_wheel_joint", "fr"));
+  EXPECT_FALSE(CheckIfJointNameContainValidSequence("frwheel_joint", "fr"));
+  EXPECT_FALSE(CheckIfJointNameContainValidSequence("wheel_froint", "fr"));
+  EXPECT_FALSE(CheckIfJointNameContainValidSequence("wheeljointfr", "fr"));
 }
 
 int main(int argc, char ** argv)
