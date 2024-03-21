@@ -34,7 +34,9 @@ git clone https://github.com/husarion/panther_ros.git src/panther_ros
 
 ``` bash
 vcs import src < src/panther_ros/panther/panther_hardware.repos
-vcs import src < src/panther_ros/panther/panther_simulation.repos
+if [ "$HUSARION_ROS_BUILD_TYPE" == "simulation" ]; then
+  vcs import src < src/panther_ros/panther/panther_simulation.repos
+fi
 
 sudo rosdep init
 rosdep update --rosdistro $ROS_DISTRO
