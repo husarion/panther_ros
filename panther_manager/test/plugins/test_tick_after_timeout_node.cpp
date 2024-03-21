@@ -24,6 +24,46 @@
 #include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
 #include <plugin_test_utils.hpp>
 
+class TestTickAfterTimeout : public panther_manager::plugin_test_utils::PluginTestUtils
+{
+public:
+  virtual std::string BuildBehaviorTree(
+    const std::string & plugin_name, const std::map<std::string, std::string> & service) override;
+};
+
+std::string TestTickAfterTimeout::BuildBehaviorTree(
+  const std::string & /* plugin_name */, const std::map<std::string, std::string> & /* service */
+)
+{
+  std::stringstream bt;
+
+  bt << tree_header_ << std::endl;
+  bt << "\t\t\t<TickAfterTimeout timeout=\"0.1\" >" << std::endl;
+
+  bt << "\t\t\t\t<AlwaysSuccess name=\"success_action\"/>" << std::endl;
+
+  bt << "\t\t\t</TickAfterTimeout>" << std::endl;
+
+  bt << tree_footer_;
+
+  return bt.str();
+}
+
+TEST_F(TestTickAfterTimeout, GoodTickAfterTimeout)
+{
+  RegisterNodeWithoutParams<panther_manager::TickAfterTimeout>("TickAfterTimeout");
+
+  CreateTree("", {});
+  auto & tree = GetTree();
+
+  for (std::size_t i = 0; i < 10; ++i) {
+    auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+    if (status != BT::NodeStatus::SUCCESS && status != BT::NodeStatus::SKIPPED) {
+      FAIL() << "Bad status of behavior tree.";
+    }
+  }
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

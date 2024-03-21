@@ -34,15 +34,11 @@ void PluginTestUtils::TearDown()
 }
 
 std::string PluginTestUtils::BuildBehaviorTree(
-  const std::string & plugin_name, const std::map<std::string, std::string> & service,
-  double tick_after_timeout)
+  const std::string & plugin_name, const std::map<std::string, std::string> & service)
 {
   std::stringstream bt;
 
   bt << tree_header_ << std::endl;
-  if (not std::isnan(tick_after_timeout)) {
-    bt << "\t\t\t<TickAfterTimeout timeout=\"" << tick_after_timeout << "\" >" << std::endl;
-  }
 
   bt << "\t\t\t\t<" << plugin_name << " ";
 
@@ -52,20 +48,15 @@ std::string PluginTestUtils::BuildBehaviorTree(
 
   bt << " />" << std::endl;
 
-  if (not std::isnan(tick_after_timeout)) {
-    bt << "\t\t\t</TickAfterTimeout>" << std::endl;
-  }
-
   bt << tree_footer_;
 
   return bt.str();
 }
 
 void PluginTestUtils::CreateTree(
-  const std::string & plugin_name, const std::map<std::string, std::string> & service,
-  double tick_after_timeout)
+  const std::string & plugin_name, const std::map<std::string, std::string> & service)
 {
-  auto xml_text = BuildBehaviorTree(plugin_name, service, tick_after_timeout);
+  auto xml_text = BuildBehaviorTree(plugin_name, service);
   tree_ = factory_.createTreeFromText(xml_text);
 }
 

@@ -41,7 +41,6 @@ enum class ShutdownHostState {
 class ShutdownHost
 {
 public:
-  // default constructor
   ShutdownHost()
   : ip_(""),
     user_(""),

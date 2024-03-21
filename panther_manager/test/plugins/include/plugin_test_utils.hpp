@@ -55,13 +55,11 @@ public:
 
   virtual void TearDown() override final;
 
-  std::string BuildBehaviorTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & service,
-    double tick_after_timeout);
+  virtual std::string BuildBehaviorTree(
+    const std::string & plugin_name, const std::map<std::string, std::string> & service);
 
   void CreateTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & service,
-    double tick_after_timeout = std::numeric_limits<double>::quiet_NaN());
+    const std::string & plugin_name, const std::map<std::string, std::string> & service);
 
   BT::Tree & GetTree();
 
