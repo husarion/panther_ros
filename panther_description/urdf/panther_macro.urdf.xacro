@@ -14,7 +14,15 @@
             imu_rot_r:=3.14
             imu_rot_p:=-1.57
             imu_rot_y:=0.0
-            simulation_engine:='ignition-gazebo'">
+            simulation_engine:='ignition-gazebo'
+            namespace:=''">
+
+    <xacro:if value="${namespace == ''}">
+      <xacro:property name="ns" value="" />
+    </xacro:if>
+    <xacro:unless value="${namespace == ''}">
+        <xacro:property name="ns" value="${namespace}/" />
+    </xacro:unless>
 
     <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
     <xacro:property name="wheel_separation_x" value="0.44" />
@@ -55,7 +63,7 @@
       wheel_separation_x="${wheel_separation_x}"
       prefix="rr" />
 
-    <ros2_control name="wheels" type="system">
+    <ros2_control name="${ns}wheels" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
           <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
@@ -130,7 +138,7 @@
       </joint>
 
       <xacro:if value="${use_sim}">
-        <sensor name="imu">
+        <sensor name="${ns}imu">
           <state_interface name="orientation.x" />
           <state_interface name="orientation.y" />
           <state_interface name="orientation.z" />
@@ -146,9 +154,9 @@
     </ros2_control>
 
     <xacro:if value="${use_sim}">
-      <xacro:gazebo.battery config_file="${battery_config_file}" />
-      <xacro:gazebo.controller config_file="${controller_config_file}" />
-      <xacro:gazebo.imu reference_frame="imu_link" name="imu" />
+      <xacro:gazebo.battery config_file="${battery_config_file}" namespace="${namespace}" />
+      <xacro:gazebo.controller config_file="${controller_config_file}" namespace="${namespace}" />
+      <xacro:gazebo.imu reference_frame="imu_link" namespace="${namespace}" />
     </xacro:if>
   </xacro:macro>
 

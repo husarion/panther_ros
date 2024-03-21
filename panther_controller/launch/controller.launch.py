@@ -82,6 +82,12 @@ def generate_launch_description():
             "When set to False, users should publish their own robot description."
         ),
     )
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value="",
+        description="Namespace for all Panther topics",
+    )
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -119,6 +125,8 @@ def generate_launch_description():
             os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
             " imu_rot_y:=",
             os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
+            " namespace:=",
+            namespace,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -138,6 +146,8 @@ def generate_launch_description():
             ("panther_system_node/e_stop", "hardware/e_stop"),
             ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
             ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
+            ("/tf", "tf"),
+            ("/tf_static", "tf_static"),
         ],
         condition=UnlessCondition(use_sim),
     )
@@ -147,6 +157,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        remappings=[("/tf", "tf"), ("/tf_static", "tf_static")],
         condition=IfCondition(publish_robot_state),
     )
 
@@ -159,6 +170,8 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
     )
 
@@ -171,6 +184,8 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
     )
 
@@ -212,6 +227,7 @@ def generate_launch_description():
         declare_battery_config_path_arg,
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
+        declare_namespace_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,

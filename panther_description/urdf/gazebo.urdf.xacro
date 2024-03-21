@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
   <!-- Battery -->
-  <xacro:macro name="battery" params="config_file">
+  <xacro:macro name="battery" params="config_file namespace:=''">
 
     <!-- Read property -->
     <xacro:property name="battery_config" value="${xacro.load_yaml(config_file)}" />
@@ -37,18 +37,23 @@
 
         <!-- https://github.com/gazebosim/gz-sim/issues/225 -->
         <fix_issue_225>true</fix_issue_225>
+
+        <ros>
+          <namespace>${namespace}</namespace>
+        </ros>
       </plugin>
     </gazebo>
   </xacro:macro>
 
   <!-- Controller -->
-  <xacro:macro name="controller" params="config_file">
+  <xacro:macro name="controller" params="config_file namespace:=''">
     <gazebo>
-      <plugin filename="ign_ros2_control-system"
-        name="ign_ros2_control::IgnitionROS2ControlPlugin">
+      <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
         <parameters>${config_file}</parameters>
         <ros>
+          <namespace>${namespace}</namespace>
           <remapping>/panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          <remapping>/tf:=tf</remapping>
         </ros>
       </plugin>
     </gazebo>
@@ -68,9 +73,17 @@
 
   <!-- IMU -->
   <!-- Noise ref: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications -->
-  <xacro:macro name="imu" params="reference_frame name:='imu'">
+  <xacro:macro name="imu" params="reference_frame namespace:=''">
+
+    <xacro:if value="${namespace == ''}">
+      <xacro:property name="ns" value="" />
+    </xacro:if>
+    <xacro:unless value="${namespace == ''}">
+        <xacro:property name="ns" value="${namespace}/" />
+    </xacro:unless>
+
     <gazebo reference="${reference_frame}">
-      <sensor name="${name}" type="imu">
+      <sensor name="${ns}imu" type="imu">
         <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu" />
         <always_on>true</always_on>
         <update_rate>50</update_rate>
@@ -79,6 +92,9 @@
         <enable_metrics>false</enable_metrics>
         <frame_id>imu_link</frame_id>
         <ignition_frame_id>imu_link</ignition_frame_id>
+        <ros>
+          <namespace>${namespace}</namespace>
+        </ros>
         <imu>
           <angular_velocity>
             <x>

@@ -65,7 +65,6 @@ Simulation:
 ros2 launch panther_gazebo simulation.launch.py
 ```
 
-
 ## Developer Info
 
 ### Setup pre-commit
