@@ -21,61 +21,43 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <panther_manager/plugins/action/signal_shutdown_node.hpp>
-#include <panther_manager_plugin_test_utils.hpp>
+#include <plugin_test_utils.hpp>
 
-TEST(TestSignalShutdown, good_loading_signal_shutdown_plugin)
+typedef panther_manager::plugin_test_utils::PluginTestUtils TestSignalShutdown;
+
+TEST_F(TestSignalShutdown, GoodLoadingSignalShutdownPlugin)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
 
-  ASSERT_NO_THROW({ test_utils.CreateTree("SignalShutdown", service); });
-  test_utils.Stop();
+  RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
+
+  ASSERT_NO_THROW({ CreateTree("SignalShutdown", service); });
 }
 
-TEST(TestSignalShutdown, wrong_plugin_name_loading_signal_shutdown_plugin)
+TEST_F(TestSignalShutdown, WrongPluginNameLoadingSignalShutdownPlugin)
 {
   std::map<std::string, std::string> service = {};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  EXPECT_THROW({ test_utils.CreateTree("WrongSignalShutdown", service); }, BT::RuntimeError);
-  test_utils.Stop();
+  EXPECT_THROW({ CreateTree("WrongSignalShutdown", service); }, BT::RuntimeError);
 }
 
-TEST(TestSignalShutdown, good_check_reason_blackboard_value)
+TEST_F(TestSignalShutdown, GoodCheckReasonBlackboardValue)
 {
   std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("SignalShutdown", service);
+
+  RegisterNodeWithoutParams<panther_manager::SignalShutdown>("SignalShutdown");
+
+  CreateTree("SignalShutdown", service);
+  auto & tree = GetTree();
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(status, BT::NodeStatus::SUCCESS);
 
   auto blackboard = tree.rootBlackboard();
-  auto got_value = blackboard->get<std::pair<bool, std::string>>("signal_shutdown");
+  auto signal_shutdown_value = blackboard->get<std::pair<bool, std::string>>("signal_shutdown");
 
-  EXPECT_EQ(got_value.first, true);
-  EXPECT_EQ(got_value.second, service["reason"]);
-  test_utils.Stop();
-}
-
-TEST(TestSignalShutdown, wrong_check_reason_blackboard_value)
-{
-  std::map<std::string, std::string> service = {{"reason", "Test shutdown."}};
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("SignalShutdown", service);
-
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
-
-  auto blackboard = tree.rootBlackboard();
-  auto got_value = blackboard->get<std::pair<bool, std::string>>("signal_shutdown");
-
-  EXPECT_EQ(got_value.first, true);
-  EXPECT_FALSE(got_value.second == "Wrong reason!");
+  EXPECT_EQ(signal_shutdown_value.first, true);
+  EXPECT_EQ(signal_shutdown_value.second, service["reason"]);
 }
 
 int main(int argc, char ** argv)

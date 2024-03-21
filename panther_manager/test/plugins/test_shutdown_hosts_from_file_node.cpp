@@ -22,82 +22,80 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <panther_manager/plugins/action/shutdown_hosts_from_file_node.hpp>
+#include <plugin_test_utils.hpp>
 
-#include <panther_manager_plugin_test_utils.hpp>
+typedef panther_manager::plugin_test_utils::PluginTestUtils TestShutdownHostsFromFile;
 
-TEST(TestShutdownHostsFromFile, good_loading_shutdown_hosts_from_file_plugin)
+TEST_F(TestShutdownHostsFromFile, GoodLoadingShutdownHostsFromFilePlugin)
 {
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
 
-  ASSERT_NO_THROW({ test_utils.CreateTree("ShutdownHostsFromFile", service); });
-  test_utils.Stop();
+  ASSERT_NO_THROW({ CreateTree("ShutdownHostsFromFile", service); });
 }
 
-TEST(TestShutdownHostsFromFile, wrong_plugin_name_loading_shutdown_hosts_from_file_plugin)
+TEST_F(TestShutdownHostsFromFile, WrongPluginNameLoadingShutdownHostsFromFilePlugin)
 {
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", "dummy_file"}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  EXPECT_THROW({ test_utils.CreateTree("WrongShutdownHostsFromFile", service); }, BT::RuntimeError);
-  test_utils.Stop();
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
+
+  EXPECT_THROW({ CreateTree("WrongShutdownHostsFromFile", service); }, BT::RuntimeError);
 }
 
-TEST(TestShutdownHostsFromFile, wrong_cannot_find_file_shutdown_hosts_from_file)
+TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
 {
-  const std::string file_path = "/tmp/test_wrong_cannot_find_file_shutdown_hosts_from_file";
+  const std::string file_path = testing::TempDir() +
+                                "/test_wrong_cannot_find_file_shutdown_hosts_from_file";
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", file_path}};
 
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("ShutdownHostsFromFile", service);
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
+
+  CreateTree("ShutdownHostsFromFile", service);
+  auto & tree = GetTree();
 
   EXPECT_THROW({ tree.tickWhileRunning(std::chrono::milliseconds(100)); }, BT::RuntimeError);
-
-  test_utils.Stop();
 }
 
-TEST(TestShutdownHostsFromFile, good_shutdown_hosts_from_file)
+TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
 {
-  const std::string config_file_path =
-    "/tmp/test_panther_manager_good_shutdown_hosts_from_file_config";
-  const std::string test_file_path = "/tmp/test_panther_manager_good_shutdown_hosts_from_file";
+  const std::string config_file_path = testing::TempDir() +
+                                       "/test_panther_manager_good_shutdown_hosts_from_file_config";
+  const std::string test_file_path = testing::TempDir() +
+                                     "/test_panther_manager_good_shutdown_hosts_from_file";
   std::filesystem::remove(test_file_path);
   std::filesystem::remove(config_file_path);
 
   EXPECT_FALSE(std::filesystem::exists(test_file_path));
   EXPECT_FALSE(std::filesystem::exists(config_file_path));
 
-  YAML::Node yaml;
-  yaml["hosts"][0]["ip"] = "localhost";
-  yaml["hosts"][0]["username"] = "husarion";
-  yaml["hosts"][0]["port"] = 22;
-  yaml["hosts"][0]["command"] = "touch " + test_file_path;
-  yaml["hosts"][0]["timeout"] = 5.0;
-  yaml["hosts"][0]["ping_for_success"] = false;
+  YAML::Node shutdown_host_desc;
+  shutdown_host_desc["hosts"][0]["ip"] = "localhost";
+  shutdown_host_desc["hosts"][0]["username"] = "husarion";
+  shutdown_host_desc["hosts"][0]["port"] = 22;
+  shutdown_host_desc["hosts"][0]["command"] = "touch " + test_file_path;
+  shutdown_host_desc["hosts"][0]["timeout"] = 5.0;
+  shutdown_host_desc["hosts"][0]["ping_for_success"] = false;
   std::fstream config_file;
   YAML::Emitter emitter(config_file);
 
   config_file.open(config_file_path, std::ios::app);
-  emitter << yaml;
+  emitter << shutdown_host_desc;
 
   config_file.close();
 
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", config_file_path}};
-  panther_manager_plugin_test::PantherManagerPluginTestUtils test_utils;
-  test_utils.Start();
-  auto & tree = test_utils.CreateTree("ShutdownHostsFromFile", service);
+  RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
+
+  auto & tree = GetTree();
+  CreateTree("ShutdownHostsFromFile", service);
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
 
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
   std::filesystem::remove(test_file_path);
   std::filesystem::remove(config_file_path);
-
-  test_utils.Stop();
 }
 
 int main(int argc, char ** argv)

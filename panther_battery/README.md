@@ -30,6 +30,7 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
+- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: battery diagnostic messages.
 - `/panther/battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
 - `/panther/battery_1_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
 - `/panther/battery_2_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.

@@ -4,7 +4,7 @@
   <name>panther_manager</name>
 
   <version>0.0.1</version>
-  <description>The panther_manager package</description>
+  <description>Set of nodes used for high level management of Husarion Panther robot</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 
@@ -14,6 +14,8 @@
 
   <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
   <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>behaviortree_cpp</depend>
   <depend>iputils-ping</depend>

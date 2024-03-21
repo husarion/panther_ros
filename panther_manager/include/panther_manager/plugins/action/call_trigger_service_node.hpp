@@ -15,8 +15,11 @@
 #ifndef PANTHER_MANAGER_CALL_TRIGGER_SERVICE_NODE_HPP_
 #define PANTHER_MANAGER_CALL_TRIGGER_SERVICE_NODE_HPP_
 
+#include <string>
+
 #include <behaviortree_ros2/bt_service_node.hpp>
 #include <rclcpp/rclcpp.hpp>
+
 #include <std_srvs/srv/trigger.hpp>
 
 namespace panther_manager
@@ -33,7 +36,7 @@ public:
 
   static BT::PortsList providedPorts() { return providedBasicPorts({}); }
 
-  virtual bool setRequest(typename Request::SharedPtr & /* request*/) override;
+  virtual bool setRequest(typename Request::SharedPtr & /*request*/) override;
   virtual BT::NodeStatus onResponseReceived(const typename Response::SharedPtr & response) override;
 };
 

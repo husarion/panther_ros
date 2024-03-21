@@ -1,5 +1,6 @@
 /**:
   ekf_node:
+    # Ref: http://docs.ros.org/en/noetic/api/robot_localization/html/state_estimation_nodes.html
     ros__parameters:
       frequency: 50.0
       sensor_timeout: 0.2
@@ -15,29 +16,33 @@
       publish_tf: true
       publish_acceleration: false
 
-      odom0: odom/wheels
+      odom0: panther_base_controller/odom
       odom0_config: [false,  false,  false,
                     false, false, false,
                     true, true, false,
                     false, false, true,
                     false, false, false]
-      odom0_queue_size: 2
+      odom0_queue_size: 3
       odom0_nodelay: false
       odom0_differential: false
       odom0_relative: true
 
-      imu0: imu/data
+      imu0: imu_broadcaster/imu
       imu0_config: [false, false, false,
                     false, false, false,
                     false, false, false,
                     false, false, true,
-                    true, true, false]
+                    false, false, false]
       imu0_nodelay: false
       imu0_differential: false
       imu0_relative: true
-      imu0_queue_size: 5
-
+      imu0_queue_size: 3
       imu0_remove_gravitational_acceleration: false
+
+      use_control: true
+      control_timeout: 0.5
+      control_config: [true, true, false, false, false, true]
+      acceleration_limits: [2.7, 1.5, 0.0, 0.0, 0.0, 5.7] # Values taken from WH01_controller.yaml and WH02_controller.yaml inside panther_controller/config
 
       process_noise_covariance: [1e-4,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                                  0.0,    1e-4,   0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
@@ -48,9 +53,9 @@
                                  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    2e-5,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                                  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     2e-5,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                                  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     2e-5,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    5e-5,   0.0,    0.0,    0.0,    0.0,    0.0,
-                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    5e-5,   0.0,    0.0,    0.0,    0.0,
-                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    5e-5,   0.0,    0.0,    0.0,
+                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    2e-4,   0.0,    0.0,    0.0,    0.0,    0.0,
+                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    2e-4,   0.0,    0.0,    0.0,    0.0,
+                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    2e-4,   0.0,    0.0,    0.0,
                                  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    5e-5,   0.0,    0.0,
                                  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    5e-5,   0.0,
                                  0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    5e-5]

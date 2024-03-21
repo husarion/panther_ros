@@ -15,8 +15,11 @@
 #ifndef PANTHER_MANAGER_CALL_SET_BOOL_SERVICE_NODE_HPP_
 #define PANTHER_MANAGER_CALL_SET_BOOL_SERVICE_NODE_HPP_
 
+#include <string>
+
 #include <behaviortree_ros2/bt_service_node.hpp>
 #include <rclcpp/rclcpp.hpp>
+
 #include <std_srvs/srv/set_bool.hpp>
 
 namespace panther_manager

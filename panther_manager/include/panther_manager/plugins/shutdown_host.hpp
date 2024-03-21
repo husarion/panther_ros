@@ -47,7 +47,7 @@ public:
     user_(""),
     port_(22),
     command_(""),
-    timeout_(5000),
+    timeout_ms_(5000),
     ping_for_success_(true),
     hash_(std::hash<std::string>{}(""))
   {
@@ -60,7 +60,7 @@ public:
     user_(user),
     port_(port),
     command_(command),
-    timeout_(static_cast<long long>(timeout * 1000)),
+    timeout_ms_(static_cast<long long>(timeout * 1000)),
     ping_for_success_(ping_for_success),
     hash_(std::hash<std::string>{}(ip + user + std::to_string(port))),
     state_(ShutdownHostState::IDLE)
@@ -163,7 +163,7 @@ private:
   const std::string user_;
   const int port_;
   const std::string command_;
-  const std::chrono::milliseconds timeout_;
+  const std::chrono::milliseconds timeout_ms_;
   const bool ping_for_success_;
   const std::size_t hash_;
   ShutdownHostState state_;
@@ -213,7 +213,7 @@ private:
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - command_time_);
 
-    return elapsed > timeout_ && is_available();
+    return elapsed > timeout_ms_ && is_available();
   }
 
   void ssh_execute_command(const std::string & command)

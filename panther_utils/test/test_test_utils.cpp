@@ -37,22 +37,49 @@ TEST(TestTestUtils, CheckNanVector)
   EXPECT_THROW(TestCheckNaNVector<int>(), std::runtime_error);
 }
 
-TEST(TestTestUtils, ExpectThrowWithDescription)
+TEST(TestTestUtils, IsMessageThrownTrue)
 {
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
-    []() { throw std::runtime_error("Example exception"); }, "Example exception");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "Example exception"));
 
-  panther_utils::test_utils::ExpectThrowWithDescription<std::out_of_range>(
-    []() { throw std::out_of_range("Example exception"); }, "Example exception");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::out_of_range>(
+    []() { throw std::out_of_range("Example exception"); }, "Example exception"));
 
-  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
-    []() { throw std::invalid_argument("Example exception"); }, "Example exception");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+    []() { throw std::invalid_argument("Example exception"); }, "Example exception"));
 
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
-    []() { throw std::runtime_error("Example exception"); }, "Example");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "Example"));
 
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
-    []() { throw std::runtime_error("Example exception"); }, "exception");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "exception"));
+}
+
+TEST(TestTestUtils, IsMessageThrownDifferentException)
+{
+  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { throw std::out_of_range("Example exception"); }, "Example exception"));
+
+  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::out_of_range>(
+    []() { throw std::invalid_argument("Example exception"); }, "Example exception"));
+
+  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+    []() { throw std::runtime_error("Example exception"); }, "Example exception"));
+}
+
+TEST(TestTestUtils, IsMessageThrownDifferentMessage)
+{
+  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "Different exception message"));
+
+  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { throw std::runtime_error("Example exception"); }, "Example exception "));
+}
+
+TEST(TestTestUtils, IsMessageThrownNoThrow)
+{
+  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    []() { return; }, "Example exception"));
 }
 
 int main(int argc, char ** argv)

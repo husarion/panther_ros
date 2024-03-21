@@ -41,9 +41,7 @@ public:
   explicit ShutdownHosts(const std::string & name, const BT::NodeConfig & conf)
   : BT::StatefulActionNode(name, conf)
   {
-    // TODO: @delihus What is the name of ros::this_node?
-    node_name_ = name;
-    logger_ = std::make_shared<rclcpp::Logger>(rclcpp::get_logger(node_name_));
+    this->logger_ = std::make_shared<rclcpp::Logger>(rclcpp::get_logger(name));
   }
 
   virtual ~ShutdownHosts() = default;
@@ -55,18 +53,16 @@ public:
   virtual BT::NodeStatus post_process()
   {
     // return success only when all hosts succeeded
-    if (failed_hosts_.size() == 0) {
+    if (this->failed_hosts_.size() == 0) {
       return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
   }
 
-  std::string get_node_name() const { return node_name_; }
-  std::vector<std::size_t> const get_failed_hosts() { return failed_hosts_; }
+  std::vector<std::size_t> const get_failed_hosts() { return this->failed_hosts_; }
 
 private:
   std::size_t check_host_index_ = 0;
-  std::string node_name_;
   std::vector<std::shared_ptr<ShutdownHost>> hosts_;
   std::vector<std::size_t> hosts_to_check_;
   std::vector<std::size_t> skipped_hosts_;
@@ -76,65 +72,65 @@ private:
 
   BT::NodeStatus onStart()
   {
-    update_hosts(hosts_);
-    remove_duplicate_hosts(hosts_);
-    if (hosts_.size() <= 0) {
-      RCLCPP_ERROR_STREAM(*logger_, "Hosts list is empty! Check configuration!");
+    update_hosts(this->hosts_);
+    remove_duplicate_hosts(this->hosts_);
+    if (this->hosts_.size() <= 0) {
+      RCLCPP_ERROR_STREAM(*this->logger_, "Hosts list is empty! Check configuration!");
       return BT::NodeStatus::FAILURE;
     }
-    hosts_to_check_.resize(hosts_.size());
-    std::iota(hosts_to_check_.begin(), hosts_to_check_.end(), 0);
+    this->hosts_to_check_.resize(this->hosts_.size());
+    std::iota(this->hosts_to_check_.begin(), this->hosts_to_check_.end(), 0);
     return BT::NodeStatus::RUNNING;
   }
 
   BT::NodeStatus onRunning()
   {
-    if (hosts_to_check_.size() <= 0) {
+    if (this->hosts_to_check_.size() <= 0) {
       return post_process();
     }
 
-    if (check_host_index_ >= hosts_to_check_.size()) {
-      check_host_index_ = 0;
+    if (this->check_host_index_ >= this->hosts_to_check_.size()) {
+      this->check_host_index_ = 0;
     }
 
-    auto host_index = hosts_to_check_[check_host_index_];
-    auto host = hosts_[host_index];
+    auto host_index = this->hosts_to_check_[this->check_host_index_];
+    auto host = this->hosts_[host_index];
     host->call();
 
     switch (host->get_state()) {
       case ShutdownHostState::RESPONSE_RECEIVED:
         RCLCPP_INFO_STREAM(
-          *logger_, "Device at: " << host->get_ip() << " response:\n"
-                                  << host->get_response());
+          *this->logger_, "Device at: " << host->get_ip() << " response:\n"
+                                        << host->get_response());
 
         check_host_index_++;
         break;
 
       case ShutdownHostState::SUCCESS:
-        RCLCPP_INFO_STREAM(*logger_, "Successfully shutdown device at: " << host->get_ip());
-        succeeded_hosts_.push_back(host_index);
-        hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
+        RCLCPP_INFO_STREAM(*this->logger_, "Successfully shutdown device at: " << host->get_ip());
+        this->succeeded_hosts_.push_back(host_index);
+        this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
         break;
 
       case ShutdownHostState::FAILURE:
         RCLCPP_WARN_STREAM(
-          *logger_,
+          *this->logger_,
           "Failed to shutdown device at: " << host->get_ip() << " Error: " << host->get_error());
 
-        failed_hosts_.push_back(host_index);
-        hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
+        this->failed_hosts_.push_back(host_index);
+        this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
         break;
 
       case ShutdownHostState::SKIPPED:
         RCLCPP_WARN_STREAM(
-          *logger_, "Device at: " << host->get_ip() << " not available, skipping...");
+          *this->logger_, "Device at: " << host->get_ip() << " not available, skipping...");
 
-        skipped_hosts_.push_back(host_index);
-        hosts_to_check_.erase(hosts_to_check_.begin() + check_host_index_);
+        this->skipped_hosts_.push_back(host_index);
+        this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
         break;
 
       default:
-        check_host_index_++;
+        this->check_host_index_++;
         break;
     }
 
@@ -154,10 +150,10 @@ private:
             return false;
           } else {
             RCLCPP_WARN_STREAM(
-              *logger_, "Found duplicate host: " << host->get_ip()
-                                                 << " Processing only the "
-                                                    "first "
-                                                    "occurrence.");
+              *this->logger_, "Found duplicate host: " << host->get_ip()
+                                                       << " Processing only the "
+                                                          "first "
+                                                          "occurrence.");
             return true;
           }
         }),
@@ -166,7 +162,7 @@ private:
 
   void onHalted()
   {
-    for (auto & host : hosts_) {
+    for (auto & host : this->hosts_) {
       host->close_connection();
     }
   }

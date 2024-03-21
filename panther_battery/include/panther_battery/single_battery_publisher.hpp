@@ -29,7 +29,9 @@ class SingleBatteryPublisher : public BatteryPublisher
 {
 public:
   SingleBatteryPublisher(
-    const rclcpp::Node::SharedPtr & node, const std::shared_ptr<Battery> & battery);
+    const rclcpp::Node::SharedPtr & node,
+    const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater,
+    const std::shared_ptr<Battery> & battery);
 
   ~SingleBatteryPublisher() {}
 
@@ -38,6 +40,7 @@ protected:
   void Reset() override;
   void PublishBatteryState() override;
   void LogErrors() override;
+  void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status) override;
 
 private:
   std::shared_ptr<Battery> battery_;

@@ -9,6 +9,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     ament_index_cpp
     behaviortree_cpp
+    behaviortree_ros2
     libssh
     panther_msgs
     panther_utils
@@ -78,7 +79,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
   add_library(${PROJECT_NAME}_test_plugin_utils
-              test/plugins/src/panther_manager_plugin_test_utils.cpp)
+              test/plugins/src/plugin_test_utils.cpp)
   target_include_directories(${PROJECT_NAME}_test_plugin_utils
                              PUBLIC test/plugins/include)
 
