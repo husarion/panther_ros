@@ -145,8 +145,8 @@ TEST_F(TestManagerBTNode, CreateBTConfigInvalidItem)
 {
   const std::map<std::string, std::any> bb_values = {{"value", 1l}};
 
-  panther_utils::test_utils::ExpectThrowWithDescription<std::invalid_argument>(
-    [&]() { manager_bt_node_->CreateBTConfig(bb_values); }, "Invalid type for blackboard entry.");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+    [&]() { manager_bt_node_->CreateBTConfig(bb_values); }, "Invalid type for blackboard entry."));
 }
 
 TEST_F(TestManagerBTNode, CreateBTConfig)
@@ -176,8 +176,8 @@ TEST_F(TestManagerBTNode, CreateBTConfig)
 TEST_F(TestManagerBTNode, CreateLightsTreeMissingTree)
 {
   ASSERT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
-    [&]() { manager_bt_node_->CreateLightsTree(); }, "Can't find a tree with name: Lights");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    [&]() { manager_bt_node_->CreateLightsTree(); }, "Can't find a tree with name: Lights"));
 }
 
 TEST_F(TestManagerBTNode, CreateLightsTree)
@@ -198,8 +198,8 @@ TEST_F(TestManagerBTNode, CreateLightsTree)
 TEST_F(TestManagerBTNode, CreateSafetyTreeMissingTree)
 {
   ASSERT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
-    [&]() { manager_bt_node_->CreateSafetyTree(); }, "Can't find a tree with name: Safety");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    [&]() { manager_bt_node_->CreateSafetyTree(); }, "Can't find a tree with name: Safety"));
 }
 
 TEST_F(TestManagerBTNode, CreateSafetyTree)
@@ -220,8 +220,8 @@ TEST_F(TestManagerBTNode, CreateSafetyTree)
 TEST_F(TestManagerBTNode, CreateShutdownTreeMissingTree)
 {
   ASSERT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
-  panther_utils::test_utils::ExpectThrowWithDescription<std::runtime_error>(
-    [&]() { manager_bt_node_->CreateShutdownTree(); }, "Can't find a tree with name: Shutdown");
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    [&]() { manager_bt_node_->CreateShutdownTree(); }, "Can't find a tree with name: Shutdown"));
 }
 
 TEST_F(TestManagerBTNode, CreateShutdownTree)

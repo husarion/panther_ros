@@ -129,7 +129,7 @@ void ManagerBTNode::DeclareParameters()
   const auto panther_manager_pkg_path =
     ament_index_cpp::get_package_share_directory("panther_manager");
   const std::string default_bt_project_path = panther_manager_pkg_path +
-                                              "/config/Panther12BT.btproj";
+                                              "/behavior_trees/Panther12BT.btproj";
   const std::vector<std::string> default_plugin_libs = {};
 
   this->declare_parameter<bool>("launch_lights_tree", true);
