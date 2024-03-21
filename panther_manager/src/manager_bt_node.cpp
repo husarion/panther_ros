@@ -35,6 +35,7 @@
 #include <panther_utils/moving_average.hpp>
 
 #include <behaviortree_ros2/plugins.hpp>
+#include <panther_manager/bt_utils.hpp>
 
 namespace panther_manager
 {
@@ -113,12 +114,20 @@ void ManagerBTNode::Initialize()
   // -------------------------------
 
   if (launch_lights_tree) {
+    const float timer_freq = this->get_parameter("lights.timer_frequency").as_double();
+    const auto timer_period_ms =
+      std::chrono::milliseconds(static_cast<unsigned>(1.0f / timer_freq * 1000));
+
     lights_tree_timer_ = this->create_wall_timer(
-      std::chrono::milliseconds(100), std::bind(&ManagerBTNode::LightsTreeTimerCB, this));
+      timer_period_ms, std::bind(&ManagerBTNode::LightsTreeTimerCB, this));
   }
   if (launch_safety_tree) {
+    const float timer_freq = this->get_parameter("safety.timer_frequency").as_double();
+    const auto timer_period_ms =
+      std::chrono::milliseconds(static_cast<unsigned>(1.0f / timer_freq * 1000));
+
     safety_tree_timer_ = this->create_wall_timer(
-      std::chrono::milliseconds(100), std::bind(&ManagerBTNode::SafetyTreeTimerCB, this));
+      timer_period_ms, std::bind(&ManagerBTNode::SafetyTreeTimerCB, this));
   }
 
   RCLCPP_INFO(this->get_logger(), "Node initialized");
@@ -129,7 +138,7 @@ void ManagerBTNode::DeclareParameters()
   const auto panther_manager_pkg_path =
     ament_index_cpp::get_package_share_directory("panther_manager");
   const std::string default_bt_project_path = panther_manager_pkg_path +
-                                              "/behavior_trees/Panther12BT.btproj";
+                                              "/config/Panther12BT.btproj";
   const std::vector<std::string> default_plugin_libs = {};
 
   this->declare_parameter<bool>("launch_lights_tree", true);
@@ -151,12 +160,14 @@ void ManagerBTNode::DeclareParameters()
   this->declare_parameter<float>("lights.low_battery_anim_period", 30.0);
   this->declare_parameter<float>("lights.low_battery_threshold_percent", 0.4);
   this->declare_parameter<float>("lights.update_charging_anim_step", 0.1);
+  this->declare_parameter<float>("lights.timer_frequency", 10.0);
 
   // safety tree params
   this->declare_parameter<float>("safety.cpu_fan_on_temp", 70.0);
   this->declare_parameter<float>("safety.cpu_fan_off_temp", 60.0);
   this->declare_parameter<float>("safety.driver_fan_on_temp", 45.0);
   this->declare_parameter<float>("safety.driver_fan_off_temp", 35.0);
+  this->declare_parameter<float>("safety.timer_frequency", 10.0);
 }
 
 void ManagerBTNode::RegisterBehaviorTree()
@@ -224,7 +235,7 @@ void ManagerBTNode::CreateLightsTree()
     {"POWER_SUPPLY_HEALTH_OVERHEAT", unsigned(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT)},
   };
 
-  lights_config_ = CreateBTConfig(lights_initial_bb);
+  lights_config_ = bt_utils::CreateBTConfig(lights_initial_bb);
   lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
   lights_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(lights_tree_, 5555);
 }
@@ -258,7 +269,7 @@ void ManagerBTNode::CreateSafetyTree()
      unsigned(BatteryStateMsg::POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE)},
   };
 
-  safety_config_ = CreateBTConfig(safety_initial_bb);
+  safety_config_ = bt_utils::CreateBTConfig(safety_initial_bb);
   safety_tree_ = factory_.createTree("Safety", safety_config_.blackboard);
   safety_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(safety_tree_, 6666);
 }
@@ -271,41 +282,9 @@ void ManagerBTNode::CreateShutdownTree()
     {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_path.c_str()},
   };
 
-  shutdown_config_ = CreateBTConfig(shutdown_initial_bb);
+  shutdown_config_ = bt_utils::CreateBTConfig(shutdown_initial_bb);
   shutdown_tree_ = factory_.createTree("Shutdown", shutdown_config_.blackboard);
   shutdown_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(shutdown_tree_, 7777);
-}
-
-BT::NodeConfig ManagerBTNode::CreateBTConfig(
-  const std::map<std::string, std::any> & bb_values) const
-{
-  BT::NodeConfig config;
-  config.blackboard = BT::Blackboard::create();
-
-  for (auto & [name, value] : bb_values) {
-    const std::type_info & type = value.type();
-    if (type == typeid(bool)) {
-      config.blackboard->set<bool>(name, std::any_cast<bool>(value));
-    } else if (type == typeid(int)) {
-      config.blackboard->set<int>(name, std::any_cast<int>(value));
-    } else if (type == typeid(unsigned)) {
-      config.blackboard->set<unsigned>(name, std::any_cast<unsigned>(value));
-    } else if (type == typeid(float)) {
-      config.blackboard->set<float>(name, std::any_cast<float>(value));
-    } else if (type == typeid(double)) {
-      config.blackboard->set<double>(name, std::any_cast<double>(value));
-    } else if (type == typeid(const char *)) {
-      config.blackboard->set<std::string>(name, std::any_cast<const char *>(value));
-    } else if (type == typeid(std::string)) {
-      config.blackboard->set<std::string>(name, std::any_cast<std::string>(value));
-    } else {
-      throw std::invalid_argument(
-        "Invalid type for blackboard entry. Valid types are: bool, int, unsigned, float, double, "
-        "const char*, std::string");
-    }
-  }
-
-  return config;
 }
 
 void ManagerBTNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)

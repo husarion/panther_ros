@@ -133,6 +133,14 @@ if(BUILD_TESTING)
     ament_target_dependencies(${bt_node_test} ${PACKAGE_INCLUDE_DEPENDS})
   endforeach()
 
+  ament_add_gtest(${PROJECT_NAME}_test_bt_utils test/test_bt_utils.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_bt_utils
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_bt_utils behaviortree_cpp
+                            panther_utils)
+
   ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
                   test/test_manager_bt_node.cpp src/manager_bt_node.cpp)
   target_include_directories(

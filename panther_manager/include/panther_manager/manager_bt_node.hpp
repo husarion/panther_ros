@@ -15,8 +15,6 @@
 #ifndef PANTHER_MANAGER_MANAGER_BT_NODE_HPP_
 #define PANTHER_MANAGER_MANAGER_BT_NODE_HPP_
 
-#include <any>
-#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -43,8 +41,8 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using BoolMsg = std_msgs::msg::Bool;
 using DriverStateMsg = panther_msgs::msg::DriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
-using SystemStatusMsg = panther_msgs::msg::SystemStatus;
 using LEDAnimationMsg = panther_msgs::msg::LEDAnimation;
+using SystemStatusMsg = panther_msgs::msg::SystemStatus;
 
 class ManagerBTNode : public rclcpp::Node
 {
@@ -61,7 +59,6 @@ protected:
   void CreateLightsTree();
   void CreateSafetyTree();
   void CreateShutdownTree();
-  BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values = {}) const;
   bool SystemReady();
 
 private:

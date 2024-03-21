@@ -14,7 +14,6 @@
 
 #include <panther_manager/manager_bt_node.hpp>
 
-#include <any>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -36,8 +35,6 @@
 
 #include <panther_utils/test/test_utils.hpp>
 
-// TODO: replace ExpectThrowWihDesription with EXPECT_TRUE(IsMessageThrown) when new utils merged
-
 class ManagerBTNodeWrapper : public panther_manager::ManagerBTNode
 {
 public:
@@ -52,12 +49,6 @@ public:
   void CreateLightsTree() { return ManagerBTNode::CreateLightsTree(); }
   void CreateSafetyTree() { return ManagerBTNode::CreateSafetyTree(); }
   void CreateShutdownTree() { return ManagerBTNode::CreateShutdownTree(); }
-
-  BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values)
-  {
-    return ManagerBTNode::CreateBTConfig(bb_values);
-  }
-
   bool SystemReady() { return ManagerBTNode::SystemReady(); }
 };
 
@@ -68,7 +59,7 @@ public:
   ~TestManagerBTNode();
 
 protected:
-  void CreateBTPorjectFile(const std::string & tree_xml);
+  void CreateBTProjectFile(const std::string & tree_xml);
 
   std::shared_ptr<ManagerBTNodeWrapper> manager_bt_node_;
 
@@ -94,20 +85,11 @@ private:
   )";
 };
 
-void TestManagerBTNode::CreateBTPorjectFile(const std::string & tree_xml)
-{
-  std::ofstream out(bt_project_path_);
-  if (out.is_open()) {
-    out << tree_xml;
-    out.close();
-  }
-}
-
 TestManagerBTNode::TestManagerBTNode()
 {
   bt_project_path_ = testing::TempDir() + "test_bt.btproj";
 
-  CreateBTPorjectFile(simple_tree_);
+  CreateBTProjectFile(simple_tree_);
 
   std::vector<std::string> plugin_libs;
   plugin_libs.push_back("tick_after_timeout_bt_node");
@@ -136,41 +118,18 @@ TestManagerBTNode::TestManagerBTNode()
 
 TestManagerBTNode::~TestManagerBTNode() { std::filesystem::remove(bt_project_path_); }
 
+void TestManagerBTNode::CreateBTProjectFile(const std::string & tree_xml)
+{
+  std::ofstream out(bt_project_path_);
+  if (out.is_open()) {
+    out << tree_xml;
+    out.close();
+  }
+}
+
 TEST_F(TestManagerBTNode, RegisterBehaviorTree)
 {
   EXPECT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
-}
-
-TEST_F(TestManagerBTNode, CreateBTConfigInvalidItem)
-{
-  const std::map<std::string, std::any> bb_values = {{"value", 1l}};
-
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
-    [&]() { manager_bt_node_->CreateBTConfig(bb_values); }, "Invalid type for blackboard entry."));
-}
-
-TEST_F(TestManagerBTNode, CreateBTConfig)
-{
-  const std::map<std::string, std::any> bb_values = {
-    {"bool_value", true},
-    {"int_value", 1},
-    {"unsigned_value", unsigned(1)},
-    {"float_value", 1.0f},
-    {"double_value", 1.0},
-    {"char_value", "value"},
-    {"string_value", std::string("value")},
-  };
-
-  BT::NodeConfig config;
-  ASSERT_NO_THROW(config = manager_bt_node_->CreateBTConfig(bb_values));
-
-  EXPECT_TRUE(config.blackboard->get<bool>("bool_value"));
-  EXPECT_EQ(1, config.blackboard->get<int>("int_value"));
-  EXPECT_EQ(1, config.blackboard->get<unsigned>("unsigned_value"));
-  EXPECT_FLOAT_EQ(1.0f, config.blackboard->get<float>("float_value"));
-  EXPECT_EQ(1.0, config.blackboard->get<double>("double_value"));
-  EXPECT_EQ("value", config.blackboard->get<std::string>("char_value"));
-  EXPECT_EQ("value", config.blackboard->get<std::string>("string_value"));
 }
 
 TEST_F(TestManagerBTNode, CreateLightsTreeMissingTree)
@@ -190,7 +149,7 @@ TEST_F(TestManagerBTNode, CreateLightsTree)
     </root>
   )";
 
-  CreateBTPorjectFile(tree_xml);
+  CreateBTProjectFile(tree_xml);
   ASSERT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
   EXPECT_NO_THROW(manager_bt_node_->CreateLightsTree());
 }
@@ -212,7 +171,7 @@ TEST_F(TestManagerBTNode, CreateSafetyTree)
     </root>
   )";
 
-  CreateBTPorjectFile(tree_xml);
+  CreateBTProjectFile(tree_xml);
   ASSERT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
   EXPECT_NO_THROW(manager_bt_node_->CreateSafetyTree());
 }
@@ -234,7 +193,7 @@ TEST_F(TestManagerBTNode, CreateShutdownTree)
     </root>
   )";
 
-  CreateBTPorjectFile(tree_xml);
+  CreateBTProjectFile(tree_xml);
   ASSERT_NO_THROW(manager_bt_node_->RegisterBehaviorTree());
   EXPECT_NO_THROW(manager_bt_node_->CreateShutdownTree());
 }
