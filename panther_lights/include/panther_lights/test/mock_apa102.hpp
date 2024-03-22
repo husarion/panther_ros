@@ -30,9 +30,6 @@ public:
   {
     return APA102::RGBAFrameToBGRBuffer(frame);
   }
-
-  void SPISendBuffer([[maybe_unused]] const std::vector<std::uint8_t> & buffer) const {}
-
   std::uint16_t GetGlobalBrightness() const { return global_brightness_; }
 };
 
