@@ -33,7 +33,7 @@ That said apart from the usual interface provided by the ros2_control, this plug
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
 - `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Panther system diagnostic messages.
-- `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags.
+- `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers state and error flags.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -71,9 +71,9 @@ CAN settings
 - `driver_states_update_frequency` [*float*, default: **20.0**]: as by default, the driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. The exact frequency at which driver state is published won't match this value - it will also depend on the frequency of the controller (the exact value of the period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`).
 - `max_roboteq_initialization_attempts` [*int*, default: **5**]: in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to a general error.
 - `max_roboteq_activation_attempts` [*int*, default: **5**]: similar to initialization, it is possible to allow some SDO errors before escalating to error.
-- `max_write_pdo_cmds_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error.
-- `max_read_pdo_motor_states_errors_count` [*int*, default: **4**]: how many consecutive errors can happen before escalating to general error.
-- `max_read_pdo_driver_state_errors_count` [*int*, default: **20**]: how many consecutive errors can happen before escalating to general error.
+- `max_write_pdo_cmds_errors_count` [*int*, default: **2**]: how many consecutive errors can happen before escalating to general error.
+- `max_read_pdo_motor_states_errors_count` [*int*, default: **2**]: how many consecutive errors can happen before escalating to general error.
+- `max_read_pdo_driver_state_errors_count` [*int*, default: **2**]: how many consecutive errors can happen before escalating to general error.
 
 > [!CAUTION]
 > `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.

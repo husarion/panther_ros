@@ -95,6 +95,7 @@ protected:
   bool CheckIfSafetyStopActive();
   bool AreVelocityCommandsNearZero();
 
+  void MotorsPowerEnable(const bool enable);
   void SetEStop();
   void ResetEStop();
   std::function<bool()> ReadEStop;
@@ -126,7 +127,7 @@ protected:
   DrivetrainSettings drivetrain_settings_;
   CANopenSettings canopen_settings_;
 
-  std::shared_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
+  std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface_;
 
   // Sometimes SDO errors can happen during initialization and activation of Roboteq drivers,
   // in these cases it is better to retry
@@ -135,8 +136,8 @@ protected:
   // node 02: SDO protocol timed out
   // SDO abort code 05040000 received on upload request of sub-object 1018:01 (Vendor-ID) to
   // node 02: SDO protocol timed out
-  unsigned max_roboteq_initialization_attempts_ = 2;
-  unsigned max_roboteq_activation_attempts_ = 2;
+  unsigned max_roboteq_initialization_attempts_;
+  unsigned max_roboteq_activation_attempts_;
 
   rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
@@ -147,6 +148,7 @@ protected:
 
   std::atomic_bool e_stop_ = true;
   std::atomic_bool last_commands_zero_ = false;
+  std::mutex e_stop_manipulation_mtx_;
   std::mutex motor_controller_write_mtx_;
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};

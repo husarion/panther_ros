@@ -25,19 +25,14 @@
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <std_msgs/msg/bool.hpp>
 
+#include <panther_msgs/srv/set_led_animation.hpp>
+
 namespace panther_lights
 {
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
-
-struct RGBAColor
-{
-  std::uint8_t r;
-  std::uint8_t g;
-  std::uint8_t b;
-  std::uint8_t a;
-};
+using SetLEDAnimationSrv = panther_msgs::srv::SetLEDAnimation;
 
 class SchedulerNode : public rclcpp::Node
 {
@@ -45,27 +40,20 @@ public:
   SchedulerNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
-  void Initialize();
-
 private:
   void ControllerTimerCB();
-  void PublishColor(const RGBAColor & color);
-
-  static constexpr RGBAColor kColorRed = {255, 0, 0, 255};
-  static constexpr RGBAColor kColorGreen = {0, 255, 0, 255};
-  static constexpr RGBAColor kColorOrange = {255, 140, 0, 255};
+  void CallSetLEDAnimationSrv(const std::uint16_t animation_id);
 
   bool e_stop_state_ = true;
   int num_led_;
   float battery_percentage_;
+  std::uint16_t current_anim_id_;
 
   rclcpp::TimerBase::SharedPtr controller_timer_;
   rclcpp::Subscription<BoolMsg>::SharedPtr e_stop_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_state_sub_;
 
-  std::shared_ptr<image_transport::ImageTransport> it_;
-  std::shared_ptr<image_transport::Publisher> rear_light_pub_;
-  std::shared_ptr<image_transport::Publisher> front_light_pub_;
+  rclcpp::Client<SetLEDAnimationSrv>::SharedPtr set_animation_client_;
 };
 
 }  // namespace panther_lights

@@ -17,7 +17,6 @@
 import textwrap
 
 import click
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -35,6 +34,7 @@ from launch.substitutions import (
     PythonExpression,
 )
 from launch_ros.actions import Node, PushRosNamespace, SetParameter
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
@@ -102,7 +102,7 @@ def generate_launch_description():
         "wheel_config_path",
         default_value=PathJoinSubstitution(
             [
-                get_package_share_directory("panther_description"),
+                FindPackageShare("panther_description"),
                 "config",
                 PythonExpression(["'", wheel_type, ".yaml'"]),
             ]
@@ -119,7 +119,7 @@ def generate_launch_description():
         "controller_config_path",
         default_value=PathJoinSubstitution(
             [
-                get_package_share_directory("panther_controller"),
+                FindPackageShare("panther_controller"),
                 "config",
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
@@ -139,6 +139,26 @@ def generate_launch_description():
             "This configuration is intended for use in simulations only."
         ),
         default_value="",
+    )
+
+    led_config_file = LaunchConfiguration("led_config_file")
+    declare_led_config_file_arg = DeclareLaunchArgument(
+        "led_config_file",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_lights"),
+                "config",
+                PythonExpression(["'led_config.yaml'"]),
+            ]
+        ),
+        description="Path to a YAML file with a description of led configuration",
+    )
+
+    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
+    declare_user_led_animations_file_arg = DeclareLaunchArgument(
+        "user_led_animations_file",
+        default_value="",
+        description="Path to a YAML file with a description of the user defined animations",
     )
 
     simulation_engine = LaunchConfiguration("simulation_engine")
@@ -169,7 +189,7 @@ def generate_launch_description():
     declare_ekf_config_path_arg = DeclareLaunchArgument(
         "ekf_config_path",
         default_value=PathJoinSubstitution(
-            [get_package_share_directory("panther_bringup"), "config", "ekf.yaml"]
+            [FindPackageShare("panther_bringup"), "config", "ekf.yaml"]
         ),
         description="Path to the EKF config file",
         condition=IfCondition(use_ekf),
@@ -179,7 +199,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("panther_controller"),
+                    FindPackageShare("panther_controller"),
                     "launch",
                     "controller.launch.py",
                 ]
@@ -201,7 +221,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("panther_bringup"),
+                    FindPackageShare("panther_bringup"),
                     "launch",
                     "imu.launch.py",
                 ]
@@ -209,7 +229,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "imu_config_path": PathJoinSubstitution(
-                [get_package_share_directory("panther_bringup"), "config", "imu.yaml"]
+                [FindPackageShare("panther_bringup"), "config", "imu.yaml"]
             ),
         }.items(),
         condition=UnlessCondition(use_sim),
@@ -219,24 +239,28 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("panther_lights"),
+                    FindPackageShare("panther_lights"),
                     "launch",
                     "lights.launch.py",
                 ]
             )
         ),
         condition=UnlessCondition(use_sim),
+        launch_arguments={
+            "led_config_file": led_config_file,
+            "user_led_animations_file": user_led_animations_file,
+        }.items(),
     )
 
     battery_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("panther_battery"),
+                    FindPackageShare("panther_battery"),
                     "launch",
                     "battery.launch.py",
                 ]
-            )
+            ),
         ),
         condition=UnlessCondition(use_sim),
         launch_arguments={
@@ -282,6 +306,8 @@ def generate_launch_description():
         declare_wheel_config_path_arg,
         declare_controller_config_path_arg,
         declare_battery_config_path_arg,
+        declare_led_config_file_arg,
+        declare_user_led_animations_file_arg,
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
