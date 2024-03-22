@@ -15,11 +15,13 @@
 #ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
 
+#include <any>
 #include <atomic>
 #include <functional>
 #include <memory>
 #include <thread>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <realtime_tools/realtime_publisher.h>
@@ -61,36 +63,66 @@ struct CANErrors
   bool rear_can_net_err;
 };
 
-template <typename SrvT, typename Func>
-void ProcessServiceCallback(Func function, SrvT response);
-
-class TriggerServiceWrapper
+/**
+ * @brief A wrapper class for ROS services that simplifies the creation and management of a service
+ * server.
+ *
+ * @tparam SrvT The type of the service message, derived from a .srv file by the ROS build system.
+ * @tparam CallbackT The type of the callback function to be invoked on service request. Currently
+ * supported callback function signatures include void() and void(bool).
+ */
+template <typename SrvT, typename CallbackT>
+class ROSServiceWrapper
 {
 public:
-  TriggerServiceWrapper(const std::function<void()> & callback) : callback_(callback){};
+  using SrvSharedPtr = typename rclcpp::Service<SrvT>::SharedPtr;
+  using SrvRequestConstPtr = typename SrvT::Request::ConstSharedPtr;
+  using SrvResponsePtr = typename SrvT::Response::SharedPtr;
 
-  void CallbackWrapper(
-    const TriggerSrv::Request::ConstSharedPtr /* request */,
-    TriggerSrv::Response::SharedPtr response);
+  /**
+   * @brief Constructs a ROSServiceWrapper object with the specified callback function.
+   *
+   * @param callback The callback function to be called whenever the service receives a request.
+   * Currently supported callback function signatures include void() and void(bool).
+   */
+  ROSServiceWrapper(const CallbackT & callback) : callback_(callback) {}
 
-  rclcpp::Service<TriggerSrv>::SharedPtr service;
+  /**
+   * @brief Register and advertises the service with the specified name under the given ROS node.
+   *
+   * @param node The shared pointer to the ROS node under which the service will be advertised.
+   * @param service_name The name of the service. This is the name under which the service will be
+   * advertised over ROS.
+   */
+  void RegisterService(const rclcpp::Node::SharedPtr node, const std::string & service_name);
 
 private:
-  std::function<void()> callback_;
-};
+  /**
+   * @brief Internal wrapper function for the user-defined callback function.
+   *
+   * @param request Shared pointer to the service request message.
+   * @param response Shared pointer to the service response message.
+   */
+  void CallbackWrapper(SrvRequestConstPtr request, SrvResponsePtr response);
 
-class SetBoolServiceWrapper
-{
-public:
-  SetBoolServiceWrapper(const std::function<void(const bool)> & callback) : callback_(callback){};
+  /**
+   * @brief Specializations of the `ProccessCallback` method for handling specific service request
+   * types.
+   *
+   * These specializations of the `ProccessCallback` method in the `ROSServiceWrapper` template
+   * class are designed to handle service requests for `std_srvs::srv::SetBool` and
+   * `std_srvs::srv::Trigger` services specifically. They extract the necessary information from the
+   * request (if any) and invoke the user-defined callback function accordingly.
+   *
+   * 1. For `std_srvs::srv::SetBool` service requests, it extracts the boolean data from the request
+   * and passes it to the callback function.
+   * 2. For `std_srvs::srv::Trigger` service requests, it simply calls the callback function without
+   * any parameters since `Trigger` requests do not carry additional data.
+   */
+  void ProccessCallback(SrvRequestConstPtr request);
 
-  void CallbackWrapper(
-    const SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response);
-
-  rclcpp::Service<SetBoolSrv>::SharedPtr service;
-
-private:
-  std::function<void(const bool)> callback_;
+  SrvSharedPtr service_;
+  CallbackT callback_;
 };
 
 /**
@@ -114,11 +146,53 @@ public:
   ~PantherSystemRosInterface();
 
   /**
-   * @brief Adds new service server to node
+   * @brief Registers a new service server associated with a specific service type and callback on
+   * the node.
+   *
+   * @tparam SrvT The type of ROS service for which the server is being created. This should
+   * correspond to a predefined service message type.
+   * @tparam CallbackT The type of the callback function that will be executed when the service
+   * receives a request. The function's signature should be compatible with the expected request and
+   * response types for the given service `SrvT`.
+   * @param service_name A string specifying the unique name under which the service will be
+   * advertised on the ROS network.
+   * @param callback The callback function to be executed when the service receives a request. This
+   * function is responsible for processing the incoming request and producing an appropriate
+   * response. Currently supported callback function signatures include void() and void(bool).
    */
-  void AddTriggerService(const std::string service_name, const std::function<void()> & callback);
-  void AddSetBoolService(
-    const std::string service_name, const std::function<void(const bool)> & callback);
+  template <class SrvT, class CallbackT>
+  inline void AddService(const std::string & service_name, const CallbackT & callback)
+  {
+    auto wrapper = std::make_shared<ROSServiceWrapper<SrvT, CallbackT>>(callback);
+    wrapper->RegisterService(node_, service_name);
+    service_wrappers_storage_.push_back(wrapper);
+  }
+
+  /**
+   * @brief Adds a new diagnostic task.
+   *
+   * @param name The name of the diagnostic task.
+   * @param task_owner A pointer to the object that posses the diagnostic task member function.
+   * @param task_fcn A pointer to the diagnostic task member function.
+   */
+  template <class T>
+  inline void AddDiagnosticTask(
+    const std::string & name, T * task_owner,
+    void (T::*task_fcn)(diagnostic_updater::DiagnosticStatusWrapper &))
+  {
+    diagnostic_updater_.add(name, task_owner, task_fcn);
+  }
+
+  /**
+   * @brief Broadcasts a message with the specified level on defined diagnostic tasks.
+   *
+   * @param level The level of the diagnostic message.
+   * @param message The message to be broadcasted.
+   */
+  inline void BroadcastOnDiagnosticTasks(unsigned char level, const std::string & message)
+  {
+    diagnostic_updater_.broadcast(level, message);
+  }
 
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
@@ -156,7 +230,7 @@ private:
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
-  std::unique_ptr<std::thread> executor_thread_;
+  std::thread executor_thread_;
 
   rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
@@ -168,8 +242,9 @@ private:
   rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<BoolMsg>> realtime_e_stop_state_publisher_;
 
-  std::vector<std::shared_ptr<TriggerServiceWrapper>> trigger_wrappers_;
-  std::vector<std::shared_ptr<SetBoolServiceWrapper>> set_bool_wrappers_;
+  diagnostic_updater::Updater diagnostic_updater_;
+
+  std::vector<std::any> service_wrappers_storage_;
 };
 
 }  // namespace panther_hardware_interfaces

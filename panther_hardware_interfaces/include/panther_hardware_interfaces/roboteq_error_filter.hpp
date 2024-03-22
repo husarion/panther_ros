@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <map>
+#include <string>
 
 namespace panther_hardware_interfaces
 {
@@ -49,6 +50,14 @@ enum class ErrorsFilterIds {
   ROBOTEQ_DRIVER,
 };
 
+// Mapping of all possible error filter ids to their respective names.
+const std::map<ErrorsFilterIds, std::string> error_filter_id_names = {
+  {ErrorsFilterIds::WRITE_PDO_CMDS, "WRITE_PDO_CMDS"},
+  {ErrorsFilterIds::READ_PDO_MOTOR_STATES, "READ_PDO_MOTOR_STATES"},
+  {ErrorsFilterIds::READ_PDO_DRIVER_STATE, "READ_PDO_DRIVER_STATE"},
+  {ErrorsFilterIds::ROBOTEQ_DRIVER, "ROBOTEQ_DRIVER"},
+};
+
 /**
  * @brief Class that keeps track of different types of errors. In some rare cases Roboteq
  * controllers can miss for example the SDO response, or PDO can be received a bit later, which
@@ -73,6 +82,12 @@ public:
    * threshold error is set
    */
   void UpdateError(const ErrorsFilterIds id, const bool current_error);
+
+  /**
+   * @brief Returns a map of all errors, with their respective names and values.
+   */
+  std::map<std::string, bool> GetErrorMap() const;
+
   /**
    * @brief Sets clear errors flag - errors will be cleared upon the next Update (any) method.
    * This makes sure that the operation is multithread-safe.

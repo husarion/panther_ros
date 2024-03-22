@@ -23,11 +23,13 @@
 #include <string>
 #include <vector>
 
+#include <diagnostic_updater/diagnostic_status_wrapper.hpp>
 #include <rclcpp/logging.hpp>
 
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 #include <panther_hardware_interfaces/utils.hpp>
+#include <panther_utils/diagnostics.hpp>
 
 namespace panther_hardware_interfaces
 {
@@ -131,33 +133,38 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   panther_system_ros_interface_ =
-    std::make_shared<PantherSystemRosInterface>("panther_system_node");
+    std::make_unique<PantherSystemRosInterface>("panther_system_node");
 
-  gpio_controller_->RegisterGPIOEventCallback(std::bind(
-    &PantherSystemRosInterface::PublishIOState, panther_system_ros_interface_,
-    std::placeholders::_1));
-
-  panther_system_ros_interface_->AddSetBoolService(
-    "~/motor_power_enable",
-    std::bind(&GPIOControllerInterface::MotorPowerEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_->AddSetBoolService(
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/fan_enable",
     std::bind(&GPIOControllerInterface::FanEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_->AddSetBoolService(
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/aux_power_enable",
     std::bind(&GPIOControllerInterface::AUXPowerEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_->AddSetBoolService(
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/digital_power_enable",
     std::bind(
       &GPIOControllerInterface::DigitalPowerEnable, gpio_controller_, std::placeholders::_1));
-  panther_system_ros_interface_->AddSetBoolService(
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
+    "~/motor_power_enable",
+    std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
 
-  panther_system_ros_interface_->AddTriggerService(
+  panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
     "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this));
-  panther_system_ros_interface_->AddTriggerService(
+  panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
     "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this));
+
+  panther_system_ros_interface_->AddDiagnosticTask(
+    std::string("system errors"), this, &PantherSystem::DiagnoseErrors);
+
+  panther_system_ros_interface_->AddDiagnosticTask(
+    std::string("system status"), this, &PantherSystem::DiagnoseStatus);
+
+  gpio_controller_->RegisterGPIOEventCallback(
+    [this](const auto & state) { panther_system_ros_interface_->PublishIOState(state); });
 
   const auto io_state = gpio_controller_->QueryControlInterfaceIOStates();
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state);
@@ -194,12 +201,12 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_.reset();
+  gpio_controller_.reset();
 
   motors_controller_->Deinitialize();
   motors_controller_.reset();
 
-  gpio_controller_.reset();
+  panther_system_ros_interface_.reset();
 
   return CallbackReturn::SUCCESS;
 }
@@ -214,6 +221,10 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
     RCLCPP_ERROR_STREAM(logger_, "Setting E-stop failed: " << e.what());
     return CallbackReturn::ERROR;
   }
+
+  panther_system_ros_interface_->BroadcastOnDiagnosticTasks(
+    diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+    "An error has occurred during a node state transition.");
 
   panther_system_ros_interface_.reset();
 
@@ -259,7 +270,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop_);
 
   if (time >= next_driver_state_update_time_) {
-    UpdatDriverState();
+    UpdateDriverState();
     panther_system_ros_interface_->PublishDriverState();
     next_driver_state_update_time_ = time + driver_states_update_period_;
   }
@@ -451,7 +462,7 @@ void PantherSystem::UpdateMotorsStates()
   }
 }
 
-void PantherSystem::UpdatDriverState()
+void PantherSystem::UpdateDriverState()
 {
   try {
     motors_controller_->UpdateDriversState();
@@ -629,8 +640,32 @@ bool PantherSystem::AreVelocityCommandsNearZero()
   return true;
 }
 
+void PantherSystem::MotorsPowerEnable(const bool enable)
+{
+  try {
+    {
+      std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
+
+      if (!enable) {
+        motors_controller_->TurnOnEStop();
+      } else {
+        motors_controller_->TurnOffEStop();
+      }
+    }
+
+    SetEStop();
+
+    roboteq_error_filter_->SetClearErrorsFlag();
+    roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
+  } catch (const std::runtime_error & e) {
+    RCLCPP_WARN_STREAM(logger_, "Error when trying to write commands: " << e.what());
+  }
+}
+
 void PantherSystem::SetEStop()
 {
+  std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
+
   RCLCPP_INFO(logger_, "Setting E-stop");
   bool gpio_controller_error = false;
 
@@ -659,6 +694,8 @@ void PantherSystem::SetEStop()
 
 void PantherSystem::ResetEStop()
 {
+  std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
+
   RCLCPP_INFO(logger_, "Resetting E-stop");
 
   // On the side of the motors controller safety stop is reset by sending 0.0 commands
@@ -677,6 +714,64 @@ void PantherSystem::ResetEStop()
 
   roboteq_error_filter_->SetClearErrorsFlag();
   e_stop_ = false;
+}
+
+void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"No error detected."};
+
+  const auto front_driver_data = motors_controller_->GetFrontData();
+  if (front_driver_data.IsError()) {
+    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Error detected.";
+
+    panther_utils::diagnostics::AddKeyValueIfTrue(
+      status, front_driver_data.GetErrorMap(), "Front driver error: ");
+  }
+
+  const auto rear_driver_data = motors_controller_->GetRearData();
+  if (rear_driver_data.IsError()) {
+    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Error detected.";
+
+    panther_utils::diagnostics::AddKeyValueIfTrue(
+      status, rear_driver_data.GetErrorMap(), "Rear driver error: ");
+  }
+
+  if (roboteq_error_filter_->IsError()) {
+    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    message = "Error detected.";
+
+    panther_utils::diagnostics::AddKeyValueIfTrue(
+      status, roboteq_error_filter_->GetErrorMap(), "", " error");
+  }
+
+  status.summary(level, message);
+}
+
+void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Panther system status monitoring."};
+
+  const auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
+  const auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
+
+  auto drivers_states_with_names = {
+    std::make_pair(std::string("Front"), front_driver_state),
+    std::make_pair(std::string("Rear"), rear_driver_state)};
+
+  for (const auto & [driver_name, driver_state] : drivers_states_with_names) {
+    status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
+    status.add(driver_name + " driver current (A)", driver_state.GetCurrent());
+    status.add(driver_name + " driver temperature (\u00B0C)", driver_state.GetTemperature());
+    status.add(
+      driver_name + " driver heatsink temperature (\u00B0C)",
+      driver_state.GetHeatsinkTemperature());
+  }
+
+  status.summary(level, message);
 }
 
 }  // namespace panther_hardware_interfaces

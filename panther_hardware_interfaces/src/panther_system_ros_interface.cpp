@@ -18,6 +18,7 @@
 #include <string>
 #include <thread>
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <realtime_tools/realtime_publisher.h>
@@ -27,11 +28,25 @@
 namespace panther_hardware_interfaces
 {
 
-template <typename SrvT, typename Func>
-void ProcessServiceCallback(Func callback, SrvT response)
+template class ROSServiceWrapper<std_srvs::srv::SetBool, std::function<void(bool)>>;
+template class ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>;
+
+template <typename SrvT, typename CallbackT>
+void ROSServiceWrapper<SrvT, CallbackT>::RegisterService(
+  const rclcpp::Node::SharedPtr node, const std::string & service_name)
+{
+  service_ = node->create_service<SrvT>(
+    service_name, std::bind(
+                    &ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper, this,
+                    std::placeholders::_1, std::placeholders::_2));
+}
+
+template <typename SrvT, typename CallbackT>
+void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
+  SrvRequestConstPtr request, SrvResponsePtr response)
 {
   try {
-    callback();
+    ProccessCallback(request);
     response->success = true;
   } catch (const std::exception & err) {
     response->success = false;
@@ -42,26 +57,28 @@ void ProcessServiceCallback(Func callback, SrvT response)
   }
 }
 
-void TriggerServiceWrapper::CallbackWrapper(
-  TriggerSrv::Request::ConstSharedPtr /* request */, TriggerSrv::Response::SharedPtr response)
+template <>
+void ROSServiceWrapper<std_srvs::srv::SetBool, std::function<void(bool)>>::ProccessCallback(
+  SrvRequestConstPtr request)
 {
-  ProcessServiceCallback([this]() { callback_(); }, response);
+  callback_(request->data);
 }
 
-void SetBoolServiceWrapper::CallbackWrapper(
-  SetBoolSrv::Request::ConstSharedPtr request, SetBoolSrv::Response::SharedPtr response)
+template <>
+void ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>::ProccessCallback(
+  SrvRequestConstPtr /* request */)
 {
-  ProcessServiceCallback([this, data = request->data]() { callback_(data); }, response);
+  callback_();
 }
 
 PantherSystemRosInterface::PantherSystemRosInterface(
   const std::string & node_name, const rclcpp::NodeOptions & node_options)
+: node_(rclcpp::Node::make_shared(node_name, node_options)), diagnostic_updater_(node_)
 {
-  node_ = std::make_shared<rclcpp::Node>(node_name, node_options);
   executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
   executor_->add_node(node_);
 
-  executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
+  executor_thread_ = std::thread([this]() { executor_->spin(); });
 
   driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
     "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
@@ -77,6 +94,8 @@ PantherSystemRosInterface::PantherSystemRosInterface(
     "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   realtime_e_stop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
+
+  diagnostic_updater_.setHardwareID("Panther System");
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()
@@ -88,45 +107,27 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   realtime_e_stop_state_publisher_.reset();
   e_stop_state_publisher_.reset();
 
+  service_wrappers_storage_.clear();
+
   if (executor_) {
     executor_->cancel();
-    executor_thread_->join();
+
+    if (executor_thread_.joinable()) {
+      executor_thread_.join();
+    }
+
     executor_.reset();
   }
 
   node_.reset();
 }
 
-void PantherSystemRosInterface::AddTriggerService(
-  const std::string service_name, const std::function<void()> & callback)
-{
-  auto wrapper = std::make_shared<TriggerServiceWrapper>(callback);
-
-  wrapper->service = node_->create_service<TriggerSrv>(
-    service_name, std::bind(
-                    &TriggerServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
-                    std::placeholders::_2));
-
-  trigger_wrappers_.push_back(wrapper);
-}
-
-void PantherSystemRosInterface::AddSetBoolService(
-  const std::string service_name, const std::function<void(const bool)> & callback)
-{
-  auto wrapper = std::make_shared<SetBoolServiceWrapper>(callback);
-
-  wrapper->service = node_->create_service<SetBoolSrv>(
-    service_name, std::bind(
-                    &SetBoolServiceWrapper::CallbackWrapper, wrapper, std::placeholders::_1,
-                    std::placeholders::_2));
-
-  set_bool_wrappers_.push_back(wrapper);
-}
-
 void PantherSystemRosInterface::UpdateMsgErrorFlags(
   const RoboteqData & front, const RoboteqData & rear)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
+
+  driver_state.header.stamp = node_->get_clock()->now();
 
   driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
   driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
