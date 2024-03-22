@@ -53,9 +53,9 @@ public:
   : node_(std::make_shared<MockDriverNode>("test_lights_driver_node")),
     it_(std::make_shared<image_transport::ImageTransport>(node_->shared_from_this())),
     front_light_pub_(std::make_shared<image_transport::Publisher>(
-      it_->advertise("lights/driver/front_panel_frame", 5))),
+      it_->advertise("lights/driver/channel_1_frame", 5))),
     rear_light_pub_(std::make_shared<image_transport::Publisher>(
-      it_->advertise("lights/driver/rear_panel_frame", 5))),
+      it_->advertise("lights/driver/channel_2_frame", 5))),
     set_brightness_client_(
       node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness")),
     rear_panel_(MockAPA102("/dev/spidev0.0")),
@@ -117,13 +117,6 @@ TEST_F(DriverNodeFixture, PublishFail)
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
   EXPECT_FALSE(node_->panels_initialised_);
 
-  // // Older Msg Fail
-  // msg = CreateImageMsg();
-  // msg->header.stamp.sec = node_->get_clock()->now().seconds() - node_->frame_timeout_;
-  // front_light_pub_->publish(msg);
-  // ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
-  // EXPECT_FALSE(node_->panels_initialised_);
-
   // Encoding Fail
   msg = CreateImageMsg();
   msg->encoding = sensor_msgs::image_encodings::RGB8;
@@ -144,6 +137,13 @@ TEST_F(DriverNodeFixture, PublishFail)
   front_light_pub_->publish(msg);
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
   EXPECT_FALSE(node_->panels_initialised_);
+
+  // // Older Msg Fail
+  // msg = CreateImageMsg();
+  // msg->header.stamp.sec = node_->get_clock()->now().seconds() - (node_->frame_timeout_/2);
+  // front_light_pub_->publish(msg);
+  // ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, msg, std::chrono::seconds(1)));
+  // EXPECT_FALSE(node_->panels_initialised_);
 }
 
 TEST_F(DriverNodeFixture, ServiceTestSuccess)
