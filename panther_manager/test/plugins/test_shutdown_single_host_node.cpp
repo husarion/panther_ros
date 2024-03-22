@@ -30,8 +30,10 @@ TEST_F(TestShutdownSingleHost, GoodLoadingShutdownSingleHostPlugin)
 {
   std::map<std::string, std::string> service = {
     {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
-    {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
+    {"port", "22"},     {"timeout", "5.0"},  {"username", "husarion"},
   };
+
+  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 
   ASSERT_NO_THROW({ CreateTree("ShutdownSingleHost", service); });
 }
@@ -40,27 +42,28 @@ TEST_F(TestShutdownSingleHost, WrongPluginNameLoadingShutdownSingleHostPlugin)
 {
   std::map<std::string, std::string> service = {
     {"command", "pwd"}, {"ip", "localhost"}, {"ping_for_success", "false"},
-    {"port", "22"},     {"timeout", "5.0"},  {"user", "husarion"},
+    {"port", "22"},     {"timeout", "5.0"},  {"username", "husarion"},
   };
 
+  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
   EXPECT_THROW({ CreateTree("WrongShutdownSingleHost", service); }, BT::RuntimeError);
 }
 
 TEST_F(TestShutdownSingleHost, GoodTouchCommand)
 {
-  std::string file_path = testing::TempDir() + "/test_panther_manager_good_touch_command";
+  std::string file_path = testing::TempDir() + "test_panther_manager_good_touch_command";
   std::filesystem::remove(file_path);
   EXPECT_FALSE(std::filesystem::exists(file_path));
-
+  std::cout << "Path: " << file_path << std::endl;
   std::map<std::string, std::string> service = {
     {"command", "touch " + file_path},
     {"ip", "localhost"},
     {"ping_for_success", "false"},
     {"port", "22"},
     {"timeout", "5.0"},
-    {"user", "husarion"},
+    {"username", "husarion"},
   };
-
+  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
   CreateTree("ShutdownSingleHost", service);
   auto & tree = GetTree();
 
@@ -79,7 +82,7 @@ TEST_F(TestShutdownSingleHost, WrongCommand)
     {"ping_for_success", "false"},
     {"port", "22"},
     {"timeout", "0.2"},
-    {"user", "husarion"},
+    {"username", "husarion"},
   };
   RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 
@@ -98,7 +101,7 @@ TEST_F(TestShutdownSingleHost, WrongUser)
     {"ping_for_success", "false"},
     {"port", "22"},
     {"timeout", "5.0"},
-    {"user", "wrong_user"},
+    {"username", "wrong_user"},
   };
   RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
 

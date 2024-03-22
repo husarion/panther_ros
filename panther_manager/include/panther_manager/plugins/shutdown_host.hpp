@@ -103,6 +103,7 @@ public:
       case ShutdownHostState::RESPONSE_RECEIVED:
         state_ = ShutdownHostState::PINGING;
         break;
+
       case ShutdownHostState::PINGING:
         if (ping_for_success_ ? !is_available() : true) {
           state_ = ShutdownHostState::SUCCESS;

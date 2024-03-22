@@ -39,7 +39,7 @@ public:
   {
     return {
       BT::InputPort<std::string>("ip", "ip of the host to shutdown"),
-      BT::InputPort<std::string>("user", "user to log into while executing shutdown command"),
+      BT::InputPort<std::string>("username", "user to log into while executing shutdown command"),
       BT::InputPort<unsigned>("port", "SSH communication port"),
       BT::InputPort<std::string>("command", "command to execute on shutdown"),
       BT::InputPort<float>("timeout", "time in seconds to wait for host to shutdown"),

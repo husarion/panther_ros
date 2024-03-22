@@ -46,8 +46,8 @@ TEST_F(TestShutdownHostsFromFile, WrongPluginNameLoadingShutdownHostsFromFilePlu
 
 TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
 {
-  const std::string file_path = testing::TempDir() +
-                                "/test_wrong_cannot_find_file_shutdown_hosts_from_file";
+  const std::string file_path =
+    testing::TempDir() + "test_panther_manager_wrong_cannot_find_file_shutdown_hosts_from_file";
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", file_path}};
 
   RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
@@ -61,9 +61,9 @@ TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
 TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
 {
   const std::string config_file_path = testing::TempDir() +
-                                       "/test_panther_manager_good_shutdown_hosts_from_file_config";
+                                       "test_panther_manager_good_shutdown_hosts_from_file_config";
   const std::string test_file_path = testing::TempDir() +
-                                     "/test_panther_manager_good_shutdown_hosts_from_file";
+                                     "test_panther_manager_good_shutdown_hosts_from_file";
   std::filesystem::remove(test_file_path);
   std::filesystem::remove(config_file_path);
 

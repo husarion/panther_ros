@@ -52,14 +52,14 @@ void ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHos
       }
 
       auto ip = panther_utils::GetYAMLKeyValue<std::string>(host, "ip");
-      auto user = panther_utils::GetYAMLKeyValue<std::string>(host, "user");
+      auto username = panther_utils::GetYAMLKeyValue<std::string>(host, "username");
       auto port = panther_utils::GetYAMLKeyValue<unsigned>(host, "port", 22);
       auto command = panther_utils::GetYAMLKeyValue<std::string>(
         host, "command", "sudo shutdown now");
       auto timeout = panther_utils::GetYAMLKeyValue<float>(host, "timeout", 5.0);
       auto ping_for_success = panther_utils::GetYAMLKeyValue<bool>(host, "ping_for_success", true);
       hosts.push_back(
-        std::make_shared<ShutdownHost>(ip, user, port, command, timeout, ping_for_success));
+        std::make_shared<ShutdownHost>(ip, username, port, command, timeout, ping_for_success));
     }
   } catch (const std::runtime_error & e) {
     throw BT::RuntimeError("[" + this->name() + "]: " + e.what());

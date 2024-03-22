@@ -34,7 +34,7 @@ void ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>>
   }
 
   std::string user;
-  if (!getInput<std::string>("user", user) || user == "") {
+  if (!getInput<std::string>("username", user) || user == "") {
     throw(BT::RuntimeError("[", this->name(), "] Failed to get input [user]"));
   }
 
