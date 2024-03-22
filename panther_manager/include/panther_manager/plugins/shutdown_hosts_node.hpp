@@ -47,7 +47,7 @@ public:
   virtual ~ShutdownHosts() = default;
 
   // method to be implemented by user
-  virtual void update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) = 0;
+  virtual bool update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) = 0;
 
   // method that can be overridden by user
   virtual BT::NodeStatus post_process()
@@ -61,6 +61,9 @@ public:
 
   std::vector<std::size_t> const get_failed_hosts() { return this->failed_hosts_; }
 
+protected:
+  std::shared_ptr<rclcpp::Logger> logger_;
+
 private:
   std::size_t check_host_index_ = 0;
   std::vector<std::shared_ptr<ShutdownHost>> hosts_;
@@ -68,11 +71,14 @@ private:
   std::vector<std::size_t> skipped_hosts_;
   std::vector<std::size_t> succeeded_hosts_;
   std::vector<std::size_t> failed_hosts_;
-  std::shared_ptr<rclcpp::Logger> logger_;
 
   BT::NodeStatus onStart()
   {
-    update_hosts(this->hosts_);
+    if (!update_hosts(this->hosts_)) {
+      RCLCPP_ERROR_STREAM(*this->logger_, "Cannot update hosts!");
+      return BT::NodeStatus::FAILURE;
+    }
+
     remove_duplicate_hosts(this->hosts_);
     if (this->hosts_.size() <= 0) {
       RCLCPP_ERROR_STREAM(*this->logger_, "Hosts list is empty! Check configuration!");

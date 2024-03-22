@@ -20,7 +20,6 @@
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
 
-#include <panther_manager/plugins/action/call_trigger_service_node.hpp>
 #include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
 #include <plugin_test_utils.hpp>
 
@@ -52,16 +51,27 @@ std::string TestTickAfterTimeout::BuildBehaviorTree(
 TEST_F(TestTickAfterTimeout, GoodTickAfterTimeout)
 {
   RegisterNodeWithoutParams<panther_manager::TickAfterTimeout>("TickAfterTimeout");
-
   CreateTree("", {});
   auto & tree = GetTree();
 
-  for (std::size_t i = 0; i < 10; ++i) {
-    auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-    if (status != BT::NodeStatus::SUCCESS && status != BT::NodeStatus::SKIPPED) {
-      FAIL() << "Bad status of behavior tree.";
-    }
-  }
+  // node has just started the timeout should not be reached
+  auto status = tree.tickOnce();
+  EXPECT_EQ(BT::NodeStatus::SKIPPED, status);
+
+  // sleep for timeout duration
+  // then the node should return child status - AlwaysSuccess
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  status = tree.tickOnce();
+  EXPECT_EQ(BT::NodeStatus::SUCCESS, status);
+
+  // tick again to check if timeout was reset
+  status = tree.tickOnce();
+  EXPECT_EQ(BT::NodeStatus::SKIPPED, status);
+
+  // check again if timeout is correctly evaluated
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  status = tree.tickOnce();
+  EXPECT_EQ(BT::NodeStatus::SUCCESS, status);
 }
 
 int main(int argc, char ** argv)

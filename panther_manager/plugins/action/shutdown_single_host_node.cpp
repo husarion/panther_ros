@@ -26,40 +26,47 @@
 namespace panther_manager
 {
 
-void ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
+bool ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
   std::string ip;
   if (!getInput<std::string>("ip", ip) || ip == "") {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [ip]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [ip]");
+    return false;
   }
 
   std::string user;
   if (!getInput<std::string>("username", user) || user == "") {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [user]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [user]");
+    return false;
   }
 
   unsigned port;
   if (!getInput<unsigned>("port", port)) {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [port]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [port]");
+    return false;
   }
 
   std::string command;
   if (!getInput<std::string>("command", command) || command == "") {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [command]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [command]");
+    return false;
   }
 
   float timeout;
   if (!getInput<float>("timeout", timeout)) {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [timeout]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [timeout]");
+    return false;
   }
 
   bool ping_for_success;
   if (!getInput<bool>("ping_for_success", ping_for_success)) {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [ping_for_success]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [ping_for_success]");
+    return false;
   }
 
   hosts.push_back(
     std::make_shared<ShutdownHost>(ip, user, port, command, timeout, ping_for_success));
+  return true;
 }
 
 }  // namespace panther_manager

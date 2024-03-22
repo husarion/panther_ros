@@ -55,7 +55,8 @@ TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
   CreateTree("ShutdownHostsFromFile", service);
   auto & tree = GetTree();
 
-  EXPECT_THROW({ tree.tickWhileRunning(std::chrono::milliseconds(100)); }, BT::RuntimeError);
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
 TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
@@ -74,6 +75,7 @@ TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
   shutdown_host_desc["hosts"][0]["ip"] = "localhost";
   shutdown_host_desc["hosts"][0]["username"] = "husarion";
   shutdown_host_desc["hosts"][0]["port"] = 22;
+
   shutdown_host_desc["hosts"][0]["command"] = "touch " + test_file_path;
   shutdown_host_desc["hosts"][0]["timeout"] = 5.0;
   shutdown_host_desc["hosts"][0]["ping_for_success"] = false;

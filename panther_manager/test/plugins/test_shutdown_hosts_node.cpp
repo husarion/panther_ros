@@ -30,16 +30,17 @@ public:
   static BT::PortsList providedPorts() { return {}; }
 
 private:
-  virtual void update_hosts(
+  virtual bool update_hosts(
     std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts) override final;
 };
 
-void ShutdownHostsNodeDuplicated::update_hosts(
+bool ShutdownHostsNodeDuplicated::update_hosts(
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
 {
   hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
   hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("localhost", "husarion"));
   hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
+  return true;
 }
 
 //  TODO: Create TESTs completely

@@ -24,51 +24,21 @@
 class TestCallSetBoolService : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
-  void ServiceFailedCallback(
+  void ServiceCallback(
     const std_srvs::srv::SetBool::Request::SharedPtr request,
-    std_srvs::srv::SetBool::Response::SharedPtr response);
-
-  void ServiceSuccessCallbackCheckTrueValue(
-    const std_srvs::srv::SetBool::Request::SharedPtr request,
-    std_srvs::srv::SetBool::Response::SharedPtr response);
-
-  void ServiceSuccessCallbackCheckFalseValue(
-    const std_srvs::srv::SetBool::Request::SharedPtr request,
-    std_srvs::srv::SetBool::Response::SharedPtr response);
+    std_srvs::srv::SetBool::Response::SharedPtr response, const bool success,
+    const bool expected_value);
 };
 
-void TestCallSetBoolService::ServiceFailedCallback(
+void TestCallSetBoolService::ServiceCallback(
   const std_srvs::srv::SetBool::Request::SharedPtr request,
-  std_srvs::srv::SetBool::Response::SharedPtr response)
+  std_srvs::srv::SetBool::Response::SharedPtr response, bool success, bool expected_value)
 {
-  response->message = "Failed callback pass!";
-  response->success = false;
+  response->message = success ? "Successfully callback pass!" : "Failed callback pass!";
+  response->success = success;
+  EXPECT_EQ(request->data, expected_value);
   RCLCPP_INFO_STREAM(
     rclcpp::get_logger("test_set_bool_plugin"), response->message << " data: " << request->data);
-}
-
-void TestCallSetBoolService::ServiceSuccessCallbackCheckTrueValue(
-  const std_srvs::srv::SetBool::Request::SharedPtr request,
-  std_srvs::srv::SetBool::Response::SharedPtr response)
-{
-  response->message = "Successfully callback pass!";
-  response->success = true;
-  RCLCPP_INFO_STREAM(
-    rclcpp::get_logger("test_set_bool_plugin"), response->message << " data: " << request->data);
-
-  EXPECT_EQ(request->data, true);
-}
-
-void TestCallSetBoolService::ServiceSuccessCallbackCheckFalseValue(
-  const std_srvs::srv::SetBool::Request::SharedPtr request,
-  std_srvs::srv::SetBool::Response::SharedPtr response)
-{
-  response->message = "Successfully callback pass!";
-  response->success = true;
-  RCLCPP_INFO_STREAM(
-    rclcpp::get_logger("test_set_bool_plugin"), response->message << " data: " << request->data);
-
-  EXPECT_EQ(request->data, false);
 }
 
 TEST_F(TestCallSetBoolService, GoodLoadingCallSetBoolServicePlugin)
@@ -106,12 +76,13 @@ TEST_F(TestCallSetBoolService, WrongCallSetBoolServiceServiceServerNotInitialize
 TEST_F(TestCallSetBoolService, GoodSetBoolCallServiceSuccessWithTrueValue)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "true"}};
-  using std::placeholders::_1;
-  using std::placeholders::_2;
+
   using std_srvs::srv::SetBool;
-  CreateService<SetBool, SetBool::Request, SetBool::Response>(
+  CreateService<SetBool>(
     "set_bool",
-    std::bind(&TestCallSetBoolService::ServiceSuccessCallbackCheckTrueValue, this, _1, _2));
+    [&](const SetBool::Request::SharedPtr request, SetBool::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, true);
+    });
 
   RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
 
@@ -126,12 +97,12 @@ TEST_F(TestCallSetBoolService, GoodSetBoolCallServiceSuccessWithFalseValue)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "false"}};
 
-  using std::placeholders::_1;
-  using std::placeholders::_2;
   using std_srvs::srv::SetBool;
-  CreateService<SetBool, SetBool::Request, SetBool::Response>(
+  CreateService<SetBool>(
     "set_bool",
-    std::bind(&TestCallSetBoolService::ServiceSuccessCallbackCheckFalseValue, this, _1, _2));
+    [&](const SetBool::Request::SharedPtr request, SetBool::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, false);
+    });
 
   RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
 
@@ -146,11 +117,12 @@ TEST_F(TestCallSetBoolService, WrongSetBoolCallServiceFailure)
 {
   std::map<std::string, std::string> service = {{"service_name", "set_bool"}, {"data", "false"}};
 
-  using std::placeholders::_1;
-  using std::placeholders::_2;
   using std_srvs::srv::SetBool;
-  CreateService<SetBool, SetBool::Request, SetBool::Response>(
-    "set_bool", std::bind(&TestCallSetBoolService::ServiceFailedCallback, this, _1, _2));
+  CreateService<SetBool>(
+    "set_bool",
+    [&](const SetBool::Request::SharedPtr request, SetBool::Response::SharedPtr response) {
+      ServiceCallback(request, response, false, false);
+    });
 
   RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
 
@@ -166,12 +138,12 @@ TEST_F(TestCallSetBoolService, WrongServiceValueDefined)
   std::map<std::string, std::string> service = {
     {"service_name", "set_bool"}, {"data", "wrong_bool"}};
 
-  using std::placeholders::_1;
-  using std::placeholders::_2;
   using std_srvs::srv::SetBool;
-  CreateService<SetBool, SetBool::Request, SetBool::Response>(
-    "set_bool", std::bind(&TestCallSetBoolService::ServiceFailedCallback, this, _1, _2));
-
+  CreateService<SetBool>(
+    "set_bool",
+    [&](const SetBool::Request::SharedPtr request, SetBool::Response::SharedPtr response) {
+      ServiceCallback(request, response, false, true);
+    });
   RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
 
   CreateTree("CallSetBoolService", service);

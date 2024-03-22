@@ -24,7 +24,7 @@ namespace panther_manager
 
 BT::NodeStatus SignalShutdown::tick()
 {
-  auto reason = this->getInput<std::string>("reason").value();
+  const auto reason = this->getInput<std::string>("reason").value();
 
   std::pair<bool, std::string> signal_shutdown;
   signal_shutdown.first = true;

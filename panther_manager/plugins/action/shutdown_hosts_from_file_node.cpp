@@ -28,20 +28,22 @@
 namespace panther_manager
 {
 
-void ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
+bool ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
   std::string shutdown_hosts_file;
   if (
     !getInput<std::string>("shutdown_hosts_file", shutdown_hosts_file) ||
     shutdown_hosts_file == "") {
-    throw(BT::RuntimeError("[", this->name(), "] Failed to get input [shutdown_hosts_file]"));
+    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [shutdown_hosts_file]");
+    return false;
   }
 
   YAML::Node shutdown_hosts;
   try {
     shutdown_hosts = YAML::LoadFile(shutdown_hosts_file);
   } catch (const YAML::Exception & e) {
-    throw BT::RuntimeError("[" + this->name() + "] Error loading YAML file: " + e.what());
+    RCLCPP_ERROR_STREAM(*this->logger_, " Error loading YAML file: " << e.what());
+    return false;
   }
 
   try {
@@ -51,19 +53,22 @@ void ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHos
         continue;
       }
 
-      auto ip = panther_utils::GetYAMLKeyValue<std::string>(host, "ip");
-      auto username = panther_utils::GetYAMLKeyValue<std::string>(host, "username");
-      auto port = panther_utils::GetYAMLKeyValue<unsigned>(host, "port", 22);
-      auto command = panther_utils::GetYAMLKeyValue<std::string>(
+      const auto ip = panther_utils::GetYAMLKeyValue<std::string>(host, "ip");
+      const auto username = panther_utils::GetYAMLKeyValue<std::string>(host, "username");
+      const auto port = panther_utils::GetYAMLKeyValue<unsigned>(host, "port", 22);
+      const auto command = panther_utils::GetYAMLKeyValue<std::string>(
         host, "command", "sudo shutdown now");
-      auto timeout = panther_utils::GetYAMLKeyValue<float>(host, "timeout", 5.0);
-      auto ping_for_success = panther_utils::GetYAMLKeyValue<bool>(host, "ping_for_success", true);
+      const auto timeout = panther_utils::GetYAMLKeyValue<float>(host, "timeout", 5.0);
+      const auto ping_for_success = panther_utils::GetYAMLKeyValue<bool>(
+        host, "ping_for_success", true);
       hosts.push_back(
         std::make_shared<ShutdownHost>(ip, username, port, command, timeout, ping_for_success));
     }
   } catch (const std::runtime_error & e) {
-    throw BT::RuntimeError("[" + this->name() + "]: " + e.what());
+    RCLCPP_ERROR_STREAM(*this->logger_, e.what());
+    return false;
   }
+  return true;
 }
 
 }  // namespace panther_manager

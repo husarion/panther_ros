@@ -51,12 +51,11 @@ TEST_F(TestShutdownSingleHost, WrongPluginNameLoadingShutdownSingleHostPlugin)
 
 TEST_F(TestShutdownSingleHost, GoodTouchCommand)
 {
-  std::string file_path = testing::TempDir() + "test_panther_manager_good_touch_command";
-  std::filesystem::remove(file_path);
-  EXPECT_FALSE(std::filesystem::exists(file_path));
-  std::cout << "Path: " << file_path << std::endl;
+  std::string test_file_path = testing::TempDir() + "test_panther_manager_good_touch_command";
+  std::filesystem::remove(test_file_path);
+  EXPECT_FALSE(std::filesystem::exists(test_file_path));
   std::map<std::string, std::string> service = {
-    {"command", "touch " + file_path},
+    {"command", "touch " + test_file_path},
     {"ip", "localhost"},
     {"ping_for_success", "false"},
     {"port", "22"},
@@ -69,9 +68,23 @@ TEST_F(TestShutdownSingleHost, GoodTouchCommand)
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
-  EXPECT_TRUE(std::filesystem::exists(file_path));
+  EXPECT_TRUE(std::filesystem::exists(test_file_path));
 
-  std::filesystem::remove(file_path);
+  std::filesystem::remove(test_file_path);
+}
+
+TEST_F(TestShutdownSingleHost, Timeout)
+{
+  std::map<std::string, std::string> service = {
+    {"command", "sleep 0.5"}, {"ip", "localhost"}, {"ping_for_success", "false"},
+    {"port", "22"},           {"timeout", "0.1"},  {"username", "husarion"},
+  };
+  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
+  CreateTree("ShutdownSingleHost", service);
+  auto & tree = GetTree();
+
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
 TEST_F(TestShutdownSingleHost, WrongCommand)

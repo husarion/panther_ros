@@ -19,7 +19,7 @@ namespace panther_manager
 bool CallSetBoolService::setRequest(typename Request::SharedPtr & request)
 {
   if (!getInput<bool>("data", request->data)) {
-    RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to get input [data]");
+    RCLCPP_ERROR_STREAM(this->node_->get_logger(), "Failed to get input [data]");
     return false;
   }
   return true;
