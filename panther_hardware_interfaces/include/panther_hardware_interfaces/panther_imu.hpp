@@ -131,6 +131,19 @@ protected:
     "linear_acceleration.y", "linear_acceleration.z",
   };
 
+  enum ImuMeasurements {
+    orientation_x,
+    orientation_y,
+    orientation_z,
+    orientation_w,
+    angular_velocity_x,
+    angular_velocity_y,
+    angular_velocity_z,
+    linear_acceleration_x,
+    linear_acceleration_y,
+    linear_acceleration_z
+  };
+
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
 

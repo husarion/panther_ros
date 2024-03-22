@@ -106,12 +106,13 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
                                                       << params_.hub_port << "...");
 
   try {
-    spatial_ = std::make_unique<phidgets::Spatial>(
-      params_.serial, params_.hub_port, false,
-      std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
-      std::bind(&PantherImuSensor::SpatialAttachCallback, this),
-      std::bind(&PantherImuSensor::SpatialDetachCallback, this));
-
+    if (!spatial_) {
+      spatial_ = std::make_unique<phidgets::Spatial>(
+        params_.serial, params_.hub_port, false,
+        std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
+        std::bind(&PantherImuSensor::SpatialAttachCallback, this),
+        std::bind(&PantherImuSensor::SpatialDetachCallback, this));
+    }
     RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
     imu_connected_ = true;
 
@@ -131,7 +132,6 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Deactivating Panther Imu");
-  spatial_.reset();
 
   return CallbackReturn::SUCCESS;
 }
@@ -139,16 +139,12 @@ CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherImuSensor::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Shutting down Panther Imu");
-  spatial_.reset();
-
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherImuSensor::on_error(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Handling Panther Imu error");
-  spatial_.reset();
-
   return CallbackReturn::SUCCESS;
 }
 
@@ -389,10 +385,12 @@ void PantherImuSensor::HandleFirstDataCallback(
   const double timestamp_s)
 {
   if (
-    (!std::isfinite(mag_compensated.x) || !std::isfinite(mag_compensated.y) ||
-     !std::isfinite(mag_compensated.z)) &&
-    !imu_calibrated_) {
-    return;
+    !std::isfinite(mag_compensated.x) || !std::isfinite(mag_compensated.y) ||
+    !std::isfinite(mag_compensated.z)) {
+    if (!imu_calibrated_) {
+      return;
+    }
+    throw std::runtime_error("Magnetometer has nan values.");
   }
 
   geometry_msgs::msg::Quaternion init_q;
@@ -469,15 +467,19 @@ void PantherImuSensor::UpdateStatesValues(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
 {
   filter_.getOrientation(
-    imu_sensor_state_[0], imu_sensor_state_[1], imu_sensor_state_[2], imu_sensor_state_[3]);
+    imu_sensor_state_[orientation_w], imu_sensor_state_[orientation_x],
+    imu_sensor_state_[orientation_y], imu_sensor_state_[orientation_z]);
+  // imu_sensor_state_[orientation_x] = 0.0;
+  // imu_sensor_state_[orientation_y] = 0.0;
+  // imu_sensor_state_[orientation_z] = 0.0;
+  // imu_sensor_state_[orientation_w] = 1.0;
+  imu_sensor_state_[angular_velocity_x] = ang_vel.x;
+  imu_sensor_state_[angular_velocity_y] = ang_vel.y;
+  imu_sensor_state_[angular_velocity_z] = ang_vel.z;
 
-  imu_sensor_state_[4] = ang_vel.x;
-  imu_sensor_state_[5] = ang_vel.y;
-  imu_sensor_state_[6] = ang_vel.z;
-
-  imu_sensor_state_[7] = lin_acc.x;
-  imu_sensor_state_[8] = lin_acc.y;
-  imu_sensor_state_[9] = lin_acc.z;
+  imu_sensor_state_[linear_acceleration_x] = lin_acc.x;
+  imu_sensor_state_[linear_acceleration_y] = lin_acc.y;
+  imu_sensor_state_[linear_acceleration_z] = lin_acc.z;
 }
 
 void PantherImuSensor::RemoveGravityVectorFromAccelerationState()

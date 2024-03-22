@@ -55,95 +55,6 @@
       wheel_separation_x="${wheel_separation_x}"
       prefix="rr" />
 
-    <ros2_control name="wheels" type="system">
-      <hardware>
-        <xacro:if value="${use_sim}">
-          <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
-            <plugin>ign_ros2_control/IgnitionSystem</plugin>
-          </xacro:if>
-        </xacro:if>
-
-        <xacro:unless value="$(arg use_sim)">
-          <plugin>panther_hardware_interfaces/PantherSystem</plugin>
-
-          <param name="panther_version">${panther_version}</param>
-
-          <param name="encoder_resolution">1600</param>
-
-          <param name="gear_ratio">30.08</param>
-          <param name="gearbox_efficiency">0.75</param>
-
-          <!-- Same as set in the Roboteq driver (TNM parameter) -->
-          <param name="motor_torque_constant">0.11</param>
-
-          <!-- Max RPM speed set in the Roboteq driver (MXRPM parameter) -->
-          <param name="max_rpm_motor_speed">3600.0</param>
-
-          <param name="can_interface_name">panther_can</param>
-          <param name="master_can_id">3</param>
-          <param name="front_driver_can_id">1</param>
-          <param name="rear_driver_can_id">2</param>
-          <param name="sdo_operation_timeout_ms">100</param>
-
-          <!-- Depends on frequency of the controller, more critical motors state are sent with
-           higher frequency, other parameters are sent with lower, here allowed time is set
-           to be expected period +50% margin -->
-          <param name="pdo_motor_states_timeout_ms">15</param>
-          <param name="pdo_driver_state_timeout_ms">75</param>
-
-          <!-- It will be rounded to the closest value taking into account current controller frequency -->
-          <param name="driver_states_update_frequency">20.0</param>
-
-          <param name="max_roboteq_initialization_attempts">5</param>
-          <param name="max_roboteq_activation_attempts">5</param>
-
-          <!-- TODO after all tests update parameters, these ones are quite high for the worst case scenario -->
-          <param name="max_write_pdo_cmds_errors_count">4</param>
-          <param name="max_read_pdo_motor_states_errors_count">4</param>
-          <param name="max_read_pdo_driver_state_errors_count">20</param>
-        </xacro:unless>
-      </hardware>
-
-      <joint name="fl_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="position" />
-        <state_interface name="velocity" />
-        <state_interface name="effort" />
-      </joint>
-      <joint name="fr_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="position" />
-        <state_interface name="velocity" />
-        <state_interface name="effort" />
-      </joint>
-      <joint name="rl_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="position" />
-        <state_interface name="velocity" />
-        <state_interface name="effort" />
-      </joint>
-      <joint name="rr_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="position" />
-        <state_interface name="velocity" />
-        <state_interface name="effort" />
-      </joint>
-
-      <xacro:if value="${use_sim}">
-        <sensor name="imu">
-          <state_interface name="orientation.x" />
-          <state_interface name="orientation.y" />
-          <state_interface name="orientation.z" />
-          <state_interface name="orientation.w" />
-          <state_interface name="angular_velocity.x" />
-          <state_interface name="angular_velocity.y" />
-          <state_interface name="angular_velocity.z" />
-          <state_interface name="linear_acceleration.x" />
-          <state_interface name="linear_acceleration.y" />
-          <state_interface name="linear_acceleration.z" />
-        </sensor>
-      </xacro:if>
-    </ros2_control>
 
     <xacro:unless value="$(arg use_sim)">
       <ros2_control name="imu" type="sensor">
@@ -162,7 +73,7 @@
           <param name="mag_bias_z">0.0</param>
           <param name="use_mag">true</param>
           <param name="stateless">false</param>
-          <param name="remove_gravity_vector">true</param>
+          <param name="remove_gravity_vector">false</param>
           <param name="world_frame">enu</param>
         </hardware>
 
