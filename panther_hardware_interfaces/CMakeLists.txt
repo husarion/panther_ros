@@ -35,6 +35,7 @@ set(PACKAGE_INCLUDE_DEPENDS
     rclcpp_lifecycle
     realtime_tools
     std_srvs
+    imu_filter_madgwick
     phidgets_api
     generate_parameter_library
     tf2_ros
@@ -64,9 +65,7 @@ add_library(
   src/roboteq_data_converters.cpp
   src/roboteq_error_filter.cpp
   src/utils.cpp
-  src/panther_imu.cpp
-  src/imu_filter.cpp
-  src/stateless_orientation.cpp)
+  src/panther_imu.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})

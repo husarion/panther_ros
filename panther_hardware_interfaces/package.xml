@@ -22,6 +22,7 @@
   <depend>generate_parameter_library</depend>
   <depend>geometry_msgs</depend>
   <depend>hardware_interface</depend>
+  <depend>imu_filter_madgwick</depend>
   <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
   <depend>panther_utils</depend>

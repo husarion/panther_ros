@@ -70,6 +70,7 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
     logger_, "\tcallback_delta_epsilon_ms " << params_.callback_delta_epsilon_ms << "ms");
 
   try {
+    ReadMadgwickFilterParams();
     ConfigureMadgwickFilter();
   } catch (const std::exception & e) {
     RCLCPP_FATAL_STREAM(logger_, "Exception during reading Madgwick Filter params: " << e.what());
@@ -133,6 +134,8 @@ CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Deactivating Panther Imu");
 
+  // TODO: @delihus reset the filter after reconnection
+  // filter_.reset();
   return CallbackReturn::SUCCESS;
 }
 
@@ -287,7 +290,7 @@ void PantherImuSensor::Calibrate()
 
   RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot for 2 seconds!");
   while (!imu_calibrated_) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
   }
   RCLCPP_INFO(logger_, "IMU is successfully callibrated.");
 }
@@ -336,11 +339,10 @@ void PantherImuSensor::ConfigureHeating()
 
 void PantherImuSensor::ConfigureMadgwickFilter()
 {
-  ReadMadgwickFilterParams();
-
-  filter_.setWorldFrame(world_frame_);
-  filter_.setAlgorithmGain(params_.gain);
-  filter_.setDriftBiasGain(params_.zeta);
+  filter_ = std::make_unique<ImuFilter>();
+  filter_->setWorldFrame(world_frame_);
+  filter_->setAlgorithmGain(params_.gain);
+  filter_->setDriftBiasGain(params_.zeta);
 }
 
 geometry_msgs::msg::Vector3 PantherImuSensor::ParseMagnitude(const double magnetic_field[3])
@@ -398,7 +400,7 @@ void PantherImuSensor::HandleFirstDataCallback(
     throw std::runtime_error(
       "The IMU seems to be in free fall, cannot determine gravity direction.");
   }
-  filter_.setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
+  filter_->setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
 
   last_spatial_data_callback_time_s_ = timestamp_s;
   imu_calibrated_ = true;
@@ -429,10 +431,6 @@ void PantherImuSensor::SpatialDataCallback(
   }
 
   UpdateStatesValues(ang_vel, lin_acc);
-
-  if (params_.remove_gravity_vector) {
-    RemoveGravityVectorFromAccelerationState();
-  }
 }
 
 void PantherImuSensor::SpatialAttachCallback()
@@ -446,6 +444,7 @@ void PantherImuSensor::SpatialDetachCallback()
 {
   RCLCPP_ERROR(logger_, "IMU has detached!");
   imu_connected_ = false;
+  SetStateValuesToNans();
   on_deactivate(rclcpp_lifecycle::State{});
 }
 
@@ -454,11 +453,11 @@ void PantherImuSensor::UpdateMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & mag_compensated, const double dt)
 {
   if (params_.use_mag) {
-    filter_.madgwickAHRSupdate(
+    filter_->madgwickAHRSupdate(
       ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, mag_compensated.x,
       mag_compensated.y, mag_compensated.z, dt);
   } else {
-    filter_.madgwickAHRSupdateIMU(
+    filter_->madgwickAHRSupdateIMU(
       ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, dt);
   }
 }
@@ -466,29 +465,31 @@ void PantherImuSensor::UpdateMadgwickAlgorithm(
 void PantherImuSensor::UpdateStatesValues(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
 {
-  filter_.getOrientation(
+  filter_->getOrientation(
     imu_sensor_state_[orientation_w], imu_sensor_state_[orientation_x],
     imu_sensor_state_[orientation_y], imu_sensor_state_[orientation_z]);
-  // imu_sensor_state_[orientation_x] = 0.0;
-  // imu_sensor_state_[orientation_y] = 0.0;
-  // imu_sensor_state_[orientation_z] = 0.0;
-  // imu_sensor_state_[orientation_w] = 1.0;
+
   imu_sensor_state_[angular_velocity_x] = ang_vel.x;
   imu_sensor_state_[angular_velocity_y] = ang_vel.y;
   imu_sensor_state_[angular_velocity_z] = ang_vel.z;
 
-  imu_sensor_state_[linear_acceleration_x] = lin_acc.x;
-  imu_sensor_state_[linear_acceleration_y] = lin_acc.y;
-  imu_sensor_state_[linear_acceleration_z] = lin_acc.z;
+  if (params_.remove_gravity_vector) {
+    float gx, gy, gz;
+    filter_->getGravity(gx, gy, gz);
+    imu_sensor_state_[linear_acceleration_x] = lin_acc.x - gx;
+    imu_sensor_state_[linear_acceleration_y] = lin_acc.y - gy;
+    imu_sensor_state_[linear_acceleration_z] = lin_acc.y - gz;
+  } else {
+    imu_sensor_state_[linear_acceleration_x] = lin_acc.x;
+    imu_sensor_state_[linear_acceleration_y] = lin_acc.y;
+    imu_sensor_state_[linear_acceleration_z] = lin_acc.z;
+  }
 }
 
-void PantherImuSensor::RemoveGravityVectorFromAccelerationState()
+void PantherImuSensor::SetStateValuesToNans()
 {
-  float gx, gy, gz;
-  filter_.getGravity(gx, gy, gz);
-  imu_sensor_state_[7] -= gx;
-  imu_sensor_state_[8] -= gy;
-  imu_sensor_state_[9] -= gz;
+  std::fill(
+    imu_sensor_state_.begin(), imu_sensor_state_.end(), std::numeric_limits<double>::quiet_NaN());
 }
 
 }  // namespace panther_hardware_interfaces

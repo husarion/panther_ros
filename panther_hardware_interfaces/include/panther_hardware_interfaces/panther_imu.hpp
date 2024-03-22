@@ -114,7 +114,8 @@ protected:
     const geometry_msgs::msg::Vector3 & mag_compensated, const double dt);
   void UpdateStatesValues(
     const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc);
-  void RemoveGravityVectorFromAccelerationState();
+
+  void SetStateValuesToNans();
 
   void Calibrate();
 
@@ -147,7 +148,7 @@ protected:
   phidgets_spatial::Params params_;
   std::unique_ptr<phidgets::Spatial> spatial_;
 
-  ImuFilter filter_;
+  std::unique_ptr<ImuFilter> filter_;
   WorldFrame::WorldFrame world_frame_;
   bool imu_connected_;
   bool imu_calibrated_ = false;
