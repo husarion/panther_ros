@@ -74,14 +74,14 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO_STREAM(logger_, "Creating GPIO controller for Panther version: " << panther_version_);
   if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
     gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
-    use_can_for_e_stop_reset_ = false;
+    use_can_for_e_stop_trigger_ = false;
 
     ReadEStop = [this]() {
       return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
     };
   } else {
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
-    use_can_for_e_stop_reset_ = true;
+    use_can_for_e_stop_trigger_ = true;
 
     ReadEStop = [this]() { return e_stop_.load(); };
   }
@@ -679,19 +679,18 @@ void PantherSystem::SetEStop()
   } catch (const std::runtime_error & e) {
     RCLCPP_INFO_STREAM(logger_, "Trying to set E-stop using GPIO: " << e.what());
 
-    if (!use_can_for_e_stop_reset_) {
+    if (!use_can_for_e_stop_trigger_) {
       throw std::runtime_error("Setting E-stop failed");
     }
 
+    std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
+
     try {
-      {
-        std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
-        motors_controller_->TurnOnSafetyStop();
-      }
+      motors_controller_->TurnOnSafetyStop();
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(
         logger_, "Error when trying to set safety stop using CAN command: " << e.what());
-      throw std::runtime_error("Both attempts at settung E-stop failed");
+      throw std::runtime_error("Both attempts at setting E-stop failed");
     }
   }
 
