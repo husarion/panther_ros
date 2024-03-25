@@ -25,11 +25,8 @@ int main(int argc, char ** argv)
   auto manager_bt_node = std::make_shared<panther_manager::ManagerBTNode>("manager_bt_node");
   manager_bt_node->Initialize();
 
-  rclcpp::executors::MultiThreadedExecutor executor;
-  executor.add_node(manager_bt_node);
-
   try {
-    executor.spin();
+    rclcpp::spin(manager_bt_node);
   } catch (const std::runtime_error & err) {
     std::cerr << "[manager_bt_node] Caught exception: " << err.what() << std::endl;
   }
