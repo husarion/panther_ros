@@ -29,12 +29,11 @@ using MockDriverNode = panther_lights::mock_driver_node::MockDriverNode;
 class DriverNodeFixture : public ::testing::Test
 {
 public:
-  DriverNodeFixture() { rclcpp::init(0, nullptr); }
-
-  ~DriverNodeFixture() { rclcpp::shutdown(); }
-
+  // Due to DriverNode::OnShutdown() we need to execute rclcpp::shutdown()
+  // in TearDown() to release GPIO pins
   void SetUp() override
   {
+    rclcpp::init(0, nullptr);
     node_ = std::make_shared<MockDriverNode>("test_lights_driver_node");
     it_ = std::make_shared<image_transport::ImageTransport>(node_->shared_from_this());
     channel_1_pub_ = std::make_shared<image_transport::Publisher>(
@@ -46,7 +45,7 @@ public:
     node_->Initialize();
   }
 
-  void TearDown() override {}
+  void TearDown() override { rclcpp::shutdown(); }
 
 protected:
   ImageMsg::SharedPtr CreateImageMsg()
@@ -61,7 +60,7 @@ protected:
     msg->encoding = sensor_msgs::image_encodings::RGBA8;
     msg->is_bigendian = false;
     msg->step = msg->width * 4;
-    msg->data = std::vector<uint8_t>(msg->width * msg->height * msg->step, 0);
+    msg->data = std::vector<uint8_t>(msg->step * msg->height, 0);
 
     return msg;
   }
@@ -73,18 +72,27 @@ protected:
   rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
 };
 
-// TEST_F(DriverNodeFixture, PublishSuccess)
-// {
-//   auto msg = CreateImageMsg();
+TEST_F(DriverNodeFixture, ServiceTestSuccess)
+{
+  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
+  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
+  request->data = 0.5;
+  auto future = set_brightness_client_->async_send_request(request);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1)));
+  auto response = future.get();
+  EXPECT_TRUE(response->success);
+}
 
-//   channel_1_pub_->publish(msg);
-//   channel_2_pub_->publish(msg);
-//   rclcpp::spin_some(node_->get_node_base_interface());
-//   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//   rclcpp::spin_some(node_->get_node_base_interface());
-
-//   EXPECT_TRUE(node_->isInitialised());
-// }
+TEST_F(DriverNodeFixture, ServiceTestFail)
+{
+  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
+  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
+  request->data = 2;
+  auto future = set_brightness_client_->async_send_request(request);
+  ASSERT_TRUE(panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1)));
+  auto response = future.get();
+  EXPECT_FALSE(response->success);
+}
 
 TEST_F(DriverNodeFixture, PublishFail)
 {
@@ -127,26 +135,16 @@ TEST_F(DriverNodeFixture, PublishFail)
   EXPECT_FALSE(node_->isInitialised());
 }
 
-TEST_F(DriverNodeFixture, ServiceTestSuccess)
+// FIXME: For some reason this function breaks other test that's why PublishSuccess is last one.
+TEST_F(DriverNodeFixture, PublishSuccess)
 {
-  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
-  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
-  request->data = 0.5;
-  auto future = set_brightness_client_->async_send_request(request);
-  ASSERT_TRUE(panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1)));
-  auto response = future.get();
-  EXPECT_TRUE(response->success);
-}
+  auto msg = CreateImageMsg();
 
-TEST_F(DriverNodeFixture, ServiceTestFail)
-{
-  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
-  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
-  request->data = 2;
-  auto future = set_brightness_client_->async_send_request(request);
-  ASSERT_TRUE(panther_utils::test_utils::WaitForFuture(node_, future, std::chrono::seconds(1)));
-  auto response = future.get();
-  EXPECT_FALSE(response->success);
+  channel_1_pub_->publish(msg);
+  channel_2_pub_->publish(msg);
+  rclcpp::spin_some(node_->get_node_base_interface());
+
+  EXPECT_TRUE(node_->isInitialised());
 }
 
 int main(int argc, char ** argv)

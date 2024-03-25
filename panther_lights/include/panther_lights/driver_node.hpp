@@ -62,13 +62,13 @@ private:
     SetLEDBrightnessSrv::Response::SharedPtr response);
   void DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status);
 
-  apa102::APA102 front_panel_;
-  apa102::APA102 rear_panel_;
+  apa102::APA102 chanel_1_;
+  apa102::APA102 chanel_2_;
 
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
   std::shared_ptr<image_transport::ImageTransport> it_;
-  std::shared_ptr<image_transport::Subscriber> rear_light_sub_;
-  std::shared_ptr<image_transport::Subscriber> front_light_sub_;
+  std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
+  std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
   diagnostic_updater::Updater diagnostic_updater_;
 };
 

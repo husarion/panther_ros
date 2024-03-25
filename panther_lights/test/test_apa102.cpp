@@ -29,8 +29,8 @@ protected:
 
 TEST_F(APA102Test, PortsAvailable)
 {
-  EXPECT_NO_THROW({ panther_lights::apa102::APA102 front_panel_("/dev/spidev0.0"); });
-  EXPECT_NO_THROW({ panther_lights::apa102::APA102 rear_panel_("/dev/spidev0.1"); });
+  EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_1_("/dev/spidev0.0"); });
+  EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_2_("/dev/spidev0.1"); });
 }
 
 TEST_F(APA102Test, SetGlobalBrightnessFloat)
