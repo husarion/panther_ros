@@ -21,7 +21,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <panther_utils/test/ros_test_utils.hpp>
 #include <panther_utils/test/test_utils.hpp>
 
 #include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
