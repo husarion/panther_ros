@@ -19,6 +19,8 @@
 #include <panther_manager/plugins/shutdown_hosts_node.hpp>
 #include <plugin_test_utils.hpp>
 
+typedef panther_manager::plugin_test_utils::PluginTestUtils ShutdownHostsNodeBehaviorTreeTest;
+
 class ShutdownHostsNodeWrapper : public panther_manager::ShutdownHosts
 {
 public:
@@ -26,15 +28,33 @@ public:
   : panther_manager::ShutdownHosts(name, conf)
   {
   }
-
-  static BT::PortsList providedPorts() { return {}; }
-
-private:
-  virtual bool UpdateHosts(
-    std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts) override final;
+  void RemoveDuplicatedHosts(std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts);
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & GetHosts();
 };
 
-bool ShutdownHostsNodeWrapper::UpdateHosts(
+void ShutdownHostsNodeWrapper::RemoveDuplicatedHosts(
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
+{
+  panther_manager::ShutdownHosts::RemoveDuplicatedHosts(hosts);
+}
+
+std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & ShutdownHostsNodeWrapper::GetHosts()
+{
+  return hosts_;
+}
+
+class DuplicatedHostsShutdownHostsNodeWrapper : public ShutdownHostsNodeWrapper
+{
+public:
+  DuplicatedHostsShutdownHostsNodeWrapper(const std::string & name, const BT::NodeConfig & conf)
+  : ShutdownHostsNodeWrapper(name, conf)
+  {
+  }
+  bool UpdateHosts(std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts);
+  static BT::PortsList providedPorts() { return {}; }
+};
+
+bool DuplicatedHostsShutdownHostsNodeWrapper::UpdateHosts(
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
 {
   hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
@@ -43,7 +63,66 @@ bool ShutdownHostsNodeWrapper::UpdateHosts(
   return true;
 }
 
-//  TODO: Create TESTs completely
+class FailedUpdateHostsShutdownHostsNodeWrapper : public ShutdownHostsNodeWrapper
+{
+public:
+  FailedUpdateHostsShutdownHostsNodeWrapper(const std::string & name, const BT::NodeConfig & conf)
+  : ShutdownHostsNodeWrapper(name, conf)
+  {
+  }
+  bool UpdateHosts(std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts);
+  static BT::PortsList providedPorts() { return {}; }
+};
+
+bool FailedUpdateHostsShutdownHostsNodeWrapper::UpdateHosts(
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
+{
+  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
+  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("localhost", "husarion"));
+  return false;
+}
+
+class ShutdownHostsNodeTest : public testing::Test
+{
+public:
+  void CreateDuplicationWrapper();
+  void CreateFailedUpdatedHostWrapper();
+
+protected:
+  std::unique_ptr<ShutdownHostsNodeWrapper> wrapper;
+};
+
+void ShutdownHostsNodeTest::CreateDuplicationWrapper()
+{
+  BT::NodeConfig conf;
+  wrapper = std::make_unique<DuplicatedHostsShutdownHostsNodeWrapper>("Duplicated hosts", conf);
+}
+
+void ShutdownHostsNodeTest::CreateFailedUpdatedHostWrapper()
+{
+  BT::NodeConfig conf;
+  wrapper = std::make_unique<FailedUpdateHostsShutdownHostsNodeWrapper>("Failed hosts", conf);
+}
+
+TEST_F(ShutdownHostsNodeTest, GoodRemovingDuplicatedHosts)
+{
+  CreateDuplicationWrapper();
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts;
+  ASSERT_TRUE(wrapper->UpdateHosts(hosts));
+  ASSERT_EQ(hosts.size(), 3);
+  wrapper->RemoveDuplicatedHosts(hosts);
+  ASSERT_EQ(hosts.size(), 2);
+}
+
+TEST_F(ShutdownHostsNodeBehaviorTreeTest, FailedBehaviorTreeWhenUpdateHostReturnsFalse)
+{
+  RegisterNodeWithoutParams<FailedUpdateHostsShutdownHostsNodeWrapper>("ShutdownHosts");
+  CreateTree("ShutdownHosts", {});
+  auto & tree = GetTree();
+
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
+}
 
 int main(int argc, char ** argv)
 {
