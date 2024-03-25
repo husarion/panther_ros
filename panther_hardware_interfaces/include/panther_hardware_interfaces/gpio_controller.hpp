@@ -205,6 +205,9 @@ public:
    */
   std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
+protected:
+  std::unique_ptr<Watchdog> watchdog_;
+
 private:
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
@@ -226,7 +229,6 @@ private:
     panther_gpiod::GPIOInfo{
       panther_gpiod::GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
   };
-  std::unique_ptr<Watchdog> watchdog_;
 };
 
 class GPIOControllerPTH10X : public GPIOControllerInterface
