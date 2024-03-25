@@ -43,8 +43,8 @@ public:
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
   bool isInitialised() const { return panels_initialised_; }
-  rclcpp::Time setFrontPanelTS(const rclcpp::Time & ts) { return front_panel_ts_ = ts; }
-  rclcpp::Time setRearPanelTS(const rclcpp::Time & ts) { return rear_panel_ts_ = ts; }
+  rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
+  rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
 };
 
 }  // namespace panther_lights::mock_driver_node

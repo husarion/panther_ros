@@ -32,9 +32,9 @@ public:
   DriverNodeFixture()
   : node_(std::make_shared<MockDriverNode>("test_lights_driver_node")),
     it_(std::make_shared<image_transport::ImageTransport>(node_->shared_from_this())),
-    front_light_pub_(std::make_shared<image_transport::Publisher>(
+    channel_1_pub_(std::make_shared<image_transport::Publisher>(
       it_->advertise("lights/driver/channel_1_frame", 5))),
-    rear_light_pub_(std::make_shared<image_transport::Publisher>(
+    channel_2_pub_(std::make_shared<image_transport::Publisher>(
       it_->advertise("lights/driver/channel_2_frame", 5))),
     set_brightness_client_(
       node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness"))
@@ -65,8 +65,8 @@ protected:
 
   std::shared_ptr<MockDriverNode> node_;
   std::shared_ptr<image_transport::ImageTransport> it_;
-  std::shared_ptr<image_transport::Publisher> front_light_pub_;
-  std::shared_ptr<image_transport::Publisher> rear_light_pub_;
+  std::shared_ptr<image_transport::Publisher> channel_1_pub_;
+  std::shared_ptr<image_transport::Publisher> channel_2_pub_;
   rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
 };
 
@@ -74,10 +74,10 @@ protected:
 // {
 //   auto msg = CreateImageMsg();
 
-//   front_light_pub_->publish(msg);
+//   channel_1_pub_->publish(msg);
+//   channel_2_pub_->publish(msg);
 //   rclcpp::spin_some(node_->get_node_base_interface());
 //   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//   rear_light_pub_->publish(msg);
 //   rclcpp::spin_some(node_->get_node_base_interface());
 
 //   EXPECT_TRUE(node_->isInitialised());
@@ -90,36 +90,36 @@ TEST_F(DriverNodeFixture, PublishFail)
   // Timeout Fail
   msg = CreateImageMsg();
   msg->header.stamp.sec = node_->get_clock()->now().seconds() - node_->getTimeout() - 1;
-  front_light_pub_->publish(msg);
+  channel_1_pub_->publish(msg);
   rclcpp::spin_some(node_->get_node_base_interface());
   EXPECT_FALSE(node_->isInitialised());
 
   // Encoding Fail
   msg = CreateImageMsg();
   msg->encoding = sensor_msgs::image_encodings::RGB8;
-  front_light_pub_->publish(msg);
+  channel_1_pub_->publish(msg);
   rclcpp::spin_some(node_->get_node_base_interface());
   EXPECT_FALSE(node_->isInitialised());
 
   // Height Fail
   msg = CreateImageMsg();
   msg->height = 2;
-  front_light_pub_->publish(msg);
+  channel_1_pub_->publish(msg);
   rclcpp::spin_some(node_->get_node_base_interface());
   EXPECT_FALSE(node_->isInitialised());
 
   // Width Fail
   msg = CreateImageMsg();
   msg->width = node_->getNumLeds() + 1;
-  front_light_pub_->publish(msg);
+  channel_1_pub_->publish(msg);
   rclcpp::spin_some(node_->get_node_base_interface());
   EXPECT_FALSE(node_->isInitialised());
 
   // Older Msg Fail
   msg = CreateImageMsg();
-  node_->setFrontPanelTS(msg->header.stamp);
+  node_->setChanel1TS(msg->header.stamp);
   msg->header.stamp.nanosec--;
-  front_light_pub_->publish(msg);
+  channel_1_pub_->publish(msg);
   rclcpp::spin_some(node_->get_node_base_interface());
   EXPECT_FALSE(node_->isInitialised());
 }

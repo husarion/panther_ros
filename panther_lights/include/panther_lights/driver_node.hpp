@@ -48,8 +48,8 @@ protected:
   int num_led_;
   double frame_timeout_;
   bool panels_initialised_ = false;
-  rclcpp::Time front_panel_ts_;
-  rclcpp::Time rear_panel_ts_;
+  rclcpp::Time chanel_1_ts_;
+  rclcpp::Time chanel_2_ts_;
   std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
 
 private:

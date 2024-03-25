@@ -70,22 +70,22 @@ void DriverNode::Initialize()
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
   gpio_driver_->GPIOMonitorEnable();
 
-  front_panel_ts_ = this->get_clock()->now();
-  rear_panel_ts_ = this->get_clock()->now();
+  chanel_1_ts_ = this->get_clock()->now();
+  chanel_2_ts_ = this->get_clock()->now();
 
   front_panel_.SetGlobalBrightness(global_brightness);
   rear_panel_.SetGlobalBrightness(global_brightness);
 
   front_light_sub_ = std::make_shared<image_transport::Subscriber>(
     it_->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, front_panel_, front_panel_ts_, "front");
-      front_panel_ts_ = msg->header.stamp;
+      FrameCB(msg, front_panel_, chanel_1_ts_, "front");
+      chanel_1_ts_ = msg->header.stamp;
     }));
 
   rear_light_sub_ = std::make_shared<image_transport::Subscriber>(
     it_->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, rear_panel_, rear_panel_ts_, "rear");
-      rear_panel_ts_ = msg->header.stamp;
+      FrameCB(msg, rear_panel_, chanel_2_ts_, "rear");
+      chanel_2_ts_ = msg->header.stamp;
     }));
 
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
