@@ -26,29 +26,17 @@
 class TestCallTriggerService : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
-  void ServiceFailedCallback(
+  void ServiceCallback(
     const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
-  void ServiceSuccessCallback(
-    const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
-    std_srvs::srv::Trigger::Response::SharedPtr response);
+    std_srvs::srv::Trigger::Response::SharedPtr response, const bool success);
 };
 
-void TestCallTriggerService::ServiceFailedCallback(
+void TestCallTriggerService::ServiceCallback(
   const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
-  std_srvs::srv::Trigger::Response::SharedPtr response)
+  std_srvs::srv::Trigger::Response::SharedPtr response, const bool success)
 {
-  response->message = "Failed callback pass!";
-  response->success = false;
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
-}
-
-void TestCallTriggerService::ServiceSuccessCallback(
-  const std_srvs::srv::Trigger::Request::SharedPtr /* request */,
-  std_srvs::srv::Trigger::Response::SharedPtr response)
-{
-  response->message = "Successfully callback pass!";
-  response->success = true;
+  response->message = success ? "Successfully callback pass!" : "Failed callback pass!";
+  response->success = success;
   RCLCPP_INFO_STREAM(rclcpp::get_logger("test_trigger_plugin"), response->message);
 }
 
@@ -92,12 +80,13 @@ TEST_F(TestCallTriggerService, GoodTriggerCallServiceSuccess)
   CreateTree("CallTriggerService", service);
   auto & tree = GetTree();
 
-  using std::placeholders::_1;
-  using std::placeholders::_2;
   using std_srvs::srv::Trigger;
 
-  CreateService<Trigger, Trigger::Request, Trigger::Response>(
-    "trigger", std::bind(&TestCallTriggerService::ServiceSuccessCallback, this, _1, _2));
+  CreateService<Trigger>(
+    "trigger",
+    [&](const Trigger::Request::SharedPtr request, Trigger::Response::SharedPtr response) {
+      ServiceCallback(request, response, true);
+    });
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
@@ -112,11 +101,13 @@ TEST_F(TestCallTriggerService, WrongTriggerCallServiceFailure)
   CreateTree("CallTriggerService", service);
   auto & tree = GetTree();
 
-  using std::placeholders::_1;
-  using std::placeholders::_2;
   using std_srvs::srv::Trigger;
-  CreateService<Trigger, Trigger::Request, Trigger::Response>(
-    "trigger", std::bind(&TestCallTriggerService::ServiceFailedCallback, this, _1, _2));
+
+  CreateService<Trigger>(
+    "trigger",
+    [&](const Trigger::Request::SharedPtr request, Trigger::Response::SharedPtr response) {
+      ServiceCallback(request, response, false);
+    });
 
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);

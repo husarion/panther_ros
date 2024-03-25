@@ -128,6 +128,14 @@ if(BUILD_TESTING)
                   test/plugins/test_tick_after_timeout_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_tick_after_timeout_node)
 
+  ament_add_gtest(${PROJECT_NAME}_test_shutdown_host
+                  test/plugins/test_shutdown_host.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_host)
+
+  ament_add_gtest(${PROJECT_NAME}_test_shutdown_hosts_node
+                  test/plugins/test_shutdown_hosts_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_node)
+
   foreach(bt_node_test ${plugin_tests})
     target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)
     ament_target_dependencies(${bt_node_test} ${PACKAGE_INCLUDE_DEPENDS})

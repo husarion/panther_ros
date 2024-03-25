@@ -25,79 +25,27 @@
 class TestCallSetLedAnimationService : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
-  void ServiceFailedCallback(
+  void ServiceCallback(
     const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-    panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response);
-
-  void ServiceSuccessCallbackCheckRepeatingTrueValue(
-    const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-    panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response);
-
-  void ServiceSuccessCallbackCheckRepeatingFalseValue(
-    const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-    panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response);
-
-  void ServiceSuccessCallbackCheckId5(
-    const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-    panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response);
+    panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response, const bool success,
+    const std::size_t id, const bool repeating);
 };
 
-void TestCallSetLedAnimationService::ServiceFailedCallback(
+void TestCallSetLedAnimationService::ServiceCallback(
   const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-  panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response)
+  panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response, const bool success,
+  const std::size_t id, const bool repeating)
 {
-  response->message = "Failed callback pass!";
-  response->success = false;
-  RCLCPP_INFO_STREAM(
-    rclcpp::get_logger("test_set_led_animation_plugin"),
-    response->message << " success: " << response->success << " id: " << request->animation.id
-                      << " param: " << request->animation.param
-                      << " repeating: " << request->repeating);
-}
-
-void TestCallSetLedAnimationService::ServiceSuccessCallbackCheckRepeatingTrueValue(
-  const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-  panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response)
-{
-  response->message = "Successfully callback pass!";
-  response->success = true;
+  response->message = success ? "Successfully callback pass!" : "Failed callback pass!";
+  response->success = success;
   RCLCPP_INFO_STREAM(
     rclcpp::get_logger("test_set_led_animation_plugin"),
     response->message << " success: " << response->success << " id: " << request->animation.id
                       << " param: " << request->animation.param
                       << " repeating: " << request->repeating);
 
-  EXPECT_EQ(request->repeating, true);
-}
-
-void TestCallSetLedAnimationService::ServiceSuccessCallbackCheckRepeatingFalseValue(
-  const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-  panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response)
-{
-  response->message = "Successfully callback pass!";
-  response->success = true;
-  RCLCPP_INFO_STREAM(
-    rclcpp::get_logger("test_set_led_animation_plugin"),
-    response->message << " success: " << response->success << " id: " << request->animation.id
-                      << " param: " << request->animation.param
-                      << " repeating: " << request->repeating);
-
-  EXPECT_EQ(request->repeating, false);
-}
-
-void TestCallSetLedAnimationService::ServiceSuccessCallbackCheckId5(
-  const panther_msgs::srv::SetLEDAnimation::Request::SharedPtr request,
-  panther_msgs::srv::SetLEDAnimation::Response::SharedPtr response)
-{
-  response->message = "Successfully callback pass!";
-  response->success = true;
-  RCLCPP_INFO_STREAM(
-    rclcpp::get_logger("test_set_led_animation_plugin"),
-    response->message << " success: " << response->success << " id: " << request->animation.id
-                      << " param: " << request->animation.param
-                      << " repeating: " << request->repeating);
-
-  EXPECT_EQ(request->animation.id, 5u);
+  EXPECT_EQ(request->animation.id, id);
+  EXPECT_EQ(request->repeating, repeating);
 }
 
 TEST_F(TestCallSetLedAnimationService, GoodLoadingCallSetLedAnimationServicePlugin)
@@ -145,14 +93,13 @@ TEST_F(TestCallSetLedAnimationService, GoodSetLedAnimationCallServiceSuccessWith
   auto & tree = GetTree();
 
   using panther_msgs::srv::SetLEDAnimation;
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
-    "set_led_animation",
-    std::bind(
-      &TestCallSetLedAnimationService::ServiceSuccessCallbackCheckRepeatingTrueValue, this, _1,
-      _2));
 
+  CreateService<SetLEDAnimation>(
+    "set_led_animation", [&](
+                           const SetLEDAnimation::Request::SharedPtr request,
+                           SetLEDAnimation::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, 0, true);
+    });
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
@@ -168,14 +115,13 @@ TEST_F(TestCallSetLedAnimationService, GoodSetLedAnimationCallServiceSuccessWith
   auto & tree = GetTree();
 
   using panther_msgs::srv::SetLEDAnimation;
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
-    "set_led_animation",
-    std::bind(
-      &TestCallSetLedAnimationService::ServiceSuccessCallbackCheckRepeatingFalseValue, this, _1,
-      _2));
 
+  CreateService<SetLEDAnimation>(
+    "set_led_animation", [&](
+                           const SetLEDAnimation::Request::SharedPtr request,
+                           SetLEDAnimation::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, 0, false);
+    });
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
@@ -191,12 +137,13 @@ TEST_F(TestCallSetLedAnimationService, GoodSetLedAnimationCallServiceSuccessWith
   auto & tree = GetTree();
 
   using panther_msgs::srv::SetLEDAnimation;
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
-    "set_led_animation",
-    std::bind(&TestCallSetLedAnimationService::ServiceSuccessCallbackCheckId5, this, _1, _2));
 
+  CreateService<SetLEDAnimation>(
+    "set_led_animation", [&](
+                           const SetLEDAnimation::Request::SharedPtr request,
+                           SetLEDAnimation::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, 5, true);
+    });
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
@@ -212,12 +159,13 @@ TEST_F(TestCallSetLedAnimationService, WrongSetLedAnimationCallServiceFailure)
   auto & tree = GetTree();
 
   using panther_msgs::srv::SetLEDAnimation;
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
-    "set_led_animation",
-    std::bind(&TestCallSetLedAnimationService::ServiceFailedCallback, this, _1, _2));
 
+  CreateService<SetLEDAnimation>(
+    "set_led_animation", [&](
+                           const SetLEDAnimation::Request::SharedPtr request,
+                           SetLEDAnimation::Response::SharedPtr response) {
+      ServiceCallback(request, response, false, 0, true);
+    });
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
@@ -233,12 +181,13 @@ TEST_F(TestCallSetLedAnimationService, WrongRepeatingServiceValueDefined)
   auto & tree = GetTree();
 
   using panther_msgs::srv::SetLEDAnimation;
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
-    "set_led_animation",
-    std::bind(&TestCallSetLedAnimationService::ServiceFailedCallback, this, _1, _2));
 
+  CreateService<SetLEDAnimation>(
+    "set_led_animation", [&](
+                           const SetLEDAnimation::Request::SharedPtr request,
+                           SetLEDAnimation::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, 0, true);
+    });
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
@@ -254,12 +203,13 @@ TEST_F(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
   auto & tree = GetTree();
 
   using panther_msgs::srv::SetLEDAnimation;
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  CreateService<SetLEDAnimation, SetLEDAnimation::Request, SetLEDAnimation::Response>(
-    "set_led_animation",
-    std::bind(&TestCallSetLedAnimationService::ServiceFailedCallback, this, _1, _2));
 
+  CreateService<SetLEDAnimation>(
+    "set_led_animation", [&](
+                           const SetLEDAnimation::Request::SharedPtr request,
+                           SetLEDAnimation::Response::SharedPtr response) {
+      ServiceCallback(request, response, true, 0, true);
+    });
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }

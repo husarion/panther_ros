@@ -41,7 +41,6 @@ enum class ShutdownHostState {
 class ShutdownHost
 {
 public:
-  // default constructor
   ShutdownHost()
   : ip_(""),
     user_(""),
@@ -69,17 +68,17 @@ public:
 
   ~ShutdownHost() {}
 
-  void call()
+  void Call()
   {
     switch (state_) {
       case ShutdownHostState::IDLE:
-        if (!is_available()) {
+        if (!IsAvailable()) {
           state_ = ShutdownHostState::SKIPPED;
           break;
         }
 
         try {
-          request_shutdown();
+          RequestShutdown();
         } catch (const std::runtime_error & err) {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = err.what();
@@ -90,7 +89,7 @@ public:
 
       case ShutdownHostState::COMMAND_EXECUTED:
         try {
-          if (update_response()) {
+          if (UpdateResponse()) {
             break;
           }
         } catch (const std::runtime_error & err) {
@@ -104,12 +103,13 @@ public:
       case ShutdownHostState::RESPONSE_RECEIVED:
         state_ = ShutdownHostState::PINGING;
         break;
+
       case ShutdownHostState::PINGING:
-        if (ping_for_success_ ? !is_available() : true) {
+        if (ping_for_success_ ? !IsAvailable() : true) {
           state_ = ShutdownHostState::SUCCESS;
           break;
         }
-        if (timeout_exceeded()) {
+        if (TimeoutExceeded()) {
           state_ = ShutdownHostState::FAILURE;
           failure_reason_ = "Timeout exceeded";
         }
@@ -120,12 +120,12 @@ public:
     }
   }
 
-  bool is_available() const
+  bool IsAvailable() const
   {
     return system(("ping -c 1 -w 1 " + ip_ + " > /dev/null").c_str()) == 0;
   }
 
-  void close_connection()
+  void CloseConnection()
   {
     if (ssh_channel_is_closed(channel_)) {
       return;
@@ -138,19 +138,19 @@ public:
     ssh_free(session_);
   }
 
-  int get_port() const { return port_; }
+  int GetPort() const { return port_; }
 
-  std::string get_ip() const { return ip_; }
+  std::string GetIp() const { return ip_; }
 
-  std::string get_user() const { return user_; }
+  std::string GetUser() const { return user_; }
 
-  std::string get_command() const { return command_; }
+  std::string GetCommand() const { return command_; }
 
-  std::string get_error() const { return failure_reason_; }
+  std::string GetError() const { return failure_reason_; }
 
-  std::string get_response() const { return output_; }
+  std::string GetResponse() const { return output_; }
 
-  ShutdownHostState get_state() const { return state_; }
+  ShutdownHostState GetState() const { return state_; }
 
   bool operator==(const ShutdownHost & other) const { return hash_ == other.hash_; }
 
@@ -178,16 +178,16 @@ private:
   ssh_session session_;
   ssh_channel channel_;
 
-  void request_shutdown()
+  void RequestShutdown()
   {
-    ssh_execute_command(command_);
+    SshExecuteCommadn(command_);
     command_time_ = std::chrono::steady_clock::now();
   }
 
-  bool update_response()
+  bool UpdateResponse()
   {
-    if (!is_available()) {
-      close_connection();
+    if (!IsAvailable()) {
+      CloseConnection();
       throw std::runtime_error("Lost connection");
     }
 
@@ -195,8 +195,8 @@ private:
       throw std::runtime_error("Channel closed");
     }
 
-    if (timeout_exceeded()) {
-      close_connection();
+    if (TimeoutExceeded()) {
+      CloseConnection();
       throw std::runtime_error("Timeout exceeded");
     }
 
@@ -204,19 +204,19 @@ private:
       output_.append(buffer_, nbytes_);
       return true;
     }
-    close_connection();
+    CloseConnection();
     return false;
   }
 
-  bool timeout_exceeded()
+  bool TimeoutExceeded()
   {
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - command_time_);
 
-    return elapsed > timeout_ms_ && is_available();
+    return elapsed > timeout_ms_ && IsAvailable();
   }
 
-  void ssh_execute_command(const std::string & command)
+  void SshExecuteCommadn(const std::string & command)
   {
     session_ = ssh_new();
     if (session_ == NULL) {

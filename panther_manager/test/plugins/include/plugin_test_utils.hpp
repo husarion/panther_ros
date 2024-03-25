@@ -51,47 +51,46 @@ struct BehaviorTreePluginDescription
 class PluginTestUtils : public testing::Test
 {
 public:
-  virtual void SetUp() override final;
+  PluginTestUtils();
+  ~PluginTestUtils();
 
-  virtual void TearDown() override final;
-
-  std::string BuildBehaviorTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & service,
-    double tick_after_timeout);
+  virtual std::string BuildBehaviorTree(
+    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports);
 
   void CreateTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & service,
-    double tick_after_timeout = std::numeric_limits<double>::quiet_NaN());
+    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports);
 
   BT::Tree & GetTree();
 
   BT::BehaviorTreeFactory & GetFactory();
 
-  template <typename Service, typename Request, typename Response>
+  template <typename ServiceT>
   void CreateService(
     const std::string & service_name,
-    std::function<void(std::shared_ptr<Request>, std::shared_ptr<Response>)> service_callback)
+    std::function<
+      void(const typename ServiceT::Request::SharedPtr, typename ServiceT::Response::SharedPtr)>
+      service_callback)
   {
     service_server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + service_name);
-    service = service_server_node_->create_service<Service>(service_name, service_callback);
+    service = service_server_node_->create_service<ServiceT>(service_name, service_callback);
     executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
     executor_->add_node(service_server_node_);
     executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
   }
 
-  template <typename Node>
+  template <typename BTNodeT>
   void RegisterNodeWithParams(const std::string & node_type_name)
   {
     BT::RosNodeParams params;
     params.nh = bt_node_;
 
-    factory_.registerNodeType<Node>(node_type_name, params);
+    factory_.registerNodeType<BTNodeT>(node_type_name, params);
   }
 
-  template <typename Node>
+  template <typename BTNodeT>
   void RegisterNodeWithoutParams(const std::string & node_type_name)
   {
-    factory_.registerNodeType<Node>(node_type_name);
+    factory_.registerNodeType<BTNodeT>(node_type_name);
   }
 
 protected:
@@ -105,7 +104,7 @@ protected:
   rclcpp::ServiceBase::SharedPtr service;
   std::unique_ptr<std::thread> executor_thread_;
 
-  void spin_executor();
+  void SpinExecutor();
 
   const std::string tree_header_ = R"(
       <root BTCPP_format="4">

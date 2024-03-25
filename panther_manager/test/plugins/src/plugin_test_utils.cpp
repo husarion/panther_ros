@@ -17,13 +17,13 @@
 namespace panther_manager::plugin_test_utils
 {
 
-void PluginTestUtils::SetUp()
+PluginTestUtils::PluginTestUtils()
 {
   rclcpp::init(0, nullptr);
   bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
 }
 
-void PluginTestUtils::TearDown()
+PluginTestUtils::~PluginTestUtils()
 {
   bt_node_.reset();
   rclcpp::shutdown();
@@ -34,27 +34,19 @@ void PluginTestUtils::TearDown()
 }
 
 std::string PluginTestUtils::BuildBehaviorTree(
-  const std::string & plugin_name, const std::map<std::string, std::string> & service,
-  double tick_after_timeout)
+  const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports)
 {
   std::stringstream bt;
 
   bt << tree_header_ << std::endl;
-  if (not std::isnan(tick_after_timeout)) {
-    bt << "\t\t\t<TickAfterTimeout timeout=\"" << tick_after_timeout << "\" >" << std::endl;
-  }
 
   bt << "\t\t\t\t<" << plugin_name << " ";
 
-  for (auto const & [key, value] : service) {
+  for (auto const & [key, value] : bb_ports) {
     bt << key << "=\"" << value << "\" ";
   }
 
   bt << " />" << std::endl;
-
-  if (not std::isnan(tick_after_timeout)) {
-    bt << "\t\t\t</TickAfterTimeout>" << std::endl;
-  }
 
   bt << tree_footer_;
 
@@ -62,10 +54,9 @@ std::string PluginTestUtils::BuildBehaviorTree(
 }
 
 void PluginTestUtils::CreateTree(
-  const std::string & plugin_name, const std::map<std::string, std::string> & service,
-  double tick_after_timeout)
+  const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports)
 {
-  auto xml_text = BuildBehaviorTree(plugin_name, service, tick_after_timeout);
+  auto xml_text = BuildBehaviorTree(plugin_name, bb_ports);
   tree_ = factory_.createTreeFromText(xml_text);
 }
 
@@ -73,6 +64,6 @@ BT::Tree & PluginTestUtils::GetTree() { return tree_; }
 
 BT::BehaviorTreeFactory & PluginTestUtils::GetFactory() { return factory_; }
 
-void PluginTestUtils::spin_executor() { executor_->spin(); }
+void PluginTestUtils::SpinExecutor() { executor_->spin(); }
 
 }  // namespace panther_manager::plugin_test_utils

@@ -46,8 +46,8 @@ TEST_F(TestShutdownHostsFromFile, WrongPluginNameLoadingShutdownHostsFromFilePlu
 
 TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
 {
-  const std::string file_path = testing::TempDir() +
-                                "/test_wrong_cannot_find_file_shutdown_hosts_from_file";
+  const std::string file_path =
+    testing::TempDir() + "test_panther_manager_wrong_cannot_find_file_shutdown_hosts_from_file";
   const std::map<std::string, std::string> service = {{"shutdown_hosts_file", file_path}};
 
   RegisterNodeWithoutParams<panther_manager::ShutdownHostsFromFile>("ShutdownHostsFromFile");
@@ -55,15 +55,16 @@ TEST_F(TestShutdownHostsFromFile, WrongCannotFindFileShutdownHostsFromFile)
   CreateTree("ShutdownHostsFromFile", service);
   auto & tree = GetTree();
 
-  EXPECT_THROW({ tree.tickWhileRunning(std::chrono::milliseconds(100)); }, BT::RuntimeError);
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
 TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
 {
   const std::string config_file_path = testing::TempDir() +
-                                       "/test_panther_manager_good_shutdown_hosts_from_file_config";
+                                       "test_panther_manager_good_shutdown_hosts_from_file_config";
   const std::string test_file_path = testing::TempDir() +
-                                     "/test_panther_manager_good_shutdown_hosts_from_file";
+                                     "test_panther_manager_good_shutdown_hosts_from_file";
   std::filesystem::remove(test_file_path);
   std::filesystem::remove(config_file_path);
 
@@ -74,6 +75,7 @@ TEST_F(TestShutdownHostsFromFile, GoodShutdownHostsFromFile)
   shutdown_host_desc["hosts"][0]["ip"] = "localhost";
   shutdown_host_desc["hosts"][0]["username"] = "husarion";
   shutdown_host_desc["hosts"][0]["port"] = 22;
+
   shutdown_host_desc["hosts"][0]["command"] = "touch " + test_file_path;
   shutdown_host_desc["hosts"][0]["timeout"] = 5.0;
   shutdown_host_desc["hosts"][0]["ping_for_success"] = false;
