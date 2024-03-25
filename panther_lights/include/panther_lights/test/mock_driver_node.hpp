@@ -17,7 +17,6 @@
 
 #include <panther_lights/driver_node.hpp>
 
-
 namespace panther_lights::mock_driver_node
 {
 
@@ -25,20 +24,6 @@ class MockDriverNode : public panther_lights::DriverNode::DriverNode
 {
 public:
   MockDriverNode(const std::string & device) : DriverNode(device) {}
-
-  void ReleaseGPIO()
-  {
-    gpio_driver_.reset();
-    // Wait some time for releasing all GPIO lines
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  }
-
-  // void FrameCB(
-  //   const ImageMsg::ConstSharedPtr & msg, const APA102 & panel,
-  //   const rclcpp::Time & last_time, const std::string & panel_name)
-  // {
-  //   DriverNode::FrameCB(msg, panel, last_time, panel_name);
-  // }
 
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }

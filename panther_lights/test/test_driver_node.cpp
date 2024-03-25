@@ -18,9 +18,9 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <thread>
 
+#include <panther_lights/test/mock_driver_node.hpp>
 #include <panther_msgs/srv/set_led_brightness.hpp>
 #include <panther_utils/test/ros_test_utils.hpp>
-#include <panther_lights/test/mock_driver_node.hpp>
 
 using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
@@ -29,21 +29,24 @@ using MockDriverNode = panther_lights::mock_driver_node::MockDriverNode;
 class DriverNodeFixture : public ::testing::Test
 {
 public:
-  DriverNodeFixture()
-  : node_(std::make_shared<MockDriverNode>("test_lights_driver_node")),
-    it_(std::make_shared<image_transport::ImageTransport>(node_->shared_from_this())),
-    channel_1_pub_(std::make_shared<image_transport::Publisher>(
-      it_->advertise("lights/driver/channel_1_frame", 5))),
-    channel_2_pub_(std::make_shared<image_transport::Publisher>(
-      it_->advertise("lights/driver/channel_2_frame", 5))),
-    set_brightness_client_(
-      node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness"))
+  DriverNodeFixture() { rclcpp::init(0, nullptr); }
+
+  ~DriverNodeFixture() { rclcpp::shutdown(); }
+
+  void SetUp() override
   {
+    node_ = std::make_shared<MockDriverNode>("test_lights_driver_node");
+    it_ = std::make_shared<image_transport::ImageTransport>(node_->shared_from_this());
+    channel_1_pub_ = std::make_shared<image_transport::Publisher>(
+      it_->advertise("lights/driver/channel_1_frame", 5));
+    channel_2_pub_ = std::make_shared<image_transport::Publisher>(
+      it_->advertise("lights/driver/channel_2_frame", 5));
+    set_brightness_client_ =
+      node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness");
+    node_->Initialize();
   }
 
-  void SetUp() override { node_->Initialize(); }
-
-  void TearDown() override { node_->ReleaseGPIO(); }
+  void TearDown() override {}
 
 protected:
   ImageMsg::SharedPtr CreateImageMsg()
@@ -148,9 +151,9 @@ TEST_F(DriverNodeFixture, ServiceTestFail)
 
 int main(int argc, char ** argv)
 {
-  rclcpp::init(argc, argv);
+  // rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   int result = RUN_ALL_TESTS();
-  rclcpp::shutdown();
+  // rclcpp::shutdown();
   return result;
 }
