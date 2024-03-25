@@ -135,7 +135,7 @@ TEST_F(DriverNodeFixture, PublishFail)
   EXPECT_FALSE(node_->isInitialised());
 }
 
-// FIXME: For some reason this function breaks other test that's why PublishSuccess is last one.
+// TODO: For some reason this function breaks other test that's why PublishSuccess is last one.
 TEST_F(DriverNodeFixture, PublishSuccess)
 {
   auto msg = CreateImageMsg();
