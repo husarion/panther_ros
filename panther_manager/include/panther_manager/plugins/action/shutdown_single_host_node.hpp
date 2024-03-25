@@ -49,7 +49,7 @@ public:
   }
 
 private:
-  bool update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) override;
+  bool UpdateHosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) override;
 };
 
 }  // namespace panther_manager

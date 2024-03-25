@@ -21,6 +21,7 @@
 
 #include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
 #include <plugin_test_utils.hpp>
+
 class TestCallSetBoolService : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
@@ -142,7 +143,7 @@ TEST_F(TestCallSetBoolService, WrongServiceValueDefined)
   CreateService<SetBool>(
     "set_bool",
     [&](const SetBool::Request::SharedPtr request, SetBool::Response::SharedPtr response) {
-      ServiceCallback(request, response, false, true);
+      ServiceCallback(request, response, true, true);
     });
   RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
 

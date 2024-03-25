@@ -26,7 +26,7 @@
 namespace panther_manager
 {
 
-bool ShutdownSingleHost::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
+bool ShutdownSingleHost::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
   std::string ip;
   if (!getInput<std::string>("ip", ip) || ip == "") {

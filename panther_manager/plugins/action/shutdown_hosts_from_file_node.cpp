@@ -28,7 +28,7 @@
 namespace panther_manager
 {
 
-bool ShutdownHostsFromFile::update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
+bool ShutdownHostsFromFile::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
 {
   std::string shutdown_hosts_file;
   if (

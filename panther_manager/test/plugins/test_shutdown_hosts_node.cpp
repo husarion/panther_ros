@@ -19,10 +19,10 @@
 #include <panther_manager/plugins/shutdown_hosts_node.hpp>
 #include <plugin_test_utils.hpp>
 
-class ShutdownHostsNodeDuplicated : public panther_manager::ShutdownHosts
+class ShutdownHostsNodeWrapper : public panther_manager::ShutdownHosts
 {
 public:
-  ShutdownHostsNodeDuplicated(const std::string & name, const BT::NodeConfig & conf)
+  ShutdownHostsNodeWrapper(const std::string & name, const BT::NodeConfig & conf)
   : panther_manager::ShutdownHosts(name, conf)
   {
   }
@@ -30,11 +30,11 @@ public:
   static BT::PortsList providedPorts() { return {}; }
 
 private:
-  virtual bool update_hosts(
+  virtual bool UpdateHosts(
     std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts) override final;
 };
 
-bool ShutdownHostsNodeDuplicated::update_hosts(
+bool ShutdownHostsNodeWrapper::UpdateHosts(
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
 {
   hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));

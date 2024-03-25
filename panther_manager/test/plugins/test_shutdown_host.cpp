@@ -41,16 +41,16 @@ void TestShutdownHost::Create(
     ip, user, port, command, timeout, ping_for_success);
 }
 
-bool TestShutdownHost::IsAvailable() { return shutdown_host->is_available(); }
+bool TestShutdownHost::IsAvailable() { return shutdown_host->IsAvailable(); }
 
-void TestShutdownHost::Call() { shutdown_host->call(); }
+void TestShutdownHost::Call() { shutdown_host->Call(); }
 
 panther_manager::ShutdownHostState TestShutdownHost::GetState() const
 {
-  return shutdown_host->get_state();
+  return shutdown_host->GetState();
 }
 
-std::string TestShutdownHost::GetResponse() const { return shutdown_host->get_response(); }
+std::string TestShutdownHost::GetResponse() const { return shutdown_host->GetResponse(); }
 
 TEST_F(TestShutdownHost, GoodCheckIsAvailable)
 {
@@ -96,6 +96,21 @@ TEST_F(TestShutdownHost, WrongHostPing)
   EXPECT_EQ(GetState(), panther_manager::ShutdownHostState::IDLE);
   Call();
   EXPECT_EQ(GetState(), panther_manager::ShutdownHostState::SKIPPED);
+}
+
+TEST_F(TestShutdownHost, CheckTimeout)
+{
+  Create("127.0.0.1", "husarion", 22, "sleep 0.2", 0.1, false);
+
+  ASSERT_TRUE(IsAvailable());
+  ASSERT_EQ(GetState(), panther_manager::ShutdownHostState::IDLE);
+  Call();
+  ASSERT_EQ(GetState(), panther_manager::ShutdownHostState::COMMAND_EXECUTED);
+  // Wait for response
+  while (GetState() == panther_manager::ShutdownHostState::COMMAND_EXECUTED) {
+    Call();
+  }
+  ASSERT_EQ(GetState(), panther_manager::ShutdownHostState::FAILURE);
 }
 
 int main(int argc, char ** argv)

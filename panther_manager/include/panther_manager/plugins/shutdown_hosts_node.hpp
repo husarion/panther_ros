@@ -47,10 +47,10 @@ public:
   virtual ~ShutdownHosts() = default;
 
   // method to be implemented by user
-  virtual bool update_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) = 0;
+  virtual bool UpdateHosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts) = 0;
 
   // method that can be overridden by user
-  virtual BT::NodeStatus post_process()
+  virtual BT::NodeStatus PostProcess()
   {
     // return success only when all hosts succeeded
     if (this->failed_hosts_.size() == 0) {
@@ -59,7 +59,7 @@ public:
     return BT::NodeStatus::FAILURE;
   }
 
-  std::vector<std::size_t> const get_failed_hosts() { return this->failed_hosts_; }
+  std::vector<std::size_t> const GetFailedHosts() { return this->failed_hosts_; }
 
 protected:
   std::shared_ptr<rclcpp::Logger> logger_;
@@ -74,12 +74,12 @@ private:
 
   BT::NodeStatus onStart()
   {
-    if (!update_hosts(this->hosts_)) {
+    if (!UpdateHosts(this->hosts_)) {
       RCLCPP_ERROR_STREAM(*this->logger_, "Cannot update hosts!");
       return BT::NodeStatus::FAILURE;
     }
 
-    remove_duplicate_hosts(this->hosts_);
+    RemoveDuplicatedHosts(this->hosts_);
     if (this->hosts_.size() <= 0) {
       RCLCPP_ERROR_STREAM(*this->logger_, "Hosts list is empty! Check configuration!");
       return BT::NodeStatus::FAILURE;
@@ -92,7 +92,7 @@ private:
   BT::NodeStatus onRunning()
   {
     if (this->hosts_to_check_.size() <= 0) {
-      return post_process();
+      return PostProcess();
     }
 
     if (this->check_host_index_ >= this->hosts_to_check_.size()) {
@@ -101,19 +101,19 @@ private:
 
     auto host_index = this->hosts_to_check_[this->check_host_index_];
     auto host = this->hosts_[host_index];
-    host->call();
+    host->Call();
 
-    switch (host->get_state()) {
+    switch (host->GetState()) {
       case ShutdownHostState::RESPONSE_RECEIVED:
         RCLCPP_INFO_STREAM(
-          *this->logger_, "Device at: " << host->get_ip() << " response:\n"
-                                        << host->get_response());
+          *this->logger_, "Device at: " << host->GetIp() << " response:\n"
+                                        << host->GetResponse());
 
         check_host_index_++;
         break;
 
       case ShutdownHostState::SUCCESS:
-        RCLCPP_INFO_STREAM(*this->logger_, "Successfully shutdown device at: " << host->get_ip());
+        RCLCPP_INFO_STREAM(*this->logger_, "Successfully shutdown device at: " << host->GetIp());
         this->succeeded_hosts_.push_back(host_index);
         this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
         break;
@@ -121,7 +121,7 @@ private:
       case ShutdownHostState::FAILURE:
         RCLCPP_WARN_STREAM(
           *this->logger_,
-          "Failed to shutdown device at: " << host->get_ip() << " Error: " << host->get_error());
+          "Failed to shutdown device at: " << host->GetIp() << " Error: " << host->GetError());
 
         this->failed_hosts_.push_back(host_index);
         this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
@@ -129,7 +129,7 @@ private:
 
       case ShutdownHostState::SKIPPED:
         RCLCPP_WARN_STREAM(
-          *this->logger_, "Device at: " << host->get_ip() << " not available, skipping...");
+          *this->logger_, "Device at: " << host->GetIp() << " not available, skipping...");
 
         this->skipped_hosts_.push_back(host_index);
         this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
@@ -143,7 +143,7 @@ private:
     return BT::NodeStatus::RUNNING;
   }
 
-  void remove_duplicate_hosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
+  void RemoveDuplicatedHosts(std::vector<std::shared_ptr<ShutdownHost>> & hosts)
   {
     std::set<ShutdownHost> seen;
 
@@ -156,7 +156,7 @@ private:
             return false;
           } else {
             RCLCPP_WARN_STREAM(
-              *this->logger_, "Found duplicate host: " << host->get_ip()
+              *this->logger_, "Found duplicate host: " << host->GetIp()
                                                        << " Processing only the "
                                                           "first "
                                                           "occurrence.");
@@ -169,7 +169,7 @@ private:
   void onHalted()
   {
     for (auto & host : this->hosts_) {
-      host->close_connection();
+      host->CloseConnection();
     }
   }
 };
