@@ -17,9 +17,6 @@
 #include <gtest/gtest.h>
 
 #include <panther_manager/plugins/shutdown_hosts_node.hpp>
-#include <plugin_test_utils.hpp>
-
-typedef panther_manager::plugin_test_utils::PluginTestUtils ShutdownHostsNodeBehaviorTreeTest;
 
 class ShutdownHostsNodeWrapper : public panther_manager::ShutdownHosts
 {
@@ -30,6 +27,24 @@ public:
   }
   void RemoveDuplicatedHosts(std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts);
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & GetHosts();
+  BT::NodeStatus onRunning();
+  BT::NodeStatus onStart();
+
+  virtual bool UpdateHosts(
+    std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts) override final;
+  void SetHostsAndSuccess(
+    std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts, const bool returned_status);
+
+  static BT::PortsList providedPorts()
+  {
+    return {
+
+    };
+  }
+
+private:
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts_to_set;
+  bool update_hosts_success_ = true;
 };
 
 void ShutdownHostsNodeWrapper::RemoveDuplicatedHosts(
@@ -43,70 +58,58 @@ std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & ShutdownHostsNodeW
   return hosts_;
 }
 
-class DuplicatedHostsShutdownHostsNodeWrapper : public ShutdownHostsNodeWrapper
+BT::NodeStatus ShutdownHostsNodeWrapper::onRunning()
 {
-public:
-  DuplicatedHostsShutdownHostsNodeWrapper(const std::string & name, const BT::NodeConfig & conf)
-  : ShutdownHostsNodeWrapper(name, conf)
-  {
-  }
-  bool UpdateHosts(std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts);
-  static BT::PortsList providedPorts() { return {}; }
-};
-
-bool DuplicatedHostsShutdownHostsNodeWrapper::UpdateHosts(
-  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
-{
-  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
-  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("localhost", "husarion"));
-  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
-  return true;
+  return panther_manager::ShutdownHosts::onRunning();
 }
 
-class FailedUpdateHostsShutdownHostsNodeWrapper : public ShutdownHostsNodeWrapper
+BT::NodeStatus ShutdownHostsNodeWrapper::onStart()
 {
-public:
-  FailedUpdateHostsShutdownHostsNodeWrapper(const std::string & name, const BT::NodeConfig & conf)
-  : ShutdownHostsNodeWrapper(name, conf)
-  {
-  }
-  bool UpdateHosts(std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts);
-  static BT::PortsList providedPorts() { return {}; }
-};
+  return panther_manager::ShutdownHosts::onStart();
+}
 
-bool FailedUpdateHostsShutdownHostsNodeWrapper::UpdateHosts(
+bool ShutdownHostsNodeWrapper::UpdateHosts(
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> & hosts)
 {
-  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion"));
-  hosts.emplace_back(std::make_shared<panther_manager::ShutdownHost>("localhost", "husarion"));
-  return false;
+  hosts = hosts_to_set;
+  return update_hosts_success_;
+}
+
+void ShutdownHostsNodeWrapper::SetHostsAndSuccess(
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts, const bool returned_status)
+{
+  hosts_to_set = hosts;
+  update_hosts_success_ = returned_status;
 }
 
 class ShutdownHostsNodeTest : public testing::Test
 {
 public:
-  void CreateDuplicationWrapper();
-  void CreateFailedUpdatedHostWrapper();
+  void CreateWrapper(
+    std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts, const bool success);
 
 protected:
   std::unique_ptr<ShutdownHostsNodeWrapper> wrapper;
 };
 
-void ShutdownHostsNodeTest::CreateDuplicationWrapper()
+void ShutdownHostsNodeTest::CreateWrapper(
+  std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts, const bool success)
 {
   BT::NodeConfig conf;
-  wrapper = std::make_unique<DuplicatedHostsShutdownHostsNodeWrapper>("Duplicated hosts", conf);
-}
-
-void ShutdownHostsNodeTest::CreateFailedUpdatedHostWrapper()
-{
-  BT::NodeConfig conf;
-  wrapper = std::make_unique<FailedUpdateHostsShutdownHostsNodeWrapper>("Failed hosts", conf);
+  wrapper = std::make_unique<ShutdownHostsNodeWrapper>("Duplicated hosts", conf);
+  wrapper->SetHostsAndSuccess(hosts, success);
 }
 
 TEST_F(ShutdownHostsNodeTest, GoodRemovingDuplicatedHosts)
 {
-  CreateDuplicationWrapper();
+  CreateWrapper(
+    {std::make_shared<panther_manager::ShutdownHost>(
+       "127.0.0.1", "husarion", 22, "echo HelloWorld", 100, true),
+     std::make_shared<panther_manager::ShutdownHost>(
+       "localhost", "husarion", 22, "echo HelloWorld", 100, true),
+     std::make_shared<panther_manager::ShutdownHost>(
+       "localhost", "husarion", 22, "echo HelloWorld", 100, true)},
+    true);
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts;
   ASSERT_TRUE(wrapper->UpdateHosts(hosts));
   ASSERT_EQ(hosts.size(), 3);
@@ -114,15 +117,39 @@ TEST_F(ShutdownHostsNodeTest, GoodRemovingDuplicatedHosts)
   ASSERT_EQ(hosts.size(), 2);
 }
 
-TEST_F(ShutdownHostsNodeBehaviorTreeTest, FailedBehaviorTreeWhenUpdateHostReturnsFalse)
+TEST_F(ShutdownHostsNodeTest, FailedWhenUpdateHostReturnsFalse)
 {
-  RegisterNodeWithoutParams<FailedUpdateHostsShutdownHostsNodeWrapper>("ShutdownHosts");
-  CreateTree("ShutdownHosts", {});
-  auto & tree = GetTree();
+  CreateWrapper(
+    {std::make_shared<panther_manager::ShutdownHost>(
+      "127.0.0.1", "husarion", 22, "echo HelloWorld", 100, true)},
+    false);
 
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  auto status = wrapper->onStart();
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
+
+TEST_F(ShutdownHostsNodeTest, FailedWhenHostsAreEmpty)
+{
+  CreateWrapper({}, true);
+
+  auto status = wrapper->onStart();
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
+}
+
+// FIXME: This test pass but the host should be added to the failed hosts.
+// TEST_F(ShutdownHostsNodeTest, CheckFailedHosts)
+// {
+//   CreateWrapper({ std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion", 22,
+//   "wrong_command", 100, false) },
+//                 true);
+//   auto status = wrapper->onStart();
+//   EXPECT_EQ(status, BT::NodeStatus::RUNNING);
+//   while(wrapper->GetFailedHosts().size() == 0 && status != BT::NodeStatus::SUCCESS){
+//     status = wrapper->onRunning();
+//   }
+//   status = wrapper->onRunning();
+//   EXPECT_EQ(wrapper->GetFailedHosts().size(), 0);
+// }
 
 int main(int argc, char ** argv)
 {
