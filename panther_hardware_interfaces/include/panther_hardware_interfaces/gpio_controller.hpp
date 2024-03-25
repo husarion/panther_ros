@@ -34,10 +34,10 @@
 namespace panther_hardware_interfaces
 {
 
-class e_stop_reset_interrupted : public std::exception
+class EStopResetInterrupted : public std::exception
 {
 public:
-  e_stop_reset_interrupted(const std::string & message) : msg_(message) {}
+  EStopResetInterrupted(const std::string & message) : msg_(message) {}
   const char * what() const noexcept override { return msg_.c_str(); }
 
 private:
@@ -223,6 +223,17 @@ protected:
   std::unique_ptr<Watchdog> watchdog_;
 
 private:
+  /**
+   * @brief Waits for a specific duration or until an interruption is signaled.
+   *
+   * This method is designed to block execution for the specified timeout duration. It also monitors
+   * for an interruption signal which, if received, will cause the method to return early. The
+   * interruption is controlled by the `should_abort_e_stop_reset_` flag.
+   *
+   * @param timeout Duration to wait for in milliseconds.
+   * @return `true` if the wait completed without interruption, `false` if an interruption was
+   * signaled.
+   */
   bool WaitFor(std::chrono::milliseconds timeout);
 
   /**

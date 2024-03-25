@@ -100,15 +100,6 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
 PantherSystemRosInterface::~PantherSystemRosInterface()
 {
-  realtime_driver_state_publisher_.reset();
-  driver_state_publisher_.reset();
-  realtime_io_state_publisher_.reset();
-  io_state_publisher_.reset();
-  realtime_e_stop_state_publisher_.reset();
-  e_stop_state_publisher_.reset();
-
-  service_wrappers_storage_.clear();
-
   if (executor_) {
     executor_->cancel();
 
@@ -118,6 +109,15 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
 
     executor_.reset();
   }
+
+  realtime_driver_state_publisher_.reset();
+  driver_state_publisher_.reset();
+  realtime_io_state_publisher_.reset();
+  io_state_publisher_.reset();
+  realtime_e_stop_state_publisher_.reset();
+  e_stop_state_publisher_.reset();
+
+  service_wrappers_storage_.clear();
 
   node_.reset();
 }
@@ -269,13 +269,12 @@ rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallb
     return nullptr;  // default node callback group
   }
 
-  auto search = callback_groups_.find(group_id);
+  const auto search = callback_groups_.find(group_id);
   if (search != callback_groups_.end()) {
-    if (search->second->type() == callback_group_type) {
-      return search->second;
-    } else {
+    if (search->second->type() != callback_group_type) {
       throw std::runtime_error("Requested node callback group has incorrect type.");
     }
+    return search->second;
   }
 
   auto callback_group = node_->create_callback_group(callback_group_type);

@@ -712,7 +712,7 @@ void PantherSystem::ResetEStop()
 
     try {
       gpio_controller_->EStopReset();
-    } catch (const e_stop_reset_interrupted & e) {
+    } catch (const EStopResetInterrupted & e) {
       RCLCPP_INFO(logger_, "E-stop reset has been interrupted");
       return;
     } catch (const std::runtime_error & e) {
