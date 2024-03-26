@@ -41,8 +41,8 @@ using std::placeholders::_2;
 
 DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options),
-  front_panel_("/dev/spidev0.0"),
-  rear_panel_("/dev/spidev0.1"),
+  chanel_1_("/dev/spidev0.0"),
+  chanel_2_("/dev/spidev0.1"),
   diagnostic_updater_(this)
 {
   rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
@@ -70,22 +70,22 @@ void DriverNode::Initialize()
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
   gpio_driver_->GPIOMonitorEnable();
 
-  front_panel_ts_ = this->get_clock()->now();
-  rear_panel_ts_ = this->get_clock()->now();
+  chanel_1_ts_ = this->get_clock()->now();
+  chanel_2_ts_ = this->get_clock()->now();
 
-  front_panel_.SetGlobalBrightness(global_brightness);
-  rear_panel_.SetGlobalBrightness(global_brightness);
+  chanel_1_.SetGlobalBrightness(global_brightness);
+  chanel_2_.SetGlobalBrightness(global_brightness);
 
-  front_light_sub_ = std::make_shared<image_transport::Subscriber>(
+  chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
     it_->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, front_panel_, front_panel_ts_, "front");
-      front_panel_ts_ = msg->header.stamp;
+      FrameCB(msg, chanel_1_, chanel_1_ts_, "front");
+      chanel_1_ts_ = msg->header.stamp;
     }));
 
-  rear_light_sub_ = std::make_shared<image_transport::Subscriber>(
+  chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
     it_->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, rear_panel_, rear_panel_ts_, "rear");
-      rear_panel_ts_ = msg->header.stamp;
+      FrameCB(msg, chanel_2_, chanel_2_ts_, "rear");
+      chanel_2_ts_ = msg->header.stamp;
     }));
 
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
@@ -97,11 +97,13 @@ void DriverNode::Initialize()
 void DriverNode::OnShutdown()
 {
   // Clear LEDs
-  front_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
-  rear_panel_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
 
   // Give back control over LEDs
-  SetPowerPin(false);
+  if (panels_initialised_) {
+    SetPowerPin(false);
+  }
 
   gpio_driver_.reset();
 }
@@ -160,8 +162,8 @@ void DriverNode::SetBrightnessCB(
   const float brightness = req->data;
 
   try {
-    front_panel_.SetGlobalBrightness(brightness);
-    rear_panel_.SetGlobalBrightness(brightness);
+    chanel_1_.SetGlobalBrightness(brightness);
+    chanel_2_.SetGlobalBrightness(brightness);
   } catch (const std::out_of_range & e) {
     res->success = false;
     res->message = "Failed to set brightness: " + std::string(e.what());

@@ -60,6 +60,7 @@ ament_export_libraries(panther_animation_plugins)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(panther_utils REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_animation test/test_animation.cpp)
   target_include_directories(
@@ -157,6 +158,28 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_controller_node pluginlib
                             panther_msgs panther_utils rclcpp sensor_msgs)
   target_link_libraries(${PROJECT_NAME}_test_controller_node yaml-cpp)
+
+  ament_add_gtest(${PROJECT_NAME}_test_apa102 test/test_apa102.cpp
+                  src/apa102.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_apa102
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+
+  ament_add_gtest(${PROJECT_NAME}_test_driver_node test/test_driver_node.cpp
+                  src/apa102.cpp src/driver_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_driver_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_driver_node
+    rclcpp
+    image_transport
+    diagnostic_updater
+    panther_msgs
+    panther_gpiod
+    panther_utils)
 endif()
 
 ament_package()
