@@ -13,6 +13,7 @@
         low_battery_anim_period: 30.0
         low_battery_threshold_percent: 0.4
         update_charging_anim_step: 0.1
+        timer_frequency: 10.0
       safety:
         high_bat_temp: 55.0
         critical_bat_temp: 59.0
@@ -20,6 +21,7 @@
         cpu_fan_off_temp: 70.0
         driver_fan_on_temp: 50.0
         driver_fan_off_temp: 45.0
+        timer_frequency: 10.0
       plugin_libs:
         - tick_after_timeout_bt_node
         - shutdown_single_host_bt_node

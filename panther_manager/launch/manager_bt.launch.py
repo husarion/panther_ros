@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def launch_setup(context):
@@ -28,10 +28,28 @@ def launch_setup(context):
         description="Panther robot version",
     )
 
+    panther_version = float(LaunchConfiguration("panther_version").perform(context))
+    panther_manager_shared_dir = FindPackageShare("panther_manager")
+    if panther_version >= 1.2:
+        manager_bt_config_path = PathJoinSubstitution(
+            [panther_manager_shared_dir, "config", "manager_bt_config.yaml"]
+        )
+        default_bt_project_path = PathJoinSubstitution(
+            [panther_manager_shared_dir, "behavior_trees", "Panther12BT.btproj"]
+        )
+    else:
+        manager_bt_config_path = PathJoinSubstitution(
+            [panther_manager_shared_dir, "config", "manager_bt_config_106.yaml"]
+        )
+        default_bt_project_path = PathJoinSubstitution(
+            [panther_manager_shared_dir, "behavior_trees", "Panther106BT.btproj"]
+        )
+
     bt_project_path = LaunchConfiguration("bt_project_path")
     declare_bt_project_path_arg = DeclareLaunchArgument(
         "bt_project_path",
-        description="Path to BehaviorTree prroject file.",
+        default_value=default_bt_project_path,
+        description="Path to BehaviorTree project file.",
     )
 
     shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
@@ -40,17 +58,6 @@ def launch_setup(context):
         default_value="",
         description="Path to file with list of hosts to request shutdown.",
     )
-
-    panther_version = float(LaunchConfiguration("panther_version").perform(context))
-    manager_bt_config_path = ""
-    if panther_version >= 1.2:
-        manager_bt_config_path = (
-            f"{get_package_share_directory('panther_manager')}/config/manager_bt_config.yaml"
-        )
-    else:
-        manager_bt_config_path = (
-            f"{get_package_share_directory('panther_manager')}/config/manager_bt_config_106.yaml"
-        )
 
     manager_bt_node = Node(
         package="panther_manager",

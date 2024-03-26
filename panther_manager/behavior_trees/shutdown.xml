@@ -10,7 +10,7 @@
                           ping_for_success="false"
                           port="22"
                           timeout="5.0"
-                          user="husarion"/>
+                          username="husarion"/>
     </Sequence>
   </BehaviorTree>
 
@@ -31,7 +31,7 @@
                   default="22"/>
       <input_port name="timeout"
                   default="5.0"/>
-      <input_port name="user">user to log into while executing shutdown command</input_port>
+      <input_port name="username">user to log into while executing shutdown command</input_port>
     </Action>
   </TreeNodesModel>
 

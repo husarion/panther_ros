@@ -8,6 +8,7 @@ lights:
   low_battery_anim_period: 30.0
   low_battery_threshold_percent: 0.4
   update_charging_anim_step: 0.1
+  timer_frequency: 10.0
 plugin_libs:
   - tick_after_timeout_bt_node
 ros_plugin_libs:
