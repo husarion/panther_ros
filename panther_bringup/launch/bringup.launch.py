@@ -35,7 +35,7 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
-
+from nav2_common.launch import ReplaceString
 
 def generate_launch_description():
     panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
@@ -285,14 +285,19 @@ def generate_launch_description():
         }.items(),
     )
 
+    ekf_config_path = ReplaceString(
+        source_file=ekf_config_path, replacements={"<namespace>": namespace}
+    )
+
     robot_localization_node = Node(
         package="robot_localization",
         executable="ekf_node",
         name="ekf_node",
         output="screen",
-        parameters=[ekf_config_path],
+        parameters=[ekf_config_path], # In future: {"tf_prefix": "abc"}
         namespace=namespace,
         remappings=[
+            ("/diagnostics", "diagnostics"),
             ("enable", "ekf_node/enable"),
             ("set_pose", "ekf_node/set_pose"),
             ("toggle", "ekf_node/toggle"),
@@ -319,25 +324,13 @@ def generate_launch_description():
     )
 
     other_action_timer = TimerAction(
-        period=10.0,
+        period=7.0,
         actions=[
             battery_launch,
             imu_launch,
             lights_launch,
             robot_localization_node,
             manager_launch,
-        ],
-    )
-
-    waiting_msg = TimerAction(
-        period=7.0,
-        actions=[
-            LogInfo(
-                msg=(
-                    "We're working on ensuring everything functions properly... Please wait a few"
-                    " seconds more!"
-                )
-            )
         ],
     )
 
@@ -358,7 +351,6 @@ def generate_launch_description():
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,
-        waiting_msg,
         other_action_timer,
     ]
 

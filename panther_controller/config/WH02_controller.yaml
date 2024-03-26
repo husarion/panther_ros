@@ -14,7 +14,6 @@
   imu_broadcaster:
     ros__parameters:
       use_namespace_as_sensor_name_prefix: true
-      tf_frame_prefix_enable: false
 
       sensor_name: imu
       frame_id: imu_link
@@ -31,7 +30,6 @@
       front_right_wheel_name: fr_wheel_joint
       rear_left_wheel_name: rl_wheel_joint
       rear_right_wheel_name: rr_wheel_joint
-      tf_frame_prefix_enable: false
 
       wheel_separation_x: 0.44
       wheel_separation_y: 0.6785

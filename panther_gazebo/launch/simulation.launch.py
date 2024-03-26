@@ -15,16 +15,23 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    LogInfo,
+    TimerAction,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
+    TextSubstitution,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
+from nav2_common.launch import ParseMultiRobotPose
 
 
 def generate_launch_description():
@@ -120,30 +127,40 @@ def generate_launch_description():
         description="SDF world file",
     )
 
-    pose_x = LaunchConfiguration("pose_x")
-    declare_pose_x_arg = DeclareLaunchArgument(
-        "pose_x",
+    x = LaunchConfiguration("x")
+    declare_x_arg = DeclareLaunchArgument(
+        "x",
         default_value=["5.0"],
         description="Initial robot position in the global 'x' axis.",
     )
 
-    pose_y = LaunchConfiguration("pose_y")
-    declare_pose_y_arg = DeclareLaunchArgument(
-        "pose_y",
+    y = LaunchConfiguration("y")
+    declare_y_arg = DeclareLaunchArgument(
+        "y",
         default_value=["-5.0"],
         description="Initial robot position in the global 'y' axis.",
     )
 
-    pose_z = LaunchConfiguration("pose_z")
-    declare_pose_z_arg = DeclareLaunchArgument(
-        "pose_z",
+    z = LaunchConfiguration("z")
+    declare_z_arg = DeclareLaunchArgument(
+        "z",
         default_value=["0.2"],
         description="Initial robot position in the global 'z' axis.",
     )
 
-    rot_yaw = LaunchConfiguration("rot_yaw")
-    declare_rot_yaw_arg = DeclareLaunchArgument(
-        "rot_yaw", default_value=["0.0"], description="Initial robot orientation."
+    roll = LaunchConfiguration("roll")
+    declare_roll_arg = DeclareLaunchArgument(
+        "roll", default_value=["0.0"], description="Initial robot 'roll' orientation."
+    )
+
+    pitch = LaunchConfiguration("pitch")
+    declare_pitch_arg = DeclareLaunchArgument(
+        "pitch", default_value=["0.0"], description="Initial robot orientation."
+    )
+
+    yaw = LaunchConfiguration("yaw")
+    declare_yaw_arg = DeclareLaunchArgument(
+        "yaw", default_value=["0.0"], description="Initial robot orientation."
     )
 
     publish_robot_state = LaunchConfiguration("publish_robot_state")
@@ -163,6 +180,14 @@ def generate_launch_description():
         description="Namespace for all Panther topics",
     )
 
+    declare_robots_arg = DeclareLaunchArgument(
+        "robots",
+        default_value=[],
+        description=(
+            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y: -1.0}; robot2={x: 1.0, y: -1.0}'"
+        ),
+    )
+
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -176,67 +201,92 @@ def generate_launch_description():
         launch_arguments={"gz_args": world_cfg}.items(),
     )
 
-    gz_spawn_entity = Node(
-        package="ros_gz_sim",
-        executable="create",
-        arguments=[
-            "-name",
-            "panther",
-            "-allow_renaming",
-            "true",
-            "-topic",
-            "robot_description",
-            "-x",
-            pose_x,
-            "-y",
-            pose_y,
-            "-z",
-            pose_z,
-            "-Y",
-            rot_yaw,
-        ],
-        output="screen",
-        namespace=namespace,
-    )
+    robots_list = ParseMultiRobotPose("robots").value()
+    if len(robots_list) == 0:
+        robots_list = {
+            namespace: {"x": x, "y": y, "z": z, "roll": roll, "pitch": pitch, "yaw": yaw}
+        }
 
-    gz_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name="gz_bridge",
-        parameters=[{"config_file": gz_bridge_config_path}],
-        namespace=namespace,
-        output="screen",
-    )
+    spawn_group = []
+    for idx, robot_name in enumerate(robots_list):
+        init_pose = robots_list[robot_name]
 
-    bringup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_bringup"),
-                    "launch",
-                    "bringup.launch.py",
-                ]
-            )
-        ),
-        launch_arguments={
-            "wheel_type": wheel_type,
-            "wheel_config_path": wheel_config_path,
-            "controller_config_path": controller_config_path,
-            "battery_config_path": battery_config_path,
-            "publish_robot_state": publish_robot_state,
-            "use_sim": "True",
-            "simulation_engine": "ignition-gazebo",
-            "namespace": namespace,
-        }.items(),
-    )
+        spawn_log = LogInfo(
+            msg=[f"Launching namespace={robot_name} with init_pose= {str(init_pose)}"]
+        )
+
+        spawn_robot = Node(
+            package="ros_gz_sim",
+            executable="create",
+            arguments=[
+                "-name",
+                robot_name,
+                "-topic",
+                "robot_description",
+                "-x",
+                TextSubstitution(text=str(init_pose["x"])),
+                "-y",
+                TextSubstitution(text=str(init_pose["y"])),
+                "-z",
+                TextSubstitution(text=str(init_pose["z"])),
+                "-Y",
+                TextSubstitution(text=str(init_pose["yaw"])),
+            ],
+            namespace=robot_name,
+            output="screen",
+        )
+
+        gz_bridge = Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            name="gz_bridge",
+            parameters=[{"config_file": gz_bridge_config_path}],
+            namespace=robot_name,
+            output="screen",
+        )
+
+        bringup_launch = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("panther_bringup"),
+                        "launch",
+                        "bringup.launch.py",
+                    ]
+                )
+            ),
+            launch_arguments={
+                "wheel_type": wheel_type,
+                "wheel_config_path": wheel_config_path,
+                "controller_config_path": controller_config_path,
+                "battery_config_path": battery_config_path,
+                "publish_robot_state": publish_robot_state,
+                "use_sim": "True",
+                "simulation_engine": "ignition-gazebo",
+                "namespace": robot_name,
+            }.items(),
+        )
+
+        group = TimerAction(
+            period=10.0 * idx,
+            actions=[
+                spawn_log,
+                spawn_robot,
+                gz_bridge,
+                bringup_launch,
+            ],
+        )
+        spawn_group.append(group)
 
     return LaunchDescription(
         [
             declare_world_arg,
-            declare_pose_x_arg,
-            declare_pose_y_arg,
-            declare_pose_z_arg,
-            declare_rot_yaw_arg,
+            declare_x_arg,
+            declare_y_arg,
+            declare_z_arg,
+            declare_roll_arg,
+            declare_pitch_arg,
+            declare_yaw_arg,
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
@@ -244,11 +294,10 @@ def generate_launch_description():
             declare_gz_bridge_config_path_arg,
             declare_publish_robot_state_arg,
             declare_namespace_arg,
+            declare_robots_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,
-            gz_bridge,
-            gz_spawn_entity,
-            bringup_launch,
+            *spawn_group,
         ]
     )
