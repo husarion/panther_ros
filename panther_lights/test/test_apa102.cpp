@@ -13,27 +13,37 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
-#include <panther_lights/test/mock_apa102.hpp>
+#include <panther_lights/apa102.hpp>
 
-using MockAPA102 = panther_lights::mock_apa102::MockAPA102;
-
-class APA102Test : public ::testing::Test
+class APA102Wrapper : public panther_lights::apa102::APA102
 {
-protected:
-  void SetUp() override { apa102_ = std::make_unique<MockAPA102>("/dev/spidev0.0"); }
+public:
+  APA102Wrapper(const std::string & device) : APA102(device) {}
 
-  void TearDown() override { apa102_.reset(); }
-
-  std::unique_ptr<MockAPA102> apa102_;
+  std::vector<std::uint8_t> RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const
+  {
+    return APA102::RGBAFrameToBGRBuffer(frame);
+  }
+  std::uint16_t GetGlobalBrightness() const { return global_brightness_; }
 };
 
-TEST_F(APA102Test, PortsAvailable)
+class TestAPA102 : public testing::Test
+{
+protected:
+  TestAPA102() { apa102_ = std::make_unique<APA102Wrapper>("/dev/spidev0.0"); }
+
+  ~TestAPA102() { apa102_.reset(); }
+
+  std::unique_ptr<APA102Wrapper> apa102_;
+};
+
+TEST_F(TestAPA102, PortsAvailable)
 {
   EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_1_("/dev/spidev0.0"); });
   EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_2_("/dev/spidev0.1"); });
 }
 
-TEST_F(APA102Test, SetGlobalBrightnessFloat)
+TEST_F(TestAPA102, SetGlobalBrightnessFloat)
 {
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0)));
   EXPECT_EQ(apa102_->GetGlobalBrightness(), 0);
@@ -54,7 +64,7 @@ TEST_F(APA102Test, SetGlobalBrightnessFloat)
   EXPECT_THROW(apa102_->SetGlobalBrightness(static_cast<float>(1.1)), std::out_of_range);
 }
 
-TEST_F(APA102Test, SetGlobalBrightnessUint8)
+TEST_F(TestAPA102, SetGlobalBrightnessUint8)
 {
   EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(0)));
   EXPECT_EQ(apa102_->GetGlobalBrightness(), 0);
@@ -68,7 +78,7 @@ TEST_F(APA102Test, SetGlobalBrightnessUint8)
   EXPECT_THROW(apa102_->SetGlobalBrightness(std::uint8_t(32)), std::out_of_range);
 }
 
-TEST_F(APA102Test, RGBAFrameToBGRBuffer)
+TEST_F(TestAPA102, RGBAFrameToBGRBuffer)
 {
   std::vector<std::uint8_t> frame = {255, 128, 64, 192};  // RGBA format
 

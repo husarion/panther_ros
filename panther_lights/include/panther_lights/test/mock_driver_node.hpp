@@ -17,21 +17,7 @@
 
 #include <panther_lights/driver_node.hpp>
 
-namespace panther_lights::mock_driver_node
-{
 
-class MockDriverNode : public panther_lights::DriverNode::DriverNode
-{
-public:
-  MockDriverNode(const std::string & device) : DriverNode(device) {}
 
-  int getNumLeds() const { return num_led_; }
-  double getTimeout() const { return frame_timeout_; }
-  bool isInitialised() const { return panels_initialised_; }
-  rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
-  rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
-};
-
-}  // namespace panther_lights::mock_driver_node
 
 #endif  // PANTHER_LIGHTS__MOCK_DRIVER_NODE_HPP_

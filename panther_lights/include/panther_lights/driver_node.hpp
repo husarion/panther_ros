@@ -60,6 +60,7 @@ private:
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
+  void SetPowerPin(const bool value);
   void DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status);
 
   apa102::APA102 chanel_1_;

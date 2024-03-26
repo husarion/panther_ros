@@ -18,23 +18,35 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <thread>
 
-#include <panther_lights/test/mock_driver_node.hpp>
+#include <panther_lights/driver_node.hpp>
 #include <panther_msgs/srv/set_led_brightness.hpp>
 #include <panther_utils/test/ros_test_utils.hpp>
 
 using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
-using MockDriverNode = panther_lights::mock_driver_node::MockDriverNode;
 
-class DriverNodeFixture : public ::testing::Test
+class DriverNodeWrapper : public panther_lights::DriverNode
+{
+public:
+  DriverNodeWrapper(const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions()) : DriverNode(node_name, options) {}
+
+  int getNumLeds() const { return num_led_; }
+  double getTimeout() const { return frame_timeout_; }
+  bool isInitialised() const { return panels_initialised_; }
+  rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
+  rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
+};
+
+
+class TestDriverNode : public testing::Test
 {
 public:
   // Due to DriverNode::OnShutdown() we need to execute rclcpp::shutdown()
-  // in TearDown() to release GPIO pins
-  void SetUp() override
+  // in destructor to release GPIO pins
+  TestDriverNode()
   {
     rclcpp::init(0, nullptr);
-    node_ = std::make_shared<MockDriverNode>("test_lights_driver_node");
+    node_ = std::make_shared<DriverNodeWrapper>("test_lights_driver_node");
     it_ = std::make_shared<image_transport::ImageTransport>(node_->shared_from_this());
     channel_1_pub_ = std::make_shared<image_transport::Publisher>(
       it_->advertise("lights/driver/channel_1_frame", 5));
@@ -45,7 +57,7 @@ public:
     node_->Initialize();
   }
 
-  void TearDown() override { rclcpp::shutdown(); }
+  ~TestDriverNode() { rclcpp::shutdown(); }
 
 protected:
   ImageMsg::SharedPtr CreateImageMsg()
@@ -54,7 +66,7 @@ protected:
 
     // Filling msg with dummy data
     msg->header.stamp = node_->now();
-    msg->header.frame_id = "camera_frame";
+    msg->header.frame_id = "image_frame";
     msg->height = 1;
     msg->width = node_->getNumLeds();
     msg->encoding = sensor_msgs::image_encodings::RGBA8;
@@ -65,14 +77,14 @@ protected:
     return msg;
   }
 
-  std::shared_ptr<MockDriverNode> node_;
+  std::shared_ptr<DriverNodeWrapper> node_;
   std::shared_ptr<image_transport::ImageTransport> it_;
   std::shared_ptr<image_transport::Publisher> channel_1_pub_;
   std::shared_ptr<image_transport::Publisher> channel_2_pub_;
   rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
 };
 
-TEST_F(DriverNodeFixture, ServiceTestSuccess)
+TEST_F(TestDriverNode, ServiceTestSuccess)
 {
   ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
   auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
@@ -83,7 +95,7 @@ TEST_F(DriverNodeFixture, ServiceTestSuccess)
   EXPECT_TRUE(response->success);
 }
 
-TEST_F(DriverNodeFixture, ServiceTestFail)
+TEST_F(TestDriverNode, ServiceTestFail)
 {
   ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
   auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
@@ -94,40 +106,18 @@ TEST_F(DriverNodeFixture, ServiceTestFail)
   EXPECT_FALSE(response->success);
 }
 
-TEST_F(DriverNodeFixture, PublishFail)
+TEST_F(TestDriverNode, PublishTimeoutFail)
 {
-  ImageMsg::SharedPtr msg;
-
-  // Timeout Fail
-  msg = CreateImageMsg();
+  auto msg = CreateImageMsg();
   msg->header.stamp.sec = node_->get_clock()->now().seconds() - node_->getTimeout() - 1;
   channel_1_pub_->publish(msg);
   rclcpp::spin_some(node_->get_node_base_interface());
   EXPECT_FALSE(node_->isInitialised());
+}
 
-  // Encoding Fail
-  msg = CreateImageMsg();
-  msg->encoding = sensor_msgs::image_encodings::RGB8;
-  channel_1_pub_->publish(msg);
-  rclcpp::spin_some(node_->get_node_base_interface());
-  EXPECT_FALSE(node_->isInitialised());
-
-  // Height Fail
-  msg = CreateImageMsg();
-  msg->height = 2;
-  channel_1_pub_->publish(msg);
-  rclcpp::spin_some(node_->get_node_base_interface());
-  EXPECT_FALSE(node_->isInitialised());
-
-  // Width Fail
-  msg = CreateImageMsg();
-  msg->width = node_->getNumLeds() + 1;
-  channel_1_pub_->publish(msg);
-  rclcpp::spin_some(node_->get_node_base_interface());
-  EXPECT_FALSE(node_->isInitialised());
-
-  // Older Msg Fail
-  msg = CreateImageMsg();
+TEST_F(TestDriverNode, PublishOldMsgFail)
+{
+  auto msg = CreateImageMsg();
   node_->setChanel1TS(msg->header.stamp);
   msg->header.stamp.nanosec--;
   channel_1_pub_->publish(msg);
@@ -135,8 +125,35 @@ TEST_F(DriverNodeFixture, PublishFail)
   EXPECT_FALSE(node_->isInitialised());
 }
 
+TEST_F(TestDriverNode, PublishEncodingFail)
+{
+  auto msg = CreateImageMsg();
+  msg->encoding = sensor_msgs::image_encodings::RGB8;
+  channel_1_pub_->publish(msg);
+  rclcpp::spin_some(node_->get_node_base_interface());
+  EXPECT_FALSE(node_->isInitialised());
+}
+
+TEST_F(TestDriverNode, PublishHeightFail)
+{
+  auto msg = CreateImageMsg();
+  msg->height = 2;
+  channel_1_pub_->publish(msg);
+  rclcpp::spin_some(node_->get_node_base_interface());
+  EXPECT_FALSE(node_->isInitialised());
+}
+
+TEST_F(TestDriverNode, PublishWidthFail)
+{
+  auto msg = CreateImageMsg();
+  msg->width = node_->getNumLeds() + 1;
+  channel_1_pub_->publish(msg);
+  rclcpp::spin_some(node_->get_node_base_interface());
+  EXPECT_FALSE(node_->isInitialised());
+}
+
 // TODO: For some reason this function breaks other test that's why PublishSuccess is last one.
-TEST_F(DriverNodeFixture, PublishSuccess)
+TEST_F(TestDriverNode, PublishSuccess)
 {
   auto msg = CreateImageMsg();
 
@@ -149,9 +166,7 @@ TEST_F(DriverNodeFixture, PublishSuccess)
 
 int main(int argc, char ** argv)
 {
-  // rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   int result = RUN_ALL_TESTS();
-  // rclcpp::shutdown();
   return result;
 }
