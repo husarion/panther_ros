@@ -149,7 +149,6 @@ def generate_launch_description():
             ("/tf", "tf"),
             ("/tf_static", "tf_static"),
         ],
-        namespace=namespace,
         condition=UnlessCondition(use_sim),
     )
 
