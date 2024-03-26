@@ -104,11 +104,11 @@ TEST_F(ShutdownHostsNodeTest, GoodRemovingDuplicatedHosts)
 {
   CreateWrapper(
     {std::make_shared<panther_manager::ShutdownHost>(
-       "127.0.0.1", "husarion", 22, "echo HelloWorld", 100, true),
+       "127.0.0.1", "husarion", 22, "echo HelloWorld", 1.0, true),
      std::make_shared<panther_manager::ShutdownHost>(
-       "localhost", "husarion", 22, "echo HelloWorld", 100, true),
+       "localhost", "husarion", 22, "echo HelloWorld", 1.0, true),
      std::make_shared<panther_manager::ShutdownHost>(
-       "localhost", "husarion", 22, "echo HelloWorld", 100, true)},
+       "localhost", "husarion", 22, "echo HelloWorld", 1.0, true)},
     true);
   std::vector<std::shared_ptr<panther_manager::ShutdownHost>> hosts;
   ASSERT_TRUE(wrapper->UpdateHosts(hosts));
@@ -121,7 +121,7 @@ TEST_F(ShutdownHostsNodeTest, FailedWhenUpdateHostReturnsFalse)
 {
   CreateWrapper(
     {std::make_shared<panther_manager::ShutdownHost>(
-      "127.0.0.1", "husarion", 22, "echo HelloWorld", 100, true)},
+      "127.0.0.1", "husarion", 22, "echo HelloWorld", 1.0, true)},
     false);
 
   auto status = wrapper->onStart();
@@ -136,20 +136,20 @@ TEST_F(ShutdownHostsNodeTest, FailedWhenHostsAreEmpty)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-// FIXME: This test pass but the host should be added to the failed hosts.
-// TEST_F(ShutdownHostsNodeTest, CheckFailedHosts)
-// {
-//   CreateWrapper({ std::make_shared<panther_manager::ShutdownHost>("127.0.0.1", "husarion", 22,
-//   "wrong_command", 100, false) },
-//                 true);
-//   auto status = wrapper->onStart();
-//   EXPECT_EQ(status, BT::NodeStatus::RUNNING);
-//   while(wrapper->GetFailedHosts().size() == 0 && status != BT::NodeStatus::SUCCESS){
-//     status = wrapper->onRunning();
-//   }
-//   status = wrapper->onRunning();
-//   EXPECT_EQ(wrapper->GetFailedHosts().size(), 0);
-// }
+TEST_F(ShutdownHostsNodeTest, CheckFailedHosts)
+{
+  CreateWrapper(
+    {std::make_shared<panther_manager::ShutdownHost>(
+      "127.0.0.1", "husarion", 22, "echo HelloWorld", 1.0, true)},
+    true);
+  auto status = wrapper->onStart();
+  EXPECT_EQ(status, BT::NodeStatus::RUNNING);
+  while (status == BT::NodeStatus::RUNNING) {
+    status = wrapper->onRunning();
+  }
+  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
+  EXPECT_EQ(wrapper->GetFailedHosts().size(), 1);
+}
 
 int main(int argc, char ** argv)
 {

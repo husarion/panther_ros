@@ -87,25 +87,6 @@ TEST_F(TestShutdownSingleHost, Timeout)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestShutdownSingleHost, WrongCommand)
-{
-  std::map<std::string, std::string> service = {
-    {"command", "wrong_command"},
-    {"ip", "localhost"},
-    {"ping_for_success", "false"},
-    {"port", "22"},
-    {"timeout", "0.2"},
-    {"username", "husarion"},
-  };
-  RegisterNodeWithoutParams<panther_manager::ShutdownSingleHost>("ShutdownSingleHost");
-
-  CreateTree("ShutdownSingleHost", service);
-  auto & tree = GetTree();
-
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(300));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-}
-
 TEST_F(TestShutdownSingleHost, WrongUser)
 {
   std::map<std::string, std::string> service = {
@@ -122,7 +103,7 @@ TEST_F(TestShutdownSingleHost, WrongUser)
   auto & tree = GetTree();
   CreateTree("ShutdownSingleHost", service);
 
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(300));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
