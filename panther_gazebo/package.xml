@@ -21,6 +21,7 @@
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">ign_ros2_control</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">launch</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">launch_ros</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">nav2_common</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">panther_bringup</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">robot_state_publisher</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">ros_gz_bridge</exec_depend>

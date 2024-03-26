@@ -28,6 +28,13 @@ def generate_launch_description():
         description="Path to a YAML file with a description of led configuration",
     )
 
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value="",
+        description="Namespace for all Panther topics",
+    )
+
     user_led_animations_file = LaunchConfiguration("user_led_animations_file")
     declare_user_led_animations_file_arg = DeclareLaunchArgument(
         "user_led_animations_file",
@@ -40,6 +47,7 @@ def generate_launch_description():
         executable="driver_node",
         name="lights_driver_node",
         on_exit=Shutdown(),
+        namespace=namespace,
     )
 
     lights_controller_node = Node(
@@ -51,10 +59,12 @@ def generate_launch_description():
             {"user_led_animations_file": user_led_animations_file},
         ],
         on_exit=Shutdown(),
+        namespace=namespace,
     )
 
     actions = [
         declare_led_config_file_arg,
+        declare_namespace_arg,
         declare_user_led_animations_file_arg,
         lights_driver_node,
         lights_controller_node,

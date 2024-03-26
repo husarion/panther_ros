@@ -151,6 +151,7 @@ def generate_launch_description():
             ("/tf", "tf"),
             ("/tf_static", "tf_static"),
         ],
+        namespace=namespace,
         condition=UnlessCondition(use_sim),
     )
 
@@ -161,6 +162,7 @@ def generate_launch_description():
         parameters=[robot_description],
         remappings=[("/tf", "tf"), ("/tf_static", "tf_static")],
         condition=IfCondition(publish_robot_state),
+        namespace=namespace,
     )
 
     robot_controller_spawner = Node(
@@ -175,6 +177,7 @@ def generate_launch_description():
             "--namespace",
             namespace,
         ],
+        namespace=namespace,
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -189,6 +192,7 @@ def generate_launch_description():
             "--namespace",
             namespace,
         ],
+        namespace=namespace,
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
@@ -208,7 +212,10 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
+        namespace=namespace,
     )
 
     # Delay start of imu_broadcaster after robot_controller

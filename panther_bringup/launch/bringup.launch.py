@@ -33,7 +33,7 @@ from launch.substitutions import (
     PathJoinSubstitution,
     PythonExpression,
 )
-from launch_ros.actions import Node, PushRosNamespace, SetParameter
+from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -294,6 +294,7 @@ def generate_launch_description():
             ("/tf", "tf"),
             ("/tf_static", "tf_static"),
         ],
+        namespace=namespace,
         condition=IfCondition(use_ekf),
     )
 
@@ -309,31 +310,20 @@ def generate_launch_description():
         ),
         condition=UnlessCondition(use_sim),
         launch_arguments={
+            "namespace": namespace,
             "panther_version": panther_version,
             "shutdown_hosts_config_path": shutdown_hosts_config_path,
         }.items(),
     )
 
     other_action_timer = TimerAction(
-        period=10.0,
+        period=7.0,
         actions=[
             battery_launch,
             imu_launch,
             lights_launch,
             robot_localization_node,
             manager_launch,
-        ],
-    )
-
-    waiting_msg = TimerAction(
-        period=7.0,
-        actions=[
-            LogInfo(
-                msg=(
-                    "We're working on ensuring everything functions properly... Please wait a few"
-                    " seconds more!"
-                )
-            )
         ],
     )
 
@@ -351,11 +341,9 @@ def generate_launch_description():
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
         declare_shutdown_hosts_config_path_arg,
-        PushRosNamespace(namespace),
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,
-        waiting_msg,
         other_action_timer,
     ]
 
