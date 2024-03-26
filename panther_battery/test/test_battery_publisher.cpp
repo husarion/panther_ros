@@ -16,14 +16,14 @@
 #include <memory>
 #include <thread>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/battery_state.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
 
-#include <panther_msgs/msg/io_state.hpp>
+#include "panther_msgs/msg/io_state.hpp"
 
-#include <panther_battery/battery_publisher.hpp>
+#include "panther_battery/battery_publisher.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using IOStateMsg = panther_msgs::msg::IOState;

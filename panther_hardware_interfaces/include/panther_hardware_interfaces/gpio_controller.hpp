@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <gpiod.hpp>
+#include "gpiod.hpp"
 
 #include "panther_gpiod/gpio_driver.hpp"
 

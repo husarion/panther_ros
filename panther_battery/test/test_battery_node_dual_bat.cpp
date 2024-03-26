@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <include/test_battery_node.hpp>
+#include "include/test_battery_node.hpp"
 
 #include <chrono>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "panther_utils/test/ros_test_utils.hpp"
 
 class TestBatteryNodeDualBattery : public TestBatteryNode
 {

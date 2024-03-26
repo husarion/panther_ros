@@ -25,7 +25,7 @@
 #include "boost/gil.hpp"
 #include "boost/gil/extension/toolbox/color_spaces/gray_alpha.hpp"
 
-#include <panther_lights/animation/animation.hpp>
+#include "panther_lights/animation/animation.hpp"
 
 namespace gil = boost::gil;
 

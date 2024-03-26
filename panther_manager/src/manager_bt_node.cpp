@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/manager_bt_node.hpp>
+#include "panther_manager/manager_bt_node.hpp"
 
 #include <algorithm>
 #include <any>
@@ -25,17 +25,17 @@
 #include <utility>
 #include <vector>
 
-#include <behaviortree_cpp/bt_factory.h>
-#include <behaviortree_cpp/loggers/groot2_publisher.h>
-#include <behaviortree_cpp/utils/shared_library.h>
+#include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/loggers/groot2_publisher.h"
+#include "behaviortree_cpp/utils/shared_library.h"
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "ament_index_cpp/get_package_share_directory.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_utils/moving_average.hpp>
+#include "panther_utils/moving_average.hpp"
 
-#include <behaviortree_ros2/plugins.hpp>
-#include <panther_manager/bt_utils.hpp>
+#include "behaviortree_ros2/plugins.hpp"
+#include "panther_manager/bt_utils.hpp"
 
 namespace panther_manager
 {

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/plugins/action/call_set_led_animation_service_node.hpp>
+#include "panther_manager/plugins/action/call_set_led_animation_service_node.hpp"
 
 #include <string>
 
-#include <behaviortree_cpp/basic_types.h>
+#include "behaviortree_cpp/basic_types.h"
 
 namespace panther_manager
 {
@@ -62,5 +62,5 @@ BT::NodeStatus CallSetLedAnimationService::onResponseReceived(
 
 }  // namespace panther_manager
 
-#include <behaviortree_ros2/plugins.hpp>
+#include "behaviortree_ros2/plugins.hpp"
 CreateRosNodePlugin(panther_manager::CallSetLedAnimationService, "CallSetLedAnimationService");

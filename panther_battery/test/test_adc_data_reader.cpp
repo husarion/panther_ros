@@ -16,9 +16,9 @@
 #include <fstream>
 #include <memory>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <panther_battery/adc_data_reader.hpp>
+#include "panther_battery/adc_data_reader.hpp"
 
 class TestADCDataReader : public testing::Test
 {

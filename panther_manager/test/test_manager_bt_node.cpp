@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/manager_bt_node.hpp>
+#include "panther_manager/manager_bt_node.hpp"
 
 #include <chrono>
 #include <filesystem>
@@ -24,16 +24,16 @@
 #include <thread>
 #include <vector>
 
-#include <behaviortree_cpp/tree_node.h>
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "behaviortree_cpp/tree_node.h"
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/battery_state.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
+#include "std_msgs/msg/bool.hpp"
 
-#include <panther_msgs/msg/io_state.hpp>
+#include "panther_msgs/msg/io_state.hpp"
 
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_utils/test/test_utils.hpp"
 
 class ManagerBTNodeWrapper : public panther_manager::ManagerBTNode
 {

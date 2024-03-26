@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-#include <panther_lights/apa102.hpp>
+#include "gtest/gtest.h"
+#include "panther_lights/apa102.hpp"
 
 class APA102Wrapper : public panther_lights::apa102::APA102
 {

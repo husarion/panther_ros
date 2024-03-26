@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/manager_bt_node.hpp>
+#include "panther_manager/manager_bt_node.hpp"
 
 #include <iostream>
 #include <memory>

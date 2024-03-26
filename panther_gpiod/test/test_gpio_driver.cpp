@@ -21,8 +21,8 @@
 #include <utility>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <gpiod.hpp>
+#include "gpiod.hpp"
+#include "gtest/gtest.h"
 
 #include "panther_gpiod/gpio_driver.hpp"
 #include "panther_utils/test/test_utils.hpp"

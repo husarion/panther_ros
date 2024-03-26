@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <include/test_battery_node.hpp>
+#include "include/test_battery_node.hpp"
 
 #include <chrono>
 #include <cmath>
 #include <thread>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "panther_utils/test/ros_test_utils.hpp"
 
 class TestBatteryNodeRoboteq : public TestBatteryNode
 {

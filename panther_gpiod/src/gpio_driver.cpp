@@ -27,9 +27,9 @@
 #include <utility>
 #include <vector>
 
-#include <gpiod.hpp>
+#include "gpiod.hpp"
 
-#include <panther_utils/configure_rt.hpp>
+#include "panther_utils/configure_rt.hpp"
 
 namespace panther_gpiod
 {

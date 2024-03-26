@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
+#include "panther_manager/plugins/action/shutdown_single_host_node.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <behaviortree_cpp/exceptions.h>
-#include <behaviortree_cpp/tree_node.h>
+#include "behaviortree_cpp/exceptions.h"
+#include "behaviortree_cpp/tree_node.h"
 
-#include <panther_manager/plugins/shutdown_host.hpp>
+#include "panther_manager/plugins/shutdown_host.hpp"
 
 namespace panther_manager
 {

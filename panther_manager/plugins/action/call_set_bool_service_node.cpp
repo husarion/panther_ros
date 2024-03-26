@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/plugins/action/call_set_bool_service_node.hpp>
+#include "panther_manager/plugins/action/call_set_bool_service_node.hpp"
 namespace panther_manager
 {
 
@@ -42,5 +42,5 @@ BT::NodeStatus CallSetBoolService::onResponseReceived(const typename Response::S
 
 }  // namespace panther_manager
 
-#include <behaviortree_ros2/plugins.hpp>
+#include "behaviortree_ros2/plugins.hpp"
 CreateRosNodePlugin(panther_manager::CallSetBoolService, "CallSetBoolService");

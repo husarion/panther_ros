@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-#include <image_transport/image_transport.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/image_encodings.hpp>
 #include <thread>
 
-#include <panther_lights/driver_node.hpp>
-#include <panther_msgs/srv/set_led_brightness.hpp>
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "gtest/gtest.h"
+#include "image_transport/image_transport.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/image_encodings.hpp"
+
+#include "panther_lights/driver_node.hpp"
+#include "panther_msgs/srv/set_led_brightness.hpp"
+#include "panther_utils/test/ros_test_utils.hpp"
 
 using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;

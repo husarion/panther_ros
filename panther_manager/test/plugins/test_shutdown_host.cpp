@@ -14,9 +14,9 @@
 
 #include <string>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <panther_manager/plugins/shutdown_host.hpp>
+#include "panther_manager/plugins/shutdown_host.hpp"
 
 class TestShutdownHost : public testing::Test
 {

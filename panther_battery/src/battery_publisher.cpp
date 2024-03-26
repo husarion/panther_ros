@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_battery/battery_publisher.hpp>
+#include "panther_battery/battery_publisher.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace panther_battery
 {

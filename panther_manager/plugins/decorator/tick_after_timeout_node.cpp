@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/plugins/decorator/tick_after_timeout_node.hpp>
+#include "panther_manager/plugins/decorator/tick_after_timeout_node.hpp"
 
 namespace panther_manager
 {

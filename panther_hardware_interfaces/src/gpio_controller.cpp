@@ -20,7 +20,7 @@
 #include <thread>
 #include <utility>
 
-#include <gpiod.hpp>
+#include "gpiod.hpp"
 
 #include "panther_hardware_interfaces/gpio_controller.hpp"
 

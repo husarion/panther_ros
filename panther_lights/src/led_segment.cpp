@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/led_segment.hpp>
+#include "panther_lights/led_segment.hpp"
 
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/animation/animation.hpp>
-#include <panther_utils/yaml_utils.hpp>
+#include "panther_lights/animation/animation.hpp"
+#include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
 {

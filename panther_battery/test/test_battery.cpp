@@ -16,13 +16,13 @@
 #include <cstdint>
 #include <memory>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/battery_state.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
 
-#include <panther_battery/battery.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_battery/battery.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 

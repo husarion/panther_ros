@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/canopen_controller.hpp>
+#include "panther_hardware_interfaces/canopen_controller.hpp"
 
 #include <condition_variable>
 #include <filesystem>
@@ -23,9 +23,9 @@
 #include <stdexcept>
 #include <thread>
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
+#include "ament_index_cpp/get_package_share_directory.hpp"
 
-#include <panther_utils/configure_rt.hpp>
+#include "panther_utils/configure_rt.hpp"
 
 namespace panther_hardware_interfaces
 {

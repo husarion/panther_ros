@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/utils.hpp>
+#include "panther_hardware_interfaces/utils.hpp"
 
 #include <iostream>
 #include <stdexcept>

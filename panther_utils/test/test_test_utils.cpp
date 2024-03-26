@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <limits>
 #include <stdexcept>
 #include <vector>
 
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_utils/test/test_utils.hpp"
 
 template <typename T>
 void TestCheckNaNVector()

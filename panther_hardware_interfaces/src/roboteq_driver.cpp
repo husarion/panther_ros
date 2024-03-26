@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/roboteq_driver.hpp>
+#include "panther_hardware_interfaces/roboteq_driver.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -23,7 +23,7 @@
 #include <string>
 #include <system_error>
 
-#include <panther_hardware_interfaces/utils.hpp>
+#include "panther_hardware_interfaces/utils.hpp"
 
 namespace panther_hardware_interfaces
 {

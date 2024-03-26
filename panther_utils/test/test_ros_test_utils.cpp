@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <chrono>
 #include <memory>
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <std_msgs/msg/empty.hpp>
+#include "std_msgs/msg/empty.hpp"
 
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "panther_utils/test/ros_test_utils.hpp"
 
 TEST(TestTestUtils, WaitForMessage)
 {

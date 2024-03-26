@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_battery/battery_node.hpp>
+#include "panther_battery/battery_node.hpp"
 
 #include <chrono>
 #include <functional>
@@ -21,16 +21,16 @@
 #include <stdexcept>
 #include <string>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_battery/adc_battery.hpp>
-#include <panther_battery/adc_data_reader.hpp>
-#include <panther_battery/battery.hpp>
-#include <panther_battery/battery_publisher.hpp>
-#include <panther_battery/dual_battery_publisher.hpp>
-#include <panther_battery/roboteq_battery.hpp>
-#include <panther_battery/single_battery_publisher.hpp>
+#include "panther_battery/adc_battery.hpp"
+#include "panther_battery/adc_data_reader.hpp"
+#include "panther_battery/battery.hpp"
+#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/dual_battery_publisher.hpp"
+#include "panther_battery/roboteq_battery.hpp"
+#include "panther_battery/single_battery_publisher.hpp"
 
 namespace panther_battery
 {

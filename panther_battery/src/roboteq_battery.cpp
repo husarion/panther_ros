@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_battery/roboteq_battery.hpp>
+#include "panther_battery/roboteq_battery.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -21,9 +21,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_utils/moving_average.hpp>
+#include "panther_utils/moving_average.hpp"
 
 namespace panther_battery
 {

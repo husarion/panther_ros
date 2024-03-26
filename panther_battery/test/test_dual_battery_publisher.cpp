@@ -16,15 +16,15 @@
 #include <cstdint>
 #include <memory>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/battery_state.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
 
-#include <panther_battery/adc_battery.hpp>
-#include <panther_battery/battery.hpp>
-#include <panther_battery/dual_battery_publisher.hpp>
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "panther_battery/adc_battery.hpp"
+#include "panther_battery/battery.hpp"
+#include "panther_battery/dual_battery_publisher.hpp"
+#include "panther_utils/test/ros_test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 

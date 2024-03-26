@@ -18,11 +18,11 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
+#include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/led_segment.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_lights/led_segment.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 class LEDSegmentWrapper : public panther_lights::LEDSegment
 {

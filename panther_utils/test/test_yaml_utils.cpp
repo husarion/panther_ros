@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <panther_utils/test/test_utils.hpp>
-#include <panther_utils/yaml_utils.hpp>
+#include "panther_utils/test/test_utils.hpp"
+#include "panther_utils/yaml_utils.hpp"
 
 TEST(TestGetYAMLKeyValue, MissingKey)
 {

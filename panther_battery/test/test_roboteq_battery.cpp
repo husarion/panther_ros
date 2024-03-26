@@ -18,15 +18,15 @@
 #include <functional>
 #include <memory>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/battery_state.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
 
-#include <panther_msgs/msg/driver_state.hpp>
+#include "panther_msgs/msg/driver_state.hpp"
 
-#include <panther_battery/roboteq_battery.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_battery/roboteq_battery.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using DriverStateMsg = panther_msgs::msg::DriverState;

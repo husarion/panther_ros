@@ -21,12 +21,12 @@
 #include <thread>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "rclcpp/rclcpp.hpp"
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/controller_node.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_lights/controller_node.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 class ControllerNodeWrapper : public panther_lights::ControllerNode
 {

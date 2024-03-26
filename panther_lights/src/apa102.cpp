@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/apa102.hpp>
+#include "panther_lights/apa102.hpp"
 
 #include <fcntl.h>
 #include <linux/spi/spidev.h>

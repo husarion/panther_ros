@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
+#include "panther_hardware_interfaces/panther_system_ros_interface.hpp"
 
 #include <memory>
 #include <string>
 #include <thread>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <realtime_tools/realtime_publisher.h>
+#include "realtime_tools/realtime_publisher.h"
 
-#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+#include "panther_hardware_interfaces/roboteq_data_converters.hpp"
 
 namespace panther_hardware_interfaces
 {
