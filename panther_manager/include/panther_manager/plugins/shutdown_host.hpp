@@ -180,7 +180,7 @@ private:
 
   void RequestShutdown()
   {
-    SshExecuteCommadn(command_);
+    SshExecuteCommand(command_);
     command_time_ = std::chrono::steady_clock::now();
   }
 
@@ -216,7 +216,7 @@ private:
     return elapsed > timeout_ms_ && IsAvailable();
   }
 
-  void SshExecuteCommadn(const std::string & command)
+  void SshExecuteCommand(const std::string & command)
   {
     session_ = ssh_new();
     if (session_ == NULL) {

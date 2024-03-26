@@ -63,8 +63,6 @@ public:
 
 protected:
   std::shared_ptr<rclcpp::Logger> logger_;
-
-private:
   std::size_t check_host_index_ = 0;
   std::vector<std::shared_ptr<ShutdownHost>> hosts_;
   std::vector<std::size_t> hosts_to_check_;
