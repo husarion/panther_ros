@@ -43,14 +43,11 @@ public:
   void Initialize();
 
 protected:
-  void SetPowerPin(const bool value);
-
   int num_led_;
   double frame_timeout_;
   bool panels_initialised_ = false;
   rclcpp::Time chanel_1_ts_;
   rclcpp::Time chanel_2_ts_;
-  std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
 
 private:
   void OnShutdown();
@@ -70,6 +67,7 @@ private:
   std::shared_ptr<image_transport::ImageTransport> it_;
   std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
   std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
+  std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
   diagnostic_updater::Updater diagnostic_updater_;
 };
 
