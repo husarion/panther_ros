@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,20 +22,20 @@
 #include <thread>
 #include <unordered_map>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <realtime_tools/realtime_publisher.h>
+#include "realtime_tools/realtime_publisher.h"
 
-#include <std_msgs/msg/bool.hpp>
-#include <std_srvs/srv/set_bool.hpp>
-#include <std_srvs/srv/trigger.hpp>
+#include "std_msgs/msg/bool.hpp"
+#include "std_srvs/srv/set_bool.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
-#include <panther_msgs/msg/driver_state.hpp>
-#include <panther_msgs/msg/io_state.hpp>
+#include "panther_msgs/msg/driver_state.hpp"
+#include "panther_msgs/msg/io_state.hpp"
 
-#include <panther_hardware_interfaces/gpio_controller.hpp>
-#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+#include "panther_hardware_interfaces/gpio_controller.hpp"
+#include "panther_hardware_interfaces/roboteq_data_converters.hpp"
 
 using namespace std::placeholders;
 

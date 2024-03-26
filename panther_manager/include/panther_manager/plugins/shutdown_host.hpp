@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include <libssh/libsshpp.hpp>
+#include "libssh/libsshpp.hpp"
 
 namespace panther_manager
 {

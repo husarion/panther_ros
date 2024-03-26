@@ -23,9 +23,9 @@
 #include <string>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <panther_utils/yaml_utils.hpp>
+#include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
 {

@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/animation/animation.hpp>
+#include "panther_lights/animation/animation.hpp"
 
 namespace panther_lights
 {

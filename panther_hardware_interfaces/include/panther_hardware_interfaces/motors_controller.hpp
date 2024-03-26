@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 
 #include <chrono>
 
-#include <panther_hardware_interfaces/canopen_controller.hpp>
-#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
-#include <panther_hardware_interfaces/roboteq_driver.hpp>
+#include "panther_hardware_interfaces/canopen_controller.hpp"
+#include "panther_hardware_interfaces/roboteq_data_converters.hpp"
+#include "panther_hardware_interfaces/roboteq_driver.hpp"
 
 namespace panther_hardware_interfaces
 {

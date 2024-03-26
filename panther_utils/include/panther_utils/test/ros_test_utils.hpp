@@ -20,7 +20,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
 namespace panther_utils::test_utils
 {

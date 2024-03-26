@@ -20,10 +20,10 @@
 #include <string>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <boost/gil.hpp>
-#include <boost/gil/extension/toolbox/color_spaces/gray_alpha.hpp>
+#include "boost/gil.hpp"
+#include "boost/gil/extension/toolbox/color_spaces/gray_alpha.hpp"
 
 #include <panther_lights/animation/animation.hpp>
 
