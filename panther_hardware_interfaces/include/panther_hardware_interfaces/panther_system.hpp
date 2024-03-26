@@ -147,6 +147,7 @@ protected:
   float panther_version_;
 
   std::atomic_bool e_stop_ = true;
+  std::atomic_bool use_can_for_e_stop_trigger_ = false;
   std::atomic_bool last_commands_zero_ = false;
   std::mutex e_stop_manipulation_mtx_;
   std::mutex motor_controller_write_mtx_;

@@ -195,6 +195,19 @@ def generate_launch_description():
         condition=IfCondition(use_ekf),
     )
 
+    shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
+    declare_shutdown_hosts_config_path_arg = DeclareLaunchArgument(
+        "shutdown_hosts_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_bringup"),
+                "config",
+                "shutdown_hosts.yaml",
+            ]
+        ),
+        description="Path to file with list of hosts to request shutdown.",
+    )
+
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -284,6 +297,23 @@ def generate_launch_description():
         condition=IfCondition(use_ekf),
     )
 
+    manager_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("panther_manager"),
+                    "launch",
+                    "manager_bt.launch.py",
+                ]
+            )
+        ),
+        condition=UnlessCondition(use_sim),
+        launch_arguments={
+            "panther_version": panther_version,
+            "shutdown_hosts_config_path": shutdown_hosts_config_path,
+        }.items(),
+    )
+
     other_action_timer = TimerAction(
         period=10.0,
         actions=[
@@ -291,6 +321,7 @@ def generate_launch_description():
             imu_launch,
             lights_launch,
             robot_localization_node,
+            manager_launch,
         ],
     )
 
@@ -319,6 +350,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
+        declare_shutdown_hosts_config_path_arg,
         PushRosNamespace(namespace),
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
