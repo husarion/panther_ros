@@ -13,6 +13,7 @@
   <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
 
   <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
+  <author email="dawid.kmak@husarion.com">Dawid Kmak</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

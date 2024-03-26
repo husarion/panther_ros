@@ -7,16 +7,17 @@ endif()
 
 set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
-    rclcpp
-    rclcpp_action
     ament_index_cpp
     behaviortree_cpp
-    std_srvs
-    panther_msgs
-    libssh
-    yaml-cpp
     behaviortree_ros2
-    panther_utils)
+    libssh
+    panther_msgs
+    panther_utils
+    rclcpp
+    rclcpp_action
+    sensor_msgs
+    std_srvs
+    yaml-cpp)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -24,39 +25,58 @@ endforeach()
 
 include_directories(include)
 
-add_library(call_set_bool_service_node SHARED
+add_library(call_set_bool_service_bt_node SHARED
             plugins/action/call_set_bool_service_node.cpp)
-list(APPEND plugin_libs call_set_bool_service_node)
+list(APPEND plugin_libs call_set_bool_service_bt_node)
 
-add_library(call_trigger_service_node SHARED
+add_library(call_trigger_service_bt_node SHARED
             plugins/action/call_trigger_service_node.cpp)
-list(APPEND plugin_libs call_trigger_service_node)
+list(APPEND plugin_libs call_trigger_service_bt_node)
 
-add_library(call_set_led_animation_service_node SHARED
+add_library(call_set_led_animation_service_bt_node SHARED
             plugins/action/call_set_led_animation_service_node.cpp)
-list(APPEND plugin_libs call_set_led_animation_service_node)
+list(APPEND plugin_libs call_set_led_animation_service_bt_node)
 
-add_library(signal_shutdown_node SHARED plugins/action/signal_shutdown_node.cpp)
-list(APPEND plugin_libs signal_shutdown_node)
+add_library(signal_shutdown_bt_node SHARED
+            plugins/action/signal_shutdown_node.cpp)
+list(APPEND plugin_libs signal_shutdown_bt_node)
 
-add_library(shutdown_single_host_node SHARED
+add_library(shutdown_single_host_bt_node SHARED
             plugins/action/shutdown_single_host_node.cpp)
-target_link_libraries(shutdown_single_host_node ssh)
-list(APPEND plugin_libs shutdown_single_host_node)
+target_link_libraries(shutdown_single_host_bt_node ssh)
+list(APPEND plugin_libs shutdown_single_host_bt_node)
 
-add_library(shutdown_hosts_from_file_node SHARED
+add_library(shutdown_hosts_from_file_bt_node SHARED
             plugins/action/shutdown_hosts_from_file_node.cpp)
-target_link_libraries(shutdown_hosts_from_file_node ssh yaml-cpp)
-list(APPEND plugin_libs shutdown_hosts_from_file_node)
+target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
+list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
 
-add_library(tick_after_timeout_node SHARED
+add_library(tick_after_timeout_bt_node SHARED
             plugins/decorator/tick_after_timeout_node.cpp)
-list(APPEND plugin_libs tick_after_timeout_node)
+list(APPEND plugin_libs tick_after_timeout_bt_node)
 
-foreach(bt_node ${plugin_libs})
-  target_compile_definitions(${bt_node} PRIVATE BT_PLUGIN_EXPORT)
-  ament_target_dependencies(${bt_node} ${PACKAGE_INCLUDE_DEPENDS})
+foreach(bt_plugin ${plugin_libs})
+  target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
+  ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
 endforeach()
+
+add_executable(manager_bt_node src/main.cpp src/manager_bt_node.cpp)
+ament_target_dependencies(
+  manager_bt_node
+  behaviortree_ros2
+  panther_msgs
+  panther_utils
+  rclcpp
+  sensor_msgs
+  std_msgs)
+target_link_libraries(manager_bt_node ${plugin_libs})
+
+install(TARGETS ${plugin_libs} DESTINATION lib)
+
+install(TARGETS manager_bt_node DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY behavior_trees config launch
+        DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
@@ -68,13 +88,13 @@ if(BUILD_TESTING)
 
   target_link_libraries(
     ${PROJECT_NAME}_test_plugin_utils
-    call_set_bool_service_node
-    call_trigger_service_node
-    call_set_led_animation_service_node
-    signal_shutdown_node
-    shutdown_single_host_node
-    shutdown_hosts_from_file_node
-    tick_after_timeout_node)
+    call_set_bool_service_bt_node
+    call_trigger_service_bt_node
+    call_set_led_animation_service_bt_node
+    signal_shutdown_bt_node
+    shutdown_single_host_bt_node
+    shutdown_hosts_from_file_bt_node
+    tick_after_timeout_bt_node)
 
   ament_target_dependencies(${PROJECT_NAME}_test_plugin_utils
                             ${PACKAGE_INCLUDE_DEPENDS})
@@ -120,11 +140,30 @@ if(BUILD_TESTING)
     target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)
     ament_target_dependencies(${bt_node_test} ${PACKAGE_INCLUDE_DEPENDS})
   endforeach()
+
+  ament_add_gtest(${PROJECT_NAME}_test_bt_utils test/test_bt_utils.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_bt_utils
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_bt_utils behaviortree_cpp
+                            panther_utils)
+
+  ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
+                  test/test_manager_bt_node.cpp src/manager_bt_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_manager_bt_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_manager_bt_node
+    behaviortree_cpp
+    behaviortree_ros2
+    panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
+    std_msgs)
 endif()
-
-install(TARGETS DESTINATION lib/${PROJECT_NAME})
-
-ament_export_include_directories(include)
-ament_export_dependencies(${PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Safety">
+    <Sequence>
+      <Sequence name="BatteryOverheatSequence"
+                _skipIf="battery_health != POWER_SUPPLY_HEALTH_OVERHEAT">
+        <Sequence name="FatalBatTempSequence"
+                  _skipIf="bat_temp &lt;= FATAL_BAT_TEMP">
+          <SignalShutdown reason="Fatal battery temperature"/>
+        </Sequence>
+        <Sequence name="CriticalBatTempSequence"
+                  _skipIf="bat_temp &lt;= CRITICAL_BAT_TEMP">
+          <CallTriggerService name="TriggerEStop"
+                              service_name="hardware/e_stop_trigger"
+                              _skipIf="e_stop_state"/>
+          <CallSetBoolService name="DisableAUX"
+                              data="false"
+                              service_name="hardware/aux_power_enable"
+                              _skipIf="!aux_state"/>
+        </Sequence>
+        <CallSetBoolService name="EnableFanIfHighBatTemp"
+                            data="true"
+                            service_name="hardware/fan_enable"
+                            _skipIf="fan_state"/>
+      </Sequence>
+      <Sequence name="BatteryDeadSequence"
+                _skipIf="battery_health != POWER_SUPPLY_HEALTH_DEAD">
+        <SignalShutdown reason="Battery dead"/>
+      </Sequence>
+      <Sequence name="BatteryOvervoltageSequence"
+                _skipIf="battery_health != POWER_SUPPLY_HEALTH_OVERVOLTAGE">
+        <CallTriggerService name="TriggerEStop"
+                            service_name="hardware/e_stop_trigger"
+                            _skipIf="e_stop_state"/>
+      </Sequence>
+      <RunOnce name="TurnOnFunAtStartup"
+               then_skip="true">
+        <CallSetBoolService name="EnableFanIfHighBatTemp"
+                            data="true"
+                            service_name="hardware/fan_enable"/>
+      </RunOnce>
+      <TickAfterTimeout name="FanOffWithHysteresis"
+                        timeout="60.0">
+        <Sequence>
+          <Sequence name="HighSysTempSequence"
+                    _skipIf="(cpu_temp &lt;= CPU_FAN_ON_TEMP \
+&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP)">
+            <CallSetBoolService name="EnableFanIfHighBatTemp"
+                                data="true"
+                                service_name="hardware/fan_enable"
+                                _skipIf="fan_state"/>
+          </Sequence>
+          <CallSetBoolService name="DisableFan"
+                              data="false"
+                              service_name="hardware/fan_enable"
+                              _skipIf="cpu_temp &gt; CPU_FAN_OFF_TEMP \
+|| driver_temp &gt; DRIVER_FAN_OFF_TEMP \
+|| battery_health == POWER_SUPPLY_HEALTH_OVERHEAT \
+|| !fan_state"/>
+        </Sequence>
+      </TickAfterTimeout>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="CallSetBoolService"
+            editable="true">
+      <input_port name="data">true / false value</input_port>
+      <input_port name="service_name">ROS service name</input_port>
+    </Action>
+    <Action ID="CallTriggerService"
+            editable="true">
+      <input_port name="service_name">ROS service name</input_port>
+    </Action>
+    <Action ID="SignalShutdown"
+            editable="true">
+      <input_port name="reason">reason to shutdown robot</input_port>
+    </Action>
+    <Decorator ID="TickAfterTimeout"
+               editable="true">
+      <input_port name="timeout">time in s to wait before ticking child again</input_port>
+    </Decorator>
+  </TreeNodesModel>
+
+</root>

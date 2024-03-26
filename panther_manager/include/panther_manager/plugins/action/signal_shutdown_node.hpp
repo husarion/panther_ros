@@ -39,7 +39,6 @@ public:
     };
   }
 
-private:
   virtual BT::NodeStatus tick() override;
 };
 
