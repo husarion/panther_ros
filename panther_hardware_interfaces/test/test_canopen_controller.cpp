@@ -25,8 +25,6 @@
 #include <roboteqs_mock.hpp>
 #include <test_constants.hpp>
 
-#include <iostream>
-
 class TestCANopenController : public ::testing::Test
 {
 public:

@@ -14,7 +14,13 @@
 
 #include <panther_system_test_utils.hpp>
 
+#include <chrono>
 #include <cstdint>
+#include <memory>
+#include <sstream>
+#include <string>
+
+#include <rclcpp/rclcpp.hpp>
 
 #include <lifecycle_msgs/msg/state.hpp>
 

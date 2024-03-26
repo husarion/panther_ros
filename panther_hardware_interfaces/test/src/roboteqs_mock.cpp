@@ -14,7 +14,14 @@
 
 #include <roboteqs_mock.hpp>
 
+#include <chrono>
 #include <cstdint>
+#include <filesystem>
+#include <memory>
+#include <mutex>
+#include <stdexcept>
+#include <string>
+#include <thread>
 
 namespace panther_hardware_interfaces_test
 {

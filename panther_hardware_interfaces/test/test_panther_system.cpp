@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include <gtest/gtest.h>
 
