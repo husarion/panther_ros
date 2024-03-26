@@ -21,6 +21,13 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value="",
+        description="Namespace for all Panther topics",
+    )
+
     panther_version = LaunchConfiguration("panther_version")
     declare_panther_version_arg = DeclareLaunchArgument("panther_version")
 
@@ -29,9 +36,11 @@ def generate_launch_description():
         executable="battery_node",
         name="battery_node",
         parameters=[{"panther_version": panther_version}],
+        namespace=namespace,
     )
 
     actions = [
+        declare_namespace_arg,
         declare_panther_version_arg,
         battery_node,
     ]

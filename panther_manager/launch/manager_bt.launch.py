@@ -52,6 +52,13 @@ def launch_setup(context):
         description="Path to BehaviorTree project file.",
     )
 
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value="",
+        description="Namespace for all Panther topics",
+    )
+
     shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
     declare_shutdown_hosts_config_path_arg = DeclareLaunchArgument(
         "shutdown_hosts_config_path",
@@ -70,11 +77,13 @@ def launch_setup(context):
                 "shutdown_hosts_path": shutdown_hosts_config_path,
             },
         ],
+        namespace=namespace,
     )
 
     return [
         declare_panther_version_arg,
         declare_bt_project_path_arg,
+        declare_namespace_arg,
         declare_shutdown_hosts_config_path_arg,
         manager_bt_node,
     ]
