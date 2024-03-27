@@ -419,10 +419,6 @@ void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   const double timestamp)
 {
-  RCLCPP_ERROR_STREAM(
-    logger_, acceleration[0] << " " << acceleration[1] << " " << acceleration[2] << " "
-                             << magnetic_field[0] << " " << magnetic_field[1] << " "
-                             << magnetic_field[2]);
   const auto timestamp_s = timestamp * 1e-3;
 
   const auto mag_compensated = ParseMagnitude(magnetic_field);
