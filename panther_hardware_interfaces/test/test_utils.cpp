@@ -44,7 +44,7 @@ TEST(TestUtils, OperationWithAttemptsFailTest)
   unsigned max_attempts = 5;
   unsigned attempts_counter = 0;
   unsigned on_error_counter = 0;
-  
+
   EXPECT_FALSE(panther_hardware_interfaces::OperationWithAttempts(
     [&attempts_counter]() {
       ++attempts_counter;

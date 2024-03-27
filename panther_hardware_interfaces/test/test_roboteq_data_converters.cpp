@@ -123,8 +123,8 @@ TEST(TestRoboteqDataConverters, FlagError)
     {"error2", "error6"});
 
   ASSERT_FALSE(flag_error.IsError());
-
   EXPECT_EQ(flag_error.GetErrorLog(), "");
+
   flag_error.SetData(0b00000001);
   ASSERT_TRUE(flag_error.IsError());
   EXPECT_EQ(flag_error.GetErrorLog(), "error1 ");
