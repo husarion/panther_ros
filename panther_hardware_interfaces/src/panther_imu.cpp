@@ -113,8 +113,8 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
         std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
         std::bind(&PantherImuSensor::SpatialAttachCallback, this),
         std::bind(&PantherImuSensor::SpatialDetachCallback, this));
-      RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
       imu_connected_ = true;
+      RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
 
       Calibrate();
     }
@@ -285,7 +285,7 @@ void PantherImuSensor::Calibrate()
 {
   spatial_->zero();
 
-  RCLCPP_WARN(logger_, "IMU is calibrating. Please do not move the robot for 2 seconds!");
+  RCLCPP_WARN(logger_, "IMU is calibrating. Do not move the robot for 2 seconds!");
   while (!imu_calibrated_) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
   }
@@ -419,13 +419,17 @@ void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   const double timestamp)
 {
+  RCLCPP_ERROR_STREAM(
+    logger_, acceleration[0] << " " << acceleration[1] << " " << acceleration[2] << " "
+                             << magnetic_field[0] << " " << magnetic_field[1] << " "
+                             << magnetic_field[2]);
   const auto timestamp_s = timestamp * 1e-3;
 
   const auto mag_compensated = ParseMagnitude(magnetic_field);
   const auto ang_vel = ParseGyration(angular_rate);
   const auto lin_acc = ParseAcceleration(acceleration);
 
-  // Skip the callback when IMU if not calibrated
+  // Skip the data callback when IMU if not calibrated
   if (!IsIMUCalibrated(mag_compensated)) {
     return;
   }
@@ -433,10 +437,10 @@ void PantherImuSensor::SpatialDataCallback(
   const float dt = timestamp_s - last_spatial_data_callback_time_s_;
   last_spatial_data_callback_time_s_ = timestamp_s;
 
-  if (not IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated)) {
-    // UpdateMadgwickAlgorithmIMU(ang_vel, lin_acc, dt);
-    // UpdateAllStatesValues(ang_vel, lin_acc);
-    UpdateAccelerationAndGyrationStateValues(ang_vel, lin_acc);
+  // Wait for the a magnitude and an acceleration to initialize the algorithm
+  if (
+    !algorithm_initialized_ &&
+    !IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated)) {
     return;
   }
 
@@ -450,7 +454,11 @@ void PantherImuSensor::SpatialDataCallback(
   }
 
   if (!params_.stateless) {
-    UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
+    if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated)) {
+      UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
+    } else {
+      UpdateMadgwickAlgorithmIMU(ang_vel, lin_acc, dt);
+    }
   }
 
   UpdateAllStatesValues(ang_vel, lin_acc);
@@ -467,6 +475,7 @@ void PantherImuSensor::SpatialDetachCallback()
 {
   RCLCPP_WARN(logger_, "IMU has detached!");
   imu_connected_ = false;
+  imu_calibrated_ = false;
   algorithm_initialized_ = false;
   SetStateValuesToNans();
   on_deactivate(rclcpp_lifecycle::State{});

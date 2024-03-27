@@ -15,17 +15,17 @@
 #include <cstdint>
 #include <string>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <hardware_interface/resource_manager.hpp>
-#include <hardware_interface/types/lifecycle_state_names.hpp>
+#include "hardware_interface/resource_manager.hpp"
+#include "hardware_interface/types/lifecycle_state_names.hpp"
 
-#include <lifecycle_msgs/msg/state.hpp>
+#include "lifecycle_msgs/msg/state.hpp"
 
-#include <panther_hardware_interfaces/panther_imu.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_hardware_interfaces/panther_imu.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 class PantherImuSensorWrapper : public panther_hardware_interfaces::PantherImuSensor
 {
@@ -42,7 +42,10 @@ public:
   void CheckStatesSize() const { PantherImuSensor::CheckStatesSize(); }
 
   void CheckInterfaces() const { PantherImuSensor::CheckInterfaces(); }
+
   void ReadObligatoryParams() { PantherImuSensor::ReadObligatoryParams(); }
+
+  void ReadMadgwickFilterParams() { PantherImuSensor::ReadMadgwickFilterParams(); }
 
   void ConfigureMadgwickFilter() { PantherImuSensor::ConfigureMadgwickFilter(); }
 
@@ -84,18 +87,51 @@ public:
     return PantherImuSensor::IsVectorFinite(vec);
   }
 
+  bool IsQuaternionFinite(const geometry_msgs::msg::Quaternion & quat)
+  {
+    return std::isfinite(quat.x) && std::isfinite(quat.y) && std::isfinite(quat.z) &&
+           std::isfinite(quat.w);
+  }
+
   bool IsIMUCalibrated(const geometry_msgs::msg::Vector3 & vec)
   {
     return PantherImuSensor::IsIMUCalibrated(vec);
+  }
+
+  geometry_msgs::msg::Quaternion GetQuaternion() const
+  {
+    geometry_msgs::msg::Quaternion q;
+    q.x = imu_sensor_state_[PantherImuSensor::orientation_x];
+    q.y = imu_sensor_state_[PantherImuSensor::orientation_y];
+    q.z = imu_sensor_state_[PantherImuSensor::orientation_z];
+    q.w = imu_sensor_state_[PantherImuSensor::orientation_w];
+    return q;
+  }
+
+  geometry_msgs::msg::Vector3 GetAcceleration() const
+  {
+    geometry_msgs::msg::Vector3 accel;
+    accel.x = imu_sensor_state_[PantherImuSensor::linear_acceleration_x];
+    accel.y = imu_sensor_state_[PantherImuSensor::linear_acceleration_y];
+    accel.z = imu_sensor_state_[PantherImuSensor::linear_acceleration_z];
+    return accel;
+  }
+
+  geometry_msgs::msg::Vector3 GetGyration() const
+  {
+    geometry_msgs::msg::Vector3 gyro;
+    gyro.x = imu_sensor_state_[PantherImuSensor::angular_velocity_x];
+    gyro.y = imu_sensor_state_[PantherImuSensor::angular_velocity_y];
+    gyro.z = imu_sensor_state_[PantherImuSensor::angular_velocity_z];
+    return gyro;
   }
 };
 
 class TestPantherImuSensor : public testing::Test
 {
 public:
-  virtual void SetUp() override final;
-
-  virtual void TearDown() override final;
+  TestPantherImuSensor();
+  ~TestPantherImuSensor();
 
   void CreateResourceManagerFromUrdf(const std::string & urdf);
 
@@ -134,6 +170,9 @@ protected:
     const hardware_interface::HardwareInfo & info);
 
   hardware_interface::HardwareInfo CreateCorrectInterfaces(
+    const hardware_interface::HardwareInfo & info);
+
+  hardware_interface::HardwareInfo AddMadgwickParameters(
     const hardware_interface::HardwareInfo & info);
 
   std::list<hardware_interface::LoanedStateInterface> ClaimGoodStateInterfaces();
@@ -177,13 +216,13 @@ protected:
   std::shared_ptr<hardware_interface::ResourceManager> rm_;
 };
 
-void TestPantherImuSensor::SetUp()
+TestPantherImuSensor::TestPantherImuSensor()
 {
   imu_sensor_ = std::make_unique<PantherImuSensorWrapper>();
   rclcpp::init(0, nullptr);
 }
 
-void TestPantherImuSensor::TearDown() { rclcpp::shutdown(); }
+TestPantherImuSensor::~TestPantherImuSensor() { rclcpp::shutdown(); }
 
 void TestPantherImuSensor::CreateResourceManagerFromUrdf(const std::string & urdf)
 {
@@ -289,6 +328,22 @@ hardware_interface::HardwareInfo TestPantherImuSensor::CreateCorrectInterfaces(
   return new_info;
 }
 
+hardware_interface::HardwareInfo TestPantherImuSensor::AddMadgwickParameters(
+  const hardware_interface::HardwareInfo & info)
+{
+  hardware_interface::HardwareInfo new_info(info);
+  new_info.hardware_parameters["gain"] = "0.1";
+  new_info.hardware_parameters["zeta"] = "0.0";
+  new_info.hardware_parameters["mag_bias_x"] = "0.0";
+  new_info.hardware_parameters["mag_bias_y"] = "0.0";
+  new_info.hardware_parameters["mag_bias_z"] = "0.0";
+  new_info.hardware_parameters["stateless"] = "false";
+  new_info.hardware_parameters["use_mag"] = "false";
+  new_info.hardware_parameters["remove_gravity_vector"] = "false";
+  new_info.hardware_parameters["world_frame"] = "enu";
+  return new_info;
+}
+
 std::list<hardware_interface::LoanedStateInterface> TestPantherImuSensor::ClaimGoodStateInterfaces()
 {
   std::list<hardware_interface::LoanedStateInterface> list;
@@ -365,7 +420,7 @@ TEST_F(TestPantherImuSensor, ReadObligatoryParams)
   EXPECT_NO_THROW({ imu_sensor_->ReadObligatoryParams(); });
 }
 
-TEST_F(TestPantherImuSensor, CheckParsersAndCalibration)
+TEST_F(TestPantherImuSensor, CheckMagnitudeWrongValueAndCalibration)
 {
   using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
   hardware_interface::HardwareInfo info;
@@ -376,7 +431,7 @@ TEST_F(TestPantherImuSensor, CheckParsersAndCalibration)
 
   ASSERT_EQ(imu_sensor_->on_init(info), CallbackReturn::SUCCESS);
 
-  double magnitude[3], acceleration[3], gyration[3];
+  double magnitude[3];
   magnitude[0] = panther_hardware_interfaces::PantherImuSensor::KImuMagneticFieldUnknownValue;
 
   const auto wrong_magnitude_parsed = imu_sensor_->ParseMagnitude(magnitude);
@@ -389,10 +444,9 @@ TEST_F(TestPantherImuSensor, CheckParsersAndCalibration)
   const auto magnitude_parsed = imu_sensor_->ParseMagnitude(magnitude);
   ASSERT_TRUE(imu_sensor_->IsVectorFinite(magnitude_parsed));
   ASSERT_TRUE(imu_sensor_->IsIMUCalibrated(magnitude_parsed));
-  ASSERT_TRUE(imu_sensor_->IsIMUCalibrated(magnitude_parsed));
 }
 
-TEST_F(TestPantherImuSensor, CheckCalibrationOnDataCallback)
+TEST_F(TestPantherImuSensor, CheckCalibrationOnDataCallbackAndAlgorithmInitialization)
 {
   using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
   hardware_interface::HardwareInfo info;
@@ -400,39 +454,44 @@ TEST_F(TestPantherImuSensor, CheckCalibrationOnDataCallback)
   sensor_info.name = "imu";
   info.sensors.push_back(sensor_info);
   info = CreateCorrectInterfaces(info);
+  info = AddMadgwickParameters(info);
 
   ASSERT_EQ(imu_sensor_->on_init(info), CallbackReturn::SUCCESS);
   double magnitude[3], acceleration[3], gyration[3];
   magnitude[0] = panther_hardware_interfaces::PantherImuSensor::KImuMagneticFieldUnknownValue;
+  const auto fake_wrong_magnitude_parsed = imu_sensor_->ParseMagnitude(magnitude);
+
+  ASSERT_FALSE(imu_sensor_->IsIMUCalibrated(fake_wrong_magnitude_parsed));
   imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 100.0);
+  ASSERT_FALSE(imu_sensor_->IsIMUCalibrated(fake_wrong_magnitude_parsed));
+
+  // Correct values read from sensor
+  magnitude[0] = -0.09675;
+  magnitude[1] = 0.0675;
+  magnitude[2] = 0.0795;
+
+  acceleration[0] = -0.029536;
+  acceleration[1] = 0.01302;
+  acceleration[2] = 1.00752;
+
+  gyration[0] = 0.0;
+  gyration[1] = 0.0;
+  gyration[2] = 0.0;
+
+  // Configure Algorithm after calibration
+  imu_sensor_->ReadMadgwickFilterParams();
+  imu_sensor_->ConfigureMadgwickFilter();
+  imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 100.0);
+  ASSERT_FALSE(imu_sensor_->IsQuaternionFinite(imu_sensor_->GetQuaternion()));
+  ASSERT_FALSE(imu_sensor_->IsVectorFinite(imu_sensor_->GetAcceleration()));
+  ASSERT_FALSE(imu_sensor_->IsVectorFinite(imu_sensor_->GetGyration()));
+
+  imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 200.0);
+
+  ASSERT_TRUE(imu_sensor_->IsQuaternionFinite(imu_sensor_->GetQuaternion()));
+  ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetAcceleration()));
+  ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetGyration()));
 }
-
-// TEST_F(TestPantherImuSensor, ComputeInitialOrientation)
-// {
-//   geometry_msgs::msg::Vector3 mag_compensated;
-//   geometry_msgs::msg::Vector3 lin_acc;
-
-//   mag_compensated.x = std::numeric_limits<float>::quiet_NaN();
-//   mag_compensated.y = std::numeric_limits<float>::quiet_NaN();
-//   mag_compensated.z = std::numeric_limits<float>::quiet_NaN();
-
-//   // When imu is not calibrated NaNs are skipped
-//   EXPECT_THROW({ imu_sensor_->ComputeInitialOrientation(mag_compensated, lin_acc, 0.0); },
-//   std::runtime_error);
-
-//   mag_compensated.x = 1.0;
-//   mag_compensated.y = 1.0;
-//   mag_compensated.z = 1.0;
-
-//   // IMU can't find gravity vector due to empty acceleration vector
-//   EXPECT_THROW(
-//     { imu_sensor_->ComputeInitialOrientation(mag_compensated, lin_acc, 0.0); },
-//     std::runtime_error);
-
-//   // IMU should calibrate
-//   lin_acc.z = 9.80665;
-//   // EXPECT_NO_THROW({ imu_sensor_->ComputeInitialOrientation(mag_compensated, lin_acc, 0.0); });
-// }
 
 TEST_F(TestPantherImuSensor, CheckInterfacesLoadedByResourceManager)
 {
@@ -484,7 +543,7 @@ TEST_F(TestPantherImuSensor, CheckWrongConfigurationWithWrongParameters)
   EXPECT_EQ(ShutdownPantherImu(), return_type::OK);
 }
 
-TEST_F(TestPantherImuSensor, CheckReadAndConfigure)
+TEST_F(TestPantherImuSensor, CheckReadAndConfigureRealSensor)
 {
   using hardware_interface::LoanedStateInterface;
   using hardware_interface::return_type;
@@ -496,10 +555,9 @@ TEST_F(TestPantherImuSensor, CheckReadAndConfigure)
 
   ASSERT_EQ(ActivatePantherImu(), return_type::OK);
 
-  // for (const auto& state_interface : loaded_state_interfaces)
-  // {
-  //   EXPECT_FALSE(std::isnan(state_interface.get_value()));
-  // }
+  for (const auto & state_interface : loaded_state_interfaces) {
+    EXPECT_FALSE(std::isnan(state_interface.get_value()));
+  }
 
   EXPECT_EQ(UnconfigurePantherImu(), return_type::OK);
   EXPECT_EQ(ShutdownPantherImu(), return_type::OK);
