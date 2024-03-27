@@ -13,7 +13,6 @@
   # IMU specification: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications
   imu_broadcaster:
     ros__parameters:
-      tf_frame_prefix_enable: false
       use_namespace_as_sensor_name_prefix: true
 
       sensor_name: imu
@@ -27,8 +26,6 @@
 
   panther_base_controller:
     ros__parameters:
-      tf_frame_prefix_enable: false
-
       front_left_wheel_name: fl_wheel_joint
       front_right_wheel_name: fr_wheel_joint
       rear_left_wheel_name: rl_wheel_joint
