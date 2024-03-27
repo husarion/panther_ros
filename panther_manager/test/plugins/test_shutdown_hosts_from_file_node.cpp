@@ -17,8 +17,9 @@
 #include <map>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
 #include "gtest/gtest.h"
+
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/action/shutdown_hosts_from_file_node.hpp"

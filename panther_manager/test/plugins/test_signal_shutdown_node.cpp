@@ -16,8 +16,9 @@
 #include <map>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
 #include "gtest/gtest.h"
+
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/action/signal_shutdown_node.hpp"

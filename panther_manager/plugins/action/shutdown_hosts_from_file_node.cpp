@@ -18,10 +18,11 @@
 #include <string>
 #include <vector>
 
+#include "yaml-cpp/yaml.h"
+
 #include "behaviortree_cpp/exceptions.h"
 #include "behaviortree_cpp/tree_node.h"
 #include "rclcpp/rclcpp.hpp"
-#include "yaml-cpp/yaml.h"
 
 #include "panther_manager/plugins/shutdown_host.hpp"
 

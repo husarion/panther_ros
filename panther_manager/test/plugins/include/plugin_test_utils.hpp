@@ -22,8 +22,9 @@
 #include <string>
 #include <thread>
 
-#include "behaviortree_cpp/bt_factory.h"
 #include "gtest/gtest.h"
+
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "std_srvs/srv/set_bool.hpp"

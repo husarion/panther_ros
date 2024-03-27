@@ -15,6 +15,7 @@
 #include <thread>
 
 #include "gtest/gtest.h"
+
 #include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/image_encodings.hpp"

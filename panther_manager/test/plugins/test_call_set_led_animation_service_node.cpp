@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
 #include "gtest/gtest.h"
+
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/action/call_set_led_animation_service_node.hpp"

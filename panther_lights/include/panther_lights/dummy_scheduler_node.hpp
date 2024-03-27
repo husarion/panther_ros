@@ -19,9 +19,9 @@
 #include <memory>
 #include <string>
 
+#include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "image_transport/image_transport.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "std_msgs/msg/bool.hpp"
 

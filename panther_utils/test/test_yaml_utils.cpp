@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "gtest/gtest.h"
-
 #include "yaml-cpp/yaml.h"
 
 #include "panther_utils/test/test_utils.hpp"

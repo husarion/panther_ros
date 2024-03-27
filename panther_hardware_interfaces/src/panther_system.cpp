@@ -24,9 +24,8 @@
 #include <vector>
 
 #include "diagnostic_updater/diagnostic_status_wrapper.hpp"
-#include "rclcpp/logging.hpp"
-
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "rclcpp/logging.hpp"
 
 #include "panther_hardware_interfaces/utils.hpp"
 #include "panther_utils/diagnostics.hpp"

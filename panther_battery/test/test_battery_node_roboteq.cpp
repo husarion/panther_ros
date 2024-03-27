@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "gtest/gtest.h"
+
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_utils/test/ros_test_utils.hpp"

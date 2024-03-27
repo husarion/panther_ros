@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "gtest/gtest.h"
+
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/battery_state.hpp"

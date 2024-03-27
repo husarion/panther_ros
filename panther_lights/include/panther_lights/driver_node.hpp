@@ -19,9 +19,8 @@
 #include <string>
 
 #include "diagnostic_updater/diagnostic_updater.hpp"
-#include "rclcpp/rclcpp.hpp"
-
 #include "image_transport/image_transport.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 #include "panther_msgs/srv/set_led_brightness.hpp"
 

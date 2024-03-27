@@ -16,8 +16,9 @@
 #include <map>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
 #include "gtest/gtest.h"
+
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/decorator/tick_after_timeout_node.hpp"

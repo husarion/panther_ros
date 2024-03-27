@@ -22,8 +22,9 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
 #include "yaml-cpp/yaml.h"
+
+#include "rclcpp/rclcpp.hpp"
 
 #include "panther_lights/controller_node.hpp"
 #include "panther_utils/test/test_utils.hpp"

@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-
 #include "yaml-cpp/yaml.h"
 
 #include "rclcpp/time.hpp"

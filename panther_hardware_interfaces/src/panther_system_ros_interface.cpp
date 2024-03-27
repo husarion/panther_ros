@@ -20,7 +20,6 @@
 
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
-
 #include "realtime_tools/realtime_publisher.h"
 
 #include "panther_hardware_interfaces/roboteq_data_converters.hpp"

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "panther_hardware_interfaces/gpio_controller.hpp"
+
 #include <chrono>
 #include <functional>
 #include <iostream>
@@ -21,8 +23,6 @@
 #include <utility>
 
 #include "gpiod.hpp"
-
-#include "panther_hardware_interfaces/gpio_controller.hpp"
 
 namespace panther_hardware_interfaces
 {

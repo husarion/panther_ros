@@ -21,12 +21,10 @@
 #include <string>
 #include <vector>
 
+#include "diagnostic_updater/diagnostic_status_wrapper.hpp"
 #include "rclcpp/rclcpp.hpp"
-
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-
-#include "diagnostic_updater/diagnostic_status_wrapper.hpp"
 
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/system_interface.hpp"
