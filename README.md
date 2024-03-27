@@ -11,7 +11,7 @@ ROS 2 packages for Panther autonomous mobile robot
 ```bash
 mkdir ~/husarion_ws
 cd ~/husarion_ws
-git clone https://github.com/husarion/panther_ros.git src/panther_ros
+git clone -b ros2-devel https://github.com/husarion/panther_ros.git src/panther_ros
 ```
 
 ### Configure environment
