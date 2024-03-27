@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/panther_imu.hpp>
+#include "panther_hardware_interfaces/panther_imu.hpp"
 
 #include <array>
 #include <chrono>
@@ -24,9 +24,9 @@
 #include <string>
 #include <vector>
 
-#include <rclcpp/logging.hpp>
+#include "rclcpp/logging.hpp"
 
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -113,13 +113,13 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
         std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
         std::bind(&PantherImuSensor::SpatialAttachCallback, this),
         std::bind(&PantherImuSensor::SpatialDetachCallback, this));
+      RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
+      imu_connected_ = true;
+
+      Calibrate();
     }
-    RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
-    imu_connected_ = true;
 
     spatial_->setDataInterval(params_.data_interval_ms);
-
-    Calibrate();
 
     ConfigureCompassParams();
     ConfigureHeating();
@@ -133,9 +133,6 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
 CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Deactivating Panther Imu");
-
-  // TODO: @delihus reset the filter after reconnection
-  // filter_.reset();
   return CallbackReturn::SUCCESS;
 }
 
@@ -288,11 +285,11 @@ void PantherImuSensor::Calibrate()
 {
   spatial_->zero();
 
-  RCLCPP_WARN(logger_, "IMU is callibrating. Please do not move the robot for 2 seconds!");
+  RCLCPP_WARN(logger_, "IMU is calibrating. Please do not move the robot for 2 seconds!");
   while (!imu_calibrated_) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
   }
-  RCLCPP_INFO(logger_, "IMU is successfully callibrated.");
+  RCLCPP_INFO(logger_, "IMU is successfully calibrated.");
 }
 
 bool PantherImuSensor::IsParamDefined(const std::string & param_name) const
@@ -382,19 +379,10 @@ geometry_msgs::msg::Vector3 PantherImuSensor::ParseAcceleration(const double acc
   return lin_acc;
 }
 
-void PantherImuSensor::HandleFirstDataCallback(
+void PantherImuSensor::ComputeInitialOrientation(
   const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
   const double timestamp_s)
 {
-  if (
-    !std::isfinite(mag_compensated.x) || !std::isfinite(mag_compensated.y) ||
-    !std::isfinite(mag_compensated.z)) {
-    if (!imu_calibrated_) {
-      return;
-    }
-    throw std::runtime_error("Magnetometer has nan values.");
-  }
-
   geometry_msgs::msg::Quaternion init_q;
   if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, mag_compensated, init_q)) {
     throw std::runtime_error(
@@ -403,7 +391,28 @@ void PantherImuSensor::HandleFirstDataCallback(
   filter_->setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
 
   last_spatial_data_callback_time_s_ = timestamp_s;
-  imu_calibrated_ = true;
+  algorithm_initialized_ = true;
+}
+
+bool PantherImuSensor::IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated)
+{
+  if (imu_calibrated_) {
+    return true;
+  }
+
+  imu_calibrated_ = IsVectorFinite(mag_compensated);
+  return imu_calibrated_;
+}
+
+bool PantherImuSensor::IsVectorFinite(const geometry_msgs::msg::Vector3 & vec)
+{
+  return std::isfinite(vec.x) && std::isfinite(vec.y) && std::isfinite(vec.z);
+}
+
+bool PantherImuSensor::IsMagnitudeSynchronizedWithAccelerationAndGyration(
+  const geometry_msgs::msg::Vector3 & mag_compensated)
+{
+  return IsVectorFinite(mag_compensated);
 }
 
 void PantherImuSensor::SpatialDataCallback(
@@ -416,21 +425,35 @@ void PantherImuSensor::SpatialDataCallback(
   const auto ang_vel = ParseGyration(angular_rate);
   const auto lin_acc = ParseAcceleration(acceleration);
 
-  if (!imu_calibrated_ || params_.stateless) {
-    HandleFirstDataCallback(mag_compensated, lin_acc, timestamp_s);
-    if (!imu_calibrated_) {
-      return;
-    }
+  // Skip the callback when IMU if not calibrated
+  if (!IsIMUCalibrated(mag_compensated)) {
+    return;
   }
 
   const float dt = timestamp_s - last_spatial_data_callback_time_s_;
   last_spatial_data_callback_time_s_ = timestamp_s;
 
+  if (not IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated)) {
+    // UpdateMadgwickAlgorithmIMU(ang_vel, lin_acc, dt);
+    // UpdateAllStatesValues(ang_vel, lin_acc);
+    UpdateAccelerationAndGyrationStateValues(ang_vel, lin_acc);
+    return;
+  }
+
+  if (!algorithm_initialized_ || params_.stateless) {
+    try {
+      ComputeInitialOrientation(mag_compensated, lin_acc, timestamp_s);
+    } catch (const std::runtime_error & e) {
+      RCLCPP_ERROR_STREAM(logger_, "Exception during algorithm initialization: " << e.what());
+    }
+    return;
+  }
+
   if (!params_.stateless) {
     UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
   }
 
-  UpdateStatesValues(ang_vel, lin_acc);
+  UpdateAllStatesValues(ang_vel, lin_acc);
 }
 
 void PantherImuSensor::SpatialAttachCallback()
@@ -442,8 +465,9 @@ void PantherImuSensor::SpatialAttachCallback()
 
 void PantherImuSensor::SpatialDetachCallback()
 {
-  RCLCPP_ERROR(logger_, "IMU has detached!");
+  RCLCPP_WARN(logger_, "IMU has detached!");
   imu_connected_ = false;
+  algorithm_initialized_ = false;
   SetStateValuesToNans();
   on_deactivate(rclcpp_lifecycle::State{});
 }
@@ -462,13 +486,17 @@ void PantherImuSensor::UpdateMadgwickAlgorithm(
   }
 }
 
-void PantherImuSensor::UpdateStatesValues(
+void PantherImuSensor::UpdateMadgwickAlgorithmIMU(
+  const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
+  const double dt)
+{
+  filter_->madgwickAHRSupdateIMU(
+    ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, dt);
+}
+
+void PantherImuSensor::UpdateAccelerationAndGyrationStateValues(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
 {
-  filter_->getOrientation(
-    imu_sensor_state_[orientation_w], imu_sensor_state_[orientation_x],
-    imu_sensor_state_[orientation_y], imu_sensor_state_[orientation_z]);
-
   imu_sensor_state_[angular_velocity_x] = ang_vel.x;
   imu_sensor_state_[angular_velocity_y] = ang_vel.y;
   imu_sensor_state_[angular_velocity_z] = ang_vel.z;
@@ -484,6 +512,16 @@ void PantherImuSensor::UpdateStatesValues(
     imu_sensor_state_[linear_acceleration_y] = lin_acc.y;
     imu_sensor_state_[linear_acceleration_z] = lin_acc.z;
   }
+}
+
+void PantherImuSensor::UpdateAllStatesValues(
+  const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
+{
+  filter_->getOrientation(
+    imu_sensor_state_[orientation_w], imu_sensor_state_[orientation_x],
+    imu_sensor_state_[orientation_y], imu_sensor_state_[orientation_z]);
+
+  UpdateAccelerationAndGyrationStateValues(ang_vel, lin_acc);
 }
 
 void PantherImuSensor::SetStateValuesToNans()

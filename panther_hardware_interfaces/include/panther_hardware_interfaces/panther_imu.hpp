@@ -20,24 +20,24 @@
 #include <string>
 #include <vector>
 
-#include <imu_filter_madgwick/imu_filter.h>
-#include <imu_filter_madgwick/stateless_orientation.h>
-#include <imu_filter_madgwick/world_frame.h>
-#include <geometry_msgs/msg/quaternion.hpp>
-#include <geometry_msgs/msg/vector3.hpp>
-#include <phidgets_api/spatial.hpp>
+#include "geometry_msgs/msg/quaternion.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
+#include "imu_filter_madgwick/imu_filter.h"
+#include "imu_filter_madgwick/stateless_orientation.h"
+#include "imu_filter_madgwick/world_frame.h"
+#include "phidgets_api/spatial.hpp"
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
-#include <rclcpp_lifecycle/state.hpp>
+#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
+#include "rclcpp_lifecycle/state.hpp"
 
-#include <hardware_interface/handle.hpp>
-#include <hardware_interface/lexical_casts.hpp>
-#include <hardware_interface/sensor_interface.hpp>
-#include <hardware_interface/types/hardware_interface_return_values.hpp>
+#include "hardware_interface/handle.hpp"
+#include "hardware_interface/lexical_casts.hpp"
+#include "hardware_interface/sensor_interface.hpp"
+#include "hardware_interface/types/hardware_interface_return_values.hpp"
 
-#include <phidgets_spatial_parameters.hpp>
+#include "phidgets_spatial_parameters.hpp"
 
 using namespace std::placeholders;
 
@@ -68,6 +68,10 @@ public:
   std::vector<StateInterface> export_state_interfaces() override;
 
   return_type read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */) override;
+
+  static constexpr size_t kImuInterfacesSize = 10;
+  static constexpr double KImuMagneticFieldUnknownValue = 1e300;
+  static constexpr float G = 9.80665;
 
 protected:
   /**
@@ -105,26 +109,38 @@ protected:
   geometry_msgs::msg::Vector3 ParseGyration(const double angular_rate[3]);
   geometry_msgs::msg::Vector3 ParseAcceleration(const double acceleration[3]);
 
-  void HandleFirstDataCallback(
+  void ComputeInitialOrientation(
     const geometry_msgs::msg::Vector3 & mag_compensated,
     const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s);
+
+  bool IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated);
+
+  bool IsVectorFinite(const geometry_msgs::msg::Vector3 & vec);
 
   void UpdateMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
     const geometry_msgs::msg::Vector3 & mag_compensated, const double dt);
-  void UpdateStatesValues(
+
+  void UpdateMadgwickAlgorithmIMU(
+    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
+    const double dt);
+
+  void UpdateAccelerationAndGyrationStateValues(
+    const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc);
+
+  void UpdateAllStatesValues(
     const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc);
 
   void SetStateValuesToNans();
 
   void Calibrate();
 
+  bool IsMagnitudeSynchronizedWithAccelerationAndGyration(
+    const geometry_msgs::msg::Vector3 & mag_compensated);
+
   std::vector<double> imu_sensor_state_;
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
 
-  static constexpr size_t kImuInterfacesSize = 10;
-  static constexpr double KImuMagneticFieldUnknownValue = 1e300;
-  static constexpr float G = 9.80665;
   inline static const std::string kImuSensorName = "imu";
   inline static const std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
     "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
@@ -150,8 +166,9 @@ protected:
 
   std::unique_ptr<ImuFilter> filter_;
   WorldFrame::WorldFrame world_frame_;
-  bool imu_connected_;
+  bool imu_connected_ = false;
   bool imu_calibrated_ = false;
+  bool algorithm_initialized_ = false;
   double last_spatial_data_callback_time_s_;
 };
 
