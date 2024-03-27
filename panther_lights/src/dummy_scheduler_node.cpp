@@ -23,6 +23,8 @@
 #include <image_transport/image_transport.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
+#include <panther_msgs/srv/set_led_animation.hpp>
+
 namespace panther_lights
 {
 
@@ -35,12 +37,8 @@ SchedulerNode::SchedulerNode(const std::string & node_name, const rclcpp::NodeOp
   controller_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(50), std::bind(&SchedulerNode::ControllerTimerCB, this));
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
-}
-
-void SchedulerNode::Initialize()
-{
-  it_ = std::make_shared<image_transport::ImageTransport>(this->shared_from_this());
+  set_animation_client_ =
+    this->create_client<SetLEDAnimationSrv>("lights/controller/set/animation");
 
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", 5, [&](const BoolMsg::SharedPtr msg) { e_stop_state_ = msg->data; });
@@ -48,50 +46,37 @@ void SchedulerNode::Initialize()
     "battery", 5,
     [&](const BatteryStateMsg::SharedPtr msg) { battery_percentage_ = msg->percentage; });
 
-  front_light_pub_ = std::make_shared<image_transport::Publisher>(
-    it_->advertise("lights/driver/front_panel_frame", 5));
-  rear_light_pub_ = std::make_shared<image_transport::Publisher>(
-    it_->advertise("lights/driver/rear_panel_frame", 5));
-
-  RCLCPP_INFO(this->get_logger(), "Controller initialised");
+  RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
 void SchedulerNode::ControllerTimerCB()
 {
-  if (!it_) {
-    Initialize();
-  }
-
   if (battery_percentage_ < 0.4) {
-    PublishColor(kColorOrange);
+    CallSetLEDAnimationSrv(6);
   } else if (!e_stop_state_) {
-    PublishColor(kColorGreen);
+    CallSetLEDAnimationSrv(1);
   } else {
-    PublishColor(kColorRed);
+    CallSetLEDAnimationSrv(0);
   }
 }
 
-void SchedulerNode::PublishColor(const RGBAColor & color)
+void SchedulerNode::CallSetLEDAnimationSrv(const std::uint16_t animation_id)
 {
-  sensor_msgs::msg::Image image_msg;
-  image_msg.header.stamp = this->get_clock()->now();
-  image_msg.encoding = sensor_msgs::image_encodings::RGBA8;
-  image_msg.height = 1;
-  image_msg.width = num_led_;
-  image_msg.step = image_msg.width * 4;  // 4 for RGBA channels
-
-  for (int i = 0; i < num_led_; i++) {
-    image_msg.data.push_back(color.r);
-    image_msg.data.push_back(color.g);
-    image_msg.data.push_back(color.b);
-    image_msg.data.push_back(color.a);
+  if (current_anim_id_ == animation_id) {
+    return;
   }
 
-  image_msg.header.frame_id = "front_light_link";
-  front_light_pub_->publish(image_msg);
+  RCLCPP_INFO(this->get_logger(), "Calling LED srv");
+  if (!set_animation_client_->wait_for_service(std::chrono::milliseconds(1000))) {
+    RCLCPP_INFO(this->get_logger(), "Service not available");
+    return;
+  }
+  auto req = std::make_shared<panther_msgs::srv::SetLEDAnimation::Request>();
+  req->animation.id = animation_id;
+  req->repeating = true;
+  set_animation_client_->async_send_request(req);
 
-  image_msg.header.frame_id = "rear_light_link";
-  rear_light_pub_->publish(image_msg);
+  current_anim_id_ = animation_id;
 }
 
 }  // namespace panther_lights

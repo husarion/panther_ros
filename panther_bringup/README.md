@@ -21,10 +21,12 @@ The package contains the default configuration and launch files necessary to sta
 - `battery_config_path` [*string*, default: **None**]: path to the Ignition LinearBatteryPlugin configuration file. This configuration is intended for use in simulations only.
 - `controller_config_path` [*string*, default: **panther_controller/config/<wheel_type arg>_controller.yaml**]: path to controller configuration file. A path to custom configuration can be specified here.
 - `ekf_config_path` [*string*, default: **panther_bringup/config/ekf.yaml**]: path to the EKF configuration file.
+- `led_config_file` [*string*, default: **panther_lights/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
 - `publish_robot_state` [*bool*, default: **true**]: whether to publish the default Panther robot description.
 - `simulation_engine` [*string*, default: **ignition-gazebo**]: simulation engine to use when running Gazebo.
 - `use_ekf` [*bool*, default: **true**]: enable or disable Extended Kalman Filter.
 - `use_sim` [*bool*, default: **false**]: whether simulation is used.
+- `user_led_animations_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.
 - `wheel_config_path` [*string*, default: **$(find panther_description)/config/<wheel_type arg>.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
 - `wheel_type` [*string*, default: **WH01**]: type of wheel, possible are: **WH01** - offroad, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_path` argument accordingly).
 

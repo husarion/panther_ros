@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -24,6 +23,7 @@ from launch.substitutions import (
     PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
@@ -45,7 +45,7 @@ def generate_launch_description():
         "wheel_config_path",
         default_value=PathJoinSubstitution(
             [
-                get_package_share_directory("panther_description"),
+                FindPackageShare("panther_description"),
                 "config",
                 PythonExpression(["'", wheel_type, ".yaml'"]),
             ]
@@ -62,7 +62,7 @@ def generate_launch_description():
         "controller_config_path",
         default_value=PathJoinSubstitution(
             [
-                get_package_share_directory("panther_controller"),
+                FindPackageShare("panther_controller"),
                 "config",
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
@@ -79,7 +79,7 @@ def generate_launch_description():
         "battery_config_path",
         default_value=PathJoinSubstitution(
             [
-                get_package_share_directory("panther_gazebo"),
+                FindPackageShare("panther_gazebo"),
                 "config",
                 "battery_plugin_config.yaml",
             ]
@@ -95,7 +95,7 @@ def generate_launch_description():
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
             [
-                get_package_share_directory("panther_gazebo"),
+                FindPackageShare("panther_gazebo"),
                 "config",
                 "gz_bridge.yaml",
             ]
@@ -110,7 +110,7 @@ def generate_launch_description():
             "-r ",
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("husarion_office_gz"),
+                    FindPackageShare("husarion_office_gz"),
                     "worlds",
                     "husarion_world.sdf",
                 ],
@@ -159,7 +159,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("ros_gz_sim"),
+                    FindPackageShare("ros_gz_sim"),
                     "launch",
                     "gz_sim.launch.py",
                 ]
@@ -202,7 +202,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    get_package_share_directory("panther_bringup"),
+                    FindPackageShare("panther_bringup"),
                     "launch",
                     "bringup.launch.py",
                 ]
