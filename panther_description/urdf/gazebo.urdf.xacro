@@ -52,7 +52,7 @@
         <parameters>${config_file}</parameters>
         <ros>
           <namespace>${namespace}</namespace>
-          <remapping>imu_broadcaster/imu:=imu/data</remapping>  
+          <remapping>imu_broadcaster/imu:=imu/data</remapping>
           <remapping>panther_base_controller/cmd_vel_unstamped:=cmd_vel</remapping>
           <remapping>panther_base_controller/odom:=odom/wheels</remapping>
           <remapping>/tf:=tf</remapping>

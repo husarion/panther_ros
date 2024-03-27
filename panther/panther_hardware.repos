@@ -18,4 +18,4 @@ repositories:
   ros2_controllers:
     type: git
     url: https://github.com/delihus/ros2_controllers
-    version: humble
+    version: 60919d60fb02eb920b0bf42e4d86853db23233cc

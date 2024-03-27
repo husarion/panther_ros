@@ -26,7 +26,6 @@
 
   panther_base_controller:
     ros__parameters:
-
       left_wheel_names: ["fl_wheel_joint", "rl_wheel_joint"]
       right_wheel_names: ["fr_wheel_joint", "rr_wheel_joint"]
 
