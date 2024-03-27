@@ -23,9 +23,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "rclcpp/rclcpp.hpp"
-
 #include "yaml-cpp/yaml.h"
+
+#include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/image.hpp"
 

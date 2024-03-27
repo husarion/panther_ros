@@ -21,7 +21,6 @@
 
 #include "behaviortree_cpp/bt_factory.h"
 #include "behaviortree_cpp/loggers/groot2_publisher.h"
-
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/battery_state.hpp"
