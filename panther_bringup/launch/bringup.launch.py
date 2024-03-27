@@ -230,24 +230,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    imu_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_bringup"),
-                    "launch",
-                    "imu.launch.py",
-                ]
-            )
-        ),
-        launch_arguments={
-            "imu_config_path": PathJoinSubstitution(
-                [FindPackageShare("panther_bringup"), "config", "imu.yaml"]
-            ),
-        }.items(),
-        condition=UnlessCondition(use_sim),
-    )
-
     lights_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -311,7 +293,6 @@ def generate_launch_description():
         period=10.0,
         actions=[
             battery_launch,
-            imu_launch,
             lights_launch,
             robot_localization_node,
             manager_launch,

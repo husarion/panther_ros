@@ -13,20 +13,27 @@
 
   <author email="maciej.stepien@husarion.com">Maciej Stępień</author>
   <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
+  <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>controller_interface</depend>
   <depend>diagnostic_updater</depend>
+  <depend>generate_parameter_library</depend>
+  <depend>geometry_msgs</depend>
   <depend>hardware_interface</depend>
+  <depend>imu_filter_madgwick</depend>
   <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
   <depend>panther_utils</depend>
+  <depend>phidgets_api</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>realtime_tools</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
 
   <build_depend>pluginlib</build_depend>
 
