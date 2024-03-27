@@ -94,7 +94,6 @@ const std::vector<std::string> kDefaultJoints = {
 
 const std::string kMotorControllersStateTopic =
   "/panther_system_node/driver/motor_controllers_state";
-const std::string kClearErrorsService = "/panther_system_node/clear_errors";
 
 }  // namespace panther_hardware_interfaces_test
 

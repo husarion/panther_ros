@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
+#include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -21,8 +24,6 @@
 
 #include <roboteqs_mock.hpp>
 #include <test_constants.hpp>
-
-#include <iostream>
 
 class TestCANopenController : public ::testing::Test
 {
@@ -42,12 +43,12 @@ public:
     roboteqs_mock_.reset();
   }
 
+protected:
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
-
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 };
 
-TEST_F(TestCANopenController, test_canopen_controller)
+TEST_F(TestCANopenController, InitializeAndDeinitialize)
 {
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
@@ -57,7 +58,7 @@ TEST_F(TestCANopenController, test_canopen_controller)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, test_canopen_controller_error_device_type)
+TEST_F(TestCANopenController, InitializeErrorDeviceType)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -68,7 +69,7 @@ TEST_F(TestCANopenController, test_canopen_controller_error_device_type)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, test_canopen_controller_error_vendor_id)
+TEST_F(TestCANopenController, InitializeErrorVendorId)
 {
   roboteqs_mock_->GetRearDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
@@ -79,7 +80,7 @@ TEST_F(TestCANopenController, test_canopen_controller_error_vendor_id)
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
-TEST(TestCANopenControllerOthers, test_boot_timeout)
+TEST(TestCANopenControllerOthers, BootTimeout)
 {
   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
 

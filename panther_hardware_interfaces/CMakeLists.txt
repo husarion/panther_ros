@@ -109,7 +109,9 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_roboteq_data_converters
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
-                            panther_msgs)
+                            panther_msgs panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_roboteq_data_converters
+                        PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller test/test_canopen_controller.cpp
@@ -173,12 +175,15 @@ if(BUILD_TESTING)
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system_ros_interface
+    diagnostic_updater
     rclcpp
     panther_gpiod
     panther_msgs
     panther_utils
     realtime_tools
     std_srvs)
+  target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
+                        PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp

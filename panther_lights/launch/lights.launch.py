@@ -53,18 +53,11 @@ def generate_launch_description():
         on_exit=Shutdown(),
     )
 
-    dummy_scheduler_node = Node(
-        package="panther_lights",
-        executable="dummy_scheduler_node",
-        name="dummy_scheduler_node",
-    )
-
     actions = [
         declare_led_config_file_arg,
         declare_user_led_animations_file_arg,
         lights_driver_node,
         lights_controller_node,
-        dummy_scheduler_node,
     ]
 
     return LaunchDescription(actions)

@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
+#include <memory>
+#include <stdexcept>
 #include <string>
+#include <thread>
 
 #include <gtest/gtest.h>
 
@@ -49,7 +53,7 @@ public:
 
 // These tests are related to canopen_controller tests, where boot should be already tested
 
-TEST_F(TestMotorsControllerInitialization, test_initialize)
+TEST_F(TestMotorsControllerInitialization, Initialize)
 {
   ASSERT_NO_THROW(motors_controller_->Initialize());
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
@@ -59,7 +63,7 @@ TEST_F(TestMotorsControllerInitialization, test_initialize)
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 }
 
-TEST_F(TestMotorsControllerInitialization, test_error_device_type)
+TEST_F(TestMotorsControllerInitialization, ErrorDeviceType)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
   ASSERT_THROW(motors_controller_->Initialize(), std::runtime_error);
@@ -70,7 +74,7 @@ TEST_F(TestMotorsControllerInitialization, test_error_device_type)
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 }
 
-TEST_F(TestMotorsControllerInitialization, test_error_vendor_id)
+TEST_F(TestMotorsControllerInitialization, ErrorVendorId)
 {
   roboteqs_mock_->GetRearDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
   ASSERT_THROW(motors_controller_->Initialize(), std::runtime_error);
@@ -81,11 +85,11 @@ TEST_F(TestMotorsControllerInitialization, test_error_vendor_id)
   ASSERT_NO_THROW(motors_controller_->Deinitialize());
 }
 
-TEST_F(TestMotorsControllerInitialization, test_activate)
+TEST_F(TestMotorsControllerInitialization, Activate)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
-  motors_controller_->Initialize();
+  ASSERT_NO_THROW(motors_controller_->Initialize());
 
   roboteqs_mock_->GetFrontDriver()->SetRoboteqCmd(DriverChannel::CHANNEL1, 234);
   roboteqs_mock_->GetFrontDriver()->SetRoboteqCmd(DriverChannel::CHANNEL2, 32);
@@ -108,12 +112,12 @@ TEST_F(TestMotorsControllerInitialization, test_activate)
   motors_controller_->Deinitialize();
 }
 
-TEST_F(TestMotorsControllerInitialization, test_activate_sdo_timeout_reset)
+TEST_F(TestMotorsControllerInitialization, ActivateSDOTimeoutReset)
 {
-  motors_controller_->Initialize();
+  ASSERT_NO_THROW(motors_controller_->Initialize());
   roboteqs_mock_->GetFrontDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 100000);
   ASSERT_THROW(motors_controller_->Activate(), std::runtime_error);
-  motors_controller_->Deinitialize();
+  ASSERT_NO_THROW(motors_controller_->Deinitialize());
 }
 
 class TestMotorsController : public TestMotorsControllerInitialization
@@ -128,7 +132,7 @@ public:
   ~TestMotorsController() { motors_controller_->Deinitialize(); }
 };
 
-TEST_F(TestMotorsController, test_update_motors_states)
+TEST_F(TestMotorsController, UpdateMotorsStates)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
@@ -173,24 +177,24 @@ TEST_F(TestMotorsController, test_update_motors_states)
   const auto & rl = motors_controller_->GetRearData().GetLeftMotorState();
   const auto & rr = motors_controller_->GetRearData().GetRightMotorState();
 
-  ASSERT_FLOAT_EQ(fl.GetPosition(), fl_pos * kRbtqPosFbToRad);
-  ASSERT_FLOAT_EQ(fl.GetVelocity(), fl_vel * kRbtqVelFbToRadPerSec);
-  ASSERT_FLOAT_EQ(fl.GetTorque(), fl_current * kRbtqCurrentFbToNewtonMeters);
+  EXPECT_FLOAT_EQ(fl.GetPosition(), fl_pos * kRbtqPosFbToRad);
+  EXPECT_FLOAT_EQ(fl.GetVelocity(), fl_vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(fl.GetTorque(), fl_current * kRbtqCurrentFbToNewtonMeters);
 
-  ASSERT_FLOAT_EQ(fr.GetPosition(), fr_pos * kRbtqPosFbToRad);
-  ASSERT_FLOAT_EQ(fr.GetVelocity(), fr_vel * kRbtqVelFbToRadPerSec);
-  ASSERT_FLOAT_EQ(fr.GetTorque(), fr_current * kRbtqCurrentFbToNewtonMeters);
+  EXPECT_FLOAT_EQ(fr.GetPosition(), fr_pos * kRbtqPosFbToRad);
+  EXPECT_FLOAT_EQ(fr.GetVelocity(), fr_vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(fr.GetTorque(), fr_current * kRbtqCurrentFbToNewtonMeters);
 
-  ASSERT_FLOAT_EQ(rl.GetPosition(), rl_pos * kRbtqPosFbToRad);
-  ASSERT_FLOAT_EQ(rl.GetVelocity(), rl_vel * kRbtqVelFbToRadPerSec);
-  ASSERT_FLOAT_EQ(rl.GetTorque(), rl_current * kRbtqCurrentFbToNewtonMeters);
+  EXPECT_FLOAT_EQ(rl.GetPosition(), rl_pos * kRbtqPosFbToRad);
+  EXPECT_FLOAT_EQ(rl.GetVelocity(), rl_vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(rl.GetTorque(), rl_current * kRbtqCurrentFbToNewtonMeters);
 
-  ASSERT_FLOAT_EQ(rr.GetPosition(), rr_pos * kRbtqPosFbToRad);
-  ASSERT_FLOAT_EQ(rr.GetVelocity(), rr_vel * kRbtqVelFbToRadPerSec);
-  ASSERT_FLOAT_EQ(rr.GetTorque(), rr_current * kRbtqCurrentFbToNewtonMeters);
+  EXPECT_FLOAT_EQ(rr.GetPosition(), rr_pos * kRbtqPosFbToRad);
+  EXPECT_FLOAT_EQ(rr.GetVelocity(), rr_vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(rr.GetTorque(), rr_current * kRbtqCurrentFbToNewtonMeters);
 }
 
-TEST_F(TestMotorsController, test_update_motors_states_timestamps)
+TEST_F(TestMotorsController, UpdateMotorsStatesTimestamps)
 {
   motors_controller_->UpdateMotorsStates();
 
@@ -200,11 +204,11 @@ TEST_F(TestMotorsController, test_update_motors_states_timestamps)
 
   motors_controller_->UpdateMotorsStates();
 
-  ASSERT_FALSE(motors_controller_->GetFrontData().IsMotorStatesDataTimedOut());
-  ASSERT_FALSE(motors_controller_->GetRearData().IsMotorStatesDataTimedOut());
+  EXPECT_FALSE(motors_controller_->GetFrontData().IsMotorStatesDataTimedOut());
+  EXPECT_FALSE(motors_controller_->GetRearData().IsMotorStatesDataTimedOut());
 }
 
-TEST(TestMotorsControllerOthers, test_update_motors_states_timeout)
+TEST(TestMotorsControllerOthers, UpdateMotorsStatesTimeout)
 {
   std::shared_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
@@ -228,10 +232,10 @@ TEST(TestMotorsControllerOthers, test_update_motors_states_timeout)
 
   motors_controller_->UpdateMotorsStates();
 
-  ASSERT_TRUE(motors_controller_->GetFrontData().IsMotorStatesDataTimedOut());
-  ASSERT_TRUE(motors_controller_->GetRearData().IsMotorStatesDataTimedOut());
-  ASSERT_TRUE(motors_controller_->GetFrontData().IsError());
-  ASSERT_TRUE(motors_controller_->GetRearData().IsError());
+  EXPECT_TRUE(motors_controller_->GetFrontData().IsMotorStatesDataTimedOut());
+  EXPECT_TRUE(motors_controller_->GetRearData().IsMotorStatesDataTimedOut());
+  EXPECT_TRUE(motors_controller_->GetFrontData().IsError());
+  EXPECT_TRUE(motors_controller_->GetRearData().IsError());
 
   motors_controller_->Deinitialize();
 
@@ -243,7 +247,7 @@ TEST(TestMotorsControllerOthers, test_update_motors_states_timeout)
 // reacts to lower-level CAN errors (CRC), which are hard to simulate, but it would be nice to add
 // it
 
-TEST_F(TestMotorsController, test_update_driver_state)
+TEST_F(TestMotorsController, UpdateDriverState)
 {
   using panther_hardware_interfaces_test::DriverChannel;
   using panther_hardware_interfaces_test::DriverFaultFlags;
@@ -295,33 +299,33 @@ TEST_F(TestMotorsController, test_update_driver_state)
   const auto & front_driver_state = motors_controller_->GetFrontData().GetDriverState();
   const auto & rear_driver_state = motors_controller_->GetRearData().GetDriverState();
 
-  ASSERT_EQ(static_cast<std::int16_t>(front_driver_state.GetTemperature()), f_temp);
-  ASSERT_EQ(
+  EXPECT_EQ(static_cast<std::int16_t>(front_driver_state.GetTemperature()), f_temp);
+  EXPECT_EQ(
     static_cast<std::int16_t>(front_driver_state.GetHeatsinkTemperature()), f_heatsink_temp);
-  ASSERT_EQ(static_cast<std::uint16_t>(front_driver_state.GetVoltage() * 10.0), f_volt);
-  ASSERT_EQ(
+  EXPECT_EQ(static_cast<std::uint16_t>(front_driver_state.GetVoltage() * 10.0), f_volt);
+  EXPECT_EQ(
     static_cast<std::int16_t>(front_driver_state.GetCurrent() * 10.0),
     f_battery_current_1 + f_battery_current_2);
 
-  ASSERT_EQ(static_cast<std::int16_t>(rear_driver_state.GetTemperature()), r_temp);
-  ASSERT_EQ(static_cast<std::int16_t>(rear_driver_state.GetHeatsinkTemperature()), r_heatsink_temp);
-  ASSERT_EQ(static_cast<std::uint16_t>(rear_driver_state.GetVoltage() * 10.0), r_volt);
-  ASSERT_EQ(
+  EXPECT_EQ(static_cast<std::int16_t>(rear_driver_state.GetTemperature()), r_temp);
+  EXPECT_EQ(static_cast<std::int16_t>(rear_driver_state.GetHeatsinkTemperature()), r_heatsink_temp);
+  EXPECT_EQ(static_cast<std::uint16_t>(rear_driver_state.GetVoltage() * 10.0), r_volt);
+  EXPECT_EQ(
     static_cast<std::int16_t>(rear_driver_state.GetCurrent() * 10.0),
     r_battery_current_1 + r_battery_current_2);
 
-  ASSERT_TRUE(front.GetFaultFlag().GetMessage().overheat);
-  ASSERT_TRUE(front.GetScriptFlag().GetMessage().encoder_disconected);
-  ASSERT_TRUE(front.GetRightRuntimeError().GetMessage().loop_error);
-  ASSERT_TRUE(front.GetLeftRuntimeError().GetMessage().safety_stop_active);
+  EXPECT_TRUE(front.GetFaultFlag().GetMessage().overheat);
+  EXPECT_TRUE(front.GetScriptFlag().GetMessage().encoder_disconnected);
+  EXPECT_TRUE(front.GetRightRuntimeError().GetMessage().loop_error);
+  EXPECT_TRUE(front.GetLeftRuntimeError().GetMessage().safety_stop_active);
 
-  ASSERT_TRUE(rear.GetFaultFlag().GetMessage().overvoltage);
-  ASSERT_TRUE(rear.GetScriptFlag().GetMessage().amp_limiter);
-  ASSERT_TRUE(rear.GetRightRuntimeError().GetMessage().forward_limit_triggered);
-  ASSERT_TRUE(rear.GetLeftRuntimeError().GetMessage().reverse_limit_triggered);
+  EXPECT_TRUE(rear.GetFaultFlag().GetMessage().overvoltage);
+  EXPECT_TRUE(rear.GetScriptFlag().GetMessage().amp_limiter);
+  EXPECT_TRUE(rear.GetRightRuntimeError().GetMessage().forward_limit_triggered);
+  EXPECT_TRUE(rear.GetLeftRuntimeError().GetMessage().reverse_limit_triggered);
 }
 
-TEST_F(TestMotorsController, test_update_driver_state_timestamps)
+TEST_F(TestMotorsController, UpdateDriverStateTimestamps)
 {
   motors_controller_->UpdateDriversState();
 
@@ -331,11 +335,11 @@ TEST_F(TestMotorsController, test_update_driver_state_timestamps)
 
   motors_controller_->UpdateDriversState();
 
-  ASSERT_FALSE(motors_controller_->GetFrontData().IsDriverStateDataTimedOut());
-  ASSERT_FALSE(motors_controller_->GetRearData().IsDriverStateDataTimedOut());
+  EXPECT_FALSE(motors_controller_->GetFrontData().IsDriverStateDataTimedOut());
+  EXPECT_FALSE(motors_controller_->GetRearData().IsDriverStateDataTimedOut());
 }
 
-TEST(TestMotorsControllerOthers, test_update_driver_state_timeout)
+TEST(TestMotorsControllerOthers, UpdateDriverStateTimeout)
 {
   std::shared_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
@@ -359,10 +363,10 @@ TEST(TestMotorsControllerOthers, test_update_driver_state_timeout)
 
   motors_controller_->UpdateDriversState();
 
-  ASSERT_TRUE(motors_controller_->GetFrontData().IsDriverStateDataTimedOut());
-  ASSERT_TRUE(motors_controller_->GetRearData().IsDriverStateDataTimedOut());
-  ASSERT_TRUE(motors_controller_->GetFrontData().IsError());
-  ASSERT_TRUE(motors_controller_->GetRearData().IsError());
+  EXPECT_TRUE(motors_controller_->GetFrontData().IsDriverStateDataTimedOut());
+  EXPECT_TRUE(motors_controller_->GetRearData().IsDriverStateDataTimedOut());
+  EXPECT_TRUE(motors_controller_->GetFrontData().IsError());
+  EXPECT_TRUE(motors_controller_->GetRearData().IsError());
 
   motors_controller_->Deinitialize();
 
@@ -370,7 +374,7 @@ TEST(TestMotorsControllerOthers, test_update_driver_state_timeout)
   roboteqs_mock_.reset();
 }
 
-TEST_F(TestMotorsController, test_write_speed)
+TEST_F(TestMotorsController, WriteSpeed)
 {
   using panther_hardware_interfaces_test::DriverChannel;
   using panther_hardware_interfaces_test::kRadPerSecToRbtqCmd;
@@ -384,16 +388,16 @@ TEST_F(TestMotorsController, test_write_speed)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  ASSERT_EQ(
+  EXPECT_EQ(
     roboteqs_mock_->GetFrontDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2),
     static_cast<std::int32_t>(fl_v * kRadPerSecToRbtqCmd));
-  ASSERT_EQ(
+  EXPECT_EQ(
     roboteqs_mock_->GetFrontDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1),
     static_cast<std::int32_t>(fr_v * kRadPerSecToRbtqCmd));
-  ASSERT_EQ(
+  EXPECT_EQ(
     roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2),
     static_cast<std::int32_t>(rl_v * kRadPerSecToRbtqCmd));
-  ASSERT_EQ(
+  EXPECT_EQ(
     roboteqs_mock_->GetRearDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1),
     static_cast<std::int32_t>(rr_v * kRadPerSecToRbtqCmd));
 }
@@ -401,41 +405,41 @@ TEST_F(TestMotorsController, test_write_speed)
 // Similar to test_roboteq_driver, can_error in write speed isn't tested, because it reacts to lower
 // level CAN errors (CRC), which are hard to simulate, but it would be nice to add it
 
-TEST_F(TestMotorsController, test_turn_on_e_stop)
+TEST_F(TestMotorsController, TurnOnEStop)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOnEStop(65);
   roboteqs_mock_->GetRearDriver()->SetTurnOnEStop(23);
 
   ASSERT_NO_THROW(motors_controller_->TurnOnEStop());
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnEStop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOnEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnEStop(), 1);
 }
 
-TEST_F(TestMotorsController, test_turn_off_e_stop)
+TEST_F(TestMotorsController, TurnOffEStop)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOffEStop(65);
   roboteqs_mock_->GetRearDriver()->SetTurnOffEStop(23);
 
   ASSERT_NO_THROW(motors_controller_->TurnOffEStop());
 
-  ASSERT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOffEStop(), 1);
-  ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetFrontDriver()->GetTurnOffEStop(), 1);
+  EXPECT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOffEStop(), 1);
 }
 
-TEST_F(TestMotorsController, test_turn_on_e_stop_timeout)
+TEST_F(TestMotorsController, TurnOnEStopTimeout)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnWriteWait<std::uint8_t>(0x200C, 0, 100000);
   ASSERT_THROW(motors_controller_->TurnOnEStop(), std::runtime_error);
 }
 
-TEST_F(TestMotorsController, test_turn_off_e_stop_timeout)
+TEST_F(TestMotorsController, TurnOffEStopTimeout)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnWriteWait<std::uint8_t>(0x200D, 0, 100000);
   ASSERT_THROW(motors_controller_->TurnOffEStop(), std::runtime_error);
 }
 
-TEST_F(TestMotorsController, test_safety_stop)
+TEST_F(TestMotorsController, SafetyStop)
 {
   roboteqs_mock_->GetFrontDriver()->SetTurnOnSafetyStop(65);
   roboteqs_mock_->GetRearDriver()->SetTurnOnSafetyStop(23);
@@ -484,7 +488,7 @@ TEST_F(TestMotorsController, test_safety_stop)
   ASSERT_EQ(roboteqs_mock_->GetRearDriver()->GetTurnOnSafetyStop(), 2);
 }
 
-TEST_F(TestMotorsController, test_safety_stop_timeout)
+TEST_F(TestMotorsController, SafetyStopTimeout)
 {
   roboteqs_mock_->GetFrontDriver()->SetOnWriteWait<std::uint8_t>(0x202C, 0, 100000);
   ASSERT_THROW(motors_controller_->TurnOnSafetyStop(), std::runtime_error);

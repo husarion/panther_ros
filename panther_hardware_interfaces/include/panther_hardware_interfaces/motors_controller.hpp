@@ -124,7 +124,7 @@ private:
   RoboteqData front_data_;
   RoboteqData rear_data_;
 
-  RoboteqVeloctiyCommandConverter roboteq_vel_cmd_converter_;
+  RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
 
   const std::chrono::milliseconds pdo_motor_states_timeout_ms_;
   const std::chrono::milliseconds pdo_driver_state_timeout_ms_;

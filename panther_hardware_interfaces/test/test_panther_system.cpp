@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -26,7 +30,7 @@
 
 #include <panther_msgs/msg/driver_state.hpp>
 
-#include <panther_utils/test/test_utils.hpp>
+#include <panther_utils/test/ros_test_utils.hpp>
 
 #include <panther_system_test_utils.hpp>
 #include <roboteqs_mock.hpp>
@@ -138,7 +142,7 @@ public:
 };
 
 // TRANSITIONS
-TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
+TEST_F(TestPantherSystem, ConfigureActivateFinalizePantherSystem)
 {
   using panther_hardware_interfaces_test::kPantherSystemName;
 
@@ -188,7 +192,7 @@ TEST_F(TestPantherSystem, configure_activate_finalize_panther_system)
     hardware_interface::lifecycle_state_names::FINALIZED);
 }
 
-TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_system)
+TEST_F(TestPantherSystem, ConfigureActivateDeactivateDeconfigurePantherSystem)
 {
   using panther_hardware_interfaces_test::kPantherSystemName;
 
@@ -249,7 +253,7 @@ TEST_F(TestPantherSystem, configure_activate_deactivate_deconfigure_panther_syst
 }
 
 // WRITING
-TEST_F(TestPantherSystem, write_commands_panther_system)
+TEST_F(TestPantherSystem, WriteCommandsPantherSystem)
 {
   using hardware_interface::LoanedCommandInterface;
 
@@ -307,7 +311,7 @@ TEST_F(TestPantherSystem, write_commands_panther_system)
 }
 
 // READING
-TEST_F(TestPantherSystem, read_feedback_panther_system)
+TEST_F(TestPantherSystem, ReadFeedbackPantherSystem)
 {
   using hardware_interface::LoanedStateInterface;
 
@@ -393,7 +397,7 @@ TEST_F(TestPantherSystem, read_feedback_panther_system)
   pth_test_.ShutdownPantherSystem();
 }
 
-TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
+TEST_F(TestPantherSystem, ReadOtherRoboteqParamsPantherSystem)
 {
   using hardware_interface::LoanedStateInterface;
 
@@ -467,7 +471,7 @@ TEST_F(TestPantherSystem, read_other_roboteq_params_panther_system)
 }
 
 // ENCODER DISCONNECTED
-TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
+TEST_F(TestPantherSystem, EncoderDisconnectedPantherSystem)
 {
   using hardware_interface::LoanedCommandInterface;
   using panther_hardware_interfaces_test::DriverChannel;
@@ -493,7 +497,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
   pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
-  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconected);
+  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconnected);
 
   // writing should be blocked - error
 
@@ -531,7 +535,7 @@ TEST_F(TestPantherSystem, encoder_disconnected_panther_system)
 }
 
 // INITIAL PROCEDURE
-TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
+TEST_F(TestPantherSystem, InitialProcedureTestPantherSystem)
 {
   using hardware_interface::LoanedStateInterface;
   using panther_hardware_interfaces_test::DriverChannel;
@@ -604,7 +608,7 @@ TEST_F(TestPantherSystem, initial_procedure_test_panther_system)
 // }
 
 // WRONG ORDER URDF
-TEST(TestPantherSystemOthers, wrong_order_urdf)
+TEST(TestPantherSystemOthers, WrongOrderURDF)
 {
   using hardware_interface::LoanedCommandInterface;
 

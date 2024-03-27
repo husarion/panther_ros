@@ -42,6 +42,13 @@ public:
 
   void Initialize();
 
+protected:
+  int num_led_;
+  double frame_timeout_;
+  bool panels_initialised_ = false;
+  rclcpp::Time chanel_1_ts_;
+  rclcpp::Time chanel_2_ts_;
+
 private:
   void OnShutdown();
   void FrameCB(
@@ -53,19 +60,13 @@ private:
   void SetPowerPin(const bool value);
   void DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status);
 
-  int num_led_;
-  double frame_timeout_;
-  bool panels_initialised_ = false;
+  apa102::APA102 chanel_1_;
+  apa102::APA102 chanel_2_;
 
-  apa102::APA102 front_panel_;
-  apa102::APA102 rear_panel_;
-
-  rclcpp::Time front_panel_ts_;
-  rclcpp::Time rear_panel_ts_;
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
   std::shared_ptr<image_transport::ImageTransport> it_;
-  std::shared_ptr<image_transport::Subscriber> rear_light_sub_;
-  std::shared_ptr<image_transport::Subscriber> front_light_sub_;
+  std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
+  std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
   std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
   diagnostic_updater::Updater diagnostic_updater_;
 };
