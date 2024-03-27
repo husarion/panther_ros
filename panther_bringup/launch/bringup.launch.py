@@ -245,6 +245,7 @@ def generate_launch_description():
             "imu_config_path": PathJoinSubstitution(
                 [FindPackageShare("panther_bringup"), "config", "imu.yaml"]
             ),
+            "namespace": namespace,
         }.items(),
         condition=UnlessCondition(use_sim),
     )

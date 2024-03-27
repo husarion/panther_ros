@@ -16,7 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
@@ -28,9 +28,16 @@ def generate_launch_description():
         description="Path to IMU configuration file",
     )
 
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
+    )
+
     imu_container = ComposableNodeContainer(
         name="imu_container",
-        namespace="",
+        namespace=namespace,
         package="rclcpp_components",
         executable="component_container",
         composable_node_descriptions=[
@@ -51,6 +58,7 @@ def generate_launch_description():
 
     actions = [
         declare_imu_config_path_arg,
+        declare_namespace_arg,
         imu_container,
     ]
 
