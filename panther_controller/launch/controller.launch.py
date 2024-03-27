@@ -23,6 +23,7 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
     Command,
+    EnvironmentVariable,
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
@@ -85,7 +86,7 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),  
         description="Namespace for all Panther topics",
     )
 
@@ -208,6 +209,8 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
     )
 

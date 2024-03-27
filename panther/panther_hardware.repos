@@ -15,3 +15,7 @@ repositories:
     type: git
     url: https://github.com/BehaviorTree/BehaviorTree.ROS2
     version: ce923e19c12d28f4734a41b1442c123f2d4a41d2
+  ros2_controllers:
+    type: git
+    url: https://github.com/delihus/ros2_controllers
+    version: humble
