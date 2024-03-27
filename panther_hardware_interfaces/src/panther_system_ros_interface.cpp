@@ -33,12 +33,12 @@ template class ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>;
 
 template <typename SrvT, typename CallbackT>
 void ROSServiceWrapper<SrvT, CallbackT>::RegisterService(
-  const rclcpp::Node::SharedPtr node, const std::string & service_name)
+  const rclcpp::Node::SharedPtr node, const std::string & service_name,
+  rclcpp::CallbackGroup::SharedPtr group)
 {
   service_ = node->create_service<SrvT>(
-    service_name, std::bind(
-                    &ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper, this,
-                    std::placeholders::_1, std::placeholders::_2));
+    service_name, std::bind(&ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper, this, _1, _2),
+    rmw_qos_profile_services_default, group);
 }
 
 template <typename SrvT, typename CallbackT>
@@ -75,13 +75,13 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   const std::string & node_name, const rclcpp::NodeOptions & node_options)
 : node_(rclcpp::Node::make_shared(node_name, node_options)), diagnostic_updater_(node_)
 {
-  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+  executor_ = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
   executor_->add_node(node_);
 
   executor_thread_ = std::thread([this]() { executor_->spin(); });
 
   driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
-    "~/driver/motor_controllers_state", rclcpp::SensorDataQoS());
+    "~/driver/motor_controllers_state", 5);
   realtime_driver_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
@@ -100,15 +100,6 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
 PantherSystemRosInterface::~PantherSystemRosInterface()
 {
-  realtime_driver_state_publisher_.reset();
-  driver_state_publisher_.reset();
-  realtime_io_state_publisher_.reset();
-  io_state_publisher_.reset();
-  realtime_e_stop_state_publisher_.reset();
-  e_stop_state_publisher_.reset();
-
-  service_wrappers_storage_.clear();
-
   if (executor_) {
     executor_->cancel();
 
@@ -118,6 +109,15 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
 
     executor_.reset();
   }
+
+  realtime_driver_state_publisher_.reset();
+  driver_state_publisher_.reset();
+  realtime_io_state_publisher_.reset();
+  io_state_publisher_.reset();
+  realtime_e_stop_state_publisher_.reset();
+  e_stop_state_publisher_.reset();
+
+  service_wrappers_storage_.clear();
 
   node_.reset();
 }
@@ -255,6 +255,31 @@ bool PantherSystemRosInterface::UpdateIOStateMsg(
   }
 
   return true;
+}
+
+rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallbackGroup(
+  const unsigned group_id, rclcpp::CallbackGroupType callback_group_type)
+{
+  if (group_id == 0) {
+    if (callback_group_type == rclcpp::CallbackGroupType::Reentrant) {
+      throw std::runtime_error(
+        "Node callback group with id 0 (default group) cannot be of "
+        "rclcpp::CallbackGroupType::Reentrant type.");
+    }
+    return nullptr;  // default node callback group
+  }
+
+  const auto search = callback_groups_.find(group_id);
+  if (search != callback_groups_.end()) {
+    if (search->second->type() != callback_group_type) {
+      throw std::runtime_error("Requested node callback group has incorrect type.");
+    }
+    return search->second;
+  }
+
+  auto callback_group = node_->create_callback_group(callback_group_type);
+  callback_groups_[group_id] = callback_group;
+  return callback_group;
 }
 
 }  // namespace panther_hardware_interfaces

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/dummy_scheduler_node.hpp>
+#include <panther_manager/manager_bt_node.hpp>
 
 #include <iostream>
 #include <memory>
@@ -22,16 +22,16 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto lights_controller_node =
-    std::make_shared<panther_lights::SchedulerNode>("lights_controller_node");
+  auto manager_bt_node = std::make_shared<panther_manager::ManagerBTNode>("manager_bt_node");
+  manager_bt_node->Initialize();
 
   try {
-    rclcpp::spin(lights_controller_node);
-  } catch (const std::runtime_error & e) {
-    std::cerr << "[lights_controller_node] Caught exception: " << e.what() << std::endl;
+    rclcpp::spin(manager_bt_node);
+  } catch (const std::runtime_error & err) {
+    std::cerr << "[manager_bt_node] Caught exception: " << err.what() << std::endl;
   }
 
-  std::cout << "[lights_controller_node] Shutting down" << std::endl;
+  std::cout << "[manager_bt_node] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

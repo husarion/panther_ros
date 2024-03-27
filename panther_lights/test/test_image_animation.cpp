@@ -70,7 +70,7 @@ public:
   ~TestImageAnimation();
 
 protected:
-  std::string test_image_path = "/tmp/test_image.png";
+  std::string test_image_path = testing::TempDir() + "/test_image.png";
   std::unique_ptr<ImageAnimationWrapper> animation_;
 };
 

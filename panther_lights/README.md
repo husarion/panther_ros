@@ -38,8 +38,8 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `/panther/lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `/panther/lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -80,8 +80,8 @@ This node is responsible for processing animations and publishing frames to be d
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/panther/lights/driver/front_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `/panther/lights/driver/rear_panel_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `/panther/lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `/panther/lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
