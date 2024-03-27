@@ -28,7 +28,11 @@ using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 class DriverNodeWrapper : public panther_lights::DriverNode
 {
 public:
-  DriverNodeWrapper(const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions()) : DriverNode(node_name, options) {}
+  DriverNodeWrapper(
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
+  : DriverNode(node_name, options)
+  {
+  }
 
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
@@ -36,7 +40,6 @@ public:
   rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
   rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
 };
-
 
 class TestDriverNode : public testing::Test
 {
