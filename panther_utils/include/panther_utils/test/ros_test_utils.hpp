@@ -38,7 +38,7 @@ namespace panther_utils::test_utils
 template <typename NodeT, typename MsgT>
 bool WaitForMsg(
   const std::shared_ptr<NodeT> & node, std::shared_ptr<MsgT> & msg,
-  const std::chrono::nanoseconds & timeout)
+  const std::chrono::milliseconds & timeout)
 {
   msg = nullptr;
   rclcpp::Time start_time = node->now();
@@ -49,6 +49,30 @@ bool WaitForMsg(
     }
     rclcpp::spin_some(node->get_node_base_interface());
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  return false;
+}
+
+/**
+ * @brief Wait for ROS service future to arrive
+ *
+ * @param node ROS node that will be spun
+ * @param future Reference to the service future, it should point to a variable,
+ * that will be overwritten after service response
+ * @param timeout timeout to wait for service response
+ *
+ * @return True if message was received, false if timeout was reached
+ */
+template <typename NodeT, typename FutureT>
+bool WaitForFuture(const NodeT & node, FutureT & future, const std::chrono::milliseconds & timeout)
+{
+  rclcpp::Time start_time = node->now();
+
+  while (rclcpp::ok() && node->now() - start_time <= rclcpp::Duration(timeout)) {
+    rclcpp::spin_some(node->get_node_base_interface());
+    if (future.wait_for(std::chrono::milliseconds(10)) == std::future_status::ready) {
+      return true;
+    }
   }
   return false;
 }

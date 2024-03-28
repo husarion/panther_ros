@@ -27,8 +27,9 @@ ExternalProject_Add(
   GIT_TAG v2.3.3
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ep_liblely
   CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR>
-  COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-python
-          --disable-tests --disable-static
+  COMMAND
+    env CFLAGS=-DNDEBUG CXXFLAGS=-DNDEBUG <SOURCE_DIR>/configure
+    --prefix=<INSTALL_DIR> --disable-python --disable-tests --disable-static
   BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
   INSTALL_COMMAND make install INSTALL_PREFIX=<INSTALL_DIR>)
 

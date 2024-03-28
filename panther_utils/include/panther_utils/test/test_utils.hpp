@@ -45,25 +45,28 @@ bool CheckNaNVector(const std::vector<T> & vector)
 }
 
 /**
- * @brief Tests if a method throws an exception of a given type and the error message contains the
+ * @brief Check if a method throws an exception of a given type and the error message contains the
  * provided message
  *
  * @param func The method that will be tested
  * @param error_msg The error message that has to be contained within the thrown message
+ *
+ * @return True if method throws an exception of a given type and the error message contains the
+ * provided message, false otherwise
  */
 template <typename ExceptionType, typename Func>
-void ExpectThrowWithDescription(const Func & func, const std::string & error_msg)
+bool IsMessageThrown(const Func & func, const std::string & error_msg)
 {
-  EXPECT_THROW(
-    {
-      try {
-        func();
-      } catch (const ExceptionType & e) {
-        EXPECT_TRUE(std::string(e.what()).find(error_msg) != std::string::npos);
-        throw;
-      }
-    },
-    ExceptionType);
+  try {
+    func();
+  } catch (const ExceptionType & e) {
+    if (std::string(e.what()).find(error_msg) != std::string::npos) {
+      return true;
+    }
+  } catch (...) {
+  }
+
+  return false;
 }
 
 }  // namespace panther_utils::test_utils

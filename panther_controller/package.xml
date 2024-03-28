@@ -24,7 +24,7 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>mecanum_drive_controller</exec_depend>
   <exec_depend>panther_description</exec_depend>
-  <exec_depend>panther_hardware_interfaces</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_hardware_interfaces</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>xacro</exec_depend>
 

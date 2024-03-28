@@ -138,6 +138,8 @@ def generate_launch_description():
             ("panther_system_node/e_stop", "hardware/e_stop"),
             ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
             ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
+            ("panther_system_node/fan_enable", "hardware/fan_enable"),
+            ("panther_system_node/aux_power_enable", "hardware/aux_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
     )
@@ -158,7 +160,7 @@ def generate_launch_description():
             "--controller-manager",
             "controller_manager",
             "--controller-manager-timeout",
-            "120",
+            "10",
         ],
     )
 
@@ -170,7 +172,7 @@ def generate_launch_description():
             "--controller-manager",
             "controller_manager",
             "--controller-manager-timeout",
-            "120",
+            "10",
         ],
     )
 
@@ -190,7 +192,7 @@ def generate_launch_description():
             "--controller-manager",
             "controller_manager",
             "--controller-manager-timeout",
-            "120",
+            "10",
         ],
     )
 

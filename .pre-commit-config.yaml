@@ -39,7 +39,7 @@ repos:
       - id: clang-format
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v1.16.0
+    rev: v2.2.6
     hooks:
       - id: codespell
         name: codespell

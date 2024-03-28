@@ -1,0 +1,33 @@
+/**:
+  manager_bt_node:
+    ros__parameters:
+      battery_temp_window_len: 6
+      battery_percent_window_len: 6
+      cpu_temp_window_len: 6
+      driver_temp_window_len: 6
+      shutdown_timeout: 15.0
+      lights:
+        critical_battery_anim_period: 15.0
+        critical_battery_threshold_percent: 0.1
+        battery_state_anim_period: 120.0
+        low_battery_anim_period: 30.0
+        low_battery_threshold_percent: 0.4
+        update_charging_anim_step: 0.1
+        timer_frequency: 10.0
+      safety:
+        high_bat_temp: 55.0
+        critical_bat_temp: 59.0
+        cpu_fan_on_temp: 75.0
+        cpu_fan_off_temp: 70.0
+        driver_fan_on_temp: 50.0
+        driver_fan_off_temp: 45.0
+        timer_frequency: 10.0
+      plugin_libs:
+        - tick_after_timeout_bt_node
+        - shutdown_single_host_bt_node
+        - shutdown_hosts_from_file_bt_node
+        - signal_shutdown_bt_node
+      ros_plugin_libs:
+        - call_set_bool_service_bt_node
+        - call_trigger_service_bt_node
+        - call_set_led_animation_service_bt_node

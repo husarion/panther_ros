@@ -99,7 +99,7 @@ std::vector<std::uint8_t> APA102::RGBAFrameToBGRBuffer(
     // Header with brightness
     const std::uint8_t brightness = (std::uint16_t(frame[padding + 3]) * global_brightness_) / 255;
     buffer[4 + padding] = 0xE0 | brightness;
-    // Convert rgb to bgr with collor correction
+    // Convert rgb to bgr with color correction
     buffer[4 + padding + 1] = std::uint8_t((std::uint16_t(frame[padding + 2]) * kCorrBlue) / 255);
     buffer[4 + padding + 2] = std::uint8_t((std::uint16_t(frame[padding + 1]) * kCorrGreen) / 255);
     buffer[4 + padding + 3] = std::uint8_t((std::uint16_t(frame[padding + 0]) * kCorrRed) / 255);

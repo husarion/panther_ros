@@ -48,13 +48,15 @@
         name="ign_ros2_control::IgnitionROS2ControlPlugin">
         <parameters>${config_file}</parameters>
         <ros>
-          <remapping>/panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          <remapping>panther_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          <remapping>panther_base_controller/odom:=odom/wheels</remapping>
+          <remapping>/imu_broadcaster/imu:=imu/data</remapping>
         </ros>
       </plugin>
     </gazebo>
   </xacro:macro>
 
-  <!-- IMU - noise -->
+  <!-- Gauss noise macro -->
   <xacro:macro name="gauss_noise"
     params="mean:=0.0 stddev:=0.0 bias_mean:=0.0 bias_stddev:=0.0 precision:=0.0">
     <noise type="gaussian">
@@ -66,8 +68,7 @@
     </noise>
   </xacro:macro>
 
-  <!-- IMU -->
-  <!-- Noise ref: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications -->
+  <!-- IMU specification: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications -->
   <xacro:macro name="imu" params="reference_frame name:='imu'">
     <gazebo reference="${reference_frame}">
       <sensor name="${name}" type="imu">
@@ -81,6 +82,7 @@
         <ignition_frame_id>imu_link</ignition_frame_id>
         <imu>
           <angular_velocity>
+            <!-- rad/s -->
             <x>
               <xacro:gauss_noise stddev="0.01" bias_mean="3.3e-5" precision="1.2e-3" />
             </x>
@@ -92,14 +94,15 @@
             </z>
           </angular_velocity>
           <linear_acceleration>
+            <!-- m/s^2 -->
             <x>
-              <xacro:gauss_noise stddev="2.8e-3" bias_mean="1.9e-3" precision="9.8e-4" />
+              <xacro:gauss_noise stddev="27.5e-3" bias_mean="18.6e-3" precision="9.6e-3" />
             </x>
             <y>
-              <xacro:gauss_noise stddev="2.8e-3" bias_mean="1.9e-3" precision="9.8e-4" />
+              <xacro:gauss_noise stddev="27.5e-3" bias_mean="18.6e-3" precision="9.6e-3" />
             </y>
             <z>
-              <xacro:gauss_noise stddev="2.8e-3" bias_mean="1.9e-3" precision="9.8e-4" />
+              <xacro:gauss_noise stddev="27.5e-3" bias_mean="18.6e-3" precision="9.6e-3" />
             </z>
           </linear_acceleration>
         </imu>

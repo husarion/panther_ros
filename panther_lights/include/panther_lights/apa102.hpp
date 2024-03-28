@@ -62,7 +62,7 @@ protected:
    * @brief Creates buffer with BGR format with structure appropriate for
    * the SPI transfer based on a given RGBA frame
    *
-   * @returns buffer vector.
+   * @return buffer vector.
    *
    * @exception std::runtime_error if frame has incorrect number of bytes
    */

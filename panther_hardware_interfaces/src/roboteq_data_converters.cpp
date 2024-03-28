@@ -22,7 +22,7 @@
 namespace panther_hardware_interfaces
 {
 
-RoboteqVeloctiyCommandConverter::RoboteqVeloctiyCommandConverter(
+RoboteqVelocityCommandConverter::RoboteqVelocityCommandConverter(
   const DrivetrainSettings & drivetrain_settings)
 {
   // Converts desired wheel speed in rad/s to Roboteq motor command. Steps:
@@ -50,13 +50,16 @@ MotorState::MotorState(const DrivetrainSettings & drivetrain_settings)
                                      (1.0f / drivetrain_settings.gear_ratio) * (2.0f * M_PI);
 
   // Convert speed feedback from Roboteq (RPM) to wheel speed in rad/s. Steps:
-  // 1. Convert motor rotation per minute feedback speed to wheel rotation per minute speed
+  // 1. Convert the Roboteq velocity value (± 1000), relative to the max_rpm_motor_speed parameter
+  // (Roboteq MXRPM), into rotations per minute.
+  // 2. Convert motor rotation per minute feedback speed to wheel rotation per minute speed
   //    (multiplication by (1.0/gear_ratio))
-  // 2. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication
+  // 3. Convert wheel rotation per minute speed to wheel rotation per second speed (multiplication
   //    by (1.0/60.0))
-  // 3. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
-  roboteq_vel_feedback_to_radians_per_second_ = (1.0f / drivetrain_settings.gear_ratio) *
-                                                (1.0f / 60.0f) * (2.0f * M_PI);
+  // 4. Convert wheel rotation per second speed to wheel rad/s speed (multiplication by 2.0*pi)
+  roboteq_vel_feedback_to_radians_per_second_ =
+    (drivetrain_settings.max_rpm_motor_speed / 1000.0f) * (1.0f / drivetrain_settings.gear_ratio) *
+    (1.0f / 60.0f) * (2.0f * M_PI);
 
   // Convert current feedback from Roboteq (A*10.) to wheel torque in Nm. Steps:
   // 1. Convert motor A*10.0 current feedback to motor A current (multiplication by (1.0/10.0))
@@ -132,7 +135,7 @@ std::map<std::string, bool> FaultFlag::GetErrorMap() const
   return error_map;
 }
 
-ScriptFlag::ScriptFlag() : FlagError({"loop_error", "encoder_disconected", "amp_limiter"}) {}
+ScriptFlag::ScriptFlag() : FlagError({"loop_error", "encoder_disconnected", "amp_limiter"}) {}
 
 panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
 {

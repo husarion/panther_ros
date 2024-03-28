@@ -10,6 +10,7 @@ find_package(diagnostic_updater REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(realtime_tools REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -55,6 +56,13 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_ros_test_utils rclcpp std_msgs)
+
+  ament_add_gtest(${PROJECT_NAME}_test_yaml_utils test/test_yaml_utils.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_yaml_utils
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  target_link_libraries(${PROJECT_NAME}_test_yaml_utils yaml-cpp)
 endif()
 
 ament_export_dependencies(realtime_tools)
