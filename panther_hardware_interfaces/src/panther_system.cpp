@@ -76,7 +76,16 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     use_can_for_e_stop_trigger_ = false;
 
     ReadEStop = [this]() {
-      return !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
+      bool e_stop_triggered = !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
+
+      // In the case where E-Stop is triggered by another device within the robot's system (e.g.,
+      // Roboteq or Safety Board), disabling the software Watchdog is necessary to prevent an
+      // uncontrolled reset.
+      if (e_stop_triggered) {
+        gpio_controller_->EStopTrigger();
+      }
+
+      return e_stop_triggered;
     };
   } else {
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
@@ -286,15 +295,6 @@ return_type PantherSystem::write(
 {
   last_commands_zero_ = AreVelocityCommandsNearZero();
 
-  try {
-    CheckErrorsAndSetEStop();
-  } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL_STREAM(logger_, "Error when handling E-stop: " << e.what());
-    return return_type::ERROR;
-  }
-
-  // "soft" error - still there is communication over CAN with drivers, so publishing feedback is
-  // continued, only commands are ignored
   if (!e_stop_) {
     SendCommands();
   }
@@ -563,6 +563,12 @@ void PantherSystem::UpdateFlagErrors()
         << "\tFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
         << "\tRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
+
+    // Attempt to clear Roboteq motor controller error flags by sending a zero velocity command via
+    // CAN
+    if (last_commands_zero_) {
+      SendCommands();
+    }
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
   }
@@ -604,33 +610,6 @@ void PantherSystem::SendCommands()
     RCLCPP_WARN_STREAM(logger_, "Error when trying to write commands: " << e.what());
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_PDO_CMDS, true);
   }
-}
-
-void PantherSystem::CheckErrorsAndSetEStop()
-{
-  if (roboteq_error_filter_->IsError() && !e_stop_) {
-    if (!CheckIfSafetyStopActive()) {
-      RCLCPP_ERROR(
-        logger_,
-        "Error detected and at least on of the channels is not in the safety stop state, sending "
-        "E-stop request...");
-      try {
-        SetEStop();
-      } catch (const std::runtime_error & e) {
-        throw e;
-      }
-    }
-  }
-}
-
-bool PantherSystem::CheckIfSafetyStopActive()
-{
-  const auto & front_data = motors_controller_->GetFrontData();
-  const auto & rear_data = motors_controller_->GetRearData();
-  return front_data.GetLeftRuntimeError().GetMessage().safety_stop_active &&
-         front_data.GetRightRuntimeError().GetMessage().safety_stop_active &&
-         rear_data.GetLeftRuntimeError().GetMessage().safety_stop_active &&
-         rear_data.GetRightRuntimeError().GetMessage().safety_stop_active;
 }
 
 bool PantherSystem::AreVelocityCommandsNearZero()

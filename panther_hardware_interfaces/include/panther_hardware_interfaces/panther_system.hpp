@@ -89,8 +89,6 @@ protected:
   void UpdateDriverStateDataTimedOut();
 
   void SendCommands();
-  void CheckErrorsAndSetEStop();
-  bool CheckIfSafetyStopActive();
   bool AreVelocityCommandsNearZero();
 
   void MotorsPowerEnable(const bool enable);
