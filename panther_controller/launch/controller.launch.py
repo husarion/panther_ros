@@ -141,7 +141,7 @@ def generate_launch_description():
                 "panther_system_node/driver/motor_controllers_state",
                 "driver/motor_controllers_state",
             ),
-            ("panther_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+            ("panther_base_controller/cmd_vel_unstamped", "cmd_vel"),
             ("panther_base_controller/odom", "odom/wheels"),
             ("panther_system_node/io_state", "hardware/io_state"),
             ("panther_system_node/e_stop", "hardware/e_stop"),
@@ -190,7 +190,6 @@ def generate_launch_description():
             "--namespace",
             namespace,
         ],
-        remappings=[("joint_states","/joint_states")]
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
