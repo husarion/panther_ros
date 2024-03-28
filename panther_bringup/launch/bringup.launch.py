@@ -295,8 +295,6 @@ def generate_launch_description():
             ("enable", "ekf_node/enable"),
             ("set_pose", "ekf_node/set_pose"),
             ("toggle", "ekf_node/toggle"),
-            ("/tf", "tf"),
-            ("/tf_static", "tf_static"),
         ],
         condition=IfCondition(use_ekf),
     )

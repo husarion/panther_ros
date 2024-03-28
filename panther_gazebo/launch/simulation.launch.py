@@ -204,7 +204,6 @@ def generate_launch_description():
         executable="parameter_bridge",
         name="gz_bridge",
         parameters=[{"config_file": gz_bridge_config_path}],
-        remappings=[("/tf", "tf"), ("/tf_static", "tf_static")],
         namespace=namespace,
         output="screen",
     )
