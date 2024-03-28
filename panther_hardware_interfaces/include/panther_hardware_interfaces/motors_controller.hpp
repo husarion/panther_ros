@@ -111,6 +111,11 @@ public:
    */
   void TurnOnSafetyStop();
 
+  /**
+   * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors
+   */
+  void AttemptErrorFlagResetWithZeroSpeed();
+
 private:
   void SetMotorsStates(
     RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time);

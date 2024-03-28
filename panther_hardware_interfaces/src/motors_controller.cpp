@@ -236,4 +236,9 @@ void MotorsController::SetDriverState(
   data.SetDriverState(state, data_timed_out);
 }
 
+void MotorsController::AttemptErrorFlagResetWithZeroSpeed()
+{
+  SendSpeedCommands(0.0, 0.0, 0.0, 0.0);
+}
+
 }  // namespace panther_hardware_interfaces

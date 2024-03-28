@@ -296,7 +296,11 @@ return_type PantherSystem::write(
   last_commands_zero_ = AreVelocityCommandsNearZero();
 
   if (!e_stop_) {
-    SendCommands();
+    HandlePDOWriteOperation([this] {
+      motors_controller_->SendSpeedCommands(
+        hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
+        hw_commands_velocities_[3]);
+    });
   }
 
   return return_type::OK;
@@ -564,11 +568,7 @@ void PantherSystem::UpdateFlagErrors()
         << "\tRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
 
-    // Attempt to clear Roboteq motor controller error flags by sending a zero velocity command via
-    // CAN
-    if (last_commands_zero_) {
-      SendCommands();
-    }
+    HandlePDOWriteOperation([this] { motors_controller_->AttemptErrorFlagResetWithZeroSpeed(); });
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
   }
@@ -589,7 +589,7 @@ void PantherSystem::UpdateDriverStateDataTimedOut()
   }
 }
 
-void PantherSystem::SendCommands()
+void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_operation)
 {
   try {
     {
@@ -599,10 +599,7 @@ void PantherSystem::SendCommands()
         throw std::runtime_error(
           "Can't acquire mutex for writing commands - E-stop is being triggered");
       }
-
-      motors_controller_->SendSpeedCommands(
-        hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
-        hw_commands_velocities_[3]);
+      pdo_write_operation();
     }
 
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_PDO_CMDS, false);

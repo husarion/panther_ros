@@ -88,7 +88,7 @@ protected:
   void UpdateFlagErrors();
   void UpdateDriverStateDataTimedOut();
 
-  void SendCommands();
+  void HandlePDOWriteOperation(std::function<void()> pdo_write_operation);
   bool AreVelocityCommandsNearZero();
 
   void MotorsPowerEnable(const bool enable);
