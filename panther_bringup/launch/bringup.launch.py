@@ -292,6 +292,9 @@ def generate_launch_description():
         output="screen",
         parameters=[ekf_config_path],
         remappings=[
+            ("enable", "ekf_node/enable"),
+            ("set_pose", "ekf_node/set_pose"),
+            ("toggle", "ekf_node/toggle"),
             ("/tf", "tf"),
             ("/tf_static", "tf_static"),
         ],
