@@ -139,7 +139,7 @@ panther_msgs::msg::ScriptFlag ScriptFlag::GetMessage() const
   panther_msgs::msg::ScriptFlag script_flags_msg;
 
   script_flags_msg.loop_error = flags_.test(0);
-  script_flags_msg.encoder_disconected = flags_.test(1);
+  script_flags_msg.encoder_disconnected = flags_.test(1);
   script_flags_msg.amp_limiter = flags_.test(2);
 
   return script_flags_msg;
