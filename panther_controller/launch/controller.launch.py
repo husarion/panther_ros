@@ -136,6 +136,7 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controller_config_path],
+        namespace=namespace,
         remappings=[
             (
                 "panther_system_node/driver/motor_controllers_state",
@@ -161,6 +162,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        namespace=namespace,
         condition=IfCondition(publish_robot_state),
     )
 
@@ -176,6 +178,7 @@ def generate_launch_description():
             "--namespace",
             namespace,
         ],
+        namespace=namespace,
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -190,6 +193,7 @@ def generate_launch_description():
             "--namespace",
             namespace,
         ],
+        namespace=namespace,
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
@@ -212,6 +216,7 @@ def generate_launch_description():
             "--namespace",
             namespace,
         ],
+        namespace=namespace,
     )
 
     # Delay start of imu_broadcaster after robot_controller

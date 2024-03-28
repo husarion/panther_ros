@@ -46,12 +46,14 @@ def generate_launch_description():
                 plugin="phidgets::SpatialRosI",
                 name="phidgets_spatial_node",
                 parameters=[imu_config_path],
+                namespace=namespace,
             ),
             ComposableNode(
                 package="imu_filter_madgwick",
                 plugin="ImuFilterMadgwickRos",
                 name="imu_filter_node",
                 parameters=[imu_config_path],
+                namespace=namespace,
             ),
         ],
     )

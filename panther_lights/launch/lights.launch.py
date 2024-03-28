@@ -17,7 +17,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -26,6 +26,13 @@ def generate_launch_description():
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
         description="Path to a YAML file with a description of led configuration",
+    )
+
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
     )
 
     user_led_animations_file = LaunchConfiguration("user_led_animations_file")
@@ -39,6 +46,7 @@ def generate_launch_description():
         package="panther_lights",
         executable="driver_node",
         name="lights_driver_node",
+        namespace=namespace,
         on_exit=Shutdown(),
     )
 
@@ -50,11 +58,13 @@ def generate_launch_description():
             {"led_config_file": led_config_file},
             {"user_led_animations_file": user_led_animations_file},
         ],
+        namespace=namespace,
         on_exit=Shutdown(),
     )
 
     actions = [
         declare_led_config_file_arg,
+        declare_namespace_arg,
         declare_user_led_animations_file_arg,
         lights_driver_node,
         lights_controller_node,

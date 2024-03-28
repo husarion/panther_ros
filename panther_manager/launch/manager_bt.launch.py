@@ -16,7 +16,11 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    EnvironmentVariable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -26,6 +30,13 @@ def launch_setup(context):
     declare_panther_version_arg = DeclareLaunchArgument(
         "panther_version",
         description="Panther robot version",
+    )
+
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
     )
 
     panther_version = float(LaunchConfiguration("panther_version").perform(context))
@@ -70,11 +81,13 @@ def launch_setup(context):
                 "shutdown_hosts_path": shutdown_hosts_config_path,
             },
         ],
+        namespace=namespace,
     )
 
     return [
         declare_panther_version_arg,
         declare_bt_project_path_arg,
+        declare_namespace_arg,
         declare_shutdown_hosts_config_path_arg,
         manager_bt_node,
     ]
