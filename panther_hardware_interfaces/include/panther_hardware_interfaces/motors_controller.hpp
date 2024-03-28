@@ -112,7 +112,8 @@ public:
   void TurnOnSafetyStop();
 
   /**
-   * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors
+   * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
+   * driver faults still exist, the error flag will remain active.
    */
   void AttemptErrorFlagResetWithZeroSpeed();
 
