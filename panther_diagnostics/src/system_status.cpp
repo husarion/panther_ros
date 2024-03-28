@@ -26,6 +26,8 @@ SystemStatus::SystemStatus() : rclcpp::Node("system_status_node")
 {
   this->number_of_cpus_ = std::thread::hardware_concurrency();
   this->cpus_usages_.resize(this->number_of_cpus_ + 1, 0);
+  this->cpus_last_idles_.resize(this->number_of_cpus_ + 1, 0);
+  this->cpus_last_totals_.resize(this->number_of_cpus_ + 1, 0);
 
   publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>("system_status", 10);
   timer_ = this->create_wall_timer(500ms, std::bind(&SystemStatus::TimerCallback, this));
@@ -97,7 +99,25 @@ void SystemStatus::ReadOneCPU(std::ifstream & file, const std::size_t index)
   file >> user >> nice >> system >> idle >> iowait >> irq >> softirq;
   total = user + nice + system + idle + iowait + irq + softirq;
 
-  this->cpus_usages_[index] = 100.0 - static_cast<float>(idle) / total * 100.0;
+  if (!cpus_last_totals_[index]) {
+    this->cpus_last_totals_[index] = total;
+    this->cpus_last_idles_[index] = idle;
+    return;
+  }
+  int64_t diff_total = total - cpus_last_totals_[index];
+  int64_t diff_idle = idle - cpus_last_idles_[index];
+  std::cout << "index: " << index << " total diff: " << diff_total << " ide " << diff_idle
+            << std::endl;
+
+  if (!diff_total) {
+    this->cpus_usages_[index] = 0.0;
+  } else {
+    this->cpus_usages_[index] =
+      std::fabs(static_cast<float>(diff_total - diff_idle) / static_cast<float>(diff_total)) *
+      100.0;
+  }
+  this->cpus_last_idles_[index] = idle;
+  this->cpus_last_totals_[index] = total;
 }
 
 float SystemStatus::GetDiskUsage() const

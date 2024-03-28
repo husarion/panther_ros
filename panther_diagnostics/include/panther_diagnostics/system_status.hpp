@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_msgs/msg/system_status.hpp"
@@ -47,9 +48,12 @@ protected:
   std::size_t number_of_cpus_;
   float cpu_mean_usage_;
   std::vector<float> cpus_usages_;
+  std::vector<std::size_t> cpus_last_totals_;
+  std::vector<std::size_t> cpus_last_idles_;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr publisher_;
+  // diagnostic_updater::Updater diagnostic_updater_;
 };
 }  // namespace panther_diagnostics
 #endif  // PANTHER_DIAGNOSTICS_NODE_CPU_HPP

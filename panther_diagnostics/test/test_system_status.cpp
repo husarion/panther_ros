@@ -107,8 +107,8 @@ TEST_F(SystemStatusTest, CheckIfFilesExist)
     system_status_->GetMemoryUsage(panther_diagnostics::SystemStatus::memory_info_filename)));
 
   // Works only on RPi
-  EXPECT_FALSE(std::isnan(
-    system_status_->GetTemperature(panther_diagnostics::SystemStatus::temperature_info_filename)));
+  // EXPECT_FALSE(std::isnan(
+  //   system_status_->GetTemperature(panther_diagnostics::SystemStatus::temperature_info_filename)));
 }
 
 TEST_F(SystemStatusTest, CheckTemperatureReadings)
@@ -154,20 +154,32 @@ TEST_F(SystemStatusTest, CheckCPUReadings)
   std::filesystem::remove(cpu_file_name);
   EXPECT_FALSE(std::filesystem::exists(cpu_file_name));
 
-  const std::string usages_context = R"(
+  const std::string first_context = R"(
     1000 1000 1000 5000 1000 0 1000 0 0 0
   )";
 
-  CreateCPUSageFile(cpu_file_name, usages_context);
+  CreateCPUSageFile(cpu_file_name, first_context);
 
   auto usages = system_status_->GetCPUsUsages(cpu_file_name);
   for (const auto & usage : usages) {
+    EXPECT_FLOAT_EQ(usage, 0.0);
+  }
+  EXPECT_FLOAT_EQ(system_status_->GetCPUMeanUsage(), 0.0);
+  std::filesystem::remove(cpu_file_name);
+
+  const std::string second_context = R"(
+    1000 500 500 4500 500 0 1000 0 0 0
+  )";
+
+  CreateCPUSageFile(cpu_file_name, second_context);
+  usages = system_status_->GetCPUsUsages(cpu_file_name);
+
+  for (const auto & usage : usages) {
     std::cout << usage << std::endl;
-    EXPECT_FLOAT_EQ(usage, 50.0);
+    EXPECT_FLOAT_EQ(usage, 75.0);
   }
 
-  EXPECT_FLOAT_EQ(system_status_->GetCPUMeanUsage(), 50.0);
-
+  EXPECT_FLOAT_EQ(system_status_->GetCPUMeanUsage(), 75.0);
   std::filesystem::remove(cpu_file_name);
 }
 
