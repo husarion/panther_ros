@@ -19,20 +19,19 @@
 #include <optional>
 #include <string>
 
-#include <behaviortree_cpp/bt_factory.h>
-#include <behaviortree_cpp/loggers/groot2_publisher.h>
+#include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/loggers/groot2_publisher.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <rclcpp/rclcpp.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
+#include "std_msgs/msg/bool.hpp"
 
-#include <sensor_msgs/msg/battery_state.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include "panther_msgs/msg/driver_state.hpp"
+#include "panther_msgs/msg/io_state.hpp"
+#include "panther_msgs/msg/led_animation.hpp"
+#include "panther_msgs/msg/system_status.hpp"
 
-#include <panther_msgs/msg/driver_state.hpp>
-#include <panther_msgs/msg/io_state.hpp>
-#include <panther_msgs/msg/led_animation.hpp>
-#include <panther_msgs/msg/system_status.hpp>
-
-#include <panther_utils/moving_average.hpp>
+#include "panther_utils/moving_average.hpp"
 
 namespace panther_manager
 {

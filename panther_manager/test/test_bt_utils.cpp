@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/bt_utils.hpp>
-
 #include <any>
 #include <map>
 #include <stdexcept>
 #include <string>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <behaviortree_cpp/tree_node.h>
+#include "behaviortree_cpp/tree_node.h"
 
-#include <panther_utils/test/test_utils.hpp>
+#include "panther_manager/bt_utils.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 TEST(TestBTUtils, CreateBTConfigInvalidItem)
 {

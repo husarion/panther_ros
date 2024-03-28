@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <plugin_test_utils.hpp>
+#include "plugin_test_utils.hpp"
 
 namespace panther_manager::plugin_test_utils
 {

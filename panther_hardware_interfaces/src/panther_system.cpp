@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/panther_system.hpp>
+#include "panther_hardware_interfaces/panther_system.hpp"
 
 #include <array>
 #include <chrono>
@@ -23,13 +23,12 @@
 #include <string>
 #include <vector>
 
-#include <diagnostic_updater/diagnostic_status_wrapper.hpp>
-#include <rclcpp/logging.hpp>
+#include "diagnostic_updater/diagnostic_status_wrapper.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "rclcpp/logging.hpp"
 
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
-
-#include <panther_hardware_interfaces/utils.hpp>
-#include <panther_utils/diagnostics.hpp>
+#include "panther_hardware_interfaces/utils.hpp"
+#include "panther_utils/diagnostics.hpp"
 
 namespace panther_hardware_interfaces
 {

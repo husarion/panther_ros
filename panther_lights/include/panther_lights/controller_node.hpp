@@ -19,18 +19,18 @@
 #include <string>
 #include <unordered_map>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/image.hpp>
+#include "sensor_msgs/msg/image.hpp"
 
-#include <panther_msgs/srv/set_led_animation.hpp>
+#include "panther_msgs/srv/set_led_animation.hpp"
 
-#include <panther_lights/animation/animation.hpp>
-#include <panther_lights/led_animations_queue.hpp>
-#include <panther_lights/segment_converter.hpp>
-#include <panther_utils/yaml_utils.hpp>
+#include "panther_lights/animation/animation.hpp"
+#include "panther_lights/led_animations_queue.hpp"
+#include "panther_lights/segment_converter.hpp"
+#include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
 {

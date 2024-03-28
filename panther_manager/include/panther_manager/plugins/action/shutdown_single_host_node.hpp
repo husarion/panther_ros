@@ -19,10 +19,10 @@
 #include <string>
 #include <vector>
 
-#include <behaviortree_cpp/basic_types.h>
+#include "behaviortree_cpp/basic_types.h"
 
-#include <panther_manager/plugins/shutdown_host.hpp>
-#include <panther_manager/plugins/shutdown_hosts_node.hpp>
+#include "panther_manager/plugins/shutdown_host.hpp"
+#include "panther_manager/plugins/shutdown_hosts_node.hpp"
 
 namespace panther_manager
 {

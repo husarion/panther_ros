@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@
 #include <utility>
 #include <vector>
 
-#include <gpiod.hpp>
+#include "gpiod.hpp"
 
-#include <panther_utils/configure_rt.hpp>
+#include "panther_utils/configure_rt.hpp"
 
 namespace panther_gpiod
 {

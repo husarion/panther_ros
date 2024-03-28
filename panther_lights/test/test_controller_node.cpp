@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@
 #include <thread>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/controller_node.hpp>
-#include <panther_utils/test/test_utils.hpp>
+#include "rclcpp/rclcpp.hpp"
+
+#include "panther_lights/controller_node.hpp"
+#include "panther_utils/test/test_utils.hpp"
 
 class ControllerNodeWrapper : public panther_lights::ControllerNode
 {

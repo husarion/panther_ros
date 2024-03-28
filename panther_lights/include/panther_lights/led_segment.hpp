@@ -18,11 +18,11 @@
 #include <cstdint>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <pluginlib/class_loader.hpp>
+#include "pluginlib/class_loader.hpp"
 
-#include <panther_lights/animation/animation.hpp>
+#include "panther_lights/animation/animation.hpp"
 
 namespace panther_lights
 {

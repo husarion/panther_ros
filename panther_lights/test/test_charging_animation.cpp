@@ -18,10 +18,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
+#include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/animation/charging_animation.hpp>
+#include "panther_lights/animation/charging_animation.hpp"
 
 class ChargingAnimationWrapper : public panther_lights::ChargingAnimation
 {

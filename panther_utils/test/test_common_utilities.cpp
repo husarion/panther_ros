@@ -15,9 +15,9 @@
 #include <map>
 #include <string>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <panther_utils/common_utilities.hpp>
+#include "panther_utils/common_utilities.hpp"
 
 TEST(TestPrefixMapKeys, CorrectlyPrefixesKeys)
 {

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/plugins/action/signal_shutdown_node.hpp>
+#include "panther_manager/plugins/action/signal_shutdown_node.hpp"
 
 #include <string>
 #include <utility>
 
-#include <behaviortree_cpp/basic_types.h>
+#include "behaviortree_cpp/basic_types.h"
 
 namespace panther_manager
 {
