@@ -16,7 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
@@ -26,6 +26,13 @@ def generate_launch_description():
     declare_imu_config_path_arg = DeclareLaunchArgument(
         "imu_config_path",
         description="Path to IMU configuration file",
+    )
+
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
     )
 
     imu_container = ComposableNodeContainer(
@@ -39,18 +46,21 @@ def generate_launch_description():
                 plugin="phidgets::SpatialRosI",
                 name="phidgets_spatial_node",
                 parameters=[imu_config_path],
+                namespace=namespace,
             ),
             ComposableNode(
                 package="imu_filter_madgwick",
                 plugin="ImuFilterMadgwickRos",
                 name="imu_filter_node",
                 parameters=[imu_config_path],
+                namespace=namespace,
             ),
         ],
     )
 
     actions = [
         declare_imu_config_path_arg,
+        declare_namespace_arg,
         imu_container,
     ]
 

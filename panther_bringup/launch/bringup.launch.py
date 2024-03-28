@@ -33,7 +33,7 @@ from launch.substitutions import (
     PathJoinSubstitution,
     PythonExpression,
 )
-from launch_ros.actions import Node, PushRosNamespace, SetParameter
+from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -73,8 +73,8 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="",
-        description="Panther robot namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
     )
 
     use_sim = LaunchConfiguration("use_sim")
@@ -227,6 +227,7 @@ def generate_launch_description():
             "use_sim": use_sim,
             "simulation_engine": simulation_engine,
             "publish_robot_state": publish_robot_state,
+            "namespace": namespace,
         }.items(),
     )
 
@@ -244,6 +245,7 @@ def generate_launch_description():
             "imu_config_path": PathJoinSubstitution(
                 [FindPackageShare("panther_bringup"), "config", "imu.yaml"]
             ),
+            "namespace": namespace,
         }.items(),
         condition=UnlessCondition(use_sim),
     )
@@ -261,6 +263,7 @@ def generate_launch_description():
         condition=UnlessCondition(use_sim),
         launch_arguments={
             "led_config_file": led_config_file,
+            "namespace": namespace,
             "user_led_animations_file": user_led_animations_file,
         }.items(),
     )
@@ -277,6 +280,7 @@ def generate_launch_description():
         ),
         condition=UnlessCondition(use_sim),
         launch_arguments={
+            "namespace": namespace,
             "panther_version": panther_version,
         }.items(),
     )
@@ -287,6 +291,12 @@ def generate_launch_description():
         name="ekf_node",
         output="screen",
         parameters=[ekf_config_path],
+        namespace=namespace,
+        remappings=[
+            ("enable", "ekf_node/enable"),
+            ("set_pose", "ekf_node/set_pose"),
+            ("toggle", "ekf_node/toggle"),
+        ],
         condition=IfCondition(use_ekf),
     )
 
@@ -302,6 +312,7 @@ def generate_launch_description():
         ),
         condition=UnlessCondition(use_sim),
         launch_arguments={
+            "namespace": namespace,
             "panther_version": panther_version,
             "shutdown_hosts_config_path": shutdown_hosts_config_path,
         }.items(),
@@ -344,7 +355,6 @@ def generate_launch_description():
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
         declare_shutdown_hosts_config_path_arg,
-        PushRosNamespace(namespace),
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,

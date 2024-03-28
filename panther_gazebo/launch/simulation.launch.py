@@ -18,6 +18,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
+    EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
@@ -155,6 +156,13 @@ def generate_launch_description():
         ),
     )
 
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
+    )
+
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -188,6 +196,7 @@ def generate_launch_description():
             rot_yaw,
         ],
         output="screen",
+        namespace=namespace,
     )
 
     gz_bridge = Node(
@@ -195,6 +204,7 @@ def generate_launch_description():
         executable="parameter_bridge",
         name="gz_bridge",
         parameters=[{"config_file": gz_bridge_config_path}],
+        namespace=namespace,
         output="screen",
     )
 
@@ -216,6 +226,7 @@ def generate_launch_description():
             "publish_robot_state": publish_robot_state,
             "use_sim": "True",
             "simulation_engine": "ignition-gazebo",
+            "namespace": namespace,
         }.items(),
     )
 
@@ -232,6 +243,7 @@ def generate_launch_description():
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_publish_robot_state_arg,
+            declare_namespace_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,
