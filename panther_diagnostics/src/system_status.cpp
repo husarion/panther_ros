@@ -15,6 +15,7 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <thread>
 
 #include "panther_diagnostics/system_status.hpp"
 
@@ -23,15 +24,8 @@ namespace panther_diagnostics
 
 SystemStatus::SystemStatus() : rclcpp::Node("system_status_node")
 {
-  this->number_of_cpus_ = this->GetNumberOfCPUs(cpu_info_filename);
-
-  if (not this->number_of_cpus_) {
-    throw std::runtime_error("Could not find CPUs in the /proc/stat!");
-  }
-
+  this->number_of_cpus_ = std::thread::hardware_concurrency();
   this->cpus_usages_.resize(this->number_of_cpus_ + 1, 0);
-  this->cpus_last_idles_.resize(this->number_of_cpus_ + 1, 0);
-  this->cpus_last_totals_.resize(this->number_of_cpus_ + 1, 0);
 
   publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>("system_status", 10);
   timer_ = this->create_wall_timer(500ms, std::bind(&SystemStatus::TimerCallback, this));
@@ -49,41 +43,18 @@ float SystemStatus::GetTemperature(const std::string & filename) const
     float temperature;
     file >> temperature;
     file.close();
-    return temperature;
+    return temperature / 1000;
   } catch (const std::ifstream::failure & e) {
     RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying to cpu temperature: " << e.what());
   }
   return std::numeric_limits<float>::quiet_NaN();
 }
 
-std::size_t SystemStatus::GetNumberOfCPUs(const std::string & filename) const
-{
-  std::size_t num_of_cpus = 0;
-  std::ifstream file;
-  file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-  try {
-    file.open(filename);
-    std::string line;
-
-    while (std::getline(file, line) && line.find("intr") == std::string::npos) {
-      if (line.find("cpu") != std::string::npos) {
-        ++num_of_cpus;
-      }
-    }
-    file.close();
-    return num_of_cpus - 1;
-  } catch (const std::ifstream::failure & e) {
-    RCLCPP_ERROR_STREAM(
-      this->get_logger(), "Error when trying to read number of cpus: " << e.what());
-  }
-  return 0;
-}
-
 std::vector<float> SystemStatus::GetCPUsUsages(const std::string & filename)
 {
   std::ifstream file;
   file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+  std::vector<float> usages;
 
   try {
     file.open(filename);
@@ -93,14 +64,14 @@ std::vector<float> SystemStatus::GetCPUsUsages(const std::string & filename)
     }
 
     file.close();
-    std::vector<float> usages;
     usages.assign(this->cpus_usages_.begin() + 1, this->cpus_usages_.end());
     return usages;
   } catch (const std::ifstream::failure & e) {
     RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying to read cpu usage: " << e.what());
   }
 
-  return std::vector<float>();
+  usages.resize(number_of_cpus_ + 1, std::numeric_limits<float>::quiet_NaN());
+  return usages;
 }
 
 float SystemStatus::GetCPUMeanUsage() const
@@ -126,21 +97,7 @@ void SystemStatus::ReadOneCPU(std::ifstream & file, const std::size_t index)
   file >> user >> nice >> system >> idle >> iowait >> irq >> softirq;
   total = user + nice + system + idle + iowait + irq + softirq;
 
-  if (!cpus_last_totals_[index]) {
-    this->cpus_last_totals_[index] = total;
-    this->cpus_last_idles_[index] = idle;
-    return;
-  }
-  std::size_t diff_total = total - cpus_last_totals_[index];
-  std::size_t diff_idle = idle - cpus_last_idles_[index];
-
-  if (!diff_total) {
-    this->cpus_usages_[index] = 0.0;
-  } else {
-    this->cpus_usages_[index] = ((diff_total - diff_idle) / static_cast<float>(diff_total)) * 100.0;
-  }
-  this->cpus_last_idles_[index] = idle;
-  this->cpus_last_totals_[index] = total;
+  this->cpus_usages_[index] = 100.0 - static_cast<float>(idle) / total * 100.0;
 }
 
 float SystemStatus::GetDiskUsage() const
@@ -149,7 +106,7 @@ float SystemStatus::GetDiskUsage() const
     const std::filesystem::directory_entry entry("/");
     const std::filesystem::space_info si = std::filesystem::space(entry.path());
 
-    return static_cast<float>(si.capacity - si.available) / si.capacity;
+    return static_cast<float>(si.capacity - si.available) / si.capacity * 100.0;
   } catch (const std::exception & e) {
     std::cerr << "Error: " << e.what() << std::endl;
     RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying to read disk usage: " << e.what());
@@ -179,7 +136,7 @@ float SystemStatus::GetMemoryUsage(const std::string & filename) const
     }
 
     file.close();
-    return static_cast<float>(total - free) / total;
+    return static_cast<float>(total - free) / total * 100.0;
   } catch (const std::ifstream::failure & e) {
     RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying read to memory usage: " << e.what());
   }

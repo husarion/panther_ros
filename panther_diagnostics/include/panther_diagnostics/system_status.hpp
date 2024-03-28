@@ -35,10 +35,9 @@ public:
   static constexpr const char * memory_info_filename = "/proc/meminfo";
   static constexpr const char * temperature_info_filename = "/sys/class/thermal/thermal_zone0/temp";
 
-private:
+protected:
   void TimerCallback();
   float GetTemperature(const std::string & filename) const;
-  std::size_t GetNumberOfCPUs(const std::string & filename) const;
   std::vector<float> GetCPUsUsages(const std::string & filename);
   float GetMemoryUsage(const std::string & filename) const;
   float GetCPUMeanUsage() const;
@@ -48,8 +47,6 @@ private:
   std::size_t number_of_cpus_;
   float cpu_mean_usage_;
   std::vector<float> cpus_usages_;
-  std::vector<std::size_t> cpus_last_idles_;
-  std::vector<std::size_t> cpus_last_totals_;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr publisher_;
