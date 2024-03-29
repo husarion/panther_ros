@@ -21,15 +21,16 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    panther_version = LaunchConfiguration("panther_version")
-    declare_panther_version_arg = DeclareLaunchArgument("panther_version")
-
     namespace = LaunchConfiguration("namespace")
+    panther_version = LaunchConfiguration("panther_version")
+
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all Panther nodes",
     )
+
+    declare_panther_version_arg = DeclareLaunchArgument("panther_version")
 
     battery_node = Node(
         package="panther_battery",

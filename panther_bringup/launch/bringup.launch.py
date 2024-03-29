@@ -70,51 +70,29 @@ def generate_launch_description():
 
     welcome_msg = LogInfo(msg=stats_msg)
 
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all Panther nodes",
-    )
-
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
-    )
-
-    wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description=(
-            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
-            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
-            " parameters. For custom wheels, please define these parameters to point to files that"
-            " accurately describe the custom wheels."
-        ),
-        choices=["WH01", "WH02", "WH04", "custom"],
-    )
-
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_description"),
-                "config",
-                PythonExpression(["'", wheel_type, ".yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-            "to your custom wheel configuration file here. "
-        ),
-    )
-
+    battery_config_path = LaunchConfiguration("battery_config_path")
     controller_config_path = LaunchConfiguration("controller_config_path")
+    ekf_config_path = LaunchConfiguration("ekf_config_path")
+    led_config_file = LaunchConfiguration("led_config_file")
+    namespace = LaunchConfiguration("namespace")
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
+    simulation_engine = LaunchConfiguration("simulation_engine")
+    use_ekf = LaunchConfiguration("use_ekf")
+    use_sim = LaunchConfiguration("use_sim")
+    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    wheel_type = LaunchConfiguration("wheel_type")
+
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
+        default_value="",
+    )
+
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
         default_value=PathJoinSubstitution(
@@ -131,17 +109,15 @@ def generate_launch_description():
         ),
     )
 
-    battery_config_path = LaunchConfiguration("battery_config_path")
-    declare_battery_config_path_arg = DeclareLaunchArgument(
-        "battery_config_path",
-        description=(
-            "Path to the Ignition LinearBatteryPlugin configuration file. "
-            "This configuration is intended for use in simulations only."
+    declare_ekf_config_path_arg = DeclareLaunchArgument(
+        "ekf_config_path",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_bringup"), "config", "ekf.yaml"]
         ),
-        default_value="",
+        description="Path to the EKF config file",
+        condition=IfCondition(use_ekf),
     )
 
-    led_config_file = LaunchConfiguration("led_config_file")
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
         default_value=PathJoinSubstitution(
@@ -154,21 +130,12 @@ def generate_launch_description():
         description="Path to a YAML file with a description of led configuration",
     )
 
-    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
-    declare_user_led_animations_file_arg = DeclareLaunchArgument(
-        "user_led_animations_file",
-        default_value="",
-        description="Path to a YAML file with a description of the user defined animations",
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all Panther nodes",
     )
 
-    simulation_engine = LaunchConfiguration("simulation_engine")
-    declare_simulation_engine_arg = DeclareLaunchArgument(
-        "simulation_engine",
-        default_value="ignition-gazebo",
-        description="Which simulation engine will be used",
-    )
-
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
     declare_publish_robot_state_arg = DeclareLaunchArgument(
         "publish_robot_state",
         default_value="True",
@@ -178,24 +145,6 @@ def generate_launch_description():
         ),
     )
 
-    use_ekf = LaunchConfiguration("use_ekf")
-    declare_use_ekf_arg = DeclareLaunchArgument(
-        "use_ekf",
-        default_value="True",
-        description="Enable or disable EKF",
-    )
-
-    ekf_config_path = LaunchConfiguration("ekf_config_path")
-    declare_ekf_config_path_arg = DeclareLaunchArgument(
-        "ekf_config_path",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_bringup"), "config", "ekf.yaml"]
-        ),
-        description="Path to the EKF config file",
-        condition=IfCondition(use_ekf),
-    )
-
-    shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
     declare_shutdown_hosts_config_path_arg = DeclareLaunchArgument(
         "shutdown_hosts_config_path",
         default_value=PathJoinSubstitution(
@@ -206,6 +155,58 @@ def generate_launch_description():
             ]
         ),
         description="Path to file with list of hosts to request shutdown.",
+    )
+
+    declare_simulation_engine_arg = DeclareLaunchArgument(
+        "simulation_engine",
+        default_value="ignition-gazebo",
+        description="Which simulation engine will be used",
+    )
+
+    declare_use_ekf_arg = DeclareLaunchArgument(
+        "use_ekf",
+        default_value="True",
+        description="Enable or disable EKF",
+    )
+
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
+    declare_user_led_animations_file_arg = DeclareLaunchArgument(
+        "user_led_animations_file",
+        default_value="",
+        description="Path to a YAML file with a description of the user defined animations",
+    )
+
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
+        ),
+    )
+
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
+            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
+            " parameters. For custom wheels, please define these parameters to point to files that"
+            " accurately describe the custom wheels."
+        ),
+        choices=["WH01", "WH02", "WH04", "custom"],
     )
 
     controller_launch = IncludeLaunchDescription(
@@ -219,15 +220,15 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "panther_version": panther_version,
-            "wheel_type": wheel_type,
-            "wheel_config_path": wheel_config_path,
-            "controller_config_path": controller_config_path,
             "battery_config_path": battery_config_path,
-            "use_sim": use_sim,
-            "simulation_engine": simulation_engine,
-            "publish_robot_state": publish_robot_state,
+            "controller_config_path": controller_config_path,
             "namespace": namespace,
+            "panther_version": panther_version,
+            "publish_robot_state": publish_robot_state,
+            "simulation_engine": simulation_engine,
+            "use_sim": use_sim,
+            "wheel_config_path": wheel_config_path,
+            "wheel_type": wheel_type,
         }.items(),
     )
 
@@ -341,25 +342,25 @@ def generate_launch_description():
         ],
     )
 
-    actions = [
-        declare_namespace_arg,
-        declare_use_sim_arg,
-        declare_wheel_type_arg,
-        declare_wheel_config_path_arg,
-        declare_controller_config_path_arg,
-        declare_battery_config_path_arg,
-        declare_led_config_file_arg,
-        declare_user_led_animations_file_arg,
-        declare_simulation_engine_arg,
-        declare_publish_robot_state_arg,
-        declare_use_ekf_arg,
-        declare_ekf_config_path_arg,
-        declare_shutdown_hosts_config_path_arg,
-        SetParameter(name="use_sim_time", value=use_sim),
-        welcome_msg,
-        controller_launch,
-        waiting_msg,
-        other_action_timer,
-    ]
-
-    return LaunchDescription(actions)
+    return LaunchDescription(
+        [
+            declare_battery_config_path_arg,
+            declare_controller_config_path_arg,
+            declare_ekf_config_path_arg,
+            declare_namespace_arg,
+            declare_led_config_file_arg,
+            declare_publish_robot_state_arg,
+            declare_shutdown_hosts_config_path_arg,
+            declare_simulation_engine_arg,
+            declare_use_ekf_arg,
+            declare_use_sim_arg,
+            declare_wheel_type_arg,
+            declare_wheel_config_path_arg,
+            declare_user_led_animations_file_arg,
+            SetParameter(name="use_sim_time", value=use_sim),
+            welcome_msg,
+            controller_launch,
+            waiting_msg,
+            other_action_timer,
+        ]
+    )

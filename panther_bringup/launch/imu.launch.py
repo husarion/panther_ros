@@ -23,12 +23,13 @@ from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
     imu_config_path = LaunchConfiguration("imu_config_path")
+    namespace = LaunchConfiguration("namespace")
+
     declare_imu_config_path_arg = DeclareLaunchArgument(
         "imu_config_path",
         description="Path to IMU configuration file",
     )
 
-    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),

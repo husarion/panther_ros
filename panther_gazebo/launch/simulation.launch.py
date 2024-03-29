@@ -28,37 +28,19 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description=(
-            "Specify the type of wheel. If you select a value from the provided options ('WH01',"
-            " 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and"
-            " 'controller_config_path' parameters. If you have custom wheels, set this parameter"
-            " to 'CUSTOM' and provide the necessary configurations."
-        ),
-        choices=["WH01", "WH02", "WH04", "CUSTOM"],
-    )
-
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_description"),
-                "config",
-                PythonExpression(["'", wheel_type, ".yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-            "to your custom wheel configuration file here. "
-        ),
-    )
-
     controller_config_path = LaunchConfiguration("controller_config_path")
+    battery_config_path = LaunchConfiguration("battery_config_path")
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
+    namespace = LaunchConfiguration("namespace")
+    pose_x = LaunchConfiguration("pose_x")
+    pose_y = LaunchConfiguration("pose_y")
+    pose_z = LaunchConfiguration("pose_z")
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    rot_yaw = LaunchConfiguration("rot_yaw")
+    world_cfg = LaunchConfiguration("world")
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    wheel_type = LaunchConfiguration("wheel_type")
+
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
         default_value=PathJoinSubstitution(
@@ -75,7 +57,6 @@ def generate_launch_description():
         ),
     )
 
-    battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
         default_value=PathJoinSubstitution(
@@ -91,7 +72,6 @@ def generate_launch_description():
         ),
     )
 
-    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
@@ -104,7 +84,43 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file",
     )
 
-    world_cfg = LaunchConfiguration("world")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all Panther nodes",
+    )
+
+    declare_pose_x_arg = DeclareLaunchArgument(
+        "pose_x",
+        default_value=["5.0"],
+        description="Initial robot position in the global 'x' axis.",
+    )
+
+    declare_pose_y_arg = DeclareLaunchArgument(
+        "pose_y",
+        default_value=["-5.0"],
+        description="Initial robot position in the global 'y' axis.",
+    )
+
+    declare_pose_z_arg = DeclareLaunchArgument(
+        "pose_z",
+        default_value=["0.2"],
+        description="Initial robot position in the global 'z' axis.",
+    )
+
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
+        description=(
+            "Whether to launch the robot_state_publisher node."
+            "When set to False, users should publish their own robot description."
+        ),
+    )
+
+    declare_rot_yaw_arg = DeclareLaunchArgument(
+        "rot_yaw", default_value=["0.0"], description="Initial robot orientation."
+    )
+
     declare_world_arg = DeclareLaunchArgument(
         "world",
         default_value=[
@@ -120,47 +136,32 @@ def generate_launch_description():
         description="SDF world file",
     )
 
-    pose_x = LaunchConfiguration("pose_x")
-    declare_pose_x_arg = DeclareLaunchArgument(
-        "pose_x",
-        default_value=["5.0"],
-        description="Initial robot position in the global 'x' axis.",
-    )
-
-    pose_y = LaunchConfiguration("pose_y")
-    declare_pose_y_arg = DeclareLaunchArgument(
-        "pose_y",
-        default_value=["-5.0"],
-        description="Initial robot position in the global 'y' axis.",
-    )
-
-    pose_z = LaunchConfiguration("pose_z")
-    declare_pose_z_arg = DeclareLaunchArgument(
-        "pose_z",
-        default_value=["0.2"],
-        description="Initial robot position in the global 'z' axis.",
-    )
-
-    rot_yaw = LaunchConfiguration("rot_yaw")
-    declare_rot_yaw_arg = DeclareLaunchArgument(
-        "rot_yaw", default_value=["0.0"], description="Initial robot orientation."
-    )
-
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
-    declare_publish_robot_state_arg = DeclareLaunchArgument(
-        "publish_robot_state",
-        default_value="True",
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
         description=(
-            "Whether to launch the robot_state_publisher node."
-            "When set to False, users should publish their own robot description."
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
         ),
     )
 
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all Panther nodes",
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Specify the type of wheel. If you select a value from the provided options ('WH01',"
+            " 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and"
+            " 'controller_config_path' parameters. If you have custom wheels, set this parameter"
+            " to 'CUSTOM' and provide the necessary configurations."
+        ),
+        choices=["WH01", "WH02", "WH04", "CUSTOM"],
     )
 
     gz_sim = IncludeLaunchDescription(
@@ -219,31 +220,31 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
+            "battery_config_path": battery_config_path,
+            "controller_config_path": controller_config_path,
+            "namespace": namespace,
+            "publish_robot_state": publish_robot_state,
+            "simulation_engine": "ignition-gazebo",
+            "use_sim": "True",
             "wheel_type": wheel_type,
             "wheel_config_path": wheel_config_path,
-            "controller_config_path": controller_config_path,
-            "battery_config_path": battery_config_path,
-            "publish_robot_state": publish_robot_state,
-            "use_sim": "True",
-            "simulation_engine": "ignition-gazebo",
-            "namespace": namespace,
         }.items(),
     )
 
     return LaunchDescription(
         [
-            declare_world_arg,
+            declare_battery_config_path_arg,
+            declare_controller_config_path_arg,
+            declare_gz_bridge_config_path_arg,
+            declare_namespace_arg,
             declare_pose_x_arg,
             declare_pose_y_arg,
             declare_pose_z_arg,
+            declare_publish_robot_state_arg,
             declare_rot_yaw_arg,
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
-            declare_controller_config_path_arg,
-            declare_battery_config_path_arg,
-            declare_gz_bridge_config_path_arg,
-            declare_publish_robot_state_arg,
-            declare_namespace_arg,
+            declare_world_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,

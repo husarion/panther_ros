@@ -33,31 +33,15 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    panther_version = LaunchConfiguration("panther_version")
-    declare_panther_version_arg = DeclareLaunchArgument(
-        "panther_version",
-    )
-
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
-    )
-
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        description="Path to wheel configuration file.",
-    )
-
-    controller_config_path = LaunchConfiguration("controller_config_path")
-    declare_controller_config_path_arg = DeclareLaunchArgument(
-        "controller_config_path",
-        description="Path to controller configuration file.",
-    )
-
     battery_config_path = LaunchConfiguration("battery_config_path")
+    controller_config_path = LaunchConfiguration("controller_config_path")
+    namespace = LaunchConfiguration("namespace")
+    panther_version = LaunchConfiguration("panther_version")
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    simulation_engine = LaunchConfiguration("simulation_engine")
+    use_sim = LaunchConfiguration("use_sim")
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
         description=(
@@ -67,14 +51,21 @@ def generate_launch_description():
         default_value="",
     )
 
-    simulation_engine = LaunchConfiguration("simulation_engine")
-    declare_simulation_engine_arg = DeclareLaunchArgument(
-        "simulation_engine",
-        default_value="ignition-gazebo",
-        description="Which simulation engine will be used",
+    declare_controller_config_path_arg = DeclareLaunchArgument(
+        "controller_config_path",
+        description="Path to controller configuration file.",
     )
 
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all Panther nodes",
+    )
+
+    declare_panther_version_arg = DeclareLaunchArgument(
+        "panther_version",
+    )
+
     declare_publish_robot_state_arg = DeclareLaunchArgument(
         "publish_robot_state",
         default_value="True",
@@ -83,11 +74,22 @@ def generate_launch_description():
             "When set to False, users should publish their own robot description."
         ),
     )
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all Panther nodes",
+
+    declare_simulation_engine_arg = DeclareLaunchArgument(
+        "simulation_engine",
+        default_value="ignition-gazebo",
+        description="Which simulation engine will be used",
+    )
+
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        description="Path to wheel configuration file.",
     )
 
     # Get URDF via xacro
@@ -230,14 +232,14 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_battery_config_path_arg,
+        declare_controller_config_path_arg,
+        declare_namespace_arg,
         declare_panther_version_arg,
+        declare_publish_robot_state_arg,
+        declare_simulation_engine_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
-        declare_controller_config_path_arg,
-        declare_battery_config_path_arg,
-        declare_simulation_engine_arg,
-        declare_publish_robot_state_arg,
-        declare_namespace_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,
