@@ -22,7 +22,7 @@
 namespace panther_diagnostics
 {
 
-SystemStatus::SystemStatus() : rclcpp::Node("system_status_node")
+SystemStatus::SystemStatus() : rclcpp::Node("system_status_node"), diagnostic_updater_(this)
 {
   this->number_of_cpus_ = std::thread::hardware_concurrency();
   this->cpus_usages_.resize(this->number_of_cpus_ + 1, 0);
@@ -30,9 +30,12 @@ SystemStatus::SystemStatus() : rclcpp::Node("system_status_node")
   this->cpus_last_totals_.resize(this->number_of_cpus_ + 1, 0);
 
   publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>("system_status", 10);
-  timer_ = this->create_wall_timer(500ms, std::bind(&SystemStatus::TimerCallback, this));
+  timer_ = this->create_wall_timer(250ms, std::bind(&SystemStatus::TimerCallback, this));
 
-  RCLCPP_INFO(this->get_logger(), "system_status has started!");
+  diagnostic_updater_.setHardwareID("Overlay RPi");
+  diagnostic_updater_.add("Overlay RPi OS status", this, &SystemStatus::DiagnoseSystem);
+
+  RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
 float SystemStatus::GetTemperature(const std::string & filename) const
@@ -45,9 +48,9 @@ float SystemStatus::GetTemperature(const std::string & filename) const
     float temperature;
     file >> temperature;
     file.close();
-    return temperature / 1000;
+    return temperature / 1000.0;
   } catch (const std::ifstream::failure & e) {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying to cpu temperature: " << e.what());
+    RCLCPP_FATAL_STREAM(this->get_logger(), "Error when trying to cpu temperature: " << e.what());
   }
   return std::numeric_limits<float>::quiet_NaN();
 }
@@ -69,7 +72,7 @@ std::vector<float> SystemStatus::GetCPUsUsages(const std::string & filename)
     usages.assign(this->cpus_usages_.begin() + 1, this->cpus_usages_.end());
     return usages;
   } catch (const std::ifstream::failure & e) {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying to read cpu usage: " << e.what());
+    RCLCPP_FATAL_STREAM(this->get_logger(), "Error when trying to read cpu usage: " << e.what());
   }
 
   usages.resize(number_of_cpus_ + 1, std::numeric_limits<float>::quiet_NaN());
@@ -106,8 +109,6 @@ void SystemStatus::ReadOneCPU(std::ifstream & file, const std::size_t index)
   }
   int64_t diff_total = total - cpus_last_totals_[index];
   int64_t diff_idle = idle - cpus_last_idles_[index];
-  std::cout << "index: " << index << " total diff: " << diff_total << " ide " << diff_idle
-            << std::endl;
 
   if (!diff_total) {
     this->cpus_usages_[index] = 0.0;
@@ -129,7 +130,7 @@ float SystemStatus::GetDiskUsage() const
     return static_cast<float>(si.capacity - si.available) / si.capacity * 100.0;
   } catch (const std::exception & e) {
     std::cerr << "Error: " << e.what() << std::endl;
-    RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying to read disk usage: " << e.what());
+    RCLCPP_FATAL_STREAM(this->get_logger(), "Error when trying to read disk usage: " << e.what());
   }
 
   return std::numeric_limits<float>::quiet_NaN();
@@ -158,7 +159,7 @@ float SystemStatus::GetMemoryUsage(const std::string & filename) const
     file.close();
     return static_cast<float>(total - free) / total * 100.0;
   } catch (const std::ifstream::failure & e) {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "Error when trying read to memory usage: " << e.what());
+    RCLCPP_FATAL_STREAM(this->get_logger(), "Error when trying read to memory usage: " << e.what());
   }
 
   return std::numeric_limits<float>::quiet_NaN();
@@ -175,6 +176,63 @@ void SystemStatus::TimerCallback()
   message.disc_usage_percent = GetDiskUsage();
   message.ram_usage_percent = GetMemoryUsage(memory_info_filename);
   publisher_->publish(message);
+}
+
+void SystemStatus::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
+  auto error_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+  std::string message = "";
+
+  GetCPUsUsages(cpu_info_filename);
+  auto cpu_usage = GetCPUMeanUsage();
+  auto cpu_temp = GetTemperature(temperature_info_filename);
+  auto disk_usage = GetDiskUsage();
+  auto memory_usage = GetMemoryUsage(memory_info_filename);
+
+  CheckValueAndUpdateKeyValues(
+    cpu_usage, cpu_usage_warn_threshold, "%", "CPU usage", std::ref(error_level),
+    std::ref(key_values), std::ref(message));
+  CheckValueAndUpdateKeyValues(
+    cpu_temp, cpu_temp_warn_threshold, "*C", "CPU temperature", std::ref(error_level),
+    std::ref(key_values), std::ref(message));
+  CheckValueAndUpdateKeyValues(
+    disk_usage, disk_usage_warn_threshold, "%", "Disk memory usage", std::ref(error_level),
+    std::ref(key_values), std::ref(message));
+  CheckValueAndUpdateKeyValues(
+    memory_usage, memory_usage_warn_threshold, "%", "RAM memory usage", std::ref(error_level),
+    std::ref(key_values), std::ref(message));
+
+  message = error_level == diagnostic_msgs::msg::DiagnosticStatus::OK ? "Status is OK" : message;
+  status.values = key_values;
+  status.summary(error_level, message);
+}
+
+void SystemStatus::CheckValueAndUpdateKeyValues(
+  const float value, const float threshold, const std::string & unit, const std::string & key,
+  unsigned char & status, std::vector<diagnostic_msgs::msg::KeyValue> & key_values,
+  std::string & message)
+{
+  diagnostic_msgs::msg::KeyValue key_value;
+  key_value.key = key;
+  key_value.value = std::to_string(value);
+  if (std::isnan(value)) {
+    status = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+    key_values.push_back(key_value);
+
+    message += key + " value unknown!\n";
+    RCLCPP_ERROR_STREAM(this->get_logger(), key << " value unknown!");
+  } else if (value > threshold) {
+    status = status == diagnostic_updater::DiagnosticStatusWrapper::ERROR
+               ? diagnostic_updater::DiagnosticStatusWrapper::ERROR
+               : diagnostic_updater::DiagnosticStatusWrapper::WARN;
+
+    message += key + " value over acceptable threshold!\n";
+    RCLCPP_WARN_STREAM(this->get_logger(), key << " value over acceptable threshold!");
+
+    key_value.value += unit;
+    key_values.push_back(key_value);
+  }
 }
 
 }  // namespace panther_diagnostics

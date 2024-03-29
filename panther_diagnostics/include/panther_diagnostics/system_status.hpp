@@ -36,6 +36,11 @@ public:
   static constexpr const char * memory_info_filename = "/proc/meminfo";
   static constexpr const char * temperature_info_filename = "/sys/class/thermal/thermal_zone0/temp";
 
+  static constexpr float disk_usage_warn_threshold = 95.0;
+  static constexpr float memory_usage_warn_threshold = 95.0;
+  static constexpr float cpu_usage_warn_threshold = 95.0;
+  static constexpr float cpu_temp_warn_threshold = 80.0;
+
 protected:
   void TimerCallback();
   float GetTemperature(const std::string & filename) const;
@@ -44,6 +49,11 @@ protected:
   float GetCPUMeanUsage() const;
   float GetDiskUsage() const;
   void ReadOneCPU(std::ifstream & file, const std::size_t index);
+  void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
+  void CheckValueAndUpdateKeyValues(
+    const float value, const float threshold, const std::string & unit, const std::string & key,
+    unsigned char & status, std::vector<diagnostic_msgs::msg::KeyValue> & key_values,
+    std::string & message);
 
   std::size_t number_of_cpus_;
   float cpu_mean_usage_;
@@ -53,7 +63,7 @@ protected:
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr publisher_;
-  // diagnostic_updater::Updater diagnostic_updater_;
+  diagnostic_updater::Updater diagnostic_updater_;
 };
 }  // namespace panther_diagnostics
 #endif  // PANTHER_DIAGNOSTICS_NODE_CPU_HPP
