@@ -160,7 +160,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Namespace for all Panther topics",
+        description="Add namespace to all Panther nodes",
     )
 
     gz_sim = IncludeLaunchDescription(
