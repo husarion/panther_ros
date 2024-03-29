@@ -2,8 +2,8 @@
 Changelog for package panther_gpiod
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2024-03-29)
+------------------
 * Merge pull request `#257 <https://github.com/husarion/panther_ros/issues/257>`_ from husarion/ros2-headers
   Divide Headers into std and local liblaries
 * Rest of fils

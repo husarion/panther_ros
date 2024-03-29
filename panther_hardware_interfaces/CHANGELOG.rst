@@ -2,8 +2,8 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2024-03-29)
+------------------
 * Merge pull request `#258 <https://github.com/husarion/panther_ros/issues/258>`_ from husarion/ros2-control-fix-err-flag-reset
   ROS 2- Fix Error Clearing Mechanism for Roboteq Controllers
 * fixes for pth 1.06

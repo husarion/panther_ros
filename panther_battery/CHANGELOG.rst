@@ -2,8 +2,8 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2024-03-29)
+------------------
 * Ros2 namespace (`#255 <https://github.com/husarion/panther_ros/issues/255>`_)
   * Preparation for namespace
   * Simulation working
