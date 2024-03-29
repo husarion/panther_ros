@@ -107,8 +107,8 @@ TEST_F(SystemStatusTest, CheckIfFilesExist)
     system_status_->GetMemoryUsage(panther_diagnostics::SystemStatus::memory_info_filename)));
 
   // Works only on RPi
-  // EXPECT_FALSE(std::isnan(
-  //   system_status_->GetTemperature(panther_diagnostics::SystemStatus::temperature_info_filename)));
+  EXPECT_FALSE(std::isnan(
+    system_status_->GetTemperature(panther_diagnostics::SystemStatus::temperature_info_filename)));
 }
 
 TEST_F(SystemStatusTest, CheckTemperatureReadings)
