@@ -75,8 +75,10 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
     use_can_for_e_stop_trigger_ = false;
 
+    // TODO: @pkowalsk1 move estop logic to separate abstraction
     ReadEStop = [this]() {
-      bool e_stop_triggered = !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
+      const bool e_stop_triggered =
+        !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
 
       // In the case where E-Stop is triggered by another device within the robot's system (e.g.,
       // Roboteq or Safety Board), disabling the software Watchdog is necessary to prevent an
@@ -91,7 +93,16 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
     use_can_for_e_stop_trigger_ = true;
 
-    ReadEStop = [this]() { return e_stop_.load(); };
+    ReadEStop = [this]() {
+      const bool motors_on = gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT);
+      const bool driver_error = roboteq_error_filter_->IsError();
+
+      if ((driver_error || !motors_on) && !e_stop_.load()) {
+        SetEStop();
+      }
+
+      return e_stop_.load();
+    };
   }
 
   try {
