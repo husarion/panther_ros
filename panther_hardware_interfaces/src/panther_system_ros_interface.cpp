@@ -210,7 +210,7 @@ void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
 
 void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & gpio_info)
 {
-  const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
+  const bool pin_value = gpio_info.value;
 
   if (!UpdateIOStateMsg(gpio_info.pin, pin_value)) {
     return;

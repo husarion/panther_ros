@@ -66,7 +66,7 @@ void DriverNode::Initialize()
   num_led_ = this->get_parameter("num_led").as_int();
 
   std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
-    panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
+    panther_gpiod::GPIOPin::LED_SBC_SEL, GPIOD_LINE_DIRECTION_OUTPUT, true}};
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
   gpio_driver_->GPIOMonitorEnable();
 

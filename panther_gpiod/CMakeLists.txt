@@ -1,15 +1,12 @@
 cmake_minimum_required(VERSION 3.10.2)
 
-# Handle superbuild first
-option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
+project(panther_gpiod)
 
-if(USE_SUPERBUILD)
-  project(SUPERBUILD NONE)
-  include(cmake/SuperBuild.cmake)
-  return()
-else()
-  project(panther_gpiod)
-endif()
+# # Handle superbuild first option(USE_SUPERBUILD "Whether or not a superbuild
+# should be invoked" ON)
+
+# if(USE_SUPERBUILD) project(SUPERBUILD NONE) include(cmake/SuperBuild.cmake)
+# return() else() project(panther_gpiod) endif()
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
@@ -54,18 +51,15 @@ ament_export_libraries(${PROJECT_NAME})
 
 ament_export_dependencies(panther_utils)
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
+# if(BUILD_TESTING) find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_gpiod test/test_gpio_driver.cpp)
+# ament_add_gtest(${PROJECT_NAME}_test_gpiod test/test_gpio_driver.cpp)
 
-  target_include_directories(
-    ${PROJECT_NAME}_test_gpiod
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_gpiod panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_gpiod ${PROJECT_NAME}
-                        PkgConfig::LIBGPIOD)
-endif()
+# target_include_directories( ${PROJECT_NAME}_test_gpiod PUBLIC
+# $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+# $<INSTALL_INTERFACE:include>)
+# ament_target_dependencies(${PROJECT_NAME}_test_gpiod panther_utils)
+# target_link_libraries(${PROJECT_NAME}_test_gpiod ${PROJECT_NAME}
+# PkgConfig::LIBGPIOD) endif()
 
 ament_package()

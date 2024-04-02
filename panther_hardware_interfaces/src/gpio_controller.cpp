@@ -127,16 +127,16 @@ void GPIOControllerPTH12X::EStopReset()
     return;
   }
 
-  gpio_driver_->ChangePinDirection(e_stop_pin, gpiod::line::direction::OUTPUT);
+  gpio_driver_->ChangePinDirection(e_stop_pin, GPIOD_LINE_DIRECTION_OUTPUT);
   watchdog_->TurnOn();
   gpio_driver_->SetPinValue(e_stop_pin, true);
 
   if (!WaitFor(std::chrono::milliseconds(100))) {
-    gpio_driver_->ChangePinDirection(e_stop_pin, gpiod::line::direction::INPUT);
+    gpio_driver_->ChangePinDirection(e_stop_pin, GPIOD_LINE_DIRECTION_INPUT);
     throw EStopResetInterrupted("E-stop reset interrupted after setting pin high.");
   }
 
-  gpio_driver_->ChangePinDirection(e_stop_pin, gpiod::line::direction::INPUT);
+  gpio_driver_->ChangePinDirection(e_stop_pin, GPIOD_LINE_DIRECTION_INPUT);
 
   if (!WaitFor(std::chrono::milliseconds(100))) {
     throw EStopResetInterrupted("E-stop reset interrupted after setting pin high.");

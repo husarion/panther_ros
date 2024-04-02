@@ -240,21 +240,20 @@ private:
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
    */
   const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage_{
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN1, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN2, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{
-      panther_gpiod::GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::WATCHDOG, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::AUX_PW_EN, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::CHRG_DISABLE, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::DRIVER_EN, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::E_STOP_RESET, GPIOD_LINE_DIRECTION_INPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::FAN_SW, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT1, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT2, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN1, GPIOD_LINE_DIRECTION_INPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN2, GPIOD_LINE_DIRECTION_INPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::SHDN_INIT, GPIOD_LINE_DIRECTION_INPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VDIG_OFF, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VMOT_ON, GPIOD_LINE_DIRECTION_OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::CHRG_SENSE, GPIOD_LINE_DIRECTION_INPUT, true},
   };
 
   std::mutex e_stop_cv_mtx_;
@@ -352,8 +351,8 @@ private:
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
    */
   const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage_{
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::STAGE2_INPUT, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::STAGE2_INPUT, GPIOD_LINE_DIRECTION_INPUT},
+    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::MOTOR_ON, GPIOD_LINE_DIRECTION_OUTPUT},
   };
 };
 

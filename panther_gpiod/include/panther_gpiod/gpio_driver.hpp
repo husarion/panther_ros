@@ -38,7 +38,9 @@
 #include <thread>
 #include <vector>
 
-#include "gpiod.hpp"
+#include <iostream>
+
+#include <gpiod.hpp>
 
 namespace panther_gpiod
 {
@@ -73,11 +75,12 @@ enum class GPIOPin {
 struct GPIOInfo
 {
   GPIOPin pin;
-  gpiod::line::direction direction;
+  int direction;
   bool active_low = false;
-  gpiod::line::value init_value = gpiod::line::value::INACTIVE;
-  gpiod::line::value value = gpiod::line::value::INACTIVE;
-  gpiod::line::offset offset = -1;
+  int init_value = 0;
+  int value = 0;
+  int offset = -1;
+  int bulk_offset = -1;
 };
 
 /**
@@ -173,7 +176,7 @@ public:
    * @param pin GPIOPin to change the direction for.
    * @param direction New direction for the pin.
    */
-  void ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction);
+  void ChangePinDirection(const GPIOPin pin, const int direction);
 
   /**
    * @brief Returns true if a specific pin is configured and stored in GPIO info storage
@@ -208,15 +211,48 @@ public:
    */
   bool SetPinValue(const GPIOPin pin, const bool value);
 
+  void CreateLines()
+  {
+    std::cout << "cl1" << std::endl;
+    std::lock_guard lock(gpio_info_storage_mutex_);
+
+    for (auto & info : gpio_info_storage_) {
+      auto line = chip_->find_line(pin_names_.at(info.pin));
+      std::cout << "cll2" << std::endl;
+      info.offset = line.offset();
+
+      lines_.emplace(info.pin, line);
+
+      auto direction = info.direction == GPIOD_LINE_DIRECTION_OUTPUT
+                         ? gpiod::line_request::DIRECTION_OUTPUT
+                         : gpiod::line_request::DIRECTION_INPUT;
+
+      gpiod::line_request lr;
+      if (info.active_low) {
+        lr = {"Line", direction, gpiod::line_request::FLAG_ACTIVE_LOW};
+      } else {
+        lr = {"Line", direction};
+      }
+
+      std::cout << "cll3" << std::endl;
+
+      line.request(lr);
+      if (info.direction == GPIOD_LINE_DIRECTION_OUTPUT) {
+        std::cout << "cll4" << std::endl;
+        line.set_value(info.init_value);
+      }
+    }
+  }
+
 private:
   std::unique_ptr<gpiod::line_request> CreateLineRequest(gpiod::chip & chip);
-  gpiod::line_settings GenerateLineSettings(const GPIOInfo & pin_info);
-  GPIOPin GetPinFromOffset(const gpiod::line::offset & offset) const;
+  // gpiod::line_settings GenerateLineSettings(const GPIOInfo & pin_info);
+  GPIOPin GetPinFromOffset(const gpiod::line & line) const;
   GPIOInfo & GetGPIOInfoRef(const GPIOPin pin);
-  void ConfigureLineRequest(
-    gpiod::chip & chip, gpiod::request_builder & builder, GPIOInfo & gpio_info);
+  // void ConfigureLineRequest(
+  //   gpiod::chip & chip, gpiod::request_builder & builder, GPIOInfo & gpio_info);
   void MonitorAsyncEvents();
-  void HandleEdgeEvent(const gpiod::edge_event & event);
+  void HandleEdgeEvent(const gpiod::line & event);
   bool IsGPIOMonitorThreadRunning() const;
 
   /**
@@ -300,6 +336,11 @@ private:
   static constexpr unsigned gpio_debounce_period_ = 10;
   static constexpr unsigned edge_event_buffer_size_ = 2;
   const std::filesystem::path gpio_chip_path_ = "/dev/gpiochip0";
+
+  // ------------------------
+  // ------------------------
+  std::unique_ptr<gpiod::chip> chip_;
+  std::map<GPIOPin, gpiod::line> lines_;
 };
 
 }  // namespace panther_gpiod
