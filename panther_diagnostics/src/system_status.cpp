@@ -49,11 +49,11 @@ void SystemStatus::TimerCallback()
   auto message = panther_msgs::msg::SystemStatus();
   message.header.stamp = this->get_clock()->now();
   message.header.frame_id = "built_in_computer";
-  message.cpu_percent = GetCPUsUsages(cpu_info_filename);
+  message.cpu_percent = GetCPUsUsages(kCPUInfoFilename);
   message.avg_load_percent = GetCPUMeanUsage();
-  message.cpu_temp = GetCPUTemperature(temperature_info_filename);
+  message.cpu_temp = GetCPUTemperature(kTemperatureInfoFilename);
   message.disc_usage_percent = GetDiskUsage();
-  message.ram_usage_percent = GetMemoryUsage(memory_info_filename);
+  message.ram_usage_percent = GetMemoryUsage(kMemoryInfoFilename);
   system_status_publisher_->publish(message);
 }
 
@@ -200,9 +200,9 @@ void SystemStatus::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & 
   std::string message = "Status is OK";
 
   auto cpu_cores_mean_usage = GetCPUMeanUsage();
-  auto cpu_cores_temperature = GetCPUTemperature(temperature_info_filename);
+  auto cpu_cores_temperature = GetCPUTemperature(kTemperatureInfoFilename);
   auto disk_usage = GetDiskUsage();
-  auto memory_usage = GetMemoryUsage(memory_info_filename);
+  auto memory_usage = GetMemoryUsage(kMemoryInfoFilename);
 
   status.add("CPU usage", cpu_cores_mean_usage);
   status.add("CPU temperature", cpu_cores_temperature);

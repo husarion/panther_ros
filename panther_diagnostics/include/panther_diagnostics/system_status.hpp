@@ -34,9 +34,9 @@ class SystemStatus : public rclcpp::Node
 public:
   SystemStatus(const std::string & node_name);
 
-  static constexpr const char * cpu_info_filename = "/proc/stat";
-  static constexpr const char * memory_info_filename = "/proc/meminfo";
-  static constexpr const char * temperature_info_filename = "/sys/class/thermal/thermal_zone0/temp";
+  static constexpr const char * kCPUInfoFilename = "/proc/stat";
+  static constexpr const char * kMemoryInfoFilename = "/proc/meminfo";
+  static constexpr const char * kTemperatureInfoFilename = "/sys/class/thermal/thermal_zone0/temp";
 
 protected:
   float GetCPUTemperature(const std::string & filename);

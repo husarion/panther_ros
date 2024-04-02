@@ -97,18 +97,18 @@ TEST_F(SystemStatusTest, CheckIfFilesExist)
     system_status_->GetMemoryUsage(testing::TempDir() + "panther_diagnostics_wrong_file")));
 
   auto good_usages =
-    system_status_->GetCPUsUsages(panther_diagnostics::SystemStatus::cpu_info_filename);
+    system_status_->GetCPUsUsages(panther_diagnostics::SystemStatus::kCPUInfoFilename);
   EXPECT_FALSE(good_usages.size() == 0);
   for (const auto & usage : good_usages) {
     EXPECT_FALSE(std::isnan(usage));
   }
 
   EXPECT_FALSE(std::isnan(
-    system_status_->GetMemoryUsage(panther_diagnostics::SystemStatus::memory_info_filename)));
+    system_status_->GetMemoryUsage(panther_diagnostics::SystemStatus::kMemoryInfoFilename)));
 
   // Works only on RPi
   EXPECT_FALSE(std::isnan(system_status_->GetCPUTemperature(
-    panther_diagnostics::SystemStatus::temperature_info_filename)));
+    panther_diagnostics::SystemStatus::kTemperatureInfoFilename)));
 }
 
 TEST_F(SystemStatusTest, CheckTemperatureReadings)
