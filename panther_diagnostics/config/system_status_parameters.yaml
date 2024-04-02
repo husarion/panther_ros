@@ -1,0 +1,17 @@
+system_status:
+  disk_usage_warn_threshold:
+    type: double
+    default_value: 95.0
+    description: "Threshold for disk usage warning in percentage."
+  memory_usage_warn_threshold:
+    type: double
+    default_value: 95.0
+    description: "Threshold for memory usage warning in percentage."
+  cpu_usage_warn_threshold:
+    type: double
+    default_value: 95.0
+    description: "Threshold for CPU usage warning in percentage."
+  cpu_temperature_warn_threshold:
+    type: double
+    default_value: 80.0
+    description: "Threshold for CPU temperature warning in degrees Celsius."

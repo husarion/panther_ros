@@ -12,12 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+
+#include <string>
+
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "panther_msgs/msg/system_status.hpp"
+#include "rclcpp/rclcpp.hpp"
+
 #include "panther_diagnostics/system_status.hpp"
 
-int main(int argc, char * argv[])
+int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<panther_diagnostics::SystemStatus>());
+
+  auto system_status_node =
+    std::make_shared<panther_diagnostics::SystemStatus>("system_status_node");
+
+  try {
+    rclcpp::spin(system_status_node);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "[" << system_status_node->get_name() << "] Caught exception: " << e.what()
+              << std::endl;
+  }
+
+  std::cout << "[" << system_status_node->get_name() << "] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

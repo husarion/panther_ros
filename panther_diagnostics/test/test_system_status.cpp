@@ -24,11 +24,11 @@
 class SystemStatusWrapper : public panther_diagnostics::SystemStatus
 {
 public:
-  SystemStatusWrapper() : panther_diagnostics::SystemStatus() {}
+  SystemStatusWrapper() : panther_diagnostics::SystemStatus("test_system_statics") {}
 
-  float GetTemperature(const std::string & filename) const
+  float GetCPUTemperature(const std::string & filename)
   {
-    return panther_diagnostics::SystemStatus::GetTemperature(filename);
+    return panther_diagnostics::SystemStatus::GetCPUTemperature(filename);
   }
 
   std::vector<float> GetCPUsUsages(const std::string & filename)
@@ -36,14 +36,14 @@ public:
     return panther_diagnostics::SystemStatus::GetCPUsUsages(filename);
   }
 
-  float GetMemoryUsage(const std::string & filename) const
+  float GetMemoryUsage(const std::string & filename)
   {
     return panther_diagnostics::SystemStatus::GetMemoryUsage(filename);
   }
 
-  float GetCPUMeanUsage() const { return panther_diagnostics::SystemStatus::GetCPUMeanUsage(); }
+  float GetCPUMeanUsage() { return panther_diagnostics::SystemStatus::GetCPUMeanUsage(); }
 
-  float GetDiskUsage() const { return panther_diagnostics::SystemStatus::GetDiskUsage(); }
+  float GetDiskUsage() { return panther_diagnostics::SystemStatus::GetDiskUsage(); }
 
   void ReadOneCPU(std::ifstream & file, const std::size_t index)
   {
@@ -92,7 +92,7 @@ TEST_F(SystemStatusTest, CheckIfFilesExist)
   }
 
   EXPECT_TRUE(std::isnan(
-    system_status_->GetTemperature(testing::TempDir() + "panther_diagnostics_wrong_file")));
+    system_status_->GetCPUTemperature(testing::TempDir() + "panther_diagnostics_wrong_file")));
   EXPECT_TRUE(std::isnan(
     system_status_->GetMemoryUsage(testing::TempDir() + "panther_diagnostics_wrong_file")));
 
@@ -107,8 +107,8 @@ TEST_F(SystemStatusTest, CheckIfFilesExist)
     system_status_->GetMemoryUsage(panther_diagnostics::SystemStatus::memory_info_filename)));
 
   // Works only on RPi
-  EXPECT_FALSE(std::isnan(
-    system_status_->GetTemperature(panther_diagnostics::SystemStatus::temperature_info_filename)));
+  EXPECT_FALSE(std::isnan(system_status_->GetCPUTemperature(
+    panther_diagnostics::SystemStatus::temperature_info_filename)));
 }
 
 TEST_F(SystemStatusTest, CheckTemperatureReadings)
@@ -121,7 +121,7 @@ TEST_F(SystemStatusTest, CheckTemperatureReadings)
   temperature_file << "36600";
   temperature_file.close();
 
-  auto temperature = system_status_->GetTemperature(temperature_file_name);
+  auto temperature = system_status_->GetCPUTemperature(temperature_file_name);
   EXPECT_FLOAT_EQ(temperature, 36.6);
   std::filesystem::remove(temperature_file_name);
 }

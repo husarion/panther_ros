@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS_NODE_CPU_HPP
-#define PANTHER_DIAGNOSTICS_NODE_CPU_HPP
+#ifndef PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_
+#define PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_
 
 #include <string>
 
@@ -21,6 +21,8 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_msgs/msg/system_status.hpp"
+
+#include "system_status_parameters.hpp"
 
 using namespace std::chrono_literals;
 
@@ -30,40 +32,37 @@ namespace panther_diagnostics
 class SystemStatus : public rclcpp::Node
 {
 public:
-  SystemStatus();
+  SystemStatus(const std::string & node_name);
 
   static constexpr const char * cpu_info_filename = "/proc/stat";
   static constexpr const char * memory_info_filename = "/proc/meminfo";
   static constexpr const char * temperature_info_filename = "/sys/class/thermal/thermal_zone0/temp";
 
-  static constexpr float disk_usage_warn_threshold = 95.0;
-  static constexpr float memory_usage_warn_threshold = 95.0;
-  static constexpr float cpu_usage_warn_threshold = 95.0;
-  static constexpr float cpu_temp_warn_threshold = 80.0;
-
 protected:
-  void TimerCallback();
-  float GetTemperature(const std::string & filename) const;
+  float GetCPUTemperature(const std::string & filename);
   std::vector<float> GetCPUsUsages(const std::string & filename);
-  float GetMemoryUsage(const std::string & filename) const;
-  float GetCPUMeanUsage() const;
-  float GetDiskUsage() const;
-  void ReadOneCPU(std::ifstream & file, const std::size_t index);
-  void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
-  void CheckValueAndUpdateKeyValues(
-    const float value, const float threshold, const std::string & unit, const std::string & key,
-    unsigned char & status, std::vector<diagnostic_msgs::msg::KeyValue> & key_values,
-    std::string & message);
+  float GetMemoryUsage(const std::string & filename);
+  float GetCPUMeanUsage();
+  float GetDiskUsage();
 
-  std::size_t number_of_cpus_;
+  void ReadOneCPU(std::ifstream & file, const std::size_t index);
+
+  std::size_t cpu_cores_;
   float cpu_mean_usage_;
-  std::vector<float> cpus_usages_;
-  std::vector<std::size_t> cpus_last_totals_;
-  std::vector<std::size_t> cpus_last_idles_;
+  std::vector<float> cpu_cores_usages_;
+  std::vector<std::size_t> cpu_cores__last_totals_;
+  std::vector<std::size_t> cpu_cores_last_idles_;
 
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr publisher_;
+  rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;
   diagnostic_updater::Updater diagnostic_updater_;
+
+  system_status::Params params_;
+  std::shared_ptr<system_status::ParamListener> param_listener_;
+
+private:
+  void TimerCallback();
+  void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
 };
 }  // namespace panther_diagnostics
-#endif  // PANTHER_DIAGNOSTICS_NODE_CPU_HPP
+#endif  // PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_

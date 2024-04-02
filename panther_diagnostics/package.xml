@@ -16,7 +16,9 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>diagnostic_updater</depend>
+  <depend>generate_parameter_library</depend>
   <depend>panther_msgs</depend>
+  <depend>rclcpp</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
 

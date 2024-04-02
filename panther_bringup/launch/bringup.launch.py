@@ -320,6 +320,7 @@ def generate_launch_description():
         actions=[
             battery_launch,
             imu_launch,
+            system_status_node,
             lights_launch,
             robot_localization_node,
             manager_launch,
@@ -356,7 +357,6 @@ def generate_launch_description():
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,
-        system_status_node,
         waiting_msg,
         other_action_timer,
     ]

@@ -5,16 +5,21 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(THIS_PACKAGE_DEPS ament_cmake rclcpp panther_msgs diagnostic_updater)
+set(THIS_PACKAGE_DEPS ament_cmake rclcpp panther_msgs diagnostic_updater
+                      generate_parameter_library)
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_DEPS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+generate_parameter_library(system_status_parameters
+                           config/system_status_parameters.yaml)
+
 add_library(system_status src/system_status.cpp)
 target_include_directories(
   system_status PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                        $<INSTALL_INTERFACE:include/panther_diagnostics>)
+target_link_libraries(system_status system_status_parameters)
 
 add_executable(system_status_node src/system_status_main.cpp)
 target_include_directories(
@@ -40,6 +45,7 @@ ament_target_dependencies(system_status ${THIS_PACKAGE_DEPS})
 ament_target_dependencies(system_status_node ${THIS_PACKAGE_DEPS})
 
 install(DIRECTORY include/ DESTINATION include/)
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 install(TARGETS system_status system_status_node
         DESTINATION lib/${PROJECT_NAME})
