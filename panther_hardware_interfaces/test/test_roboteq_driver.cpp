@@ -25,10 +25,11 @@
 
 #include <roboteqs_mock.hpp>
 #include <test_constants.hpp>
+#include "can_test.hpp"
 
 #include <iostream>
 
-class TestRoboteqDriver : public ::testing::Test
+class TestRoboteqDriver : public CanTest
 {
 public:
   TestRoboteqDriver()

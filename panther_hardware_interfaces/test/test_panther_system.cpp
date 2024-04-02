@@ -32,10 +32,11 @@
 
 #include <panther_utils/test/ros_test_utils.hpp>
 
+#include <can_test.hpp>
 #include <panther_system_test_utils.hpp>
 #include <roboteqs_mock.hpp>
 
-class TestPantherSystem : public ::testing::Test
+class TestPantherSystem : public CanTest
 {
 public:
   TestPantherSystem() { pth_test_.Start(pth_test_.GetDefaultPantherSystemUrdf()); }
@@ -610,6 +611,7 @@ TEST_F(TestPantherSystem, InitialProcedureTestPantherSystem)
 // WRONG ORDER URDF
 TEST(TestPantherSystemOthers, WrongOrderURDF)
 {
+  CanTest::InitCan();
   using hardware_interface::LoanedCommandInterface;
 
   using panther_hardware_interfaces_test::DriverChannel;
@@ -680,6 +682,7 @@ TEST(TestPantherSystemOthers, WrongOrderURDF)
   pth_test_.ShutdownPantherSystem();
 
   pth_test_.Stop();
+  CanTest::DeinitCan();
 }
 
 // TIMEOUT TESTS

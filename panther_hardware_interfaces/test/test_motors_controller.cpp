@@ -25,10 +25,11 @@
 #include <panther_hardware_interfaces/motors_controller.hpp>
 #include <panther_hardware_interfaces/roboteq_driver.hpp>
 
+#include <can_test.hpp>
 #include <roboteqs_mock.hpp>
 #include <test_constants.hpp>
 
-class TestMotorsControllerInitialization : public ::testing::Test
+class TestMotorsControllerInitialization : public CanTest
 {
 public:
   TestMotorsControllerInitialization()
@@ -210,6 +211,7 @@ TEST_F(TestMotorsController, UpdateMotorsStatesTimestamps)
 
 TEST(TestMotorsControllerOthers, UpdateMotorsStatesTimeout)
 {
+  CanTest::InitCan();
   std::shared_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
 
@@ -241,6 +243,7 @@ TEST(TestMotorsControllerOthers, UpdateMotorsStatesTimeout)
 
   roboteqs_mock_->Stop();
   roboteqs_mock_.reset();
+  CanTest::DeinitCan();
 }
 
 // Similar to test_roboteq_driver, can_error in update_system_feedback isn't tested, because it
@@ -341,6 +344,7 @@ TEST_F(TestMotorsController, UpdateDriverStateTimestamps)
 
 TEST(TestMotorsControllerOthers, UpdateDriverStateTimeout)
 {
+  CanTest::InitCan();
   std::shared_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
 
@@ -372,6 +376,7 @@ TEST(TestMotorsControllerOthers, UpdateDriverStateTimeout)
 
   roboteqs_mock_->Stop();
   roboteqs_mock_.reset();
+  CanTest::DeinitCan();
 }
 
 TEST_F(TestMotorsController, WriteSpeed)
