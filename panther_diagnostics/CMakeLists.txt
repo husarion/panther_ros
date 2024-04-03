@@ -31,21 +31,22 @@ pkg_check_modules(CPPUPROFILE REQUIRED IMPORTED_TARGET cppuprofile)
 generate_parameter_library(system_status_parameters
                            config/system_status_parameters.yaml)
 
-add_library(system_status src/system_status.cpp)
-target_include_directories(
-  system_status PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                       $<INSTALL_INTERFACE:include/panther_diagnostics>)
-
-target_link_libraries(system_status system_status_parameters
-                      PkgConfig::CPPUPROFILE)
-
-add_executable(system_status_node src/system_status_main.cpp)
+add_library(system_status_node src/system_status_node.cpp)
 target_include_directories(
   system_status_node
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include/panther_diagnostics>)
 
-target_link_libraries(system_status_node system_status)
+target_link_libraries(system_status_node system_status_parameters
+                      PkgConfig::CPPUPROFILE)
+
+add_executable(main src/main.cpp)
+target_include_directories(
+  system_status_node
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include/panther_diagnostics>)
+
+target_link_libraries(main system_status_node)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
@@ -54,14 +55,14 @@ if(BUILD_TESTING)
                   test/test_system_status.cpp)
   target_include_directories(${PROJECT_NAME}_test_system_status PRIVATE include)
 
-  target_link_libraries(${PROJECT_NAME}_test_system_status system_status)
+  target_link_libraries(${PROJECT_NAME}_test_system_status system_status_node)
 
   ament_target_dependencies(${PROJECT_NAME}_test_system_status
                             ament_cmake_gtest ${THIS_PACKAGE_DEPS})
 endif()
 
-ament_target_dependencies(system_status ${THIS_PACKAGE_DEPS})
 ament_target_dependencies(system_status_node ${THIS_PACKAGE_DEPS})
+ament_target_dependencies(main ${THIS_PACKAGE_DEPS})
 
 install(DIRECTORY include/ DESTINATION include/)
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
@@ -70,7 +71,6 @@ install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cppuprofile/lib
         DESTINATION cppuprofile)
 
-install(TARGETS system_status system_status_node
-        DESTINATION lib/${PROJECT_NAME})
+install(TARGETS system_status_node main DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

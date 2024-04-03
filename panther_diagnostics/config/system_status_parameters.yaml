@@ -3,6 +3,10 @@ system_status:
     type: string
     default_value: build_in_computer
     description: Frame where computer is located
+  publish_rate:
+    type: double
+    default_value: 0.25
+    description: System status publish rate in seconds.
   disk_usage_warn_threshold:
     type: double
     default_value: 95.0

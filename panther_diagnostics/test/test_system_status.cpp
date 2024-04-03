@@ -19,7 +19,7 @@
 
 #include "gtest/gtest.h"
 
-#include "panther_diagnostics/system_status.hpp"
+#include "panther_diagnostics/system_status_node.hpp"
 
 class SystemStatusWrapper : public panther_diagnostics::SystemStatusNode
 {

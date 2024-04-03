@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_diagnostics/system_status.hpp"
+#include "panther_diagnostics/system_status_node.hpp"
 
+#include <chrono>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -37,7 +38,9 @@ SystemStatusNode::SystemStatusNode(const std::string & node_name)
 
   system_status_publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>(
     "system_status", 10);
-  timer_ = this->create_wall_timer(250ms, std::bind(&SystemStatusNode::TimerCallback, this));
+  timer_ = this->create_wall_timer(
+    std::chrono::milliseconds(static_cast<long long>(params_.publish_rate * 1000)),
+    std::bind(&SystemStatusNode::TimerCallback, this));
 
   diagnostic_updater_.setHardwareID("Built-in Computer");
   diagnostic_updater_.add("OS status", this, &SystemStatusNode::DiagnoseSystem);
@@ -134,15 +137,12 @@ void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrappe
   auto error_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string message = "Status is OK";
 
-  auto cpu_cores_mean_usage = GetCoreMeanUsage(GetCoresUsages());
-  auto cpu_cores_temperature = GetCoreTemperature(kTemperatureInfoFilename);
-  auto disk_usage = GetDiskUsage();
-  auto memory_usage = GetMemoryUsage();
+  auto system_status = GetSystemStatus();
 
-  status.add("CPU usage", cpu_cores_mean_usage);
-  status.add("CPU temperature", cpu_cores_temperature);
-  status.add("Disk memory usage", disk_usage);
-  status.add("RAM memory usage", memory_usage);
+  status.add("CPU usage", system_status.mean_core_usage_);
+  status.add("CPU temperature", system_status.core_temperature_);
+  status.add("Disk memory usage", system_status.disk_usage_);
+  status.add("RAM memory usage", system_status.memory_usage_);
 
   std::unordered_map<double, diagnostic_msgs::msg::KeyValue> limits = {
     {params_.cpu_usage_warn_threshold, status.values[0]},

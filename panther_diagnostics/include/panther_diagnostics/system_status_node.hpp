@@ -34,7 +34,7 @@ class SystemStatusNode : public rclcpp::Node
 public:
   SystemStatusNode(const std::string & node_name);
 
-  static constexpr const char * kTemperatureInfoFilename = "/sys/class/thermal/thermal_zone0/temp";
+  static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
 
   struct SystemStatus
   {

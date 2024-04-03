@@ -38,6 +38,8 @@ Publishes system state of the Built-in Computer such as CPU usage, RAM memory us
 #### Parameters
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
+- `~frame_id` [*string*, default: **build_in_computer**]: Frame where computer is located.
+- `~publish_rate` [*double*, default: **0.25**]: System status publish rate in seconds.
 - `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.
 - `~memory_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for memory usage warning in percentage.
 - `~cpu_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for CPU usage warning in percentage.

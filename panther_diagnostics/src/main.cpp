@@ -18,7 +18,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_diagnostics/system_status.hpp"
+#include "panther_diagnostics/system_status_node.hpp"
 
 int main(int argc, char ** argv)
 {
