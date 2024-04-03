@@ -47,8 +47,11 @@ protected:
 
   void ReadOneCPU(std::ifstream & file, const std::size_t index);
 
+private:
+  void TimerCallback();
+  void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
+
   std::size_t cpu_cores_;
-  float cpu_mean_usage_;
   std::vector<float> cpu_cores_usages_;
   std::vector<std::size_t> cpu_cores__last_totals_;
   std::vector<std::size_t> cpu_cores_last_idles_;
@@ -59,10 +62,6 @@ protected:
 
   system_status::Params params_;
   std::shared_ptr<system_status::ParamListener> param_listener_;
-
-private:
-  void TimerCallback();
-  void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
 };
 }  // namespace panther_diagnostics
 #endif  // PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_

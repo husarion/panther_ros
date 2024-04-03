@@ -16,10 +16,6 @@
 #include <memory>
 #include <stdexcept>
 
-#include <string>
-
-#include "diagnostic_updater/diagnostic_updater.hpp"
-#include "panther_msgs/msg/system_status.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_diagnostics/system_status.hpp"

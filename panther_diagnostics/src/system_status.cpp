@@ -19,6 +19,11 @@
 #include <fstream>
 #include <thread>
 
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "panther_msgs/msg/system_status.hpp"
+
 namespace panther_diagnostics
 {
 
@@ -47,6 +52,7 @@ SystemStatus::SystemStatus(const std::string & node_name)
 void SystemStatus::TimerCallback()
 {
   auto message = panther_msgs::msg::SystemStatus();
+
   message.header.stamp = this->get_clock()->now();
   message.header.frame_id = "built_in_computer";
   message.cpu_percent = GetCPUsUsages(kCPUInfoFilename);
@@ -54,6 +60,7 @@ void SystemStatus::TimerCallback()
   message.cpu_temp = GetCPUTemperature(kTemperatureInfoFilename);
   message.disc_usage_percent = GetDiskUsage();
   message.ram_usage_percent = GetMemoryUsage(kMemoryInfoFilename);
+
   system_status_publisher_->publish(message);
 }
 
@@ -86,7 +93,7 @@ std::vector<float> SystemStatus::GetCPUsUsages(const std::string & filename)
     file.open(filename);
 
     for (std::size_t i = 0; i < cpu_cores_ + 1; ++i) {
-      this->ReadOneCPU(file, i);
+      ReadOneCPU(file, i);
     }
 
     file.close();
@@ -194,7 +201,6 @@ float SystemStatus::GetMemoryUsage(const std::string & filename)
 void SystemStatus::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   params_ = param_listener_->get_params();
-  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
 
   auto error_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string message = "Status is OK";
@@ -210,10 +216,10 @@ void SystemStatus::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & 
   status.add("RAM memory usage", memory_usage);
 
   std::unordered_map<double, diagnostic_msgs::msg::KeyValue> limits = {
-    {params_.cpu_usage_warn_threshold, key_values[0]},
-    {params_.cpu_temperature_warn_threshold, key_values[1]},
-    {params_.disk_usage_warn_threshold, key_values[2]},
-    {params_.memory_usage_warn_threshold, key_values[3]},
+    {params_.cpu_usage_warn_threshold, status.values[0]},
+    {params_.cpu_temperature_warn_threshold, status.values[1]},
+    {params_.disk_usage_warn_threshold, status.values[2]},
+    {params_.memory_usage_warn_threshold, status.values[3]},
   };
 
   for (const auto & [limit, key_value] : limits) {
