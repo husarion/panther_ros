@@ -382,7 +382,7 @@ geometry_msgs::msg::Vector3 PantherImuSensor::ParseAcceleration(const double acc
   return lin_acc;
 }
 
-void PantherImuSensor::ComputeInitialOrientation(
+void PantherImuSensor::InitializeMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
   const double timestamp_s)
 {
@@ -448,7 +448,7 @@ void PantherImuSensor::SpatialDataCallback(
 
   if (!algorithm_initialized_ || params_.stateless) {
     try {
-      ComputeInitialOrientation(mag_compensated, lin_acc, timestamp_s);
+      InitializeMadgwickAlgorithm(mag_compensated, lin_acc, timestamp_s);
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(logger_, "Exception during algorithm initialization: " << e.what());
     }
@@ -456,7 +456,7 @@ void PantherImuSensor::SpatialDataCallback(
   }
 
   if (!params_.stateless) {
-    if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated)) {
+    if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated) && params_.use_mag) {
       UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
     } else {
       UpdateMadgwickAlgorithmIMU(ang_vel, lin_acc, dt);

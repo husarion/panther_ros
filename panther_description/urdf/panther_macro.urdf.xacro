@@ -163,20 +163,6 @@
           <param name="callback_delta_epsilon_ms">1</param>
 
           <!-- Madgwick Filter Params -->
-
-          <!--
-              Gyroscope Noise (@ 1ms) is
-              gyroMeasError = 0.2 deg/s = 0.00351 rad/s
-              Gyroscope Drift Max is
-              gyroMeasDrift  = 0.1 deg/s = 0.00175 rad/s
-              read from specification https://www.phidgets.com/?prodid=1205#Tab_Specifications
-
-              Depend on the paper of Madgwick Filter https://x-io.co.uk/downloads/madgwick_internal_report.pdf
-              gain is represented as
-              gain = sqrt(3/4)* gyroMeasError = 0.00303
-              zeta is represented as
-              zeta = sqrt(3/4)* gyroMeasDrift = 0.00151
-              -->
           <param name="gain">0.00304</param>
           <param name="zeta">0.00151</param>
           <param name="mag_bias_x">0.0</param>

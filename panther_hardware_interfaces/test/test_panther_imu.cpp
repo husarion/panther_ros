@@ -49,11 +49,11 @@ public:
 
   void ConfigureMadgwickFilter() { PantherImuSensor::ConfigureMadgwickFilter(); }
 
-  void ComputeInitialOrientation(
+  void InitializeMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & mag_compensated,
     const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s)
   {
-    PantherImuSensor::ComputeInitialOrientation(mag_compensated, lin_acc, timestamp_s);
+    PantherImuSensor::InitializeMadgwickAlgorithm(mag_compensated, lin_acc, timestamp_s);
   }
 
   void SpatialDataCallback(

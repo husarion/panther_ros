@@ -111,7 +111,7 @@ protected:
   geometry_msgs::msg::Vector3 ParseGyration(const double angular_rate[3]);
   geometry_msgs::msg::Vector3 ParseAcceleration(const double acceleration[3]);
 
-  void ComputeInitialOrientation(
+  void InitializeMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & mag_compensated,
     const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s);
 

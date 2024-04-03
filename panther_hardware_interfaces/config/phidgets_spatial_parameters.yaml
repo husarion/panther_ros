@@ -135,7 +135,7 @@ phidgets_spatial:
   stateless: {
     type: bool,
     default_value: false,
-    description: " #TODO: @delihus"
+    description: "Use stateless to compute orientation on every data callback without prediction based on previous measurements."
   }
   remove_gravity_vector: {
     type: bool,
