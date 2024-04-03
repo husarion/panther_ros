@@ -29,32 +29,36 @@ using namespace std::chrono_literals;
 namespace panther_diagnostics
 {
 
-class SystemStatus : public rclcpp::Node
+class SystemStatusNode : public rclcpp::Node
 {
 public:
-  SystemStatus(const std::string & node_name);
+  SystemStatusNode(const std::string & node_name);
 
-  static constexpr const char * kCPUInfoFilename = "/proc/stat";
-  static constexpr const char * kMemoryInfoFilename = "/proc/meminfo";
   static constexpr const char * kTemperatureInfoFilename = "/sys/class/thermal/thermal_zone0/temp";
 
-protected:
-  float GetCPUTemperature(const std::string & filename);
-  std::vector<float> GetCPUsUsages(const std::string & filename);
-  float GetMemoryUsage(const std::string & filename);
-  float GetCPUMeanUsage();
-  float GetDiskUsage();
+  struct SystemStatus
+  {
+    std::vector<float> core_usages_;
+    float mean_core_usage_;
+    float memory_usage_;
+    float disk_usage_;
+    float core_temperature_;
+  };
 
-  void ReadOneCPU(std::ifstream & file, const std::size_t index);
+protected:
+  std::vector<float> GetCoresUsages() const;
+  float GetCoreTemperature(const std::string & filename) const;
+  float GetMemoryUsage() const;
+  float GetDiskUsage() const;
+  float GetCoreMeanUsage(const std::vector<float> & usages) const;
+
+  SystemStatus GetSystemStatus() const;
+  panther_msgs::msg::SystemStatus BuildSystemStatusMessageFromSystemStatus(
+    const SystemStatus & status);
 
 private:
   void TimerCallback();
   void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
-
-  std::size_t cpu_cores_;
-  std::vector<float> cpu_cores_usages_;
-  std::vector<std::size_t> cpu_cores__last_totals_;
-  std::vector<std::size_t> cpu_cores_last_idles_;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;

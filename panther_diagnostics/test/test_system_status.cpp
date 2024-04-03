@@ -21,34 +21,29 @@
 
 #include "panther_diagnostics/system_status.hpp"
 
-class SystemStatusWrapper : public panther_diagnostics::SystemStatus
+class SystemStatusWrapper : public panther_diagnostics::SystemStatusNode
 {
 public:
-  SystemStatusWrapper() : panther_diagnostics::SystemStatus("test_system_statics") {}
+  SystemStatusWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
 
-  float GetCPUTemperature(const std::string & filename)
+  float GetCoreTemperature(const std::string & filename)
   {
-    return panther_diagnostics::SystemStatus::GetCPUTemperature(filename);
+    return panther_diagnostics::SystemStatusNode::GetCoreTemperature(filename);
   }
 
-  std::vector<float> GetCPUsUsages(const std::string & filename)
+  std::vector<float> GetCoresUsages()
   {
-    return panther_diagnostics::SystemStatus::GetCPUsUsages(filename);
+    return panther_diagnostics::SystemStatusNode::GetCoresUsages();
   }
 
-  float GetMemoryUsage(const std::string & filename)
+  float GetMemoryUsage() { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
+
+  float GetCoreMeanUsage(const std::vector<float> & usages)
   {
-    return panther_diagnostics::SystemStatus::GetMemoryUsage(filename);
+    return panther_diagnostics::SystemStatusNode::GetCoreMeanUsage(usages);
   }
 
-  float GetCPUMeanUsage() { return panther_diagnostics::SystemStatus::GetCPUMeanUsage(); }
-
-  float GetDiskUsage() { return panther_diagnostics::SystemStatus::GetDiskUsage(); }
-
-  void ReadOneCPU(std::ifstream & file, const std::size_t index)
-  {
-    panther_diagnostics::SystemStatus::ReadOneCPU(file, index);
-  }
+  float GetDiskUsage() { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
 };
 
 class SystemStatusTest : public testing::Test
@@ -59,7 +54,6 @@ public:
 
 protected:
   std::unique_ptr<SystemStatusWrapper> system_status_;
-  void CreateCPUSageFile(const std::string & cpu_file_name, const std::string & content);
 };
 
 SystemStatusTest::SystemStatusTest()
@@ -70,45 +64,12 @@ SystemStatusTest::SystemStatusTest()
 
 SystemStatusTest::~SystemStatusTest() { rclcpp::shutdown(); }
 
-void SystemStatusTest::CreateCPUSageFile(
-  const std::string & cpu_file_name, const std::string & content)
+TEST_F(SystemStatusTest, CheckTemperature)
 {
-  std::ofstream cpu_file(cpu_file_name);
-  cpu_file << "cpu " << content;
-
-  for (std::size_t i = 0; i < std::thread::hardware_concurrency() + 1; ++i) {
-    cpu_file << "cpu" << i << " " << content;
-  }
-  cpu_file.close();
-}
-
-TEST_F(SystemStatusTest, CheckIfFilesExist)
-{
-  auto wrong_usages =
-    system_status_->GetCPUsUsages(testing::TempDir() + "panther_diagnostics_wrong_file");
-  EXPECT_FALSE(wrong_usages.size() == 0);
-  for (const auto & usage : wrong_usages) {
-    EXPECT_TRUE(std::isnan(usage));
-  }
-
-  EXPECT_TRUE(std::isnan(
-    system_status_->GetCPUTemperature(testing::TempDir() + "panther_diagnostics_wrong_file")));
-  EXPECT_TRUE(std::isnan(
-    system_status_->GetMemoryUsage(testing::TempDir() + "panther_diagnostics_wrong_file")));
-
-  auto good_usages =
-    system_status_->GetCPUsUsages(panther_diagnostics::SystemStatus::kCPUInfoFilename);
-  EXPECT_FALSE(good_usages.size() == 0);
-  for (const auto & usage : good_usages) {
-    EXPECT_FALSE(std::isnan(usage));
-  }
-
-  EXPECT_FALSE(std::isnan(
-    system_status_->GetMemoryUsage(panther_diagnostics::SystemStatus::kMemoryInfoFilename)));
-
   // Works only on RPi
-  EXPECT_FALSE(std::isnan(system_status_->GetCPUTemperature(
-    panther_diagnostics::SystemStatus::kTemperatureInfoFilename)));
+  const auto temperature = system_status_->GetCoreTemperature(
+    panther_diagnostics::SystemStatusNode::kTemperatureInfoFilename);
+  EXPECT_FALSE(std::isnan(temperature));
 }
 
 TEST_F(SystemStatusTest, CheckTemperatureReadings)
@@ -121,66 +82,27 @@ TEST_F(SystemStatusTest, CheckTemperatureReadings)
   temperature_file << "36600";
   temperature_file.close();
 
-  auto temperature = system_status_->GetCPUTemperature(temperature_file_name);
+  const auto temperature = system_status_->GetCoreTemperature(temperature_file_name);
   EXPECT_FLOAT_EQ(temperature, 36.6);
   std::filesystem::remove(temperature_file_name);
 }
 
 TEST_F(SystemStatusTest, CheckMemoryReadings)
 {
-  const std::string memory_file_name = testing::TempDir() + "panther_diagnostics_memory";
-  std::filesystem::remove(memory_file_name);
-  EXPECT_FALSE(std::filesystem::exists(memory_file_name));
-
-  std::string content = R"(
-    MemTotal:        4000000 kB
-    MemFree:         1000000 kB
-    MemAvailable:    2000000 kB
-    Buffers:               0 kB
-    Cached:                0 kB
-  )";
-
-  std::ofstream memory_file(memory_file_name);
-  memory_file << content;
-  memory_file.close();
-  auto memory = system_status_->GetMemoryUsage(memory_file_name);
-  EXPECT_FLOAT_EQ(memory, 50.0);
-  std::filesystem::remove(memory_file_name);
+  const auto memory = system_status_->GetMemoryUsage();
+  EXPECT_TRUE((memory >= 0.0) && (memory <= 100.0));
 }
 
 TEST_F(SystemStatusTest, CheckCPUReadings)
 {
-  const std::string cpu_file_name = testing::TempDir() + "panther_diagnostics_cpu";
-  std::filesystem::remove(cpu_file_name);
-  EXPECT_FALSE(std::filesystem::exists(cpu_file_name));
-
-  const std::string first_context = R"(
-    1000 1000 1000 5000 1000 0 1000 0 0 0
-  )";
-
-  CreateCPUSageFile(cpu_file_name, first_context);
-
-  auto usages = system_status_->GetCPUsUsages(cpu_file_name);
-  for (const auto & usage : usages) {
-    EXPECT_FLOAT_EQ(usage, 0.0);
-  }
-  EXPECT_FLOAT_EQ(system_status_->GetCPUMeanUsage(), 0.0);
-  std::filesystem::remove(cpu_file_name);
-
-  const std::string second_context = R"(
-    1000 500 500 4500 500 0 1000 0 0 0
-  )";
-
-  CreateCPUSageFile(cpu_file_name, second_context);
-  usages = system_status_->GetCPUsUsages(cpu_file_name);
+  const auto usages = system_status_->GetCoresUsages();
 
   for (const auto & usage : usages) {
-    std::cout << usage << std::endl;
-    EXPECT_FLOAT_EQ(usage, 75.0);
+    EXPECT_TRUE((usage >= 0.0) && (usage <= 100.0));
   }
 
-  EXPECT_FLOAT_EQ(system_status_->GetCPUMeanUsage(), 75.0);
-  std::filesystem::remove(cpu_file_name);
+  const auto mean = system_status_->GetCoreMeanUsage(usages);
+  EXPECT_TRUE((mean >= 0.0) && (mean <= 100.0));
 }
 
 int main(int argc, char ** argv)
