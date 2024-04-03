@@ -16,7 +16,9 @@
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_IMU_HPP_
 
 #include <array>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -78,7 +80,7 @@ protected:
    * @brief Checks if the sensor name defined in the urdf matches the expected name.
    * @throw std::runtime_error If the sensor name does not match the expected name.
    */
-  void CheckSensor() const;
+  void CheckSensorName() const;
 
   /**
    * @brief Checks if the number of state interfaces defined in the urdf matches the expected size.
@@ -167,7 +169,11 @@ protected:
   std::unique_ptr<ImuFilter> filter_;
   WorldFrame::WorldFrame world_frame_;
   bool imu_connected_ = false;
+
   bool imu_calibrated_ = false;
+  std::mutex calibration_mutex_;
+  std::condition_variable calibration_cv_;
+
   bool algorithm_initialized_ = false;
   double last_spatial_data_callback_time_s_;
 };

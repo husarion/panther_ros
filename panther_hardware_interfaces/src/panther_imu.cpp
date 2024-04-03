@@ -17,9 +17,11 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <functional>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -40,7 +42,7 @@ CallbackReturn PantherImuSensor::on_init(const hardware_interface::HardwareInfo 
   }
 
   try {
-    CheckSensor();
+    CheckSensorName();
     CheckStatesSize();
     CheckInterfaces();
     SetInitialValues();
@@ -169,7 +171,7 @@ return_type PantherImuSensor::read(
   return return_type::OK;
 }
 
-void PantherImuSensor::CheckSensor() const
+void PantherImuSensor::CheckSensorName() const
 {
   if (!info_.sensors.size()) {
     throw std::runtime_error("Sensor is not defined in urdf!");
@@ -286,9 +288,10 @@ void PantherImuSensor::Calibrate()
   spatial_->zero();
 
   RCLCPP_WARN(logger_, "IMU is calibrating. Do not move the robot for 2 seconds!");
-  while (!imu_calibrated_) {
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-  }
+
+  std::unique_lock<std::mutex> lock(calibration_mutex_);
+  calibration_cv_.wait(lock, [this]() { return imu_calibrated_; });
+
   RCLCPP_INFO(logger_, "IMU is successfully calibrated.");
 }
 
@@ -425,9 +428,12 @@ void PantherImuSensor::SpatialDataCallback(
   const auto ang_vel = ParseGyration(angular_rate);
   const auto lin_acc = ParseAcceleration(acceleration);
 
-  // Skip the data callback when IMU if not calibrated
+  // Skip the data callback when IMU is not calibrated
   if (!IsIMUCalibrated(mag_compensated)) {
     return;
+  } else {
+    std::lock_guard lock(calibration_mutex_);
+    calibration_cv_.notify_one();
   }
 
   const float dt = timestamp_s - last_spatial_data_callback_time_s_;
@@ -481,14 +487,9 @@ void PantherImuSensor::UpdateMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
   const geometry_msgs::msg::Vector3 & mag_compensated, const double dt)
 {
-  if (params_.use_mag) {
-    filter_->madgwickAHRSupdate(
-      ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, mag_compensated.x,
-      mag_compensated.y, mag_compensated.z, dt);
-  } else {
-    filter_->madgwickAHRSupdateIMU(
-      ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, dt);
-  }
+  filter_->madgwickAHRSupdate(
+    ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, mag_compensated.x,
+    mag_compensated.y, mag_compensated.z, dt);
 }
 
 void PantherImuSensor::UpdateMadgwickAlgorithmIMU(

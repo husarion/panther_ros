@@ -37,7 +37,7 @@ public:
     hardware_interface::SensorInterface::info_ = info;
   }
 
-  void CheckSensor() const { PantherImuSensor::CheckSensor(); }
+  void CheckSensorName() const { PantherImuSensor::CheckSensorName(); }
 
   void CheckStatesSize() const { PantherImuSensor::CheckStatesSize(); }
 
@@ -353,21 +353,21 @@ std::list<hardware_interface::LoanedStateInterface> TestPantherImuSensor::ClaimG
   return list;
 }
 
-TEST_F(TestPantherImuSensor, CheckSensor)
+TEST_F(TestPantherImuSensor, CheckSensorName)
 {
   hardware_interface::HardwareInfo info;
   imu_sensor_->SetHardwareInfo(info);
-  EXPECT_THROW({ imu_sensor_->CheckSensor(); }, std::runtime_error);
+  EXPECT_THROW({ imu_sensor_->CheckSensorName(); }, std::runtime_error);
 
   hardware_interface::ComponentInfo sensor_info;
   sensor_info.name = "wrong_imu";
   info.sensors.push_back(sensor_info);
   imu_sensor_->SetHardwareInfo(info);
-  EXPECT_THROW({ imu_sensor_->CheckSensor(); }, std::runtime_error);
+  EXPECT_THROW({ imu_sensor_->CheckSensorName(); }, std::runtime_error);
 
   info.sensors.front().name = "imu";
   imu_sensor_->SetHardwareInfo(info);
-  EXPECT_NO_THROW({ imu_sensor_->CheckSensor(); });
+  EXPECT_NO_THROW({ imu_sensor_->CheckSensorName(); });
 }
 
 TEST_F(TestPantherImuSensor, CheckStatesSize)
