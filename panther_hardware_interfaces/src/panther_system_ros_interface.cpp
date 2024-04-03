@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
+#include "panther_hardware_interfaces/panther_system_ros_interface.hpp"
 
 #include <memory>
 #include <string>
 #include <thread>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "realtime_tools/realtime_publisher.h"
 
-#include <realtime_tools/realtime_publisher.h>
-
-#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+#include "panther_hardware_interfaces/roboteq_data_converters.hpp"
 
 namespace panther_hardware_interfaces
 {

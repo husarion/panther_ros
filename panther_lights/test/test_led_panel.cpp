@@ -17,9 +17,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <panther_lights/led_panel.hpp>
+#include "panther_lights/led_panel.hpp"
 
 class TestLEDPanel : public testing::Test
 {

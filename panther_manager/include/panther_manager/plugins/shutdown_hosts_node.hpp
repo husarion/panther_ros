@@ -24,13 +24,12 @@
 #include <utility>
 #include <vector>
 
-#include <behaviortree_cpp/action_node.h>
-#include <behaviortree_cpp/basic_types.h>
-#include <behaviortree_cpp/tree_node.h>
+#include "behaviortree_cpp/action_node.h"
+#include "behaviortree_cpp/basic_types.h"
+#include "behaviortree_cpp/tree_node.h"
+#include "rclcpp/rclcpp.hpp"
 
-#include <rclcpp/rclcpp.hpp>
-
-#include <panther_manager/plugins/shutdown_host.hpp>
+#include "panther_manager/plugins/shutdown_host.hpp"
 
 namespace panther_manager
 {

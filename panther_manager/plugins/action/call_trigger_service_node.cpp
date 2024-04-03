@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_manager/plugins/action/call_trigger_service_node.hpp>
+#include "panther_manager/plugins/action/call_trigger_service_node.hpp"
 
-#include <behaviortree_cpp/basic_types.h>
+#include "behaviortree_cpp/basic_types.h"
 
 namespace panther_manager
 {
@@ -38,5 +38,5 @@ BT::NodeStatus CallTriggerService::onResponseReceived(const typename Response::S
 
 }  // namespace panther_manager
 
-#include <behaviortree_ros2/plugins.hpp>
+#include "behaviortree_ros2/plugins.hpp"
 CreateRosNodePlugin(panther_manager::CallTriggerService, "CallTriggerService");

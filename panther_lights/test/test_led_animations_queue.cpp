@@ -17,14 +17,13 @@
 #include <stdexcept>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
-#include <yaml-cpp/yaml.h>
+#include "rclcpp/time.hpp"
 
-#include <rclcpp/time.hpp>
-
-#include <panther_lights/led_animations_queue.hpp>
-#include <panther_lights/led_segment.hpp>
+#include "panther_lights/led_animations_queue.hpp"
+#include "panther_lights/led_segment.hpp"
 
 class TestLEDAnimationsQueue : public testing::Test
 {

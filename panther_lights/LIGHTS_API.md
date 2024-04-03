@@ -47,9 +47,9 @@ Create a New Animation Type:
 #ifndef MY_PACKAGE_MY_COOL_ANIMATION_HPP_
 #define MY_PACKAGE_MY_COOL_ANIMATION_HPP_
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/animation/animation.hpp>
+#include "panther_lights/animation/animation.hpp"
 
 class MyCoolAnimation : public Animation
 {
@@ -71,9 +71,9 @@ private:
 ```c++
 # my_cool_animation.cpp
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <my_package/animation/my_cool_animation.hpp>
+#include "my_package/animation/my_cool_animation.hpp"
 
 void MyCoolAnimation::Initialize(
   const YAML::Node & animation_description, const std::size_t num_led,
@@ -92,7 +92,7 @@ std::vector<uint8_t> MyCoolAnimation::UpdateFrame()
   return std::vector<std::uint8_t>(this->GetNumberOfLeds() * 4, value_);
 }
 
-#include <pluginlib/class_list_macros.hpp>
+#include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(my_package::MyCoolAnimation, my_package::Animation)
 

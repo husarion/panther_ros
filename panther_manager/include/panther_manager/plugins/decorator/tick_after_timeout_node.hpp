@@ -18,9 +18,9 @@
 #include <chrono>
 #include <string>
 
-#include <behaviortree_cpp/basic_types.h>
-#include <behaviortree_cpp/decorator_node.h>
-#include <behaviortree_cpp/tree_node.h>
+#include "behaviortree_cpp/basic_types.h"
+#include "behaviortree_cpp/decorator_node.h"
+#include "behaviortree_cpp/tree_node.h"
 
 namespace panther_manager
 {

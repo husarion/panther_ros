@@ -19,13 +19,12 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
+#include "boost/gil.hpp"
+#include "boost/gil/extension/io/png.hpp"
+#include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
-#include <boost/gil.hpp>
-#include <boost/gil/extension/io/png.hpp>
-
-#include <panther_lights/animation/image_animation.hpp>
+#include "panther_lights/animation/image_animation.hpp"
 
 namespace gil = boost::gil;
 

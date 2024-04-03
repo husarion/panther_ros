@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/animation/image_animation.hpp>
+#include "panther_lights/animation/image_animation.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -21,16 +21,16 @@
 #include <stdexcept>
 #include <string>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
-#include <ament_index_cpp/get_package_prefix.hpp>
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#include <boost/gil.hpp>
-#include <boost/gil/extension/io/png.hpp>
-#include <boost/gil/extension/numeric/resample.hpp>
-#include <boost/gil/extension/numeric/sampler.hpp>
+#include "ament_index_cpp/get_package_prefix.hpp"
+#include "ament_index_cpp/get_package_share_directory.hpp"
+#include "boost/gil.hpp"
+#include "boost/gil/extension/io/png.hpp"
+#include "boost/gil/extension/numeric/resample.hpp"
+#include "boost/gil/extension/numeric/sampler.hpp"
 
-#include <panther_utils/yaml_utils.hpp>
+#include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
 {
@@ -158,6 +158,6 @@ void ImageAnimation::GreyImageNormalizeBrightness(gil::gray_alpha8_image_t & ima
 
 }  // namespace panther_lights
 
-#include <pluginlib/class_list_macros.hpp>
+#include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(panther_lights::ImageAnimation, panther_lights::Animation)

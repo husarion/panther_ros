@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2020 ros2_control Development Team
-# Copyright 2023 Husarion sp. z o.o.
+# Copyright 2024 Husarion sp. z o.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
     Command,
+    EnvironmentVariable,
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
@@ -82,6 +83,12 @@ def generate_launch_description():
             "When set to False, users should publish their own robot description."
         ),
     )
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
+    )
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -119,6 +126,8 @@ def generate_launch_description():
             os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
             " imu_rot_y:=",
             os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
+            " namespace:=",
+            namespace,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -127,6 +136,7 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controller_config_path],
+        namespace=namespace,
         remappings=[
             (
                 "panther_system_node/driver/motor_controllers_state",
@@ -140,6 +150,9 @@ def generate_launch_description():
             ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
             ("panther_system_node/fan_enable", "hardware/fan_enable"),
             ("panther_system_node/aux_power_enable", "hardware/aux_power_enable"),
+            ("panther_system_node/charger_enable", "hardware/charger_enable"),
+            ("panther_system_node/digital_power_enable", "hardware/digital_power_enable"),
+            ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
     )
@@ -149,6 +162,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        namespace=namespace,
         condition=IfCondition(publish_robot_state),
     )
 
@@ -161,7 +175,10 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
+        namespace=namespace,
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -173,7 +190,10 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
+        namespace=namespace,
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
@@ -193,7 +213,10 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
+            "--namespace",
+            namespace,
         ],
+        namespace=namespace,
     )
 
     # Delay start of imu_broadcaster after robot_controller
@@ -213,6 +236,7 @@ def generate_launch_description():
         declare_battery_config_path_arg,
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
+        declare_namespace_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,

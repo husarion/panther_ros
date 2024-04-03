@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-
 #include <limits>
 #include <stdexcept>
 #include <vector>
 
-#include <panther_utils/test/test_utils.hpp>
+#include "gtest/gtest.h"
+
+#include "panther_utils/test/test_utils.hpp"
 
 template <typename T>
 void TestCheckNaNVector()

@@ -21,7 +21,7 @@
 #include <string>
 #include <typeinfo>
 
-#include <behaviortree_cpp/tree_node.h>
+#include "behaviortree_cpp/tree_node.h"
 
 namespace panther_manager::bt_utils
 {

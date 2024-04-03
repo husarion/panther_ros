@@ -17,6 +17,8 @@
     default="$(find panther_controller)/config/WH01_controller.yaml" />
   <xacro:arg name="battery_config_file"
     default="$(find panther_description)/config/battery_ign_plugin.yaml" />
+  <xacro:arg name="namespace" default="" />
+
 
   <xacro:include filename="$(find panther_description)/urdf/panther_macro.urdf.xacro" ns="husarion" />
   <xacro:husarion.panther_robot
@@ -31,6 +33,7 @@
     simulation_engine="$(arg simulation_engine)"
     wheel_config_file="$(arg wheel_config_file)"
     controller_config_file="$(arg controller_config_file)"
-    battery_config_file="$(arg battery_config_file)" />
+    battery_config_file="$(arg battery_config_file)"
+    namespace="$(arg namespace)" />
 
 </robot>
