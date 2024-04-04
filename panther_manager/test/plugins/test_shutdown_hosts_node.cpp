@@ -14,9 +14,9 @@
 
 #include <string>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <panther_manager/plugins/shutdown_hosts_node.hpp>
+#include "panther_manager/plugins/shutdown_hosts_node.hpp"
 
 class ShutdownHostsNodeWrapper : public panther_manager::ShutdownHosts
 {

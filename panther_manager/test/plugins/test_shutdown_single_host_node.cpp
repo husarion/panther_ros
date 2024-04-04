@@ -17,12 +17,13 @@
 #include <map>
 #include <string>
 
-#include <behaviortree_cpp/bt_factory.h>
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
 
-#include <panther_manager/plugins/action/shutdown_single_host_node.hpp>
-#include <plugin_test_utils.hpp>
+#include "behaviortree_cpp/bt_factory.h"
+#include "rclcpp/rclcpp.hpp"
+
+#include "panther_manager/plugins/action/shutdown_single_host_node.hpp"
+#include "plugin_test_utils.hpp"
 
 typedef panther_manager::plugin_test_utils::PluginTestUtils TestShutdownSingleHost;
 

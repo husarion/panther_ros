@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@
 #include <memory>
 #include <string>
 
-#include <rclcpp/rclcpp.hpp>
+#include "image_transport/image_transport.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <image_transport/image_transport.hpp>
-#include <sensor_msgs/msg/battery_state.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
+#include "std_msgs/msg/bool.hpp"
 
-#include <panther_msgs/srv/set_led_animation.hpp>
+#include "panther_msgs/srv/set_led_animation.hpp"
 
 namespace panther_lights
 {

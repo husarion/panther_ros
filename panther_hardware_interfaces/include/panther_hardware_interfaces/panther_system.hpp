@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,21 +21,19 @@
 #include <string>
 #include <vector>
 
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_status_wrapper.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
+#include "rclcpp_lifecycle/state.hpp"
 
-#include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
-#include <rclcpp_lifecycle/state.hpp>
+#include "hardware_interface/handle.hpp"
+#include "hardware_interface/system_interface.hpp"
+#include "hardware_interface/types/hardware_interface_return_values.hpp"
 
-#include <diagnostic_updater/diagnostic_status_wrapper.hpp>
-
-#include <hardware_interface/handle.hpp>
-#include <hardware_interface/system_interface.hpp>
-#include <hardware_interface/types/hardware_interface_return_values.hpp>
-
-#include <panther_hardware_interfaces/gpio_controller.hpp>
-#include <panther_hardware_interfaces/motors_controller.hpp>
-#include <panther_hardware_interfaces/panther_system_ros_interface.hpp>
-#include <panther_hardware_interfaces/roboteq_error_filter.hpp>
+#include "panther_hardware_interfaces/gpio_controller.hpp"
+#include "panther_hardware_interfaces/motors_controller.hpp"
+#include "panther_hardware_interfaces/panther_system_ros_interface.hpp"
+#include "panther_hardware_interfaces/roboteq_error_filter.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -90,9 +88,7 @@ protected:
   void UpdateFlagErrors();
   void UpdateDriverStateDataTimedOut();
 
-  void SendCommands();
-  void CheckErrorsAndSetEStop();
-  bool CheckIfSafetyStopActive();
+  void HandlePDOWriteOperation(std::function<void()> pdo_write_operation);
   bool AreVelocityCommandsNearZero();
 
   void MotorsPowerEnable(const bool enable);

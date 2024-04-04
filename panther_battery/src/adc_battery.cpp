@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_battery/adc_battery.hpp>
+#include "panther_battery/adc_battery.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -22,9 +22,9 @@
 #include <thread>
 #include <vector>
 
-#include <rclcpp/rclcpp.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_utils/moving_average.hpp>
+#include "panther_utils/moving_average.hpp"
 
 namespace panther_battery
 {

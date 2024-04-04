@@ -17,10 +17,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
+#include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
-#include <panther_lights/animation/animation.hpp>
+#include "panther_lights/animation/animation.hpp"
 
 class AnimationWrapper : public panther_lights::Animation
 {

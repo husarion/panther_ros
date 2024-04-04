@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-#include <image_transport/image_transport.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/image_encodings.hpp>
 #include <thread>
 
-#include <panther_lights/driver_node.hpp>
-#include <panther_msgs/srv/set_led_brightness.hpp>
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "gtest/gtest.h"
+
+#include "image_transport/image_transport.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/image_encodings.hpp"
+
+#include "panther_lights/driver_node.hpp"
+#include "panther_msgs/srv/set_led_brightness.hpp"
+#include "panther_utils/test/ros_test_utils.hpp"
 
 using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
@@ -28,7 +30,11 @@ using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 class DriverNodeWrapper : public panther_lights::DriverNode
 {
 public:
-  DriverNodeWrapper(const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions()) : DriverNode(node_name, options) {}
+  DriverNodeWrapper(
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
+  : DriverNode(node_name, options)
+  {
+  }
 
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
@@ -36,7 +42,6 @@ public:
   rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
   rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
 };
-
 
 class TestDriverNode : public testing::Test
 {

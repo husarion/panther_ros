@@ -16,11 +16,11 @@
 #include <memory>
 #include <string>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <diagnostic_updater/diagnostic_status_wrapper.hpp>
+#include "diagnostic_updater/diagnostic_status_wrapper.hpp"
 
-#include <panther_utils/diagnostics.hpp>
+#include "panther_utils/diagnostics.hpp"
 
 TEST(TestAddKeyValueIfTrue, HandlesBoolean)
 {

@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@
 #include <memory>
 #include <string>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_msgs/msg/driver_state.hpp>
+#include "panther_msgs/msg/driver_state.hpp"
 
-#include <panther_battery/adc_data_reader.hpp>
-#include <panther_battery/battery.hpp>
-#include <panther_battery/battery_publisher.hpp>
+#include "panther_battery/adc_data_reader.hpp"
+#include "panther_battery/battery.hpp"
+#include "panther_battery/battery_publisher.hpp"
 
 namespace panther_battery
 {

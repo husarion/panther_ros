@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 #include <cstdint>
 #include <memory>
 
-#include <gtest/gtest.h>
-#include <rclcpp/rclcpp.hpp>
+#include "gtest/gtest.h"
 
-#include <sensor_msgs/msg/battery_state.hpp>
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_battery/adc_battery.hpp>
-#include <panther_battery/battery.hpp>
-#include <panther_battery/dual_battery_publisher.hpp>
-#include <panther_utils/test/ros_test_utils.hpp>
+#include "sensor_msgs/msg/battery_state.hpp"
+
+#include "panther_battery/adc_battery.hpp"
+#include "panther_battery/battery.hpp"
+#include "panther_battery/dual_battery_publisher.hpp"
+#include "panther_utils/test/ros_test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 

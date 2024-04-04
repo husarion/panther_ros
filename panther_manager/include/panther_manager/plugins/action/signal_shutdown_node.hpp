@@ -17,9 +17,9 @@
 
 #include <string>
 
-#include <behaviortree_cpp/action_node.h>
-#include <behaviortree_cpp/basic_types.h>
-#include <behaviortree_cpp/tree_node.h>
+#include "behaviortree_cpp/action_node.h"
+#include "behaviortree_cpp/basic_types.h"
+#include "behaviortree_cpp/tree_node.h"
 
 namespace panther_manager
 {

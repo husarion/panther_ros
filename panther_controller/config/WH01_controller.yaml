@@ -13,6 +13,9 @@
   # IMU specification: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications
   imu_broadcaster:
     ros__parameters:
+      use_namespace_as_sensor_name_prefix: true
+      tf_frame_prefix_enable: false
+
       sensor_name: imu
       frame_id: imu_link
       # orientation_stddev: 1.0e-2 for madgwick filter
@@ -26,6 +29,7 @@
     ros__parameters:
       left_wheel_names: ["fl_wheel_joint", "rl_wheel_joint"]
       right_wheel_names: ["fr_wheel_joint", "rr_wheel_joint"]
+      tf_frame_prefix_enable: false
 
       wheel_separation: 0.697
       wheel_radius: 0.1825

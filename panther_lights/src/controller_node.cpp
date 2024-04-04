@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/controller_node.hpp>
+#include "panther_lights/controller_node.hpp"
 
 #include <chrono>
 #include <cstdint>
@@ -23,19 +23,19 @@
 #include <unordered_map>
 #include <vector>
 
-#include <rclcpp/rclcpp.hpp>
+#include "yaml-cpp/yaml.h"
 
-#include <yaml-cpp/yaml.h>
+#include "rclcpp/rclcpp.hpp"
 
-#include <sensor_msgs/msg/image.hpp>
+#include "sensor_msgs/msg/image.hpp"
 
-#include <panther_msgs/srv/set_led_animation.hpp>
+#include "panther_msgs/srv/set_led_animation.hpp"
 
-#include <panther_lights/led_animations_queue.hpp>
-#include <panther_lights/led_panel.hpp>
-#include <panther_lights/led_segment.hpp>
-#include <panther_lights/segment_converter.hpp>
-#include <panther_utils/yaml_utils.hpp>
+#include "panther_lights/led_animations_queue.hpp"
+#include "panther_lights/led_panel.hpp"
+#include "panther_lights/led_segment.hpp"
+#include "panther_lights/segment_converter.hpp"
+#include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
 {

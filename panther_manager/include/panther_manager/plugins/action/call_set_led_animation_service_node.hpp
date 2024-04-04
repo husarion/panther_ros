@@ -17,10 +17,10 @@
 
 #include <string>
 
-#include <behaviortree_ros2/bt_service_node.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "behaviortree_ros2/bt_service_node.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-#include <panther_msgs/srv/set_led_animation.hpp>
+#include "panther_msgs/srv/set_led_animation.hpp"
 
 namespace panther_manager
 {

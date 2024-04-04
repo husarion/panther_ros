@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/animation/charging_animation.hpp>
+#include "panther_lights/animation/charging_animation.hpp"
 
 #include <algorithm>
 #include <array>
@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
 namespace panther_lights
 {
@@ -155,6 +155,6 @@ std::vector<std::uint8_t> ChargingAnimation::CreateRGBAFrame(
 
 }  // namespace panther_lights
 
-#include <pluginlib/class_list_macros.hpp>
+#include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(panther_lights::ChargingAnimation, panther_lights::Animation)

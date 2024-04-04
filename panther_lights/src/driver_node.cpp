@@ -1,4 +1,4 @@
-// Copyright 2023 Husarion sp. z o.o.
+// Copyright 2024 Husarion sp. z o.o.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panther_lights/driver_node.hpp>
+#include "panther_lights/driver_node.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -21,17 +21,17 @@
 #include <string>
 #include <vector>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <gpiod.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include "gpiod.hpp"
 
-#include <image_transport/image_transport.hpp>
-#include <sensor_msgs/image_encodings.hpp>
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "image_transport/image_transport.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/image_encodings.hpp"
 
-#include <panther_msgs/srv/set_led_brightness.hpp>
+#include "panther_msgs/srv/set_led_brightness.hpp"
 
-#include <panther_gpiod/gpio_driver.hpp>
-#include <panther_lights/apa102.hpp>
+#include "panther_gpiod/gpio_driver.hpp"
+#include "panther_lights/apa102.hpp"
 
 namespace panther_lights
 {

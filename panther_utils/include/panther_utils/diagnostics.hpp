@@ -18,7 +18,7 @@
 #include <map>
 #include <string>
 
-#include <diagnostic_updater/diagnostic_status_wrapper.hpp>
+#include "diagnostic_updater/diagnostic_status_wrapper.hpp"
 
 namespace panther_utils::diagnostics
 {

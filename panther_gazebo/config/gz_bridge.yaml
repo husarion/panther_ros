@@ -1,7 +1,7 @@
 # For detailed information on configuring the parameter_bridge, please refer to:
 # https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_bridge#example-5-configuring-the-bridge-via-yaml
 
-- topic_name: "clock"
+- topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "ignition.msgs.Clock"
   direction: GZ_TO_ROS
@@ -12,10 +12,4 @@
   gz_type_name: "ignition.msgs.BatteryState"
   subscriber_queue: 10
   publisher_queue: 10
-  direction: GZ_TO_ROS
-
-# Topic for Twist data from Ignition teleopt widget
-- topic_name: "cmd_vel"
-  ros_type_name: "geometry_msgs/msg/Twist"
-  gz_type_name: "ignition.msgs.Twist"
   direction: GZ_TO_ROS

@@ -6,6 +6,14 @@ ROS 2 packages for Panther autonomous mobile robot
 
 ## Quick start
 
+### Create workspace
+
+```bash
+mkdir ~/husarion_ws
+cd ~/husarion_ws
+git clone -b ros2-devel https://github.com/husarion/panther_ros.git src/panther_ros
+```
+
 ### Configure environment
 
 The repository is used to run the code both on the real robot and in the simulation. Specify `HUSARION_ROS_BUILD_TYPE` the variable according to your needs.
@@ -22,14 +30,6 @@ Simulation:
 export HUSARION_ROS_BUILD_TYPE=simulation
 ```
 
-### Create workspace
-
-```bash
-mkdir ~/husarion_ws
-cd ~/husarion_ws
-git clone https://github.com/husarion/panther_ros.git src/panther_ros
-```
-
 ### Build
 
 ``` bash
@@ -37,6 +37,8 @@ vcs import src < src/panther_ros/panther/panther_hardware.repos
 if [ "$HUSARION_ROS_BUILD_TYPE" == "simulation" ]; then
   vcs import src < src/panther_ros/panther/panther_simulation.repos
 fi
+
+cp -r src/ros2_controllers/imu_sensor_broadcaster src && rm -rf src/ros2_controllers
 
 sudo rosdep init
 rosdep update --rosdistro $ROS_DISTRO
@@ -64,7 +66,6 @@ Simulation:
 ```bash
 ros2 launch panther_gazebo simulation.launch.py
 ```
-
 
 ## Developer Info
 
