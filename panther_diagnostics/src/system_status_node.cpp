@@ -19,11 +19,13 @@
 #include <filesystem>
 #include <fstream>
 
+#include "cppuprofile/uprofile.h"
+
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "cppuprofile/uprofile.h"
 #include "panther_msgs/msg/system_status.hpp"
+#include "panther_utils/common_utilities.hpp"
 
 namespace panther_diagnostics
 {
@@ -50,15 +52,40 @@ SystemStatusNode::SystemStatusNode(const std::string & node_name)
 void SystemStatusNode::TimerCallback()
 {
   const auto status = GetSystemStatus();
-  auto message = BuildSystemStatusMessageFromSystemStatus(status);
+  auto message = SystemStatusToMessage(status);
 
   system_status_publisher_->publish(message);
 }
 
-float SystemStatusNode::GetCoreTemperature(const std::string & filename) const
+SystemStatusNode::SystemStatus SystemStatusNode::GetSystemStatus() const
+{
+  SystemStatusNode::SystemStatus status;
+
+  status.core_usages = GetCoresUsages();
+  status.cpu_mean_usage = GetCPUMeanUsage(status.core_usages);
+  status.cpu_temperature = GetCPUTemperature(kTemperatureInfoFilename);
+  status.memory_usage = GetMemoryUsage();
+  status.disk_usage = GetDiskUsage();
+
+  return status;
+}
+
+std::vector<float> SystemStatusNode::GetCoresUsages() const
+{
+  std::vector<float> loads = uprofile::getInstantCpuUsage();
+  return loads;
+}
+
+float SystemStatusNode::GetCPUMeanUsage(const std::vector<float> & usages) const
+{
+  auto sum = std::accumulate(usages.begin(), usages.end(), 0.0);
+  return sum / usages.size();
+}
+
+float SystemStatusNode::GetCPUTemperature(const std::string & filename) const
 {
   try {
-    auto file = OpenFile(filename, std::ios_base::in);
+    auto file = panther_utils::common_utilities::OpenFile(filename, std::ios_base::in);
     float temperature;
     file >> temperature;
     file.close();
@@ -70,16 +97,11 @@ float SystemStatusNode::GetCoreTemperature(const std::string & filename) const
   return std::numeric_limits<float>::quiet_NaN();
 }
 
-std::vector<float> SystemStatusNode::GetCoresUsages() const
+float SystemStatusNode::GetMemoryUsage() const
 {
-  std::vector<float> loads = uprofile::getInstantCpuUsage();
-  return loads;
-}
-
-float SystemStatusNode::GetCoreMeanUsage(const std::vector<float> & usages) const
-{
-  auto sum = std::accumulate(usages.begin(), usages.end(), 0.0);
-  return sum / usages.size();
+  int total = 0, free = 0, available = 0;
+  uprofile::getSystemMemory(total, free, available);
+  return static_cast<float>(total - available) / total * 100.0;
 }
 
 float SystemStatusNode::GetDiskUsage() const
@@ -90,50 +112,20 @@ float SystemStatusNode::GetDiskUsage() const
   return static_cast<float>(si.capacity - si.available) / si.capacity * 100.0;
 }
 
-float SystemStatusNode::GetMemoryUsage() const
-{
-  int total = 0, free = 0, available = 0;
-  uprofile::getSystemMemory(total, free, available);
-  return static_cast<float>(total - available) / total * 100.0;
-}
-
-SystemStatusNode::SystemStatus SystemStatusNode::GetSystemStatus() const
-{
-  SystemStatusNode::SystemStatus status;
-
-  status.core_usages_ = GetCoresUsages();
-  status.mean_core_usage_ = GetCoreMeanUsage(status.core_usages_);
-  status.core_temperature_ = GetCoreTemperature(SystemStatusNode::kTemperatureInfoFilename);
-  status.memory_usage_ = GetMemoryUsage();
-  status.disk_usage_ = GetDiskUsage();
-
-  return status;
-}
-
-panther_msgs::msg::SystemStatus SystemStatusNode::BuildSystemStatusMessageFromSystemStatus(
+panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
   const SystemStatusNode::SystemStatus & status)
 {
   panther_msgs::msg::SystemStatus message;
 
   message.header.stamp = this->get_clock()->now();
   message.header.frame_id = params_.frame_id;
-  message.cpu_percent = status.core_usages_;
-  message.avg_load_percent = status.mean_core_usage_;
-  message.cpu_temp = status.core_temperature_;
-  message.ram_usage_percent = status.memory_usage_;
-  message.disc_usage_percent = status.disk_usage_;
+  message.cpu_percent = status.core_usages;
+  message.avg_load_percent = status.cpu_mean_usage;
+  message.cpu_temp = status.cpu_temperature;
+  message.ram_usage_percent = status.memory_usage;
+  message.disc_usage_percent = status.disk_usage;
 
   return message;
-}
-
-std::fstream SystemStatusNode::OpenFile(
-  const std::string & file_path, const std::ios_base::openmode & mode) const
-{
-  std::fstream file(file_path, mode);
-  if (!file.is_open()) {
-    throw std::runtime_error("Failed to open file: " + file_path);
-  }
-  return file;
 }
 
 void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)
@@ -145,10 +137,10 @@ void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrappe
 
   auto system_status = GetSystemStatus();
 
-  status.add("CPU usage", system_status.mean_core_usage_);
-  status.add("CPU temperature", system_status.core_temperature_);
-  status.add("Disk memory usage", system_status.disk_usage_);
-  status.add("RAM memory usage", system_status.memory_usage_);
+  status.add("CPU usage", system_status.cpu_mean_usage);
+  status.add("CPU temperature", system_status.cpu_temperature);
+  status.add("Disk memory usage", system_status.disk_usage);
+  status.add("RAM memory usage", system_status.memory_usage);
 
   std::unordered_map<double, diagnostic_msgs::msg::KeyValue> limits = {
     {params_.cpu_usage_warn_threshold, status.values[0]},

@@ -15,6 +15,7 @@
 #ifndef PANTHER_UTILS_COMMON_UTILITIES_HPP_
 #define PANTHER_UTILS_COMMON_UTILITIES_HPP_
 
+#include <fstream>
 #include <map>
 #include <string>
 
@@ -38,6 +39,28 @@ std::map<std::string, T> PrefixMapKeys(
     prefixed_map[prefix + key] = value;
   }
   return prefixed_map;
+}
+
+/**
+ * @brief Opens a file with the specified mode.
+ *
+ * This function opens a file with the specified mode and returns a std::fstream object.
+ * If the file fails to open, it throws a std::runtime_error.
+ *
+ * @param file_path The path to the file to be opened.
+ * @param mode The mode in which the file should be opened (e.g., std::ios_base::in |
+ * std::ios_base::out).
+ * @return std::fstream The opened file stream.
+ *
+ * @throws std::runtime_error if the file fails to open.
+ */
+std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmode & mode)
+{
+  std::fstream file(file_path, mode);
+  if (!file.is_open()) {
+    throw std::runtime_error("Failed to open file: " + file_path);
+  }
+  return file;
 }
 
 }  // namespace panther_utils::common_utilities

@@ -40,5 +40,5 @@ system_status:
     default_value: 80.0
     description: Threshold for CPU temperature warning in degrees Celsius.
     validation: {
-      bounds<>: [-273.15, 1000.0]
+      bounds<>: [0.0, 1000.0]
     }

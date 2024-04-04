@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_
-#define PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_
+#ifndef PANTHER_DIAGNOSTICS_SYSTEM_STATUS_NODE_HPP_
+#define PANTHER_DIAGNOSTICS_SYSTEM_STATUS_NODE_HPP_
 
 #include <string>
 
@@ -34,32 +34,28 @@ class SystemStatusNode : public rclcpp::Node
 public:
   SystemStatusNode(const std::string & node_name);
 
-  static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
-
   struct SystemStatus
   {
-    std::vector<float> core_usages_;
-    float mean_core_usage_;
-    float memory_usage_;
-    float disk_usage_;
-    float core_temperature_;
+    std::vector<float> core_usages;
+    float cpu_mean_usage;
+    float cpu_temperature;
+    float memory_usage;
+    float disk_usage;
   };
 
 protected:
+  SystemStatus GetSystemStatus() const;
   std::vector<float> GetCoresUsages() const;
-  float GetCoreTemperature(const std::string & filename) const;
+  float GetCPUMeanUsage(const std::vector<float> & usages) const;
+  float GetCPUTemperature(const std::string & filename) const;
   float GetMemoryUsage() const;
   float GetDiskUsage() const;
-  float GetCoreMeanUsage(const std::vector<float> & usages) const;
 
-  SystemStatus GetSystemStatus() const;
-  panther_msgs::msg::SystemStatus BuildSystemStatusMessageFromSystemStatus(
-    const SystemStatus & status);
+  panther_msgs::msg::SystemStatus SystemStatusToMessage(const SystemStatus & status);
 
 private:
   void TimerCallback();
   void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
-  std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmode & mode) const;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;
@@ -67,6 +63,8 @@ private:
 
   system_status::Params params_;
   std::shared_ptr<system_status::ParamListener> param_listener_;
+
+  static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
 };
 }  // namespace panther_diagnostics
-#endif  // PANTHER_DIAGNOSTICS_SYSTEM_STATUS_HPP_
+#endif  // PANTHER_DIAGNOSTICS_SYSTEM_STATUS_NODE_HPP_

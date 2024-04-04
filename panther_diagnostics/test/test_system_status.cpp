@@ -21,14 +21,14 @@
 
 #include "panther_diagnostics/system_status_node.hpp"
 
-class SystemStatusWrapper : public panther_diagnostics::SystemStatusNode
+class SystemStatusNodeWrapper : public panther_diagnostics::SystemStatusNode
 {
 public:
-  SystemStatusWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
+  SystemStatusNodeWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
 
-  float GetCoreTemperature(const std::string & filename) const
+  float GetCPUTemperature(const std::string & filename) const
   {
-    return panther_diagnostics::SystemStatusNode::GetCoreTemperature(filename);
+    return panther_diagnostics::SystemStatusNode::GetCPUTemperature(filename);
   }
 
   std::vector<float> GetCoresUsages() const
@@ -38,63 +38,95 @@ public:
 
   float GetMemoryUsage() const { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
 
-  float GetCoreMeanUsage(const std::vector<float> & usages) const
+  float GetCPUMeanUsage(const std::vector<float> & usages) const
   {
-    return panther_diagnostics::SystemStatusNode::GetCoreMeanUsage(usages);
+    return panther_diagnostics::SystemStatusNode::GetCPUMeanUsage(usages);
   }
 
   float GetDiskUsage() const { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
+
+  panther_msgs::msg::SystemStatus SystemStatusToMessage(
+    const panther_diagnostics::SystemStatusNode::SystemStatus & status)
+  {
+    return panther_diagnostics::SystemStatusNode::SystemStatusToMessage(status);
+  }
 };
 
-class SystemStatusTest : public testing::Test
+class TestSystemStatusNode : public testing::Test
 {
 public:
-  SystemStatusTest();
-  ~SystemStatusTest();
+  TestSystemStatusNode();
+  ~TestSystemStatusNode();
 
 protected:
-  std::unique_ptr<SystemStatusWrapper> system_status_;
+  std::unique_ptr<SystemStatusNodeWrapper> system_status_;
 };
 
-SystemStatusTest::SystemStatusTest()
+TestSystemStatusNode::TestSystemStatusNode()
 {
   rclcpp::init(0, nullptr);
-  system_status_ = std::make_unique<SystemStatusWrapper>();
+  system_status_ = std::make_unique<SystemStatusNodeWrapper>();
 }
 
-SystemStatusTest::~SystemStatusTest() { rclcpp::shutdown(); }
+TestSystemStatusNode::~TestSystemStatusNode() { rclcpp::shutdown(); }
 
-TEST_F(SystemStatusTest, CheckTemperatureReadings)
+TEST_F(TestSystemStatusNode, CheckTemperatureReadings)
 {
   const std::string temperature_file_name = testing::TempDir() + "panther_diagnostics_temperature";
   std::filesystem::remove(temperature_file_name);
-  EXPECT_FALSE(std::filesystem::exists(temperature_file_name));
-
   std::ofstream temperature_file(temperature_file_name, std::ofstream::out);
   temperature_file << 36600 << std::endl;
   temperature_file.close();
 
-  const auto temperature = system_status_->GetCoreTemperature(temperature_file_name);
-  EXPECT_FLOAT_EQ(temperature, 36.6);
+  const auto temperature = system_status_->GetCPUTemperature(temperature_file_name);
   std::filesystem::remove(temperature_file_name);
+
+  EXPECT_FLOAT_EQ(temperature, 36.6);
 }
 
-TEST_F(SystemStatusTest, CheckMemoryReadings)
+TEST_F(TestSystemStatusNode, CheckMemoryReadings)
 {
   const auto memory = system_status_->GetMemoryUsage();
+
   EXPECT_TRUE((memory >= 0.0) && (memory <= 100.0));
 }
 
-TEST_F(SystemStatusTest, CheckCPUReadings)
+TEST_F(TestSystemStatusNode, CheckCPUReadings)
 {
   const auto usages = system_status_->GetCoresUsages();
+  const auto mean = system_status_->GetCPUMeanUsage(usages);
 
   for (const auto & usage : usages) {
     EXPECT_TRUE((usage >= 0.0) && (usage <= 100.0));
   }
-
-  const auto mean = system_status_->GetCoreMeanUsage(usages);
   EXPECT_TRUE((mean >= 0.0) && (mean <= 100.0));
+}
+
+TEST_F(TestSystemStatusNode, CheckDiskReadings)
+{
+  const auto disk_usage = system_status_->GetDiskUsage();
+
+  EXPECT_TRUE((disk_usage >= 0.0) && (disk_usage <= 100.0));
+}
+
+TEST_F(TestSystemStatusNode, CheckSystemStatusToMessage)
+{
+  panther_diagnostics::SystemStatusNode::SystemStatus status;
+  status.core_usages = {50.0, 50.0, 50.0};
+  status.cpu_mean_usage = 50.0;
+  status.cpu_temperature = 36.6;
+  status.disk_usage = 60.0;
+  status.memory_usage = 30.0;
+
+  const auto message = system_status_->SystemStatusToMessage(status);
+
+  for (const auto & usage : message.cpu_percent) {
+    EXPECT_FLOAT_EQ(usage, 50.0);
+  }
+  EXPECT_FLOAT_EQ(message.avg_load_percent, 50.0);
+  EXPECT_FLOAT_EQ(message.cpu_temp, 36.6);
+  EXPECT_FLOAT_EQ(message.disc_usage_percent, 60.0);
+  EXPECT_FLOAT_EQ(message.ram_usage_percent, 30.0);
 }
 
 int main(int argc, char ** argv)

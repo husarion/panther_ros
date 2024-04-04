@@ -19,6 +19,7 @@ set(THIS_PACKAGE_DEPS
     ament_cmake
     rclcpp
     panther_msgs
+    panther_utils
     diagnostic_updater
     diagnostic_msgs
     std_msgs
