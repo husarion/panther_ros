@@ -226,7 +226,6 @@ def generate_launch_description():
             target_action=robot_controller_spawner,
             on_exit=[imu_broadcaster_spawner],
         ),
-        condition=IfCondition(use_sim),
     )
 
     actions = [

@@ -34,11 +34,20 @@ set(PACKAGE_INCLUDE_DEPENDS
     rclcpp
     rclcpp_lifecycle
     realtime_tools
-    std_srvs)
+    std_srvs
+    imu_filter_madgwick
+    phidgets_api
+    generate_parameter_library
+    tf2_ros
+    tf2_geometry_msgs
+    geometry_msgs)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
+
+generate_parameter_library(phidgets_spatial_parameters
+                           config/phidgets_spatial_parameters.yaml)
 
 set(ENV{PKG_CONFIG_PATH}
     "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
@@ -55,22 +64,13 @@ add_library(
   src/roboteq_driver.cpp
   src/roboteq_data_converters.cpp
   src/roboteq_error_filter.cpp
-  src/utils.cpp)
+  src/utils.cpp
+  src/panther_imu.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-ament_target_dependencies(
-  ${PROJECT_NAME}
-  diagnostic_updater
-  hardware_interface
-  rclcpp_lifecycle
-  rclcpp
-  pluginlib
-  std_srvs
-  panther_gpiod
-  panther_msgs
-  panther_utils
-  realtime_tools)
-target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP)
+ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
+                      phidgets_spatial_parameters)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
@@ -92,6 +92,15 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(panther_utils REQUIRED)
 
+  ament_add_gtest(${PROJECT_NAME}_test_panther_imu test/test_panther_imu.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_panther_imu
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_imu hardware_interface
+                            rclcpp panther_utils panther_msgs phidgets_api)
+
+  target_link_libraries(${PROJECT_NAME}_test_panther_imu ${PROJECT_NAME}
+                        phidgets_spatial_parameters)
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
     test/test_roboteq_error_filter.cpp src/roboteq_error_filter.cpp)
@@ -206,14 +215,6 @@ ament_export_include_directories(include)
 
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(
-  diagnostic_updater
-  hardware_interface
-  controller_interface
-  realtime_tools
-  panther_utils
-  rclcpp_lifecycle
-  rclcpp
-  std_msgs)
+ament_export_dependencies(${PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()
