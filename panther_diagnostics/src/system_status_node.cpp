@@ -22,8 +22,7 @@
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "uprofile.h"
-
+#include "cppuprofile/uprofile.h"
 #include "panther_msgs/msg/system_status.hpp"
 
 namespace panther_diagnostics
@@ -42,7 +41,7 @@ SystemStatusNode::SystemStatusNode(const std::string & node_name)
     std::chrono::milliseconds(static_cast<long long>(params_.publish_rate * 1000)),
     std::bind(&SystemStatusNode::TimerCallback, this));
 
-  diagnostic_updater_.setHardwareID("Built-in Computer");
+  diagnostic_updater_.setHardwareID(params_.hardware_id);
   diagnostic_updater_.add("OS status", this, &SystemStatusNode::DiagnoseSystem);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
@@ -58,16 +57,13 @@ void SystemStatusNode::TimerCallback()
 
 float SystemStatusNode::GetCoreTemperature(const std::string & filename) const
 {
-  std::ifstream file;
-  file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
   try {
-    file.open(filename);
+    auto file = OpenFile(filename, std::ios_base::in);
     float temperature;
     file >> temperature;
     file.close();
     return temperature / 1000.0;
-  } catch (const std::ifstream::failure & e) {
+  } catch (const std::runtime_error & e) {
     const std::string msg = std::string("Error when trying to CPU temperature: ") + e.what();
     RCLCPP_ERROR_STREAM(this->get_logger(), msg);
   }
@@ -128,6 +124,16 @@ panther_msgs::msg::SystemStatus SystemStatusNode::BuildSystemStatusMessageFromSy
   message.disc_usage_percent = status.disk_usage_;
 
   return message;
+}
+
+std::fstream SystemStatusNode::OpenFile(
+  const std::string & file_path, const std::ios_base::openmode & mode) const
+{
+  std::fstream file(file_path, mode);
+  if (!file.is_open()) {
+    throw std::runtime_error("Failed to open file: " + file_path);
+  }
+  return file;
 }
 
 void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)

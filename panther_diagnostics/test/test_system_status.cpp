@@ -26,24 +26,24 @@ class SystemStatusWrapper : public panther_diagnostics::SystemStatusNode
 public:
   SystemStatusWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
 
-  float GetCoreTemperature(const std::string & filename)
+  float GetCoreTemperature(const std::string & filename) const
   {
     return panther_diagnostics::SystemStatusNode::GetCoreTemperature(filename);
   }
 
-  std::vector<float> GetCoresUsages()
+  std::vector<float> GetCoresUsages() const
   {
     return panther_diagnostics::SystemStatusNode::GetCoresUsages();
   }
 
-  float GetMemoryUsage() { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
+  float GetMemoryUsage() const { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
 
-  float GetCoreMeanUsage(const std::vector<float> & usages)
+  float GetCoreMeanUsage(const std::vector<float> & usages) const
   {
     return panther_diagnostics::SystemStatusNode::GetCoreMeanUsage(usages);
   }
 
-  float GetDiskUsage() { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
+  float GetDiskUsage() const { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
 };
 
 class SystemStatusTest : public testing::Test
@@ -64,22 +64,14 @@ SystemStatusTest::SystemStatusTest()
 
 SystemStatusTest::~SystemStatusTest() { rclcpp::shutdown(); }
 
-TEST_F(SystemStatusTest, CheckTemperature)
-{
-  // Works only on RPi
-  const auto temperature = system_status_->GetCoreTemperature(
-    panther_diagnostics::SystemStatusNode::kTemperatureInfoFilename);
-  EXPECT_FALSE(std::isnan(temperature));
-}
-
 TEST_F(SystemStatusTest, CheckTemperatureReadings)
 {
   const std::string temperature_file_name = testing::TempDir() + "panther_diagnostics_temperature";
   std::filesystem::remove(temperature_file_name);
   EXPECT_FALSE(std::filesystem::exists(temperature_file_name));
 
-  std::ofstream temperature_file(temperature_file_name);
-  temperature_file << "36600";
+  std::ofstream temperature_file(temperature_file_name, std::ofstream::out);
+  temperature_file << 36600 << std::endl;
   temperature_file.close();
 
   const auto temperature = system_status_->GetCoreTemperature(temperature_file_name);

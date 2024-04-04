@@ -59,6 +59,7 @@ protected:
 private:
   void TimerCallback();
   void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
+  std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmode & mode) const;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;
