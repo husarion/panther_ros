@@ -272,4 +272,4 @@ ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimat
 ---
 ## Defining a Custom Animation Type
 
-It is possible to define your own animation type with expected, new behavior. For more information, see: [**Animation API**](./LIGHTS_API.md).
+It is possible to define your own animation type with expected, new behavior. For more information, see: [**Animation API**](https://github.com/husarion/panther_ros/panther_lights/LIGHTS_API.md).
