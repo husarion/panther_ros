@@ -81,7 +81,7 @@ CAN settings
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
 This package doesn't contain any standalone nodes - `PantherImuSensor` is a plugin loaded by the resource manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](../panther_description/)) and add an `imu_sensor_broadcaster` controller (example configuration provided in [panther_controller](../panther_controller/) package).
+To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_description/)) and add an `imu_sensor_broadcaster` controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_controller/) package).
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
@@ -89,7 +89,7 @@ To use this hardware interface you have to add it to your URDF (you can check ho
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
 
-Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
+Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
 
