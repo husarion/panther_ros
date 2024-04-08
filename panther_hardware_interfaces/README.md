@@ -85,7 +85,6 @@ To use this hardware interface you have to add it to your URDF (you can check ho
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
-
 #### Parameters
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
@@ -114,7 +113,6 @@ Physical properties
 - `cc_t4` [*double*, default: **0.0**]: T offset value 4; see device's user guide for information on how to calibrate.
 - `cc_t5` [*double*, default: **0.0**]: T offset value 5; see device's user guide for information on how to calibrate.
 
-
 Madgwick filter settings
 
 - `use_mag` [*bool*, default: **false**]: Use magnitude to calculate orientation.
@@ -128,22 +126,25 @@ Madgwick filter settings
 
 The Madgwick Filter parameters, zeta and gain, are provided in the paper "[An efficient orientation filter for inertial and inertial/magnetic sensor arrays](https://x-io.co.uk/downloads/madgwick_internal_report.pdf)". The Panther robot utilizes the `PhidgetSpatial Precision 3/3/3` IMU sensor, with detailed specifications available on  [the producer's website](https://www.phidgets.com/?prodid=1205#Tab_Specifications).
 
-
 Gyroscope Noise (@ 1ms) is:
-```
+
+```text
 gyroMeasError = 0.2 deg/s = 0.00351 rad/s
 ```
 
 Gyroscope Drift Max is:
-```
+
+```text
 gyroMeasDrift  = 0.1 deg/s = 0.00175 rad/s
 ```
 
 Instructions for computing gain and zeta can be found in [the paper](https://x-io.co.uk/downloads/madgwick_internal_report.pdf).
-```
+
+```text
 gain = sqrt(3/4)* gyroMeasError = 0.00303
 ```
-```
+
+```text
 zeta = sqrt(3/4)* gyroMeasDrift = 0.00151
 ```
 
