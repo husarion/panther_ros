@@ -195,6 +195,14 @@ def generate_launch_description():
         condition=IfCondition(use_ekf),
     )
 
+    disable_manager = LaunchConfiguration("disable_manager")
+    declare_disable_manager_arg = DeclareLaunchArgument(
+        "disable_manager",
+        default_value="False",
+        description="Enable or disable manager_bt_node",
+        choices=["True", "False"],
+    )
+
     shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
     declare_shutdown_hosts_config_path_arg = DeclareLaunchArgument(
         "shutdown_hosts_config_path",
@@ -299,7 +307,7 @@ def generate_launch_description():
                 ]
             )
         ),
-        condition=UnlessCondition(use_sim),
+        condition=UnlessCondition(use_sim) and UnlessCondition(disable_manager),
         launch_arguments={
             "namespace": namespace,
             "panther_version": panther_version,
@@ -342,6 +350,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
+        declare_disable_manager_arg,
         declare_shutdown_hosts_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
