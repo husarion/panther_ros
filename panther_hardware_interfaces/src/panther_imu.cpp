@@ -397,6 +397,8 @@ void PantherImuSensor::InitializeMadgwickAlgorithm(
   algorithm_initialized_ = true;
 }
 
+void PantherImuSensor::RestartMadgwickAlgorithm() { filter_->setOrientation(0.0, 0.0, 0.0, 0.0); }
+
 bool PantherImuSensor::IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated)
 {
   if (imu_calibrated_) {
@@ -452,10 +454,9 @@ void PantherImuSensor::SpatialDataCallback(
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(logger_, "Exception during algorithm initialization: " << e.what());
     }
-    return;
   }
 
-  if (!params_.stateless) {
+  if (algorithm_initialized_ && !params_.stateless) {
     if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated) && params_.use_mag) {
       UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
     } else {
@@ -477,9 +478,9 @@ void PantherImuSensor::SpatialDetachCallback()
 {
   RCLCPP_WARN(logger_, "IMU has detached!");
   imu_connected_ = false;
-  imu_calibrated_ = false;
   algorithm_initialized_ = false;
   SetStateValuesToNans();
+  RestartMadgwickAlgorithm();
   on_deactivate(rclcpp_lifecycle::State{});
 }
 
