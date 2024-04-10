@@ -1,0 +1,19 @@
+---
+name: Run panther unit tests
+
+on:
+    workflow_dispatch:
+    pull_request:
+        branches:
+            - ros2-devel
+
+jobs:
+    test:
+        name: Run unit tests
+        runs-on: self-hosted
+
+        steps:
+            - name: dummy_test
+              run: |
+                  touch ~/test.txt
+                  echo "Dummy content" >> ~/test.txt
