@@ -26,22 +26,22 @@ class SystemStatusNodeWrapper : public panther_diagnostics::SystemStatusNode
 public:
   SystemStatusNodeWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
 
-  float GetCPUTemperature(const std::string & filename) const
-  {
-    return panther_diagnostics::SystemStatusNode::GetCPUTemperature(filename);
-  }
-
   std::vector<float> GetCoresUsages() const
   {
     return panther_diagnostics::SystemStatusNode::GetCoresUsages();
   }
 
-  float GetMemoryUsage() const { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
-
   float GetCPUMeanUsage(const std::vector<float> & usages) const
   {
     return panther_diagnostics::SystemStatusNode::GetCPUMeanUsage(usages);
   }
+
+  float GetCPUTemperature(const std::string & filename) const
+  {
+    return panther_diagnostics::SystemStatusNode::GetCPUTemperature(filename);
+  }
+
+  float GetMemoryUsage() const { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
 
   float GetDiskUsage() const { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
 
@@ -56,7 +56,6 @@ class TestSystemStatusNode : public testing::Test
 {
 public:
   TestSystemStatusNode();
-  ~TestSystemStatusNode();
 
 protected:
   std::unique_ptr<SystemStatusNodeWrapper> system_status_;
@@ -64,16 +63,33 @@ protected:
 
 TestSystemStatusNode::TestSystemStatusNode()
 {
-  rclcpp::init(0, nullptr);
   system_status_ = std::make_unique<SystemStatusNodeWrapper>();
 }
 
-TestSystemStatusNode::~TestSystemStatusNode() { rclcpp::shutdown(); }
+TEST_F(TestSystemStatusNode, CheckCoresUsages)
+{
+  const auto usages = system_status_->GetCoresUsages();
+
+  for (const auto & usage : usages) {
+    EXPECT_TRUE((usage >= 0.0) && (usage <= 100.0));
+  }
+}
+
+TEST_F(TestSystemStatusNode, CheckCPUMeanUsage)
+{
+  std::vector<float> usages = {45.0, 55.0, 45.0, 55.0};
+
+  const auto mean = system_status_->GetCPUMeanUsage(usages);
+  EXPECT_FLOAT_EQ(mean, 50.0);
+}
 
 TEST_F(TestSystemStatusNode, CheckTemperatureReadings)
 {
   const std::string temperature_file_name = testing::TempDir() + "panther_diagnostics_temperature";
+
+  // Make sure that there is no random file with random value.
   std::filesystem::remove(temperature_file_name);
+
   std::ofstream temperature_file(temperature_file_name, std::ofstream::out);
   temperature_file << 36600 << std::endl;
   temperature_file.close();
@@ -89,17 +105,6 @@ TEST_F(TestSystemStatusNode, CheckMemoryReadings)
   const auto memory = system_status_->GetMemoryUsage();
 
   EXPECT_TRUE((memory >= 0.0) && (memory <= 100.0));
-}
-
-TEST_F(TestSystemStatusNode, CheckCPUReadings)
-{
-  const auto usages = system_status_->GetCoresUsages();
-  const auto mean = system_status_->GetCPUMeanUsage(usages);
-
-  for (const auto & usage : usages) {
-    EXPECT_TRUE((usage >= 0.0) && (usage <= 100.0));
-  }
-  EXPECT_TRUE((mean >= 0.0) && (mean <= 100.0));
 }
 
 TEST_F(TestSystemStatusNode, CheckDiskReadings)
@@ -120,17 +125,18 @@ TEST_F(TestSystemStatusNode, CheckSystemStatusToMessage)
 
   const auto message = system_status_->SystemStatusToMessage(status);
 
-  for (const auto & usage : message.cpu_percent) {
-    EXPECT_FLOAT_EQ(usage, 50.0);
-  }
-  EXPECT_FLOAT_EQ(message.avg_load_percent, 50.0);
-  EXPECT_FLOAT_EQ(message.cpu_temp, 36.6);
-  EXPECT_FLOAT_EQ(message.disc_usage_percent, 60.0);
-  EXPECT_FLOAT_EQ(message.ram_usage_percent, 30.0);
+  EXPECT_EQ(message.cpu_percent, status.core_usages);
+  EXPECT_FLOAT_EQ(message.avg_load_percent, status.cpu_mean_usage);
+  EXPECT_FLOAT_EQ(message.cpu_temp, status.cpu_temperature);
+  EXPECT_FLOAT_EQ(message.disc_usage_percent, status.disk_usage);
+  EXPECT_FLOAT_EQ(message.ram_usage_percent, status.memory_usage);
 }
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  rclcpp::init(0, nullptr);
+  auto result = RUN_ALL_TESTS();
+  rclcpp::shutdown();
+  return result;
 }

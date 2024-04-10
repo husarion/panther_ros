@@ -59,7 +59,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_system_status
-                  test/test_system_status.cpp)
+                  test/test_system_status_node.cpp)
   target_include_directories(${PROJECT_NAME}_test_system_status PRIVATE include)
 
   target_link_libraries(${PROJECT_NAME}_test_system_status system_status_node)
