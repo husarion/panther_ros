@@ -4,7 +4,7 @@ A package containing the launch files and dependencies needed to run the simulat
 
 ## Usage
 
-The recommended method for launching the simulation is by utilizing the [simulation.launch.py](./launch/simulation.launch.py) file. Below, you will find launch arguments that enable simulation configuration.
+The recommended method for launching the simulation is by utilizing the [simulation.launch.py](https://github.com/husarion/panther_ros/panther_gazebo/launch/simulation.launch.py) file. Below, you will find launch arguments that enable simulation configuration.
 
 ### Launch Arguments
 
@@ -22,7 +22,7 @@ The recommended method for launching the simulation is by utilizing the [simulat
 
 ### Changing Wheel Type
 
-It is possible to change Panther wheels model in simulation. All you need to do is to point to new wheel and controller configuration files using `wheel_config_path` and `controller_config_path` parameters. These files should be based on the default ones, i.e., [WH01_controller.yaml](../panther_controller/config/WH01_controller.yaml) and [WH01.yaml](../panther_description/config/WH01.yaml).
+It is possible to change Panther wheels model in simulation. All you need to do is to point to new wheel and controller configuration files using `wheel_config_path` and `controller_config_path` parameters. These files should be based on the default ones, i.e., [WH01_controller.yaml](https://github.com/husarion/panther_ros/panther_controller/config/WH01_controller.yaml) and [WH01.yaml](https://github.com/husarion/panther_ros/panther_description/config/WH01.yaml).
 
 ### Linear Battery Plugin
 
@@ -61,7 +61,7 @@ The NavSat sensors requires the spherical coordinates of the world origin to be 
 
 To obtain GPS data in Ignition, follow these steps:
 
-- Include the [external_antenna](../panther_description/urdf/components/external_antenna.urdf.xacro) macro in your robot model by adding the following lines to your [panther.urdf.xacro](../panther_description/urdf/panther.urdf.xacro)  file within the `<robot>` tag:
+- Include the [external_antenna](https://github.com/husarion/panther_ros/panther_description/urdf/components/external_antenna.urdf.xacro) macro in your robot model by adding the following lines to your [panther.urdf.xacro](https://github.com/husarion/panther_ros/panther_description/urdf/panther.urdf.xacro)  file within the `<robot>` tag:
 
 ```xml
 <xacro:include filename="$(find panther_description)/urdf/components/external_antenna.urdf.xacro" ns="antenna" />
@@ -84,7 +84,7 @@ To obtain GPS data in Ignition, follow these steps:
 </spherical_coordinates>
 ```
 
-- Configure the `parameter_bridge` by adding these lines to the [gz_bridge.yaml](./config/gz_bridge.yaml) file:
+- Configure the `parameter_bridge` by adding these lines to the [gz_bridge.yaml](https://github.com/husarion/panther_ros/panther_gazebo/config/gz_bridge.yaml) file:
 
 ```yaml
 - ros_topic_name: "navsat/fix"

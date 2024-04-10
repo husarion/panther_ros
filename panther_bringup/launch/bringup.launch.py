@@ -133,7 +133,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all Panther nodes",
+        description="Add namespace to all launched nodes",
     )
 
     declare_publish_robot_state_arg = DeclareLaunchArgument(
@@ -232,25 +232,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    imu_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_bringup"),
-                    "launch",
-                    "imu.launch.py",
-                ]
-            )
-        ),
-        launch_arguments={
-            "imu_config_path": PathJoinSubstitution(
-                [FindPackageShare("panther_bringup"), "config", "imu.yaml"]
-            ),
-            "namespace": namespace,
-        }.items(),
-        condition=UnlessCondition(use_sim),
-    )
-
     lights_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -323,7 +304,6 @@ def generate_launch_description():
         period=10.0,
         actions=[
             battery_launch,
-            imu_launch,
             lights_launch,
             robot_localization_node,
             manager_launch,

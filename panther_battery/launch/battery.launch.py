@@ -27,7 +27,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all Panther nodes",
+        description="Add namespace to all launched nodes",
     )
 
     declare_panther_version_arg = DeclareLaunchArgument("panther_version")

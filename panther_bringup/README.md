@@ -12,8 +12,8 @@ The package contains the default configuration and launch files necessary to sta
 
 ## Default Nodes Launched
 
-- `battery_node` [*[panther_battery/battery_node](../panther_battery/src/main.cpp)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](../panther_battery/README.md).
-- `ekf_node` [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/humble-devel/src/ekf_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](./config/ekf_config.yaml).
+- `battery_node` [*[panther_battery/battery_node](https://github.com/husarion/panther_ros/panther_battery/src/main.cpp)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](https://github.com/husarion/panther_ros/panther_battery/README.md).
+- `ekf_node` [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/humble-devel/src/ekf_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](https://github.com/husarion/panther_ros/panther_gazebo/config/ekf_config.yaml).
 - `imu_container` [*[phidgets_spatial/phidgets::SpatialRosI](https://github.com/ros-drivers/phidgets_drivers/blob/humble/phidgets_spatial/src/spatial_ros_i.cpp)*, *[imu_filter_madgwick/ImuFilterMadgwickRos](https://github.com/CCNYRoboticsLab/imu_tools/blob/humble/imu_filter_madgwick/src/imu_filter_node.cpp)*]: container responsible for running Phidget Spatial IMU ROS driver, filtering and fusing the IMU data. It composes the `phidgets_spatial_node` and `imu_filter_node`.
 
 ## Bringup Launch Arguments
@@ -22,7 +22,7 @@ The package contains the default configuration and launch files necessary to sta
 - `controller_config_path` [*string*, default: **panther_controller/config/<wheel_type arg>_controller.yaml**]: path to controller configuration file. A path to custom configuration can be specified here.
 - `ekf_config_path` [*string*, default: **panther_bringup/config/ekf.yaml**]: path to the EKF configuration file.
 - `led_config_file` [*string*, default: **panther_lights/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
-- `namespace` [*string*, default: **None**] Add namespace to all Panther nodes.
+- `namespace` [*string*, default: **None**] Add namespace to all launched nodes.
 - `publish_robot_state` [*bool*, default: **true**]: whether to publish the default Panther robot description.
 - `shutdown_hosts_config_path` = [*string*, default: **panther_bringup/config/shutdown_hosts.yaml**]: Path to file with list of hosts to request shutdown.
 - `simulation_engine` [*string*, default: **ignition-gazebo**]: simulation engine to use when running Gazebo.
@@ -35,7 +35,7 @@ The package contains the default configuration and launch files necessary to sta
 [//]: # (ROS_API_PACKAGE_START)
 [//]: # (ROS_API_PACKAGE_NAME_START)
 
-# External ROS Nodes
+## External ROS Nodes
 
 [//]: # (ROS_API_PACKAGE_NAME_END)
 

@@ -21,7 +21,7 @@ The package contains the default configuration and launch files necessary to sta
 [//]: # (ROS_API_PACKAGE_START)
 [//]: # (ROS_API_PACKAGE_NAME_START)
 
-# External ROS Nodes
+## External ROS Nodes
 
 [//]: # (ROS_API_PACKAGE_NAME_END)
 
@@ -60,7 +60,7 @@ The broadcaster to publish readings of IMU sensors.
 
 [//]: # (ROS_API_NODE_NAME_START)
 
-### imu_broadcaster
+### joint_state_broadcaster
 
 [//]: # (ROS_API_NODE_NAME_END)
 
