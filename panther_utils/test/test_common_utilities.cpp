@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <filesystem>
+#include <fstream>
 #include <map>
 #include <string>
 
@@ -61,6 +63,31 @@ TEST(PrefixMapKeysTest, HandlesNonAlphanumericPrefix)
   auto result_map = panther_utils::common_utilities::PrefixMapKeys(input_map, prefix);
 
   EXPECT_EQ(result_map, expected_map);
+}
+
+TEST(OpenFileTest, HandleOpenFile)
+{
+  std::string path = testing::TempDir() + "test_panther_utils_open_file";
+
+  // Make sure that there is no random file.
+  std::filesystem::remove(path);
+
+  std::ofstream ofs(path);
+  ofs.close();
+
+  EXPECT_NO_THROW({ panther_utils::common_utilities::OpenFile(path, std::ios_base::out); });
+  std::filesystem::remove(path);
+}
+
+TEST(OpenFileTest, HandleOpenFileThrow)
+{
+  std::string path = testing::TempDir() + "test_panther_utils_open_file";
+
+  // Make sure that there is no random file.
+  std::filesystem::remove(path);
+
+  EXPECT_THROW(
+    { panther_utils::common_utilities::OpenFile(path, std::ios_base::in); }, std::runtime_error);
 }
 
 int main(int argc, char ** argv)
