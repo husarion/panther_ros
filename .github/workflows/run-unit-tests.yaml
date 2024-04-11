@@ -14,7 +14,6 @@ jobs:
         env:
             HUSARION_ROS_BUILD_TYPE: hardware
             ROS_DISTRO: humble
-            ROS_PKG_NAME: panther_ros
             TEST_RESULT_FILENAME: last_run_results.txt
             COVERAGE_RESULT_FILENAME: coverage_results.log
         steps:
@@ -28,7 +27,7 @@ jobs:
               uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
-                  path: ros2_ws/src/${{ env.ROS_PKG_NAME }}
+                  path: ros2_ws/src/${{ github.repository.name }}
 
             - name: Resolve dependencies
               working-directory: ros2_ws
@@ -47,8 +46,6 @@ jobs:
 
             - name: Test
               working-directory: ros2_ws
-              env:
-                  ROS_PKG_NAME: panther_utils
               run: |
                   source install/setup.bash
                   colcon test --packages-up-to panther_utils --retest-until-pass 10 --event-handlers console_cohesion+ --return-code-on-test-failure
@@ -64,9 +61,7 @@ jobs:
             - name: Collect unit tests output
               working-directory: ${{ runner.temp }}
               id: unit-tests-output
-              run: |
-                  cat ${{ env.TEST_RESULT_FILENAME }}
-                  cat ${{ env.TEST_RESULT_FILENAME }} >> "$GITHUB_OUTPUT"
+              run: cat ${{ env.TEST_RESULT_FILENAME }} >> "$GITHUB_OUTPUT"
 
             - name: Validate tests result
               uses: nick-fields/assert-action@v1
@@ -78,7 +73,7 @@ jobs:
               uses: thollander/actions-comment-pull-request@v2
               with:
                   message: |
-                      **Summary coverage rate of ${{ env.ROS_PKG_NAME }}:**
+                      **Test coverage of modified packages:**
                       ${{ steps.unit-tests-output.outputs.lines_cov }}
                       ${{ steps.unit-tests-output.outputs.functions_cov }}
                       ${{ steps.unit-tests-output.outputs.branches_cov }}
