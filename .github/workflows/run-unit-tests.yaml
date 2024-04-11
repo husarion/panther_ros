@@ -27,7 +27,7 @@ jobs:
               uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
-                  path: ros2_ws/src/${{ github.repository.name }}
+                  path: ros2_ws/src/panther_ros
 
             - name: Resolve dependencies
               working-directory: ros2_ws
