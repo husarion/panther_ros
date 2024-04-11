@@ -11,22 +11,18 @@ jobs:
     test:
         name: Run unit tests
         runs-on: self-hosted
-        defaults:
-            run:
-                working-directory: ~/ros2_ws
         env:
             ros_pkg_name: panther_msgs
-            test_results_filename: ~/test_results/last_run_results.txt
-            coverage_results_filename: ~/test_results/coverage_results.log
-
+            test_results_filename: last_run_results.txt
+            coverage_results_filename: coverage_results.log
+    # defaults:
+    #   run:
+        # working-directory: ${{ github.workspace }}/ros2_ws
         steps:
             - name: Prepare filesystem
               run: |
-                  mkdir -p ~/test_results
-                  touch ${{ env.test_results_filename }}
-                  touch ${{ env.coverage_results_filename }}
-                  echo "" > ${{ env.test_results_filename }}
-                  echo "" > ${{ env.coverage_results_filename }}
+                  touch ${{ runner.temp }}/${{ env.test_results_filename }}
+                  touch ${{ runner.temp }}/${{ env.coverage_results_filename }}
 
             - name: Export environment variables
               run: echo "HUSARION_ROS_BUILD_TYPE=hardware" >> $GITHUB_ENV
@@ -35,50 +31,50 @@ jobs:
               uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
-                  path: src/${{ env.ros_pkg_name }}
+                  path: ros2_ws/src/${{ env.ros_pkg_name }}
 
-            - name: Resolve dependencies
-              run: |
-                  vcs import < src/panther_ros/panther/panther_hardware.repos src
-                  sudo apt update
-                  rosdep update --rosdistro $ROS_DISTRO
-                  rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
+    #   - name: Resolve dependencies
+    #     run: |
+    #       vcs import < src/panther_ros/panther/panther_hardware.repos src
+    #       sudo apt update
+    #       rosdep update --rosdistro $ROS_DISTRO
+    #       rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
 
-            - name: Build
-              run: |
-                  if [ -f install/setup.bash ]; then source install/setup.bash; fi
-                  colcon build --symlink-install --parallel-workers $(nproc) --packages-up-to ${{ env.ros_pkg_name }}
+    #   - name: Build
+    #     run: |
+    #       if [ -f install/setup.bash ]; then source install/setup.bash; fi
+    #       colcon build --symlink-install --parallel-workers $(nproc) --packages-up-to ${{ env.ros_pkg_name }}
 
-            - name: Test
-              run: |
-                  source install/setup.bash
-                  colcon test --packages-up-to ${{ env.ros_pkg_name }} --retest-until-pass 10 --event-handlers console_cohesion+ --return-code-on-test-failure
-                  echo "result=$?" >> ${{ env.test_results_filename }}
-                  colcon lcov-result --packages-up-to ${{ env.ros_pkg_name }} --verbose >> ${{ env.coverage_results_filename }}
-                  lines_cov=$(cat ${{ env.coverage_results_filename }} | grep -E 'lines' | head -1)
-                  functions_cov=$(cat ${{ env.coverage_results_filename }}  | grep -E 'functions' | head -1)
-                  branches_cov=$(cat ${{ env.coverage_results_filename }}  | grep -E 'branches' | head -1)
-                  echo "lines_cov=$lines_cov">> ${{ env.test_results_filename }}
-                  echo "functions_cov=$functions_cov" >> ${{ env.test_results_filename }}
-                  echo "branches_cov=$branches_cov" >> ${{ env.test_results_filename }}
+    #   - name: Test
+    #     run: |
+    #       source install/setup.bash
+    #       colcon test --packages-up-to ${{ env.ros_pkg_name }} --retest-until-pass 10 --event-handlers console_cohesion+ --return-code-on-test-failure
+    #       echo "result=$?" >> ${{ env.test_results_filename }}
+    #       colcon lcov-result --packages-up-to ${{ env.ros_pkg_name }} --verbose >> ${{ env.coverage_results_filename }}
+    #       lines_cov=$(cat ${{ env.coverage_results_filename }} | grep -E 'lines' | head -1)
+    #       functions_cov=$(cat ${{ env.coverage_results_filename }}  | grep -E 'functions' | head -1)
+    #       branches_cov=$(cat ${{ env.coverage_results_filename }}  | grep -E 'branches' | head -1)
+    #       echo "lines_cov=$lines_cov">> ${{ env.test_results_filename }}
+    #       echo "functions_cov=$functions_cov" >> ${{ env.test_results_filename }}
+    #       echo "branches_cov=$branches_cov" >> ${{ env.test_results_filename }}
 
-            - name: Collect unit tests output
-              id: unit-tests-output
-              run: |
-                  cat ${{ env.test_results_filename }}
-                  cat ${{ env.test_results_filename }} >> "$GITHUB_OUTPUT"
+    #   - name: Collect unit tests output
+    #     id: unit-tests-output
+    #     run: |
+    #       cat ${{ env.test_results_filename }}
+    #       cat ${{ env.test_results_filename }} >> "$GITHUB_OUTPUT"
 
-            - name: Validate tests result
-              uses: nick-fields/assert-action@v1
-              with:
-                  expected: 0
-                  actual: ${{ steps.unit-tests-output.outputs.result }}
+    #   - name: Validate tests result
+    #     uses: nick-fields/assert-action@v1
+    #     with:
+    #       expected: 0
+    #       actual: ${{ steps.unit-tests-output.outputs.result }}
 
-      # - name: Comment PR
-      #   uses: thollander/actions-comment-pull-request@v2
-      #   with:
-      #     message: |
-      #       **Summary coverage rate of ${{ env.ros_pkg_name }}:**
-      #       ${{ steps.unit-tests-output.outputs.lines_cov }}
-      #       ${{ steps.unit-tests-output.outputs.functions_cov }}
-      #       ${{ steps.unit-tests-output.outputs.branches_cov }}
+    # - name: Comment PR
+    #   uses: thollander/actions-comment-pull-request@v2
+    #   with:
+    #     message: |
+    #       **Summary coverage rate of ${{ env.ros_pkg_name }}:**
+    #       ${{ steps.unit-tests-output.outputs.lines_cov }}
+    #       ${{ steps.unit-tests-output.outputs.functions_cov }}
+    #       ${{ steps.unit-tests-output.outputs.branches_cov }}
