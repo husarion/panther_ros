@@ -12,6 +12,7 @@ jobs:
         name: Run unit tests
         runs-on: self-hosted
         env:
+            ros_distro: humble
             ros_pkg_name: panther_ros
             test_results_filename: last_run_results.txt
             coverage_results_filename: coverage_results.log
@@ -36,8 +37,8 @@ jobs:
               run: |
                   vcs import < src/panther_ros/panther/panther_hardware.repos src
                   sudo apt update
-                  rosdep update --rosdistro $ROS_DISTRO
-                  rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
+                  rosdep update --rosdistro ${{ env.ros_distro }}
+                  rosdep install -i --from-path src --rosdistro ${{ env.ros_distro }} -y
 
             - name: Build
               working-directory: ros2_ws
