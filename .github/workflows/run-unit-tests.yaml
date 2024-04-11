@@ -42,7 +42,7 @@ jobs:
               working-directory: ros2_ws
               run: |
                   if [ -f install/setup.bash ]; then source install/setup.bash; fi
-                  colcon build --symlink-install --parallel-workers $(nproc) --packages-up-to ${{ env.ROS_PKG_NAME }}
+                  colcon build --symlink-install --parallel-workers $(nproc) --packages-up-to panther_utils
 
             - name: Test
               working-directory: ros2_ws
@@ -50,9 +50,9 @@ jobs:
                   ROS_PKG_NAME: panther_utils
               run: |
                   source install/setup.bash
-                  colcon test --packages-up-to ${{ env.ROS_PKG_NAME }} --retest-until-pass 10 --event-handlers console_cohesion+ --return-code-on-test-failure
+                  colcon test --packages-up-to panther_utils --retest-until-pass 10 --event-handlers console_cohesion+ --return-code-on-test-failure
                   echo "result=$?" >> ${{ runner.temp }}/${{ env.TEST_RESULT_FILENAME }}
-                  colcon lcov-result --packages-up-to ${{ env.ROS_PKG_NAME }} --verbose >> ${{ runner.temp }}/${{ env.COVERAGE_RESULT_FILENAME }}
+                  colcon lcov-result --packages-up-to panther_utils --verbose >> ${{ runner.temp }}/${{ env.COVERAGE_RESULT_FILENAME }}
                   lines_cov=$(cat ${{ runner.temp }}/${{ env.COVERAGE_RESULT_FILENAME }} | grep -E 'lines' | head -1)
                   functions_cov=$(cat ${{ runner.temp }}/${{ env.COVERAGE_RESULT_FILENAME }}  | grep -E 'functions' | head -1)
                   branches_cov=$(cat ${{ runner.temp }}/${{ env.COVERAGE_RESULT_FILENAME }}  | grep -E 'branches' | head -1)
