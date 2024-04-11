@@ -43,7 +43,7 @@ jobs:
               run: |
                   source /opt/ros/$ROS_DISTRO/setup.bash
                   if [ -f install/setup.bash ]; then source install/setup.bash; fi
-                  colcon build --symlink-install --parallel-workers $(nproc) --packages-up-to panther_utils
+                  colcon build --symlink-install --parallel-workers $(nproc) --packages-up-to panther_utils --cmake-args -DCMAKE_CXX_FLAGS='-fprofile-arcs -ftest-coverage'
 
             - name: Test
               working-directory: ros2_ws
