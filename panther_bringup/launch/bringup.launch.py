@@ -240,6 +240,14 @@ def generate_launch_description():
         }.items(),
     )
 
+    system_status_node = Node(
+        package="panther_diagnostics",
+        executable="system_status",
+        name="system_status",
+        output="screen",
+        condition=UnlessCondition(use_sim),
+    )
+
     lights_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -348,6 +356,7 @@ def generate_launch_description():
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,
+        system_status_node,
         waiting_msg,
         other_action_timer,
     ]
