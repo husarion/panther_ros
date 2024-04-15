@@ -72,6 +72,7 @@ def generate_launch_description():
 
     battery_config_path = LaunchConfiguration("battery_config_path")
     controller_config_path = LaunchConfiguration("controller_config_path")
+    disable_manager = LaunchConfiguration("disable_manager")
     ekf_config_path = LaunchConfiguration("ekf_config_path")
     led_config_file = LaunchConfiguration("led_config_file")
     namespace = LaunchConfiguration("namespace")
@@ -107,6 +108,13 @@ def generate_launch_description():
             " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
+    )
+
+    declare_disable_manager_arg = DeclareLaunchArgument(
+        "disable_manager",
+        default_value="False",
+        description="Enable or disable manager_bt_node",
+        choices=["True", "False"],
     )
 
     declare_ekf_config_path_arg = DeclareLaunchArgument(
@@ -292,7 +300,7 @@ def generate_launch_description():
                 ]
             )
         ),
-        condition=UnlessCondition(use_sim),
+        condition=UnlessCondition(use_sim) and UnlessCondition(disable_manager),
         launch_arguments={
             "namespace": namespace,
             "panther_version": panther_version,
@@ -322,25 +330,26 @@ def generate_launch_description():
         ],
     )
 
-    return LaunchDescription(
-        [
-            declare_battery_config_path_arg,
-            declare_controller_config_path_arg,
-            declare_ekf_config_path_arg,
-            declare_namespace_arg,
-            declare_led_config_file_arg,
-            declare_publish_robot_state_arg,
-            declare_shutdown_hosts_config_path_arg,
-            declare_simulation_engine_arg,
-            declare_use_ekf_arg,
-            declare_use_sim_arg,
-            declare_wheel_type_arg,
-            declare_wheel_config_path_arg,
-            declare_user_led_animations_file_arg,
-            SetParameter(name="use_sim_time", value=use_sim),
-            welcome_msg,
-            controller_launch,
-            waiting_msg,
-            other_action_timer,
-        ]
-    )
+    actions = [
+        declare_battery_config_path_arg,
+        declare_controller_config_path_arg,
+        declare_disable_manager_arg,
+        declare_ekf_config_path_arg,
+        declare_namespace_arg,
+        declare_led_config_file_arg,
+        declare_publish_robot_state_arg,
+        declare_shutdown_hosts_config_path_arg,
+        declare_simulation_engine_arg,
+        declare_use_ekf_arg,
+        declare_use_sim_arg,
+        declare_wheel_type_arg,
+        declare_wheel_config_path_arg,
+        declare_user_led_animations_file_arg,
+        SetParameter(name="use_sim_time", value=use_sim),
+        welcome_msg,
+        controller_launch,
+        waiting_msg,
+        other_action_timer,
+    ]
+
+    return LaunchDescription(actions)
