@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ESTOP_MANAGER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ESTOP_MANAGER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_E_STOP_MANAGER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_E_STOP_MANAGER_HPP_
 
 #include <atomic>
 #include <memory>
@@ -86,7 +86,7 @@ public:
    *      another device within the robot's system (e.g., Roboteq controller or Safety Board),
    *      disabling the software Watchdog is necessary to prevent an uncontrolled reset.
    *   2. If there is a need, disable software Watchdog using
-   *      GPIOControllerInterface::EStopTrigger method
+   *      GPIOControllerInterface::EStopTrigger method.
    *   3. Return ESTOP GPIO pin state.
    */
   bool ReadEStopState() override;
@@ -222,4 +222,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ESTOP_MANAGER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_E_STOP_MANAGER_HPP_
