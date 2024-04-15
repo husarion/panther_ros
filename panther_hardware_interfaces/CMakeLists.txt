@@ -58,6 +58,7 @@ add_library(
   ${PROJECT_NAME} SHARED
   src/panther_system.cpp
   src/panther_system_ros_interface.cpp
+  src/panther_system_e_stop_manager.cpp
   src/motors_controller.cpp
   src/canopen_controller.cpp
   src/gpio_controller.cpp

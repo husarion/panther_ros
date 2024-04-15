@@ -117,6 +117,12 @@ public:
    */
   void AttemptErrorFlagResetWithZeroSpeed();
 
+  /**
+   * @brief Check if last velocity commands are near zero.
+   * @return Returns true if the last velocity commands are near zero, otherwise returns false.
+   */
+  bool AreVelocityCommandsNearZero();
+
 private:
   void SetMotorsStates(
     RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time);
@@ -124,6 +130,7 @@ private:
     RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time);
 
   bool initialized_ = false;
+  bool last_command_zero_ = false;
 
   CANopenController canopen_controller_;
 

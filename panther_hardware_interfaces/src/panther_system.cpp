@@ -69,40 +69,18 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
 CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Configuring Panther System");
+  RCLCPP_INFO_STREAM(
+    logger_, "Creating system entities for the Panther version: " << panther_version_);
 
-  RCLCPP_INFO_STREAM(logger_, "Creating GPIO controller for Panther version: " << panther_version_);
+  e_stop_manager_ = std::make_shared<EStopManager>(
+    gpio_controller_, motors_controller_, roboteq_error_filter_, motor_controller_write_mtx_);
+
   if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
     gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
-    use_can_for_e_stop_trigger_ = false;
-
-    // TODO: @pkowalsk1 move estop logic to separate abstraction
-    ReadEStop = [this]() {
-      const bool e_stop_triggered =
-        !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
-
-      // In the case where E-Stop is triggered by another device within the robot's system (e.g.,
-      // Roboteq or Safety Board), disabling the software Watchdog is necessary to prevent an
-      // uncontrolled reset.
-      if (e_stop_triggered) {
-        gpio_controller_->EStopTrigger();
-      }
-
-      return e_stop_triggered;
-    };
+    e_stop_manager_->SetStrategy(std::make_unique<EStopStrategyPTH12X>());
   } else {
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
-    use_can_for_e_stop_trigger_ = true;
-
-    ReadEStop = [this]() {
-      const bool motors_on = gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT);
-      const bool driver_error = roboteq_error_filter_->IsError();
-
-      if ((driver_error || !motors_on) && !e_stop_.load()) {
-        SetEStop();
-      }
-
-      return e_stop_.load();
-    };
+    e_stop_manager_->SetStrategy(std::make_unique<EStopStrategyPTH10X>());
   }
 
   try {
@@ -174,10 +152,10 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
 
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
-    "~/e_stop_trigger", std::bind(&PantherSystem::SetEStop, this), 1,
+    "~/e_stop_trigger", std::bind(&EStopManager::TriggerEStop, e_stop_manager_), 1,
     rclcpp::CallbackGroupType::MutuallyExclusive);
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
-    "~/e_stop_reset", std::bind(&PantherSystem::ResetEStop, this), 2,
+    "~/e_stop_reset", std::bind(&EStopManager::ResetEStop, e_stop_manager_), 2,
     rclcpp::CallbackGroupType::MutuallyExclusive);
 
   panther_system_ros_interface_->AddDiagnosticTask(
@@ -192,8 +170,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   const auto io_state = gpio_controller_->QueryControlInterfaceIOStates();
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state);
 
-  e_stop_ = ReadEStop();
-  panther_system_ros_interface_->PublishEStopStateMsg(e_stop_);
+  panther_system_ros_interface_->PublishEStopStateMsg(e_stop_manager_->ReadEStopState());
 
   return CallbackReturn::SUCCESS;
 }
@@ -203,7 +180,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Deactivating Panther System");
 
   try {
-    SetEStop();
+    e_stop_manager_->TriggerEStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Deactivation failed: " << e.what());
     return CallbackReturn::ERROR;
@@ -218,7 +195,7 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Shutting down Panther System");
   try {
-    SetEStop();
+    e_stop_manager_->TriggerEStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Shutdown failed: " << e.what());
     return CallbackReturn::ERROR;
@@ -239,7 +216,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Handling Panther System error");
 
   try {
-    SetEStop();
+    e_stop_manager_->TriggerEStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Setting E-stop failed: " << e.what());
     return CallbackReturn::ERROR;
@@ -289,8 +266,8 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 {
   UpdateMotorsStates();
 
-  e_stop_ = ReadEStop();
-  panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop_);
+  const bool e_stop = e_stop_manager_->ReadEStopState();
+  panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop);
 
   if (time >= next_driver_state_update_time_) {
     UpdateDriverState();
@@ -304,9 +281,9 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 return_type PantherSystem::write(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
-  last_commands_zero_ = AreVelocityCommandsNearZero();
+  const bool e_stop = e_stop_manager_->ReadEStopState();
 
-  if (!e_stop_) {
+  if (!e_stop) {
     HandlePDOWriteOperation([this] {
       motors_controller_->SendSpeedCommands(
         hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
@@ -605,7 +582,7 @@ void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_oper
   try {
     {
       std::unique_lock<std::mutex> motor_controller_write_lck(
-        motor_controller_write_mtx_, std::defer_lock);
+        *motor_controller_write_mtx_, std::defer_lock);
       if (!motor_controller_write_lck.try_lock()) {
         throw std::runtime_error(
           "Can't acquire mutex for writing commands - E-stop is being triggered");
@@ -620,21 +597,11 @@ void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_oper
   }
 }
 
-bool PantherSystem::AreVelocityCommandsNearZero()
-{
-  for (const auto & cmd : hw_commands_velocities_) {
-    if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
-      return false;
-    }
-  }
-  return true;
-}
-
 void PantherSystem::MotorsPowerEnable(const bool enable)
 {
   try {
     {
-      std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
+      std::lock_guard<std::mutex> lck_g(*motor_controller_write_mtx_);
 
       if (!enable) {
         motors_controller_->TurnOnEStop();
@@ -643,74 +610,12 @@ void PantherSystem::MotorsPowerEnable(const bool enable)
       }
     }
 
-    SetEStop();
+    e_stop_manager_->TriggerEStop();
 
     roboteq_error_filter_->SetClearErrorsFlag();
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN_STREAM(logger_, "Error when trying to write commands: " << e.what());
-  }
-}
-
-void PantherSystem::SetEStop()
-{
-  gpio_controller_->InterruptEStopReset();
-
-  std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
-
-  RCLCPP_INFO(logger_, "Setting E-stop");
-
-  try {
-    gpio_controller_->EStopTrigger();
-  } catch (const std::runtime_error & e) {
-    RCLCPP_INFO_STREAM(logger_, "Trying to set E-stop using GPIO: " << e.what());
-
-    if (!use_can_for_e_stop_trigger_) {
-      throw std::runtime_error("Setting E-stop failed");
-    }
-
-    std::lock_guard<std::mutex> lck_g(motor_controller_write_mtx_);
-
-    try {
-      motors_controller_->TurnOnSafetyStop();
-    } catch (const std::runtime_error & e) {
-      RCLCPP_ERROR_STREAM(
-        logger_, "Error when trying to set safety stop using CAN command: " << e.what());
-      throw std::runtime_error("Both attempts at setting E-stop failed");
-    }
-  }
-
-  e_stop_ = true;
-}
-
-void PantherSystem::ResetEStop()
-{
-  if (e_stop_manipulation_mtx_.try_lock()) {
-    std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);
-
-    RCLCPP_INFO(logger_, "Resetting E-stop");
-
-    // On the side of the motors controller safety stop is reset by sending 0.0 commands
-    if (!last_commands_zero_) {
-      throw std::runtime_error(
-        "Can't reset E-stop - last velocity commands are different than zero. Make sure that your "
-        "controller sends zero commands before trying to reset E-stop.");
-    }
-
-    try {
-      gpio_controller_->EStopReset();
-    } catch (const EStopResetInterrupted & e) {
-      RCLCPP_INFO(logger_, "E-stop reset has been interrupted");
-      return;
-    } catch (const std::runtime_error & e) {
-      throw std::runtime_error(
-        "Error when trying to reset E-stop using GPIO: " + std::string(e.what()));
-    }
-
-    roboteq_error_filter_->SetClearErrorsFlag();
-    e_stop_ = false;
-  } else {
-    RCLCPP_INFO(logger_, "E-stop trigger operation is in progress, skipping reset.");
   }
 }
 
