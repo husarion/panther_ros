@@ -22,7 +22,7 @@
 namespace panther_hardware_interfaces
 {
 
-bool EStopStrategyPTH12X::ReadEStopState()
+bool EStopPTH12X::ReadEStopState()
 {
   e_stop_triggered_ = !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
 
@@ -36,7 +36,7 @@ bool EStopStrategyPTH12X::ReadEStopState()
   return e_stop_triggered_;
 }
 
-void EStopStrategyPTH12X::TriggerEStop()
+void EStopPTH12X::TriggerEStop()
 {
   gpio_controller_->InterruptEStopReset();
 
@@ -50,7 +50,7 @@ void EStopStrategyPTH12X::TriggerEStop()
   e_stop_triggered_ = true;
 }
 
-void EStopStrategyPTH12X::ResetEStop()
+void EStopPTH12X::ResetEStop()
 {
   if (e_stop_manipulation_mtx_.try_lock()) {
     std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);
@@ -80,7 +80,7 @@ void EStopStrategyPTH12X::ResetEStop()
   }
 }
 
-bool EStopStrategyPTH10X::ReadEStopState()
+bool EStopPTH10X::ReadEStopState()
 {
   const bool motors_on = gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT);
   const bool driver_error = roboteq_error_filter_->IsError();
@@ -92,7 +92,7 @@ bool EStopStrategyPTH10X::ReadEStopState()
   return e_stop_triggered_;
 }
 
-void EStopStrategyPTH10X::TriggerEStop()
+void EStopPTH10X::TriggerEStop()
 {
   std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
   std::lock_guard<std::mutex> lck_g(*motor_controller_write_mtx_);
@@ -107,7 +107,7 @@ void EStopStrategyPTH10X::TriggerEStop()
   e_stop_triggered_ = true;
 }
 
-void EStopStrategyPTH10X::ResetEStop()
+void EStopPTH10X::ResetEStop()
 {
   if (e_stop_manipulation_mtx_.try_lock()) {
     std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);

@@ -27,52 +27,60 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @class EStopStrategy
+ * @class EStopInterface
  * @brief Abstract base class defining the interface for emergency stop strategies.
  */
-class EStopStrategy
+class EStopInterface
 {
 public:
-  virtual ~EStopStrategy() = default;
-
-  virtual bool ReadEStopState() = 0;
-  virtual void TriggerEStop() = 0;
-  virtual void ResetEStop() = 0;
-
-  void SetResources(
+  EStopInterface(
     std::shared_ptr<GPIOControllerInterface> gpio_controller,
     std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter,
     std::shared_ptr<MotorsController> motors_controller,
     std::shared_ptr<std::mutex> motor_controller_write_mtx,
     std::function<bool()> zero_velocity_check)
-  {
-    gpio_controller_ = gpio_controller;
-    roboteq_error_filter_ = roboteq_error_filter;
-    motors_controller_ = motors_controller;
-    motor_controller_write_mtx_ = motor_controller_write_mtx;
-    ZeroVelocityCheck = zero_velocity_check;
-  }
+  : gpio_controller_(gpio_controller),
+    roboteq_error_filter_(roboteq_error_filter),
+    motors_controller_(motors_controller),
+    motor_controller_write_mtx_(motor_controller_write_mtx),
+    ZeroVelocityCheck(zero_velocity_check){};
+
+  virtual ~EStopInterface() = default;
+
+  virtual bool ReadEStopState() = 0;
+  virtual void TriggerEStop() = 0;
+  virtual void ResetEStop() = 0;
 
 protected:
-  std::function<bool()> ZeroVelocityCheck;
-
   std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
   std::shared_ptr<MotorsController> motors_controller_;
   std::shared_ptr<std::mutex> motor_controller_write_mtx_;
+
+  std::function<bool()> ZeroVelocityCheck;
 
   std::mutex e_stop_manipulation_mtx_;
   std::atomic_bool e_stop_triggered_ = true;
 };
 
 /**
- * @class EStopStrategyPTH12X
+ * @class EStopPTH12X
  * @brief Implements the emergency stop strategy for the PTH12X hardware variant.
  */
-class EStopStrategyPTH12X : public EStopStrategy
+class EStopPTH12X : public EStopInterface
 {
 public:
-  virtual ~EStopStrategyPTH12X() override = default;
+  EStopPTH12X(
+    std::shared_ptr<GPIOControllerInterface> gpio_controller,
+    std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter,
+    std::shared_ptr<MotorsController> motors_controller,
+    std::shared_ptr<std::mutex> motor_controller_write_mtx,
+    std::function<bool()> zero_velocity_check)
+  : EStopInterface(
+      gpio_controller, roboteq_error_filter, motors_controller, motor_controller_write_mtx,
+      zero_velocity_check){};
+
+  virtual ~EStopPTH12X() override = default;
 
   /**
    * @brief Checks the emergency stop state.
@@ -119,15 +127,25 @@ public:
 };
 
 /**
- * @class EStopStrategyPTH10X
+ * @class EStopPTH10X
  * @brief Implements the emergency stop strategy for the PTH10X hardware variant. In this robot
  * version, only a software-based E-Stop is supported. There are no hardware components that
  * implement E-Stop functionality.
  */
-class EStopStrategyPTH10X : public EStopStrategy
+class EStopPTH10X : public EStopInterface
 {
 public:
-  virtual ~EStopStrategyPTH10X() override = default;
+  EStopPTH10X(
+    std::shared_ptr<GPIOControllerInterface> gpio_controller,
+    std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter,
+    std::shared_ptr<MotorsController> motors_controller,
+    std::shared_ptr<std::mutex> motor_controller_write_mtx,
+    std::function<bool()> zero_velocity_check)
+  : EStopInterface(
+      gpio_controller, roboteq_error_filter, motors_controller, motor_controller_write_mtx,
+      zero_velocity_check){};
+
+  virtual ~EStopPTH10X() override = default;
 
   /**
    * @brief Checks the emergency stop state.

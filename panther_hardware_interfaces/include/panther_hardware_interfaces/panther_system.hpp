@@ -79,12 +79,17 @@ protected:
   void ReadParametersAndCreateRoboteqErrorFilter();
   void ReadDriverStatesUpdateFrequency();
 
+  void ConfigureGPIOController();
+  void ConfigureMotorsController();
+  void ConfigureEStop();
+
   void UpdateMotorsStates();
   void UpdateDriverState();
 
   void UpdateHwStates();
   void UpdateMotorsStatesDataTimedOut();
   bool AreVelocityCommandsNearZero();
+  bool IsPantherVersionAtLeast(const float version);
 
   void UpdateDriverStateMsg();
   void UpdateFlagErrors();
@@ -117,7 +122,7 @@ protected:
 
   std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
-  std::shared_ptr<EStopStrategy> e_stop_strategy_;
+  std::shared_ptr<EStopInterface> e_stop_;
 
   DrivetrainSettings drivetrain_settings_;
   CANopenSettings canopen_settings_;
