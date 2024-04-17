@@ -115,13 +115,7 @@ public:
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
    * driver faults still exist, the error flag will remain active.
    */
-  void AttemptErrorFlagResetWithZeroSpeed();
-
-  /**
-   * @brief Check if last velocity commands are near zero.
-   * @return Returns true if the last velocity commands are near zero, otherwise returns false.
-   */
-  bool AreVelocityCommandsNearZero();
+  inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
 
 private:
   void SetMotorsStates(
@@ -130,7 +124,6 @@ private:
     RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time);
 
   bool initialized_ = false;
-  bool last_command_zero_ = false;
 
   CANopenController canopen_controller_;
 

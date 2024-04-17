@@ -32,7 +32,7 @@
 
 #include "panther_hardware_interfaces/gpio_controller.hpp"
 #include "panther_hardware_interfaces/motors_controller.hpp"
-#include "panther_hardware_interfaces/panther_system_e_stop_manager.hpp"
+#include "panther_hardware_interfaces/panther_system_e_stop.hpp"
 #include "panther_hardware_interfaces/panther_system_ros_interface.hpp"
 #include "panther_hardware_interfaces/roboteq_error_filter.hpp"
 
@@ -84,6 +84,7 @@ protected:
 
   void UpdateHwStates();
   void UpdateMotorsStatesDataTimedOut();
+  bool AreVelocityCommandsNearZero();
 
   void UpdateDriverStateMsg();
   void UpdateFlagErrors();
@@ -116,7 +117,7 @@ protected:
 
   std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
-  std::shared_ptr<EStopManager> e_stop_manager_;
+  std::shared_ptr<EStopStrategy> e_stop_strategy_;
 
   DrivetrainSettings drivetrain_settings_;
   CANopenSettings canopen_settings_;

@@ -72,15 +72,12 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   RCLCPP_INFO_STREAM(
     logger_, "Creating system entities for the Panther version: " << panther_version_);
 
-  e_stop_manager_ = std::make_shared<EStopManager>(
-    gpio_controller_, motors_controller_, roboteq_error_filter_, motor_controller_write_mtx_);
-
   if (panther_version_ >= 1.2 - std::numeric_limits<float>::epsilon()) {
     gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
-    e_stop_manager_->SetStrategy(std::make_unique<EStopStrategyPTH12X>());
+    e_stop_strategy_ = std::make_shared<EStopStrategyPTH12X>();
   } else {
     gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
-    e_stop_manager_->SetStrategy(std::make_unique<EStopStrategyPTH10X>());
+    e_stop_strategy_ = std::make_shared<EStopStrategyPTH10X>();
   }
 
   try {
@@ -90,6 +87,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     return CallbackReturn::ERROR;
   }
 
+  motor_controller_write_mtx_ = std::make_shared<std::mutex>();
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
 
   if (!OperationWithAttempts(
@@ -99,6 +97,10 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     RCLCPP_FATAL_STREAM(logger_, "Roboteq drivers initialization failed");
     return CallbackReturn::ERROR;
   }
+
+  e_stop_strategy_->SetResources(
+    gpio_controller_, roboteq_error_filter_, motors_controller_, motor_controller_write_mtx_,
+    std::bind(&PantherSystem::AreVelocityCommandsNearZero, this));
 
   return CallbackReturn::SUCCESS;
 }
@@ -152,10 +154,10 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
 
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
-    "~/e_stop_trigger", std::bind(&EStopManager::TriggerEStop, e_stop_manager_), 1,
+    "~/e_stop_trigger", std::bind(&EStopStrategy::TriggerEStop, e_stop_strategy_), 1,
     rclcpp::CallbackGroupType::MutuallyExclusive);
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
-    "~/e_stop_reset", std::bind(&EStopManager::ResetEStop, e_stop_manager_), 2,
+    "~/e_stop_reset", std::bind(&EStopStrategy::ResetEStop, e_stop_strategy_), 2,
     rclcpp::CallbackGroupType::MutuallyExclusive);
 
   panther_system_ros_interface_->AddDiagnosticTask(
@@ -170,7 +172,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   const auto io_state = gpio_controller_->QueryControlInterfaceIOStates();
   panther_system_ros_interface_->InitializeAndPublishIOStateMsg(io_state);
 
-  panther_system_ros_interface_->PublishEStopStateMsg(e_stop_manager_->ReadEStopState());
+  panther_system_ros_interface_->PublishEStopStateMsg(e_stop_strategy_->ReadEStopState());
 
   return CallbackReturn::SUCCESS;
 }
@@ -180,7 +182,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Deactivating Panther System");
 
   try {
-    e_stop_manager_->TriggerEStop();
+    e_stop_strategy_->TriggerEStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Deactivation failed: " << e.what());
     return CallbackReturn::ERROR;
@@ -195,7 +197,7 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(logger_, "Shutting down Panther System");
   try {
-    e_stop_manager_->TriggerEStop();
+    e_stop_strategy_->TriggerEStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Shutdown failed: " << e.what());
     return CallbackReturn::ERROR;
@@ -216,7 +218,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   RCLCPP_INFO(logger_, "Handling Panther System error");
 
   try {
-    e_stop_manager_->TriggerEStop();
+    e_stop_strategy_->TriggerEStop();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(logger_, "Setting E-stop failed: " << e.what());
     return CallbackReturn::ERROR;
@@ -266,7 +268,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 {
   UpdateMotorsStates();
 
-  const bool e_stop = e_stop_manager_->ReadEStopState();
+  const bool e_stop = e_stop_strategy_->ReadEStopState();
   panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop);
 
   if (time >= next_driver_state_update_time_) {
@@ -281,7 +283,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
 return_type PantherSystem::write(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
-  const bool e_stop = e_stop_manager_->ReadEStopState();
+  const bool e_stop = e_stop_strategy_->ReadEStopState();
 
   if (!e_stop) {
     HandlePDOWriteOperation([this] {
@@ -597,6 +599,16 @@ void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_oper
   }
 }
 
+bool PantherSystem::AreVelocityCommandsNearZero()
+{
+  for (const auto & cmd : hw_commands_velocities_) {
+    if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void PantherSystem::MotorsPowerEnable(const bool enable)
 {
   try {
@@ -610,7 +622,7 @@ void PantherSystem::MotorsPowerEnable(const bool enable)
       }
     }
 
-    e_stop_manager_->TriggerEStop();
+    e_stop_strategy_->TriggerEStop();
 
     roboteq_error_filter_->SetClearErrorsFlag();
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);

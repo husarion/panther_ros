@@ -135,11 +135,6 @@ void MotorsController::UpdateDriversState()
 void MotorsController::SendSpeedCommands(
   const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr)
 {
-  const float zero_threshold = std::numeric_limits<float>::epsilon();
-  last_command_zero_ = std::abs(speed_fl) <= zero_threshold &&
-                       std::abs(speed_fr) <= zero_threshold &&
-                       std::abs(speed_rl) <= zero_threshold && std::abs(speed_rr) <= zero_threshold;
-
   // Channel 1 - right motor, Channel 2 - left motor
   try {
     canopen_controller_.GetFrontDriver()->SendRoboteqCmd(
@@ -213,13 +208,6 @@ void MotorsController::TurnOnSafetyStop()
       "Exception when trying to turn on safety stop on the rear driver: " + std::string(e.what()));
   }
 }
-
-void MotorsController::AttemptErrorFlagResetWithZeroSpeed()
-{
-  SendSpeedCommands(0.0, 0.0, 0.0, 0.0);
-}
-
-bool MotorsController::AreVelocityCommandsNearZero() { return last_command_zero_; }
 
 void MotorsController::SetMotorsStates(
   RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time)

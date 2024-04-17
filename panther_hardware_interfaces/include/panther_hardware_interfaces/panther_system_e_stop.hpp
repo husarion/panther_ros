@@ -27,18 +27,6 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @struct EStopManagerResources
- * @brief Holds all shared resources necessary for the emergency stop strategies.
- */
-struct EStopManagerResources
-{
-  std::shared_ptr<GPIOControllerInterface> gpio_controller;
-  std::shared_ptr<MotorsController> motors_controller;
-  std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter;
-  std::shared_ptr<std::mutex> motor_controller_write_mtx;
-};
-
-/**
  * @class EStopStrategy
  * @brief Abstract base class defining the interface for emergency stop strategies.
  */
@@ -51,22 +39,30 @@ public:
   virtual void TriggerEStop() = 0;
   virtual void ResetEStop() = 0;
 
-  /**
-   * @brief Sets manager resources to be used by the E-stop strategies.
-   * @param resources Shared resources necessary for managing E-stop.
-   */
-  void SetManagerResources(std::shared_ptr<EStopManagerResources> resources);
+  void SetResources(
+    std::shared_ptr<GPIOControllerInterface> gpio_controller,
+    std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter,
+    std::shared_ptr<MotorsController> motors_controller,
+    std::shared_ptr<std::mutex> motor_controller_write_mtx,
+    std::function<bool()> zero_velocity_check)
+  {
+    gpio_controller_ = gpio_controller;
+    roboteq_error_filter_ = roboteq_error_filter;
+    motors_controller_ = motors_controller;
+    motor_controller_write_mtx_ = motor_controller_write_mtx;
+    ZeroVelocityCheck = zero_velocity_check;
+  }
 
 protected:
-  /**
-   * @brief Confirms that the emergency stop reset has been successful.
-   * @return `true` if reset was successful, `false` if emergency stop is still triggered.
-   */
-  bool ConfirmEStopResetSuccessful();
+  std::function<bool()> ZeroVelocityCheck;
 
-  std::shared_ptr<EStopManagerResources> manager_resources_;
+  std::shared_ptr<GPIOControllerInterface> gpio_controller_;
+  std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
+  std::shared_ptr<MotorsController> motors_controller_;
+  std::shared_ptr<std::mutex> motor_controller_write_mtx_;
+
   std::mutex e_stop_manipulation_mtx_;
-  std::atomic_bool e_stop_triggered_;
+  std::atomic_bool e_stop_triggered_ = true;
 };
 
 /**
@@ -176,48 +172,6 @@ public:
    *         triggered again,  motors are not powered or motor controller is in an error state.
    */
   void ResetEStop() override;
-};
-
-/**
- * @class EStopManager
- * @brief Manages the emergency stop strategies and the transition between them.
- */
-class EStopManager
-{
-public:
-  EStopManager(
-    std::shared_ptr<GPIOControllerInterface> gpio_controller,
-    std::shared_ptr<MotorsController> motors_controller,
-    std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter,
-    std::shared_ptr<std::mutex> motor_controller_write_mtx)
-  : resources_(std::make_shared<EStopManagerResources>(EStopManagerResources{
-      gpio_controller, motors_controller, roboteq_error_filter, motor_controller_write_mtx})){};
-
-  /**
-   * @brief Sets the strategy to be used for emergency stopping.
-   * @param strategy The unique pointer to the E-stop strategy to be employed.
-   */
-  void SetStrategy(std::unique_ptr<EStopStrategy> && strategy);
-
-  /**
-   * @brief Triggers an emergency stop in the current strategy.
-   */
-  void TriggerEStop();
-
-  /**
-   * @brief Resets the emergency stop in the current strategy.
-   */
-  void ResetEStop();
-
-  /**
-   * @brief Reads the current emergency stop state using the current strategy.
-   * @return `true` if E-stop is currently triggered, `false` otherwise.
-   */
-  bool ReadEStopState();
-
-private:
-  std::shared_ptr<EStopManagerResources> resources_;
-  std::unique_ptr<EStopStrategy> strategy_;
 };
 
 }  // namespace panther_hardware_interfaces
