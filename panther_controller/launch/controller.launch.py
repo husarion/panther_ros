@@ -83,11 +83,24 @@ def generate_launch_description():
             "When set to False, users should publish their own robot description."
         ),
     )
+
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes",
+    )
+
+    components_config_path = LaunchConfiguration("components_config_path")
+    declare_components_config_path_arg = DeclareLaunchArgument(
+        "components_config_path",
+        default_value="None",
+        description=(
+            "Additional components configuration file. Components described in this file "
+            "are dynamically included in Panther's urdf."
+            "Panther options are described here "
+            "https://husarion.com/manuals/panther/panther-options/"
+        ),
     )
 
     # Get URDF via xacro
@@ -128,6 +141,8 @@ def generate_launch_description():
             os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
             " namespace:=",
             namespace,
+            " components_config_path:=",
+            components_config_path,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -237,6 +252,7 @@ def generate_launch_description():
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
         declare_namespace_arg,
+        declare_components_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,

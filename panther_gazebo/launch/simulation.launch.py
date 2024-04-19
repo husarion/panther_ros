@@ -75,6 +75,18 @@ def generate_launch_description():
         ),
     )
 
+    components_config_path = LaunchConfiguration("components_config_path")
+    declare_components_config_path_arg = DeclareLaunchArgument(
+        "components_config_path",
+        default_value="None",
+        description=(
+            "Additional components configuration file. Components described in this file "
+            "are dynamically included in Panther's urdf."
+            "Panther options are described here "
+            "https://husarion.com/manuals/panther/panther-options/"
+        ),
+    )
+
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -202,7 +214,7 @@ def generate_launch_description():
     gz_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        name="gz_bridge",
+        name="panther_base_gz_bridge",
         parameters=[{"config_file": gz_bridge_config_path}],
         namespace=namespace,
         output="screen",
@@ -222,10 +234,27 @@ def generate_launch_description():
             "wheel_type": wheel_type,
             "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
+            "components_config_path": components_config_path,
             "battery_config_path": battery_config_path,
             "publish_robot_state": publish_robot_state,
             "use_sim": "True",
             "simulation_engine": "ignition-gazebo",
+            "namespace": namespace,
+        }.items(),
+    )
+
+    ros_components_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("ros_components_description"),
+                    "launch",
+                    "gz_components.launch.py",
+                ]
+            )
+        ),
+        launch_arguments={
+            "components_config_path": components_config_path,
             "namespace": namespace,
         }.items(),
     )
@@ -240,6 +269,7 @@ def generate_launch_description():
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
+            declare_components_config_path_arg,
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_publish_robot_state_arg,
@@ -250,5 +280,6 @@ def generate_launch_description():
             gz_bridge,
             gz_spawn_entity,
             bringup_launch,
+            ros_components_launch,
         ]
     )
