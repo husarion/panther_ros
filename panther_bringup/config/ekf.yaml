@@ -9,10 +9,10 @@
       transform_time_offset: 0.0
       transform_timeout: 0.05
 
-      map_frame: /<namespace>/map
-      odom_frame: /<namespace>/odom
-      base_link_frame: /<namespace>/base_link
-      world_frame: /<namespace>/odom
+      map_frame: map
+      odom_frame: odom
+      base_link_frame: base_link
+      world_frame: odom
       publish_tf: true
       publish_acceleration: false
 
@@ -38,10 +38,6 @@
       imu0_differential: false
       imu0_relative: true
       imu0_remove_gravitational_acceleration: false
-
-      debug: true
-      # Defaults to "robot_localization_debug.txt" if unspecified. Please specify the full path.
-      debug_out_file: /home/aayli/Husarion/panther_ws/src/debug.txt
 
       use_control: true
       control_timeout: 0.5

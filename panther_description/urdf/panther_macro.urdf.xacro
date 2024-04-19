@@ -63,7 +63,7 @@
       wheel_separation_x="${wheel_separation_x}"
       prefix="rr" />
 
-    <ros2_control name="${ns}wheels" type="system">
+    <ros2_control name="${ns}interfaces" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
           <xacro:if value="${simulation_engine == 'ignition-gazebo'}">

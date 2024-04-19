@@ -87,7 +87,7 @@ def launch_setup(context):
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, controller_config_path],
+        parameters=[controller_config_path],
         namespace=namespace,
         remappings=[
             (

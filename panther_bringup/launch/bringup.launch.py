@@ -35,7 +35,7 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
-from nav2_common.launch import ReplaceString
+
 
 def generate_launch_description():
     panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
@@ -285,16 +285,12 @@ def generate_launch_description():
         }.items(),
     )
 
-    ekf_config_path = ReplaceString(
-        source_file=ekf_config_path, replacements={"<namespace>": namespace}
-    )
-
     robot_localization_node = Node(
         package="robot_localization",
         executable="ekf_node",
         name="ekf_node",
         output="screen",
-        parameters=[ekf_config_path], # In future: {"tf_prefix": "abc"}
+        parameters=[ekf_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),

@@ -19,6 +19,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     LogInfo,
+    OpaqueFunction,
     TimerAction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -34,159 +35,21 @@ from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ParseMultiRobotPose
 
 
-def generate_launch_description():
-    wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description=(
-            "Specify the type of wheel. If you select a value from the provided options ('WH01',"
-            " 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and"
-            " 'controller_config_path' parameters. If you have custom wheels, set this parameter"
-            " to 'CUSTOM' and provide the necessary configurations."
-        ),
-        choices=["WH01", "WH02", "WH04", "CUSTOM"],
-    )
-
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_description"),
-                "config",
-                PythonExpression(["'", wheel_type, ".yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-            "to your custom wheel configuration file here. "
-        ),
-    )
-
-    controller_config_path = LaunchConfiguration("controller_config_path")
-    declare_controller_config_path_arg = DeclareLaunchArgument(
-        "controller_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_controller"),
-                "config",
-                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
-            " the path to your custom controller configuration file here. "
-        ),
-    )
-
-    battery_config_path = LaunchConfiguration("battery_config_path")
-    declare_battery_config_path_arg = DeclareLaunchArgument(
-        "battery_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_gazebo"),
-                "config",
-                "battery_plugin_config.yaml",
-            ]
-        ),
-        description=(
-            "Path to the Ignition LinearBatteryPlugin configuration file. "
-            "This configuration is intended for use in simulations only."
-        ),
-    )
-
-    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
-    declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
-        "gz_bridge_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_gazebo"),
-                "config",
-                "gz_bridge.yaml",
-            ]
-        ),
-        description="Path to the parameter_bridge configuration file",
-    )
-
-    world_cfg = LaunchConfiguration("world")
-    declare_world_arg = DeclareLaunchArgument(
-        "world",
-        default_value=[
-            "-r ",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("husarion_office_gz"),
-                    "worlds",
-                    "husarion_world.sdf",
-                ],
-            ),
-        ],
-        description="SDF world file",
-    )
-
-    x = LaunchConfiguration("x")
-    declare_x_arg = DeclareLaunchArgument(
-        "x",
-        default_value=["5.0"],
-        description="Initial robot position in the global 'x' axis.",
-    )
-
-    y = LaunchConfiguration("y")
-    declare_y_arg = DeclareLaunchArgument(
-        "y",
-        default_value=["-5.0"],
-        description="Initial robot position in the global 'y' axis.",
-    )
-
-    z = LaunchConfiguration("z")
-    declare_z_arg = DeclareLaunchArgument(
-        "z",
-        default_value=["0.2"],
-        description="Initial robot position in the global 'z' axis.",
-    )
-
-    roll = LaunchConfiguration("roll")
-    declare_roll_arg = DeclareLaunchArgument(
-        "roll", default_value=["0.0"], description="Initial robot 'roll' orientation."
-    )
-
-    pitch = LaunchConfiguration("pitch")
-    declare_pitch_arg = DeclareLaunchArgument(
-        "pitch", default_value=["0.0"], description="Initial robot orientation."
-    )
-
-    yaw = LaunchConfiguration("yaw")
-    declare_yaw_arg = DeclareLaunchArgument(
-        "yaw", default_value=["0.0"], description="Initial robot orientation."
-    )
-
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
-    declare_publish_robot_state_arg = DeclareLaunchArgument(
-        "publish_robot_state",
-        default_value="True",
-        description=(
-            "Whether to launch the robot_state_publisher node."
-            "When set to False, users should publish their own robot description."
-        ),
-    )
-
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Namespace for all Panther topics",
-    )
-
-    declare_robots_arg = DeclareLaunchArgument(
-        "robots",
-        default_value=[],
-        description=(
-            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y: -1.0}; robot2={x: 1.0, y: -1.0}'"
-        ),
-    )
+def launch_setup(context):
+    wheel_type = LaunchConfiguration("wheel_type").perform(context)
+    wheel_config_path = LaunchConfiguration("wheel_config_path").perform(context)
+    controller_config_path = LaunchConfiguration("controller_config_path").perform(context)
+    battery_config_path = LaunchConfiguration("battery_config_path").perform(context)
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path").perform(context)
+    world_cfg = LaunchConfiguration("world").perform(context)
+    x = LaunchConfiguration("x").perform(context)
+    y = LaunchConfiguration("y").perform(context)
+    z = LaunchConfiguration("z").perform(context)
+    roll = LaunchConfiguration("roll").perform(context)
+    pitch = LaunchConfiguration("pitch").perform(context)
+    yaw = LaunchConfiguration("yaw").perform(context)
+    publish_robot_state = LaunchConfiguration("publish_robot_state").perform(context)
+    namespace = LaunchConfiguration("namespace").perform(context)
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -278,6 +141,151 @@ def generate_launch_description():
         )
         spawn_group.append(group)
 
+    return [gz_sim, *spawn_group]
+
+
+def generate_launch_description():
+    wheel_type = LaunchConfiguration("wheel_type")
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Specify the type of wheel. If you select a value from the provided options ('WH01',"
+            " 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and"
+            " 'controller_config_path' parameters. If you have custom wheels, set this parameter"
+            " to 'CUSTOM' and provide the necessary configurations."
+        ),
+        choices=["WH01", "WH02", "WH04", "CUSTOM"],
+    )
+
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
+        ),
+    )
+
+    declare_controller_config_path_arg = DeclareLaunchArgument(
+        "controller_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_controller"),
+                "config",
+                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to controller configuration file. By default, it is located in"
+            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " the path to your custom controller configuration file here. "
+        ),
+    )
+
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_gazebo"),
+                "config",
+                "battery_plugin_config.yaml",
+            ]
+        ),
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
+    )
+
+    declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
+        "gz_bridge_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_gazebo"),
+                "config",
+                "gz_bridge.yaml",
+            ]
+        ),
+        description="Path to the parameter_bridge configuration file",
+    )
+
+    declare_world_arg = DeclareLaunchArgument(
+        "world",
+        default_value=[
+            "-r ",
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("husarion_office_gz"),
+                    "worlds",
+                    "husarion_world.sdf",
+                ],
+            ),
+        ],
+        description="SDF world file",
+    )
+
+    declare_x_arg = DeclareLaunchArgument(
+        "x",
+        default_value=["5.0"],
+        description="Initial robot position in the global 'x' axis.",
+    )
+
+    declare_y_arg = DeclareLaunchArgument(
+        "y",
+        default_value=["-5.0"],
+        description="Initial robot position in the global 'y' axis.",
+    )
+
+    declare_z_arg = DeclareLaunchArgument(
+        "z",
+        default_value=["0.2"],
+        description="Initial robot position in the global 'z' axis.",
+    )
+
+    declare_roll_arg = DeclareLaunchArgument(
+        "roll", default_value=["0.0"], description="Initial robot 'roll' orientation."
+    )
+
+    declare_pitch_arg = DeclareLaunchArgument(
+        "pitch", default_value=["0.0"], description="Initial robot orientation."
+    )
+
+    declare_yaw_arg = DeclareLaunchArgument(
+        "yaw", default_value=["0.0"], description="Initial robot orientation."
+    )
+
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
+        description=(
+            "Whether to launch the robot_state_publisher node."
+            "When set to False, users should publish their own robot description."
+        ),
+    )
+
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Namespace for all Panther topics",
+    )
+
+    declare_robots_arg = DeclareLaunchArgument(
+        "robots",
+        default_value=[],
+        description=(
+            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
+            " -1.0}; robot2={x: 1.0, y: -1.0}'"
+        ),
+    )
+
     return LaunchDescription(
         [
             declare_world_arg,
@@ -297,7 +305,6 @@ def generate_launch_description():
             declare_robots_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
-            gz_sim,
-            *spawn_group,
+            OpaqueFunction(function=launch_setup),
         ]
     )
