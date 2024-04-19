@@ -14,6 +14,7 @@
   imu_broadcaster:
     ros__parameters:
       use_namespace_as_sensor_name_prefix: true
+      tf_frame_prefix_enable: false
 
       sensor_name: imu
       frame_id: imu_link
