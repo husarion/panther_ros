@@ -1,0 +1,144 @@
+# https://github.com/ros-drivers/phidgets_drivers/blob/humble/phidgets_spatial/README.md
+phidgets_spatial:
+  serial: {
+    type: int,
+    default_value: -1,
+    description: "The serial number of the phidgets spatial to connect to. If -1 (the default),
+     connects to any spatial phidget that can be found.",
+  }
+  hub_port: {
+    type: int,
+    default_value: 0,
+    description: "The phidgets VINT hub port to connect to.
+     Only used if the spatial phidget is connected to a VINT hub. Defaults to 0."
+  }
+  heating_enabled: {
+    type: bool,
+    default_value: false,
+    description: "Use the internal heating element; Just available on MOT0109 onwards. Do not set this parameter for older versions."
+  }
+  time_resynchronization_interval_ms: {
+    type: int,
+    default_value: 5000,
+    description: "The number of milliseconds to wait between resynchronizing the time on the Phidgets spatial with the local time.
+      Larger values have less 'jumps', but will have more timestamp drift. Setting this to 0 disables resynchronization. Defaults to 5000 ms."
+  }
+  data_interval_ms: {
+    type: int,
+    default_value: 8,
+    description: "The number of milliseconds between acquisitions of data on the device (allowed values are dependent on the device). Defaults to 8 ms."
+  }
+  callback_delta_epsilon_ms: {
+    type: int,
+    default_value: 1,
+    description: "The number of milliseconds epsilon allowed between callbacks when attempting to resynchronize the time.
+      If this is set to 1, then a difference of data_interval_ms plus or minus 1 millisecond will be considered viable for resynchronization.
+      Higher values give the code more leeway to resynchronize, at the cost of potentially getting bad resynchronizations sometimes.
+      Lower values can give better results, but can also result in never resynchronizing.
+      Must be less than data_interval_ms. Defaults to 1 ms."
+  }
+  cc_mag_field: {
+    type: double,
+    default_value: 0.0,
+    description: "Ambient magnetic field calibration value; see device's user guide for information on how to calibrate."
+  }
+  cc_offset0: {
+    type: double,
+    default_value: 0.0,
+    description: "Calibration offset value 0; see device's user guide for information on how to calibrate."
+  }
+  cc_offset1: {
+    type: double,
+    default_value: 0.0,
+    description: "Calibration offset value 1; see device's user guide for information on how to calibrate."
+  }
+  cc_offset2: {
+    type: double,
+    default_value: 0.0,
+    description: "Calibration offset value 2; see device's user guide for information on how to calibrate."
+  }
+  cc_gain0: {
+    type: double,
+    default_value: 0.0,
+    description: "Gain offset value 0; see device's user guide for information on how to calibrate."
+  }
+  cc_gain1: {
+    type: double,
+    default_value: 0.0,
+    description: " Gain offset value 1; see device's user guide for information on how to calibrate."
+  }
+  cc_gain2: {
+    type: double,
+    default_value: 0.0,
+    description: "Gain offset value 2; see device's user guide for information on how to calibrate."
+  }
+  cc_t0: {
+    type: double,
+    default_value: 0.0,
+    description: "T offset value 0; see device's user guide for information on how to calibrate."
+  }
+  cc_t1: {
+    type: double,
+    default_value: 0.0,
+    description: "T offset value 1; see device's user guide for information on how to calibrate."
+  }
+  cc_t2: {
+    type: double,
+    default_value: 0.0,
+    description: "T offset value 2; see device's user guide for information on how to calibrate."
+  }
+  cc_t3: {
+    type: double,
+    default_value: 0.0,
+    description: "T offset value 3; see device's user guide for information on how to calibrate."
+  }
+  cc_t4: {
+    type: double,
+    default_value: 0.0,
+    description: "T offset value 4; see device's user guide for information on how to calibrate."
+  }
+  cc_t5: {
+    type: double,
+    default_value: 0.0,
+    description: "T offset value 5; see device's user guide for information on how to calibrate."
+  }
+  use_mag: {
+    type: bool,
+    default_value: false,
+    description: "Use magnitude to calculate orientation."
+  }
+  gain: {
+    type: double,
+    default_value: 0.1,
+    description: "Gain of the filter. Higher values lead to faster convergence but more noise. Lower values lead to slower convergence but smoother signal."
+  }
+  zeta: {
+    type: double,
+    default_value: 0.1,
+    description: "Gyro drift gain (approx. rad/s)."
+  }
+  mag_bias_x: {
+    type: double,
+    default_value: 0.0,
+    description: "Magnetometer bias (hard iron correction), x component.",
+  }
+  mag_bias_y: {
+    type: double,
+    default_value: 0.0,
+    description: "Magnetometer bias (hard iron correction), y component.",
+  }
+  mag_bias_z: {
+    type: double,
+    default_value: 0.0,
+    description: "Magnetometer bias (hard iron correction), z component.",
+  }
+  stateless: {
+    type: bool,
+    default_value: false,
+    description: "Use stateless to compute orientation on every data callback without prediction based on previous measurements."
+  }
+  remove_gravity_vector: {
+    type: bool,
+    default_value: false,
+    description: "The gravity vector is kept in the IMU message."
+  }

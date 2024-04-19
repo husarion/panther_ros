@@ -18,7 +18,7 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
@@ -27,20 +27,69 @@ from launch.substitutions import (
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
 
-def launch_setup(context):
-    panther_version = LaunchConfiguration("panther_version").perform(context)
-    use_sim = LaunchConfiguration("use_sim").perform(context)
-    wheel_config_path = LaunchConfiguration("wheel_config_path").perform(context)
-    controller_config_path = LaunchConfiguration("controller_config_path").perform(context)
-    battery_config_path = LaunchConfiguration("battery_config_path").perform(context)
-    simulation_engine = LaunchConfiguration("simulation_engine").perform(context)
-    publish_robot_state = LaunchConfiguration("publish_robot_state").perform(context)
-    namespace = LaunchConfiguration("namespace").perform(context)
+def generate_launch_description():
+    panther_version = LaunchConfiguration("panther_version")
+    declare_panther_version_arg = DeclareLaunchArgument(
+        "panther_version",
+    )
+
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        description="Path to wheel configuration file.",
+    )
+
+    controller_config_path = LaunchConfiguration("controller_config_path")
+    declare_controller_config_path_arg = DeclareLaunchArgument(
+        "controller_config_path",
+        description="Path to controller configuration file.",
+    )
+
+    battery_config_path = LaunchConfiguration("battery_config_path")
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
+        default_value="",
+    )
+
+    simulation_engine = LaunchConfiguration("simulation_engine")
+    declare_simulation_engine_arg = DeclareLaunchArgument(
+        "simulation_engine",
+        default_value="ignition-gazebo",
+        description="Which simulation engine will be used",
+    )
+
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
+        description=(
+            "Whether to launch the robot_state_publisher node."
+            "When set to False, users should publish their own robot description."
+        ),
+    )
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all launched nodes",
+    )
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -108,8 +157,7 @@ def launch_setup(context):
         ],
         condition=UnlessCondition(use_sim),
     )
-
-    namespace_ext = namespace + "/" if namespace else ""
+    namespace_ext = PythonExpression(['"', namespace, '"+ "/" if "', namespace, '" else ""'])
 
     robot_state_pub_node = Node(
         package="robot_state_publisher",
@@ -183,66 +231,6 @@ def launch_setup(context):
         condition=IfCondition(use_sim),
     )
 
-    return [
-        SetParameter(name="use_sim_time", value=use_sim),
-        control_node,
-        robot_state_pub_node,
-        joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
-    ]
-
-
-def generate_launch_description():
-    declare_panther_version_arg = DeclareLaunchArgument(
-        "panther_version",
-    )
-
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
-    )
-
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        description="Path to wheel configuration file.",
-    )
-
-    declare_controller_config_path_arg = DeclareLaunchArgument(
-        "controller_config_path",
-        description="Path to controller configuration file.",
-    )
-
-    declare_battery_config_path_arg = DeclareLaunchArgument(
-        "battery_config_path",
-        description=(
-            "Path to the Ignition LinearBatteryPlugin configuration file. "
-            "This configuration is intended for use in simulations only."
-        ),
-        default_value="",
-    )
-
-    declare_simulation_engine_arg = DeclareLaunchArgument(
-        "simulation_engine",
-        default_value="ignition-gazebo",
-        description="Which simulation engine will be used",
-    )
-
-    declare_publish_robot_state_arg = DeclareLaunchArgument(
-        "publish_robot_state",
-        default_value="True",
-        description=(
-            "Whether to launch the robot_state_publisher node."
-            "When set to False, users should publish their own robot description."
-        ),
-    )
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Namespace for all Panther topics",
-    )
-
     actions = [
         declare_panther_version_arg,
         declare_use_sim_arg,
@@ -252,7 +240,12 @@ def generate_launch_description():
         declare_simulation_engine_arg,
         declare_publish_robot_state_arg,
         declare_namespace_arg,
-        OpaqueFunction(function=launch_setup),
+        SetParameter(name="use_sim_time", value=use_sim),
+        control_node,
+        robot_state_pub_node,
+        joint_state_broadcaster_spawner,
+        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
     ]
 
     return LaunchDescription(actions)

@@ -22,8 +22,8 @@ Package that implements SystemInterface from ros2_control for Panther.
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-This package doesn't contain any standalone nodes - `PantherSystem` is a plugin loaded by the controller manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](../panther_description/)) and add a controller (example configuration provided in [panther_controller](../panther_controller/) package).
+This package doesn't contain any standalone nodes - `PantherSystem` is a plugin loaded by the resource manager.
+To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/panther_description/)) and add a controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/panther_controller/) package).
 That said apart from the usual interface provided by the ros2_control, this plugin also provides additional published topics and services specific for Panther.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
@@ -41,7 +41,7 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
 
-Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
+Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](https://github.com/husarion/panther_ros/panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
 
@@ -54,9 +54,9 @@ Physical properties
 CAN settings
 
 - `can_interface_name` [*string*, default: **panther_can**]: name of the CAN interface.
-- `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
-- `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
-- `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+- `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](https://github.com/husarion/panther_ros/panther_hardware_interfaces/config/canopen_configuration.yaml)).
+- `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](https://github.com/husarion/panther_ros/panther_hardware_interfaces/config/canopen_configuration.yaml)).
+- `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](https://github.com/husarion/panther_ros/panther_hardware_interfaces/config/canopen_configuration.yaml)).
 - `sdo_operation_timeout_ms` [*int*, default: **100**]: timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
 - `pdo_motor_states_timeout_ms` [*int*, default: **15**]: depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
 - `pdo_driver_state_timeout_ms` [*int*, default: **75**]: depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default, there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. The default value is set to be expected period +50% margin.
@@ -73,9 +73,87 @@ CAN settings
 [//]: # (ROS_API_NODE_PARAMETERS_END)
 [//]: # (ROS_API_NODE_END)
 
+[//]: # (ROS_API_NODE_NAME_START)
+
+### PantherImuSensor
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
+This package doesn't contain any standalone nodes - `PantherImuSensor` is a plugin loaded by the resource manager.
+To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_description/)) and add an `imu_sensor_broadcaster` controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_controller/) package).
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
+#### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
+
+Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_description/urdf/panther_macro.urdf.xacro)).
+
+Physical properties
+
+- `serial` [*int*, default: **-1**]: The serial number of the Phidgets Spatial to connect to. If -1 (the default), connects to any Spatial Phidget that can be found.
+- `hub_port` [*int*, default: **0**]: The Phidgets VINT hub port to connect to. Only used if the Spatial Phidget is connected to a VINT hub. Defaults to 0.
+- `heating_enabled` [*bool*, default: **false**]: Use the internal heating element; just available on MOT0109 onwards. Do not set this parameter for older versions.
+- `time_resynchronization_interval_ms` [*int*, default: **5000**]: The number of milliseconds to wait between resynchronizing the time on the Phidgets Spatial with the local time. Larger values have less 'jumps', but will have more timestamp drift. Setting this to 0 disables resynchronization. Defaults to 5000 ms.
+- `data_interval_ms` [*int*, default: **8**]: The number of milliseconds between acquisitions of data on the device (allowed values are dependent on the device). Defaults to 8 ms.
+- `callback_delta_epsilon_ms` [*int*, default: **1**]: The number of milliseconds epsilon allowed between callbacks when attempting to resynchronize the time. If this is set to 1, then a difference of data_interval_ms plus or minus 1 millisecond will be considered viable for resynchronization. Higher values give the code more leeway to resynchronize, at the cost of potentially getting bad resynchronizations sometimes. Lower values can give better results, but can also result in never resynchronizing. Must be less than data_interval_ms. Defaults to 1 ms.
+- `cc_mag_field` [*double*, default: **0.0**]: Ambient magnetic field calibration value; see device's user guide for information on how to calibrate.
+- `cc_offset0` [*double*, default: **0.0**]: Calibration offset value 0; see device's user guide for information on how to calibrate.
+- `cc_offset1` [*double*, default: **0.0**]: Calibration offset value 1; see device's user guide for information on how to calibrate.
+- `cc_offset2` [*double*, default: **0.0**]: Calibration offset value 2; see device's user guide for information on how to calibrate.
+- `cc_gain0` [*double*, default: **0.0**]: Gain offset value 0; see device's user guide for information on how to calibrate.
+- `cc_gain1` [*double*, default: **0.0**]: Gain offset value 1; see device's user guide for information on how to calibrate.
+- `cc_gain2` [*double*, default: **0.0**]: Gain offset value 2; see device's user guide for information on how to calibrate.
+- `cc_t0` [*double*, default: **0.0**]: T offset value 0; see device's user guide for information on how to calibrate.
+- `cc_t1` [*double*, default: **0.0**]: T offset value 1; see device's user guide for information on how to calibrate.
+- `cc_t2` [*double*, default: **0.0**]: T offset value 2; see device's user guide for information on how to calibrate.
+- `cc_t3` [*double*, default: **0.0**]: T offset value 3; see device's user guide for information on how to calibrate.
+- `cc_t4` [*double*, default: **0.0**]: T offset value 4; see device's user guide for information on how to calibrate.
+- `cc_t5` [*double*, default: **0.0**]: T offset value 5; see device's user guide for information on how to calibrate.
+
+Madgwick filter settings
+
+- `use_mag` [*bool*, default: **false**]: Use magnitude to calculate orientation.
+- `gain` [*double*, default: **0.1**]: Gain of the filter. Higher values lead to faster convergence but more noise. Lower values lead to slower convergence but smoother signal.
+- `zeta` [*double*, default: **0.1**]: Gyro drift gain (approx. rad/s).
+- `mag_bias_x` [*double*, default: **0.0**]: Magnetometer bias (hard iron correction), x component.
+- `mag_bias_y` [*double*, default: **0.0**]: Magnetometer bias (hard iron correction), y component.
+- `mag_bias_z` [*double*, default: **0.0**]: Magnetometer bias (hard iron correction), z component.
+- `stateless` [*bool*, default: **false**]: Use stateless to compute orientation on every data callback without prediction based on previous measurements.
+- `remove_gravity_vector` [*bool*, default: **false**]: The gravity vector is kept in the IMU message.
+
+The Madgwick Filter parameters, zeta and gain, are provided in the paper "[An efficient orientation filter for inertial and inertial/magnetic sensor arrays](https://x-io.co.uk/downloads/madgwick_internal_report.pdf)". The Panther robot utilizes the `PhidgetSpatial Precision 3/3/3` IMU sensor, with detailed specifications available on  [the producer's website](https://www.phidgets.com/?prodid=1205#Tab_Specifications).
+
+Gyroscope Noise (@ 1ms) is:
+
+```text
+gyroMeasError = 0.2 deg/s = 0.00351 rad/s
+```
+
+Gyroscope Drift Max is:
+
+```text
+gyroMeasDrift  = 0.1 deg/s = 0.00175 rad/s
+```
+
+Instructions for computing gain and zeta can be found in [the paper](https://x-io.co.uk/downloads/madgwick_internal_report.pdf).
+
+```text
+gain = sqrt(3/4)* gyroMeasError = 0.00303
+```
+
+```text
+zeta = sqrt(3/4)* gyroMeasDrift = 0.00151
+```
+
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
+
 ## Code structure
 
-The code structure is described in more detail in a [separate file](./CODE_STRUCTURE.md).
+The code structure is described in more detail in a [separate file](https://github.com/husarion/panther_ros/panther_hardware_interfaces/CODE_STRUCTURE.md).
 
 ## Generating CAN config
 

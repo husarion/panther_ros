@@ -30,11 +30,11 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `/panther/battery` [*sensor_msgs/BatteryState*]: state of the internal Battery.
-- `/panther/driver/motor_controllers_state` [*panther_msgs/DriverState*]: state of motor controllers.
-- `/panther/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
-- `/panther/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
-- `/panther/system_status` [*panther_msgs/SystemStatus*]: state of the system, including Built-in Computer's CPU temperature and load.
+- `~/battery` [*sensor_msgs/BatteryState*]: state of the internal Battery.
+- `~/driver/motor_controllers_state` [*panther_msgs/DriverState*]: state of motor controllers.
+- `~/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
+- `~/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
+- `~/system_status` [*panther_msgs/SystemStatus*]: state of the system, including Built-in Computer's CPU temperature and load.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -42,10 +42,10 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
 
-- `/panther/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables Aux Power output.
-- `/panther/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers E-stop.
-- `/panther/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
-- `/panther/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
+- `~/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables Aux Power output.
+- `~/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers E-stop.
+- `~/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
+- `~/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
 
@@ -124,7 +124,7 @@ ssh-copy-id username@10.15.20.XX
 
 #### Faults Handle
 
-After receiving a message on the `/panther/battery` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply state, please refer to the [adc_node](/panther_battery/README.md#battery-statuses) documentation.
+After receiving a message on the `~/battery` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply state, please refer to the [adc_node](/panther_battery/README.md#battery-statuses) documentation.
 
 | Power Supply Health | Procedure                                                                                                                                                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
