@@ -7,6 +7,10 @@ repositories:
     type: git
     url: https://github.com/husarion/husarion_office_gz.git
     version: main
+  panther_msgs:
+    type: git
+    url: https://github.com/husarion/panther_msgs.git
+    version: ros2
   robot_localization: # Caused by this error https://github.com/cra-ros-pkg/robot_localization/pull/876, it can be removed after the next synchronization of apt packages.
     type: git
     url: https://github.com/cra-ros-pkg/robot_localization.git
