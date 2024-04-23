@@ -34,6 +34,7 @@
 
     <!-- BODY DECLARATION -->
     <xacro:body.body
+      namespace="${namespace}"
       wheel_radius="${wheel_config['wheel_radius']}"
       imu_pos_x="${imu_pos_x}"
       imu_pos_y="${imu_pos_y}"
@@ -44,21 +45,25 @@
 
     <!-- WHEEL DECLARATION -->
     <xacro:wheel.wheel
+      namespace="${namespace}"
       wheel_config="${wheel_config}"
       wheel_separation_x="${wheel_separation_x}"
       prefix="fl" />
 
     <xacro:wheel.wheel
+      namespace="${namespace}"
       wheel_config="${wheel_config}"
       wheel_separation_x="${wheel_separation_x}"
       prefix="fr" />
 
     <xacro:wheel.wheel
+      namespace="${namespace}"
       wheel_config="${wheel_config}"
       wheel_separation_x="${wheel_separation_x}"
       prefix="rl" />
 
     <xacro:wheel.wheel
+      namespace="${namespace}"
       wheel_config="${wheel_config}"
       wheel_separation_x="${wheel_separation_x}"
       prefix="rr" />
@@ -192,7 +197,7 @@
     <xacro:if value="${use_sim}">
       <xacro:gazebo.battery config_file="${battery_config_file}" namespace="${namespace}" />
       <xacro:gazebo.controller config_file="${controller_config_file}" namespace="${namespace}" />
-      <xacro:gazebo.imu reference_frame="imu_link" namespace="${namespace}" />
+      <xacro:gazebo.imu reference_frame="${ns}imu_link" namespace="${namespace}" />
     </xacro:if>
   </xacro:macro>
 

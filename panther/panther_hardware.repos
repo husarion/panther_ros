@@ -19,7 +19,7 @@ repositories:
     type: git
     url: https://github.com/husarion/ros_components_description.git
     version: ros2
-  ros2_controllers:
+  ros2_controllers: # Caused by two error: 1. https://github.com/ros-controls/ros2_controllers/pull/1104 2. There is no nice way to change `sensor_name` imu_bradcaster param when spawning multiple robots -> ros2_control refer only to single imu entity
     type: git
-    url: https://github.com/delihus/ros2_controllers
-    version: 60919d60fb02eb920b0bf42e4d86853db23233cc
+    url: https://github.com/rafal-gorecki/ros2_controllers.git
+    version: humble

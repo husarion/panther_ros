@@ -2,7 +2,14 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
   <!-- wheel defining macro -->
-  <xacro:macro name="wheel" params="wheel_config wheel_separation_x prefix">
+  <xacro:macro name="wheel" params="namespace wheel_config wheel_separation_x prefix">
+
+  <xacro:if value="${namespace == ''}">
+    <xacro:property name="ns" value="" />
+  </xacro:if>
+  <xacro:unless value="${namespace == ''}">
+      <xacro:property name="ns" value="${namespace}/" />
+  </xacro:unless>
 
     <xacro:if value="${prefix == 'fl'}">
       <xacro:property name="x" value="${wheel_separation_x/2.0}" />
@@ -31,15 +38,15 @@
 
     <joint name="${prefix}_wheel_joint" type="continuous">
       <origin xyz="${x} ${y} 0.0" rpy="0.0 0.0 0.0" />
-      <parent link="body_link" />
-      <child link="${prefix}_wheel_link" />
+      <parent link="${ns}body_link" />
+      <child link="${ns}${prefix}_wheel_link" />
       <axis xyz="0.0 1.0 0.0" />
 
       <limit effort="64.5" velocity="10.958" />
       <dynamics damping="0.01" friction="0.1" />
     </joint>
 
-    <link name="${prefix}_wheel_link">
+    <link name="${ns}${prefix}_wheel_link">
       <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <geometry>
@@ -69,14 +76,14 @@
     </link>
 
     <xacro:if value="${use_sim}">
-      <gazebo reference="${prefix}_wheel_link" xmlns:ignition="http://ignitionrobotics.org/schema">
+      <gazebo reference="${ns}${prefix}_wheel_link" xmlns:ignition="http://ignitionrobotics.org/schema">
         <collision>
           <surface>
             <friction>
               <ode>
                 <mu>1.0</mu>
                 <mu2>0.0</mu2>
-                <fdir1 ignition:expressed_in="base_link">${fdir}</fdir1>
+                <fdir1 ignition:expressed_in="${ns}base_link">${fdir}</fdir1>
               </ode>
             </friction>
           </surface>
