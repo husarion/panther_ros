@@ -2,6 +2,7 @@
 name: Release Panther project
 
 on:
+    pull_request:
     workflow_dispatch:
         inputs:
             version:
