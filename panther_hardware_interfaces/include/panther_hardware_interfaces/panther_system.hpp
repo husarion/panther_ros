@@ -32,6 +32,7 @@
 
 #include "panther_hardware_interfaces/gpio_controller.hpp"
 #include "panther_hardware_interfaces/motors_controller.hpp"
+#include "panther_hardware_interfaces/panther_system_e_stop.hpp"
 #include "panther_hardware_interfaces/panther_system_ros_interface.hpp"
 #include "panther_hardware_interfaces/roboteq_error_filter.hpp"
 
@@ -78,23 +79,25 @@ protected:
   void ReadParametersAndCreateRoboteqErrorFilter();
   void ReadDriverStatesUpdateFrequency();
 
+  void ConfigureGPIOController();
+  void ConfigureMotorsController();
+  void ConfigureEStop();
+
   void UpdateMotorsStates();
   void UpdateDriverState();
 
   void UpdateHwStates();
   void UpdateMotorsStatesDataTimedOut();
+  bool AreVelocityCommandsNearZero();
+  bool IsPantherVersionAtLeast(const float version);
 
   void UpdateDriverStateMsg();
   void UpdateFlagErrors();
   void UpdateDriverStateDataTimedOut();
 
   void HandlePDOWriteOperation(std::function<void()> pdo_write_operation);
-  bool AreVelocityCommandsNearZero();
 
   void MotorsPowerEnable(const bool enable);
-  void SetEStop();
-  void ResetEStop();
-  std::function<bool()> ReadEStop;
 
   void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status);
   void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status);
@@ -119,6 +122,7 @@ protected:
 
   std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<MotorsController> motors_controller_;
+  std::shared_ptr<EStopInterface> e_stop_;
 
   DrivetrainSettings drivetrain_settings_;
   CANopenSettings canopen_settings_;
@@ -142,11 +146,7 @@ protected:
 
   float panther_version_;
 
-  std::atomic_bool e_stop_ = true;
-  std::atomic_bool use_can_for_e_stop_trigger_ = false;
-  std::atomic_bool last_commands_zero_ = false;
-  std::mutex e_stop_manipulation_mtx_;
-  std::mutex motor_controller_write_mtx_;
+  std::shared_ptr<std::mutex> motor_controller_write_mtx_;
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Duration driver_states_update_period_{0, 0};

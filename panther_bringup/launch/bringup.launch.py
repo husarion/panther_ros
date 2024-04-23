@@ -307,7 +307,7 @@ def generate_launch_description():
                 ]
             )
         ),
-        condition=UnlessCondition(use_sim) and UnlessCondition(disable_manager),
+        condition=UnlessCondition(PythonExpression([use_sim, " or ", disable_manager])),
         launch_arguments={
             "namespace": namespace,
             "panther_version": panther_version,
