@@ -3,9 +3,10 @@ name: Run panther unit tests
 
 on:
     workflow_dispatch:
-    pull_request:
-        branches:
-            - ros2-devel
+    # TODO: ENABLE WHEN READY
+    # pull_request:
+    #     branches:
+    #         - ros2-devel
 
 jobs:
     test:
