@@ -28,6 +28,8 @@ jobs:
     release:
         name: Release repository
         runs-on: ubuntu-22.04
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -44,8 +46,6 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Create pull request
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   gh pr create \
                   --base ${{ github.event.inputs.target_branch }} \
@@ -55,18 +55,20 @@ jobs:
 
             - name: Merge pull request
               if: ${{ github.event.inputs.automatic_merge == true }}
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
                   --delete-branch
 
+            - name: Create tag
+              if: ${{ github.event.inputs.automatic_merge == true and github.event.inputs.automatic_release == true }}
+              run: |
+                  git checkout ${{ github.event.inputs.target_branch }}
+                  git tag ${{ steps.create_release_candidate.outputs.version }}
+                  git push origin ${{ steps.create_release_candidate.outputs.version }}
+
             - name: Create release
-              if: ${{ github.event.inputs.automatic_merge == true }} and ${{ github.event.inputs.automatic_release == true }}
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              if: ${{ github.event.inputs.automatic_merge == true and github.event.inputs.automatic_release == true }}
               run: |
                   gh release create ${{ steps.create_release_candidate.outputs.version }} \
-                  --target ${{ github.event.inputs.target_branch }} \
                   --title ${{ github.event.inputs.release_name }} \
                   --notes-from-tag
