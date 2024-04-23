@@ -32,7 +32,7 @@ jobs:
                   repo: panther_msgs
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   workflow_file_name: release-repository.yaml
-                  ref: ros2
+                  ref: ros2-automatize-release-process #ros2
                   wait_interval: 15
                   client_payload: |
                       {
@@ -55,7 +55,7 @@ jobs:
                   repo: panther_ros
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   workflow_file_name: release-repository.yaml
-                  ref: ${{ github.ref }}
+                  ref: ros2-automatize-release-process #${{ github.ref }}
                   wait_interval: 15
                   client_payload: |
                       {
