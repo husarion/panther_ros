@@ -2,6 +2,7 @@
 name: Release repository
 
 on:
+    pull_request:
     workflow_dispatch:
         inputs:
             target_branch:
