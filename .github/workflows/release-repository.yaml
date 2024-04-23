@@ -1,33 +1,72 @@
 ---
-name: Release panther_ros repository
+name: Release repository
 
 on:
     workflow_dispatch:
         inputs:
-            release-tag:
-                description: Release tag
+            target_branch:
+                description: Target branch for the release.
                 required: true
-            release-name:
-                description: Release name
+                default: ros2-devel
+            version:
+                description: New version (used for tag and package versioning).
                 required: true
+            release_name:
+                description: Release name (version in the first place is recommended).
+                required: true
+            automatic_merge:
+                type: boolean
+                default: false
+                description: Merge release pull request automatically.
+            automatic_release:
+                type: boolean
+                default: false
+                description: Release repository automatically.
     repository_dispatch:
 
 jobs:
     release:
         name: Release repository
         runs-on: ubuntu-22.04
-        outputs:
-            new_version: ${{ steps.release.outputs.new_version }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
-
-            - name: Catkin release
-              id: release
-              uses: husarion-ci/action-release@v0.1.4
+              uses: actions/checkout@v4
               with:
-                  bump: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release-tag || github.event_name == 'repository_dispatch' &&
-                      github.event.client_payload['release-tag'] }}
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  ref: ${{ github.event.inputs.target_branch }}
+
+            - name: Create release candidate
+              id: create_release_candidate
+              uses: at-wat/catkin-release-action@v1
+              with:
+                  version: ${{ github.event.inputs.version }}
                   git_user: action-bot
                   git_email: action-bot@action-bot.com
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create pull request
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh pr create \
+                  --base ${{ github.event.inputs.target_branch }} \
+                  --head ${{ steps.create_release_candidate.outputs.created_branch }} \
+                  --title "Release ${{ steps.create_release_candidate.outputs.version}}" \
+                  --body "This PR incorporates package(s) version and changelog update."
+
+            - name: Merge pull request
+              if: ${{ github.event.inputs.automatic_merge == true }}
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
+                  --delete-branch
+
+            - name: Create release
+              if: ${{ github.event.inputs.automatic_merge == true }} and ${{ github.event.inputs.automatic_release == true }}
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
+                  --target ${{ github.event.inputs.target_branch }} \
+                  --title ${{ github.event.inputs.release_name }} \
+                  --notes-from-tag
