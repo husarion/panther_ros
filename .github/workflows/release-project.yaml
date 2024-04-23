@@ -2,7 +2,6 @@
 name: Release Panther project
 
 on:
-    pull_request:
     workflow_dispatch:
         inputs:
             version:
@@ -21,31 +20,31 @@ on:
                 description: Release repository automatically.
 
 jobs:
-    release_panther_msgs:
-        name: Release panther_msgs repository
-        runs-on: ubuntu-22.04
-        steps:
-            - name: Trigger repository release workflow
-              uses: convictional/trigger-workflow-and-wait@v1.6.1
-              with:
-                  owner: husarion
-                  repo: panther_msgs
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process #ros2
-                  wait_interval: 15
-                  client_payload: |
-                      {
-                        "target_branch": "ros2",
-                        "version": "${{ github.event.inputs.version }}",
-                        "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_merge": ${{ github.event.inputs.automatic_merge }},
-                        "automatic_release": ${{ github.event.inputs.automatic_release }}
-                      }
+    # release_panther_msgs:
+    #     name: Release panther_msgs repository
+    #     runs-on: ubuntu-22.04
+    #     steps:
+    #         - name: Trigger repository release workflow
+    #           uses: convictional/trigger-workflow-and-wait@v1.6.1
+    #           with:
+    #               owner: husarion
+    #               repo: panther_msgs
+    #               github_token: ${{ secrets.GITHUB_TOKEN }}
+    #               workflow_file_name: release-repository.yaml
+    #               ref: ros2-automatize-release-process #ros2
+    #               wait_interval: 15
+    #               client_payload: |
+    #                   {
+    #                     "target_branch": "ros2",
+    #                     "version": "${{ github.event.inputs.version }}",
+    #                     "release_name": "${{ github.event.inputs.release_name }}",
+    #                     "automatic_merge": ${{ github.event.inputs.automatic_merge }},
+    #                     "automatic_release": ${{ github.event.inputs.automatic_release }}
+    #                   }
 
     release_panther_ros:
         name: Release panther_ros repository
-        needs: release_panther_msgs
+        # needs: release_panther_msgs
         runs-on: ubuntu-22.04
         steps:
             - name: Trigger panther_ros release workflow
