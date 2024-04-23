@@ -2,8 +2,8 @@
 Changelog for package panther_gpiod
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2024-04-23)
+------------------
 * Merge branch 'ros2-devel' into ros2-readme
 * Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
 * Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics

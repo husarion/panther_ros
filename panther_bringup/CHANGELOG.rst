@@ -2,8 +2,8 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2024-04-23)
+------------------
 * Manager launch fix (`#269 <https://github.com/husarion/panther_ros/issues/269>`_)
 * Add disable manager arg (`#265 <https://github.com/husarion/panther_ros/issues/265>`_)
 * Merge pull request `#259 <https://github.com/husarion/panther_ros/issues/259>`_ from husarion/ros2-os-diagnostics
