@@ -52,7 +52,11 @@ The GPIOController provides wrappers for the GPIO driver from the `panther_gpiod
 
 ## EStop
 
-Implementation of strategies for emergency stop handling.
+Implementation of emergency stop handling.
+
+* `EStopInterface`: Interface for versioned emergency stop implementations.
+* `EStopPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
+* `EStopPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
 
 ## PantherSystemRosInterface
 

@@ -28,7 +28,7 @@ namespace panther_hardware_interfaces
 
 /**
  * @class EStopInterface
- * @brief Abstract base class defining the interface for emergency stop strategies.
+ * @brief Abstract base class defining the interface for emergency stop detailed implementations.
  */
 class EStopInterface
 {
@@ -65,7 +65,7 @@ protected:
 
 /**
  * @class EStopPTH12X
- * @brief Implements the emergency stop strategy for the PTH12X hardware variant.
+ * @brief Implements the emergency stop for the PTH12X hardware variant.
  */
 class EStopPTH12X : public EStopInterface
 {
@@ -85,7 +85,6 @@ public:
   /**
    * @brief Checks the emergency stop state.
    *
-   * E-Stop state check strategy for this Panther version:
    *   1. Check if ESTOP GPIO pin is not active. If is not it means that E-Stop is triggered by
    *      another device within the robot's system (e.g., Roboteq controller or Safety Board),
    *      disabling the software Watchdog is necessary to prevent an uncontrolled reset.
@@ -98,7 +97,6 @@ public:
   /**
    * @brief Triggers the emergency stop.
    *
-   * E-Stop trigger strategy for this Panther version:
    *   1. Interrupt the E-Stop resetting process if it is in progress.
    *   2. Attempt to trigger the E-Stop using GPIO by disabling the software-controlled watchdog.
    *   3. If successful, set e_stop_triggered_ to true; otherwise, throw a std::runtime_error
@@ -111,7 +109,6 @@ public:
   /**
    * @brief Resets the emergency stop.
    *
-   * E-Stop reset strategy for this Panther version:
    *   1. Verify that the last velocity commands are zero to prevent an uncontrolled robot movement
    *      after an E-stop state change.
    *   2. Attempt to reset the E-Stop using GPIO by manipulating the ESTOP GPIO pin. This operation
@@ -128,7 +125,7 @@ public:
 
 /**
  * @class EStopPTH10X
- * @brief Implements the emergency stop strategy for the PTH10X hardware variant. In this robot
+ * @brief Implements the emergency stop for the PTH10X hardware variant. In this robot
  * version, only a software-based E-Stop is supported. There are no hardware components that
  * implement E-Stop functionality.
  */
@@ -150,7 +147,6 @@ public:
   /**
    * @brief Checks the emergency stop state.
    *
-   * E-Stop state check strategy for this Panther version:
    *  1. Verify if the main switch is in the STAGE2 position to confirm if the motors are powered
    *     up.
    *  2. Check for any errors reported by the Roboteq controller.
@@ -165,7 +161,6 @@ public:
   /**
    * @brief Trigger the emergency stop state.
    *
-   * E-Stop trigger strategy for this Panther version:
    *  1. Send a command to the Roboteq controllers to enable the Safety Stop.
    *     Note: The Safety Stop is a specific state of the Roboteq controller, distinct from
    *     the E-Stop state of the Panther robot.
@@ -176,7 +171,6 @@ public:
   /**
    * @brief Resets the emergency stop.
    *
-   * E-Stop reset strategy for this Panther version:
    *   1. Verify that the last velocity commands are zero to prevent an uncontrolled robot movement
    *      after an E-stop state change.
    *   2. Verify if the main switch is in the STAGE2 position to confirm if the motors are powered
