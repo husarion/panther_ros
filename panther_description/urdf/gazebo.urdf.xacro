@@ -28,7 +28,7 @@
         <enable_recharge>true</enable_recharge>
         <charging_time>${battery_config['charging_time']}</charging_time>
         <soc_threshold>2.0</soc_threshold>
-        <!-- Because of https://github.com/gazebosim/gz-sim/issues/225 devision by 100-->
+        <!-- TODO: Because of https://github.com/gazebosim/gz-sim/issues/225 devision by 100-->
         <power_load>${battery_config['power_load']/100.0}</power_load>
         <start_draining>${battery_config['simulate_discharging']}</start_draining>
         <ros>
