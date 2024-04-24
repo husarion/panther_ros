@@ -60,14 +60,14 @@ jobs:
                   --delete-branch
 
             - name: Create tag
-              if: ${{ github.event.inputs.automatic_merge == true and github.event.inputs.automatic_release == true }}
+              if: ${{ github.event.inputs.automatic_merge == true && github.event.inputs.automatic_release == true }}
               run: |
                   git checkout ${{ github.event.inputs.target_branch }}
                   git tag ${{ steps.create_release_candidate.outputs.version }}
                   git push origin ${{ steps.create_release_candidate.outputs.version }}
 
             - name: Create release
-              if: ${{ github.event.inputs.automatic_merge == true and github.event.inputs.automatic_release == true }}
+              if: ${{ github.event.inputs.automatic_merge == true && github.event.inputs.automatic_release == true }}
               run: |
                   gh release create ${{ steps.create_release_candidate.outputs.version }} \
                   --title ${{ github.event.inputs.release_name }} \
