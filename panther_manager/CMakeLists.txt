@@ -60,20 +60,34 @@ foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
-add_executable(manager_bt_node src/main.cpp src/manager_bt_node.cpp)
+add_executable(safety_manager_node src/safety_manager_node_main.cpp
+                                   src/safety_manager_node.cpp)
 ament_target_dependencies(
-  manager_bt_node
+  safety_manager_node
   behaviortree_ros2
   panther_msgs
   panther_utils
   rclcpp
   sensor_msgs
   std_msgs)
-target_link_libraries(manager_bt_node ${plugin_libs})
+target_link_libraries(safety_manager_node ${plugin_libs})
+
+add_executable(lights_manager_node src/lights_manager_node_main.cpp
+                                   src/lights_manager_node.cpp)
+ament_target_dependencies(
+  lights_manager_node
+  behaviortree_ros2
+  panther_msgs
+  panther_utils
+  rclcpp
+  sensor_msgs
+  std_msgs)
+target_link_libraries(lights_manager_node ${plugin_libs})
 
 install(TARGETS ${plugin_libs} DESTINATION lib)
 
-install(TARGETS manager_bt_node DESTINATION lib/${PROJECT_NAME})
+install(TARGETS safety_manager_node lights_manager_node
+        DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY behavior_trees config launch
         DESTINATION share/${PROJECT_NAME})
@@ -149,21 +163,13 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_bt_utils behaviortree_cpp
                             panther_utils)
 
-  ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
-                  test/test_manager_bt_node.cpp src/manager_bt_node.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_manager_bt_node
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(
-    ${PROJECT_NAME}_test_manager_bt_node
-    behaviortree_cpp
-    behaviortree_ros2
-    panther_msgs
-    panther_utils
-    rclcpp
-    sensor_msgs
-    std_msgs)
+  # ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
+  # test/test_manager_bt_node.cpp src/manager_bt_node.cpp)
+  # target_include_directories( ${PROJECT_NAME}_test_manager_bt_node PUBLIC
+  # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  # $<INSTALL_INTERFACE:include>) ament_target_dependencies(
+  # ${PROJECT_NAME}_test_manager_bt_node behaviortree_cpp behaviortree_ros2
+  # panther_msgs panther_utils rclcpp sensor_msgs std_msgs)
 endif()
 
 ament_package()
