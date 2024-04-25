@@ -23,6 +23,16 @@ on:
                 description: Mark the release as a prerelease.
 
 jobs:
+    get_date:
+        name: Get current date
+        runs-on: ubuntu-22.04
+        outputs:
+            date: ${{ steps.get_current_date.outputs.date }}
+        steps:
+            - name: Get current date
+              id: get_current_date
+              run: echo "::set-output name=date::$(date +'%Y%m%d')"
+
     release_panther_msgs:
         name: Release panther_msgs repository
         runs-on: ubuntu-22.04
@@ -66,4 +76,54 @@ jobs:
                         "release_name": "${{ github.event.inputs.release_name }}",
                         "automatic_mode": ${{ github.event.inputs.automatic_mode }},
                         "prerelease": ${{ github.event.inputs.prerelease }}
+                      }
+
+    release_panther_docker:
+        name: Release panther-docker repository
+        needs:
+            - release_panther_ros
+            - get_date
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Trigger repository release workflow
+              uses: convictional/trigger-workflow-and-wait@v1.6.1
+              with:
+                  owner: husarion
+                  repo: panther-docker
+                  github_token: ${{ secrets.GH_PAT }}
+                  workflow_file_name: release-repository.yaml
+                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  wait_interval: 10
+                  client_payload: |
+                      {
+                        "target_branch": "${{ github.event.inputs.target_branch }}",
+                        "version": "${{ github.event.inputs.version }}",
+                        "date": "${{ needs.get_date.outputs.date }}",
+                        "release_name": "${{ github.event.inputs.release_name }}",
+                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
+                        "prerelease": ${{ github.event.inputs.prerelease }}
+                      }
+
+    build_and_push_docker_images:
+        name: Build panther docker images
+        needs:
+            - release_panther_docker
+            - get_date
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Trigger repository build workflow
+              uses: convictional/trigger-workflow-and-wait@v1.6.1
+              with:
+                  owner: husarion
+                  repo: panther-docker
+                  github_token: ${{ secrets.GH_PAT }}
+                  workflow_file_name: ros-docker-image.yaml
+                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  wait_interval: 10
+                  client_payload: |
+                      {
+                        "build_type": "stable",
+                        "target_distro": "humble",
+                        "target_release": "${{ github.event.inputs.version }}",
+                        "target_date": "${{ needs.get_date.outputs.date }}"
                       }
