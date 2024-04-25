@@ -16,7 +16,6 @@
 #define PANTHER_MANAGER_SAFETY_MANAGER_NODE_HPP_
 
 #include <memory>
-#include <optional>
 #include <string>
 
 #include "behaviortree_cpp/bt_factory.h"
@@ -71,10 +70,6 @@ private:
   static constexpr float kFatalBatteryTemp = 62.0;
 
   float update_charging_anim_step_;
-  std::optional<unsigned> battery_status_;
-  std::optional<unsigned> battery_health_;
-  std::optional<bool> e_stop_state_;
-  std::optional<IOStateMsg::SharedPtr> io_state_;
 
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<DriverStateMsg>::SharedPtr driver_state_sub_;
@@ -86,8 +81,6 @@ private:
   BT::BehaviorTreeFactory factory_;
   BT::NodeConfig safety_config_;
   BT::NodeConfig shutdown_config_;
-  BT::NodeStatus safety_tree_status_;
-  BT::NodeStatus shutdown_tree_status_;
   BT::Tree safety_tree_;
   BT::Tree shutdown_tree_;
   std::unique_ptr<BT::Groot2Publisher> safety_bt_publisher_;

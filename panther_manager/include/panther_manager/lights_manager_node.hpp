@@ -16,7 +16,6 @@
 #define PANTHER_MANAGER_LIGHTS_MANAGER_NODE_HPP_
 
 #include <memory>
-#include <optional>
 #include <string>
 
 #include "behaviortree_cpp/bt_factory.h"
@@ -58,9 +57,6 @@ private:
   void LightsTreeTimerCB();
 
   float update_charging_anim_step_;
-  std::optional<unsigned> battery_status_;
-  std::optional<unsigned> battery_health_;
-  std::optional<bool> e_stop_state_;
 
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BoolMsg>::SharedPtr e_stop_sub_;
@@ -68,7 +64,6 @@ private:
 
   BT::BehaviorTreeFactory factory_;
   BT::NodeConfig lights_config_;
-  BT::NodeStatus lights_tree_status_;
   BT::Tree lights_tree_;
   std::unique_ptr<BT::Groot2Publisher> lights_bt_publisher_;
 

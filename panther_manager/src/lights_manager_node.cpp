@@ -173,22 +173,32 @@ void LightsManagerNode::CreateLightsTree()
   lights_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(lights_tree_, 5555);
 }
 
-void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)
+void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
 {
-  battery_status_ = battery->power_supply_status;
-  battery_health_ = battery->power_supply_health;
-  // don't update battery data if unknown status
-  if (battery_status_ == BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN) {
-    return;
-  }
-  if (battery_health_ == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
-    return;
+  const auto battery_status = battery_state->power_supply_status;
+  const auto battery_health = battery_state->power_supply_health;
+  lights_config_.blackboard->set<unsigned>("battery_status", battery_status);
+  lights_config_.blackboard->set<unsigned>("battery_health", battery_health);
+
+  // don't update battery percentage if unknown status or health
+  if (
+    battery_status != BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN &&
+    battery_health != BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
+    battery_percent_ma_->Roll(battery_state->percentage);
   }
 
-  battery_percent_ma_->Roll(battery->percentage);
+  lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_->GetAverage());
+  lights_config_.blackboard->set<std::string>(
+    "battery_percent_round",
+    std::to_string(
+      round(battery_percent_ma_->GetAverage() / update_charging_anim_step_) *
+      update_charging_anim_step_));
 }
 
-void LightsManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop) { e_stop_state_ = e_stop->data; }
+void LightsManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
+{
+  lights_config_.blackboard->set<bool>("e_stop_state", e_stop->data);
+}
 
 void LightsManagerNode::LightsTreeTimerCB()
 {
@@ -196,32 +206,26 @@ void LightsManagerNode::LightsTreeTimerCB()
     return;
   }
 
-  lights_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
-  lights_config_.blackboard->set<unsigned>("battery_status", battery_status_.value());
-  lights_config_.blackboard->set<unsigned>("battery_health", battery_health_.value());
-  lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_->GetAverage());
-  lights_config_.blackboard->set<std::string>(
-    "battery_percent_round",
-    std::to_string(
-      round(battery_percent_ma_->GetAverage() / update_charging_anim_step_) *
-      update_charging_anim_step_));
+  auto status = lights_tree_.tickOnce();
 
-  lights_tree_status_ = lights_tree_.tickOnce();
-
-  if (lights_tree_status_ == BT::NodeStatus::FAILURE) {
+  if (status == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
   }
 }
 
 bool LightsManagerNode::SystemReady()
 {
-  if (e_stop_state_.has_value() && battery_status_.has_value()) {
-    return true;
+  if (
+    !lights_config_.blackboard->getEntry("e_stop_state") ||
+    !lights_config_.blackboard->getEntry("battery_status")) {
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000,
+      "Waiting for required system messages to arrive");
+    std::cout << "return" << std::endl;
+    return false;
   }
 
-  RCLCPP_INFO_THROTTLE(
-    this->get_logger(), *this->get_clock(), 5000, "Waiting for required system messages to arrive");
-  return false;
+  return true;
 }
 
 }  // namespace panther_manager

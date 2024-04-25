@@ -193,38 +193,51 @@ void SafetyManagerNode::CreateShutdownTree()
 
 void SafetyManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)
 {
-  battery_status_ = battery->power_supply_status;
-  battery_health_ = battery->power_supply_health;
-  // don't update battery data if unknown status
-  if (battery_status_ == BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN) {
-    return;
-  }
-  if (battery_health_ == BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
-    return;
+  const auto battery_status = battery->power_supply_status;
+  const auto battery_health = battery->power_supply_health;
+  safety_config_.blackboard->set<unsigned>("battery_status", battery_status);
+  safety_config_.blackboard->set<unsigned>("battery_health", battery_health);
+
+  // don't update battery temperature if unknown status
+  if (
+    battery_status != BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN &&
+    battery_health != BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
+    battery_temp_ma_->Roll(battery->temperature);
   }
 
-  battery_temp_ma_->Roll(battery->temperature);
+  safety_config_.blackboard->set<double>("bat_temp", battery_temp_ma_->GetAverage());
 }
 
 void SafetyManagerNode::DriverStateCB(const DriverStateMsg::SharedPtr driver_state)
 {
   front_driver_temp_ma_->Roll(driver_state->front.temperature);
   rear_driver_temp_ma_->Roll(driver_state->rear.temperature);
+
+  // to simplify conditions pass only higher temp of motor drivers
+  safety_config_.blackboard->set<double>(
+    "driver_temp",
+    std::max({front_driver_temp_ma_->GetAverage(), rear_driver_temp_ma_->GetAverage()}));
 }
 
-void SafetyManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop) { e_stop_state_ = e_stop->data; }
+void SafetyManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
+{
+  safety_config_.blackboard->set<bool>("e_stop_state", e_stop->data);
+}
 
 void SafetyManagerNode::IOStateCB(const IOStateMsg::SharedPtr io_state)
 {
   if (io_state->power_button) {
     ShutdownRobot("Power button pressed");
   }
-  io_state_ = io_state;
+
+  safety_config_.blackboard->set<bool>("aux_state", io_state->aux_power);
+  safety_config_.blackboard->set<bool>("fan_state", io_state->fan);
 }
 
 void SafetyManagerNode::SystemStatusCB(const SystemStatusMsg::SharedPtr system_status)
 {
   cpu_temp_ma_->Roll(system_status->cpu_temp);
+  safety_config_.blackboard->set<double>("cpu_temp", cpu_temp_ma_->GetAverage());
 }
 
 void SafetyManagerNode::SafetyTreeTimerCB()
@@ -233,21 +246,9 @@ void SafetyManagerNode::SafetyTreeTimerCB()
     return;
   }
 
-  safety_config_.blackboard->set<bool>("aux_state", io_state_.value()->aux_power);
-  safety_config_.blackboard->set<bool>("e_stop_state", e_stop_state_.value());
-  safety_config_.blackboard->set<bool>("fan_state", io_state_.value()->fan);
-  safety_config_.blackboard->set<unsigned>("battery_status", battery_status_.value());
-  safety_config_.blackboard->set<unsigned>("battery_health", battery_health_.value());
-  safety_config_.blackboard->set<double>("bat_temp", battery_temp_ma_->GetAverage());
-  safety_config_.blackboard->set<double>("cpu_temp", cpu_temp_ma_->GetAverage());
-  // to simplify conditions pass only higher temp of motor drivers
-  safety_config_.blackboard->set<double>(
-    "driver_temp",
-    std::max({front_driver_temp_ma_->GetAverage(), rear_driver_temp_ma_->GetAverage()}));
+  auto status = safety_tree_.tickOnce();
 
-  safety_tree_status_ = safety_tree_.tickOnce();
-
-  if (safety_tree_status_ == BT::NodeStatus::FAILURE) {
+  if (status == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Safety behavior tree returned FAILURE status");
   }
 
@@ -262,13 +263,19 @@ void SafetyManagerNode::SafetyTreeTimerCB()
 
 bool SafetyManagerNode::SystemReady()
 {
-  if (e_stop_state_.has_value() && io_state_.has_value() && battery_status_.has_value()) {
-    return true;
+  if (
+    !safety_config_.blackboard->getEntry("e_stop_state") ||
+    !safety_config_.blackboard->getEntry("battery_status") ||
+    !safety_config_.blackboard->getEntry("aux_state") ||
+    !safety_config_.blackboard->getEntry("cpu_temp") ||
+    !safety_config_.blackboard->getEntry("driver_temp")) {
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000,
+      "Waiting for required system messages to arrive");
+    return false;
   }
 
-  RCLCPP_INFO_THROTTLE(
-    this->get_logger(), *this->get_clock(), 5000, "Waiting for required system messages to arrive");
-  return false;
+  return true;
 }
 
 void SafetyManagerNode::ShutdownRobot(const std::string & reason)
@@ -278,15 +285,15 @@ void SafetyManagerNode::ShutdownRobot(const std::string & reason)
   safety_tree_.haltTree();
 
   // tick shutdown tree
-  shutdown_tree_status_ = BT::NodeStatus::RUNNING;
+  auto status = BT::NodeStatus::RUNNING;
   auto start_time = this->get_clock()->now();
   rclcpp::Rate rate(30.0);  // 30 Hz
-  while (rclcpp::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {
-    shutdown_tree_status_ = shutdown_tree_.tickOnce();
+  while (rclcpp::ok() && status == BT::NodeStatus::RUNNING) {
+    status = shutdown_tree_.tickOnce();
     rate.sleep();
   }
 
-  if (shutdown_tree_status_ == BT::NodeStatus::FAILURE) {
+  if (status == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(
       this->get_logger(),
       "Shutdown behavior tree returned FAILURE status, robot may not be shutdown correctly");
