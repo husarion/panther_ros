@@ -65,5 +65,5 @@ jobs:
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
                         "automatic_mode": ${{ github.event.inputs.automatic_mode }},
-                        "prerelease": ${{ github.event.inputs.automatic_release }}
+                        "prerelease": ${{ github.event.inputs.prerelease }}
                       }
