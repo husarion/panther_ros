@@ -7,22 +7,20 @@ on:
             target_branch:
                 description: Target branch for the release.
                 required: true
-                default: ros2-devel
             version:
                 description: New version (used for tag and package versioning).
                 required: true
             release_name:
-                description: Release name (version in the first place is recommended).
+                description: Name of the release to be created. Version in the first place is recommended (e.g. `2.0.0-alpha`).
                 required: true
-            automatic_merge:
+            automatic_mode:
                 type: boolean
                 default: false
-                description: Merge release pull request automatically.
-            automatic_release:
+                description: Automatically merge PR and create release.
+            prerelease:
                 type: boolean
                 default: false
-                description: Release repository automatically.
-    repository_dispatch:
+                description: Mark the release as a prerelease.
 
 jobs:
     release:
@@ -54,20 +52,28 @@ jobs:
                   --body "This PR incorporates package(s) version and changelog update."
 
             - name: Merge pull request
-              if: ${{ github.event.inputs.automatic_merge == true }}
+              if: ${{ github.event.inputs.automatic_mode == true }}
               run: |
                   gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
                   --delete-branch
 
             - name: Create tag
-              if: ${{ github.event.inputs.automatic_merge == true && github.event.inputs.automatic_release == true }}
+              if: ${{ github.event.inputs.automatic_mode == true }}
               run: |
                   git checkout ${{ github.event.inputs.target_branch }}
                   git tag ${{ steps.create_release_candidate.outputs.version }}
                   git push origin ${{ steps.create_release_candidate.outputs.version }}
 
+            - name: Create prerelease
+              if: ${{ github.event.inputs.automatic_mode == true && github.event.inputs.prerelease == true}}
+              run: |
+                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
+                  --title ${{ github.event.inputs.release_name }} \
+                  --notes-from-tag \
+                  --prerelease
+
             - name: Create release
-              if: ${{ github.event.inputs.automatic_merge == true && github.event.inputs.automatic_release == true }}
+              if: ${{ github.event.inputs.automatic_mode == true && github.event.inputs.prerelease == false}}
               run: |
                   gh release create ${{ steps.create_release_candidate.outputs.version }} \
                   --title ${{ github.event.inputs.release_name }} \

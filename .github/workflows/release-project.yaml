@@ -4,20 +4,23 @@ name: Release Panther project
 on:
     workflow_dispatch:
         inputs:
+            target_branch:
+                description: Target branch for the release.
+                required: true
             version:
                 description: New version (used for tag and package versioning).
                 required: true
             release_name:
-                description: Release name (version in the first place is recommended).
+                description: Name of the release to be created. Version in the first place is recommended (e.g. `2.0.0-alpha`).
                 required: true
-            automatic_merge:
+            automatic_mode:
                 type: boolean
                 default: false
-                description: Merge release pull request automatically.
-            automatic_release:
+                description: Automatically merge PR and create release.
+            prerelease:
                 type: boolean
                 default: false
-                description: Release repository automatically.
+                description: Mark the release as a prerelease.
 
 jobs:
     release_panther_msgs:
@@ -31,15 +34,15 @@ jobs:
                   repo: panther_msgs
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process #ros2
-                  wait_interval: 15
+                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "ros2",
+                        "target_branch": "${{ github.event.inputs.target_branch }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_merge": ${{ github.event.inputs.automatic_merge }},
-                        "automatic_release": ${{ github.event.inputs.automatic_release }}
+                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
+                        "prerelease": ${{ github.event.inputs.prerelease }}
                       }
 
     release_panther_ros:
@@ -52,15 +55,15 @@ jobs:
               with:
                   owner: husarion
                   repo: panther_ros
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN for local repository
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process #${{ github.ref }}
-                  wait_interval: 15
+                  ref: ros2-automatize-release-process # ${{ github.event.inputs.target_branch }}
+                  wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "ros2-devel",
+                        "target_branch": "${{ github.event.inputs.target_branch }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_merge": ${{ github.event.inputs.automatic_merge }},
-                        "automatic_release": ${{ github.event.inputs.automatic_release }}
+                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
+                        "prerelease": ${{ github.event.inputs.automatic_release }}
                       }
