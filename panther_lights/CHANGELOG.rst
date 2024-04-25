@@ -2,8 +2,8 @@
 Changelog for package panther_lights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2024-04-25)
+------------------
 * Merge pull request `#264 <https://github.com/husarion/panther_ros/issues/264>`_ from husarion/ros2-use-absolute-url
 * Absolute URL
 * Merge pull request `#261 <https://github.com/husarion/panther_ros/issues/261>`_ from husarion/ros2-readme
