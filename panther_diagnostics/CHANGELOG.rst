@@ -2,8 +2,8 @@
 Changelog for package panther_diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2024-04-25)
+------------------
 * Merge pull request `#274 <https://github.com/husarion/panther_ros/issues/274>`_ from husarion/ros2-diagnostics-changelog
 * Unify version and add changelog for panther_diagnostics
 * Merge pull request `#259 <https://github.com/husarion/panther_ros/issues/259>`_ from husarion/ros2-os-diagnostics
