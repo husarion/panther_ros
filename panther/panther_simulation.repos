@@ -3,3 +3,10 @@ repositories:
     type: git
     url: https://github.com/husarion/husarion_office_gz.git
     version: main
+
+  # Due to the issue related with revolute joints
+  # https://github.com/ros-controls/gz_ros2_control/issues/259
+  gz_ros2_control:
+    type: git
+    url: https://github.com/ros-controls/gz_ros2_control
+    version: humble
