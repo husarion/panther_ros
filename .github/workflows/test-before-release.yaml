@@ -27,7 +27,7 @@ jobs:
             - unit_test_panther_ros
         strategy:
             matrix:
-                epo: [panther_ros, panther_msgs]
+                repo: [panther_ros, panther_msgs]
         steps:
             - name: Create test branch
               uses: GuillaumeFalourd/create-other-repo-branch-action@v1.5
@@ -111,7 +111,7 @@ jobs:
             - build_and_publish_rpi_image
         strategy:
             matrix:
-                epo: [panther_ros, panther_msgs, panther-docker]
+                repo: [panther_ros, panther_msgs, panther-docker]
         steps:
             - name: Delete test branch
               uses: dawidd6/action-delete-branch@v3
