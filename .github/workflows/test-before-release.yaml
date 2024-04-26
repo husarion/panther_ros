@@ -35,7 +35,7 @@ jobs:
                   client_payload: |
                       {
                         "build_type": "development",
-                        "target_distro": "humble",
+                        "target_distro": "humble"
                       }
 
     # release_panther_rpi_os_image:
