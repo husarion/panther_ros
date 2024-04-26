@@ -82,10 +82,10 @@ jobs:
                       }
 
     build_and_publish_rpi_image:
-        name: Build panther docker images
+        name: Build panther system image
         needs:
             - prepare_test_branches_ros
-            - build_and_push_docker_images
+            - prepare_test_branch_docker
         runs-on: ubuntu-22.04
         steps:
             - name: Trigger repository build workflow
@@ -101,14 +101,16 @@ jobs:
                       {
                         "dev_image": "true",
                         "panther_codebase_version": "${{ github.event.inputs.test_tag }}",
-                        "image_tag": "${{ github.event.inputs.test_tag }}",
+                        "image_tag": "${{ github.event.inputs.test_tag }}"
                       }
 
     delete_test_branches:
         name: Delete test branches
         runs-on: ubuntu-22.04
         needs:
+            - build_and_push_docker_images
             - build_and_publish_rpi_image
+        if: always() # Always run this job, even if previous jobs failed
         strategy:
             matrix:
                 repo: [panther_ros, panther_msgs, panther-docker]
