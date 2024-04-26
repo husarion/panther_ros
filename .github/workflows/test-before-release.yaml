@@ -2,7 +2,6 @@
 name: Test before release
 
 on:
-    pull_request:
     workflow_dispatch:
         inputs:
             target_branch:
@@ -11,10 +10,18 @@ on:
 
 jobs:
     # TODO: Add unit testing for panther_ros when ready
+    unit_test_panther_ros:
+        name: Run unit tests for panther_ros
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Trigger repository build workflow
+              run: echo "Unit tests for panther_ros are not fully implemented yet -> SKIPPING!"
 
     build_and_push_docker_images:
         name: Build panther docker images
         runs-on: ubuntu-22.04
+        needs:
+            - unit_test_panther_ros
         steps:
             - name: Trigger repository build workflow
               uses: convictional/trigger-workflow-and-wait@v1.6.1
