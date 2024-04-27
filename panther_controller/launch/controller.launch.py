@@ -27,6 +27,7 @@ from launch.substitutions import (
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
@@ -156,11 +157,14 @@ def generate_launch_description():
         ],
         condition=UnlessCondition(use_sim),
     )
+
+    namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
+
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[robot_description, {"frame_prefix": namespace_ext}],
         namespace=namespace,
         condition=IfCondition(publish_robot_state),
     )
