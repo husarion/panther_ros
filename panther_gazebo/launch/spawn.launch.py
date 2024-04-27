@@ -49,7 +49,7 @@ def launch_setup(context):
     yaw = LaunchConfiguration("yaw").perform(context)
     publish_robot_state = LaunchConfiguration("publish_robot_state").perform(context)
     namespace = LaunchConfiguration("namespace").perform(context)
-    add_map_transform = LaunchConfiguration("add_map_transform").perform(context)
+    add_world_transform = LaunchConfiguration("add_world_transform").perform(context)
 
     robots_list = ParseMultiRobotPose("robots").value()
     if len(robots_list) == 0:
@@ -118,14 +118,14 @@ def launch_setup(context):
 
         ns_prefix = robot_name + "/" if robot_name else robot_name
 
-        map_transform = Node(
+        world_transform = Node(
             package="tf2_ros",
             executable="static_transform_publisher",
             name="static_tf_publisher",
             namespace=robot_name,
             output="screen",
-            arguments=[x, y, z, roll, pitch, yaw, "map", ns_prefix + "odom"],
-            condition=IfCondition(add_map_transform),
+            arguments=[x, y, z, roll, pitch, yaw, "world", ns_prefix + "odom"],
+            condition=IfCondition(add_world_transform),
         )
 
         # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py ​​is smaller than bringup.launhc.py, the namespace will be overwritten, resulting creating nodes with the same namespace.
@@ -136,7 +136,7 @@ def launch_setup(context):
                 spawn_robot,
                 gz_bridge,
                 bringup_launch,
-                map_transform,
+                world_transform,
             ],
         )
         spawn_group.append(group)
@@ -214,7 +214,7 @@ def generate_launch_description():
                 "gz_bridge.yaml",
             ]
         ),
-        description="Path to the parameter_bridge configuration file",
+        description="Path to the parameter_bridge configuration file.",
     )
 
     declare_x_arg = DeclareLaunchArgument(
@@ -234,11 +234,11 @@ def generate_launch_description():
     )
 
     declare_pitch_arg = DeclareLaunchArgument(
-        "pitch", default_value="0.0", description="Initial robot orientation."
+        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
     )
 
     declare_yaw_arg = DeclareLaunchArgument(
-        "yaw", default_value="0.0", description="Initial robot orientation."
+        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
     )
 
     declare_publish_robot_state_arg = DeclareLaunchArgument(
@@ -253,7 +253,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     declare_robots_arg = DeclareLaunchArgument(
@@ -261,15 +261,15 @@ def generate_launch_description():
         default_value=[],
         description=(
             "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
-            " -1.0}; robot2={x: 1.0, y: -1.0}'"
+            " -1.0}; robot2={x: 1.0, y: -1.0}'."
         ),
     )
 
-    declare_add_map_transform_arg = DeclareLaunchArgument(
-        "add_map_transform",
+    declare_add_world_transform_arg = DeclareLaunchArgument(
+        "add_world_transform",
         default_value="False",
         description=(
-            "Adds a frame map that connects the tf trees of individual robots (useful when running"
+            "Adds a world frame that connects the tf trees of individual robots (useful when running"
             " multiple robots)."
         ),
     )
@@ -290,7 +290,7 @@ def generate_launch_description():
             declare_publish_robot_state_arg,
             declare_namespace_arg,
             declare_robots_arg,
-            declare_add_map_transform_arg,
+            declare_add_world_transform_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             OpaqueFunction(function=launch_setup),

@@ -101,7 +101,7 @@ def generate_launch_description():
                 "gz_bridge.yaml",
             ]
         ),
-        description="Path to the parameter_bridge configuration file",
+        description="Path to the parameter_bridge configuration file.",
     )
 
     world_cfg = LaunchConfiguration("world")
@@ -142,12 +142,12 @@ def generate_launch_description():
 
     pitch = LaunchConfiguration("pitch")
     declare_pitch_arg = DeclareLaunchArgument(
-        "pitch", default_value="0.0", description="Initial robot orientation."
+        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
     )
 
     yaw = LaunchConfiguration("yaw")
     declare_yaw_arg = DeclareLaunchArgument(
-        "yaw", default_value="0.0", description="Initial robot orientation."
+        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
     )
 
     publish_robot_state = LaunchConfiguration("publish_robot_state")
@@ -164,7 +164,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     robots = LaunchConfiguration("robots")
@@ -177,12 +177,12 @@ def generate_launch_description():
         ),
     )
 
-    add_map_transform = LaunchConfiguration("add_map_transform")
-    declare_add_map_transform_arg = DeclareLaunchArgument(
-        "add_map_transform",
+    add_world_transform = LaunchConfiguration("add_world_transform")
+    declare_add_world_transform_arg = DeclareLaunchArgument(
+        "add_world_transform",
         default_value="False",
         description=(
-            "Adds a frame map that connects the tf trees of individual robots (useful when running"
+            "Adds a world frame that connects the tf trees of individual robots (useful when running"
             " multiple robots)."
         ),
     )
@@ -225,7 +225,7 @@ def generate_launch_description():
             "publish_robot_state": publish_robot_state,
             "namespace": namespace,
             "robots": robots,
-            "add_map_transform": add_map_transform,
+            "add_world_transform": add_world_transform,
         }.items(),
     )
 
@@ -246,7 +246,7 @@ def generate_launch_description():
             declare_publish_robot_state_arg,
             declare_namespace_arg,
             declare_robots_arg,
-            declare_add_map_transform_arg,
+            declare_add_world_transform_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,

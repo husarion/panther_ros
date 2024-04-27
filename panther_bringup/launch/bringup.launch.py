@@ -74,7 +74,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     use_sim = LaunchConfiguration("use_sim")
@@ -145,11 +145,7 @@ def generate_launch_description():
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
         default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_lights"),
-                "config",
-                PythonExpression(["'led_config.yaml'"]),
-            ]
+            [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
         ),
         description="Path to a YAML file with a description of led configuration",
     )
