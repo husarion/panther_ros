@@ -44,7 +44,7 @@ jobs:
                   repo: panther_msgs
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  ref: ${{ github.event.inputs.target_branch }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -67,7 +67,7 @@ jobs:
                   repo: panther_ros
                   github_token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN for local repository
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process # ${{ github.event.inputs.target_branch }}
+                  ref: ${{ github.event.inputs.target_branch }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -92,7 +92,7 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  ref: ${{ github.event.inputs.target_branch }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -118,7 +118,7 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: ros-docker-image.yaml
-                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  ref: ${{ github.event.inputs.target_branch }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -141,7 +141,7 @@ jobs:
                   repo: panther-rpi-os-image
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  ref: ${{ github.event.inputs.target_branch }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -165,7 +165,7 @@ jobs:
                   repo: panther-rpi-os-image
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: build_and_deploy_image.yaml
-                  ref: ros2-automatize-release-process #${{ github.event.inputs.target_branch }}
+                  ref: ${{ github.event.inputs.target_branch }}
                   wait_interval: 10
                   client_payload: |
                       {
