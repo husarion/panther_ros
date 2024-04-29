@@ -1,0 +1,80 @@
+---
+name: Release repository
+
+on:
+    workflow_dispatch:
+        inputs:
+            target_branch:
+                description: Target branch for the release.
+                required: true
+            version:
+                description: New version (used for tag and package versioning).
+                required: true
+            release_name:
+                description: Name of the release to be created. Version in the first place is recommended (e.g. `2.0.0-alpha`).
+                required: true
+            automatic_mode:
+                type: boolean
+                default: false
+                description: Automatically merge PR and create release.
+            prerelease:
+                type: boolean
+                default: false
+                description: Mark the release as a prerelease.
+
+jobs:
+    release:
+        name: Release repository
+        runs-on: ubuntu-22.04
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.inputs.target_branch }}
+
+            - name: Create release candidate
+              id: create_release_candidate
+              uses: at-wat/catkin-release-action@v1
+              with:
+                  version: ${{ github.event.inputs.version }}
+                  git_user: action-bot
+                  git_email: action-bot@action-bot.com
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create pull request
+              run: |
+                  gh pr create \
+                  --base ${{ github.event.inputs.target_branch }} \
+                  --head ${{ steps.create_release_candidate.outputs.created_branch }} \
+                  --title "Release ${{ steps.create_release_candidate.outputs.version}}" \
+                  --body "This PR incorporates package(s) version and changelog update."
+
+            - name: Merge pull request
+              if: ${{ github.event.inputs.automatic_mode == true }}
+              run: |
+                  gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
+                  --delete-branch
+
+            - name: Create tag
+              if: ${{ github.event.inputs.automatic_mode == true }}
+              run: |
+                  git checkout ${{ github.event.inputs.target_branch }}
+                  git tag ${{ steps.create_release_candidate.outputs.version }}
+                  git push origin ${{ steps.create_release_candidate.outputs.version }}
+
+            - name: Create prerelease
+              if: ${{ github.event.inputs.automatic_mode == true && github.event.inputs.prerelease == true}}
+              run: |
+                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
+                  --title ${{ github.event.inputs.release_name }} \
+                  --notes-from-tag \
+                  --prerelease
+
+            - name: Create release
+              if: ${{ github.event.inputs.automatic_mode == true && github.event.inputs.prerelease == false}}
+              run: |
+                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
+                  --title ${{ github.event.inputs.release_name }} \
+                  --notes-from-tag
