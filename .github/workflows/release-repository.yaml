@@ -86,7 +86,8 @@ jobs:
                   gh pr create \
                   --base ${{ env.MAIN_BRANCH }} \
                   --head ${{ github.event.inputs.target_branch }} \
-                  --title "Release ${{ steps.create_release_candidate.outputs.version}} to main"
+                  --title "Release ${{ steps.create_release_candidate.outputs.version}} to main" \
+                  --body "This PR incorporates package(s) version and changelog update."
 
             - name: Checkout to main
               if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
