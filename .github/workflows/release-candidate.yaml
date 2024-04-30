@@ -108,21 +108,21 @@ jobs:
                         "image_tag": "${{ github.event.inputs.rc_tag }}"
                       }
 
-    delete_test_branches:
-        name: Delete test branches
-        runs-on: ubuntu-22.04
-        needs:
-            - build_and_push_docker_images
-            - build_and_publish_rpi_image
-        if: failure() # Delete test branches only if previous jobs failed
-        strategy:
-            matrix:
-                repo: [panther_ros, panther_msgs, panther-docker, panther-rpi-os-img]
-        steps:
-            - name: Delete test branch
-              uses: dawidd6/action-delete-branch@v3
-              with:
-                  owner: husarion
-                  repository: ${{ matrix.repo }}
-                  branches: ${{ env.RC_BRANCH_NAME }}
-                  github_token: ${{ secrets.GH_PAT}}
+#    delete_test_branches:
+#        name: Delete test branches
+#        runs-on: ubuntu-22.04
+#        needs:
+#            - build_and_push_docker_images
+#            - build_and_publish_rpi_image
+#        if: failure() # Delete test branches only if previous jobs failed
+#        strategy:
+#            matrix:
+#                repo: [panther_ros, panther_msgs, panther-docker, panther-rpi-os-img]
+#        steps:
+#            - name: Delete test branch
+#              uses: dawidd6/action-delete-branch@v3
+#              with:
+#                  owner: husarion
+#                  repository: ${{ matrix.repo }}
+#                  branches: ${{ env.RC_BRANCH_NAME }}
+#                  github_token: ${{ secrets.GH_PAT}}
