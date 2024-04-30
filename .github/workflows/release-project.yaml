@@ -16,7 +16,7 @@ on:
             automatic_mode:
                 type: boolean
                 default: false
-                description: Automatically merge PR and create release.
+                description: Automatically merge PRs, create releases and build images.
             prerelease:
                 type: boolean
                 default: false
@@ -100,6 +100,7 @@ jobs:
 
     build_and_push_docker_images:
         name: Build panther docker images
+        if: ${{ github.event.inputs.automatic_mode == true }}
         needs:
             - release_panther_docker
         runs-on: ubuntu-22.04
@@ -131,7 +132,7 @@ jobs:
               uses: convictional/trigger-workflow-and-wait@v1.6.1
               with:
                   owner: husarion
-                  repo: panther-rpi-os-image
+                  repo: panther-rpi-os-img
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
                   ref: ${{ env.RC_BRANCH_NAME }}
@@ -147,6 +148,7 @@ jobs:
 
     build_and_publish_rpi_image:
         name: Build panther system image
+        if: ${{ github.event.inputs.automatic_mode == true }}
         needs:
             - release_panther_rpi_os_image
         runs-on: ubuntu-22.04
