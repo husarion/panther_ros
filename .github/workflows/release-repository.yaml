@@ -81,7 +81,7 @@ jobs:
                   --notes-from-tag
 
             - name: Create pull request to main branch
-              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH }}
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
               run: |
                   gh pr create \
                   --base ${{ env.MAIN_BRANCH }} \
