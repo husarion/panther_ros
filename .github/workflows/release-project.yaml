@@ -8,7 +8,10 @@ on:
                 description: Target branch for the release.
                 required: true
             version:
-                description: New version (used for tag and package versioning).
+                description: Release version, must match release candidate version. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
+                required: true
+            date:
+                description: Release date stamp, must match release candidate date. IMPORTANT - required format `YYYYMMDD`, eg `20240430`.
                 required: true
             release_name:
                 description: Name of the release to be created. Version in the first place is recommended (e.g. `2.0.0-alpha`).
@@ -22,17 +25,11 @@ on:
                 default: false
                 description: Mark the release as a prerelease.
 
-jobs:
-    get_date:
-        name: Get current date
-        runs-on: ubuntu-22.04
-        outputs:
-            date: ${{ steps.get_current_date.outputs.date }}
-        steps:
-            - name: Get current date
-              id: get_current_date
-              run: echo "::set-output name=date::$(date +'%Y%m%d')"
+env:
+    RC_BRANCH_NAME: ${{ github.event.inputs.version }}-${{ github.event.inputs.date }}
+    MAIN_BRANCH: ros2
 
+jobs:
     release_panther_msgs:
         name: Release panther_msgs repository
         runs-on: ubuntu-22.04
@@ -44,11 +41,11 @@ jobs:
                   repo: panther_msgs
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "${{ github.event.inputs.target_branch }}",
+                        "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
                         "automatic_mode": ${{ github.event.inputs.automatic_mode }},
@@ -57,7 +54,8 @@ jobs:
 
     release_panther_ros:
         name: Release panther_ros repository
-        needs: release_panther_msgs
+        needs:
+            - release_panther_msgs
         runs-on: ubuntu-22.04
         steps:
             - name: Trigger panther_ros release workflow
@@ -67,11 +65,11 @@ jobs:
                   repo: panther_ros
                   github_token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN for local repository
                   workflow_file_name: release-repository.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "${{ github.event.inputs.target_branch }}",
+                        "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
                         "automatic_mode": ${{ github.event.inputs.automatic_mode }},
@@ -82,7 +80,6 @@ jobs:
         name: Release panther-docker repository
         needs:
             - release_panther_ros
-            - get_date
         runs-on: ubuntu-22.04
         steps:
             - name: Trigger repository release workflow
@@ -92,13 +89,13 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "${{ github.event.inputs.target_branch }}",
+                        "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
-                        "date": "${{ needs.get_date.outputs.date }}",
+                        "date": "${{ github.event.inputs.date }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
                         "automatic_mode": ${{ github.event.inputs.automatic_mode }},
                         "prerelease": ${{ github.event.inputs.prerelease }}
@@ -108,7 +105,6 @@ jobs:
         name: Build panther docker images
         needs:
             - release_panther_docker
-            - get_date
         runs-on: ubuntu-22.04
         steps:
             - name: Trigger repository build workflow
@@ -118,14 +114,14 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: ros-docker-image.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.MAIN_BRANCH }}
                   wait_interval: 10
                   client_payload: |
                       {
                         "build_type": "stable",
                         "target_distro": "humble",
                         "target_release": "${{ github.event.inputs.version }}",
-                        "target_date": "${{ needs.get_date.outputs.date }}"
+                        "target_date": "${{ github.event.inputs.date }}"
                       }
 
     release_panther_rpi_os_image:
@@ -141,11 +137,11 @@ jobs:
                   repo: panther-rpi-os-image
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "${{ github.event.inputs.target_branch }}",
+                        "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
                         "automatic_mode": ${{ github.event.inputs.automatic_mode }},
@@ -165,11 +161,11 @@ jobs:
                   repo: panther-rpi-os-image
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: build_and_deploy_image.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.MAIN_BRANCH }}
                   wait_interval: 10
                   client_payload: |
                       {
                         "dev_image": "false",
                         "panther_codebase_version": "${{ github.event.inputs.version }}",
-                        "image_tag": "${{ github.event.inputs.release_name }}",
+                        "image_tag": "${{ github.event.inputs.version }}",
                       }

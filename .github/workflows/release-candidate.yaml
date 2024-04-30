@@ -4,18 +4,18 @@ name: Release candidate
 on:
     workflow_dispatch:
         inputs:
-            target_branch:
-                description: Target branch for the release candidate.
+            ref_branch:
+                description: Release candidate reference branch (candidates will branch from the reference branch).
                 required: true
-            rc_tag:
-                description: Release candidate tag. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
+            version:
+                description: Release candidate version. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
                 required: true
             date:
                 description: Release candidate date stamp. IMPORTANT - required format `YYYYMMDD`, eg `20240430`.
                 required: true
 
 env:
-    RC_BRANCH_NAME: ${{ github.event.inputs.rc_tag }}-${{ github.event.inputs.date }}
+    RC_BRANCH_NAME: ${{ github.event.inputs.version }}-${{ github.event.inputs.date }}
 
 jobs:
     # TODO: Add unit testing for panther_ros when ready
@@ -41,7 +41,7 @@ jobs:
                   repository_owner: husarion
                   repository_name: ${{ matrix.repo }}
                   new_branch_name: ${{ env.RC_BRANCH_NAME }}
-                  new_branch_ref: ${{ github.event.inputs.target_branch }}
+                  new_branch_ref: ${{ github.event.inputs.ref_branch }}
                   access_token: ${{ secrets.GH_PAT}}
 
     update_tags_in_compose:
@@ -105,24 +105,5 @@ jobs:
                       {
                         "dev_image": "true",
                         "panther_codebase_version": "${{ env.RC_BRANCH_NAME }}",
-                        "image_tag": "${{ github.event.inputs.rc_tag }}"
+                        "image_tag": "${{ github.event.inputs.version }}"
                       }
-
-#    delete_test_branches:
-#        name: Delete test branches
-#        runs-on: ubuntu-22.04
-#        needs:
-#            - build_and_push_docker_images
-#            - build_and_publish_rpi_image
-#        if: failure() # Delete test branches only if previous jobs failed
-#        strategy:
-#            matrix:
-#                repo: [panther_ros, panther_msgs, panther-docker, panther-rpi-os-img]
-#        steps:
-#            - name: Delete test branch
-#              uses: dawidd6/action-delete-branch@v3
-#              with:
-#                  owner: husarion
-#                  repository: ${{ matrix.repo }}
-#                  branches: ${{ env.RC_BRANCH_NAME }}
-#                  github_token: ${{ secrets.GH_PAT}}
