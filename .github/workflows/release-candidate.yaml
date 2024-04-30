@@ -4,9 +4,6 @@ name: Release candidate
 on:
     workflow_dispatch:
         inputs:
-            ref_branch:
-                description: Release candidate reference branch (candidates will branch from the reference branch).
-                required: true
             version:
                 description: Release candidate version. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
                 required: true
@@ -41,7 +38,7 @@ jobs:
                   repository_owner: husarion
                   repository_name: ${{ matrix.repo }}
                   new_branch_name: ${{ env.RC_BRANCH_NAME }}
-                  new_branch_ref: ${{ github.event.inputs.ref_branch }}
+                  new_branch_ref: ros2
                   access_token: ${{ secrets.GH_PAT}}
 
     update_tags_in_compose:

@@ -4,9 +4,6 @@ name: Release Panther project
 on:
     workflow_dispatch:
         inputs:
-            target_branch:
-                description: Target branch for the release.
-                required: true
             version:
                 description: Release version, must match release candidate version. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
                 required: true
@@ -149,7 +146,7 @@ jobs:
                       }
 
     build_and_publish_rpi_image:
-        name: Build panther docker images
+        name: Build panther system image
         needs:
             - release_panther_rpi_os_image
         runs-on: ubuntu-22.04
