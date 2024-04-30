@@ -28,6 +28,7 @@ jobs:
         runs-on: ubuntu-22.04
         env:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            MAIN_BRANCH: ros2
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -78,3 +79,23 @@ jobs:
                   gh release create ${{ steps.create_release_candidate.outputs.version }} \
                   --title ${{ github.event.inputs.release_name }} \
                   --notes-from-tag
+
+            - name: Create pull request to main branch
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH }}
+              run: |
+                  gh pr create \
+                  --base ${{ env.MAIN_BRANCH }} \
+                  --head ${{ github.event.inputs.target_branch }} \
+                  --title "Release ${{ steps.create_release_candidate.outputs.version}} to main"
+
+            - name: Checkout to main
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ env.MAIN_BRANCH }}
+
+            - name: Merge pull request
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
+              run: |
+                  gh pr merge ${{ github.event.inputs.target_branch }} \
+                  --delete-branch

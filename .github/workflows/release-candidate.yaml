@@ -1,15 +1,21 @@
 ---
-name: Test before release
+name: Release candidate
 
 on:
     workflow_dispatch:
         inputs:
-            target_branch:
-                description: Target branch for the release.
+            ref_branch:
+                description: Release candidate reference branch (candidates will branch from the reference branch).
                 required: true
-            test_tag:
-                description: Test tag name (used for images tagging).
+            version:
+                description: Release candidate version. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
                 required: true
+            date:
+                description: Release candidate date stamp. IMPORTANT - required format `YYYYMMDD`, eg `20240430`.
+                required: true
+
+env:
+    RC_BRANCH_NAME: ${{ github.event.inputs.version }}-${{ github.event.inputs.date }}
 
 jobs:
     # TODO: Add unit testing for panther_ros when ready
@@ -20,29 +26,29 @@ jobs:
             - name: Trigger repository build workflow
               run: echo "Unit tests for panther_ros are not fully implemented yet -> SKIPPING!"
 
-    prepare_test_branches_ros:
-        name: Prepare test branch for ROS repositories
+    create_release_candidate_branches:
+        name: Create release candidate branches
         runs-on: ubuntu-22.04
         needs:
             - unit_test_panther_ros
         strategy:
             matrix:
-                repo: [panther_ros, panther_msgs]
+                repo: [panther_ros, panther_msgs, panther-docker, panther-rpi-os-img]
         steps:
             - name: Create test branch
               uses: GuillaumeFalourd/create-other-repo-branch-action@v1.5
               with:
                   repository_owner: husarion
                   repository_name: ${{ matrix.repo }}
-                  new_branch_name: ${{ github.event.inputs.test_tag }}
-                  new_branch_ref: ${{ github.event.inputs.target_branch }}
+                  new_branch_name: ${{ env.RC_BRANCH_NAME }}
+                  new_branch_ref: ${{ github.event.inputs.ref_branch }}
                   access_token: ${{ secrets.GH_PAT}}
 
-    prepare_test_branch_docker:
-        name: Prepare branch with test compose
+    update_tags_in_compose:
+        name: Update Docker image tags in compose
         runs-on: ubuntu-22.04
         needs:
-            - unit_test_panther_ros
+            - create_release_candidate_branches
         steps:
             - name: Trigger repository build workflow
               uses: convictional/trigger-workflow-and-wait@v1.6.1
@@ -50,20 +56,20 @@ jobs:
                   owner: husarion
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
-                  workflow_file_name: prepare-test-branch.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  workflow_file_name: update-tags-in-compose.yaml
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "${{ github.event.inputs.target_branch }}",
-                        "test_branch": "${{ github.event.inputs.test_tag }}"
+                        "target_branch": "${{ env.RC_BRANCH_NAME }}",
+                        "image_tag": "humble-${{ env.RC_BRANCH_NAME }}"
                       }
 
     build_and_push_docker_images:
         name: Build panther docker images
         runs-on: ubuntu-22.04
         needs:
-            - prepare_test_branch_docker
+            - update_tags_in_compose
         steps:
             - name: Trigger repository build workflow
               uses: convictional/trigger-workflow-and-wait@v1.6.1
@@ -72,7 +78,7 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: ros-docker-image.yaml
-                  ref: ${{ github.event.inputs.test_tag }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -83,8 +89,7 @@ jobs:
     build_and_publish_rpi_image:
         name: Build panther system image
         needs:
-            - prepare_test_branches_ros
-            - prepare_test_branch_docker
+            - update_tags_in_compose
         runs-on: ubuntu-22.04
         steps:
             - name: Trigger repository build workflow
@@ -94,30 +99,11 @@ jobs:
                   repo: panther-rpi-os-img
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: build_and_deploy_image.yaml
-                  ref: ${{ github.event.inputs.target_branch }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
                         "dev_image": "true",
-                        "panther_codebase_version": "${{ github.event.inputs.test_tag }}",
-                        "image_tag": "${{ github.event.inputs.test_tag }}"
+                        "panther_codebase_version": "${{ env.RC_BRANCH_NAME }}",
+                        "image_tag": "${{ github.event.inputs.version }}"
                       }
-
-    delete_test_branches:
-        name: Delete test branches
-        runs-on: ubuntu-22.04
-        needs:
-            - build_and_push_docker_images
-            - build_and_publish_rpi_image
-        if: always() # Always delete test branches, even if previous jobs failed
-        strategy:
-            matrix:
-                repo: [panther_ros, panther_msgs, panther-docker]
-        steps:
-            - name: Delete test branch
-              uses: dawidd6/action-delete-branch@v3
-              with:
-                  owner: husarion
-                  repository: ${{ matrix.repo }}
-                  branches: ${{ github.event.inputs.test_tag }}
-                  github_token: ${{ secrets.GH_PAT}}
