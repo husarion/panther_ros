@@ -8,8 +8,14 @@ on:
                 description: Target branch for the release candidate.
                 required: true
             rc_tag:
-                description: Release candidate tag name. IMPORTANT - required format `X.X.X-YYYYMMDD`, eg `2.0.1-20240430`.
+                description: Release candidate tag. IMPORTANT - required format `X.X.X`, eg `2.0.1`.
                 required: true
+            date:
+                description: Release candidate date stamp. IMPORTANT - required format `YYYYMMDD`, eg `20240430`.
+                required: true
+
+env:
+    RC_BRANCH_NAME: ${{ github.event.inputs.rc_tag }}-${{ github.event.inputs.date }}
 
 jobs:
     # TODO: Add unit testing for panther_ros when ready
@@ -34,7 +40,7 @@ jobs:
               with:
                   repository_owner: husarion
                   repository_name: ${{ matrix.repo }}
-                  new_branch_name: ${{ github.event.inputs.rc_tag }}
+                  new_branch_name: ${{ env.RC_BRANCH_NAME }}
                   new_branch_ref: ${{ github.event.inputs.target_branch }}
                   access_token: ${{ secrets.GH_PAT}}
 
@@ -51,12 +57,12 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: update-tags-in-compose.yaml
-                  ref: ${{ github.event.inputs.rc_tag }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
-                        "target_branch": "${{ github.event.inputs.rc_tag }}",
-                        "image_tag": "humble-${{ github.event.inputs.rc_tag }}"
+                        "target_branch": "${{ env.RC_BRANCH_NAME }}",
+                        "image_tag": "humble-${{ env.RC_BRANCH_NAME }}"
                       }
 
     build_and_push_docker_images:
@@ -72,7 +78,7 @@ jobs:
                   repo: panther-docker
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: ros-docker-image.yaml
-                  ref: ${{ github.event.inputs.rc_tag }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
@@ -93,12 +99,12 @@ jobs:
                   repo: panther-rpi-os-img
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: build_and_deploy_image.yaml
-                  ref: ${{ github.event.inputs.rc_tag }}
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
                         "dev_image": "true",
-                        "panther_codebase_version": "${{ github.event.inputs.rc_tag }}",
+                        "panther_codebase_version": "${{ env.RC_BRANCH_NAME }}",
                         "image_tag": "${{ github.event.inputs.rc_tag }}"
                       }
 
@@ -118,5 +124,5 @@ jobs:
               with:
                   owner: husarion
                   repository: ${{ matrix.repo }}
-                  branches: ${{ github.event.inputs.rc_tag }}
+                  branches: ${{ env.RC_BRANCH_NAME }}
                   github_token: ${{ secrets.GH_PAT}}
