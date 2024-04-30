@@ -2,8 +2,6 @@
 name: Release candidate
 
 on:
-    pull_request:
-
     workflow_dispatch:
         inputs:
             target_branch:
