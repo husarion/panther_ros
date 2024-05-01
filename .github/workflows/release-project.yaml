@@ -45,8 +45,8 @@ jobs:
                         "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
-                        "prerelease": ${{ github.event.inputs.prerelease }}
+                        "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
+                        "prerelease": "${{ github.event.inputs.prerelease }}"
                       }
 
     release_panther_ros:
@@ -69,8 +69,8 @@ jobs:
                         "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
-                        "prerelease": ${{ github.event.inputs.prerelease }}
+                        "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
+                        "prerelease": "${{ github.event.inputs.prerelease }}"
                       }
 
     release_panther_docker:
@@ -94,8 +94,8 @@ jobs:
                         "version": "${{ github.event.inputs.version }}",
                         "date": "${{ github.event.inputs.date }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
-                        "prerelease": ${{ github.event.inputs.prerelease }}
+                        "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
+                        "prerelease": "${{ github.event.inputs.prerelease }}"
                       }
 
     build_and_push_docker_images:
@@ -143,8 +143,8 @@ jobs:
                         "target_branch": "${{ env.RC_BRANCH_NAME }}",
                         "version": "${{ github.event.inputs.version }}",
                         "release_name": "${{ github.event.inputs.release_name }}",
-                        "automatic_mode": ${{ github.event.inputs.automatic_mode }},
-                        "prerelease": ${{ github.event.inputs.prerelease }}
+                        "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
+                        "prerelease": "${{ github.event.inputs.prerelease }}"
                       }
 
     build_and_publish_rpi_image:
