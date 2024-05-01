@@ -2,8 +2,8 @@
 Changelog for package panther_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2024-05-01)
+------------------
 * Merge pull request `#273 <https://github.com/husarion/panther_ros/issues/273>`_ from husarion/ros2-sim-battery
 * Update panther_description/urdf/gazebo.urdf.xacro
 * Fix battery discharge

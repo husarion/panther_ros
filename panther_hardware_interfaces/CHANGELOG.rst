@@ -2,8 +2,8 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2024-05-01)
+------------------
 * Merge pull request `#268 <https://github.com/husarion/panther_ros/issues/268>`_ from husarion/ros2-add-estop-manager
 * Update documentation
 * update clean up
