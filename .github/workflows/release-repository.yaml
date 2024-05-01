@@ -53,20 +53,20 @@ jobs:
                   --body "This PR incorporates package(s) version and changelog update."
 
             - name: Merge pull request
-              if: ${{ github.event.inputs.automatic_mode == true }}
+              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
               run: |
                   gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
                   --delete-branch
 
             - name: Create tag
-              if: ${{ github.event.inputs.automatic_mode == true }}
+              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
               run: |
                   git checkout ${{ github.event.inputs.target_branch }}
                   git tag ${{ steps.create_release_candidate.outputs.version }}
                   git push origin ${{ steps.create_release_candidate.outputs.version }}
 
             - name: Create prerelease
-              if: ${{ github.event.inputs.automatic_mode == true && github.event.inputs.prerelease == true}}
+              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease) == true}}
               run: |
                   gh release create ${{ steps.create_release_candidate.outputs.version }} \
                   --title ${{ github.event.inputs.release_name }} \
@@ -74,14 +74,14 @@ jobs:
                   --prerelease
 
             - name: Create release
-              if: ${{ github.event.inputs.automatic_mode == true && github.event.inputs.prerelease == false}}
+              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease) == false}}
               run: |
                   gh release create ${{ steps.create_release_candidate.outputs.version }} \
                   --title ${{ github.event.inputs.release_name }} \
                   --notes-from-tag
 
             - name: Create pull request to main branch
-              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
               run: |
                   gh pr create \
                   --base ${{ env.MAIN_BRANCH }} \
@@ -90,13 +90,13 @@ jobs:
                   --body "This PR incorporates package(s) version and changelog update."
 
             - name: Checkout to main
-              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
               uses: actions/checkout@v4
               with:
                   ref: ${{ env.MAIN_BRANCH }}
 
             - name: Merge pull request
-              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && github.event.inputs.automatic_mode == true }}
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
               run: |
                   gh pr merge ${{ github.event.inputs.target_branch }} \
                   --delete-branch
