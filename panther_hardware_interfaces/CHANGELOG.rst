@@ -2,6 +2,28 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2024-05-01)
+------------------
+* Merge pull request `#268 <https://github.com/husarion/panther_ros/issues/268>`_ from husarion/ros2-add-estop-manager
+* Update documentation
+* update clean up
+* review fixes
+* review fixes || remove manager
+* fix typo
+* Add E-Stop manager
+* Ros2 fix imu reconnection (`#267 <https://github.com/husarion/panther_ros/issues/267>`_)
+* Missing URL
+* Merge pull request `#264 <https://github.com/husarion/panther_ros/issues/264>`_ from husarion/ros2-use-absolute-url
+* Absolute URL
+* Merge pull request `#261 <https://github.com/husarion/panther_ros/issues/261>`_ from husarion/ros2-readme
+* Pawel sugestions
+* Merge branch 'ros2-devel' into ros2-readme
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
+* Ros2 control imu hardware (`#236 <https://github.com/husarion/panther_ros/issues/236>`_)
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
+* Added working node
+* Contributors: Jakub Delicat, Paweł Irzyk, Paweł Kowalski, pawelirh, rafal-gorecki
+
 2.0.0 (2024-03-29)
 ------------------
 * Merge pull request `#258 <https://github.com/husarion/panther_ros/issues/258>`_ from husarion/ros2-control-fix-err-flag-reset
