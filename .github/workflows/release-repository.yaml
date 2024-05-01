@@ -56,38 +56,7 @@ jobs:
               if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
               run: |
                   gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
-                  --delete-branch
-
-            - name: Create tag
-              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
-              run: |
-                  git checkout ${{ github.event.inputs.target_branch }}
-                  git tag ${{ steps.create_release_candidate.outputs.version }}
-                  git push origin ${{ steps.create_release_candidate.outputs.version }}
-
-            - name: Create prerelease
-              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease) == true}}
-              run: |
-                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
-                  --title ${{ github.event.inputs.release_name }} \
-                  --notes-from-tag \
-                  --prerelease
-
-            - name: Create release
-              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease) == false}}
-              run: |
-                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
-                  --title ${{ github.event.inputs.release_name }} \
-                  --notes-from-tag
-
-            - name: Create pull request to main branch
-              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
-              run: |
-                  gh pr create \
-                  --base ${{ env.MAIN_BRANCH }} \
-                  --head ${{ github.event.inputs.target_branch }} \
-                  --title "Release ${{ steps.create_release_candidate.outputs.version}} to main" \
-                  --body "This PR incorporates package(s) version and changelog update."
+                  --merge --delete-branch
 
             - name: Checkout to main
               if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
@@ -95,8 +64,34 @@ jobs:
               with:
                   ref: ${{ env.MAIN_BRANCH }}
 
-            - name: Merge pull request
+            - name: Create pull request to main
+              if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
+              run: |
+                  gh pr create \
+                  --base ${{ env.MAIN_BRANCH }} \
+                  --head ${{ github.event.inputs.target_branch }} \
+                  --title "Release ${{ steps.create_release_candidate.outputs.version}} to ${{ env.MAIN_BRANCH }}" \
+                  --body "This PR incorporates package(s) version and changelog update."
+
+            - name: Merge pull request to main
               if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode) == true }}
               run: |
                   gh pr merge ${{ github.event.inputs.target_branch }} \
-                  --delete-branch
+                  --merge --delete-branch
+
+            - name: Create prerelease
+              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease) == true}}
+              run: |
+                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
+                  --target ${{ env.MAIN_BRANCH }} \
+                  --title ${{ github.event.inputs.release_name }} \
+                  --generate-notes \
+                  --prerelease
+
+            - name: Create release
+              if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease) == false}}
+              run: |
+                  gh release create ${{ steps.create_release_candidate.outputs.version }} \
+                  --target ${{ env.MAIN_BRANCH }} \
+                  --title ${{ github.event.inputs.release_name }} \
+                  --generate-notes
