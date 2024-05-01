@@ -100,7 +100,7 @@ jobs:
 
     build_and_push_docker_images:
         name: Build panther docker images
-        if: ${{ github.event.inputs.automatic_mode == true }}
+        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
         needs:
             - release_panther_docker
         runs-on: ubuntu-22.04
@@ -124,7 +124,7 @@ jobs:
 
     release_panther_rpi_os_image:
         name: Release panther-rpi-os-img repository
-        if: ${{ github.event.inputs.automatic_mode == true }}
+        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
         needs:
             - release_panther_docker
         runs-on: ubuntu-22.04
@@ -149,7 +149,7 @@ jobs:
 
     build_and_publish_rpi_image:
         name: Build panther system image
-        if: ${{ github.event.inputs.automatic_mode == true }}
+        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
         needs:
             - release_panther_rpi_os_image
         runs-on: ubuntu-22.04
@@ -167,5 +167,5 @@ jobs:
                       {
                         "dev_image": "false",
                         "panther_codebase_version": "${{ github.event.inputs.version }}",
-                        "image_tag": "${{ github.event.inputs.version }}",
+                        "image_tag": "${{ github.event.inputs.version }}"
                       }
