@@ -38,7 +38,7 @@ jobs:
                   repo: panther_msgs
                   github_token: ${{ secrets.GH_PAT }}
                   workflow_file_name: release-repository.yaml
-                  ref: ros2-handle-boolean-args
+                  ref: ${{ env.RC_BRANCH_NAME }}
                   wait_interval: 10
                   client_payload: |
                       {
