@@ -124,6 +124,7 @@ jobs:
 
     release_panther_rpi_os_image:
         name: Release panther-rpi-os-img repository
+        if: ${{ github.event.inputs.automatic_mode == true }}
         needs:
             - release_panther_docker
         runs-on: ubuntu-22.04
