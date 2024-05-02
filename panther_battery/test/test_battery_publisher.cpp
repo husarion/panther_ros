@@ -53,10 +53,8 @@ public:
   void Reset(){};
   void PublishBatteryState(){};
   void LogErrors(){};
-  void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
-  {
-    status.summary(0, "");
-  };
+  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status){};
+  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status){};
 };
 
 class TestBatteryPublisher : public testing::Test
