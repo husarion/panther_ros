@@ -51,7 +51,8 @@ public:
   void Update(const rclcpp::Time & header_stamp, const bool charger_connected) override;
   void Reset(const rclcpp::Time & header_stamp) override;
 
-  float GetChargingCurrent() override { return charge_ma_->GetAverage(); }
+  float GetChargerCurrent() override { return charge_ma_->GetAverage(); }
+  float GetLoadCurrent() override { return current_ma_->GetAverage(); }
 
 private:
   inline float ADCToBatteryVoltage(const float adc_data) const;

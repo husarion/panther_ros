@@ -183,17 +183,25 @@ void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWr
   std::string message{"Battery status monitoring"};
 
   const auto battery_1_msg = battery_1_->GetBatteryMsg();
-  auto charging_status_bat_1 = MapPowerSupplyStatusToString(battery_1_msg.power_supply_status);
-  status.add("Battery 1 power supply status", charging_status_bat_1);
-
   const auto battery_2_msg = battery_2_->GetBatteryMsg();
+  auto charging_status_bat_1 = MapPowerSupplyStatusToString(battery_1_msg.power_supply_status);
   auto charging_status_bat_2 = MapPowerSupplyStatusToString(battery_2_msg.power_supply_status);
-  status.add("Battery 2 power supply status", charging_status_bat_2);
 
-  const auto charging_current_bat_1 = battery_1_->GetChargingCurrent();
-  const auto charging_current_bat_2 = battery_2_->GetChargingCurrent();
-  const auto charging_current = (charging_current_bat_1 + charging_current_bat_2);
-  status.add("Charging current (I)", charging_current);
+  std::string charging_status;
+  charging_status_bat_1 == charging_status_bat_2
+    ? charging_status = charging_status_bat_1
+    : charging_status = "Power supply status not determined, check batteries.";
+  status.add("Power supply status", charging_status);
+
+  const auto charger_current_bat_1 = battery_1_->GetChargerCurrent();
+  const auto charger_current_bat_2 = battery_2_->GetChargerCurrent();
+  const auto charger_current = charger_current_bat_1 + charger_current_bat_2;
+  status.add("Charger current (A)", charger_current);
+
+  const auto load_current_bat_1 = battery_1_->GetLoadCurrent();
+  const auto load_current_bat_2 = battery_2_->GetLoadCurrent();
+  const auto load_current = load_current_bat_1 + load_current_bat_2;
+  status.add("Load current (A)", load_current);
 
   status.summary(error_level, message);
 }
