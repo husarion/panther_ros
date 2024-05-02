@@ -156,10 +156,10 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
   }
 }
 
-void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+void DualBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery has no error messages"};
+  std::string message{"Battery has no errors"};
 
   if (battery_1_->HasErrorMsg() || battery_2_->HasErrorMsg()) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
@@ -173,6 +173,27 @@ void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusW
       status.add("Error message: battery 2", battery_2_->GetErrorMsg());
     }
   }
+
+  status.summary(error_level, message);
+}
+
+void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Battery status monitoring"};
+
+  const auto battery_1_msg = battery_1_->GetBatteryMsg();
+  auto charging_status_bat_1 = MapPowerSupplyStatusToString(battery_1_msg.power_supply_status);
+  status.add("Battery 1 power supply status", charging_status_bat_1);
+
+  const auto battery_2_msg = battery_2_->GetBatteryMsg();
+  auto charging_status_bat_2 = MapPowerSupplyStatusToString(battery_2_msg.power_supply_status);
+  status.add("Battery 2 power supply status", charging_status_bat_2);
+
+  const auto charging_current_bat_1 = battery_1_->GetChargingCurrent();
+  const auto charging_current_bat_2 = battery_2_->GetChargingCurrent();
+  const auto charging_current = (charging_current_bat_1 + charging_current_bat_2);
+  status.add("Charging current (I)", charging_current);
 
   status.summary(error_level, message);
 }

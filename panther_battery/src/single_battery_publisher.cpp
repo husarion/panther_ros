@@ -68,10 +68,10 @@ void SingleBatteryPublisher::LogErrors()
   }
 }
 
-void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+void SingleBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery has no error messages"};
+  std::string message{"Battery has no errors"};
 
   if (battery_->HasErrorMsg()) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
@@ -79,6 +79,22 @@ void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatu
 
     status.add("Error message", battery_->GetErrorMsg());
   }
+
+  status.summary(error_level, message);
+}
+
+void SingleBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
+  std::string message{"Battery status monitoring"};
+
+  const auto battery_msg = battery_->GetBatteryMsg();
+
+  auto charging_status = MapPowerSupplyStatusToString(battery_msg.power_supply_status);
+  status.add("Power supply status", charging_status);
+
+  const auto charging_current = battery_->GetChargingCurrent();
+  status.add("Charging current (I)", charging_current);
 
   status.summary(error_level, message);
 }
