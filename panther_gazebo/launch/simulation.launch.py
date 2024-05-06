@@ -111,7 +111,7 @@ def generate_launch_description():
             "-r ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("husarion_office_gz"),
+                    FindPackageShare("husarion_gz_worlds"),
                     "worlds",
                     "husarion_world.sdf",
                 ],

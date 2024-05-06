@@ -17,7 +17,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">controller_manager</exec_depend>
-  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">husarion_office_gz</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">husarion_gz_worlds</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">ign_ros2_control</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">launch</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">launch_ros</exec_depend>
