@@ -29,6 +29,15 @@
 namespace panther_manager::bt_utils
 {
 
+/**
+ * @brief Registers a BehaviorTree into the factory from a file, with custom BT nodes loaded
+ * from plugins.
+ *
+ * @param factory The BT factory used to register nodes and the BehaviorTree.
+ * @param bt_project_path The path to the BehaviorTree project file.
+ * @param plugin_libs A vector containing the names of the nodes that will be registered from
+ * plugins.
+ */
 void RegisterBehaviorTree(
   BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
   const std::vector<std::string> plugin_libs)
@@ -40,6 +49,18 @@ void RegisterBehaviorTree(
   factory.registerBehaviorTreeFromFile(bt_project_path);
 }
 
+/**
+ * @brief Registers a BehaviorTree into the factory from a file, with custom BT nodes and ROS nodes
+ * loaded from plugins.
+ *
+ * @param factory The BT factory used to register nodes and the BehaviorTree.
+ * @param bt_project_path The path to the BehaviorTree project file.
+ * @param plugin_libs A vector containing the names of the nodes that will be registered from
+ * plugins.
+ * @param node The ROS node used with ROS plugins.
+ * @param ros_plugin_libs A vector containing the names of the ROS nodes that will be registered
+ * from plugins.
+ */
 void RegisterBehaviorTree(
   BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
   const std::vector<std::string> plugin_libs, const rclcpp::Node::SharedPtr & node,
@@ -53,6 +74,17 @@ void RegisterBehaviorTree(
 
   RegisterBehaviorTree(factory, bt_project_path, plugin_libs);
 }
+
+/**
+ * @brief Creates a BehaviorTree configuration using a set of predefined blackboard values.
+ *
+ * @param bb_values A map containing the names of the blackboard entries and their initial values.
+ * This map can include different entry types. Supported types are: bool, int, unsigned, float,
+ * double, const char*, and string.
+ * @exception std::invalid_argument thrown when the bb_values map contains an invalid blackboard
+ * entry type.
+ * @return A BehaviorTree configuration object.
+ */
 
 BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values)
 {
