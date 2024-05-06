@@ -56,10 +56,6 @@ void LightsManagerNode::Initialize()
 
   CreateLightsTree();
 
-  // -------------------------------
-  //   Subscribers
-  // -------------------------------
-
   using namespace std::placeholders;
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
@@ -67,10 +63,6 @@ void LightsManagerNode::Initialize()
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&LightsManagerNode::EStopCB, this, _1));
-
-  // -------------------------------
-  //   Timers
-  // -------------------------------
 
   const float timer_freq = this->get_parameter("timer_frequency").as_double();
   const auto timer_period_ms =
@@ -112,17 +104,8 @@ void LightsManagerNode::RegisterBehaviorTree()
 
   RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
 
-  for (const auto & plugin : plugin_libs) {
-    factory_.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
-  }
-
-  for (const auto & plugin : ros_plugin_libs) {
-    BT::RosNodeParams params;
-    params.nh = this->shared_from_this();
-    RegisterRosNode(factory_, BT::SharedLibrary::getOSName(plugin), params);
-  }
-
-  factory_.registerBehaviorTreeFromFile(bt_project_path);
+  bt_utils::RegisterBehaviorTree(
+    factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
 }
 
 void LightsManagerNode::CreateLightsTree()

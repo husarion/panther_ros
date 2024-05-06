@@ -161,7 +161,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_bt_utils behaviortree_cpp
-                            panther_utils)
+                            behaviortree_ros2 panther_utils)
 
   # ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
   # test/test_manager_bt_node.cpp src/manager_bt_node.cpp)

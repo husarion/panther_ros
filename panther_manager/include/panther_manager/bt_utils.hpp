@@ -21,10 +21,38 @@
 #include <string>
 #include <typeinfo>
 
+#include "behaviortree_cpp/bt_factory.h"
 #include "behaviortree_cpp/tree_node.h"
+#include "behaviortree_cpp/utils/shared_library.h"
+#include "behaviortree_ros2/plugins.hpp"
 
 namespace panther_manager::bt_utils
 {
+
+void RegisterBehaviorTree(
+  BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
+  const std::vector<std::string> plugin_libs)
+{
+  for (const auto & plugin : plugin_libs) {
+    factory.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
+  }
+
+  factory.registerBehaviorTreeFromFile(bt_project_path);
+}
+
+void RegisterBehaviorTree(
+  BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
+  const std::vector<std::string> plugin_libs, const rclcpp::Node::SharedPtr & node,
+  const std::vector<std::string> ros_plugin_libs)
+{
+  for (const auto & plugin : ros_plugin_libs) {
+    BT::RosNodeParams params;
+    params.nh = node;
+    RegisterRosNode(factory, BT::SharedLibrary::getOSName(plugin), params);
+  }
+
+  RegisterBehaviorTree(factory, bt_project_path, plugin_libs);
+}
 
 BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values)
 {

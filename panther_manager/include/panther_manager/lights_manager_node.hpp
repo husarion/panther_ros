@@ -67,7 +67,6 @@ private:
   BT::Tree lights_tree_;
   std::unique_ptr<BT::Groot2Publisher> lights_bt_publisher_;
 
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_percent_ma_;
 };
 

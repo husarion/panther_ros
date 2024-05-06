@@ -131,17 +131,8 @@ void SafetyManagerNode::RegisterBehaviorTree()
 
   RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
 
-  for (const auto & plugin : plugin_libs) {
-    factory_.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
-  }
-
-  for (const auto & plugin : ros_plugin_libs) {
-    BT::RosNodeParams params;
-    params.nh = this->shared_from_this();
-    RegisterRosNode(factory_, BT::SharedLibrary::getOSName(plugin), params);
-  }
-
-  factory_.registerBehaviorTreeFromFile(bt_project_path);
+  bt_utils::RegisterBehaviorTree(
+    factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
 }
 
 void SafetyManagerNode::CreateSafetyTree()
