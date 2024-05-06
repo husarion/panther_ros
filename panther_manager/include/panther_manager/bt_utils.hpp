@@ -85,7 +85,6 @@ void RegisterBehaviorTree(
  * entry type.
  * @return A BehaviorTree configuration object.
  */
-
 BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values)
 {
   BT::NodeConfig config;

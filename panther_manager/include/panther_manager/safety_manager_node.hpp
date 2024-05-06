@@ -40,6 +40,10 @@ using DriverStateMsg = panther_msgs::msg::DriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
 using SystemStatusMsg = panther_msgs::msg::SystemStatus;
 
+/**
+ * @brief This class is responsible for creating a BehaviorTrees responsible for safety and shutdown
+ * management, spining them, and updating blackboard entries based on subscribed topics.
+ */
 class SafetyManagerNode : public rclcpp::Node
 {
 public:
@@ -54,6 +58,14 @@ protected:
   void RegisterBehaviorTree();
   void CreateSafetyTree();
   void CreateShutdownTree();
+
+  /**
+   * @brief Checks whether the required blackboard entries for the lights tree are present. These
+   * entries are usually updated when the first ROS message containing required information is
+   * received.
+   *
+   * @return True if all required blackboard entries are present.
+   */
   bool SystemReady();
 
 private:

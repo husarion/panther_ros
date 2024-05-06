@@ -36,6 +36,10 @@ using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using BoolMsg = std_msgs::msg::Bool;
 using LEDAnimationMsg = panther_msgs::msg::LEDAnimation;
 
+/**
+ * @brief This class is responsible for creating a BehaviorTree responsible for lights management,
+ * spining it, and updating blackboard entries based on subscribed topics.
+ */
 class LightsManagerNode : public rclcpp::Node
 {
 public:
@@ -49,6 +53,14 @@ protected:
   void DeclareParameters();
   void RegisterBehaviorTree();
   void CreateLightsTree();
+
+  /**
+   * @brief Checks whether the required blackboard entries for the lights tree are present. These
+   * entries are usually updated when the first ROS message containing required information is
+   * received.
+   *
+   * @return True if all required blackboard entries are present.
+   */
   bool SystemReady();
 
 private:
