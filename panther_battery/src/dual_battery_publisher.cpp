@@ -179,9 +179,6 @@ void DualBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWr
 
 void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery status monitoring"};
-
   const auto battery_1_msg = battery_1_->GetBatteryMsg();
   const auto battery_2_msg = battery_2_->GetBatteryMsg();
   auto charging_status_bat_1 = MapPowerSupplyStatusToString(battery_1_msg.power_supply_status);
@@ -207,7 +204,7 @@ void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWr
   status.add("Load current battery 1 (A)", load_current_bat_1);
   status.add("Load current battery 2 (A)", load_current_bat_2);
 
-  status.summary(error_level, message);
+  status.summary(diagnostic_updater::DiagnosticStatusWrapper::OK, "Battery status monitoring");
 }
 
 }  // namespace panther_battery
