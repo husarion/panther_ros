@@ -46,11 +46,13 @@ protected:
   virtual void Reset() = 0;
   virtual void PublishBatteryState() = 0;
   virtual void LogErrors() = 0;
-  virtual void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
+  virtual void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
+  virtual void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
 
   bool TimeoutReached() const;
   void BatteryStatusLogger(const BatteryStateMsg & battery_state) const;
   bool ChargerConnected() const;
+  std::string MapPowerSupplyStatusToString(uint8_t power_supply_status) const;
 
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
