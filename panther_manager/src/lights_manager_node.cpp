@@ -204,7 +204,6 @@ bool LightsManagerNode::SystemReady()
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 5000,
       "Waiting for required system messages to arrive");
-    std::cout << "return" << std::endl;
     return false;
   }
 

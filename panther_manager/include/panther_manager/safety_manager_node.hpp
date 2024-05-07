@@ -68,6 +68,8 @@ protected:
    */
   bool SystemReady();
 
+  BT::Tree safety_tree_;
+
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);
   void DriverStateCB(const DriverStateMsg::SharedPtr driver_state);
@@ -93,7 +95,6 @@ private:
   BT::BehaviorTreeFactory factory_;
   BT::NodeConfig safety_config_;
   BT::NodeConfig shutdown_config_;
-  BT::Tree safety_tree_;
   BT::Tree shutdown_tree_;
   std::unique_ptr<BT::Groot2Publisher> safety_bt_publisher_;
   std::unique_ptr<BT::Groot2Publisher> shutdown_bt_publisher_;

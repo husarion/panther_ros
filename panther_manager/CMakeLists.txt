@@ -163,13 +163,37 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_test_bt_utils behaviortree_cpp
                             behaviortree_ros2 panther_utils)
 
-  # ament_add_gtest(${PROJECT_NAME}_test_manager_bt_node
-  # test/test_manager_bt_node.cpp src/manager_bt_node.cpp)
-  # target_include_directories( ${PROJECT_NAME}_test_manager_bt_node PUBLIC
-  # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  # $<INSTALL_INTERFACE:include>) ament_target_dependencies(
-  # ${PROJECT_NAME}_test_manager_bt_node behaviortree_cpp behaviortree_ros2
-  # panther_msgs panther_utils rclcpp sensor_msgs std_msgs)
+  ament_add_gtest(${PROJECT_NAME}_test_lights_manager_node
+                  test/test_lights_manager_node.cpp src/lights_manager_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_lights_manager_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_lights_manager_node
+    behaviortree_cpp
+    behaviortree_ros2
+    panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
+    std_msgs)
+
+  ament_add_gtest(${PROJECT_NAME}_test_safety_manager_node
+                  test/test_safety_manager_node.cpp src/safety_manager_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_safety_manager_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_safety_manager_node
+    behaviortree_cpp
+    behaviortree_ros2
+    panther_msgs
+    panther_utils
+    rclcpp
+    sensor_msgs
+    std_msgs)
 endif()
 
 ament_package()

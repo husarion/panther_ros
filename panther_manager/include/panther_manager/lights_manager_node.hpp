@@ -38,7 +38,7 @@ using LEDAnimationMsg = panther_msgs::msg::LEDAnimation;
 
 /**
  * @brief This class is responsible for creating a BehaviorTree responsible for lights management,
- * spining it, and updating blackboard entries based on subscribed topics.
+ * spinning it, and updating blackboard entries based on subscribed topics.
  */
 class LightsManagerNode : public rclcpp::Node
 {
@@ -63,6 +63,8 @@ protected:
    */
   bool SystemReady();
 
+  BT::Tree lights_tree_;
+
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);
   void EStopCB(const BoolMsg::SharedPtr e_stop);
@@ -76,7 +78,6 @@ private:
 
   BT::BehaviorTreeFactory factory_;
   BT::NodeConfig lights_config_;
-  BT::Tree lights_tree_;
   std::unique_ptr<BT::Groot2Publisher> lights_bt_publisher_;
 
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_percent_ma_;
