@@ -85,9 +85,6 @@ void SingleBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatus
 
 void SingleBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery status monitoring"};
-
   const auto battery_msg = battery_->GetBatteryMsg();
 
   auto charging_status = MapPowerSupplyStatusToString(battery_msg.power_supply_status);
@@ -99,7 +96,7 @@ void SingleBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatus
   const auto load_current = battery_->GetLoadCurrent();
   status.add("Load current (A)", load_current);
 
-  status.summary(error_level, message);
+  status.summary(diagnostic_updater::DiagnosticStatusWrapper::OK, "Battery status monitoring");
 }
 
 }  // namespace panther_battery
