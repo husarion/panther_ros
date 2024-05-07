@@ -53,8 +53,14 @@ public:
   void Reset(){};
   void PublishBatteryState(){};
   void LogErrors(){};
-  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status){};
-  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status){};
+  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
+  {
+    status.summary(0, "");  // Avoid unused parameter compiler warning
+  };
+  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+  {
+    status.summary(0, "");  // Avoid unused parameter compiler warning
+  };
 };
 
 class TestBatteryPublisher : public testing::Test
