@@ -17,12 +17,62 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### manager_bt_node
+### lights_manager_node
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
-Node responsible for managing the Husarion Panther robot. Composes control of three behavior trees responsible for handling Bumper Lights animation scheduling, safety features, and software shutdown of components.
+Node responsible for managing Bumper Lights animation scheduling.
+
+[//]: # (ROS_API_NODE_DESCRIPTION_END)
+
+#### Subscribers
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_START)
+
+- `~/battery` [*sensor_msgs/BatteryState*]: state of the internal Battery.
+- `~/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
+
+[//]: # (ROS_API_NODE_SUBSCRIBERS_END)
+
+#### Service Clients (for Default Trees)
+
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
+
+- `~/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
+
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
+
+#### Parameters
+
+[//]: # (ROS_API_NODE_PARAMETERS_START)
+
+- `battery_percent_window_len` [*int*, default: **6**]: moving average window length used to smooth out Battery percentage readings.
+- `bt_project_path` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: path to a BehaviorTree project.
+- `battery_state_anim_period` [*float*, default: **120.0**]: time in **[s]** to wait before repeating animation representing the current Battery percentage.
+- `critical_battery_anim_period` [*float*, default: **15.0**]: time in **[s]** to wait before repeating animation, indicating a critical Battery state.
+- `critical_battery_threshold_percent` [*float*, default: **0.1**]: if the Battery percentage drops below this value, an animation indicating a critical Battery state will start being displayed.
+- `low_battery_anim_period` [*float*, default: **30.0**]: time in **[s]** to wait before repeating the animation, indicating a low Battery state.
+- `low_battery_threshold_percent` [*float*, default: **0.4**]: if the Battery percentage drops below this value, the animation indicating a low Battery state will start being displayed.
+- `update_charging_anim_step` [*float*, default: **0.1**]: percentage representing how discretized the Battery state animation should be.
+- `timer_frequency` [*float*, default: **10.0**]: frequency **[Hz]** at which lights tree will be ticked.
+- `plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in the BT project.
+- `ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project.
+
+[//]: # (ROS_API_NODE_PARAMETERS_END)
+[//]: # (ROS_API_NODE_END)
+
+[//]: # (ROS_API_NODE_START)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_0)
+[//]: # (ROS_API_NODE_COMPATIBLE_1_2)
+[//]: # (ROS_API_NODE_NAME_START)
+
+### safety_manager_node
+
+[//]: # (ROS_API_NODE_NAME_END)
+[//]: # (ROS_API_NODE_DESCRIPTION_START)
+
+Node responsible for managing safety features, and software shutdown of components.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
@@ -45,7 +95,6 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 - `~/hardware/aux_power_enable` [*std_srvs/SetBool*]: enables Aux Power output.
 - `~/hardware/e_stop_trigger` [*std_srvs/Trigger*]: triggers E-stop.
 - `~/hardware/fan_enable` [*std_srvs/SetBool*]: enables fan.
-- `~/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
 
@@ -53,28 +102,17 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
 
-- `battery_percent_window_len` [*int*, default: **6**]: moving average window length used to smooth out Battery percentage readings.
 - `battery_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of the Battery.
 - `bt_project_path` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: path to a BehaviorTree project.
 - `cpu_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of the Built-in Computer's CPU.
 - `driver_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out the temperature readings of each driver.
-- `launch_lights_tree` [*bool*, default: **true**]: launch behavior tree responsible for scheduling animations on Panther Bumper Lights.
-- `launch_safety_tree` [*bool*, default: **true**]: launch behavior tree responsible for managing Panther safety measures.
-- `launch_shutdown_tree` [*bool*, default: **true**]: launch behavior tree responsible for the gentle shutdown of robot components.
-- `lights.battery_state_anim_period` [*float*, default: **120.0**]: time in **[s]** to wait before repeating animation representing the current Battery percentage.
-- `lights.critical_battery_anim_period` [*float*, default: **15.0**]: time in **[s]** to wait before repeating animation, indicating a critical Battery state.
-- `lights.critical_battery_threshold_percent` [*float*, default: **0.1**]: if the Battery percentage drops below this value, an animation indicating a critical Battery state will start being displayed.
-- `lights.low_battery_anim_period` [*float*, default: **30.0**]: time in **[s]** to wait before repeating the animation, indicating a low Battery state.
-- `lights.low_battery_threshold_percent` [*float*, default: **0.4**]: if the Battery percentage drops below this value, the animation indicating a low Battery state will start being displayed.
-- `lights.update_charging_anim_step` [*float*, default: **0.1**]: percentage representing how discretized the Battery state animation should be.
-- `lights.timer_frequency` [*float*, default: **10.0**]: frequency **[Hz]** at which lights tree will be ticked.
 - `plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in the BT project.
 - `ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project.
-- `safety.cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **[&deg;C]** of the Built-in Computer's CPU, below which the fan is turned off.
-- `safety.cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **[&deg;C]** of the Built-in Computer's CPU, above which the fan is turned on.
-- `safety.driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **[&deg;C]** of any drivers below which the fan is turned off.
-- `safety.driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **[&deg;C]** of any drivers above which the fan is turned on.
-- `safety.timer_frequency` [*float*, default: **10.0**]: frequency **[Hz]** at which safety tree will be ticked.
+- `cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **[&deg;C]** of the Built-in Computer's CPU, below which the fan is turned off.
+- `cpu_fan_on_temp` [*float*, default: **70.0**]: temperature in **[&deg;C]** of the Built-in Computer's CPU, above which the fan is turned on.
+- `driver_fan_off_temp` [*float*, default: **35.0**]: temperature in **[&deg;C]** of any drivers below which the fan is turned off.
+- `driver_fan_on_temp` [*float*, default: **45.0**]: temperature in **[&deg;C]** of any drivers above which the fan is turned on.
+- `timer_frequency` [*float*, default: **10.0**]: frequency **[Hz]** at which safety tree will be ticked.
 - `shutdown_hosts_path` [*string*, default: **None**]: path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: command executed on shutdown of given device.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
@@ -85,6 +123,7 @@ Node responsible for managing the Husarion Panther robot. Composes control of th
 
 [//]: # (ROS_API_NODE_PARAMETERS_END)
 [//]: # (ROS_API_NODE_END)
+[//]: # (ROS_API_PACKAGE_END)
 
 #### Shutdown Behavior
 
@@ -144,7 +183,8 @@ After receiving a message on the `~/battery` topic, the `panther_manager` node m
 
 ## BehaviorTree
 
-For a BehaviorTree project to work correctly, it must contain three trees with names as described below. However, if any of the parameters (`launch_lights_tree`, `launch_safety_tree`, `launch_shutdown_tree`) is set to false, the corresponding tree is disabled and is no longer required in the project. Files with trees XML descriptions can be shared between projects. Each tree is provided with a set of default blackboard entries (described below), which can be used to specify the behavior of a given tree.
+This package contains two main BehaviorTree projects. One is designed for lights handling and the other for safety and system shutdown.
+For a BehaviorTree project to work correctly, it must contain a tree with correct names. The names are: `Lights` for lights BT project; `Shutdown` and `Safety` for safety BT project. Files with trees XML descriptions can be shared between projects. Each tree is provided with a set of default blackboard entries (described below), which can be used to specify the behavior of a given tree.
 
 ### Nodes
 
@@ -277,7 +317,7 @@ Expected blackboard entries:
 
 Each behavior tree can be easily customized to enhance its functions and capabilities. To achieve this, we recommend using Groot2, a powerful tool for developing and modifying behavior trees. To install Groot2 and learn how to use it, please refer to the [official guidelines](https://www.behaviortree.dev/groot).
 
-When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of three behavior trees: `Lights`, `Safety`, `Shutdown`. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees.
+When creating a new BehaviorTree project, it is advised to use an existing project as a guideline and leverage it for reference. You can study the structure and implementation of the behavior trees in the existing project to inform your own development process. The project should consist of `Lights` behavior tree or both `Safety` and `Shutdown` behavior tree. Additionally, you have the option to incorporate some of the files used in the existing project into your own project. By utilizing these files, you can benefit from the work already done and save time and effort in developing certain aspects of the behavior trees.
 
 > **Note**
 > It is essential to exercise caution when modifying the trees responsible for safety or shutdown and ensure that default behaviors are not removed.
@@ -286,11 +326,7 @@ When creating a new BehaviorTree project, it is advised to use an existing proje
 
 When modifying behavior trees, you have the flexibility to use standard BehaviorTree.CPP nodes or leverage nodes created specifically for Panther, as detailed in the [Nodes](#nodes) section. Additionally, if you have more specific requirements, you can even create your own custom Behavior Tree nodes. However, this will involve modifying the package and rebuilding the project accordingly.
 
-To use your customized project, you need to provide the `bt_project_file` launch argument when running `panther_bringup.launch` file. Here's an example of how to launch the project with the specified BehaviorTree project file:
-
-```bash
-ros2 panther_bringup bringup.launch.py bt_project_path:=/path/to/bt/project/file
-```
+To use your customized project, you can modify the `bt_project_file` ROS parameter.
 
 ### Real-time Visualization
 
