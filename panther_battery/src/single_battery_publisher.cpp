@@ -68,10 +68,10 @@ void SingleBatteryPublisher::LogErrors()
   }
 }
 
-void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+void SingleBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery has no error messages"};
+  std::string message{"Battery has no errors"};
 
   if (battery_->HasErrorMsg()) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
@@ -81,6 +81,22 @@ void SingleBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatu
   }
 
   status.summary(error_level, message);
+}
+
+void SingleBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  const auto battery_msg = battery_->GetBatteryMsg();
+
+  auto charging_status = MapPowerSupplyStatusToString(battery_msg.power_supply_status);
+  status.add("Power supply status", charging_status);
+
+  const auto charger_current = battery_->GetChargerCurrent();
+  status.add("Charger current (A)", charger_current);
+
+  const auto load_current = battery_->GetLoadCurrent();
+  status.add("Load current (A)", load_current);
+
+  status.summary(diagnostic_updater::DiagnosticStatusWrapper::OK, "Battery status monitoring");
 }
 
 }  // namespace panther_battery

@@ -74,7 +74,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     use_sim = LaunchConfiguration("use_sim")
@@ -157,11 +157,7 @@ def generate_launch_description():
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
         default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_lights"),
-                "config",
-                PythonExpression(["'led_config.yaml'"]),
-            ]
+            [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
         ),
         description="Path to a YAML file with a description of led configuration",
     )
@@ -300,9 +296,10 @@ def generate_launch_description():
         executable="ekf_node",
         name="ekf_node",
         output="screen",
-        parameters=[ekf_config_path],
+        parameters=[ekf_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
+            ("/diagnostics", "diagnostics"),
             ("enable", "ekf_node/enable"),
             ("set_pose", "ekf_node/set_pose"),
             ("toggle", "ekf_node/toggle"),
@@ -320,7 +317,7 @@ def generate_launch_description():
                 ]
             )
         ),
-        condition=UnlessCondition(use_sim) and UnlessCondition(disable_manager),
+        condition=UnlessCondition(PythonExpression([use_sim, " or ", disable_manager])),
         launch_arguments={
             "namespace": namespace,
             "panther_version": panther_version,
@@ -329,24 +326,12 @@ def generate_launch_description():
     )
 
     other_action_timer = TimerAction(
-        period=10.0,
+        period=7.0,
         actions=[
             battery_launch,
             lights_launch,
             robot_localization_node,
             manager_launch,
-        ],
-    )
-
-    waiting_msg = TimerAction(
-        period=7.0,
-        actions=[
-            LogInfo(
-                msg=(
-                    "We're working on ensuring everything functions properly... Please wait a few"
-                    " seconds more!"
-                )
-            )
         ],
     )
 
@@ -370,7 +355,6 @@ def generate_launch_description():
         welcome_msg,
         controller_launch,
         system_status_node,
-        waiting_msg,
         other_action_timer,
     ]
 

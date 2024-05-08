@@ -36,7 +36,7 @@ def launch_setup(context):
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     panther_version = float(LaunchConfiguration("panther_version").perform(context))

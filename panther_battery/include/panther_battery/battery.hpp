@@ -40,6 +40,9 @@ public:
   virtual void Update(const rclcpp::Time & header_stamp, const bool charger_connected) = 0;
   virtual void Reset(const rclcpp::Time & header_stamp) = 0;
 
+  virtual float GetChargerCurrent() = 0;
+  virtual float GetLoadCurrent() = 0;
+
   bool HasErrorMsg() const { return !error_msg_.empty(); }
 
   std::string GetErrorMsg() const { return error_msg_; }

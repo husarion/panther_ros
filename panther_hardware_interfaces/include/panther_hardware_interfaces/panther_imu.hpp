@@ -114,6 +114,7 @@ protected:
   void InitializeMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & mag_compensated,
     const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s);
+  void RestartMadgwickAlgorithm();
 
   bool IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated);
 

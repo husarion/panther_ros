@@ -39,7 +39,8 @@ BatteryPublisher::BatteryPublisher(
     "hardware/io_state", 3,
     [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
 
-  diagnostic_updater_->add("Battery status", this, &BatteryPublisher::DiagnoseBattery);
+  diagnostic_updater_->add("Battery errors", this, &BatteryPublisher::DiagnoseErrors);
+  diagnostic_updater_->add("Battery status", this, &BatteryPublisher::DiagnoseStatus);
 }
 
 void BatteryPublisher::Publish()
@@ -80,7 +81,6 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
         "The charger has been plugged in, but the charging process has not started. Check if the "
         "charger is connected to a power source.";
 
-      diagnostic_updater_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, msg);
       RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 10000, msg.c_str());
       break;
 
@@ -88,14 +88,12 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
       msg = "The robot is charging. Current battery percentage: " +
             std::to_string(static_cast<int>(round(battery_state.percentage * 100.0))) + "%.";
 
-      diagnostic_updater_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::OK, msg);
       RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg.c_str());
       break;
 
     case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
       msg = "The battery is fully charged. Robot can be disconnected from the charger.";
 
-      diagnostic_updater_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::OK, msg);
       RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg.c_str());
       break;
 
@@ -105,5 +103,23 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
 }
 
 bool BatteryPublisher::ChargerConnected() const { return charger_connected_; }
+
+std::string BatteryPublisher::MapPowerSupplyStatusToString(uint8_t power_supply_status) const
+{
+  switch (power_supply_status) {
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN:
+      return "Unknown";
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING:
+      return "Charging";
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING:
+      return "Discharging";
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING:
+      return "Plugged and not charging";
+    case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
+      return "Battery full";
+    default:
+      return "Invalid status";
+  }
+}
 
 }  // namespace panther_battery

@@ -115,11 +115,11 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
         std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
         std::bind(&PantherImuSensor::SpatialAttachCallback, this),
         std::bind(&PantherImuSensor::SpatialDetachCallback, this));
-      imu_connected_ = true;
-      RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
-
-      Calibrate();
     }
+
+    imu_connected_ = true;
+    RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
+    Calibrate();
 
     spatial_->setDataInterval(params_.data_interval_ms);
 
@@ -397,6 +397,16 @@ void PantherImuSensor::InitializeMadgwickAlgorithm(
   algorithm_initialized_ = true;
 }
 
+void PantherImuSensor::RestartMadgwickAlgorithm()
+{
+  if (!filter_) {
+    return;
+  }
+
+  const auto restarted_value = std::numeric_limits<double>::quiet_NaN();
+  filter_->setOrientation(restarted_value, restarted_value, restarted_value, restarted_value);
+}
+
 bool PantherImuSensor::IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated)
 {
   if (imu_calibrated_) {
@@ -452,10 +462,9 @@ void PantherImuSensor::SpatialDataCallback(
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(logger_, "Exception during algorithm initialization: " << e.what());
     }
-    return;
   }
 
-  if (!params_.stateless) {
+  if (algorithm_initialized_ && !params_.stateless) {
     if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated) && params_.use_mag) {
       UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
     } else {
@@ -475,11 +484,12 @@ void PantherImuSensor::SpatialAttachCallback()
 
 void PantherImuSensor::SpatialDetachCallback()
 {
-  RCLCPP_WARN(logger_, "IMU has detached!");
+  RCLCPP_WARN(
+    logger_, "IMU has detached! If you haven't unplugged the USB IMU cable check the connection!");
   imu_connected_ = false;
-  imu_calibrated_ = false;
   algorithm_initialized_ = false;
   SetStateValuesToNans();
+  RestartMadgwickAlgorithm();
   on_deactivate(rclcpp_lifecycle::State{});
 }
 
