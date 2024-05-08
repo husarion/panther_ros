@@ -39,6 +39,7 @@
 
   <xacro:arg name="components_config_path" default="$(find panther_bringup)/config/components.yaml" />
   <xacro:property name="components_config_path_property" value="$(arg components_config_path)" />
+
   <xacro:unless value="${components_config_path_property == 'None'}">
     <xacro:include filename="$(find ros_components_description)/urdf/components.urdf.xacro"
       ns="husarion_components" />
