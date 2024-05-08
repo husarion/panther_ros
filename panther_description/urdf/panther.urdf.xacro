@@ -46,8 +46,6 @@
 
     <xacro:husarion_components.create_components
       components_config_path="${components_config_path_property}"
-      use_gpu="$(arg use_gpu)"
-      simulation_engine="$(arg simulation_engine)"
       namespace="$(arg namespace)"
     />
   </xacro:unless>
