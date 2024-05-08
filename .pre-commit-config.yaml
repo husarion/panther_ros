@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
         # mesh files has to be taken into account
@@ -23,7 +23,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
         args: ["--profile", "black"]
@@ -51,23 +51,24 @@ repos:
             "--ignore-words-list",
             "ned" # north, east, down (NED)
           ]
+        exclude_types: [rst]
         language: python
         types: [text]
 
   - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-    rev: 0.2.1
+    rev: 0.2.3
     hooks:
       - id: yamlfmt
         files: ^.github|./\.yaml
 
   - repo: https://github.com/psf/black
-    rev: 23.10.1
+    rev: 24.4.0
     hooks:
       - id: black
-        args: ["--line-length=99", "--experimental-string-processing"]
+        args: ["--line-length=99"]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
+    rev: 7.0.0
     hooks:
       - id: flake8
         args:

@@ -4,20 +4,24 @@ A package containing the launch files and dependencies needed to run the simulat
 
 ## Usage
 
-The recommended method for launching the simulation is by utilizing the [simulation.launch.py](https://github.com/husarion/panther_ros/panther_gazebo/launch/simulation.launch.py) file. Below, you will find launch arguments that enable simulation configuration.
+The recommended method for launching the simulation is by utilizing the [simulation.launch.py](https://github.com/husarion/panther_ros/panther_gazebo/launch/simulation.launch.py) file. Below, you will find launch arguments that enable simulation configuration. You can also launch more robots using `spawn.launch.py` ​​after the system has been started.
 
 ### Launch Arguments
 
+- `add_world_transform` [*bool*, default: **False**]: Adds a world frame that connects the tf trees of individual robots (useful when running multiple robots).
 - `battery_config_path` [*string*, default: **panther_gazebo/config/battery_plugin_config.yaml**]: Path to the Ignition `LinearBatteryPlugin` configuration file. This configuration is intended for use in simulations only. For more information on how to configure this plugin, please refer to the [Linear Battery Plugin](#linear-battery-plugin) section.
 - `controller_config_path` [*string*, default: **panther_controller/config/<wheel_type arg>_controller.yaml**]: Path to the controller configuration file. If you want to use a custom configuration, you can specify the path to your custom controller configuration file here.
 - `gz_bridge_config_path` [*string*, default: **panther_gazebo/config/gz_bridge.yaml**]: Path to the `parameter_bridge` configuration file. For detailed information on configuring the `parameter_bridge`, please refer to this [example](https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_bridge#example-5-configuring-the-bridge-via-yaml).
 - `gz_log_level` [*[0-4]*, default: **1**]: Adjust the level of console output.
 - `headless_mode` [*bool*, default: **False**]: Run the simulation in headless mode. Useful when a GUI is not needed or to reduce the amount of calculations.
-- `pos_x` [*float*, default: **5.0**]: spawn position **[m]** of the robot in the world in **X** direction.
-- `pos_y` [*float*, default: **-5.0**]: spawn position **[m]** of the robot in the world in **Y** direction.
-- `pos_z` [*float*, default: **0.2**]: spawn position **[m]** of the robot in the world in **Z** direction.
-- `rot_yaw` [*float*, default: **0.0**]: spawn yaw angle **[rad]** of the robot in the world.
+- `x` [*float*, default: **5.0**]: spawn position **[m]** of the robot in the world in **X** direction.
+- `y` [*float*, default: **-5.0**]: spawn position **[m]** of the robot in the world in **Y** direction.
+- `z` [*float*, default: **0.2**]: spawn position **[m]** of the robot in the world in **Z** direction.
+- `roll` [*float*, default: **0.0**]: spawn roll angle **[rad]** of the robot in the world.
+- `pitch` [*float*, default: **0.0**]: spawn pitch angle **[rad]** of the robot in the world.
+- `yaw` [*float*, default: **0.0**]: spawn yaw angle **[rad]** of the robot in the world.
 - `publish_robot_state` [*bool*, default: **true**]: Whether to launch the robot_state_publisher node. When set to `false`, users should publish their own robot description.
+- `robots` [*yaml style*, default: **""**]: The list of the robots spawned in the simulation e.g. robots:='robot1={x: 0.0, y: -1.0}; robot2={x: 1.0, y: -1.0}'"
 - `wheel_config_path` [*string*, default: **panther_description/config/<wheel_type arg>.yaml**]: Path to the wheel configuration file. If you want to use a custom configuration, you can specify the path to your custom wheel configuration file here. Please refer to the `wheel_type` parameter description for more information.
 - `wheel_type` [*string*, default: **WH01**]: Specify the type of wheel. If you select a value from the provided options (`WH01`, `WH02`, `WH04`), you can disregard the `wheel_config_path` and `controller_config_path` parameters. If you have custom wheels, set this parameter to `CUSTOM` and provide the necessary configurations.
 - `world` [*string*, default: **-r <husarion_gz_worlds share directory>/worlds/husarion_world.sdf**]: path to Gazebo world file used for simulation.
