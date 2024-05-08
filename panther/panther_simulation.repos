@@ -1,5 +1,5 @@
 repositories:
-  husarion_office_gz:
+  husarion_gz_worlds:
     type: git
-    url: https://github.com/husarion/husarion_office_gz.git
+    url: https://github.com/husarion/husarion_gz_worlds.git
     version: main

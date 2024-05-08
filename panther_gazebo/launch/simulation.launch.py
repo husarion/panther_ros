@@ -104,22 +104,6 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file",
     )
 
-    world_cfg = LaunchConfiguration("world")
-    declare_world_arg = DeclareLaunchArgument(
-        "world",
-        default_value=[
-            "-r ",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("husarion_office_gz"),
-                    "worlds",
-                    "husarion_world.sdf",
-                ],
-            ),
-        ],
-        description="SDF world file",
-    )
-
     pose_x = LaunchConfiguration("pose_x")
     declare_pose_x_arg = DeclareLaunchArgument(
         "pose_x",
@@ -167,13 +151,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("ros_gz_sim"),
+                    FindPackageShare("husarion_gz_worlds"),
                     "launch",
                     "gz_sim.launch.py",
                 ]
             )
         ),
-        launch_arguments={"gz_args": world_cfg}.items(),
     )
 
     gz_spawn_entity = Node(
@@ -232,7 +215,6 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            declare_world_arg,
             declare_pose_x_arg,
             declare_pose_y_arg,
             declare_pose_z_arg,
