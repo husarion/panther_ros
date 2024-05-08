@@ -156,10 +156,10 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
   }
 }
 
-void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status)
+void DualBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"Battery has no error messages"};
+  std::string message{"Battery has no errors"};
 
   if (battery_1_->HasErrorMsg() || battery_2_->HasErrorMsg()) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
@@ -175,6 +175,36 @@ void DualBatteryPublisher::DiagnoseBattery(diagnostic_updater::DiagnosticStatusW
   }
 
   status.summary(error_level, message);
+}
+
+void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  const auto battery_1_msg = battery_1_->GetBatteryMsg();
+  const auto battery_2_msg = battery_2_->GetBatteryMsg();
+  auto charging_status_bat_1 = MapPowerSupplyStatusToString(battery_1_msg.power_supply_status);
+  auto charging_status_bat_2 = MapPowerSupplyStatusToString(battery_2_msg.power_supply_status);
+
+  std::string charging_status;
+  charging_status_bat_1 == charging_status_bat_2
+    ? charging_status = charging_status_bat_1
+    : charging_status = "Power supply status not determined, check batteries.";
+  status.add("Power supply status", charging_status);
+
+  const auto charger_current_bat_1 = battery_1_->GetChargerCurrent();
+  const auto charger_current_bat_2 = battery_2_->GetChargerCurrent();
+  const auto charger_current = charger_current_bat_1 + charger_current_bat_2;
+  status.add("Charger current total (A)", charger_current);
+  status.add("Charger current battery 1 (A)", charger_current_bat_1);
+  status.add("Charger current battery 2 (A)", charger_current_bat_2);
+
+  const auto load_current_bat_1 = battery_1_->GetLoadCurrent();
+  const auto load_current_bat_2 = battery_2_->GetLoadCurrent();
+  const auto load_current = load_current_bat_1 + load_current_bat_2;
+  status.add("Load current total (A)", load_current);
+  status.add("Load current battery 1 (A)", load_current_bat_1);
+  status.add("Load current battery 2 (A)", load_current_bat_2);
+
+  status.summary(diagnostic_updater::DiagnosticStatusWrapper::OK, "Battery status monitoring");
 }
 
 }  // namespace panther_battery

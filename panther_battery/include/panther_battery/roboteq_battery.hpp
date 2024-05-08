@@ -51,6 +51,9 @@ public:
   void Update(const rclcpp::Time & header_stamp, const bool /* charger_connected */) override;
   void Reset(const rclcpp::Time & header_stamp) override;
 
+  float GetChargerCurrent() override { return std::numeric_limits<float>::quiet_NaN(); }
+  float GetLoadCurrent() override { return std::numeric_limits<float>::quiet_NaN(); }
+
 protected:
   void ValidateDriverStateMsg(const rclcpp::Time & header_stamp);
 
