@@ -50,7 +50,6 @@ def launch_setup(context):
     publish_robot_state = LaunchConfiguration("publish_robot_state").perform(context)
     namespace = LaunchConfiguration("namespace").perform(context)
     add_world_transform = LaunchConfiguration("add_world_transform").perform(context)
-    components_config_path = LaunchConfiguration("components_config_path")
 
     robots_list = ParseMultiRobotPose("robots").value()
     if len(robots_list) == 0:
@@ -109,7 +108,6 @@ def launch_setup(context):
                 "wheel_type": wheel_type,
                 "wheel_config_path": wheel_config_path,
                 "controller_config_path": controller_config_path,
-                "components_config_path": components_config_path,
                 "battery_config_path": battery_config_path,
                 "publish_robot_state": publish_robot_state,
                 "use_sim": "True",
@@ -118,7 +116,7 @@ def launch_setup(context):
             }.items(),
         )
 
-        ros_components_launch = IncludeLaunchDescription(
+        sensors_gz_bridge = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
                     [
@@ -129,7 +127,6 @@ def launch_setup(context):
                 )
             ),
             launch_arguments={
-                "components_config_path": components_config_path,
                 "namespace": namespace,
             }.items(),
         )
@@ -155,7 +152,7 @@ def launch_setup(context):
                 gz_bridge,
                 bringup_launch,
                 world_transform,
-                ros_components_launch,
+                sensors_gz_bridge,
             ],
         )
         spawn_group.append(group)
@@ -293,17 +290,6 @@ def generate_launch_description():
         ),
     )
 
-    declare_components_config_path_arg = DeclareLaunchArgument(
-        "components_config_path",
-        default_value="None",
-        description=(
-            "Additional components configuration file. Components described in this file "
-            "are dynamically included in Panther's urdf."
-            "Panther options are described here "
-            "https://husarion.com/manuals/panther/panther-options/"
-        ),
-    )
-
     return LaunchDescription(
         [
             declare_x_arg,
@@ -321,7 +307,6 @@ def generate_launch_description():
             declare_namespace_arg,
             declare_robots_arg,
             declare_add_world_transform_arg,
-            declare_components_config_path_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             OpaqueFunction(function=launch_setup),

@@ -75,18 +75,6 @@ def generate_launch_description():
         ),
     )
 
-    components_config_path = LaunchConfiguration("components_config_path")
-    declare_components_config_path_arg = DeclareLaunchArgument(
-        "components_config_path",
-        default_value="None",
-        description=(
-            "Additional components configuration file. Components described in this file "
-            "are dynamically included in Panther's urdf."
-            "Panther options are described here "
-            "https://husarion.com/manuals/panther/panther-options/"
-        ),
-    )
-
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -209,7 +197,6 @@ def generate_launch_description():
             "wheel_type": wheel_type,
             "wheel_config_path": wheel_config_path,
             "controller_config_path": controller_config_path,
-            "components_config_path": components_config_path,
             "battery_config_path": battery_config_path,
             "gz_bridge_config_path": gz_bridge_config_path,
             "x": x,
@@ -236,7 +223,6 @@ def generate_launch_description():
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
-            declare_components_config_path_arg,
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_publish_robot_state_arg,
