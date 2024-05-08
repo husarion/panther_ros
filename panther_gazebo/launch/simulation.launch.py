@@ -104,22 +104,6 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file.",
     )
 
-    world_cfg = LaunchConfiguration("world")
-    declare_world_arg = DeclareLaunchArgument(
-        "world",
-        default_value=[
-            "-r ",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("husarion_office_gz"),
-                    "worlds",
-                    "husarion_world.sdf",
-                ],
-            ),
-        ],
-        description="SDF world file",
-    )
-
     x = LaunchConfiguration("x")
     declare_x_arg = DeclareLaunchArgument(
         "x", default_value="5.0", description="Initial robot position in the global 'x' axis."
@@ -191,13 +175,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("ros_gz_sim"),
+                    FindPackageShare("husarion_gz_worlds"),
                     "launch",
                     "gz_sim.launch.py",
                 ]
             )
         ),
-        launch_arguments={"gz_args": world_cfg}.items(),
     )
 
     spawn_robots_launch = IncludeLaunchDescription(
@@ -231,7 +214,6 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            declare_world_arg,
             declare_x_arg,
             declare_y_arg,
             declare_z_arg,

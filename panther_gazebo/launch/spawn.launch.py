@@ -128,7 +128,7 @@ def launch_setup(context):
             condition=IfCondition(add_world_transform),
         )
 
-        # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py ​​is smaller than bringup.launhc.py, the namespace will be overwritten, resulting creating nodes with the same namespace.
+        # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py ​​is smaller than bringup.launch.py, the namespace will be overwritten, resulting creating nodes with the same namespace.
         group = TimerAction(
             period=10.0 * idx,
             actions=[

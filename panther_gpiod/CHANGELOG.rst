@@ -2,6 +2,13 @@
 Changelog for package panther_gpiod
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2024-05-01)
+------------------
+* Merge branch 'ros2-devel' into ros2-readme
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
+* Contributors: Jakub Delicat, rafal-gorecki
+
 2.0.0 (2024-03-29)
 ------------------
 * Merge pull request `#257 <https://github.com/husarion/panther_ros/issues/257>`_ from husarion/ros2-headers

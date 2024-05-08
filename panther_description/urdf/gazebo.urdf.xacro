@@ -6,38 +6,31 @@
 
     <!-- Read property -->
     <xacro:property name="battery_config" value="${xacro.load_yaml(config_file)}" />
-    <xacro:property name="bat_initial_charge"
-      value="${20.0*battery_config['initial_charge_percentage']/100.0}" />
-    <xacro:property name="bat_charging_time" value="${battery_config['charging_time']}" />
-
-    <xacro:if value="${battery_config['simulate_discharging']}">
-      <xacro:property name="bat_power_load" value="${battery_config['power_load']}" />
+    <xacro:if value="${namespace == ''}">
+      <xacro:property name="ns" value="" />
     </xacro:if>
-    <xacro:unless value="${battery_config['simulate_discharging']}">
-      <xacro:property name="bat_power_load" value="0.0" />
+    <xacro:unless value="${namespace == ''}">
+        <xacro:property name="ns" value="${namespace}/" />
     </xacro:unless>
 
     <!-- Sim Battery -->
     <gazebo>
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
-        <battery_name>panther_battery</battery_name>
+        <battery_name>${ns}panther_battery</battery_name>
         <voltage>41.4</voltage>
         <open_circuit_voltage_constant_coef>42.0</open_circuit_voltage_constant_coef>
         <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
-        <initial_charge>${bat_initial_charge}</initial_charge>
-        <capacity>20.0</capacity>
+        <initial_charge>${battery_config['initial_charge_percentage']*battery_config['capacity']}</initial_charge>
+        <capacity>${battery_config['capacity']}</capacity>
         <resistance>0.15</resistance>
         <smooth_current_tau>2.0</smooth_current_tau>
         <enable_recharge>true</enable_recharge>
-        <charging_time>${bat_charging_time}</charging_time>
+        <charging_time>${battery_config['charging_time']}</charging_time>
         <soc_threshold>2.0</soc_threshold>
-        <power_load>${bat_power_load}</power_load>
-        <start_on_motion>false</start_on_motion>
-
-        <!-- https://github.com/gazebosim/gz-sim/issues/225 -->
-        <fix_issue_225>true</fix_issue_225>
-
+        <!-- TODO Because of https://github.com/gazebosim/gz-sim/issues/225 division by 100 -->
+        <power_load>${battery_config['power_load']/100.0}</power_load>
+        <start_draining>${battery_config['simulate_discharging']}</start_draining>
         <ros>
           <namespace>${namespace}</namespace>
         </ros>

@@ -2,6 +2,25 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2024-05-01)
+------------------
+* Manager launch fix (`#269 <https://github.com/husarion/panther_ros/issues/269>`_)
+* Add disable manager arg (`#265 <https://github.com/husarion/panther_ros/issues/265>`_)
+* Merge pull request `#259 <https://github.com/husarion/panther_ros/issues/259>`_ from husarion/ros2-os-diagnostics
+* Merge pull request `#264 <https://github.com/husarion/panther_ros/issues/264>`_ from husarion/ros2-use-absolute-url
+* Absolute URL
+* Merge pull request `#261 <https://github.com/husarion/panther_ros/issues/261>`_ from husarion/ros2-readme
+* Pawel sugestions
+* Merge branch 'ros2-devel' into ros2-readme
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
+* Ros2 control imu hardware (`#236 <https://github.com/husarion/panther_ros/issues/236>`_)
+* moved status in launch
+* Added suggestions
+* Add controller readme
+* Added tests
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-os-diagnostics
+* Contributors: Jakub Delicat, Paweł Irzyk, rafal-gorecki
+
 2.0.0 (2024-03-29)
 ------------------
 * Ros2 namespace (`#255 <https://github.com/husarion/panther_ros/issues/255>`_)
