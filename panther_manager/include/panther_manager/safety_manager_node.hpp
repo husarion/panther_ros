@@ -69,6 +69,8 @@ protected:
   bool SystemReady();
 
   BT::Tree safety_tree_;
+  BT::NodeStatus safety_tree_status_ = BT::NodeStatus::IDLE;
+  BT::NodeStatus shutdown_tree_status_ = BT::NodeStatus::IDLE;
 
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);

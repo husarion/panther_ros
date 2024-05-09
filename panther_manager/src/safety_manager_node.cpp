@@ -121,6 +121,7 @@ void SafetyManagerNode::DeclareParameters()
   this->declare_parameter<float>("driver_fan_on_temp", 45.0);
   this->declare_parameter<float>("driver_fan_off_temp", 35.0);
   this->declare_parameter<float>("timer_frequency", 10.0);
+  this->declare_parameter<float>("fan_turn_off_timeout", 60.0);
 }
 
 void SafetyManagerNode::RegisterBehaviorTree()
@@ -141,12 +142,14 @@ void SafetyManagerNode::CreateSafetyTree()
   const float cpu_fan_off_temp = this->get_parameter("cpu_fan_off_temp").as_double();
   const float driver_fan_on_temp = this->get_parameter("driver_fan_on_temp").as_double();
   const float driver_fan_off_temp = this->get_parameter("driver_fan_off_temp").as_double();
+  const float fan_turn_off_timeout = this->get_parameter("fan_turn_off_timeout").as_double();
 
   const std::map<std::string, std::any> safety_initial_bb = {
     {"CPU_FAN_OFF_TEMP", cpu_fan_off_temp},
     {"CPU_FAN_ON_TEMP", cpu_fan_on_temp},
     {"DRIVER_FAN_OFF_TEMP", driver_fan_off_temp},
     {"DRIVER_FAN_ON_TEMP", driver_fan_on_temp},
+    {"FAN_TURN_OFF_TIMEOUT", fan_turn_off_timeout},
     {"CRITICAL_BAT_TEMP", kCriticalBatteryTemp},
     {"FATAL_BAT_TEMP", kFatalBatteryTemp},
     // battery health constants
@@ -237,9 +240,9 @@ void SafetyManagerNode::SafetyTreeTimerCB()
     return;
   }
 
-  auto status = safety_tree_.tickOnce();
+  safety_tree_status_ = safety_tree_.tickOnce();
 
-  if (status == BT::NodeStatus::FAILURE) {
+  if (safety_tree_status_ == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Safety behavior tree returned FAILURE status");
   }
 
@@ -276,15 +279,15 @@ void SafetyManagerNode::ShutdownRobot(const std::string & reason)
   safety_tree_.haltTree();
 
   // tick shutdown tree
-  auto status = BT::NodeStatus::RUNNING;
+  shutdown_tree_status_ = BT::NodeStatus::RUNNING;
   auto start_time = this->get_clock()->now();
   rclcpp::Rate rate(30.0);  // 30 Hz
-  while (rclcpp::ok() && status == BT::NodeStatus::RUNNING) {
-    status = shutdown_tree_.tickOnce();
+  while (rclcpp::ok() && shutdown_tree_status_ == BT::NodeStatus::RUNNING) {
+    shutdown_tree_status_ = shutdown_tree_.tickOnce();
     rate.sleep();
   }
 
-  if (status == BT::NodeStatus::FAILURE) {
+  if (shutdown_tree_status_ == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(
       this->get_logger(),
       "Shutdown behavior tree returned FAILURE status, robot may not be shutdown correctly");

@@ -64,6 +64,7 @@ protected:
   bool SystemReady();
 
   BT::Tree lights_tree_;
+  BT::NodeStatus lights_tree_status_ = BT::NodeStatus::IDLE;
 
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);

@@ -189,9 +189,9 @@ void LightsManagerNode::LightsTreeTimerCB()
     return;
   }
 
-  auto status = lights_tree_.tickOnce();
+  lights_tree_status_ = lights_tree_.tickOnce();
 
-  if (status == BT::NodeStatus::FAILURE) {
+  if (lights_tree_status_ == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
   }
 }

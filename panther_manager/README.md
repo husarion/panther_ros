@@ -106,6 +106,7 @@ Node responsible for managing safety features, and software shutdown of componen
 - `bt_project_path` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: path to a BehaviorTree project.
 - `cpu_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out temperature readings of the Built-in Computer's CPU.
 - `driver_temp_window_len` [*int*, default: **6**]: moving average window length used to smooth out the temperature readings of each driver.
+- `fan_turn_off_timeout` [*float*, default: **60.0**]: minimal time in **[s]**, after which the fan may be turned off.
 - `plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in the BT project.
 - `ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project.
 - `cpu_fan_off_temp` [*float*, default: **60.0**]: temperature in **[&deg;C]** of the Built-in Computer's CPU, below which the fan is turned off.
