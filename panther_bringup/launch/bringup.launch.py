@@ -313,7 +313,7 @@ def generate_launch_description():
     )
 
     other_action_timer = TimerAction(
-        period=7.0,
+        period=10.0,
         actions=[
             battery_launch,
             lights_launch,

@@ -136,7 +136,7 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[controller_config_path],
+        parameters=[robot_description, controller_config_path],
         namespace=namespace,
         remappings=[
             (
