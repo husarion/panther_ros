@@ -130,7 +130,7 @@ def launch_setup(context):
 
         # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py ​​is smaller than bringup.launch.py, the namespace will be overwritten, resulting creating nodes with the same namespace.
         group = TimerAction(
-            period=10.0 * idx,
+            period=12.0 * idx,
             actions=[
                 spawn_log,
                 spawn_robot,
