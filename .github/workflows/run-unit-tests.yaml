@@ -41,7 +41,7 @@ jobs:
               run: |
                   source /opt/ros/$ROS_DISTRO/setup.bash
                   if [ -f install/setup.bash ]; then source install/setup.bash; fi
-                  colcon build --packages-skip robot_localization --symlink-install --executor sequential --packages-up-to panther --cmake-args -DCMAKE_CXX_FLAGS='-fprofile-arcs -ftest-coverage'
+                  MAKEFLAGS="-j1 -l1" colcon build --packages-skip robot_localization --symlink-install --executor sequential --packages-up-to panther --cmake-args -DCMAKE_CXX_FLAGS='-fprofile-arcs -ftest-coverage'
             - name: Test
               working-directory: ros2_ws
               run: |
