@@ -8,6 +8,33 @@ on: workflow_dispatch
     #         - ros2-devel
 
 jobs:
+    build:
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build and push
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./.github/Dockerfile
+                  platforms: linux/arm64
+                  push: false
+                  tags: panther:test
+
+            - name: Save built Docker image (optional)
+              run: docker save panther:test | gzip > panther-test.tar.gz
+
+            - name: Upload artifact (optional)
+              uses: actions/upload-artifact@v2
+              with:
+                  name: docker-image
+                  path: panther-test.tar.gz
+
     test:
         name: Run unit tests
         runs-on: self-hosted
