@@ -31,7 +31,6 @@
       front_right_wheel_name: fr_wheel_joint
       rear_left_wheel_name: rl_wheel_joint
       rear_right_wheel_name: rr_wheel_joint
-      tf_frame_prefix_enable: false
 
       wheel_separation_x: 0.44
       wheel_separation_y: 0.6785

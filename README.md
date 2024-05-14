@@ -38,7 +38,9 @@ if [ "$HUSARION_ROS_BUILD_TYPE" == "simulation" ]; then
   vcs import src < src/panther_ros/panther/panther_simulation.repos
 fi
 
-cp -r src/ros2_controllers/imu_sensor_broadcaster src && rm -rf src/ros2_controllers
+cp -r src/ros2_controllers/diff_drive_controller src
+cp -r src/ros2_controllers/imu_sensor_broadcaster src
+rm -rf src/ros2_controllers
 
 sudo rosdep init
 rosdep update --rosdistro $ROS_DISTRO
