@@ -40,7 +40,8 @@ protected:
   void Reset() override;
   void PublishBatteryState() override;
   void LogErrors() override;
-  void DiagnoseBattery(diagnostic_updater::DiagnosticStatusWrapper & status) override;
+  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) override;
+  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) override;
 
 private:
   std::shared_ptr<Battery> battery_;

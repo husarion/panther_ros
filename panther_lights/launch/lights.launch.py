@@ -32,7 +32,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     user_led_animations_file = LaunchConfiguration("user_led_animations_file")

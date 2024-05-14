@@ -50,6 +50,14 @@ The GPIOController provides wrappers for the GPIO driver from the `panther_gpiod
 * `GPIOControllerPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
 * `Watchdog`: Entity responsible for spinning the software Watchdog. It periodically sets the high and low states of specific GPIO Watchdog pin. Used only with `GPIOControllerPTH12X`.
 
+## EStop
+
+Implementation of emergency stop handling.
+
+* `EStopInterface`: Interface for versioned emergency stop implementations.
+* `EStopPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
+* `EStopPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
+
 ## PantherSystemRosInterface
 
 A class that takes care of additional ROS interface of panther system, such as publishing driver state and providing service for clearing errors.

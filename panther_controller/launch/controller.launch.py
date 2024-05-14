@@ -27,6 +27,7 @@ from launch.substitutions import (
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
@@ -87,7 +88,7 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
     )
 
     # Get URDF via xacro
@@ -135,7 +136,7 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, controller_config_path],
+        parameters=[controller_config_path],
         namespace=namespace,
         remappings=[
             (
@@ -157,11 +158,13 @@ def generate_launch_description():
         condition=UnlessCondition(use_sim),
     )
 
+    namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
+
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[robot_description, {"frame_prefix": namespace_ext}],
         namespace=namespace,
         condition=IfCondition(publish_robot_state),
     )
