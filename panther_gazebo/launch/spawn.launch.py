@@ -88,7 +88,7 @@ def launch_setup(context):
         gz_bridge = Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
-            name="gz_bridge",
+            name="panther_base_gz_bridge",
             parameters=[{"config_file": gz_bridge_config_path}],
             namespace=robot_name,
             output="screen",
@@ -116,6 +116,21 @@ def launch_setup(context):
             }.items(),
         )
 
+        gz_components = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("ros_components_description"),
+                        "launch",
+                        "gz_components.launch.py",
+                    ]
+                )
+            ),
+            launch_arguments={
+                "namespace": namespace,
+            }.items(),
+        )
+
         ns_prefix = robot_name + "/" if robot_name else robot_name
 
         world_transform = Node(
@@ -128,7 +143,9 @@ def launch_setup(context):
             condition=IfCondition(add_world_transform),
         )
 
-        # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py ​​is smaller than bringup.launch.py, the namespace will be overwritten, resulting creating nodes with the same namespace.
+        # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py
+        # ​​is smaller than bringup.launch.py, the namespace will be overwritten,
+        # resulting creating nodes with the same namespace.
         group = TimerAction(
             period=12.0 * idx,
             actions=[
@@ -137,6 +154,7 @@ def launch_setup(context):
                 gz_bridge,
                 bringup_launch,
                 world_transform,
+                gz_components,
             ],
         )
         spawn_group.append(group)
