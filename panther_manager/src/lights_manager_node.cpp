@@ -42,7 +42,7 @@ LightsManagerNode::LightsManagerNode(
   DeclareParameters();
 
   const auto battery_percent_window_len =
-    this->get_parameter("battery_percent_window_len").as_int();
+    this->get_parameter("battery.percent.window_len").as_int();
 
   battery_percent_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     battery_percent_window_len, 1.0);
@@ -86,13 +86,12 @@ void LightsManagerNode::DeclareParameters()
   this->declare_parameter<std::vector<std::string>>("plugin_libs", default_plugin_libs);
   this->declare_parameter<std::vector<std::string>>("ros_plugin_libs", default_plugin_libs);
 
-  this->declare_parameter<int>("battery_percent_window_len", 6);
-  this->declare_parameter<float>("critical_battery_anim_period", 15.0);
-  this->declare_parameter<float>("critical_battery_threshold_percent", 0.1);
-  this->declare_parameter<float>("battery_state_anim_period", 120.0);
-  this->declare_parameter<float>("low_battery_anim_period", 30.0);
-  this->declare_parameter<float>("low_battery_threshold_percent", 0.4);
-  this->declare_parameter<float>("update_charging_anim_step", 0.1);
+  this->declare_parameter<int>("battery.percent.window_len", 6);
+  this->declare_parameter<float>("battery.percent.threshold.low", 0.4);
+  this->declare_parameter<float>("battery.percent.threshold.critical", 0.1);
+  this->declare_parameter<float>("battery.animation_period.low", 30.0);
+  this->declare_parameter<float>("battery.animation_period.critical", 15.0);
+  this->declare_parameter<float>("battery.charging_anim_step", 0.1);
   this->declare_parameter<float>("timer_frequency", 10.0);
 }
 
@@ -110,21 +109,19 @@ void LightsManagerNode::RegisterBehaviorTree()
 
 void LightsManagerNode::CreateLightsTree()
 {
-  update_charging_anim_step_ = this->get_parameter("update_charging_anim_step").as_double();
+  update_charging_anim_step_ = this->get_parameter("battery.charging_anim_step").as_double();
   const float critical_battery_anim_period =
-    this->get_parameter("critical_battery_anim_period").as_double();
+    this->get_parameter("battery.animation_period.critical").as_double();
   const float critical_battery_threshold_percent =
-    this->get_parameter("critical_battery_threshold_percent").as_double();
-  const float battery_state_anim_period =
-    this->get_parameter("battery_state_anim_period").as_double();
-  const float low_battery_anim_period = this->get_parameter("low_battery_anim_period").as_double();
+    this->get_parameter("battery.percent.threshold.critical").as_double();
+  const float low_battery_anim_period =
+    this->get_parameter("battery.animation_period.low").as_double();
   const float low_battery_threshold_percent =
-    this->get_parameter("low_battery_threshold_percent").as_double();
+    this->get_parameter("battery.percent.threshold.low").as_double();
 
   const std::map<std::string, std::any> lights_initial_bb = {
     {"charging_anim_percent", ""},
     {"current_anim_id", -1},
-    {"BATTERY_STATE_ANIM_PERIOD", battery_state_anim_period},
     {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
     {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
     {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},

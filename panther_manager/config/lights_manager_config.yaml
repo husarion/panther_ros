@@ -1,14 +1,17 @@
 /**:
   lights_manager_node:
     ros__parameters:
-      battery_percent_window_len: 6
-      critical_battery_anim_period: 15.0
-      critical_battery_threshold_percent: 0.1
-      battery_state_anim_period: 120.0
-      low_battery_anim_period: 30.0
-      low_battery_threshold_percent: 0.4
-      update_charging_anim_step: 0.1
       timer_frequency: 10.0
+      battery:
+        percent:
+          window_len: 6
+          threshold:
+            low: 0.4
+            critical: 0.1
+        animation_period:
+          low: 30.0
+          critical: 15.0
+        charging_anim_step: 0.1
       plugin_libs:
         - tick_after_timeout_bt_node
       ros_plugin_libs:

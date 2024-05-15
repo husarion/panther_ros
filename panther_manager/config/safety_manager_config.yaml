@@ -1,17 +1,21 @@
 /**:
   safety_manager_node:
     ros__parameters:
-      battery_temp_window_len: 6
-      cpu_temp_window_len: 6
-      driver_temp_window_len: 6
-      shutdown_timeout: 15.0
-      high_bat_temp: 55.0
-      critical_bat_temp: 59.0
-      cpu_fan_on_temp: 75.0
-      cpu_fan_off_temp: 70.0
-      driver_fan_on_temp: 50.0
-      driver_fan_off_temp: 45.0
       timer_frequency: 10.0
+      fan_turn_off_timeout: 60.0
+      battery:
+        temp:
+          window_len: 6
+      cpu:
+        temp:
+          window_len: 6
+          fan_on: 75.0
+          fan_off: 70.0
+      driver:
+        temp:
+          window_len: 6
+          fan_on: 50.0
+          fan_off: 45.0
       plugin_libs:
         - tick_after_timeout_bt_node
         - shutdown_single_host_bt_node

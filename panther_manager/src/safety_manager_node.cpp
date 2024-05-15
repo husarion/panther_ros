@@ -43,9 +43,9 @@ SafetyManagerNode::SafetyManagerNode(
 {
   DeclareParameters();
 
-  const auto battery_temp_window_len = this->get_parameter("battery_temp_window_len").as_int();
-  const auto cpu_temp_window_len = this->get_parameter("cpu_temp_window_len").as_int();
-  const auto driver_temp_window_len = this->get_parameter("driver_temp_window_len").as_int();
+  const auto battery_temp_window_len = this->get_parameter("battery.temp.window_len").as_int();
+  const auto cpu_temp_window_len = this->get_parameter("cpu.temp.window_len").as_int();
+  const auto driver_temp_window_len = this->get_parameter("driver.temp.window_len").as_int();
 
   battery_temp_ma_ =
     std::make_unique<panther_utils::MovingAverage<double>>(battery_temp_window_len);
@@ -110,16 +110,15 @@ void SafetyManagerNode::DeclareParameters()
   this->declare_parameter<std::string>("bt_project_path", default_bt_project_path);
   this->declare_parameter<std::vector<std::string>>("plugin_libs", default_plugin_libs);
   this->declare_parameter<std::vector<std::string>>("ros_plugin_libs", default_plugin_libs);
-  this->declare_parameter<int>("battery_temp_window_len", 6);
-  this->declare_parameter<int>("cpu_temp_window_len", 6);
-  this->declare_parameter<int>("driver_temp_window_len", 6);
   this->declare_parameter<std::string>("shutdown_hosts_path", "");
 
-  // safety tree params
-  this->declare_parameter<float>("cpu_fan_on_temp", 70.0);
-  this->declare_parameter<float>("cpu_fan_off_temp", 60.0);
-  this->declare_parameter<float>("driver_fan_on_temp", 45.0);
-  this->declare_parameter<float>("driver_fan_off_temp", 35.0);
+  this->declare_parameter<int>("battery.temp.window_len", 6);
+  this->declare_parameter<int>("cpu.temp.window_len", 6);
+  this->declare_parameter<float>("cpu.temp.fan_on", 70.0);
+  this->declare_parameter<float>("cpu.temp.fan_off", 60.0);
+  this->declare_parameter<int>("driver.temp.window_len", 6);
+  this->declare_parameter<float>("driver.temp.fan_on", 45.0);
+  this->declare_parameter<float>("driver.temp.fan_off", 35.0);
   this->declare_parameter<float>("timer_frequency", 10.0);
   this->declare_parameter<float>("fan_turn_off_timeout", 60.0);
 }
@@ -138,10 +137,10 @@ void SafetyManagerNode::RegisterBehaviorTree()
 
 void SafetyManagerNode::CreateSafetyTree()
 {
-  const float cpu_fan_on_temp = this->get_parameter("cpu_fan_on_temp").as_double();
-  const float cpu_fan_off_temp = this->get_parameter("cpu_fan_off_temp").as_double();
-  const float driver_fan_on_temp = this->get_parameter("driver_fan_on_temp").as_double();
-  const float driver_fan_off_temp = this->get_parameter("driver_fan_off_temp").as_double();
+  const float cpu_fan_on_temp = this->get_parameter("cpu.temp.fan_on").as_double();
+  const float cpu_fan_off_temp = this->get_parameter("cpu.temp.fan_off").as_double();
+  const float driver_fan_on_temp = this->get_parameter("driver.temp.fan_on").as_double();
+  const float driver_fan_off_temp = this->get_parameter("driver.temp.fan_off").as_double();
   const float fan_turn_off_timeout = this->get_parameter("fan_turn_off_timeout").as_double();
 
   const std::map<std::string, std::any> safety_initial_bb = {

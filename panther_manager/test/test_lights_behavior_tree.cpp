@@ -94,8 +94,9 @@ TestLightsBehaviorTree::TestLightsBehaviorTree()
   std::vector<rclcpp::Parameter> params;
   params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
   params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
-  params.push_back(rclcpp::Parameter("low_battery_anim_period", kLowBatteryAnimPeriod));
-  params.push_back(rclcpp::Parameter("critical_battery_anim_period", kCriticalBatteryAnimPeriod));
+  params.push_back(rclcpp::Parameter("battery.animation_period.low", kLowBatteryAnimPeriod));
+  params.push_back(
+    rclcpp::Parameter("battery.animation_period.critical", kCriticalBatteryAnimPeriod));
 
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
