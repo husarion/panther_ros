@@ -138,7 +138,7 @@
       </joint>
 
       <xacro:if value="${use_sim}">
-        <sensor name="imu">
+        <sensor name="${ns}imu">
           <state_interface name="orientation.x" />
           <state_interface name="orientation.y" />
           <state_interface name="orientation.z" />
@@ -174,7 +174,7 @@
           <param name="world_frame">enu</param>
         </hardware>
 
-        <sensor name="imu">
+        <sensor name="${ns}imu">
           <state_interface name="orientation.x" />
           <state_interface name="orientation.y" />
           <state_interface name="orientation.z" />

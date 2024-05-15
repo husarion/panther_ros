@@ -144,7 +144,6 @@ protected:
   std::vector<double> imu_sensor_state_;
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
 
-  inline static const std::string kImuSensorName = "imu";
   inline static const std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
     "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
     "angular_velocity.x",    "angular_velocity.y",    "angular_velocity.z", "linear_acceleration.x",
