@@ -241,6 +241,8 @@ def generate_launch_description():
         name="system_status",
         output="screen",
         condition=UnlessCondition(use_sim),
+        namespace=namespace,
+        remappings=[("/diagnostics", "diagnostics")],
     )
 
     lights_launch = IncludeLaunchDescription(
