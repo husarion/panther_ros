@@ -50,7 +50,7 @@ public:
 
   ~LightsManagerNodeWrapper() {}
 
-  BT::NodeStatus GetLightsTreeStatus() { return this->lights_tree_status_; }
+  BT::NodeStatus GetTreeStatus() { return this->lights_tree_manager_->GetTreeStatus(); }
 };
 
 class TestLightsBehaviorTree : public testing::Test
@@ -117,7 +117,7 @@ TestLightsBehaviorTree::~TestLightsBehaviorTree() {}
 bool TestLightsBehaviorTree::SpinWhileRunning()
 {
   return behavior_tree::test_utils::SpinWhileRunning(
-    lights_manager_node_, [&]() { return lights_manager_node_->GetLightsTreeStatus(); },
+    lights_manager_node_, [&]() { return lights_manager_node_->GetTreeStatus(); },
     std::chrono::milliseconds(1000));
 }
 

@@ -18,8 +18,6 @@
 #include <memory>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
-#include "behaviortree_cpp/loggers/groot2_publisher.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/battery_state.hpp"
@@ -30,6 +28,8 @@
 #include "panther_msgs/msg/system_status.hpp"
 
 #include "panther_utils/moving_average.hpp"
+
+#include <panther_manager/behavior_tree_manager.hpp>
 
 namespace panther_manager
 {
@@ -55,9 +55,7 @@ public:
 
 protected:
   void DeclareParameters();
-  void RegisterBehaviorTree();
-  void CreateSafetyTree();
-  void CreateShutdownTree();
+  std::map<std::string, std::any> CreateSafetyInitialBlackboard();
 
   /**
    * @brief Checks whether the required blackboard entries for the lights tree are present. These
@@ -68,10 +66,8 @@ protected:
    */
   bool SystemReady();
 
-  BT::Tree safety_tree_;
-  BT::Tree shutdown_tree_;
-  BT::NodeStatus safety_tree_status_ = BT::NodeStatus::IDLE;
-  BT::NodeStatus shutdown_tree_status_ = BT::NodeStatus::IDLE;
+  std::unique_ptr<BehaviorTreeManager> safety_tree_manager_;
+  std::unique_ptr<BehaviorTreeManager> shutdown_tree_manager_;
 
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);
@@ -94,12 +90,6 @@ private:
   rclcpp::Subscription<IOStateMsg>::SharedPtr io_state_sub_;
   rclcpp::Subscription<SystemStatusMsg>::SharedPtr system_status_sub_;
   rclcpp::TimerBase::SharedPtr safety_tree_timer_;
-
-  BT::BehaviorTreeFactory factory_;
-  BT::NodeConfig safety_config_;
-  BT::NodeConfig shutdown_config_;
-  std::unique_ptr<BT::Groot2Publisher> safety_bt_publisher_;
-  std::unique_ptr<BT::Groot2Publisher> shutdown_bt_publisher_;
 
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> cpu_temp_ma_;

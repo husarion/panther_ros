@@ -18,8 +18,6 @@
 #include <memory>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
-#include "behaviortree_cpp/loggers/groot2_publisher.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/battery_state.hpp"
@@ -28,6 +26,8 @@
 #include "panther_msgs/msg/led_animation.hpp"
 
 #include "panther_utils/moving_average.hpp"
+
+#include <panther_manager/behavior_tree_manager.hpp>
 
 namespace panther_manager
 {
@@ -51,8 +51,7 @@ public:
 
 protected:
   void DeclareParameters();
-  void RegisterBehaviorTree();
-  void CreateLightsTree();
+  std::map<std::string, std::any> CreateLightsInitialBlackboard();
 
   /**
    * @brief Checks whether the required blackboard entries for the lights tree are present. These
@@ -63,8 +62,7 @@ protected:
    */
   bool SystemReady();
 
-  BT::Tree lights_tree_;
-  BT::NodeStatus lights_tree_status_ = BT::NodeStatus::IDLE;
+  std::unique_ptr<BehaviorTreeManager> lights_tree_manager_;
 
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);
@@ -76,10 +74,6 @@ private:
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BoolMsg>::SharedPtr e_stop_sub_;
   rclcpp::TimerBase::SharedPtr lights_tree_timer_;
-
-  BT::BehaviorTreeFactory factory_;
-  BT::NodeConfig lights_config_;
-  std::unique_ptr<BT::Groot2Publisher> lights_bt_publisher_;
 
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_percent_ma_;
 };

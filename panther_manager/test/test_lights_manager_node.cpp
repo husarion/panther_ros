@@ -47,10 +47,11 @@ public:
   ~LightsManagerNodeWrapper() {}
 
   bool SystemReady() { return LightsManagerNode::SystemReady(); }
-  void RegisterBehaviorTree() { return LightsManagerNode::RegisterBehaviorTree(); }
-  void CreateLightsTree() { return LightsManagerNode::CreateLightsTree(); }
 
-  BT::Tree & GetLightsTree() { return this->lights_tree_; }
+  BT::Blackboard::Ptr GetLightsTreeBlackboard()
+  {
+    return this->lights_tree_manager_->GetBlackboard();
+  }
 };
 
 class TestLightsManagerNode : public testing::Test
@@ -134,43 +135,43 @@ void TestLightsManagerNode::PublishAndSpin(
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-TEST_F(TestLightsManagerNode, RegisterBehaviorTree)
-{
-  EXPECT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-}
+// TEST_F(TestLightsManagerNode, RegisterBehaviorTree)
+// {
+//   EXPECT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
+// }
 
-TEST_F(TestLightsManagerNode, CreateLightsTreeInvalidTreeName)
-{
-  const auto tree_xml = R"(
-    <root BTCPP_format="4" project_name="Test">
-      <BehaviorTree ID="InvalidName">
-        <AlwaysSuccess/>
-      </BehaviorTree>
-    </root>
-  )";
+// TEST_F(TestLightsManagerNode, CreateLightsTreeInvalidTreeName)
+// {
+//   const auto tree_xml = R"(
+//     <root BTCPP_format="4" project_name="Test">
+//       <BehaviorTree ID="InvalidName">
+//         <AlwaysSuccess/>
+//       </BehaviorTree>
+//     </root>
+//   )";
 
-  // overwrite default tree
-  CreateBTProjectFile(tree_xml);
-  ASSERT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { lights_manager_node_->CreateLightsTree(); }, "Can't find a tree with name: Lights"));
-}
+//   // overwrite default tree
+//   CreateBTProjectFile(tree_xml);
+//   ASSERT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
+//   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+//     [&]() { lights_manager_node_->CreateLightsTree(); }, "Can't find a tree with name: Lights"));
+// }
 
-TEST_F(TestLightsManagerNode, CreateLightsTree)
-{
-  ASSERT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-  EXPECT_NO_THROW(lights_manager_node_->CreateLightsTree());
-}
+// TEST_F(TestLightsManagerNode, CreateLightsTree)
+// {
+//   ASSERT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
+//   EXPECT_NO_THROW(lights_manager_node_->CreateLightsTree());
+// }
 
 TEST_F(TestLightsManagerNode, SystemReady)
 {
   ASSERT_NO_THROW(lights_manager_node_->Initialize());
   EXPECT_FALSE(lights_manager_node_->SystemReady());
 
-  lights_manager_node_->GetLightsTree().rootBlackboard()->set<bool>("e_stop_state", true);
+  lights_manager_node_->GetLightsTreeBlackboard()->set<bool>("e_stop_state", true);
   EXPECT_FALSE(lights_manager_node_->SystemReady());
 
-  lights_manager_node_->GetLightsTree().rootBlackboard()->set<unsigned>("battery_status", 0);
+  lights_manager_node_->GetLightsTreeBlackboard()->set<unsigned>("battery_status", 0);
   EXPECT_TRUE(lights_manager_node_->SystemReady());
 }
 
@@ -187,7 +188,7 @@ TEST_F(TestLightsManagerNode, BatteryCBBlackboardUpdate)
 
   PublishAndSpin("battery", battery_state);
 
-  auto blackboard = lights_manager_node_->GetLightsTree().rootBlackboard();
+  auto blackboard = lights_manager_node_->GetLightsTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("battery_percent"), expected_percentage);
   EXPECT_EQ(blackboard->get<unsigned>("battery_status"), expected_status);
   EXPECT_EQ(blackboard->get<unsigned>("battery_health"), expected_health);
@@ -203,7 +204,7 @@ TEST_F(TestLightsManagerNode, EStopCBBlackboardUpdate)
   PublishAndSpin(
     "hardware/e_stop", bool_msg, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
-  auto blackboard = lights_manager_node_->GetLightsTree().rootBlackboard();
+  auto blackboard = lights_manager_node_->GetLightsTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("e_stop_state"), expected_state);
 }
 

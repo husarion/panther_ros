@@ -23,14 +23,11 @@
 #include <vector>
 
 #include "ament_index_cpp/get_package_share_directory.hpp"
-#include "behaviortree_cpp/bt_factory.h"
-#include "behaviortree_cpp/loggers/groot2_publisher.h"
-#include "behaviortree_cpp/utils/shared_library.h"
 #include "rclcpp/rclcpp.hpp"
 
-#include "behaviortree_ros2/plugins.hpp"
-#include "panther_manager/bt_utils.hpp"
 #include "panther_utils/moving_average.hpp"
+
+#include <panther_manager/behavior_tree_manager.hpp>
 
 namespace panther_manager
 {
@@ -47,14 +44,26 @@ LightsManagerNode::LightsManagerNode(
   battery_percent_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     battery_percent_window_len, 1.0);
 
+  BehaviorTreeParams bt_params;
+  bt_params.project_path = this->get_parameter("bt_project_path").as_string();
+  bt_params.plugin_libs = this->get_parameter("plugin_libs").as_string_array();
+  bt_params.ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
+  bt_params.tree_name = "Lights";
+  bt_params.initial_blackboard = CreateLightsInitialBlackboard();
+  bt_params.groot_port = 5555;
+
+  lights_tree_manager_ = std::make_unique<BehaviorTreeManager>(bt_params);
+
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
 void LightsManagerNode::Initialize()
 {
-  RegisterBehaviorTree();
+  const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
+  const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
+  const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
 
-  CreateLightsTree();
+  lights_tree_manager_->Initialize(this->shared_from_this());
 
   using namespace std::placeholders;
 
@@ -95,19 +104,7 @@ void LightsManagerNode::DeclareParameters()
   this->declare_parameter<float>("timer_frequency", 10.0);
 }
 
-void LightsManagerNode::RegisterBehaviorTree()
-{
-  const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
-  const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
-  const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
-
-  RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
-
-  bt_utils::RegisterBehaviorTree(
-    factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
-}
-
-void LightsManagerNode::CreateLightsTree()
+std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard()
 {
   update_charging_anim_step_ = this->get_parameter("battery.charging_anim_step").as_double();
   const float critical_battery_anim_period =
@@ -148,17 +145,15 @@ void LightsManagerNode::CreateLightsTree()
     {"POWER_SUPPLY_HEALTH_OVERHEAT", unsigned(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT)},
   };
 
-  lights_config_ = bt_utils::CreateBTConfig(lights_initial_bb);
-  lights_tree_ = factory_.createTree("Lights", lights_config_.blackboard);
-  lights_bt_publisher_ = std::make_unique<BT::Groot2Publisher>(lights_tree_, 5555);
+  return lights_initial_bb;
 }
 
 void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
 {
   const auto battery_status = battery_state->power_supply_status;
   const auto battery_health = battery_state->power_supply_health;
-  lights_config_.blackboard->set<unsigned>("battery_status", battery_status);
-  lights_config_.blackboard->set<unsigned>("battery_health", battery_health);
+  lights_tree_manager_->GetBlackboard()->set<unsigned>("battery_status", battery_status);
+  lights_tree_manager_->GetBlackboard()->set<unsigned>("battery_health", battery_health);
 
   // don't update battery percentage if unknown status or health
   if (
@@ -167,8 +162,9 @@ void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state
     battery_percent_ma_->Roll(battery_state->percentage);
   }
 
-  lights_config_.blackboard->set<float>("battery_percent", battery_percent_ma_->GetAverage());
-  lights_config_.blackboard->set<std::string>(
+  lights_tree_manager_->GetBlackboard()->set<float>(
+    "battery_percent", battery_percent_ma_->GetAverage());
+  lights_tree_manager_->GetBlackboard()->set<std::string>(
     "battery_percent_round",
     std::to_string(
       round(battery_percent_ma_->GetAverage() / update_charging_anim_step_) *
@@ -177,7 +173,7 @@ void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state
 
 void LightsManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
 {
-  lights_config_.blackboard->set<bool>("e_stop_state", e_stop->data);
+  lights_tree_manager_->GetBlackboard()->set<bool>("e_stop_state", e_stop->data);
 }
 
 void LightsManagerNode::LightsTreeTimerCB()
@@ -186,9 +182,9 @@ void LightsManagerNode::LightsTreeTimerCB()
     return;
   }
 
-  lights_tree_status_ = lights_tree_.tickOnce();
+  lights_tree_manager_->TickOnce();
 
-  if (lights_tree_status_ == BT::NodeStatus::FAILURE) {
+  if (lights_tree_manager_->GetTreeStatus() == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
   }
 }
@@ -196,8 +192,8 @@ void LightsManagerNode::LightsTreeTimerCB()
 bool LightsManagerNode::SystemReady()
 {
   if (
-    !lights_config_.blackboard->getEntry("e_stop_state") ||
-    !lights_config_.blackboard->getEntry("battery_status")) {
+    !lights_tree_manager_->GetBlackboard()->getEntry("e_stop_state") ||
+    !lights_tree_manager_->GetBlackboard()->getEntry("battery_status")) {
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 5000,
       "Waiting for required system messages to arrive");

@@ -56,8 +56,8 @@ public:
 
   ~SafetyManagerNodeWrapper() {}
 
-  BT::NodeStatus GetSafetyTreeStatus() { return this->safety_tree_status_; }
-  BT::NodeStatus GetShutdownTreeStatus() { return this->shutdown_tree_status_; }
+  BT::NodeStatus GetSafetyTreeStatus() { return this->safety_tree_manager_->GetTreeStatus(); }
+  BT::NodeStatus GetShutdownTreeStatus() { return this->shutdown_tree_manager_->GetTreeStatus(); }
 };
 
 class TestSafetyBehaviorTree : public testing::Test

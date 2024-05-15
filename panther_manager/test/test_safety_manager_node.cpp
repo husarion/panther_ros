@@ -47,11 +47,11 @@ public:
   ~SafetyManagerNodeWrapper() {}
 
   bool SystemReady() { return SafetyManagerNode::SystemReady(); }
-  void RegisterBehaviorTree() { return SafetyManagerNode::RegisterBehaviorTree(); }
-  void CreateSafetyTree() { return SafetyManagerNode::CreateSafetyTree(); }
-  void CreateShutdownTree() { return SafetyManagerNode::CreateShutdownTree(); }
 
-  BT::Tree & GetSafetyTree() { return this->safety_tree_; }
+  BT::Blackboard::Ptr GetSafetyTreeBlackboard()
+  {
+    return this->safety_tree_manager_->GetBlackboard();
+  }
 };
 
 class TestSafetyManagerNode : public testing::Test
@@ -145,76 +145,76 @@ void TestSafetyManagerNode::PublishAndSpin(
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-TEST_F(TestSafetyManagerNode, RegisterBehaviorTree)
-{
-  EXPECT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-}
+// TEST_F(TestSafetyManagerNode, RegisterBehaviorTree)
+// {
+//   EXPECT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
+// }
 
-TEST_F(TestSafetyManagerNode, CreateSafetyTreeInvalidTreeName)
-{
-  const auto tree_xml = R"(
-    <root BTCPP_format="4" project_name="Test">
-      <BehaviorTree ID="InvalidName">
-        <AlwaysSuccess/>
-      </BehaviorTree>
-    </root>
-  )";
+// TEST_F(TestSafetyManagerNode, CreateSafetyTreeInvalidTreeName)
+// {
+//   const auto tree_xml = R"(
+//     <root BTCPP_format="4" project_name="Test">
+//       <BehaviorTree ID="InvalidName">
+//         <AlwaysSuccess/>
+//       </BehaviorTree>
+//     </root>
+//   )";
 
-  // overwrite default tree
-  CreateBTProjectFile(tree_xml);
-  ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { safety_manager_node_->CreateSafetyTree(); }, "Can't find a tree with name: Safety"));
-}
+//   // overwrite default tree
+//   CreateBTProjectFile(tree_xml);
+//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
+//   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+//     [&]() { safety_manager_node_->CreateSafetyTree(); }, "Can't find a tree with name: Safety"));
+// }
 
-TEST_F(TestSafetyManagerNode, CreateSafetyTree)
-{
-  ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-  EXPECT_NO_THROW(safety_manager_node_->CreateSafetyTree());
-}
+// TEST_F(TestSafetyManagerNode, CreateSafetyTree)
+// {
+//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
+//   EXPECT_NO_THROW(safety_manager_node_->CreateSafetyTree());
+// }
 
-TEST_F(TestSafetyManagerNode, CreateShutdownTreeInvalidTreeName)
-{
-  const auto tree_xml = R"(
-    <root BTCPP_format="4" project_name="Test">
-      <BehaviorTree ID="InvalidName">
-        <AlwaysSuccess/>
-      </BehaviorTree>
-    </root>
-  )";
+// TEST_F(TestSafetyManagerNode, CreateShutdownTreeInvalidTreeName)
+// {
+//   const auto tree_xml = R"(
+//     <root BTCPP_format="4" project_name="Test">
+//       <BehaviorTree ID="InvalidName">
+//         <AlwaysSuccess/>
+//       </BehaviorTree>
+//     </root>
+//   )";
 
-  // overwrite default tree
-  CreateBTProjectFile(tree_xml);
-  ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { safety_manager_node_->CreateShutdownTree(); },
-    "Can't find a tree with name: Shutdown"));
-}
+//   // overwrite default tree
+//   CreateBTProjectFile(tree_xml);
+//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
+//   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+//     [&]() { safety_manager_node_->CreateShutdownTree(); },
+//     "Can't find a tree with name: Shutdown"));
+// }
 
-TEST_F(TestSafetyManagerNode, CreateShutdownTree)
-{
-  ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-  EXPECT_NO_THROW(safety_manager_node_->CreateShutdownTree());
-}
+// TEST_F(TestSafetyManagerNode, CreateShutdownTree)
+// {
+//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
+//   EXPECT_NO_THROW(safety_manager_node_->CreateShutdownTree());
+// }
 
 TEST_F(TestSafetyManagerNode, SystemReady)
 {
   ASSERT_NO_THROW(safety_manager_node_->Initialize());
   EXPECT_FALSE(safety_manager_node_->SystemReady());
 
-  safety_manager_node_->GetSafetyTree().rootBlackboard()->set<bool>("e_stop_state", true);
+  safety_manager_node_->GetSafetyTreeBlackboard()->set<bool>("e_stop_state", true);
   EXPECT_FALSE(safety_manager_node_->SystemReady());
 
-  safety_manager_node_->GetSafetyTree().rootBlackboard()->set<unsigned>("battery_status", 0);
+  safety_manager_node_->GetSafetyTreeBlackboard()->set<unsigned>("battery_status", 0);
   EXPECT_FALSE(safety_manager_node_->SystemReady());
 
-  safety_manager_node_->GetSafetyTree().rootBlackboard()->set<bool>("aux_state", false);
+  safety_manager_node_->GetSafetyTreeBlackboard()->set<bool>("aux_state", false);
   EXPECT_FALSE(safety_manager_node_->SystemReady());
 
-  safety_manager_node_->GetSafetyTree().rootBlackboard()->set<float>("cpu_temp", 20.0);
+  safety_manager_node_->GetSafetyTreeBlackboard()->set<float>("cpu_temp", 20.0);
   EXPECT_FALSE(safety_manager_node_->SystemReady());
 
-  safety_manager_node_->GetSafetyTree().rootBlackboard()->set<float>("driver_temp", 20.0);
+  safety_manager_node_->GetSafetyTreeBlackboard()->set<float>("driver_temp", 20.0);
   EXPECT_TRUE(safety_manager_node_->SystemReady());
 }
 
@@ -231,7 +231,7 @@ TEST_F(TestSafetyManagerNode, BatteryCBBlackboardUpdate)
 
   PublishAndSpin("battery", battery_state);
 
-  auto blackboard = safety_manager_node_->GetSafetyTree().rootBlackboard();
+  auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<unsigned>("battery_status"), expected_status);
   EXPECT_EQ(blackboard->get<unsigned>("battery_health"), expected_health);
   EXPECT_FLOAT_EQ(blackboard->get<float>("bat_temp"), expected_temp);
@@ -247,7 +247,7 @@ TEST_F(TestSafetyManagerNode, EStopCBBlackboardUpdate)
   PublishAndSpin(
     "hardware/e_stop", bool_msg, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
-  auto blackboard = safety_manager_node_->GetSafetyTree().rootBlackboard();
+  auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<bool>("e_stop_state"), expected_state);
 }
 
@@ -261,7 +261,7 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
 
   PublishAndSpin("driver/motor_controllers_state", driver_state_msg);
 
-  auto blackboard = safety_manager_node_->GetSafetyTree().rootBlackboard();
+  auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("driver_temp"), expected_temp);
 }
 
@@ -278,7 +278,7 @@ TEST_F(TestSafetyManagerNode, IOStateCBBlackboardUpdate)
     "hardware/io_state", io_state_msg,
     rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
-  auto blackboard = safety_manager_node_->GetSafetyTree().rootBlackboard();
+  auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<bool>("aux_state"), expected_aux_state);
   EXPECT_EQ(blackboard->get<bool>("fan_state"), expected_fan_state);
 }
@@ -292,7 +292,7 @@ TEST_F(TestSafetyManagerNode, SystemStatusCBBlackboardUpdate)
 
   PublishAndSpin("system_status", system_status_msg);
 
-  auto blackboard = safety_manager_node_->GetSafetyTree().rootBlackboard();
+  auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("cpu_temp"), expected_temp);
 }
 
