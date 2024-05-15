@@ -27,17 +27,9 @@ namespace panther_manager
 
 /**
  * @brief todo
- *
- * @param project_path The path to the BehaviorTree project file.
- * @param plugin_libs A vector containing the names of the nodes that will be registered from
- * @param ros_plugin_libs A vector containing the names of the ROS nodes that will be registered
- * from plugins.
  */
 struct BehaviorTreeParams
 {
-  std::string project_path;
-  std::vector<std::string> plugin_libs;
-  std::vector<std::string> ros_plugin_libs;
   std::string tree_name;
   std::map<std::string, std::any> initial_blackboard;
   unsigned groot_port = 1667;
@@ -50,18 +42,14 @@ class BehaviorTreeManager
 {
 public:
   BehaviorTreeManager(const BehaviorTreeParams & params)
-  : project_path_(params.project_path),
-    plugin_libs_(params.plugin_libs),
-    ros_plugin_libs_(params.ros_plugin_libs),
-    tree_name_(params.tree_name),
+  : tree_name_(params.tree_name),
     initial_blackboard_(params.initial_blackboard),
     groot_port_(params.groot_port)
   {
   }
   ~BehaviorTreeManager() {}
 
-  // void Initialize();
-  void Initialize(const rclcpp::Node::SharedPtr & node);
+  void Initialize(BT::BehaviorTreeFactory & factory);
 
   void TickOnce() { tree_status_ = tree_.tickOnce(); }
   void TickExactlyOnce() { tree_status_ = tree_.tickExactlyOnce(); }
@@ -73,22 +61,6 @@ public:
   BT::Blackboard::Ptr GetBlackboard() { return config_.blackboard; }
 
 protected:
-  /**
-   * @brief Registers a BehaviorTree into the factory from a file, with custom BT nodes loaded
-   * from plugins.
-   */
-  void RegisterTree();
-
-  /**
-   * @brief Registers a BehaviorTree into the factory from a file, with custom BT nodes and ROS
-   * nodes loaded from plugins.
-   *
-   * @param node The ROS node used with ROS plugins.
-   */
-  void RegisterTree(const rclcpp::Node::SharedPtr & node);
-
-  void CreateTree();
-
   /**
    * @brief Creates a BehaviorTree configuration using a set of predefined blackboard values.
    *
@@ -102,14 +74,10 @@ protected:
   BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values);
 
 private:
-  const std::string project_path_;
-  const std::vector<std::string> plugin_libs_;
-  const std::vector<std::string> ros_plugin_libs_;
   const std::string tree_name_;
   const std::map<std::string, std::any> initial_blackboard_;
   const unsigned groot_port_;
 
-  BT::BehaviorTreeFactory factory_;
   BT::Tree tree_;
   BT::NodeStatus tree_status_ = BT::NodeStatus::IDLE;
   BT::NodeConfig config_;

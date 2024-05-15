@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/battery_state.hpp"
@@ -51,6 +52,7 @@ public:
 
 protected:
   void DeclareParameters();
+  void RegisterBehaviorTree();
   std::map<std::string, std::any> CreateLightsInitialBlackboard();
 
   /**
@@ -76,6 +78,7 @@ private:
   rclcpp::TimerBase::SharedPtr lights_tree_timer_;
 
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_percent_ma_;
+  BT::BehaviorTreeFactory factory_;
 };
 
 }  // namespace panther_manager

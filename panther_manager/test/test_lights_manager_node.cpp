@@ -46,6 +46,7 @@ public:
 
   ~LightsManagerNodeWrapper() {}
 
+  void RegisterBehaviorTree() { return LightsManagerNode::RegisterBehaviorTree(); }
   bool SystemReady() { return LightsManagerNode::SystemReady(); }
 
   BT::Blackboard::Ptr GetLightsTreeBlackboard()
@@ -135,10 +136,10 @@ void TestLightsManagerNode::PublishAndSpin(
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-// TEST_F(TestLightsManagerNode, RegisterBehaviorTree)
-// {
-//   EXPECT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-// }
+TEST_F(TestLightsManagerNode, RegisterBehaviorTree)
+{
+  EXPECT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
+}
 
 // TEST_F(TestLightsManagerNode, CreateLightsTreeInvalidTreeName)
 // {

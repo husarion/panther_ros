@@ -28,6 +28,7 @@
 #include "panther_utils/moving_average.hpp"
 
 #include <panther_manager/behavior_tree_manager.hpp>
+#include <panther_manager/bt_utils.hpp>
 
 namespace panther_manager
 {
@@ -45,9 +46,6 @@ LightsManagerNode::LightsManagerNode(
     battery_percent_window_len, 1.0);
 
   BehaviorTreeParams bt_params;
-  bt_params.project_path = this->get_parameter("bt_project_path").as_string();
-  bt_params.plugin_libs = this->get_parameter("plugin_libs").as_string_array();
-  bt_params.ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
   bt_params.tree_name = "Lights";
   bt_params.initial_blackboard = CreateLightsInitialBlackboard();
   bt_params.groot_port = 5555;
@@ -59,11 +57,8 @@ LightsManagerNode::LightsManagerNode(
 
 void LightsManagerNode::Initialize()
 {
-  const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
-  const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
-  const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
-
-  lights_tree_manager_->Initialize(this->shared_from_this());
+  RegisterBehaviorTree();
+  lights_tree_manager_->Initialize(factory_);
 
   using namespace std::placeholders;
 
@@ -102,6 +97,18 @@ void LightsManagerNode::DeclareParameters()
   this->declare_parameter<float>("battery.animation_period.critical", 15.0);
   this->declare_parameter<float>("battery.charging_anim_step", 0.1);
   this->declare_parameter<float>("timer_frequency", 10.0);
+}
+
+void LightsManagerNode::RegisterBehaviorTree()
+{
+  const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
+  const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
+  const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
+
+  RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
+
+  bt_utils::RegisterBehaviorTree(
+    factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
 }
 
 std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard()

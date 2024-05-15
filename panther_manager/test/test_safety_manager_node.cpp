@@ -46,6 +46,7 @@ public:
 
   ~SafetyManagerNodeWrapper() {}
 
+  void RegisterBehaviorTree() { return SafetyManagerNode::RegisterBehaviorTree(); }
   bool SystemReady() { return SafetyManagerNode::SystemReady(); }
 
   BT::Blackboard::Ptr GetSafetyTreeBlackboard()
@@ -145,10 +146,10 @@ void TestSafetyManagerNode::PublishAndSpin(
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-// TEST_F(TestSafetyManagerNode, RegisterBehaviorTree)
-// {
-//   EXPECT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-// }
+TEST_F(TestSafetyManagerNode, RegisterBehaviorTree)
+{
+  EXPECT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
+}
 
 // TEST_F(TestSafetyManagerNode, CreateSafetyTreeInvalidTreeName)
 // {

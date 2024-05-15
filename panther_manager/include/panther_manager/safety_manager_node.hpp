@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 
+#include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/msg/battery_state.hpp"
@@ -42,7 +43,7 @@ using SystemStatusMsg = panther_msgs::msg::SystemStatus;
 
 /**
  * @brief This class is responsible for creating a BehaviorTrees responsible for safety and shutdown
- * management, spining them, and updating blackboard entries based on subscribed topics.
+ * management, spinning them, and updating blackboard entries based on subscribed topics.
  */
 class SafetyManagerNode : public rclcpp::Node
 {
@@ -55,6 +56,7 @@ public:
 
 protected:
   void DeclareParameters();
+  void RegisterBehaviorTree();
   std::map<std::string, std::any> CreateSafetyInitialBlackboard();
 
   /**
@@ -95,6 +97,7 @@ private:
   std::unique_ptr<panther_utils::MovingAverage<double>> cpu_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> front_driver_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> rear_driver_temp_ma_;
+  BT::BehaviorTreeFactory factory_;
 };
 
 }  // namespace panther_manager

@@ -37,38 +37,10 @@
 namespace panther_manager
 {
 
-void BehaviorTreeManager::Initialize(const rclcpp::Node::SharedPtr & node)
-{
-  RegisterTree(node);
-  CreateTree();
-}
-
-void BehaviorTreeManager::RegisterTree()
-{
-  for (const auto & plugin : plugin_libs_) {
-    factory_.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
-  }
-
-  factory_.registerBehaviorTreeFromFile(project_path_);
-}
-
-void BehaviorTreeManager::RegisterTree(const rclcpp::Node::SharedPtr & node)
-{
-  RCLCPP_INFO(node->get_logger(), "Register BehaviorTree from: %s", project_path_.c_str());
-
-  for (const auto & plugin : ros_plugin_libs_) {
-    BT::RosNodeParams params;
-    params.nh = node;
-    RegisterRosNode(factory_, BT::SharedLibrary::getOSName(plugin), params);
-  }
-
-  RegisterTree();
-}
-
-void BehaviorTreeManager::CreateTree()
+void BehaviorTreeManager::Initialize(BT::BehaviorTreeFactory & factory)
 {
   config_ = CreateBTConfig(initial_blackboard_);
-  tree_ = factory_.createTree(tree_name_, config_.blackboard);
+  tree_ = factory.createTree(tree_name_, config_.blackboard);
   groot_publisher_ = std::make_unique<BT::Groot2Publisher>(tree_, groot_port_);
 }
 

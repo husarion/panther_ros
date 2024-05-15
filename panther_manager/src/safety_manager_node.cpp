@@ -29,6 +29,9 @@
 
 #include "panther_utils/moving_average.hpp"
 
+#include <panther_manager/behavior_tree_manager.hpp>
+#include <panther_manager/bt_utils.hpp>
+
 namespace panther_manager
 {
 
@@ -50,27 +53,15 @@ SafetyManagerNode::SafetyManagerNode(
   rear_driver_temp_ma_ =
     std::make_unique<panther_utils::MovingAverage<double>>(driver_temp_window_len);
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
-
-  const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
-  const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
-  const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
-  const auto shutdown_hosts_path = this->get_parameter("shutdown_hosts_path").as_string();
-
   BehaviorTreeParams safety_bt_params;
-  safety_bt_params.project_path = bt_project_path;
-  safety_bt_params.plugin_libs = plugin_libs;
-  safety_bt_params.ros_plugin_libs = ros_plugin_libs;
   safety_bt_params.tree_name = "Safety";
   safety_bt_params.initial_blackboard = CreateSafetyInitialBlackboard();
   safety_bt_params.groot_port = 6666;
 
   safety_tree_manager_ = std::make_unique<BehaviorTreeManager>(safety_bt_params);
 
+  const auto shutdown_hosts_path = this->get_parameter("shutdown_hosts_path").as_string();
   BehaviorTreeParams shutdown_bt_params;
-  shutdown_bt_params.project_path = bt_project_path;
-  shutdown_bt_params.plugin_libs = plugin_libs;
-  shutdown_bt_params.ros_plugin_libs = ros_plugin_libs;
   shutdown_bt_params.tree_name = "Shutdown";
   shutdown_bt_params.initial_blackboard = {
     {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_path.c_str()},
@@ -78,12 +69,15 @@ SafetyManagerNode::SafetyManagerNode(
   shutdown_bt_params.groot_port = 7777;
 
   shutdown_tree_manager_ = std::make_unique<BehaviorTreeManager>(shutdown_bt_params);
+
+  RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
 void SafetyManagerNode::Initialize()
 {
-  safety_tree_manager_->Initialize(this->shared_from_this());
-  shutdown_tree_manager_->Initialize(this->shared_from_this());
+  RegisterBehaviorTree();
+  safety_tree_manager_->Initialize(factory_);
+  shutdown_tree_manager_->Initialize(factory_);
 
   // -------------------------------
   //   Subscribers
@@ -140,6 +134,18 @@ void SafetyManagerNode::DeclareParameters()
   this->declare_parameter<float>("driver.temp.fan_off", 35.0);
   this->declare_parameter<float>("timer_frequency", 10.0);
   this->declare_parameter<float>("fan_turn_off_timeout", 60.0);
+}
+
+void SafetyManagerNode::RegisterBehaviorTree()
+{
+  const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
+  const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
+  const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
+
+  RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
+
+  bt_utils::RegisterBehaviorTree(
+    factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
 }
 
 std::map<std::string, std::any> SafetyManagerNode::CreateSafetyInitialBlackboard()
