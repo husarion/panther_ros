@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_MANAGER_BT_TEST_UTILS_
-#define PANTHER_MANAGER_MANAGER_BT_TEST_UTILS_
+#ifndef PANTHER_MANAGER_TEST_BEHAVIOR_TREE_UTILS_
+#define PANTHER_MANAGER_TEST_BEHAVIOR_TREE_UTILS_
 
 #include <chrono>
 #include <functional>
@@ -25,22 +25,35 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-namespace test_behavior_tree_utils
+namespace behavior_tree::test_utils
 {
 
-void SpinWhileRunning(const rclcpp::Node::SharedPtr node, std::function<BT::NodeStatus()> GetStatus)
+/**
+ * @brief Spin ROS node while behavior tree status is either RUNNING, SKIPPED, or IDLE.
+ *
+ * @param node Ros node that will be spun.
+ * @param GetStatus method that will be used to obtain current tree status.
+ * @return False if tree status changed to FAILURE or timeout was reached, true otherwise.
+ */
+bool SpinWhileRunning(
+  const rclcpp::Node::SharedPtr node, std::function<BT::NodeStatus()> GetStatus,
+  const std::chrono::milliseconds & timeout)
 {
+  const rclcpp::Time start_time = node->now();
+
   auto status = BT::NodeStatus::RUNNING;
-  while (status == BT::NodeStatus::RUNNING || status == BT::NodeStatus::IDLE ||
-         status == BT::NodeStatus::SKIPPED) {
+  while (!BT::isStatusCompleted(status) && node->now() - start_time <= rclcpp::Duration(timeout)) {
     rclcpp::spin_some(node);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     status = GetStatus();
   }
 
-  ASSERT_EQ(status, BT::NodeStatus::SUCCESS);
+  if (status == BT::NodeStatus::SUCCESS) {
+    return true;
+  }
+  return false;
 }
 
-}  // namespace test_behavior_tree_utils
+}  // namespace behavior_tree::test_utils
 
-#endif  // PANTHER_MANAGER_MANAGER_BT_TEST_UTILS_
+#endif  // PANTHER_MANAGER_TEST_BEHAVIOR_TREE_UTILS_

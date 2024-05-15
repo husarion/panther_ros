@@ -49,7 +49,7 @@ def generate_launch_description():
         default_value=PathJoinSubstitution(
             [panther_manager_share_dir, "behavior_trees", "PantherLightsBT.btproj"]
         ),
-        description="Path to BehaviorTree project file.",
+        description="Path to BehaviorTree project file, responsible for lights management.",
     )
 
     safety_bt_project_path = LaunchConfiguration("safety_bt_project_path")
@@ -58,7 +58,7 @@ def generate_launch_description():
         default_value=PathJoinSubstitution(
             [panther_manager_share_dir, "behavior_trees", "PantherSafetyBT.btproj"]
         ),
-        description="Path to BehaviorTree project file.",
+        description="Path to BehaviorTree project file, responsible for safety and shutdown management.",
         condition=IfCondition(PythonExpression([panther_version, ">=", "1.2"])),
     )
 

@@ -54,7 +54,7 @@ Node responsible for managing Bumper Lights animation scheduling.
 - `critical_battery_threshold_percent` [*float*, default: **0.1**]: if the Battery percentage drops below this value, an animation indicating a critical Battery state will start being displayed.
 - `low_battery_anim_period` [*float*, default: **30.0**]: time in **[s]** to wait before repeating the animation, indicating a low Battery state.
 - `low_battery_threshold_percent` [*float*, default: **0.4**]: if the Battery percentage drops below this value, the animation indicating a low Battery state will start being displayed.
-- `update_charging_anim_step` [*float*, default: **0.1**]: percentage representing how discretized the Battery state animation should be.
+- `update_charging_anim_step` [*float*, default: **0.1**]: this parameter defines the minimum change in battery percentage required to trigger an update in the battery charging animation.
 - `timer_frequency` [*float*, default: **10.0**]: frequency **[Hz]** at which lights tree will be ticked.
 - `plugin_libs` [*list*, default: **Empty list**]: list with names of plugins that are used in the BT project.
 - `ros_plugin_libs` [*list*, default: **Empty list**]: list with names of ROS plugins that are used in a BT project.

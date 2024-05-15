@@ -67,7 +67,7 @@ public:
   ~TestSafetyBehaviorTree();
 
 protected:
-  void SpinWhileRunning();
+  bool SpinWhileRunning();
   void PublishDefaultStates();
   void PublishEStop(const bool data);
   void PublishBatteryState(
@@ -149,10 +149,11 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
 
 TestSafetyBehaviorTree::~TestSafetyBehaviorTree() { rclcpp::shutdown(); }
 
-void TestSafetyBehaviorTree::SpinWhileRunning()
+bool TestSafetyBehaviorTree::SpinWhileRunning()
 {
-  test_behavior_tree_utils::SpinWhileRunning(
-    safety_manager_node_, [&]() { return safety_manager_node_->GetSafetyTreeStatus(); });
+  return behavior_tree::test_utils::SpinWhileRunning(
+    safety_manager_node_, [&]() { return safety_manager_node_->GetSafetyTreeStatus(); },
+    std::chrono::milliseconds(1000));
 }
 
 void TestSafetyBehaviorTree::PublishDefaultStates()
@@ -234,13 +235,13 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanAtStartup)
   safety_manager_node_->Initialize();
   PublishDefaultStates();
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(fan_state_);
 
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 }
 
@@ -252,19 +253,19 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanCpuTemp)
   safety_manager_node_->Initialize();
   PublishDefaultStates();
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(fan_state_);
 
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 
   PublishSystemStatus((2.0 * high_cpu_temp));
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
 
   EXPECT_TRUE(fan_state_);
 
@@ -272,7 +273,7 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanCpuTemp)
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 }
 
@@ -284,19 +285,19 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanDriverTemp)
   safety_manager_node_->Initialize();
   PublishDefaultStates();
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(fan_state_);
 
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 
   PublishDriverState((2.0 * high_driver_temp));
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
 
   EXPECT_TRUE(fan_state_);
 
@@ -304,7 +305,7 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanDriverTemp)
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 }
 
@@ -312,14 +313,14 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOvervoltage)
 {
   safety_manager_node_->Initialize();
   PublishDefaultStates();
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(e_stop_triggered_);
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
     BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, 20.0);
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(e_stop_triggered_);
 }
 
@@ -327,13 +328,13 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthDead)
 {
   safety_manager_node_->Initialize();
   PublishDefaultStates();
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD,
     20.0);
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   // Shutdown of the robot should be invoked so the shutdown tree status should change
   EXPECT_NE(BT::NodeStatus::IDLE, safety_manager_node_->GetShutdownTreeStatus());
 }
@@ -342,12 +343,12 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
 {
   safety_manager_node_->Initialize();
   PublishDefaultStates();
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
 
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(e_stop_triggered_);
   EXPECT_TRUE(aux_power_state_);
   EXPECT_FALSE(fan_state_);
@@ -356,7 +357,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
     20.0);
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(e_stop_triggered_);
   EXPECT_TRUE(aux_power_state_);
   EXPECT_TRUE(fan_state_);
@@ -368,7 +369,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
   // check if change of power supply health turns of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 }
 
@@ -378,12 +379,12 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatCriticalTemp)
 
   safety_manager_node_->Initialize();
   PublishDefaultStates();
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
 
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(e_stop_triggered_);
   EXPECT_TRUE(aux_power_state_);
   EXPECT_FALSE(fan_state_);
@@ -392,7 +393,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatCriticalTemp)
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
     2.0 * critical_bat_temp);
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(e_stop_triggered_);
   EXPECT_FALSE(aux_power_state_);
   EXPECT_TRUE(fan_state_);
@@ -404,13 +405,13 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatFatalTemp)
 
   safety_manager_node_->Initialize();
   PublishDefaultStates();
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
     2.0 * fatal_bat_temp);
 
-  SpinWhileRunning();
+  ASSERT_TRUE(SpinWhileRunning());
   // Shutdown of the robot should be invoked so the shutdown tree status should change
   EXPECT_NE(BT::NodeStatus::IDLE, safety_manager_node_->GetShutdownTreeStatus());
 }
