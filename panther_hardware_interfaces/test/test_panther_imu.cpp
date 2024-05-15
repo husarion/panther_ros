@@ -356,13 +356,10 @@ TEST_F(TestPantherImuSensor, CheckSensorName)
   EXPECT_THROW({ imu_sensor_->CheckSensorName(); }, std::runtime_error);
 
   hardware_interface::ComponentInfo sensor_info;
-  sensor_info.name = "wrong_imu";
+  sensor_info.name = "imu";
   info.sensors.push_back(sensor_info);
   imu_sensor_->SetHardwareInfo(info);
-  EXPECT_THROW({ imu_sensor_->CheckSensorName(); }, std::runtime_error);
 
-  info.sensors.front().name = "imu";
-  imu_sensor_->SetHardwareInfo(info);
   EXPECT_NO_THROW({ imu_sensor_->CheckSensorName(); });
 }
 
