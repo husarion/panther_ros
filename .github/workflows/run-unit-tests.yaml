@@ -64,6 +64,12 @@ jobs:
               id: unit-tests-output
               run: cat ${{ env.TEST_RESULT_FILENAME }} >> "$GITHUB_OUTPUT"
 
+            - name: test output
+              working-directory: ros2_ws
+              run: |
+                  echo ${{ steps.unit-tests-output.outputs.lines_cov }}
+                  echo ${{ steps.unit-tests-output.outputs.functions_cov }}
+                  echo ${{ steps.unit-tests-output.outputs.branches_cov }}
             # TODO: ENABLE WHEN READY
             # - name: Comment PR
             #   uses: thollander/actions-comment-pull-request@v2
