@@ -1,4 +1,7 @@
-# The uncomment content in this file is the minimal requirement for components configuration file.
+# By default panther is loaded without any components.
+
+components: []
+
 # If you want to add for example LDR01, LDR06 and CAM01 to your Panther look at this example below:
 
 # components:
@@ -6,22 +9,17 @@
 #     parent_link: cover_link
 #     xyz: 0.0 0.1 0.0
 #     rpy: 0.0 0.0 0.0
-#     tf_prefix: main_lidar
-#     namespace: /main_lidar
-#
+#     device_namespace: main_lidar
+
 #   - type: LDR06
 #     parent_link: cover_link
 #     xyz: 0.0 -0.1 0.0
 #     rpy: 0.0 0.0 0.0
-#     tf_prefix: second_lidar
-#     namespace: /second_lidar
-#
+#     device_namespace: second_lidar
+
 #   - type: CAM01
 #     name: camera
 #     parent_link: cover_link
 #     xyz: 0.1 0.0 0.0
 #     rpy: 0.0 0.0 0.0
-#     tf_prefix: front_cam
-#     namespace: /front_cam
-
-components: []
+#     device_namespace: front_cam

@@ -11,7 +11,7 @@ ROS 2 packages for Panther autonomous mobile robot
 ```bash
 mkdir ~/husarion_ws
 cd ~/husarion_ws
-git clone -b ros2-devel https://github.com/husarion/panther_ros.git src/panther_ros
+git clone -b ros2 https://github.com/husarion/panther_ros.git src/panther_ros
 ```
 
 ### Configure environment
@@ -38,7 +38,9 @@ if [ "$HUSARION_ROS_BUILD_TYPE" == "simulation" ]; then
   vcs import src < src/panther_ros/panther/panther_simulation.repos
 fi
 
-cp -r src/ros2_controllers/imu_sensor_broadcaster src && rm -rf src/ros2_controllers
+cp -r src/ros2_controllers/diff_drive_controller src
+cp -r src/ros2_controllers/imu_sensor_broadcaster src
+rm -rf src/ros2_controllers
 
 sudo rosdep init
 rosdep update --rosdistro $ROS_DISTRO

@@ -45,6 +45,8 @@ public:
   bool Present() { return true; }
   void Update(const rclcpp::Time & /* header_stamp */, bool /* charger_connected */) {}
   void Reset(const rclcpp::Time & /* header_stamp */) {}
+  float GetChargerCurrent() { return 0.0; }
+  float GetLoadCurrent() { return 0.0; }
 };
 
 class TestBattery : public testing::Test

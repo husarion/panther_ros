@@ -15,7 +15,14 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    LogInfo,
+    OpaqueFunction,
+    TimerAction,
+)
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -23,8 +30,136 @@ from launch.substitutions import (
     PathJoinSubstitution,
     PythonExpression,
 )
-from launch_ros.actions import SetParameter
+from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
+from nav2_common.launch import ParseMultiRobotPose
+
+
+def launch_setup(context):
+    wheel_type = LaunchConfiguration("wheel_type").perform(context)
+    wheel_config_path = LaunchConfiguration("wheel_config_path").perform(context)
+    controller_config_path = LaunchConfiguration("controller_config_path").perform(context)
+    battery_config_path = LaunchConfiguration("battery_config_path").perform(context)
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path").perform(context)
+    x = LaunchConfiguration("x").perform(context)
+    y = LaunchConfiguration("y").perform(context)
+    z = LaunchConfiguration("z").perform(context)
+    roll = LaunchConfiguration("roll").perform(context)
+    pitch = LaunchConfiguration("pitch").perform(context)
+    yaw = LaunchConfiguration("yaw").perform(context)
+    publish_robot_state = LaunchConfiguration("publish_robot_state").perform(context)
+    namespace = LaunchConfiguration("namespace").perform(context)
+    add_world_transform = LaunchConfiguration("add_world_transform").perform(context)
+
+    robots_list = ParseMultiRobotPose("robots").value()
+    if len(robots_list) == 0:
+        robots_list = {
+            namespace: {"x": x, "y": y, "z": z, "roll": roll, "pitch": pitch, "yaw": yaw}
+        }
+
+    spawn_group = []
+    for idx, robot_name in enumerate(robots_list):
+        init_pose = robots_list[robot_name]
+        x, y, z, roll, pitch, yaw = [str(value) for value in init_pose.values()]
+
+        spawn_log = LogInfo(msg=[f"Launching namespace={robot_name} with init_pose={init_pose}"])
+
+        spawn_robot = Node(
+            package="ros_gz_sim",
+            executable="create",
+            arguments=[
+                "-name",
+                robot_name,
+                "-topic",
+                "robot_description",
+                "-x",
+                x,
+                "-y",
+                y,
+                "-z",
+                z,
+                "-Y",
+                yaw,
+            ],
+            namespace=robot_name,
+            output="screen",
+        )
+
+        gz_bridge = Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            name="panther_base_gz_bridge",
+            parameters=[{"config_file": gz_bridge_config_path}],
+            namespace=robot_name,
+            output="screen",
+        )
+
+        bringup_launch = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("panther_bringup"),
+                        "launch",
+                        "bringup.launch.py",
+                    ]
+                )
+            ),
+            launch_arguments={
+                "wheel_type": wheel_type,
+                "wheel_config_path": wheel_config_path,
+                "controller_config_path": controller_config_path,
+                "battery_config_path": battery_config_path,
+                "publish_robot_state": publish_robot_state,
+                "use_sim": "True",
+                "simulation_engine": "ignition-gazebo",
+                "namespace": robot_name,
+            }.items(),
+        )
+
+        gz_components = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("ros_components_description"),
+                        "launch",
+                        "gz_components.launch.py",
+                    ]
+                )
+            ),
+            launch_arguments={
+                "namespace": namespace,
+            }.items(),
+        )
+
+        ns_prefix = robot_name + "/" if robot_name else robot_name
+
+        world_transform = Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="static_tf_publisher",
+            namespace=robot_name,
+            output="screen",
+            arguments=[x, y, z, roll, pitch, yaw, "world", ns_prefix + "odom"],
+            condition=IfCondition(add_world_transform),
+        )
+
+        # bringup.launch.py has a timerAction in it. If the timerAction in simulation.launch.py
+        # ​​is smaller than bringup.launch.py, the namespace will be overwritten,
+        # resulting creating nodes with the same namespace.
+        group = TimerAction(
+            period=12.0 * idx,
+            actions=[
+                spawn_log,
+                spawn_robot,
+                gz_bridge,
+                bringup_launch,
+                world_transform,
+                gz_components,
+            ],
+        )
+        spawn_group.append(group)
+
+    return spawn_group
 
 
 def generate_launch_description():
@@ -41,7 +176,6 @@ def generate_launch_description():
         choices=["WH01", "WH02", "WH04", "CUSTOM"],
     )
 
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
         default_value=PathJoinSubstitution(
@@ -58,7 +192,6 @@ def generate_launch_description():
         ),
     )
 
-    controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
         default_value=PathJoinSubstitution(
@@ -75,19 +208,6 @@ def generate_launch_description():
         ),
     )
 
-    components_config_path = LaunchConfiguration("components_config_path")
-    declare_components_config_path_arg = DeclareLaunchArgument(
-        "components_config_path",
-        default_value="None",
-        description=(
-            "Additional components configuration file. Components described in this file "
-            "are dynamically included in Panther's urdf."
-            "Panther options are described here "
-            "https://husarion.com/manuals/panther/panther-options/"
-        ),
-    )
-
-    battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
         default_value=PathJoinSubstitution(
@@ -103,7 +223,6 @@ def generate_launch_description():
         ),
     )
 
-    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
@@ -116,37 +235,30 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file.",
     )
 
-    x = LaunchConfiguration("x")
     declare_x_arg = DeclareLaunchArgument(
         "x", default_value="5.0", description="Initial robot position in the global 'x' axis."
     )
 
-    y = LaunchConfiguration("y")
     declare_y_arg = DeclareLaunchArgument(
         "y", default_value="-5.0", description="Initial robot position in the global 'y' axis."
     )
 
-    z = LaunchConfiguration("z")
     declare_z_arg = DeclareLaunchArgument(
         "z", default_value="0.2", description="Initial robot position in the global 'z' axis."
     )
 
-    roll = LaunchConfiguration("roll")
     declare_roll_arg = DeclareLaunchArgument(
         "roll", default_value="0.0", description="Initial robot 'roll' orientation."
     )
 
-    pitch = LaunchConfiguration("pitch")
     declare_pitch_arg = DeclareLaunchArgument(
         "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
     )
 
-    yaw = LaunchConfiguration("yaw")
     declare_yaw_arg = DeclareLaunchArgument(
         "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
     )
 
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
     declare_publish_robot_state_arg = DeclareLaunchArgument(
         "publish_robot_state",
         default_value="True",
@@ -156,24 +268,21 @@ def generate_launch_description():
         ),
     )
 
-    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
-    robots = LaunchConfiguration("robots")
     declare_robots_arg = DeclareLaunchArgument(
         "robots",
         default_value=[],
         description=(
             "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
-            " -1.0}; robot2={x: 1.0, y: -1.0}'"
+            " -1.0}; robot2={x: 1.0, y: -1.0}'."
         ),
     )
 
-    add_world_transform = LaunchConfiguration("add_world_transform")
     declare_add_world_transform_arg = DeclareLaunchArgument(
         "add_world_transform",
         default_value="False",
@@ -181,48 +290,6 @@ def generate_launch_description():
             "Adds a world frame that connects the tf trees of individual robots (useful when running"
             " multiple robots)."
         ),
-    )
-
-    gz_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("husarion_gz_worlds"),
-                    "launch",
-                    "gz_sim.launch.py",
-                ]
-            )
-        ),
-    )
-
-    spawn_robots_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_gazebo"),
-                    "launch",
-                    "spawn.launch.py",
-                ]
-            )
-        ),
-        launch_arguments={
-            "wheel_type": wheel_type,
-            "wheel_config_path": wheel_config_path,
-            "controller_config_path": controller_config_path,
-            "components_config_path": components_config_path,
-            "battery_config_path": battery_config_path,
-            "gz_bridge_config_path": gz_bridge_config_path,
-            "x": x,
-            "y": y,
-            "z": z,
-            "roll": roll,
-            "pitch": pitch,
-            "yaw": yaw,
-            "publish_robot_state": publish_robot_state,
-            "namespace": namespace,
-            "robots": robots,
-            "add_world_transform": add_world_transform,
-        }.items(),
     )
 
     return LaunchDescription(
@@ -236,7 +303,6 @@ def generate_launch_description():
             declare_wheel_type_arg,
             declare_wheel_config_path_arg,
             declare_controller_config_path_arg,
-            declare_components_config_path_arg,
             declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_publish_robot_state_arg,
@@ -245,7 +311,6 @@ def generate_launch_description():
             declare_add_world_transform_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
-            gz_sim,
-            spawn_robots_launch,
+            OpaqueFunction(function=launch_setup),
         ]
     )

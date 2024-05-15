@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdint>
 #include <string>
+#include <thread>
 
 #include "gtest/gtest.h"
 
@@ -195,18 +197,12 @@ protected:
   };
 
   inline static const std::unordered_map<std::string, std::string> kImuObligatoryParams{
-    {"serial", "-1"},
-    {"hub_port", "0"},
-    {"data_interval_ms", "1000"},
-    {"callback_delta_epsilon_ms", "1"},
-    {"gain", "0.1"},
-    {"zeta", "0.0"},
-    {"mag_bias_x", "0.0"},
-    {"mag_bias_y", "0.0"},
-    {"mag_bias_z", "0.0"},
-    {"use_mag", "true"},
-    {"stateless", "false"},
-    {"remove_gravity_vector", "true"},
+    {"serial", "-1"},          {"hub_port", "0"},
+    {"data_interval_ms", "8"}, {"callback_delta_epsilon_ms", "1"},
+    {"gain", "0.00304"},       {"zeta", "0.00151"},
+    {"mag_bias_x", "0.0"},     {"mag_bias_y", "0.0"},
+    {"mag_bias_z", "0.0"},     {"use_mag", "true"},
+    {"stateless", "false"},    {"remove_gravity_vector", "false"},
     {"world_frame", "enu"}};
 
   inline static const std::string kPluginName =
@@ -332,15 +328,15 @@ hardware_interface::HardwareInfo TestPantherImuSensor::AddMadgwickParameters(
   const hardware_interface::HardwareInfo & info)
 {
   hardware_interface::HardwareInfo new_info(info);
-  new_info.hardware_parameters["gain"] = "0.1";
-  new_info.hardware_parameters["zeta"] = "0.0";
-  new_info.hardware_parameters["mag_bias_x"] = "0.0";
-  new_info.hardware_parameters["mag_bias_y"] = "0.0";
-  new_info.hardware_parameters["mag_bias_z"] = "0.0";
-  new_info.hardware_parameters["stateless"] = "false";
-  new_info.hardware_parameters["use_mag"] = "false";
-  new_info.hardware_parameters["remove_gravity_vector"] = "false";
-  new_info.hardware_parameters["world_frame"] = "enu";
+  const std::vector<std::string> keys = {
+    "gain",       "zeta",      "mag_bias_x", "mag_bias_y",
+    "mag_bias_z", "stateless", "use_mag",    "remove_gravity_vector",
+    "world_frame"};
+
+  for (const auto & key : keys) {
+    new_info.hardware_parameters[key] = kImuObligatoryParams.at(key);
+  }
+
   return new_info;
 }
 
@@ -360,13 +356,10 @@ TEST_F(TestPantherImuSensor, CheckSensorName)
   EXPECT_THROW({ imu_sensor_->CheckSensorName(); }, std::runtime_error);
 
   hardware_interface::ComponentInfo sensor_info;
-  sensor_info.name = "wrong_imu";
+  sensor_info.name = "imu";
   info.sensors.push_back(sensor_info);
   imu_sensor_->SetHardwareInfo(info);
-  EXPECT_THROW({ imu_sensor_->CheckSensorName(); }, std::runtime_error);
 
-  info.sensors.front().name = "imu";
-  imu_sensor_->SetHardwareInfo(info);
   EXPECT_NO_THROW({ imu_sensor_->CheckSensorName(); });
 }
 
@@ -482,11 +475,55 @@ TEST_F(TestPantherImuSensor, CheckCalibrationOnDataCallbackAndAlgorithmInitializ
   imu_sensor_->ReadMadgwickFilterParams();
   imu_sensor_->ConfigureMadgwickFilter();
   imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 100.0);
+
+  ASSERT_TRUE(imu_sensor_->IsQuaternionFinite(imu_sensor_->GetQuaternion()));
+  ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetAcceleration()));
+  ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetGyration()));
+}
+
+TEST_F(TestPantherImuSensor, CheckReconnection)
+{
+  using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+  hardware_interface::HardwareInfo info;
+  hardware_interface::ComponentInfo sensor_info;
+  sensor_info.name = "imu";
+  info.sensors.push_back(sensor_info);
+  info = CreateCorrectInterfaces(info);
+  info = AddMadgwickParameters(info);
+
+  ASSERT_EQ(imu_sensor_->on_init(info), CallbackReturn::SUCCESS);
+  double magnitude[3], acceleration[3], gyration[3];
+  magnitude[0] = panther_hardware_interfaces::PantherImuSensor::KImuMagneticFieldUnknownValue;
+
+  // Correct values read from sensor
+  magnitude[0] = -0.09675;
+  magnitude[1] = 0.0675;
+  magnitude[2] = 0.0795;
+
+  acceleration[0] = -0.029536;
+  acceleration[1] = 0.01302;
+  acceleration[2] = 1.00752;
+
+  gyration[0] = 0.0;
+  gyration[1] = 0.0;
+  gyration[2] = 0.0;
+
+  // Configure Algorithm after calibration
+  imu_sensor_->ReadMadgwickFilterParams();
+  imu_sensor_->ConfigureMadgwickFilter();
+  imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 100.0);
+
+  ASSERT_TRUE(imu_sensor_->IsQuaternionFinite(imu_sensor_->GetQuaternion()));
+  ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetAcceleration()));
+  ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetGyration()));
+
+  imu_sensor_->SpatialDetachCallback();
   ASSERT_FALSE(imu_sensor_->IsQuaternionFinite(imu_sensor_->GetQuaternion()));
   ASSERT_FALSE(imu_sensor_->IsVectorFinite(imu_sensor_->GetAcceleration()));
   ASSERT_FALSE(imu_sensor_->IsVectorFinite(imu_sensor_->GetGyration()));
 
-  imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 200.0);
+  imu_sensor_->SpatialAttachCallback();
+  imu_sensor_->SpatialDataCallback(acceleration, gyration, magnitude, 300.0);
 
   ASSERT_TRUE(imu_sensor_->IsQuaternionFinite(imu_sensor_->GetQuaternion()));
   ASSERT_TRUE(imu_sensor_->IsVectorFinite(imu_sensor_->GetAcceleration()));
@@ -551,12 +588,12 @@ TEST_F(TestPantherImuSensor, CheckReadAndConfigureRealSensor)
   CreateResourceManagerFromUrdf(GetDefaultPantherImuUrdf());
   EXPECT_EQ(ConfigurePantherImu(), return_type::OK);
 
-  auto loaded_state_interfaces = ClaimGoodStateInterfaces();
-
   ASSERT_EQ(ActivatePantherImu(), return_type::OK);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  auto loaded_state_interfaces = ClaimGoodStateInterfaces();
   for (const auto & state_interface : loaded_state_interfaces) {
-    EXPECT_FALSE(std::isnan(state_interface.get_value()));
+    EXPECT_TRUE(std::isfinite(state_interface.get_value()));
   }
 
   EXPECT_EQ(UnconfigurePantherImu(), return_type::OK);

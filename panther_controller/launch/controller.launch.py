@@ -27,6 +27,7 @@ from launch.substitutions import (
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
@@ -88,7 +89,19 @@ def generate_launch_description():
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes",
+        description="Add namespace to all launched nodes.",
+    )
+
+    components_config_path = LaunchConfiguration("components_config_path")
+    declare_components_config_path_arg = DeclareLaunchArgument(
+        "components_config_path",
+        default_value="None",
+        description=(
+            "Additional components configuration file. Components described in this file "
+            "are dynamically included in Panther's urdf."
+            "Panther options are described here "
+            "https://husarion.com/manuals/panther/panther-options/"
+        ),
     )
 
     components_config_path = LaunchConfiguration("components_config_path")
@@ -172,11 +185,13 @@ def generate_launch_description():
         condition=UnlessCondition(use_sim),
     )
 
+    namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
+
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[robot_description, {"frame_prefix": namespace_ext}],
         namespace=namespace,
         condition=IfCondition(publish_robot_state),
     )
