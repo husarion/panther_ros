@@ -19,7 +19,6 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     LogInfo,
-    OpaqueFunction,
     TimerAction,
 )
 from launch.conditions import IfCondition
@@ -28,22 +27,83 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ParseMultiRobotPose
 
 
-def launch_setup(context):
-    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path").perform(context)
-    x = LaunchConfiguration("x").perform(context)
-    y = LaunchConfiguration("y").perform(context)
-    z = LaunchConfiguration("z").perform(context)
-    roll = LaunchConfiguration("roll").perform(context)
-    pitch = LaunchConfiguration("pitch").perform(context)
-    yaw = LaunchConfiguration("yaw").perform(context)
-    namespace = LaunchConfiguration("namespace").perform(context)
-    add_world_transform = LaunchConfiguration("add_world_transform").perform(context)
+def generate_launch_description():
+
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
+    declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
+        "gz_bridge_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_gazebo"),
+                "config",
+                "gz_bridge.yaml",
+            ]
+        ),
+        description="Path to the parameter_bridge configuration file.",
+    )
+
+    x = LaunchConfiguration("x")
+    declare_x_arg = DeclareLaunchArgument(
+        "x", default_value="5.0", description="Initial robot position in the global 'x' axis."
+    )
+
+    y = LaunchConfiguration("y")
+    declare_y_arg = DeclareLaunchArgument(
+        "y", default_value="-5.0", description="Initial robot position in the global 'y' axis."
+    )
+
+    z = LaunchConfiguration("z")
+    declare_z_arg = DeclareLaunchArgument(
+        "z", default_value="0.2", description="Initial robot position in the global 'z' axis."
+    )
+
+    roll = LaunchConfiguration("roll")
+    declare_roll_arg = DeclareLaunchArgument(
+        "roll", default_value="0.0", description="Initial robot 'roll' orientation."
+    )
+
+    pitch = LaunchConfiguration("pitch")
+    declare_pitch_arg = DeclareLaunchArgument(
+        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
+    )
+
+    yaw = LaunchConfiguration("yaw")
+    declare_yaw_arg = DeclareLaunchArgument(
+        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
+    )
+
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all launched nodes.",
+    )
+
+    declare_robots_arg = DeclareLaunchArgument(
+        "robots",
+        default_value=[],
+        description=(
+            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
+            " -1.0}; robot2={x: 1.0, y: -1.0}'."
+        ),
+    )
+
+    add_world_transform = LaunchConfiguration("add_world_transform")
+    declare_add_world_transform_arg = DeclareLaunchArgument(
+        "add_world_transform",
+        default_value="False",
+        description=(
+            "Adds a world frame that connects the tf trees of individual robots (useful when running"
+            " multiple robots)."
+        ),
+    )
 
     robots_list = ParseMultiRobotPose("robots").value()
     if len(robots_list) == 0:
@@ -119,7 +179,9 @@ def launch_setup(context):
             }.items(),
         )
 
-        ns_prefix = robot_name + "/" if robot_name else robot_name
+        child_tf = PythonExpression(
+            ["'", robot_name, "' + '/odom' if '", robot_name, "' else 'odom'"]
+        )
 
         world_transform = Node(
             package="tf2_ros",
@@ -127,7 +189,7 @@ def launch_setup(context):
             name="static_tf_publisher",
             namespace=robot_name,
             output="screen",
-            arguments=[x, y, z, roll, pitch, yaw, "world", ns_prefix + "odom"],
+            arguments=[x, y, z, roll, pitch, yaw, "world", child_tf],
             condition=IfCondition(add_world_transform),
         )
 
@@ -147,71 +209,6 @@ def launch_setup(context):
         )
         spawn_group.append(group)
 
-    return spawn_group
-
-
-def generate_launch_description():
-
-    declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
-        "gz_bridge_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_gazebo"),
-                "config",
-                "gz_bridge.yaml",
-            ]
-        ),
-        description="Path to the parameter_bridge configuration file.",
-    )
-
-    declare_x_arg = DeclareLaunchArgument(
-        "x", default_value="5.0", description="Initial robot position in the global 'x' axis."
-    )
-
-    declare_y_arg = DeclareLaunchArgument(
-        "y", default_value="-5.0", description="Initial robot position in the global 'y' axis."
-    )
-
-    declare_z_arg = DeclareLaunchArgument(
-        "z", default_value="0.2", description="Initial robot position in the global 'z' axis."
-    )
-
-    declare_roll_arg = DeclareLaunchArgument(
-        "roll", default_value="0.0", description="Initial robot 'roll' orientation."
-    )
-
-    declare_pitch_arg = DeclareLaunchArgument(
-        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
-    )
-
-    declare_yaw_arg = DeclareLaunchArgument(
-        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
-    )
-
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes.",
-    )
-
-    declare_robots_arg = DeclareLaunchArgument(
-        "robots",
-        default_value=[],
-        description=(
-            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
-            " -1.0}; robot2={x: 1.0, y: -1.0}'."
-        ),
-    )
-
-    declare_add_world_transform_arg = DeclareLaunchArgument(
-        "add_world_transform",
-        default_value="False",
-        description=(
-            "Adds a world frame that connects the tf trees of individual robots (useful when running"
-            " multiple robots)."
-        ),
-    )
-
     return LaunchDescription(
         [
             declare_x_arg,
@@ -226,6 +223,6 @@ def generate_launch_description():
             declare_add_world_transform_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
-            OpaqueFunction(function=launch_setup),
+            *spawn_group,
         ]
     )

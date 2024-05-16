@@ -149,7 +149,6 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "panther_version": panther_version,
             "use_sim": use_sim,
             "namespace": namespace,
         }.items(),

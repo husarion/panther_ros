@@ -21,24 +21,48 @@ from launch.actions import (
     IncludeLaunchDescription,
     RegisterEventHandler,
 )
-from launch.conditions import UnlessCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    wheel_type = LaunchConfiguration("wheel_type")
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
+            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
+            " parameters. For custom wheels, please define these parameters to point to files that"
+            " accurately describe the custom wheels."
+        ),
+        choices=["WH01", "WH02", "WH04", "custom"],
+    )
 
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
-        description="Path to controller configuration file.",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_controller"),
+                "config",
+                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to controller configuration file. By default, it is located in"
+            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " the path to your custom controller configuration file here. "
+        ),
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -75,7 +99,13 @@ def generate_launch_description():
                 ]
             )
         ),
-        condition=publish_robot_state,
+        condition=IfCondition(publish_robot_state),
+        launch_arguments={
+            "wheel_type": wheel_type,
+            "controller_config_path": controller_config_path,
+            "namespace": namespace,
+            "use_sim": use_sim,
+        }.items(),
     )
 
     control_node = Node(
@@ -84,6 +114,7 @@ def generate_launch_description():
         parameters=[controller_config_path],
         namespace=namespace,
         remappings=[
+            ("controller_manager/robot_description", "robot_description"), # Bug in ros2_control on humble
             (
                 "panther_system_node/driver/motor_controllers_state",
                 "driver/motor_controllers_state",
@@ -165,17 +196,18 @@ def generate_launch_description():
         ),
     )
 
-    actions = [
-        declare_controller_config_path_arg,
-        declare_namespace_arg,
-        declare_publish_robot_state_arg,
-        declare_use_sim_arg,
-        SetParameter(name="use_sim_time", value=use_sim),
-        panther_description,
-        control_node,
-        joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
-    ]
-
-    return LaunchDescription(actions)
+    return LaunchDescription(
+        [
+            declare_wheel_type_arg,
+            declare_controller_config_path_arg,
+            declare_namespace_arg,
+            declare_publish_robot_state_arg,
+            declare_use_sim_arg,
+            SetParameter(name="use_sim_time", value=use_sim),
+            panther_description,
+            control_node,
+            joint_state_broadcaster_spawner,
+            delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+            delay_imu_broadcaster_spawner_after_robot_controller_spawner,
+        ]
+    )

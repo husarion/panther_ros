@@ -33,6 +33,14 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     battery_config_path = LaunchConfiguration("battery_config_path")
+    components_config_path = LaunchConfiguration("components_config_path")
+    controller_config_path = LaunchConfiguration("controller_config_path")
+    namespace = LaunchConfiguration("namespace")
+    panther_version = LaunchConfiguration("panther_version")
+    use_sim = LaunchConfiguration("use_sim")
+    wheel_type = LaunchConfiguration("wheel_type")
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
         description=(
@@ -42,7 +50,6 @@ def generate_launch_description():
         default_value="",
     )
 
-    components_config_path = LaunchConfiguration("components_config_path")
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
         default_value="None",
@@ -54,34 +61,39 @@ def generate_launch_description():
         ),
     )
 
-    controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
-        description="Path to controller configuration file.",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_controller"),
+                "config",
+                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to controller configuration file. By default, it is located in"
+            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " the path to your custom controller configuration file here. "
+        ),
     )
 
-    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
-    panther_version = LaunchConfiguration("panther_version")
     declare_panther_version_arg = DeclareLaunchArgument(
         "panther_version",
         default_value=EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0"),
     )
 
-    use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
         description="Whether simulation is used",
     )
 
-    wheel_type = LaunchConfiguration("wheel_type")
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
         default_value=PathJoinSubstitution(
@@ -165,6 +177,7 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_wheel_type_arg,
         declare_battery_config_path_arg,
         declare_controller_config_path_arg,
         declare_components_config_path_arg,
@@ -172,7 +185,6 @@ def generate_launch_description():
         declare_panther_version_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
-        declare_wheel_type_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         robot_state_pub_node,
     ]

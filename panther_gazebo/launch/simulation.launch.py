@@ -21,7 +21,6 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
-    PythonExpression,
 )
 from launch_ros.actions import SetParameter
 from launch_ros.substitutions import FindPackageShare
@@ -87,7 +86,6 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-
             declare_namespace_arg,
             declare_robots_arg,
             declare_add_world_transform_arg,
