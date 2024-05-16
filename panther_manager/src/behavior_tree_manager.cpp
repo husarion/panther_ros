@@ -31,7 +31,6 @@
 #include <memory>
 
 #include "behaviortree_cpp/loggers/groot2_publisher.h"
-#include "behaviortree_ros2/plugins.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace panther_manager

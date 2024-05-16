@@ -166,6 +166,16 @@ if(BUILD_TESTING)
                             behaviortree_ros2 panther_utils)
 
   ament_add_gtest(
+    ${PROJECT_NAME}_test_behavior_tree_manager
+    test/test_behavior_tree_manager.cpp src/behavior_tree_manager.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_behavior_tree_manager
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_behavior_tree_manager
+                            behaviortree_cpp panther_utils)
+
+  ament_add_gtest(
     ${PROJECT_NAME}_test_lights_manager_node test/test_lights_manager_node.cpp
     src/lights_manager_node.cpp src/behavior_tree_manager.cpp)
   target_include_directories(

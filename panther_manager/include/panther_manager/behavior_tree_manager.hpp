@@ -26,7 +26,11 @@ namespace panther_manager
 {
 
 /**
- * @brief todo
+ * @brief Basic parameters used by BehaviorTreeManager.
+ *
+ * @param tree_name The name of the tree in the BehaviorTree project.
+ * @param initial_blackboard A list with initial blackboard values for the tree.
+ * @param groot_port The port used for the Groot2 publisher.
  */
 struct BehaviorTreeParams
 {
@@ -36,7 +40,7 @@ struct BehaviorTreeParams
 };
 
 /**
- * @brief todo
+ * @brief Class responsible for managing behavior trees.
  */
 class BehaviorTreeManager
 {
@@ -49,6 +53,12 @@ public:
   }
   ~BehaviorTreeManager() {}
 
+  /**
+   * @brief Creates a BehaviorTree configuration, initializes the tree, and starts the Groot2
+   * publisher.
+   *
+   * @param factory The factory object used to create the tree.
+   */
   void Initialize(BT::BehaviorTreeFactory & factory);
 
   void TickOnce() { tree_status_ = tree_.tickOnce(); }

@@ -141,29 +141,6 @@ TEST_F(TestLightsManagerNode, RegisterBehaviorTree)
   EXPECT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
 }
 
-// TEST_F(TestLightsManagerNode, CreateLightsTreeInvalidTreeName)
-// {
-//   const auto tree_xml = R"(
-//     <root BTCPP_format="4" project_name="Test">
-//       <BehaviorTree ID="InvalidName">
-//         <AlwaysSuccess/>
-//       </BehaviorTree>
-//     </root>
-//   )";
-
-//   // overwrite default tree
-//   CreateBTProjectFile(tree_xml);
-//   ASSERT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-//   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-//     [&]() { lights_manager_node_->CreateLightsTree(); }, "Can't find a tree with name: Lights"));
-// }
-
-// TEST_F(TestLightsManagerNode, CreateLightsTree)
-// {
-//   ASSERT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-//   EXPECT_NO_THROW(lights_manager_node_->CreateLightsTree());
-// }
-
 TEST_F(TestLightsManagerNode, SystemReady)
 {
   ASSERT_NO_THROW(lights_manager_node_->Initialize());

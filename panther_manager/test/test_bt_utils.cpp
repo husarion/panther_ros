@@ -117,39 +117,6 @@ TEST_F(TestRegisterBT, RegisterBehaviorTreeROS)
   rclcpp::shutdown();
 }
 
-TEST(TestBTUtils, CreateBTConfigInvalidItem)
-{
-  const std::map<std::string, std::any> bb_values = {{"value", 1l}};
-
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
-    [&bb_values]() { panther_manager::bt_utils::CreateBTConfig(bb_values); },
-    "Invalid type for blackboard entry."));
-}
-
-TEST(TestBTUtils, CreateBTConfig)
-{
-  const std::map<std::string, std::any> bb_values = {
-    {"bool_value", true},
-    {"int_value", 1},
-    {"unsigned_value", unsigned(1)},
-    {"float_value", 1.0f},
-    {"double_value", 1.0},
-    {"char_value", "value"},
-    {"string_value", std::string("value")},
-  };
-
-  BT::NodeConfig config;
-  ASSERT_NO_THROW(config = panther_manager::bt_utils::CreateBTConfig(bb_values));
-
-  EXPECT_TRUE(config.blackboard->get<bool>("bool_value"));
-  EXPECT_EQ(1, config.blackboard->get<int>("int_value"));
-  EXPECT_EQ(1, config.blackboard->get<unsigned>("unsigned_value"));
-  EXPECT_FLOAT_EQ(1.0f, config.blackboard->get<float>("float_value"));
-  EXPECT_EQ(1.0, config.blackboard->get<double>("double_value"));
-  EXPECT_EQ("value", config.blackboard->get<std::string>("char_value"));
-  EXPECT_EQ("value", config.blackboard->get<std::string>("string_value"));
-}
-
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

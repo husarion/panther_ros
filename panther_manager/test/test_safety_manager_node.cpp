@@ -151,53 +151,6 @@ TEST_F(TestSafetyManagerNode, RegisterBehaviorTree)
   EXPECT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
 }
 
-// TEST_F(TestSafetyManagerNode, CreateSafetyTreeInvalidTreeName)
-// {
-//   const auto tree_xml = R"(
-//     <root BTCPP_format="4" project_name="Test">
-//       <BehaviorTree ID="InvalidName">
-//         <AlwaysSuccess/>
-//       </BehaviorTree>
-//     </root>
-//   )";
-
-//   // overwrite default tree
-//   CreateBTProjectFile(tree_xml);
-//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-//   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-//     [&]() { safety_manager_node_->CreateSafetyTree(); }, "Can't find a tree with name: Safety"));
-// }
-
-// TEST_F(TestSafetyManagerNode, CreateSafetyTree)
-// {
-//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-//   EXPECT_NO_THROW(safety_manager_node_->CreateSafetyTree());
-// }
-
-// TEST_F(TestSafetyManagerNode, CreateShutdownTreeInvalidTreeName)
-// {
-//   const auto tree_xml = R"(
-//     <root BTCPP_format="4" project_name="Test">
-//       <BehaviorTree ID="InvalidName">
-//         <AlwaysSuccess/>
-//       </BehaviorTree>
-//     </root>
-//   )";
-
-//   // overwrite default tree
-//   CreateBTProjectFile(tree_xml);
-//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-//   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-//     [&]() { safety_manager_node_->CreateShutdownTree(); },
-//     "Can't find a tree with name: Shutdown"));
-// }
-
-// TEST_F(TestSafetyManagerNode, CreateShutdownTree)
-// {
-//   ASSERT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-//   EXPECT_NO_THROW(safety_manager_node_->CreateShutdownTree());
-// }
-
 TEST_F(TestSafetyManagerNode, SystemReady)
 {
   ASSERT_NO_THROW(safety_manager_node_->Initialize());
