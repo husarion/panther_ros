@@ -154,6 +154,7 @@ def generate_launch_description():
         parameters=[robot_description, controller_config_path],
         namespace=namespace,
         remappings=[
+            ("/diagnostics", "diagnostics"),
             (
                 "panther_system_node/driver/motor_controllers_state",
                 "driver/motor_controllers_state",
