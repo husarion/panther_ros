@@ -159,6 +159,8 @@ def generate_launch_description():
         executable="system_status",
         name="system_status",
         output="screen",
+        namespace=namespace,
+        remappings=[("/diagnostics", "diagnostics")],
         condition=UnlessCondition(use_sim),
     )
 
