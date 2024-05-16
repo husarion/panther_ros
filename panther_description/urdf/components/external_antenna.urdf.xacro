@@ -4,8 +4,7 @@
     name="external_antenna"
     params="parent_link xyz rpy
             tf_prefix:=None
-            frame_id:=gps
-            simulation_engine:=ignition-gazebo">
+            frame_id:=gps">
 
     <xacro:if value="${tf_prefix == 'None'}">
       <xacro:property name="tf_prefix_ext" value="" />
@@ -56,14 +55,12 @@
 
     <link name="${tf_prefix_ext}${frame_id}" />
 
-    <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
-      <gazebo reference="${tf_prefix_ext}${frame_id}">
-        <sensor name="navsat" type="navsat">
-          <plugin filename="ignition-gazebo-navsat-system" name="ignition::gazebo::systems::NavSat" />
-          <always_on>1</always_on>
-          <update_rate>5</update_rate>
-        </sensor>
-      </gazebo>
-    </xacro:if>
+    <gazebo reference="${tf_prefix_ext}${frame_id}">
+      <sensor name="navsat" type="navsat">
+        <plugin filename="ignition-gazebo-navsat-system" name="ignition::gazebo::systems::NavSat" />
+        <always_on>1</always_on>
+        <update_rate>5</update_rate>
+      </sensor>
+    </gazebo>
   </xacro:macro>
 </robot>

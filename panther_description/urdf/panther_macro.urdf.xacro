@@ -14,7 +14,6 @@
             imu_rot_r:=3.14
             imu_rot_p:=-1.57
             imu_rot_y:=0.0
-            simulation_engine:='ignition-gazebo'
             namespace:=''">
 
     <xacro:if value="${namespace == ''}">
@@ -66,9 +65,7 @@
     <ros2_control name="${ns}panther_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
-            <plugin>ign_ros2_control/IgnitionSystem</plugin>
-          </xacro:if>
+          <plugin>ign_ros2_control/IgnitionSystem</plugin>
         </xacro:if>
 
         <xacro:unless value="$(arg use_sim)">

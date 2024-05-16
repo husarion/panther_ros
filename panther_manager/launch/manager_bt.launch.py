@@ -26,10 +26,10 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def launch_setup(context):
-    panther_version = LaunchConfiguration("panther_version")
+    panther_version = float(LaunchConfiguration("panther_version").perform(context))
     declare_panther_version_arg = DeclareLaunchArgument(
         "panther_version",
-        description="Panther robot version",
+        default_value=EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0"),
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -39,7 +39,6 @@ def launch_setup(context):
         description="Add namespace to all launched nodes.",
     )
 
-    panther_version = float(LaunchConfiguration("panther_version").perform(context))
     panther_manager_shared_dir = FindPackageShare("panther_manager")
     if panther_version >= 1.2:
         manager_bt_config_path = PathJoinSubstitution(

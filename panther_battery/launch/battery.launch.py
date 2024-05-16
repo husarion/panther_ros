@@ -22,7 +22,10 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     panther_version = LaunchConfiguration("panther_version")
-    declare_panther_version_arg = DeclareLaunchArgument("panther_version")
+    declare_panther_version_arg = DeclareLaunchArgument(
+        "panther_version",
+        default_value=EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0"),
+    )
 
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(

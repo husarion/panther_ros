@@ -84,63 +84,6 @@ def generate_launch_description():
         description="Whether simulation is used",
     )
 
-    wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description=(
-            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
-            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
-            " parameters. For custom wheels, please define these parameters to point to files that"
-            " accurately describe the custom wheels."
-        ),
-        choices=["WH01", "WH02", "WH04", "custom"],
-    )
-
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_description"),
-                "config",
-                PythonExpression(["'", wheel_type, ".yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-            "to your custom wheel configuration file here. "
-        ),
-    )
-
-    controller_config_path = LaunchConfiguration("controller_config_path")
-    declare_controller_config_path_arg = DeclareLaunchArgument(
-        "controller_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_controller"),
-                "config",
-                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
-            " the path to your custom controller configuration file here. "
-        ),
-    )
-
-    battery_config_path = LaunchConfiguration("battery_config_path")
-    declare_battery_config_path_arg = DeclareLaunchArgument(
-        "battery_config_path",
-        description=(
-            "Path to the Ignition LinearBatteryPlugin configuration file. "
-            "This configuration is intended for use in simulations only."
-        ),
-        default_value="",
-    )
-
     led_config_file = LaunchConfiguration("led_config_file")
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
@@ -155,23 +98,6 @@ def generate_launch_description():
         "user_led_animations_file",
         default_value="",
         description="Path to a YAML file with a description of the user defined animations",
-    )
-
-    simulation_engine = LaunchConfiguration("simulation_engine")
-    declare_simulation_engine_arg = DeclareLaunchArgument(
-        "simulation_engine",
-        default_value="ignition-gazebo",
-        description="Which simulation engine will be used",
-    )
-
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
-    declare_publish_robot_state_arg = DeclareLaunchArgument(
-        "publish_robot_state",
-        default_value="True",
-        description=(
-            "Whether to launch the robot_state_publisher node."
-            "When set to False, users should publish their own robot description."
-        ),
     )
 
     use_ekf = LaunchConfiguration("use_ekf")
@@ -224,13 +150,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "panther_version": panther_version,
-            "wheel_type": wheel_type,
-            "wheel_config_path": wheel_config_path,
-            "controller_config_path": controller_config_path,
-            "battery_config_path": battery_config_path,
             "use_sim": use_sim,
-            "simulation_engine": simulation_engine,
-            "publish_robot_state": publish_robot_state,
             "namespace": namespace,
         }.items(),
     )
@@ -325,14 +245,8 @@ def generate_launch_description():
     actions = [
         declare_namespace_arg,
         declare_use_sim_arg,
-        declare_wheel_type_arg,
-        declare_wheel_config_path_arg,
-        declare_controller_config_path_arg,
-        declare_battery_config_path_arg,
         declare_led_config_file_arg,
         declare_user_led_animations_file_arg,
-        declare_simulation_engine_arg,
-        declare_publish_robot_state_arg,
         declare_use_ekf_arg,
         declare_ekf_config_path_arg,
         declare_disable_manager_arg,

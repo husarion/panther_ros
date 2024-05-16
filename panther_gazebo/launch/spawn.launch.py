@@ -28,7 +28,6 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
-    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
@@ -36,10 +35,6 @@ from nav2_common.launch import ParseMultiRobotPose
 
 
 def launch_setup(context):
-    wheel_type = LaunchConfiguration("wheel_type").perform(context)
-    wheel_config_path = LaunchConfiguration("wheel_config_path").perform(context)
-    controller_config_path = LaunchConfiguration("controller_config_path").perform(context)
-    battery_config_path = LaunchConfiguration("battery_config_path").perform(context)
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path").perform(context)
     x = LaunchConfiguration("x").perform(context)
     y = LaunchConfiguration("y").perform(context)
@@ -47,7 +42,6 @@ def launch_setup(context):
     roll = LaunchConfiguration("roll").perform(context)
     pitch = LaunchConfiguration("pitch").perform(context)
     yaw = LaunchConfiguration("yaw").perform(context)
-    publish_robot_state = LaunchConfiguration("publish_robot_state").perform(context)
     namespace = LaunchConfiguration("namespace").perform(context)
     add_world_transform = LaunchConfiguration("add_world_transform").perform(context)
 
@@ -105,13 +99,7 @@ def launch_setup(context):
                 )
             ),
             launch_arguments={
-                "wheel_type": wheel_type,
-                "wheel_config_path": wheel_config_path,
-                "controller_config_path": controller_config_path,
-                "battery_config_path": battery_config_path,
-                "publish_robot_state": publish_robot_state,
                 "use_sim": "True",
-                "simulation_engine": "ignition-gazebo",
                 "namespace": robot_name,
             }.items(),
         )
@@ -163,65 +151,6 @@ def launch_setup(context):
 
 
 def generate_launch_description():
-    wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description=(
-            "Specify the type of wheel. If you select a value from the provided options ('WH01',"
-            " 'WH02', 'WH04'), you can disregard the 'wheel_config_path' and"
-            " 'controller_config_path' parameters. If you have custom wheels, set this parameter"
-            " to 'CUSTOM' and provide the necessary configurations."
-        ),
-        choices=["WH01", "WH02", "WH04", "CUSTOM"],
-    )
-
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_description"),
-                "config",
-                PythonExpression(["'", wheel_type, ".yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-            "to your custom wheel configuration file here. "
-        ),
-    )
-
-    declare_controller_config_path_arg = DeclareLaunchArgument(
-        "controller_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_controller"),
-                "config",
-                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
-            " the path to your custom controller configuration file here. "
-        ),
-    )
-
-    declare_battery_config_path_arg = DeclareLaunchArgument(
-        "battery_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_gazebo"),
-                "config",
-                "battery_plugin_config.yaml",
-            ]
-        ),
-        description=(
-            "Path to the Ignition LinearBatteryPlugin configuration file. "
-            "This configuration is intended for use in simulations only."
-        ),
-    )
 
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
@@ -259,15 +188,6 @@ def generate_launch_description():
         "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
     )
 
-    declare_publish_robot_state_arg = DeclareLaunchArgument(
-        "publish_robot_state",
-        default_value="True",
-        description=(
-            "Whether to launch the robot_state_publisher node."
-            "When set to False, users should publish their own robot description."
-        ),
-    )
-
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
@@ -300,12 +220,7 @@ def generate_launch_description():
             declare_roll_arg,
             declare_pitch_arg,
             declare_yaw_arg,
-            declare_wheel_type_arg,
-            declare_wheel_config_path_arg,
-            declare_controller_config_path_arg,
-            declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
-            declare_publish_robot_state_arg,
             declare_namespace_arg,
             declare_robots_arg,
             declare_add_world_transform_arg,
