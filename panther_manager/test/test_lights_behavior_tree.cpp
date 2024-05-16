@@ -31,7 +31,7 @@
 #include "panther_msgs/msg/led_animation.hpp"
 #include "panther_msgs/srv/set_led_animation.hpp"
 
-#include <include/test_behavior_tree_utils.hpp>
+#include <include/behavior_tree_test_utils.hpp>
 #include <panther_manager/lights_manager_node.hpp>
 
 using BoolMsg = std_msgs::msg::Bool;
@@ -57,7 +57,7 @@ class TestLightsBehaviorTree : public testing::Test
 {
 public:
   TestLightsBehaviorTree();
-  ~TestLightsBehaviorTree();
+  ~TestLightsBehaviorTree() {}
 
 protected:
   bool SpinWhileRunning();
@@ -67,6 +67,10 @@ protected:
 
   static constexpr float kLowBatteryAnimPeriod = 1.0;
   static constexpr float kCriticalBatteryAnimPeriod = 0.5;
+  static constexpr float kBatteryMaxPercent = 1.0;
+  static constexpr float kBatteryLowPercent = 0.39;
+  static constexpr float kBatteryCriticalPercent = 0.09;
+  static constexpr float kBatteryOptimalPercent = 0.8;
 
   std::size_t current_anim_id_ = -1;
   std::shared_ptr<LightsManagerNodeWrapper> lights_manager_node_;
@@ -110,9 +114,9 @@ TestLightsBehaviorTree::TestLightsBehaviorTree()
   set_led_animation_server_ = lights_manager_node_->create_service<SetLEDAnimationSrv>(
     "lights/controller/set/animation",
     std::bind(&TestLightsBehaviorTree::SetLEDAnimationCB, this, _1, _2));
-}
 
-TestLightsBehaviorTree::~TestLightsBehaviorTree() {}
+  lights_manager_node_->Initialize();
+}
 
 bool TestLightsBehaviorTree::SpinWhileRunning()
 {
@@ -148,10 +152,10 @@ void TestLightsBehaviorTree::SetLEDAnimationCB(
 
 TEST_F(TestLightsBehaviorTree, UnknownBatteryStatus)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
-    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD, 1.0);
+    BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
+    kBatteryMaxPercent);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_EQ(current_anim_id_, LEDAnimationMsg::ERROR);
@@ -159,11 +163,10 @@ TEST_F(TestLightsBehaviorTree, UnknownBatteryStatus)
 
 TEST_F(TestLightsBehaviorTree, NotCharging)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    1.0);
+    kBatteryMaxPercent);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_EQ(current_anim_id_, LEDAnimationMsg::READY);
@@ -171,11 +174,10 @@ TEST_F(TestLightsBehaviorTree, NotCharging)
 
 TEST_F(TestLightsBehaviorTree, Ready)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    1.0);
+    kBatteryMaxPercent);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_EQ(current_anim_id_, LEDAnimationMsg::READY);
@@ -183,11 +185,10 @@ TEST_F(TestLightsBehaviorTree, Ready)
 
 TEST_F(TestLightsBehaviorTree, EStop)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(true);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    1.0);
+    kBatteryMaxPercent);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_EQ(current_anim_id_, LEDAnimationMsg::E_STOP);
@@ -195,11 +196,10 @@ TEST_F(TestLightsBehaviorTree, EStop)
 
 TEST_F(TestLightsBehaviorTree, LowBattery)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    0.39);
+    kBatteryLowPercent);
 
   // Wait for the low battery animation period to pass, then spin
   std::this_thread::sleep_for(
@@ -210,11 +210,10 @@ TEST_F(TestLightsBehaviorTree, LowBattery)
 
 TEST_F(TestLightsBehaviorTree, CriticalBattery)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    0.09);
+    kBatteryCriticalPercent);
 
   // Wait for the critical battery animation period to pass, then spin
   std::this_thread::sleep_for(
@@ -225,11 +224,10 @@ TEST_F(TestLightsBehaviorTree, CriticalBattery)
 
 TEST_F(TestLightsBehaviorTree, ChargingBatteryOverheat)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
-    1.0);
+    kBatteryMaxPercent);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_EQ(current_anim_id_, LEDAnimationMsg::ERROR);
@@ -237,10 +235,10 @@ TEST_F(TestLightsBehaviorTree, ChargingBatteryOverheat)
 
 TEST_F(TestLightsBehaviorTree, Charging)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
-    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD, 0.9);
+    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
+    kBatteryOptimalPercent);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_EQ(current_anim_id_, LEDAnimationMsg::CHARGING_BATTERY);
@@ -248,10 +246,10 @@ TEST_F(TestLightsBehaviorTree, Charging)
 
 TEST_F(TestLightsBehaviorTree, ChargingOnEStop)
 {
-  lights_manager_node_->Initialize();
   PublishEStop(false);
   PublishBatteryState(
-    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD, 0.9);
+    BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
+    kBatteryOptimalPercent);
 
   std::this_thread::sleep_for(std::chrono::seconds(20));
   ASSERT_TRUE(SpinWhileRunning());

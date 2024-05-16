@@ -34,7 +34,7 @@
 #include "panther_msgs/msg/io_state.hpp"
 #include "panther_msgs/msg/system_status.hpp"
 
-#include <include/test_behavior_tree_utils.hpp>
+#include <include/behavior_tree_test_utils.hpp>
 #include <panther_manager/safety_manager_node.hpp>
 
 using BoolMsg = std_msgs::msg::Bool;
@@ -77,6 +77,7 @@ protected:
   void PublishSystemStatus(const float cpu_temp);
 
   static constexpr float kFanTurnOffTimeout = 1.0;
+  static constexpr float kBatteryOptimalTemp = 22.0;
 
   bool fan_state_ = false;
   bool aux_power_state_ = true;
@@ -122,6 +123,10 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
   params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
   params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
   params.push_back(rclcpp::Parameter("fan_turn_off_timeout", kFanTurnOffTimeout));
+  // Reduce moving average window length to simplify calculations for published messages
+  params.push_back(rclcpp::Parameter("battery.temp.window_len", 1));
+  params.push_back(rclcpp::Parameter("cpu.temp.window_len", 1));
+  params.push_back(rclcpp::Parameter("driver.temp.window_len", 1));
 
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
@@ -145,6 +150,8 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
     std::bind(&TestSafetyBehaviorTree::AUXPowerServerCB, this, _1, _2));
   e_stop_trigger_server_ = safety_manager_node_->create_service<TriggerSrv>(
     "hardware/e_stop_trigger", std::bind(&TestSafetyBehaviorTree::EStopTriggerSrvCB, this, _1, _2));
+
+  safety_manager_node_->Initialize();
 }
 
 TestSafetyBehaviorTree::~TestSafetyBehaviorTree() { rclcpp::shutdown(); }
@@ -161,7 +168,7 @@ void TestSafetyBehaviorTree::PublishDefaultStates()
   PublishEStop(false);
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    0.0);
+    kBatteryOptimalTemp);
   PublishIOState(false, true);
   PublishDriverState(0.0);
   PublishSystemStatus(0.0);
@@ -232,7 +239,6 @@ void TestSafetyBehaviorTree::EStopTriggerSrvCB(
 
 TEST_F(TestSafetyBehaviorTree, TurnOnFanAtStartup)
 {
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
 
   ASSERT_TRUE(SpinWhileRunning());
@@ -250,7 +256,6 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanCpuTemp)
   const float high_cpu_temp = 70.1;
   const float edge_cpu_temp = 59.9;
 
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
 
   ASSERT_TRUE(SpinWhileRunning());
@@ -262,14 +267,14 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanCpuTemp)
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 
-  PublishSystemStatus((2.0 * high_cpu_temp));
+  PublishSystemStatus((high_cpu_temp));
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
   ASSERT_TRUE(SpinWhileRunning());
 
   EXPECT_TRUE(fan_state_);
 
-  PublishSystemStatus(3.0 * edge_cpu_temp - 2.0 * high_cpu_temp);
+  PublishSystemStatus(edge_cpu_temp);
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
@@ -282,7 +287,6 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanDriverTemp)
   const float high_driver_temp = 45.1;
   const float edge_driver_temp = 34.9;
 
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
 
   ASSERT_TRUE(SpinWhileRunning());
@@ -294,14 +298,14 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanDriverTemp)
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 
-  PublishDriverState((2.0 * high_driver_temp));
+  PublishDriverState((high_driver_temp));
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
   ASSERT_TRUE(SpinWhileRunning());
 
   EXPECT_TRUE(fan_state_);
 
-  PublishDriverState(3.0 * edge_driver_temp - 2.0 * high_driver_temp);
+  PublishDriverState(edge_driver_temp);
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
@@ -311,14 +315,13 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanDriverTemp)
 
 TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOvervoltage)
 {
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(e_stop_triggered_);
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING,
-    BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, 20.0);
+    BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERVOLTAGE, kBatteryOptimalTemp);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(e_stop_triggered_);
@@ -326,13 +329,12 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOvervoltage)
 
 TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthDead)
 {
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
   ASSERT_TRUE(SpinWhileRunning());
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_DEAD,
-    20.0);
+    kBatteryOptimalTemp);
 
   ASSERT_TRUE(SpinWhileRunning());
   // Shutdown of the robot should be invoked so the shutdown tree status should change
@@ -341,7 +343,6 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthDead)
 
 TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
 {
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
   ASSERT_TRUE(SpinWhileRunning());
 
@@ -355,7 +356,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
-    20.0);
+    kBatteryOptimalTemp);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(e_stop_triggered_);
@@ -364,7 +365,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD,
-    20.0);
+    kBatteryOptimalTemp);
 
   // check if change of power supply health turns of the fan
   std::this_thread::sleep_for(
@@ -377,7 +378,6 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatCriticalTemp)
 {
   const float critical_bat_temp = 55.1;
 
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
   ASSERT_TRUE(SpinWhileRunning());
 
@@ -391,7 +391,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatCriticalTemp)
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
-    2.0 * critical_bat_temp);
+    critical_bat_temp);
 
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_TRUE(e_stop_triggered_);
@@ -403,13 +403,12 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatFatalTemp)
 {
   const float fatal_bat_temp = 62.1;
 
-  safety_manager_node_->Initialize();
   PublishDefaultStates();
   ASSERT_TRUE(SpinWhileRunning());
 
   PublishBatteryState(
     BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING, BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT,
-    2.0 * fatal_bat_temp);
+    fatal_bat_temp);
 
   ASSERT_TRUE(SpinWhileRunning());
   // Shutdown of the robot should be invoked so the shutdown tree status should change

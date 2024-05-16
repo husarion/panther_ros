@@ -28,7 +28,7 @@
 #include "panther_utils/moving_average.hpp"
 
 #include <panther_manager/behavior_tree_manager.hpp>
-#include <panther_manager/bt_utils.hpp>
+#include <panther_manager/behavior_tree_utils.hpp>
 
 namespace panther_manager
 {
@@ -107,7 +107,7 @@ void LightsManagerNode::RegisterBehaviorTree()
 
   RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
 
-  bt_utils::RegisterBehaviorTree(
+  behavior_tree_utils::RegisterBehaviorTree(
     factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
 }
 

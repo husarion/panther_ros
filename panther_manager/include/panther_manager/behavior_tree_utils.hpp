@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_BT_UTILS_HPP_
-#define PANTHER_MANAGER_BT_UTILS_HPP_
+#ifndef PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_
+#define PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_
 
 #include <any>
 #include <map>
@@ -26,7 +26,7 @@
 #include "behaviortree_cpp/utils/shared_library.h"
 #include "behaviortree_ros2/plugins.hpp"
 
-namespace panther_manager::bt_utils
+namespace panther_manager::behavior_tree_utils
 {
 
 /**
@@ -75,6 +75,6 @@ void RegisterBehaviorTree(
   RegisterBehaviorTree(factory, bt_project_path, plugin_libs);
 }
 
-}  // namespace panther_manager::bt_utils
+}  // namespace panther_manager::behavior_tree_utils
 
-#endif  // PANTHER_MANAGER_BT_UTILS_HPP_
+#endif  // PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_

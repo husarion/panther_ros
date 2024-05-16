@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_TEST_BEHAVIOR_TREE_UTILS_
-#define PANTHER_MANAGER_TEST_BEHAVIOR_TREE_UTILS_
+#ifndef PANTHER_MANAGER_BEHAVIOR_TREE_TEST_UTILS_
+#define PANTHER_MANAGER_BEHAVIOR_TREE_TEST_UTILS_
 
 #include <chrono>
 #include <functional>
@@ -56,4 +56,4 @@ bool SpinWhileRunning(
 
 }  // namespace behavior_tree::test_utils
 
-#endif  // PANTHER_MANAGER_TEST_BEHAVIOR_TREE_UTILS_
+#endif  // PANTHER_MANAGER_BEHAVIOR_TREE_TEST_UTILS_

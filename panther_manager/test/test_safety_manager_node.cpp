@@ -30,7 +30,7 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include <panther_manager/safety_manager_node.hpp>
-#include "panther_utils/test/test_utils.hpp"
+#include "panther_utils/test/ros_test_utils.hpp"
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
@@ -64,11 +64,8 @@ public:
 protected:
   void CreateBTProjectFile(const std::string & tree_xml);
 
-  template <typename MsgT>
-  void PublishAndSpin(
-    const std::string & topic_name, MsgT msg,
-    const rclcpp::QoS qos_profile = rclcpp::SystemDefaultsQoS());
-
+  const rclcpp::QoS transient_local_qos =
+    rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
   std::shared_ptr<SafetyManagerNodeWrapper> safety_manager_node_;
 
 private:
@@ -120,6 +117,7 @@ TestSafetyManagerNode::TestSafetyManagerNode()
 
   safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>(
     "test_safety_manager_node", options);
+  safety_manager_node_->Initialize();
 }
 
 TestSafetyManagerNode::~TestSafetyManagerNode() { std::filesystem::remove(bt_project_path_); }
@@ -133,27 +131,8 @@ void TestSafetyManagerNode::CreateBTProjectFile(const std::string & tree_xml)
   }
 }
 
-template <typename MsgT>
-void TestSafetyManagerNode::PublishAndSpin(
-  const std::string & topic_name, MsgT msg, const rclcpp::QoS qos_profile)
-{
-  ASSERT_NO_THROW(safety_manager_node_->Initialize());
-  auto publisher = safety_manager_node_->create_publisher<MsgT>(topic_name, qos_profile);
-
-  publisher->publish(msg);
-
-  rclcpp::spin_some(safety_manager_node_->get_node_base_interface());
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-}
-
-TEST_F(TestSafetyManagerNode, RegisterBehaviorTree)
-{
-  EXPECT_NO_THROW(safety_manager_node_->RegisterBehaviorTree());
-}
-
 TEST_F(TestSafetyManagerNode, SystemReady)
 {
-  ASSERT_NO_THROW(safety_manager_node_->Initialize());
   EXPECT_FALSE(safety_manager_node_->SystemReady());
 
   safety_manager_node_->GetSafetyTreeBlackboard()->set<bool>("e_stop_state", true);
@@ -183,7 +162,7 @@ TEST_F(TestSafetyManagerNode, BatteryCBBlackboardUpdate)
   battery_state.power_supply_health = expected_health;
   battery_state.temperature = expected_temp;
 
-  PublishAndSpin("battery", battery_state);
+  panther_utils::test_utils::PublishAndSpin(safety_manager_node_, "battery", battery_state);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<unsigned>("battery_status"), expected_status);
@@ -198,8 +177,8 @@ TEST_F(TestSafetyManagerNode, EStopCBBlackboardUpdate)
   auto bool_msg = std_msgs::msg::Bool();
   bool_msg.data = expected_state;
 
-  PublishAndSpin(
-    "hardware/e_stop", bool_msg, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  panther_utils::test_utils::PublishAndSpin(
+    safety_manager_node_, "hardware/e_stop", bool_msg, transient_local_qos);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<bool>("e_stop_state"), expected_state);
@@ -213,7 +192,8 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
   driver_state_msg.front.temperature = expected_temp;
   driver_state_msg.rear.temperature = expected_temp;
 
-  PublishAndSpin("driver/motor_controllers_state", driver_state_msg);
+  panther_utils::test_utils::PublishAndSpin(
+    safety_manager_node_, "driver/motor_controllers_state", driver_state_msg);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("driver_temp"), expected_temp);
@@ -228,9 +208,8 @@ TEST_F(TestSafetyManagerNode, IOStateCBBlackboardUpdate)
   io_state_msg.aux_power = expected_aux_state;
   io_state_msg.fan = expected_fan_state;
 
-  PublishAndSpin(
-    "hardware/io_state", io_state_msg,
-    rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  panther_utils::test_utils::PublishAndSpin(
+    safety_manager_node_, "hardware/io_state", io_state_msg, transient_local_qos);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<bool>("aux_state"), expected_aux_state);
@@ -244,7 +223,8 @@ TEST_F(TestSafetyManagerNode, SystemStatusCBBlackboardUpdate)
   auto system_status_msg = panther_msgs::msg::SystemStatus();
   system_status_msg.cpu_temp = expected_temp;
 
-  PublishAndSpin("system_status", system_status_msg);
+  panther_utils::test_utils::PublishAndSpin(
+    safety_manager_node_, "system_status", system_status_msg);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("cpu_temp"), expected_temp);

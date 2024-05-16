@@ -30,7 +30,7 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include <panther_manager/lights_manager_node.hpp>
-#include "panther_utils/test/test_utils.hpp"
+#include "panther_utils/test/ros_test_utils.hpp"
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
@@ -63,11 +63,6 @@ public:
 
 protected:
   void CreateBTProjectFile(const std::string & tree_xml);
-
-  template <typename MsgT>
-  void PublishAndSpin(
-    const std::string & topic_name, MsgT msg,
-    const rclcpp::QoS qos_profile = rclcpp::SystemDefaultsQoS());
 
   std::shared_ptr<LightsManagerNodeWrapper> lights_manager_node_;
 
@@ -110,6 +105,7 @@ TestLightsManagerNode::TestLightsManagerNode()
 
   lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>(
     "test_lights_manager_node", options);
+  lights_manager_node_->Initialize();
 }
 
 TestLightsManagerNode::~TestLightsManagerNode() { std::filesystem::remove(bt_project_path_); }
@@ -123,27 +119,8 @@ void TestLightsManagerNode::CreateBTProjectFile(const std::string & tree_xml)
   }
 }
 
-template <typename MsgT>
-void TestLightsManagerNode::PublishAndSpin(
-  const std::string & topic_name, MsgT msg, const rclcpp::QoS qos_profile)
-{
-  ASSERT_NO_THROW(lights_manager_node_->Initialize());
-  auto publisher = lights_manager_node_->create_publisher<MsgT>(topic_name, qos_profile);
-
-  publisher->publish(msg);
-
-  rclcpp::spin_some(lights_manager_node_->get_node_base_interface());
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-}
-
-TEST_F(TestLightsManagerNode, RegisterBehaviorTree)
-{
-  EXPECT_NO_THROW(lights_manager_node_->RegisterBehaviorTree());
-}
-
 TEST_F(TestLightsManagerNode, SystemReady)
 {
-  ASSERT_NO_THROW(lights_manager_node_->Initialize());
   EXPECT_FALSE(lights_manager_node_->SystemReady());
 
   lights_manager_node_->GetLightsTreeBlackboard()->set<bool>("e_stop_state", true);
@@ -164,7 +141,7 @@ TEST_F(TestLightsManagerNode, BatteryCBBlackboardUpdate)
   battery_state.power_supply_status = expected_status;
   battery_state.power_supply_health = expected_health;
 
-  PublishAndSpin("battery", battery_state);
+  panther_utils::test_utils::PublishAndSpin(lights_manager_node_, "battery", battery_state);
 
   auto blackboard = lights_manager_node_->GetLightsTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("battery_percent"), expected_percentage);
@@ -179,8 +156,9 @@ TEST_F(TestLightsManagerNode, EStopCBBlackboardUpdate)
   auto bool_msg = std_msgs::msg::Bool();
   bool_msg.data = expected_state;
 
-  PublishAndSpin(
-    "hardware/e_stop", bool_msg, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  panther_utils::test_utils::PublishAndSpin(
+    lights_manager_node_, "hardware/e_stop", bool_msg,
+    rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
   auto blackboard = lights_manager_node_->GetLightsTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("e_stop_state"), expected_state);

@@ -77,6 +77,29 @@ bool WaitForFuture(const NodeT & node, FutureT & future, const std::chrono::mill
   return false;
 }
 
+/**
+ * @brief Creates publisher for given message type, publishes the message, and spins the ROS node
+ *
+ * @param node ROS node that will be spun
+ * @param topic_name The name of the topic for which publisher will be created
+ * @param msg ROS message that will be published
+ * @param qos_profile The QoS profile of the publisher
+ *
+ * @return True if message was received, false if timeout was reached
+ */
+template <typename MsgT>
+void PublishAndSpin(
+  const rclcpp::Node::SharedPtr & node, const std::string & topic_name, MsgT & msg,
+  const rclcpp::QoS qos_profile = rclcpp::SystemDefaultsQoS())
+{
+  auto publisher = node->create_publisher<MsgT>(topic_name, qos_profile);
+
+  publisher->publish(msg);
+
+  rclcpp::spin_some(node->get_node_base_interface());
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}
+
 }  // namespace panther_utils::test_utils
 
 #endif  // PANTHER_UTILS_TEST_UTILS_HPP_

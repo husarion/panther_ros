@@ -25,7 +25,7 @@
 #include "behaviortree_cpp/tree_node.h"
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_manager/bt_utils.hpp"
+#include "panther_manager/behavior_tree_utils.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 class TestRegisterBT : public testing::Test
@@ -73,7 +73,8 @@ TEST_F(TestRegisterBT, RegisterBehaviorTreeInvalidPlugin)
   BT::BehaviorTreeFactory factory;
 
   EXPECT_THROW(
-    panther_manager::bt_utils::RegisterBehaviorTree(factory, bt_project_path_, {"invalid_bt_node"}),
+    panther_manager::behavior_tree_utils::RegisterBehaviorTree(
+      factory, bt_project_path_, {"invalid_bt_node"}),
     BT::RuntimeError);
 }
 
@@ -81,7 +82,7 @@ TEST_F(TestRegisterBT, RegisterBehaviorTree)
 {
   BT::BehaviorTreeFactory factory;
 
-  EXPECT_NO_THROW(panther_manager::bt_utils::RegisterBehaviorTree(
+  EXPECT_NO_THROW(panther_manager::behavior_tree_utils::RegisterBehaviorTree(
     factory, bt_project_path_, {"tick_after_timeout_bt_node", "signal_shutdown_bt_node"}));
 
   // check if nodes were registered
@@ -101,7 +102,7 @@ TEST_F(TestRegisterBT, RegisterBehaviorTreeROS)
   rclcpp::init(0, nullptr);
   auto node = std::make_shared<rclcpp::Node>("test_node");
 
-  EXPECT_NO_THROW(panther_manager::bt_utils::RegisterBehaviorTree(
+  EXPECT_NO_THROW(panther_manager::behavior_tree_utils::RegisterBehaviorTree(
     factory, bt_project_path_, {}, node,
     {"call_trigger_service_bt_node", "call_set_bool_service_bt_node"}));
 
