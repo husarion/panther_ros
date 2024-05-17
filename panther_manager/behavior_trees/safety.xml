@@ -20,7 +20,7 @@
                                 service_name="hardware/aux_power_enable"
                                 _skipIf="!aux_state"/>
           </Sequence>
-          <CallSetBoolService name="EnableFanIfHighBatTemp"
+          <CallSetBoolService name="EnableFan"
                               data="true"
                               service_name="hardware/fan_enable"
                               _skipIf="fan_state"/>
@@ -38,7 +38,7 @@
       </Sequence>
       <RunOnce name="TurnOnFunAtStartup"
                then_skip="true">
-        <CallSetBoolService name="EnableFanIfHighBatTemp"
+        <CallSetBoolService name="EnableFan"
                             data="true"
                             service_name="hardware/fan_enable"/>
       </RunOnce>
@@ -46,8 +46,9 @@
                         timeout="{FAN_TURN_OFF_TIMEOUT}">
         <Sequence>
           <Sequence name="HighSysTempSequence"
-                    _skipIf="cpu_temp &lt;= CPU_FAN_ON_TEMP \&#10;&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP">
-            <CallSetBoolService name="EnableFanIfHighBatTemp"
+                    _skipIf="cpu_temp &lt;= CPU_FAN_ON_TEMP \
+&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP">
+            <CallSetBoolService name="EnableFan"
                                 data="true"
                                 service_name="hardware/fan_enable"
                                 _skipIf="fan_state"/>
@@ -55,7 +56,10 @@
           <CallSetBoolService name="DisableFan"
                               data="false"
                               service_name="hardware/fan_enable"
-                              _skipIf="cpu_temp &gt; CPU_FAN_OFF_TEMP \&#10;|| driver_temp &gt; DRIVER_FAN_OFF_TEMP \&#10;|| battery_health == POWER_SUPPLY_HEALTH_OVERHEAT \&#10;|| !fan_state"/>
+                              _skipIf="cpu_temp &gt; CPU_FAN_OFF_TEMP \
+|| driver_temp &gt; DRIVER_FAN_OFF_TEMP \
+|| battery_health == POWER_SUPPLY_HEALTH_OVERHEAT \
+|| !fan_state"/>
         </Sequence>
       </TickAfterTimeout>
     </Sequence>
