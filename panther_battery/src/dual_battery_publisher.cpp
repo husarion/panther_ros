@@ -38,21 +38,21 @@ DualBatteryPublisher::DualBatteryPublisher(
   battery_1_(std::move(battery_1)),
   battery_2_(std::move(battery_2))
 {
-  battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
-  battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
-  battery_2_pub_ = node_->create_publisher<BatteryStateMsg>("battery_2_raw", 5);
+  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
+  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
+  battery_2_pub_ = node->create_publisher<BatteryStateMsg>("battery_2_raw", 5);
 }
 
 void DualBatteryPublisher::Update()
 {
-  const auto header_stamp = node_->get_clock()->now();
+  const auto header_stamp = this->GetClock()->now();
   battery_1_->Update(header_stamp, ChargerConnected());
   battery_2_->Update(header_stamp, ChargerConnected());
 }
 
 void DualBatteryPublisher::Reset()
 {
-  const auto header_stamp = node_->get_clock()->now();
+  const auto header_stamp = this->GetClock()->now();
   battery_1_->Reset(header_stamp);
   battery_2_->Reset(header_stamp);
 }
@@ -71,12 +71,12 @@ void DualBatteryPublisher::LogErrors()
 {
   if (battery_1_->HasErrorMsg()) {
     RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
+      this->GetLogger(), *this->GetClock(), 10000, "Battery nr 1 error: %s",
       battery_1_->GetErrorMsg().c_str());
   }
   if (battery_2_->HasErrorMsg()) {
     RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 2 error: %s",
+      this->GetLogger(), *this->GetClock(), 10000, "Battery nr 2 error: %s",
       battery_2_->GetErrorMsg().c_str());
   }
 }
