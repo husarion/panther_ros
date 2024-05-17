@@ -5,8 +5,6 @@ on:
     workflow_dispatch:
     # TODO: ENABLE WHEN READY
     pull_request:
-        branches:
-            - ros2-devel
 
 jobs:
     test:
