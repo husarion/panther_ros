@@ -33,6 +33,7 @@ def generate_launch_description():
         executable="system_status_node",
         name="system_status_node",
         namespace=namespace,
+        remappings=[("/diagnostics", "diagnostics")],
     )
 
     actions = [

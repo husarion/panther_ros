@@ -37,6 +37,7 @@ def generate_launch_description():
         name="battery_node",
         parameters=[{"panther_version": panther_version}],
         namespace=namespace,
+        remappings=[("/diagnostics", "diagnostics")],
     )
 
     actions = [

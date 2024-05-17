@@ -176,11 +176,6 @@ void PantherImuSensor::CheckSensorName() const
   if (!info_.sensors.size()) {
     throw std::runtime_error("Sensor is not defined in urdf!");
   }
-
-  if (info_.sensors[0].name != kImuSensorName) {
-    throw std::runtime_error(
-      "Wrong sensor name: '" + info_.sensors[0].name + "', '" + kImuSensorName + "' expected.");
-  }
 }
 
 void PantherImuSensor::CheckStatesSize() const

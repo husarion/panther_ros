@@ -77,7 +77,6 @@
 
     <gazebo reference="${reference_frame}">
       <sensor name="${ns}imu" type="imu">
-        <plugin filename="ignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu" />
         <always_on>true</always_on>
         <update_rate>50</update_rate>
         <topic>${ns}imu/data_raw</topic>
