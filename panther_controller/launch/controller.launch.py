@@ -36,19 +36,11 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     wheel_type = LaunchConfiguration("wheel_type")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH01",
-        description=(
-            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
-            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
-            " parameters. For custom wheels, please define these parameters to point to files that"
-            " accurately describe the custom wheels."
-        ),
-        choices=["WH01", "WH02", "WH04", "custom"],
-    )
-
     controller_config_path = LaunchConfiguration("controller_config_path")
+    namespace = LaunchConfiguration("namespace")
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    use_sim = LaunchConfiguration("use_sim")
+
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
         default_value=PathJoinSubstitution(
@@ -65,14 +57,12 @@ def generate_launch_description():
         ),
     )
 
-    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
     declare_publish_robot_state_arg = DeclareLaunchArgument(
         "publish_robot_state",
         default_value="True",
@@ -82,20 +72,31 @@ def generate_launch_description():
         ),
     )
 
-    use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
         description="Whether simulation is used",
     )
 
-    panther_description = IncludeLaunchDescription(
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
+            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
+            " parameters. For custom wheels, please define these parameters to point to files that"
+            " accurately describe the custom wheels."
+        ),
+        choices=["WH01", "WH02", "WH04", "custom"],
+    )
+
+    load_urdf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
                     FindPackageShare("panther_description"),
                     "launch",
-                    "panther_description.launch.py",
+                    "urdf.launch.py",
                 ]
             )
         ),
@@ -114,7 +115,10 @@ def generate_launch_description():
         parameters=[controller_config_path],
         namespace=namespace,
         remappings=[
-            ("controller_manager/robot_description", "robot_description"), # Bug in ros2_control on humble
+            (
+                "controller_manager/robot_description",
+                "robot_description",
+            ),  # Bug in ros2_control on humble
             (
                 "panther_system_node/driver/motor_controllers_state",
                 "driver/motor_controllers_state",
@@ -196,18 +200,18 @@ def generate_launch_description():
         ),
     )
 
-    return LaunchDescription(
-        [
-            declare_wheel_type_arg,
-            declare_controller_config_path_arg,
-            declare_namespace_arg,
-            declare_publish_robot_state_arg,
-            declare_use_sim_arg,
-            SetParameter(name="use_sim_time", value=use_sim),
-            panther_description,
-            control_node,
-            joint_state_broadcaster_spawner,
-            delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-            delay_imu_broadcaster_spawner_after_robot_controller_spawner,
-        ]
-    )
+    actions = [
+        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
+        declare_controller_config_path_arg,
+        declare_namespace_arg,
+        declare_publish_robot_state_arg,
+        declare_use_sim_arg,
+        SetParameter(name="use_sim_time", value=use_sim),
+        load_urdf,
+        control_node,
+        joint_state_broadcaster_spawner,
+        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
+    ]
+
+    return LaunchDescription(actions)

@@ -17,25 +17,33 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration
+from launch.substitutions import (
+    EnvironmentVariable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
     led_config_file = LaunchConfiguration("led_config_file")
+    namespace = LaunchConfiguration("namespace")
+    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
+
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
+        ),
         description="Path to a YAML file with a description of led configuration",
     )
-
-    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
-    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
     declare_user_led_animations_file_arg = DeclareLaunchArgument(
         "user_led_animations_file",
         default_value="",

@@ -36,7 +36,6 @@ def generate_launch_description():
     components_config_path = LaunchConfiguration("components_config_path")
     controller_config_path = LaunchConfiguration("controller_config_path")
     namespace = LaunchConfiguration("namespace")
-    panther_version = LaunchConfiguration("panther_version")
     use_sim = LaunchConfiguration("use_sim")
     wheel_type = LaunchConfiguration("wheel_type")
     wheel_config_path = LaunchConfiguration("wheel_config_path")
@@ -83,11 +82,6 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    declare_panther_version_arg = DeclareLaunchArgument(
-        "panther_version",
-        default_value=EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0"),
-    )
-
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
@@ -122,6 +116,7 @@ def generate_launch_description():
         choices=["WH01", "WH02", "WH04", "custom"],
     )
 
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.2")
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -177,12 +172,11 @@ def generate_launch_description():
     )
 
     actions = [
-        declare_wheel_type_arg,
+        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
         declare_battery_config_path_arg,
         declare_controller_config_path_arg,
         declare_components_config_path_arg,
         declare_namespace_arg,
-        declare_panther_version_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),

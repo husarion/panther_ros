@@ -35,8 +35,25 @@ from nav2_common.launch import ParseMultiRobotPose
 
 
 def generate_launch_description():
-
+    add_world_transform = LaunchConfiguration("add_world_transform")
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
+    namespace = LaunchConfiguration("namespace")
+    x = LaunchConfiguration("x")
+    y = LaunchConfiguration("y")
+    z = LaunchConfiguration("z")
+    roll = LaunchConfiguration("roll")
+    pitch = LaunchConfiguration("pitch")
+    yaw = LaunchConfiguration("yaw")
+
+    declare_add_world_transform_arg = DeclareLaunchArgument(
+        "add_world_transform",
+        default_value="False",
+        description=(
+            "Adds a world frame that connects the tf trees of individual robots (useful when running"
+            " multiple robots)."
+        ),
+    )
+
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
@@ -49,37 +66,6 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file.",
     )
 
-    x = LaunchConfiguration("x")
-    declare_x_arg = DeclareLaunchArgument(
-        "x", default_value="5.0", description="Initial robot position in the global 'x' axis."
-    )
-
-    y = LaunchConfiguration("y")
-    declare_y_arg = DeclareLaunchArgument(
-        "y", default_value="-5.0", description="Initial robot position in the global 'y' axis."
-    )
-
-    z = LaunchConfiguration("z")
-    declare_z_arg = DeclareLaunchArgument(
-        "z", default_value="0.2", description="Initial robot position in the global 'z' axis."
-    )
-
-    roll = LaunchConfiguration("roll")
-    declare_roll_arg = DeclareLaunchArgument(
-        "roll", default_value="0.0", description="Initial robot 'roll' orientation."
-    )
-
-    pitch = LaunchConfiguration("pitch")
-    declare_pitch_arg = DeclareLaunchArgument(
-        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
-    )
-
-    yaw = LaunchConfiguration("yaw")
-    declare_yaw_arg = DeclareLaunchArgument(
-        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
-    )
-
-    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
@@ -95,14 +81,28 @@ def generate_launch_description():
         ),
     )
 
-    add_world_transform = LaunchConfiguration("add_world_transform")
-    declare_add_world_transform_arg = DeclareLaunchArgument(
-        "add_world_transform",
-        default_value="False",
-        description=(
-            "Adds a world frame that connects the tf trees of individual robots (useful when running"
-            " multiple robots)."
-        ),
+    declare_x_arg = DeclareLaunchArgument(
+        "x", default_value="5.0", description="Initial robot position in the global 'x' axis."
+    )
+
+    declare_y_arg = DeclareLaunchArgument(
+        "y", default_value="-5.0", description="Initial robot position in the global 'y' axis."
+    )
+
+    declare_z_arg = DeclareLaunchArgument(
+        "z", default_value="0.2", description="Initial robot position in the global 'z' axis."
+    )
+
+    declare_roll_arg = DeclareLaunchArgument(
+        "roll", default_value="0.0", description="Initial robot 'roll' orientation."
+    )
+
+    declare_pitch_arg = DeclareLaunchArgument(
+        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
+    )
+
+    declare_yaw_arg = DeclareLaunchArgument(
+        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
     )
 
     robots_list = ParseMultiRobotPose("robots").value()
@@ -132,6 +132,10 @@ def generate_launch_description():
                 y,
                 "-z",
                 z,
+                "-R",
+                roll,
+                "-P",
+                pitch,
                 "-Y",
                 yaw,
             ],

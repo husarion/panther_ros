@@ -38,7 +38,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.2")
     panther_serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
     panther_pkg_version = Command(command="ros2 pkg xml -t version panther")
 
@@ -70,44 +70,25 @@ def generate_launch_description():
 
     welcome_msg = LogInfo(msg=stats_msg)
 
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes.",
-    )
-
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
-    )
-
-    led_config_file = LaunchConfiguration("led_config_file")
-    declare_led_config_file_arg = DeclareLaunchArgument(
-        "led_config_file",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
-        ),
-        description="Path to a YAML file with a description of led configuration",
-    )
-
-    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
-    declare_user_led_animations_file_arg = DeclareLaunchArgument(
-        "user_led_animations_file",
-        default_value="",
-        description="Path to a YAML file with a description of the user defined animations",
-    )
-
+    disable_manager = LaunchConfiguration("disable_manager")
     use_ekf = LaunchConfiguration("use_ekf")
+    ekf_config_path = LaunchConfiguration("ekf_config_path")
+    namespace = LaunchConfiguration("namespace")
+    use_sim = LaunchConfiguration("use_sim")
+
+    declare_disable_manager_arg = DeclareLaunchArgument(
+        "disable_manager",
+        default_value="False",
+        description="Enable or disable manager_bt_node",
+        choices=["True", "False"],
+    )
+
     declare_use_ekf_arg = DeclareLaunchArgument(
         "use_ekf",
         default_value="True",
         description="Enable or disable EKF",
     )
 
-    ekf_config_path = LaunchConfiguration("ekf_config_path")
     declare_ekf_config_path_arg = DeclareLaunchArgument(
         "ekf_config_path",
         default_value=PathJoinSubstitution(
@@ -117,25 +98,16 @@ def generate_launch_description():
         condition=IfCondition(use_ekf),
     )
 
-    disable_manager = LaunchConfiguration("disable_manager")
-    declare_disable_manager_arg = DeclareLaunchArgument(
-        "disable_manager",
-        default_value="False",
-        description="Enable or disable manager_bt_node",
-        choices=["True", "False"],
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all launched nodes.",
     )
 
-    shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
-    declare_shutdown_hosts_config_path_arg = DeclareLaunchArgument(
-        "shutdown_hosts_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_bringup"),
-                "config",
-                "shutdown_hosts.yaml",
-            ]
-        ),
-        description="Path to file with list of hosts to request shutdown.",
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
     )
 
     controller_launch = IncludeLaunchDescription(
@@ -176,9 +148,7 @@ def generate_launch_description():
         ),
         condition=UnlessCondition(use_sim),
         launch_arguments={
-            "led_config_file": led_config_file,
             "namespace": namespace,
-            "user_led_animations_file": user_led_animations_file,
         }.items(),
     )
 
@@ -195,7 +165,6 @@ def generate_launch_description():
         condition=UnlessCondition(use_sim),
         launch_arguments={
             "namespace": namespace,
-            "panther_version": panther_version,
         }.items(),
     )
 
@@ -228,8 +197,6 @@ def generate_launch_description():
         condition=UnlessCondition(PythonExpression([use_sim, " or ", disable_manager])),
         launch_arguments={
             "namespace": namespace,
-            "panther_version": panther_version,
-            "shutdown_hosts_config_path": shutdown_hosts_config_path,
         }.items(),
     )
 
@@ -244,14 +211,11 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_disable_manager_arg,
+        declare_use_ekf_arg,  # use_ekf must be before ekf_config_path
+        declare_ekf_config_path_arg,
         declare_namespace_arg,
         declare_use_sim_arg,
-        declare_led_config_file_arg,
-        declare_user_led_animations_file_arg,
-        declare_use_ekf_arg,
-        declare_ekf_config_path_arg,
-        declare_disable_manager_arg,
-        declare_shutdown_hosts_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         welcome_msg,
         controller_launch,

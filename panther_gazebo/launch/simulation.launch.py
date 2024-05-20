@@ -15,45 +15,14 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    EnvironmentVariable,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-)
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import SetParameter
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes.",
-    )
-
-    robots = LaunchConfiguration("robots")
-    declare_robots_arg = DeclareLaunchArgument(
-        "robots",
-        default_value=[],
-        description=(
-            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
-            " -1.0}; robot2={x: 1.0, y: -1.0}'"
-        ),
-    )
-
-    add_world_transform = LaunchConfiguration("add_world_transform")
-    declare_add_world_transform_arg = DeclareLaunchArgument(
-        "add_world_transform",
-        default_value="False",
-        description=(
-            "Adds a world frame that connects the tf trees of individual robots (useful when running"
-            " multiple robots)."
-        ),
-    )
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -77,18 +46,10 @@ def generate_launch_description():
                 ]
             )
         ),
-        launch_arguments={
-            "namespace": namespace,
-            "robots": robots,
-            "add_world_transform": add_world_transform,
-        }.items(),
     )
 
     return LaunchDescription(
         [
-            declare_namespace_arg,
-            declare_robots_arg,
-            declare_add_world_transform_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             gz_sim,
