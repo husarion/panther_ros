@@ -119,7 +119,25 @@ def generate_launch_description():
         init_pose = robots_list[robot_name]
         x, y, z, roll, pitch, yaw = [value for value in init_pose.values()]
 
-        spawn_log = LogInfo(msg=["Launching robot\n\tnamespace: \"", robot_name, "\"\n\tinit_pose: (", x, ", ", y, ", ", z, ", ", roll, ", ", pitch, ", ", yaw, ")"])
+        spawn_log = LogInfo(
+            msg=[
+                'Launching robot\n\tnamespace: "',
+                robot_name,
+                '"\n\tinit_pose: (',
+                x,
+                ", ",
+                y,
+                ", ",
+                z,
+                ", ",
+                roll,
+                ", ",
+                pitch,
+                ", ",
+                yaw,
+                ")",
+            ]
+        )
 
         spawn_robot = Node(
             package="ros_gz_sim",
