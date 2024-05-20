@@ -76,8 +76,8 @@ def generate_launch_description():
         "robots",
         default_value=[],
         description=(
-            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 0.0, y:"
-            " -1.0}; robot2={x: 1.0, y: -1.0}'."
+            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 1.0, y:"
+            " -2.0}; robot2={x: 1.0, y: -4.0}'."
         ),
     )
 
@@ -110,11 +110,14 @@ def generate_launch_description():
         robots_list = {
             namespace: {"x": x, "y": y, "z": z, "roll": roll, "pitch": pitch, "yaw": yaw}
         }
+    else:
+        for robot_name, init_pose in robots_list.items():
+            robots_list[robot_name] = {k: str(v) for k, v in init_pose.items()}
 
     spawn_group = []
     for idx, robot_name in enumerate(robots_list):
         init_pose = robots_list[robot_name]
-        x, y, z, roll, pitch, yaw = [str(value) for value in init_pose.values()]
+        x, y, z, roll, pitch, yaw = [value for value in init_pose.values()]
 
         spawn_log = LogInfo(msg=[f"Launching namespace={robot_name} with init_pose={init_pose}"])
 
