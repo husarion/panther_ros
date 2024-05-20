@@ -85,7 +85,8 @@ def generate_launch_description():
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
-        description="Whether simulation is used",
+        description="Whether simulation is used.",
+        choices=["True", "False"],
     )
 
     declare_wheel_config_path_arg = DeclareLaunchArgument(

@@ -79,14 +79,15 @@ def generate_launch_description():
     declare_disable_manager_arg = DeclareLaunchArgument(
         "disable_manager",
         default_value="False",
-        description="Enable or disable manager_bt_node",
+        description="Enable or disable manager_bt_node.",
         choices=["True", "False"],
     )
 
     declare_use_ekf_arg = DeclareLaunchArgument(
         "use_ekf",
         default_value="True",
-        description="Enable or disable EKF",
+        description="Enable or disable EKF.",
+        choices=["True", "False"],
     )
 
     declare_ekf_config_path_arg = DeclareLaunchArgument(
@@ -94,7 +95,7 @@ def generate_launch_description():
         default_value=PathJoinSubstitution(
             [FindPackageShare("panther_bringup"), "config", "ekf.yaml"]
         ),
-        description="Path to the EKF config file",
+        description="Path to the EKF config file.",
         condition=IfCondition(use_ekf),
     )
 
@@ -107,7 +108,8 @@ def generate_launch_description():
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
-        description="Whether simulation is used",
+        description="Whether simulation is used.",
+        choices=["True", "False"],
     )
 
     controller_launch = IncludeLaunchDescription(

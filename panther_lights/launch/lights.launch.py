@@ -36,7 +36,7 @@ def generate_launch_description():
         default_value=PathJoinSubstitution(
             [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
         ),
-        description="Path to a YAML file with a description of led configuration",
+        description="Path to a YAML file with a description of led configuration.",
     )
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
@@ -47,7 +47,7 @@ def generate_launch_description():
     declare_user_led_animations_file_arg = DeclareLaunchArgument(
         "user_led_animations_file",
         default_value="",
-        description="Path to a YAML file with a description of the user defined animations",
+        description="Path to a YAML file with a description of the user defined animations.",
     )
 
     lights_driver_node = Node(

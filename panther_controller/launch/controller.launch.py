@@ -70,12 +70,14 @@ def generate_launch_description():
             "Whether to launch the robot_state_publisher node."
             "When set to False, users should publish their own robot description."
         ),
+        choices=["True", "False"],
     )
 
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
         description="Whether simulation is used",
+        choices=["True", "False"],
     )
 
     declare_wheel_type_arg = DeclareLaunchArgument(
