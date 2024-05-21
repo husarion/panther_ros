@@ -54,6 +54,17 @@ def generate_launch_description():
         ),
     )
 
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_gazebo"), "config", "battery_plugin_config.yaml"]
+        ),
+    )
+
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
@@ -239,10 +250,11 @@ def generate_launch_description():
             declare_roll_arg,
             declare_pitch_arg,
             declare_yaw_arg,
+            declare_add_world_transform_arg,
+            declare_battery_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_namespace_arg,
             declare_robots_arg,
-            declare_add_world_transform_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             *spawn_group,

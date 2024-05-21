@@ -46,9 +46,7 @@ def generate_launch_description():
             "Path to the Ignition LinearBatteryPlugin configuration file. "
             "This configuration is intended for use in simulations only."
         ),
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "battery_plugin_config.yaml"]
-        ),
+        default_value="",
     )
 
     declare_components_config_path_arg = DeclareLaunchArgument(
