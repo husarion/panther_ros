@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import (
@@ -30,7 +32,7 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
 
-    panther_version = float(EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.2"))
+    panther_version = float(os.environ.get("PANTHER_ROBOT_VERSION", "1.2"))
     panther_manager_dir = FindPackageShare("panther_manager")
 
     if panther_version >= 1.2:
@@ -93,4 +95,4 @@ def generate_launch_description():
         manager_bt_node,
     ]
 
-    return LaunchDescription([actions])
+    return LaunchDescription(actions)
