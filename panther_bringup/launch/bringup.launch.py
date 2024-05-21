@@ -115,11 +115,7 @@ def generate_launch_description():
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_controller"),
-                    "launch",
-                    "controller.launch.py",
-                ]
+                [FindPackageShare("panther_controller"), "launch", "controller.launch.py"]
             )
         ),
         launch_arguments={
@@ -141,11 +137,7 @@ def generate_launch_description():
     lights_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_lights"),
-                    "launch",
-                    "lights.launch.py",
-                ]
+                [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
             )
         ),
         condition=UnlessCondition(use_sim),
@@ -157,11 +149,7 @@ def generate_launch_description():
     battery_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_battery"),
-                    "launch",
-                    "battery.launch.py",
-                ]
+                [FindPackageShare("panther_battery"), "launch", "battery.launch.py"]
             ),
         ),
         condition=UnlessCondition(use_sim),
@@ -189,11 +177,7 @@ def generate_launch_description():
     manager_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_manager"),
-                    "launch",
-                    "manager_bt.launch.py",
-                ]
+                [FindPackageShare("panther_manager"), "launch", "manager_bt.launch.py"]
             )
         ),
         condition=UnlessCondition(PythonExpression([use_sim, " or ", disable_manager])),

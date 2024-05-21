@@ -27,24 +27,14 @@ def generate_launch_description():
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [
-                    FindPackageShare("husarion_gz_worlds"),
-                    "launch",
-                    "gz_sim.launch.py",
-                ]
+                [FindPackageShare("husarion_gz_worlds"), "launch", "gz_sim.launch.py"]
             )
         ),
     )
 
     spawn_robots_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_gazebo"),
-                    "launch",
-                    "spawn.launch.py",
-                ]
-            )
+            PathJoinSubstitution([FindPackageShare("panther_gazebo"), "launch", "spawn.launch.py"])
         ),
     )
 

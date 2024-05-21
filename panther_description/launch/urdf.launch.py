@@ -46,7 +46,9 @@ def generate_launch_description():
             "Path to the Ignition LinearBatteryPlugin configuration file. "
             "This configuration is intended for use in simulations only."
         ),
-        default_value="",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_gazebo"), "config", "battery_plugin_config.yaml"]
+        ),
     )
 
     declare_components_config_path_arg = DeclareLaunchArgument(
@@ -124,11 +126,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_description"),
-                    "urdf",
-                    "panther.urdf.xacro",
-                ]
+                [FindPackageShare("panther_description"), "urdf", "panther.urdf.xacro"]
             ),
             " panther_version:=",
             panther_version,
@@ -173,12 +171,12 @@ def generate_launch_description():
     )
 
     actions = [
-        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
+        declare_use_sim_arg,  # use_sim must be before battery_config_path
         declare_battery_config_path_arg,
+        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
         declare_controller_config_path_arg,
         declare_components_config_path_arg,
         declare_namespace_arg,
-        declare_use_sim_arg,
         declare_wheel_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         robot_state_pub_node,

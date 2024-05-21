@@ -31,7 +31,7 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
-from nav2_common.launch import ParseMultiRobotPose
+from nav2_common.launch import ParseMultiRobotPose, ReplaceString
 
 
 def generate_launch_description():
@@ -57,11 +57,7 @@ def generate_launch_description():
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_gazebo"),
-                "config",
-                "gz_bridge.yaml",
-            ]
+            [FindPackageShare("panther_gazebo"), "config", "gz_bridge.yaml"]
         ),
         description="Path to the parameter_bridge configuration file.",
     )
@@ -164,11 +160,16 @@ def generate_launch_description():
             output="screen",
         )
 
+        namespaced_gz_bridge_config_path = ReplaceString(
+            source_file=gz_bridge_config_path,
+            replacements={"<namespace>": namespace, "//": "/"},
+        )
+
         gz_bridge = Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
             name="panther_base_gz_bridge",
-            parameters=[{"config_file": gz_bridge_config_path}],
+            parameters=[{"config_file": namespaced_gz_bridge_config_path}],
             namespace=robot_name,
             output="screen",
         )
@@ -176,11 +177,7 @@ def generate_launch_description():
         bringup_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
-                    [
-                        FindPackageShare("panther_bringup"),
-                        "launch",
-                        "bringup.launch.py",
-                    ]
+                    [FindPackageShare("panther_bringup"), "launch", "bringup.launch.py"]
                 )
             ),
             launch_arguments={
