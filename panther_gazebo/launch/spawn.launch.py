@@ -244,17 +244,17 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            declare_add_world_transform_arg,
+            declare_battery_config_path_arg,
+            declare_gz_bridge_config_path_arg,
+            declare_namespace_arg,
+            declare_robots_arg,
             declare_x_arg,
             declare_y_arg,
             declare_z_arg,
             declare_roll_arg,
             declare_pitch_arg,
             declare_yaw_arg,
-            declare_add_world_transform_arg,
-            declare_battery_config_path_arg,
-            declare_gz_bridge_config_path_arg,
-            declare_namespace_arg,
-            declare_robots_arg,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetParameter(name="use_sim_time", value=True),
             *spawn_group,

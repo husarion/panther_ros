@@ -169,12 +169,12 @@ def generate_launch_description():
     )
 
     actions = [
-        declare_use_sim_arg,  # use_sim must be before battery_config_path
         declare_battery_config_path_arg,
         declare_wheel_type_arg,  # wheel_type must be before controller_config_path
         declare_controller_config_path_arg,
         declare_components_config_path_arg,
         declare_namespace_arg,
+        declare_use_sim_arg,
         declare_wheel_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         robot_state_pub_node,
