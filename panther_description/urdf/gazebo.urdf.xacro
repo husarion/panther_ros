@@ -17,7 +17,7 @@
     <gazebo>
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
-        <battery_name>${ns}panther_battery</battery_name>
+        <battery_name>${ns}battery</battery_name>
         <voltage>41.4</voltage>
         <open_circuit_voltage_constant_coef>42.0</open_circuit_voltage_constant_coef>
         <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
@@ -113,4 +113,24 @@
       </sensor>
     </gazebo>
   </xacro:macro>
+
+
+  <!-- Lights -->
+  <xacro:macro name="light" params="reference_frame name namespace:=''">
+    <gazebo reference="${reference_frame}">
+      <light name="${name}" type="spot">
+        <cast_shadows>false</cast_shadows>
+        <visualize>0</visualize>
+        <diffuse>1.0 1.0 1.0</diffuse>
+        <specular>1.0 1.0 1.0</specular>
+        <direction>1 0 0</direction>
+        <intensity>1.0</intensity>
+        <spot>
+          <inner_angle>2.1</inner_angle>
+          <outer_angle>2.1</outer_angle>
+        </spot>
+      </light>
+    </gazebo>
+  </xacro:macro>
+
 </robot>
