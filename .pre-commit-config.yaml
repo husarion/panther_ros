@@ -60,6 +60,7 @@ repos:
     hooks:
       - id: yamlfmt
         files: ^.github|./\.yaml
+        args: [--mapping, '2', --sequence, '4', --offset, '2', --width, '100']
 
   - repo: https://github.com/psf/black
     rev: 24.4.0
