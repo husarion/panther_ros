@@ -45,12 +45,8 @@ LightsManagerNode::LightsManagerNode(
   battery_percent_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     battery_percent_window_len, 1.0);
 
-  BehaviorTreeParams bt_params;
-  bt_params.tree_name = "Lights";
-  bt_params.initial_blackboard = CreateLightsInitialBlackboard();
-  bt_params.groot_port = 5555;
-
-  lights_tree_manager_ = std::make_unique<BehaviorTreeManager>(bt_params);
+  const auto initial_blackboard = CreateLightsInitialBlackboard();
+  lights_tree_manager_ = std::make_unique<BehaviorTreeManager>("Lights", initial_blackboard, 5555);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }

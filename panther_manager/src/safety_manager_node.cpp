@@ -53,22 +53,16 @@ SafetyManagerNode::SafetyManagerNode(
   rear_driver_temp_ma_ =
     std::make_unique<panther_utils::MovingAverage<double>>(driver_temp_window_len);
 
-  BehaviorTreeParams safety_bt_params;
-  safety_bt_params.tree_name = "Safety";
-  safety_bt_params.initial_blackboard = CreateSafetyInitialBlackboard();
-  safety_bt_params.groot_port = 6666;
-
-  safety_tree_manager_ = std::make_unique<BehaviorTreeManager>(safety_bt_params);
+  const auto safety_initial_blackboard = CreateSafetyInitialBlackboard();
+  safety_tree_manager_ = std::make_unique<BehaviorTreeManager>(
+    "Safety", safety_initial_blackboard, 6666);
 
   const auto shutdown_hosts_path = this->get_parameter("shutdown_hosts_path").as_string();
-  BehaviorTreeParams shutdown_bt_params;
-  shutdown_bt_params.tree_name = "Shutdown";
-  shutdown_bt_params.initial_blackboard = {
+  const std::map<std::string, std::any> shutdown_initial_blackboard = {
     {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_path.c_str()},
   };
-  shutdown_bt_params.groot_port = 7777;
-
-  shutdown_tree_manager_ = std::make_unique<BehaviorTreeManager>(shutdown_bt_params);
+  shutdown_tree_manager_ = std::make_unique<BehaviorTreeManager>(
+    "Shutdown", shutdown_initial_blackboard, 7777);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }

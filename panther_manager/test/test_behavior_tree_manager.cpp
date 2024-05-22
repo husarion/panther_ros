@@ -31,8 +31,10 @@
 class BehaviorTreeManagerWrapper : public panther_manager::BehaviorTreeManager
 {
 public:
-  BehaviorTreeManagerWrapper(const panther_manager::BehaviorTreeParams & params)
-  : BehaviorTreeManager(params)
+  BehaviorTreeManagerWrapper(
+    const std::string & tree_name, const std::map<std::string, std::any> & initial_blackboard,
+    const unsigned groot_port = 1667)
+  : BehaviorTreeManager(tree_name, initial_blackboard, groot_port)
   {
   }
   ~BehaviorTreeManagerWrapper() {}
@@ -58,10 +60,9 @@ protected:
 
 TestBehaviorTreeManager::TestBehaviorTreeManager()
 {
-  panther_manager::BehaviorTreeParams params;
-  params.tree_name = kTreeName;
-  params.initial_blackboard = {};
-  behavior_tree_manager_ = std::make_unique<BehaviorTreeManagerWrapper>(params);
+  const std::map<std::string, std::any> initial_blackboard = {};
+  behavior_tree_manager_ = std::make_unique<BehaviorTreeManagerWrapper>(
+    std::string(kTreeName), initial_blackboard);
 }
 
 TEST_F(TestBehaviorTreeManager, CreateBTConfigInvalidItem)

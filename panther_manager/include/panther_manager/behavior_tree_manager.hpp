@@ -15,6 +15,8 @@
 #ifndef PANTHER_MANAGER_BEHAVIOR_TREE_MANAGER_HPP_
 #define PANTHER_MANAGER_BEHAVIOR_TREE_MANAGER_HPP_
 
+#include <any>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -26,31 +28,28 @@ namespace panther_manager
 {
 
 /**
- * @brief Basic parameters used by BehaviorTreeManager.
- *
- * @param tree_name The name of the tree in the BehaviorTree project.
- * @param initial_blackboard A list with initial blackboard values for the tree.
- * @param groot_port The port used for the Groot2 publisher.
- */
-struct BehaviorTreeParams
-{
-  std::string tree_name;
-  std::map<std::string, std::any> initial_blackboard;
-  unsigned groot_port = 1667;
-};
-
-/**
  * @brief Class responsible for managing behavior trees.
  */
 class BehaviorTreeManager
 {
 public:
-  BehaviorTreeManager(const BehaviorTreeParams & params)
-  : tree_name_(params.tree_name),
-    initial_blackboard_(params.initial_blackboard),
-    groot_port_(params.groot_port)
+  /**
+   * @brief Constructor for the BehaviorTreeManager class.
+   *
+   * @param tree_name The name of the tree in the BehaviorTree project.
+   * @param initial_blackboard A list with initial blackboard values for the tree.
+   * @param groot_port The port used for the Groot2 publisher.
+   */
+  BehaviorTreeManager(
+    const std::string & tree_name, const std::map<std::string, std::any> & initial_blackboard,
+    const unsigned groot_port = 1667)
+  : tree_name_(tree_name),
+    initial_blackboard_(initial_blackboard),
+    groot_port_(groot_port),
+    tree_status_(BT::NodeStatus::IDLE)
   {
   }
+
   ~BehaviorTreeManager() {}
 
   /**
@@ -66,9 +65,9 @@ public:
   void TickWhileRunning() { tree_status_ = tree_.tickWhileRunning(); }
   void HaltTree() { tree_.haltTree(); }
 
-  BT::NodeStatus GetTreeStatus() { return tree_status_; }
+  BT::NodeStatus GetTreeStatus() const { return tree_status_; }
   BT::Tree & GetTree() { return tree_; }
-  BT::Blackboard::Ptr GetBlackboard() { return config_.blackboard; }
+  BT::Blackboard::Ptr GetBlackboard() const { return config_.blackboard; }
 
 protected:
   /**
@@ -81,7 +80,7 @@ protected:
    * entry type.
    * @return A BehaviorTree configuration object.
    */
-  BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values);
+  BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values) const;
 
 private:
   const std::string tree_name_;
@@ -89,7 +88,7 @@ private:
   const unsigned groot_port_;
 
   BT::Tree tree_;
-  BT::NodeStatus tree_status_ = BT::NodeStatus::IDLE;
+  BT::NodeStatus tree_status_;
   BT::NodeConfig config_;
   std::unique_ptr<BT::Groot2Publisher> groot_publisher_;
 };
