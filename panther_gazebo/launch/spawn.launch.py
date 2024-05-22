@@ -85,6 +85,14 @@ def launch_setup(context):
             output="screen",
         )
 
+        gz_light = Node(
+            package="panther_gazebo",
+            executable="gz_light_converter_node",
+            parameters=[{"light_name": "rear_light"}],
+            namespace=robot_name,
+            output="screen",
+        )
+
         gz_bridge = Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
@@ -151,6 +159,7 @@ def launch_setup(context):
             actions=[
                 spawn_log,
                 spawn_robot,
+                gz_light,
                 gz_bridge,
                 bringup_launch,
                 world_transform,
