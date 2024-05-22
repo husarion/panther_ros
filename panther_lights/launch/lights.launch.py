@@ -55,6 +55,7 @@ def generate_launch_description():
         executable="driver_node",
         name="lights_driver_node",
         namespace=namespace,
+        remappings=[("/diagnostics", "diagnostics")],
         on_exit=Shutdown(),
     )
 
