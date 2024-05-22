@@ -15,17 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
-from launch.actions import (
-    DeclareLaunchArgument,
-    IncludeLaunchDescription,
-    RegisterEventHandler,
-)
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
+    Command,
     EnvironmentVariable,
+    FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
@@ -36,10 +35,33 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     wheel_type = LaunchConfiguration("wheel_type")
+    battery_config_path = LaunchConfiguration("battery_config_path")
+    components_config_path = LaunchConfiguration("components_config_path")
     controller_config_path = LaunchConfiguration("controller_config_path")
     namespace = LaunchConfiguration("namespace")
     publish_robot_state = LaunchConfiguration("publish_robot_state")
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
     use_sim = LaunchConfiguration("use_sim")
+
+    declare_battery_config_path_arg = DeclareLaunchArgument(
+        "battery_config_path",
+        description=(
+            "Path to the Ignition LinearBatteryPlugin configuration file. "
+            "This configuration is intended for use in simulations only."
+        ),
+        default_value="",
+    )
+
+    declare_components_config_path_arg = DeclareLaunchArgument(
+        "components_config_path",
+        default_value="None",
+        description=(
+            "Additional components configuration file. Components described in this file "
+            "are dynamically included in Panther's urdf."
+            "Panther options are described here "
+            "https://husarion.com/manuals/panther/panther-options/"
+        ),
+    )
 
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
@@ -80,6 +102,22 @@ def generate_launch_description():
         choices=["True", "False"],
     )
 
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
+        ),
+    )
+
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",
@@ -92,35 +130,54 @@ def generate_launch_description():
         choices=["WH01", "WH02", "WH04", "custom"],
     )
 
-    load_urdf = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+    # Get URDF via xacro
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
             PathJoinSubstitution(
                 [
                     FindPackageShare("panther_description"),
-                    "launch",
-                    "urdf.launch.py",
+                    "urdf",
+                    "panther.urdf.xacro",
                 ]
-            )
-        ),
-        condition=IfCondition(publish_robot_state),
-        launch_arguments={
-            "wheel_type": wheel_type,
-            "controller_config_path": controller_config_path,
-            "namespace": namespace,
-            "use_sim": use_sim,
-        }.items(),
+            ),
+            " panther_version:=",
+            os.environ.get("PANTHER_ROBOT_VERSION","1.2"),
+            " use_sim:=",
+            use_sim,
+            " wheel_config_file:=",
+            wheel_config_path,
+            " controller_config_file:=",
+            controller_config_path,
+            " battery_config_file:=",
+            battery_config_path,
+            " imu_pos_x:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_X", "0.168"),
+            " imu_pos_y:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_Y", "0.028"),
+            " imu_pos_z:=",
+            os.environ.get("PANTHER_IMU_LOCALIZATION_Z", "0.083"),
+            " imu_rot_r:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_R", "3.14"),
+            " imu_rot_p:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
+            " imu_rot_y:=",
+            os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
+            " namespace:=",
+            namespace,
+            " components_config_path:=",
+            components_config_path,
+        ]
     )
+    robot_description = {"robot_description": robot_description_content}
 
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[controller_config_path],
+        parameters=[robot_description, controller_config_path],
         namespace=namespace,
         remappings=[
-            (
-                "controller_manager/robot_description",
-                "robot_description",
-            ),  # Bug in ros2_control on humble
             (
                 "panther_system_node/driver/motor_controllers_state",
                 "driver/motor_controllers_state",
@@ -138,6 +195,16 @@ def generate_launch_description():
             ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
+    )
+
+    namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
+
+    robot_state_pub_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        parameters=[robot_description, {"frame_prefix": namespace_ext}],
+        namespace=namespace,
+        condition=IfCondition(publish_robot_state),
     )
 
     robot_controller_spawner = Node(
@@ -203,14 +270,17 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_battery_config_path_arg,
         declare_wheel_type_arg,  # wheel_type must be before controller_config_path
+        declare_components_config_path_arg,
         declare_controller_config_path_arg,
         declare_namespace_arg,
         declare_publish_robot_state_arg,
         declare_use_sim_arg,
+        declare_wheel_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
-        load_urdf,
         control_node,
+        robot_state_pub_node,
         joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
         delay_imu_broadcaster_spawner_after_robot_controller_spawner,

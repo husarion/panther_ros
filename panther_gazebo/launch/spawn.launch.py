@@ -168,7 +168,6 @@ def generate_launch_description():
                 yaw,
             ],
             namespace=robot_name,
-            output="screen",
         )
 
         namespaced_gz_bridge_config_path = ReplaceString(
@@ -182,7 +181,6 @@ def generate_launch_description():
             name="panther_base_gz_bridge",
             parameters=[{"config_file": namespaced_gz_bridge_config_path}],
             namespace=robot_name,
-            output="screen",
         )
 
         bringup_launch = IncludeLaunchDescription(
@@ -221,7 +219,6 @@ def generate_launch_description():
             executable="static_transform_publisher",
             name="static_tf_publisher",
             namespace=robot_name,
-            output="screen",
             arguments=[x, y, z, roll, pitch, yaw, "world", child_tf],
             condition=IfCondition(add_world_transform),
         )

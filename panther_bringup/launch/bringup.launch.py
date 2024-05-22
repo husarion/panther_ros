@@ -128,7 +128,6 @@ def generate_launch_description():
         package="panther_diagnostics",
         executable="system_status",
         name="system_status",
-        output="screen",
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
         condition=UnlessCondition(use_sim),
@@ -162,7 +161,6 @@ def generate_launch_description():
         package="robot_localization",
         executable="ekf_node",
         name="ekf_node",
-        output="screen",
         parameters=[ekf_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
