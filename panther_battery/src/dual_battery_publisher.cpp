@@ -70,14 +70,14 @@ void DualBatteryPublisher::PublishBatteryState()
 void DualBatteryPublisher::LogErrors()
 {
   if (battery_1_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 1 error: %s",
-      battery_1_->GetErrorMsg().c_str());
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 10000,
+      "Battery nr 1 error: " << battery_1_->GetErrorMsg());
   }
   if (battery_2_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery nr 2 error: %s",
-      battery_2_->GetErrorMsg().c_str());
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 10000,
+      "Battery nr 2 error: " << battery_2_->GetErrorMsg());
   }
 }
 
