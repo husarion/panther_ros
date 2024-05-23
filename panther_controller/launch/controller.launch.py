@@ -34,13 +34,13 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    wheel_type = LaunchConfiguration("wheel_type")
     battery_config_path = LaunchConfiguration("battery_config_path")
     components_config_path = LaunchConfiguration("components_config_path")
     controller_config_path = LaunchConfiguration("controller_config_path")
     namespace = LaunchConfiguration("namespace")
     publish_robot_state = LaunchConfiguration("publish_robot_state")
     wheel_config_path = LaunchConfiguration("wheel_config_path")
+    wheel_type = LaunchConfiguration("wheel_type")
     use_sim = LaunchConfiguration("use_sim")
 
     declare_battery_config_path_arg = DeclareLaunchArgument(
