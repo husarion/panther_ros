@@ -33,10 +33,7 @@ export HUSARION_ROS_BUILD_TYPE=simulation
 ### Build
 
 ``` bash
-vcs import src < src/panther_ros/panther/panther_hardware.repos
-if [ "$HUSARION_ROS_BUILD_TYPE" == "simulation" ]; then
-  vcs import src < src/panther_ros/panther/panther_simulation.repos
-fi
+vcs import src < src/panther_ros/panther/panther_$HUSARION_ROS_BUILD_TYPE.repos
 
 cp -r src/ros2_controllers/diff_drive_controller src
 cp -r src/ros2_controllers/imu_sensor_broadcaster src
