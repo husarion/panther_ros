@@ -18,7 +18,7 @@ from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
-from launch_ros.actions import SetParameter
+from launch_ros.actions import SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -34,14 +34,14 @@ def generate_launch_description():
 
     spawn_robots_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare("panther_gazebo"), "launch", "spawn.launch.py"])
+            PathJoinSubstitution([FindPackageShare("panther_gazebo"), "launch", "spawn_multiple_robots.launch.py"])
         ),
     )
 
     return LaunchDescription(
         [
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
-            SetParameter(name="use_sim_time", value=True),
+            SetUseSimTime(True),
             gz_sim,
             spawn_robots_launch,
         ]

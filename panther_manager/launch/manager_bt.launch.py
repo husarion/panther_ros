@@ -28,9 +28,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    bt_project_path = LaunchConfiguration("bt_project_path")
-    namespace = LaunchConfiguration("namespace")
-    shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
 
     panther_version = float(os.environ.get("PANTHER_ROBOT_VERSION", "1.2"))
     panther_manager_dir = FindPackageShare("panther_manager")
@@ -50,18 +47,21 @@ def generate_launch_description():
             [panther_manager_dir, "behavior_trees", "Panther106BT.btproj"]
         )
 
+    bt_project_path = LaunchConfiguration("bt_project_path")
     declare_bt_project_path_arg = DeclareLaunchArgument(
         "bt_project_path",
         default_value=default_bt_project_path,
         description="Path to BehaviorTree project file.",
     )
 
+    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
+    shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
     declare_shutdown_hosts_config_path_arg = DeclareLaunchArgument(
         "shutdown_hosts_config_path",
         default_value=PathJoinSubstitution(

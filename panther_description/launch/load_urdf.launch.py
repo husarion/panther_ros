@@ -34,14 +34,6 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     battery_config_path = LaunchConfiguration("battery_config_path")
-    components_config_path = LaunchConfiguration("components_config_path")
-    controller_config_path = LaunchConfiguration("controller_config_path")
-    add_wheel_joints = LaunchConfiguration("add_wheel_joints")
-    namespace = LaunchConfiguration("namespace")
-    use_sim = LaunchConfiguration("use_sim")
-    wheel_type = LaunchConfiguration("wheel_type")
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
         description=(
@@ -51,9 +43,12 @@ def generate_launch_description():
         default_value="",
     )
 
+    components_config_path = LaunchConfiguration("components_config_path")
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
-        default_value="None",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_description"), "config", "components.yaml"]
+        ),
         description=(
             "Additional components configuration file. Components described in this file "
             "are dynamically included in Panther's urdf."
@@ -62,6 +57,8 @@ def generate_launch_description():
         ),
     )
 
+    wheel_type = LaunchConfiguration("wheel_type")  # wheel_type must be before controller_config_path
+    controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
         default_value=PathJoinSubstitution(
@@ -78,6 +75,7 @@ def generate_launch_description():
         ),
     )
 
+    add_wheel_joints = LaunchConfiguration("add_wheel_joints")
     declared_add_wheel_joints_arg = DeclareLaunchArgument(
         "add_wheel_joints",
         default_value="True",
@@ -85,12 +83,14 @@ def generate_launch_description():
         choices=["True", "False"],
     )
 
+    namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
+    use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
@@ -114,6 +114,7 @@ def generate_launch_description():
         ),
     )
 
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",

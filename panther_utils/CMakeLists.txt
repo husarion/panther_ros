@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -66,5 +67,7 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_dependencies(realtime_tools)
+
+ament_python_install_package(panther_utils)
 
 ament_package()
