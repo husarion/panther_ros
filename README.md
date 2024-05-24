@@ -33,10 +33,7 @@ export HUSARION_ROS_BUILD_TYPE=simulation
 ### Build
 
 ``` bash
-vcs import src < src/panther_ros/panther/panther_hardware.repos
-if [ "$HUSARION_ROS_BUILD_TYPE" == "simulation" ]; then
-  vcs import src < src/panther_ros/panther/panther_simulation.repos
-fi
+vcs import src < src/panther_ros/panther/panther_$HUSARION_ROS_BUILD_TYPE.repos
 
 cp -r src/ros2_controllers/diff_drive_controller src
 cp -r src/ros2_controllers/imu_sensor_broadcaster src
@@ -60,7 +57,20 @@ source install/setup.bash
 Real robot:
 
 ```bash
-ros2 launch panther_bringup bringup.launch.py
+ros2 launch panther_bringup bringup.launch.pyvcs import src < src/panther_ros/panther/panther_$HUSARION_ROS_BUILD_TYPE.repos
+
+cp -r src/ros2_controllers/diff_drive_controller src
+cp -r src/ros2_controllers/imu_sensor_broadcaster src
+rm -rf src/ros2_controllers
+
+sudo rosdep init
+rosdep update --rosdistro $ROS_DISTRO
+rosdep install --from-paths src -y -i
+
+source /opt/ros/$ROS_DISTRO/setup.bash
+colcon build --symlink-install --packages-up-to panther --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+source install/setup.bash
 ```
 
 Simulation:
