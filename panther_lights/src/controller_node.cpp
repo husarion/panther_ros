@@ -128,8 +128,7 @@ void ControllerNode::InitializeLEDSegments(
     }
 
     RCLCPP_INFO_STREAM(
-      this->get_logger(), "Successfully initialized '" << segment_name << "' segment",
-      segment_name);
+      this->get_logger(), "Successfully initialized '" << segment_name << "' segment");
   }
 }
 

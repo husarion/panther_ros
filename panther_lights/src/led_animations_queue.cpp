@@ -117,7 +117,7 @@ void LEDAnimationsQueue::Validate(const rclcpp::Time & time)
 {
   for (auto it = queue_.begin(); it != queue_.end();) {
     if ((time - it->get()->GetInitTime()).seconds() > it->get()->GetTimeout()) {
-      RCLCPP_STREAM_WARN(
+      RCLCPP_WARN_STREAM(
         rclcpp::get_logger("controller_node"),
         "Warning: Timeout for animation: " << it->get()->GetName() << ". Removing from the queue");
       it = queue_.erase(it);
