@@ -44,11 +44,13 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
 
   // Running at 10 Hz
   battery_pub_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(100), std::bind(&BatteryNode::BatteryPubTimerCB, this));
+    std::chrono::milliseconds(200), std::bind(&BatteryNode::BatteryPubTimerCB, this));
 
   diagnostic_updater_->setHardwareID("Battery");
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  auto dummy_string = std::string("Dummy string - just for testing new AI tool ;)");
+
+  RCLCPP_INFO(this->get_logger()  , "Node started, ");
 }
 
 void BatteryNode::Initialize()
