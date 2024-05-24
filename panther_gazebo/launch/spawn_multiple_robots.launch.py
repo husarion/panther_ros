@@ -43,8 +43,8 @@ def generate_launch_description():
         "robots",
         default_value=[],
         description=(
-            "The list of the robots spawned in the simulation e. g. robots:='robot1={x: 1.0, y:"
-            " -2.0}; robot2={x: 1.0, y: -4.0}'."
+            "The list of the robots spawned in the simulation e. g. "
+            "robots:='robot1={x: 1.0, y: -2.0}; robot2={x: 1.0, y: -4.0}'."
         ),
     )
 

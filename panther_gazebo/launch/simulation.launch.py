@@ -34,7 +34,9 @@ def generate_launch_description():
 
     spawn_robots_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare("panther_gazebo"), "launch", "spawn_multiple_robots.launch.py"])
+            PathJoinSubstitution(
+                [FindPackageShare("panther_gazebo"), "launch", "spawn_multiple_robots.launch.py"]
+            )
         ),
     )
 
