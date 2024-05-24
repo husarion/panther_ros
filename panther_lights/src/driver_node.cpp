@@ -129,11 +129,11 @@ void DriverNode::FrameCB(
 
   if (!message.empty()) {
     if (panel_name == "front") {
-      RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on front panel!", message.c_str());
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, message << " on front panel!");
     } else if (panel_name == "rear") {
-      RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on rear panel!", message.c_str());
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, message << " on rear panel!");
     }
 
     auto warn_msg = message + " on " + panel_name + " panel!";

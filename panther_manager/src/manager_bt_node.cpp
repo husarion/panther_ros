@@ -174,7 +174,7 @@ void ManagerBTNode::RegisterBehaviorTree()
   const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
   const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
 
-  RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
+  RCLCPP_INFO_STREAM(this->get_logger(), "Register BehaviorTree from: " << bt_project_path);
 
   for (const auto & plugin : plugin_libs) {
     factory_.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
@@ -391,7 +391,7 @@ bool ManagerBTNode::SystemReady()
 
 void ManagerBTNode::ShutdownRobot(const std::string & reason)
 {
-  RCLCPP_WARN(this->get_logger(), "Soft shutdown initialized. %s", reason.c_str());
+  RCLCPP_WARN_STREAM(this->get_logger(), "Soft shutdown initialized. Reason: " << reason);
   lights_tree_timer_->cancel();
   lights_tree_.haltTree();
   safety_tree_timer_->cancel();

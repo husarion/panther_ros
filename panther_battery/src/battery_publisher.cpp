@@ -49,8 +49,8 @@ void BatteryPublisher::Publish()
     this->Update();
     last_battery_info_time_ = node_->get_clock()->now();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 1000, "Error reading battery data: %s. ", e.what());
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      node_->get_logger(), *node_->get_clock(), 1000, "Error reading battery data: " << e.what());
 
     diagnostic_updater_->broadcast(
       diagnostic_msgs::msg::DiagnosticStatus::ERROR,
@@ -81,20 +81,20 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
         "The charger has been plugged in, but the charging process has not started. Check if the "
         "charger is connected to a power source.";
 
-      RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 10000, msg.c_str());
+      RCLCPP_WARN_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 10000, msg);
       break;
 
     case BatteryStateMsg::POWER_SUPPLY_STATUS_CHARGING:
       msg = "The robot is charging. Current battery percentage: " +
             std::to_string(static_cast<int>(round(battery_state.percentage * 100.0))) + "%.";
 
-      RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg.c_str());
+      RCLCPP_INFO_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg);
       break;
 
     case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
       msg = "The battery is fully charged. Robot can be disconnected from the charger.";
 
-      RCLCPP_INFO_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg.c_str());
+      RCLCPP_INFO_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 180000, msg);
       break;
 
     default:

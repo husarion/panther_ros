@@ -101,7 +101,8 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
         "Multiple panel publishers for channel nr '" + std::to_string(channel) + "' found");
     }
 
-    RCLCPP_INFO(this->get_logger(), "Successfully initialized panel with channel nr %li", channel);
+    RCLCPP_INFO_STREAM(
+      this->get_logger(), "Successfully initialized panel with channel nr " << channel);
   }
 }
 
@@ -126,7 +127,9 @@ void ControllerNode::InitializeLEDSegments(
         "Failed to initialize '" + segment_name + "' segment: " + std::string(e.what()));
     }
 
-    RCLCPP_INFO(this->get_logger(), "Successfully initialized '%s' segment", segment_name.c_str());
+    RCLCPP_INFO_STREAM(
+      this->get_logger(), "Successfully initialized '" << segment_name << "' segment",
+      segment_name);
   }
 }
 
@@ -174,12 +177,12 @@ void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_
 
         LoadAnimation(animation_description);
       } catch (const std::runtime_error & e) {
-        RCLCPP_WARN(
-          this->get_logger(), "Skipping user animation that failed to load: %s", e.what());
+        RCLCPP_WARN_STREAM(
+          this->get_logger(), "Skipping user animation that failed to load: " << e.what());
       }
     }
   } catch (const std::exception & e) {
-    RCLCPP_WARN(this->get_logger(), "Failed to load user animations: %s", e.what());
+    RCLCPP_WARN_STREAM(this->get_logger(), "Failed to load user animations: " << e.what());
   }
 
   RCLCPP_INFO(this->get_logger(), "User animations successfully loaded");
@@ -269,7 +272,7 @@ void ControllerNode::ControllerTimerCB()
       try {
         SetLEDAnimation(animations_queue_->Get());
       } catch (const std::runtime_error & e) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to Set LED animation: %s", e.what());
+        RCLCPP_ERROR_STREAM(this->get_logger(), "Failed to Set LED animation: " << e.what());
       }
     }
   }
@@ -303,9 +306,9 @@ void ControllerNode::UpdateAndPublishAnimation()
         segment->UpdateAnimation();
       }
     } catch (const std::runtime_error & e) {
-      RCLCPP_WARN(
-        this->get_logger(), "Failed to update animation on %s segment: %s", segment_name.c_str(),
-        e.what());
+      RCLCPP_WARN_STREAM(
+        this->get_logger(),
+        "Failed to update animation on " << segment_name << " segment: " << e.what());
     }
   }
 

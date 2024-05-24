@@ -23,7 +23,7 @@
   <exec_depend>panther_lights</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_manager</exec_depend>
   <exec_depend>python3-click</exec_depend>
-  <exec_depend>robot_localization</exec_depend>
+  <!-- <exec_depend>robot_localization</exec_depend> -->
 
   <export>
     <build_type>ament_cmake</build_type>
