@@ -18,4 +18,4 @@ repositories:
   ros2_controllers: # Caused by two error: 1. https://github.com/ros-controls/ros2_controllers/pull/1104 2. There is no nice way to change `sensor_name` imu_bradcaster param when spawning multiple robots -> ros2_control refer only to single imu entity
     type: git
     url: https://github.com/husarion/ros2_controllers/
-    version: b638a948691c75a1c943debf181b7a0d1b22cb2d
+    version: 9da42a07a83bbf3faf5cad11793fff22f25068af
