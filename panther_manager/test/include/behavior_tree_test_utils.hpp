@@ -42,7 +42,8 @@ bool SpinWhileRunning(
   const rclcpp::Time start_time = node->now();
 
   auto status = BT::NodeStatus::RUNNING;
-  while (!BT::isStatusCompleted(status) && node->now() - start_time <= rclcpp::Duration(timeout)) {
+  while (rclcpp::ok() && !BT::isStatusCompleted(status) &&
+         node->now() - start_time <= rclcpp::Duration(timeout)) {
     rclcpp::spin_some(node);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     status = GetStatus();
