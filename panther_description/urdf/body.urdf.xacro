@@ -50,7 +50,7 @@
     <link name="imu_link" />
 
     <joint name="body_to_front_bumper_joint" type="fixed">
-      <origin xyz="0.36 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.363 0.0 0.0" rpy="0.0 0.0 0.0" />
       <parent link="body_link" />
       <child link="front_bumper_link" />
     </joint>
@@ -65,8 +65,9 @@
 
     <link name="front_light_link">
       <visual name="front_light_vis">
+        <cast_shadows>false</cast_shadows>
         <geometry>
-          <box size="0.005 0.5 0.015"/>
+          <box size="0.001 0.5 0.015"/>
         </geometry>
         <material name="white">
           <color rgba="1 1 1 1"/>
@@ -75,7 +76,7 @@
     </link>
 
     <joint name="body_to_rear_bumper_joint" type="fixed">
-      <origin xyz="-0.36 0.0 0.0" rpy="0.0 0.0 ${pi}" />
+      <origin xyz="-0.363 0.0 0.0" rpy="0.0 0.0 ${pi}" />
       <parent link="body_link" />
       <child link="rear_bumper_link" />
     </joint>
@@ -90,8 +91,9 @@
 
     <link name="rear_light_link">
       <visual name="rear_light_vis">
+        <cast_shadows>false</cast_shadows>
         <geometry>
-          <box size="0.005 0.5 0.015"/>
+          <box size="0.001 0.5 0.015"/>
         </geometry>
         <material name="white">
           <color rgba="1 1 1 1"/>

@@ -255,11 +255,11 @@ def generate_launch_description():
                 ]
             )
         ),
-        condition=UnlessCondition(use_sim),
         launch_arguments={
             "led_config_file": led_config_file,
             "namespace": namespace,
             "user_led_animations_file": user_led_animations_file,
+            "use_sim": use_sim,
         }.items(),
     )
 
@@ -315,7 +315,7 @@ def generate_launch_description():
     )
 
     other_action_timer = TimerAction(
-        period=10.0,
+        period=1.0,
         actions=[
             battery_launch,
             lights_launch,

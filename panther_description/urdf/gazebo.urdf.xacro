@@ -119,15 +119,16 @@
   <xacro:macro name="light" params="reference_frame name namespace:=''">
     <gazebo reference="${reference_frame}">
       <light name="${name}" type="spot">
-        <cast_shadows>false</cast_shadows>
+        <cast_shadows>true</cast_shadows>
         <visualize>0</visualize>
         <diffuse>1.0 1.0 1.0</diffuse>
         <specular>1.0 1.0 1.0</specular>
         <direction>1 0 0</direction>
         <intensity>1.0</intensity>
         <spot>
-          <inner_angle>2.1</inner_angle>
-          <outer_angle>2.1</outer_angle>
+          <inner_angle>1.0</inner_angle>
+          <outer_angle>2.0</outer_angle>
+          <falloff>0.4</falloff>
         </spot>
       </light>
     </gazebo>

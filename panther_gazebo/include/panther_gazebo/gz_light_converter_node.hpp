@@ -16,31 +16,38 @@
 #define PANTHER_GAZEBO_GZ_LIGHTS_CONVERTER_HPP_
 
 #include <string>
-#include <random>
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "sensor_msgs/msg/image.hpp"
+#include "image_transport/image_transport.hpp"
 #include "ros_gz_interfaces/msg/light.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 using namespace std::chrono_literals;
 
 namespace panther_gazebo
 {
 
-class GZLightConverter : public rclcpp::Node {
-public:
-    GZLightConverter(const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-private:
-    void timerCallback();
-    void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg);
-    float randomFloat();
+using ImageMsg = sensor_msgs::msg::Image;
 
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<ros_gz_interfaces::msg::Light>::SharedPtr light_pub_;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr light_sub_;
-    int last_button_;
-    std::string light_name_;
+class GZLightConverter : public rclcpp::Node
+{
+public:
+  GZLightConverter(
+    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+  void Initialize();
+
+private:
+  void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name_);
+  std::tuple<float, float, float, float> calculateMeanRGBA(
+    const std::vector<unsigned char> & rgbaData);
+
+  rclcpp::Publisher<ros_gz_interfaces::msg::Light>::SharedPtr light_pub_;
+  std::shared_ptr<image_transport::ImageTransport> it_;
+  std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
+  std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
+
+  rclcpp::Duration frame_timeout_ = rclcpp::Duration::from_seconds(1.0);
 };
 
 }  // namespace panther_gazebo

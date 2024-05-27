@@ -17,6 +17,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown
+from launch.conditions import UnlessCondition
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -35,6 +36,13 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
     user_led_animations_file = LaunchConfiguration("user_led_animations_file")
     declare_user_led_animations_file_arg = DeclareLaunchArgument(
         "user_led_animations_file",
@@ -49,6 +57,7 @@ def generate_launch_description():
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
         on_exit=Shutdown(),
+        condition=UnlessCondition(use_sim),
     )
 
     lights_controller_node = Node(
@@ -66,6 +75,7 @@ def generate_launch_description():
     actions = [
         declare_led_config_file_arg,
         declare_namespace_arg,
+        declare_use_sim_arg,
         declare_user_led_animations_file_arg,
         lights_driver_node,
         lights_controller_node,

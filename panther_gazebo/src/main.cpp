@@ -26,6 +26,7 @@ int main(int argc, char ** argv)
 
   auto gz_light_converter =
     std::make_shared<panther_gazebo::GZLightConverter>("gz_light_converter");
+  gz_light_converter->Initialize();
 
   try {
     rclcpp::spin(gz_light_converter);
