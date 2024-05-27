@@ -57,6 +57,7 @@ protected:
   rclcpp::Logger GetLogger();
   rclcpp::Clock::SharedPtr GetClock();
 
+  // Use weak pointer to prevent circular dependency
   rclcpp::Node::WeakPtr node_;
   std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
 
