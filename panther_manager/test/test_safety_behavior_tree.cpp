@@ -185,6 +185,9 @@ void TestSafetyBehaviorTree::EStopTriggerSrvCB(
 
 TEST_F(TestSafetyBehaviorTree, TurnOnFanAtStartup)
 {
+  const float fan_turn_off_timeout = 1.0;
+
+  safety_manager_node_->SetSafetyTreeBlackboard("FAN_TURN_OFF_TIMEOUT", fan_turn_off_timeout);
   SetSafetyBlackboardDefaultStates();
 
   ASSERT_TRUE(SpinWhileRunning());
@@ -192,7 +195,7 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanAtStartup)
 
   // wait for automatic turn off of the fan
   std::this_thread::sleep_for(
-    std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
+    std::chrono::milliseconds(static_cast<unsigned>(fan_turn_off_timeout * 1000)));
   ASSERT_TRUE(SpinWhileRunning());
   EXPECT_FALSE(fan_state_);
 }
