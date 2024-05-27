@@ -62,9 +62,8 @@ void SingleBatteryPublisher::PublishBatteryState()
 void SingleBatteryPublisher::LogErrors()
 {
   if (battery_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      this->GetLogger(), *this->GetClock(), 10000, "Battery error: %s",
-      battery_->GetErrorMsg().c_str());
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      GetLogger(), *GetClock(), 10000, "Battery error: " << battery_->GetErrorMsg());
   }
 }
 
