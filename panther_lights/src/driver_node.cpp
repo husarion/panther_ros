@@ -127,13 +127,11 @@ void DriverNode::FrameCB(
 
   if (!message.empty()) {
     if (panel_name == "channel_1") {
-      RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on %s!", message.c_str(),
-        panel_name.c_str());
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
     } else if (panel_name == "channel_2") {
-      RCLCPP_WARN_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, "%s on %s!", message.c_str(),
-        panel_name.c_str());
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
     }
 
     auto warn_msg = message + " on " + panel_name + "!";
