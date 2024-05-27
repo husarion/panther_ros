@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/driver_node.hpp"
+#include "panther_manager/safety_manager_node.hpp"
 
 #include <iostream>
 #include <memory>
@@ -22,20 +22,17 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto lights_driver_node = std::make_shared<panther_lights::DriverNode>("lights_driver_node");
-
-  std::shared_ptr<image_transport::ImageTransport> it;
-  it = std::make_shared<image_transport::ImageTransport>(lights_driver_node);
-
-  lights_driver_node->Initialize(it);
+  auto safety_manager_node =
+    std::make_shared<panther_manager::SafetyManagerNode>("safety_manager_node");
+  safety_manager_node->Initialize();
 
   try {
-    rclcpp::spin(lights_driver_node);
-  } catch (const std::runtime_error & e) {
-    std::cerr << "[lights_driver_node] Caught exception: " << e.what() << std::endl;
+    rclcpp::spin(safety_manager_node);
+  } catch (const std::runtime_error & err) {
+    std::cerr << "[safety_manager_node] Caught exception: " << err.what() << std::endl;
   }
 
-  std::cout << "[lights_driver_node] Shutting down" << std::endl;
+  std::cout << "[safety_manager_node] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

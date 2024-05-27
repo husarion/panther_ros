@@ -51,7 +51,7 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                     service_name="lights/controller/set/animation"
                                     _skipIf="!e_stop_state || current_anim_id == E_STOP_ANIM_ID"
                                     _onSuccess="current_anim_id = E_STOP_ANIM_ID"/>
-        <Sequence name="DisplayAnimationStatusSequence">
+        <Sequence name="BatteryStatusSequence">
           <TickAfterTimeout timeout="{LOW_BATTERY_ANIM_PERIOD}"
                             _skipIf="battery_percent &lt; CRITICAL_BATTERY_THRESHOLD_PERCENT \
 || battery_percent &gt;= LOW_BATTERY_THRESHOLD_PERCENT">
