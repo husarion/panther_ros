@@ -68,6 +68,7 @@ protected:
    */
   bool SystemReady();
 
+  BT::BehaviorTreeFactory factory_;
   std::unique_ptr<BehaviorTreeManager> safety_tree_manager_;
   std::unique_ptr<BehaviorTreeManager> shutdown_tree_manager_;
 
@@ -97,7 +98,6 @@ private:
   std::unique_ptr<panther_utils::MovingAverage<double>> cpu_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> front_driver_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> rear_driver_temp_ma_;
-  BT::BehaviorTreeFactory factory_;
 };
 
 }  // namespace panther_manager

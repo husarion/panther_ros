@@ -56,6 +56,7 @@ public:
 
   ~SafetyManagerNodeWrapper() {}
 
+  BT::BehaviorTreeFactory & GetFactory() { return this->factory_; }
   BT::NodeStatus GetSafetyTreeStatus() { return this->safety_tree_manager_->GetTreeStatus(); }
   BT::NodeStatus GetShutdownTreeStatus() { return this->shutdown_tree_manager_->GetTreeStatus(); }
 
@@ -133,6 +134,9 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
   e_stop_trigger_server_ = safety_manager_node_->create_service<TriggerSrv>(
     "hardware/e_stop_trigger", std::bind(&TestSafetyBehaviorTree::EStopTriggerSrvCB, this, _1, _2));
 
+  // Replace shutdown bt nodes to avoid turning off the test devices
+  safety_manager_node_->GetFactory().addSubstitutionRule("ShutdownSingleHost", "AlwaysSuccess");
+  safety_manager_node_->GetFactory().addSubstitutionRule("ShutdownHostsFromFile", "AlwaysSuccess");
   safety_manager_node_->Initialize();
 }
 
