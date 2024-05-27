@@ -60,6 +60,7 @@ public:
   ~TestLightsBehaviorTree() {}
 
 protected:
+  std::vector<rclcpp::Parameter> CreateTestParameters() const;
   bool SpinWhileRunning();
   void PublishEStop(const bool data);
   void PublishBatteryState(
@@ -89,6 +90,24 @@ TestLightsBehaviorTree::TestLightsBehaviorTree()
 {
   using namespace std::placeholders;
 
+  rclcpp::NodeOptions options;
+  options.parameter_overrides(CreateTestParameters());
+
+  lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>(
+    "test_lights_manager_node", options);
+
+  e_stop_pub_ = lights_manager_node_->create_publisher<BoolMsg>(
+    "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  battery_state_pub_ = lights_manager_node_->create_publisher<BatteryStateMsg>("battery", 3);
+  set_led_animation_server_ = lights_manager_node_->create_service<SetLEDAnimationSrv>(
+    "lights/controller/set/animation",
+    std::bind(&TestLightsBehaviorTree::SetLEDAnimationCB, this, _1, _2));
+
+  lights_manager_node_->Initialize();
+}
+
+std::vector<rclcpp::Parameter> TestLightsBehaviorTree::CreateTestParameters() const
+{
   std::vector<std::string> plugin_libs;
   plugin_libs.push_back("tick_after_timeout_bt_node");
 
@@ -102,20 +121,7 @@ TestLightsBehaviorTree::TestLightsBehaviorTree()
   params.push_back(
     rclcpp::Parameter("battery.animation_period.critical", kCriticalBatteryAnimPeriod));
 
-  rclcpp::NodeOptions options;
-  options.parameter_overrides(params);
-
-  lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>(
-    "test_lights_manager_node", options);
-
-  e_stop_pub_ = lights_manager_node_->create_publisher<BoolMsg>(
-    "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  battery_state_pub_ = lights_manager_node_->create_publisher<BatteryStateMsg>("battery", 3);
-  set_led_animation_server_ = lights_manager_node_->create_service<SetLEDAnimationSrv>(
-    "lights/controller/set/animation",
-    std::bind(&TestLightsBehaviorTree::SetLEDAnimationCB, this, _1, _2));
-
-  lights_manager_node_->Initialize();
+  return params;
 }
 
 bool TestLightsBehaviorTree::SpinWhileRunning()

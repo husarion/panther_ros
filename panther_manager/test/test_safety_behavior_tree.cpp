@@ -74,6 +74,7 @@ public:
   ~TestSafetyBehaviorTree();
 
 protected:
+  std::vector<rclcpp::Parameter> CreateTestParameters() const;
   bool SpinWhileRunning();
   void SetSafetyBlackboardDefaultStates();
 
@@ -104,24 +105,8 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
 
   rclcpp::init(0, nullptr);
 
-  std::vector<std::string> plugin_libs;
-  plugin_libs.push_back("tick_after_timeout_bt_node");
-  plugin_libs.push_back("shutdown_single_host_bt_node");
-  plugin_libs.push_back("shutdown_hosts_from_file_bt_node");
-  plugin_libs.push_back("signal_shutdown_bt_node");
-
-  std::vector<std::string> ros_plugin_libs;
-  ros_plugin_libs.push_back("call_set_bool_service_bt_node");
-  ros_plugin_libs.push_back("call_trigger_service_bt_node");
-
-  std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
-  params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
-  params.push_back(rclcpp::Parameter("fan_turn_off_timeout", kFanTurnOffTimeout));
-  // Reduce moving average window length to simplify calculations for published messages
-
   rclcpp::NodeOptions options;
-  options.parameter_overrides(params);
+  options.parameter_overrides(CreateTestParameters());
 
   safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>(
     "test_safety_manager_node", options);
@@ -141,6 +126,26 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
 }
 
 TestSafetyBehaviorTree::~TestSafetyBehaviorTree() { rclcpp::shutdown(); }
+
+std::vector<rclcpp::Parameter> TestSafetyBehaviorTree::CreateTestParameters() const
+{
+  std::vector<std::string> plugin_libs;
+  plugin_libs.push_back("tick_after_timeout_bt_node");
+  plugin_libs.push_back("shutdown_single_host_bt_node");
+  plugin_libs.push_back("shutdown_hosts_from_file_bt_node");
+  plugin_libs.push_back("signal_shutdown_bt_node");
+
+  std::vector<std::string> ros_plugin_libs;
+  ros_plugin_libs.push_back("call_set_bool_service_bt_node");
+  ros_plugin_libs.push_back("call_trigger_service_bt_node");
+
+  std::vector<rclcpp::Parameter> params;
+  params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
+  params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
+  params.push_back(rclcpp::Parameter("fan_turn_off_timeout", kFanTurnOffTimeout));
+
+  return params;
+}
 
 bool TestSafetyBehaviorTree::SpinWhileRunning()
 {
@@ -218,8 +223,6 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanCpuTemp)
   EXPECT_FALSE(fan_state_);
 
   safety_manager_node_->SetSafetyTreeBlackboard("cpu_temp", high_cpu_temp);
-  std::this_thread::sleep_for(
-    std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
   ASSERT_TRUE(SpinWhileRunning());
 
   EXPECT_TRUE(fan_state_);
@@ -246,8 +249,6 @@ TEST_F(TestSafetyBehaviorTree, TurnOnFanDriverTemp)
   EXPECT_FALSE(fan_state_);
 
   safety_manager_node_->SetSafetyTreeBlackboard("driver_temp", high_driver_temp);
-  std::this_thread::sleep_for(
-    std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
   ASSERT_TRUE(SpinWhileRunning());
 
   EXPECT_TRUE(fan_state_);
@@ -311,7 +312,7 @@ TEST_F(TestSafetyBehaviorTree, PowerSupplyHealthOverheatTurnOnFan)
   safety_manager_node_->SetSafetyTreeBlackboard(
     "battery_health", BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD);
 
-  // check if change of power supply health turns of the fan
+  // check if change of power supply health turns off the fan
   std::this_thread::sleep_for(
     std::chrono::milliseconds(static_cast<unsigned>(kFanTurnOffTimeout * 1000)));
   ASSERT_TRUE(SpinWhileRunning());

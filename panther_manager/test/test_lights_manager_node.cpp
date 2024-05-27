@@ -63,6 +63,7 @@ public:
 
 protected:
   void CreateBTProjectFile(const std::string & tree_xml);
+  std::vector<rclcpp::Parameter> CreateTestParameters() const;
 
   std::shared_ptr<LightsManagerNodeWrapper> lights_manager_node_;
 
@@ -89,19 +90,8 @@ TestLightsManagerNode::TestLightsManagerNode()
 
   CreateBTProjectFile(simple_tree_);
 
-  std::vector<std::string> plugin_libs;
-  plugin_libs.push_back("tick_after_timeout_bt_node");
-
-  std::vector<std::string> ros_plugin_libs;
-  ros_plugin_libs.push_back("call_set_led_animation_service_bt_node");
-
-  std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("bt_project_path", bt_project_path_));
-  params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
-  params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
-
   rclcpp::NodeOptions options;
-  options.parameter_overrides(params);
+  options.parameter_overrides(CreateTestParameters());
 
   lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>(
     "test_lights_manager_node", options);
@@ -117,6 +107,22 @@ void TestLightsManagerNode::CreateBTProjectFile(const std::string & tree_xml)
     out << tree_xml;
     out.close();
   }
+}
+
+std::vector<rclcpp::Parameter> TestLightsManagerNode::CreateTestParameters() const
+{
+  std::vector<std::string> plugin_libs;
+  plugin_libs.push_back("tick_after_timeout_bt_node");
+
+  std::vector<std::string> ros_plugin_libs;
+  ros_plugin_libs.push_back("call_set_led_animation_service_bt_node");
+
+  std::vector<rclcpp::Parameter> params;
+  params.push_back(rclcpp::Parameter("bt_project_path", bt_project_path_));
+  params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
+  params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
+
+  return params;
 }
 
 TEST_F(TestLightsManagerNode, SystemReady)

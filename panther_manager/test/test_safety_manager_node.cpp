@@ -63,6 +63,7 @@ public:
 
 protected:
   void CreateBTProjectFile(const std::string & tree_xml);
+  std::vector<rclcpp::Parameter> CreateTestParameters() const;
 
   const rclcpp::QoS transient_local_qos =
     rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
@@ -97,23 +98,8 @@ TestSafetyManagerNode::TestSafetyManagerNode()
 
   CreateBTProjectFile(simple_tree_);
 
-  std::vector<std::string> plugin_libs;
-  plugin_libs.push_back("tick_after_timeout_bt_node");
-  plugin_libs.push_back("shutdown_single_host_bt_node");
-  plugin_libs.push_back("shutdown_hosts_from_file_bt_node");
-  plugin_libs.push_back("signal_shutdown_bt_node");
-
-  std::vector<std::string> ros_plugin_libs;
-  ros_plugin_libs.push_back("call_set_bool_service_bt_node");
-  ros_plugin_libs.push_back("call_trigger_service_bt_node");
-
-  std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("bt_project_path", bt_project_path_));
-  params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
-  params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
-
   rclcpp::NodeOptions options;
-  options.parameter_overrides(params);
+  options.parameter_overrides(CreateTestParameters());
 
   safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>(
     "test_safety_manager_node", options);
@@ -129,6 +115,26 @@ void TestSafetyManagerNode::CreateBTProjectFile(const std::string & tree_xml)
     out << tree_xml;
     out.close();
   }
+}
+
+std::vector<rclcpp::Parameter> TestSafetyManagerNode::CreateTestParameters() const
+{
+  std::vector<std::string> plugin_libs;
+  plugin_libs.push_back("tick_after_timeout_bt_node");
+  plugin_libs.push_back("shutdown_single_host_bt_node");
+  plugin_libs.push_back("shutdown_hosts_from_file_bt_node");
+  plugin_libs.push_back("signal_shutdown_bt_node");
+
+  std::vector<std::string> ros_plugin_libs;
+  ros_plugin_libs.push_back("call_set_bool_service_bt_node");
+  ros_plugin_libs.push_back("call_trigger_service_bt_node");
+
+  std::vector<rclcpp::Parameter> params;
+  params.push_back(rclcpp::Parameter("bt_project_path", bt_project_path_));
+  params.push_back(rclcpp::Parameter("plugin_libs", plugin_libs));
+  params.push_back(rclcpp::Parameter("ros_plugin_libs", ros_plugin_libs));
+
+  return params;
 }
 
 TEST_F(TestSafetyManagerNode, SystemReady)

@@ -119,9 +119,12 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
   const float low_battery_threshold_percent =
     this->get_parameter("battery.percent.threshold.low").as_double();
 
+  const std::string undefined_charging_anim_percent = "";
+  const int undefined_anim_id = -1;
+
   const std::map<std::string, std::any> lights_initial_bb = {
-    {"charging_anim_percent", ""},
-    {"current_anim_id", -1},
+    {"charging_anim_percent", undefined_charging_anim_percent},
+    {"current_anim_id", undefined_anim_id},
     {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
     {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
     {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
