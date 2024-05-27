@@ -52,15 +52,13 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   this->declare_parameter<int>("num_led", 46);
 
   diagnostic_updater_.setHardwareID("Bumper Lights");
-  diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLigths);
+  diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
 
   RCLCPP_INFO(this->get_logger(), "Node started");
 }
 
-void DriverNode::Initialize()
+void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTransport> & it)
 {
-  it_ = std::make_shared<image_transport::ImageTransport>(this->shared_from_this());
-
   const float global_brightness = this->get_parameter("global_brightness").as_double();
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
@@ -77,14 +75,14 @@ void DriverNode::Initialize()
   chanel_2_.SetGlobalBrightness(global_brightness);
 
   chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
-    it_->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, chanel_1_, chanel_1_ts_, "front");
+    it->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
+      FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
       chanel_1_ts_ = msg->header.stamp;
     }));
 
   chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
-    it_->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, chanel_2_, chanel_2_ts_, "rear");
+    it->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
+      FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
       chanel_2_ts_ = msg->header.stamp;
     }));
 
@@ -128,15 +126,15 @@ void DriverNode::FrameCB(
   }
 
   if (!message.empty()) {
-    if (panel_name == "front") {
+    if (panel_name == "channel_1") {
       RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, message << " on front panel!");
-    } else if (panel_name == "rear") {
+        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
+    } else if (panel_name == "channel_2") {
       RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, message << " on rear panel!");
+        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
     }
 
-    auto warn_msg = message + " on " + panel_name + " panel!";
+    auto warn_msg = message + " on " + panel_name + "!";
     diagnostic_updater_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, warn_msg);
 
     return;
@@ -178,7 +176,7 @@ void DriverNode::SetBrightnessCB(
   res->message = "Changed brightness to " + str_bright;
 }
 
-void DriverNode::DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status)
+void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};

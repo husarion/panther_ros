@@ -33,13 +33,22 @@ namespace panther_lights
 using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
+/**
+ * @brief Class for controlling APA102 LEDs based on a ROS Image topic.
+ */
 class DriverNode : public rclcpp::Node
 {
 public:
   DriverNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
-  void Initialize();
+  /**
+   * @brief Initializes the driver class. This method must be executed manually after creating the
+   * node.
+   *
+   * @param it ImageTransport object used to create subscribers for Image topics.
+   */
+  void Initialize(const std::shared_ptr<image_transport::ImageTransport> & it);
 
 protected:
   int num_led_;
@@ -50,20 +59,30 @@ protected:
 
 private:
   void OnShutdown();
+
+  /**
+   * @brief Callback to execute when a message with new frame is received.
+   *
+   * @param msg ROS Image message received.
+   * @param panel APA102 panel for which LEDs should be set.
+   * @param last_time ROS time of the last message received.
+   * @param panel_name name of the panel for which the message was received, used for improved
+   * logging. Valid names are: 'channel_1', 'channel_2'.
+   */
   void FrameCB(
     const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
     const rclcpp::Time & last_time, const std::string & panel_name);
+
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
   void SetPowerPin(const bool value);
-  void DiagnoseLigths(diagnostic_updater::DiagnosticStatusWrapper & status);
+  void DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status);
 
   apa102::APA102 chanel_1_;
   apa102::APA102 chanel_2_;
 
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
-  std::shared_ptr<image_transport::ImageTransport> it_;
   std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
   std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
   std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
