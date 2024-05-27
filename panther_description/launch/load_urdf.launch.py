@@ -129,7 +129,7 @@ def generate_launch_description():
         choices=["WH01", "WH02", "WH04", "custom"],
     )
 
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.2")
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
     # Get URDF via xacro
     robot_description_content = Command(
         [

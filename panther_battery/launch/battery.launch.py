@@ -28,7 +28,7 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.2")
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
     battery_node = Node(
         package="panther_battery",
         executable="battery_node",

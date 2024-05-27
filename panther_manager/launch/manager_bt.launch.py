@@ -29,7 +29,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    panther_version = float(os.environ.get("PANTHER_ROBOT_VERSION", "1.2"))
+    panther_version = float(os.environ.get("PANTHER_ROBOT_VERSION", "1.0"))
     panther_manager_dir = FindPackageShare("panther_manager")
 
     if panther_version >= 1.2:

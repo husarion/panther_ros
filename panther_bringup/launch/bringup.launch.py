@@ -45,8 +45,8 @@ def generate_launch_description():
     )
 
     serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
-    robot_hw_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.2")
-    welcome_msg = welcomeMsg(serial_no, robot_hw_version)
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
+    welcome_msg = welcomeMsg(serial_no, panther_version)
 
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -110,13 +110,13 @@ def generate_launch_description():
         }.items(),
     )
 
-    other_action_timer = TimerAction(
+    dealyed_action = TimerAction(
         period=10.0,
         actions=[
             battery_launch,
             lights_launch,
-            ekf_launch,
             manager_launch,
+            ekf_launch,
         ],
     )
 
@@ -126,7 +126,7 @@ def generate_launch_description():
         welcome_msg,
         controller_launch,
         system_status_node,
-        other_action_timer,
+        dealyed_action,
     ]
 
     return LaunchDescription(actions)

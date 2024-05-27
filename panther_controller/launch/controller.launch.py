@@ -146,7 +146,7 @@ def generate_launch_description():
                 ]
             ),
             " panther_version:=",
-            os.environ.get("PANTHER_ROBOT_VERSION", "1.2"),
+            os.environ.get("PANTHER_ROBOT_VERSION", "1.0"),
             " use_sim:=",
             use_sim,
             " wheel_config_file:=",
