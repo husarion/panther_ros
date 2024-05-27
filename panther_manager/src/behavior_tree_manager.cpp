@@ -12,21 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_BT_UTILS_HPP_
-#define PANTHER_MANAGER_BT_UTILS_HPP_
+#include <panther_manager/behavior_tree_manager.hpp>
 
 #include <any>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <typeinfo>
 
-#include "behaviortree_cpp/tree_node.h"
+#include "behaviortree_cpp/loggers/groot2_publisher.h"
+#include "rclcpp/rclcpp.hpp"
 
-namespace panther_manager::bt_utils
+namespace panther_manager
 {
 
-BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values)
+void BehaviorTreeManager::Initialize(BT::BehaviorTreeFactory & factory)
+{
+  config_ = CreateBTConfig(initial_blackboard_);
+  tree_ = factory.createTree(tree_name_, config_.blackboard);
+  groot_publisher_ = std::make_unique<BT::Groot2Publisher>(tree_, groot_port_);
+}
+
+BT::NodeConfig BehaviorTreeManager::CreateBTConfig(
+  const std::map<std::string, std::any> & bb_values) const
 {
   BT::NodeConfig config;
   config.blackboard = BT::Blackboard::create();
@@ -57,6 +66,4 @@ BT::NodeConfig CreateBTConfig(const std::map<std::string, std::any> & bb_values)
   return config;
 }
 
-}  // namespace panther_manager::bt_utils
-
-#endif  // PANTHER_MANAGER_BT_UTILS_HPP_
+}  // namespace panther_manager

@@ -36,7 +36,7 @@ BatteryPublisher::BatteryPublisher(
   last_battery_info_time_ = rclcpp::Time(std::int64_t(0), RCL_ROS_TIME);
 
   io_state_sub_ = node_->create_subscription<IOStateMsg>(
-    "hardware/io_state", 3,
+    "hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     [&](const IOStateMsg::SharedPtr msg) { charger_connected_ = msg->charger_connected; });
 
   diagnostic_updater_->add("Battery errors", this, &BatteryPublisher::DiagnoseErrors);
