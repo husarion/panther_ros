@@ -76,7 +76,7 @@ void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string l
   msgL.attenuation_linear = 1.0;
   msgL.attenuation_quadratic = 0.0;
 
-  msgL.intensity = 5.0;
+  msgL.intensity = 1.0;
   msgL.range = 10.0;
 
   msgL.direction.x = 1.0;
