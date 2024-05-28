@@ -98,7 +98,7 @@ def generate_launch_description():
                 [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
             )
         ),
-        launch_arguments={"namespace": namespace}.items(),
+        launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
     )
 
     gz_light_converter = Node(
