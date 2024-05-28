@@ -33,6 +33,14 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    add_wheel_joints = LaunchConfiguration("add_wheel_joints")
+    declared_add_wheel_joints_arg = DeclareLaunchArgument(
+        "add_wheel_joints",
+        default_value="True",
+        description="Flag enabling joint_state_publisher to publish information about the wheel position. Should be false when there is a controller that sends this information.",
+        choices=["True", "False"],
+    )
+
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -57,9 +65,7 @@ def generate_launch_description():
         ),
     )
 
-    wheel_type = LaunchConfiguration(
-        "wheel_type"
-    )  # wheel_type must be before controller_config_path
+    wheel_type = LaunchConfiguration("wheel_type")  # wheel_type is used by controller_config_path
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
@@ -75,14 +81,6 @@ def generate_launch_description():
             " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
-    )
-
-    add_wheel_joints = LaunchConfiguration("add_wheel_joints")
-    declared_add_wheel_joints_arg = DeclareLaunchArgument(
-        "add_wheel_joints",
-        default_value="True",
-        description="Flag enabling joint_state_publisher to publish information about the wheel position. Should be false when there is a controller that sends this information.",
-        choices=["True", "False"],
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -187,17 +185,17 @@ def generate_launch_description():
     )
 
     actions = [
-        declare_battery_config_path_arg,
-        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
-        declare_components_config_path_arg,
-        declare_controller_config_path_arg,
         declared_add_wheel_joints_arg,
+        declare_battery_config_path_arg,
+        declare_components_config_path_arg,
+        declare_wheel_type_arg,  # wheel_type is used by controller_config_path
+        declare_controller_config_path_arg,
         declare_namespace_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         robot_state_pub_node,
-        joint_state_publisher_node,
+        joint_state_publisher_node,  # do not publish, when use_sim is true
     ]
 
     return LaunchDescription(actions)

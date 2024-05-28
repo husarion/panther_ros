@@ -187,7 +187,9 @@
     </xacro:unless>
 
     <xacro:if value="${use_sim}">
-      <xacro:gazebo.battery config_file="${battery_config_file}" namespace="${namespace}" />
+      <xacro:if value="${battery_config_file != ''}">
+        <xacro:gazebo.battery config_file="${battery_config_file}" namespace="${namespace}" />
+      </xacro:if>
       <xacro:gazebo.controller config_file="${controller_config_file}" namespace="${namespace}" />
       <xacro:gazebo.imu reference_frame="imu_link" namespace="${namespace}" />
     </xacro:if>

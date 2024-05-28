@@ -49,6 +49,7 @@ def generate_launch_description():
     )
 
     robots_list = ParseMultiRobotPose("robots").value()
+    # If robots arg is empty, use default arguments from simulate_robot.launch.py
     if len(robots_list) == 0:
         robots_list = {
             LaunchConfiguration("namespace", default=""): {
@@ -64,7 +65,7 @@ def generate_launch_description():
         for robot_name, init_pose in robots_list.items():
             robots_list[robot_name] = {k: str(v) for k, v in init_pose.items()}
 
-    spawn_group = []
+    simulate_robot = []
     for idx, robot_name in enumerate(robots_list):
         init_pose = robots_list[robot_name]
         x, y, z, roll, pitch, yaw = [value for value in init_pose.values()]
@@ -72,7 +73,7 @@ def generate_launch_description():
         spawn_robot_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
-                    [FindPackageShare("panther_gazebo"), "launch", "spawn_robot.launch.py"]
+                    [FindPackageShare("panther_gazebo"), "launch", "simulate_robot.launch.py"]
                 )
             ),
             launch_arguments={
@@ -107,13 +108,13 @@ def generate_launch_description():
                 world_transform,
             ],
         )
-        spawn_group.append(group)
+        simulate_robot.append(group)
 
     return LaunchDescription(
         [
             declare_add_world_transform_arg,
             declare_robots_arg,
             SetUseSimTime(True),
-            *spawn_group,
+            *simulate_robot,
         ]
     )
