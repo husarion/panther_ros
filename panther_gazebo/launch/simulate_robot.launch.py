@@ -92,6 +92,23 @@ def generate_launch_description():
         }.items(),
     )
 
+    lights_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
+            )
+        ),
+        launch_arguments={"namespace": namespace}.items(),
+    )
+
+    gz_light_converter = Node(
+        package="panther_gazebo",
+        executable="gz_light_converter_node",
+        parameters=[{"light_name": "rear_light"}],
+        namespace=namespace,
+        output="screen",
+    )
+
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -154,6 +171,8 @@ def generate_launch_description():
             declare_use_ekf_arg,
             SetUseSimTime(True),
             spawn_robot_launch,
+            lights_launch,
+            gz_light_converter,
             controller_launch,
             ekf_launch,
             simulate_components,
