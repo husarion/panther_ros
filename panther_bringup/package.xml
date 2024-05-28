@@ -20,10 +20,10 @@
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_battery</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_controller</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_diagnostics</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_ekf</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_lights</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_manager</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_utils</exec_depend>
-  <exec_depend>robot_localization</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
