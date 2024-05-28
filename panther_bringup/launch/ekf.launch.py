@@ -16,7 +16,6 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
@@ -27,14 +26,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    use_ekf = LaunchConfiguration("use_ekf")  # use_ekf must be before ekf_config_path
-    declare_use_ekf_arg = DeclareLaunchArgument(
-        "use_ekf",
-        default_value="True",
-        description="Enable or disable EKF.",
-        choices=["True", "False"],
-    )
-
     ekf_config_path = LaunchConfiguration("ekf_config_path")
     declare_ekf_config_path_arg = DeclareLaunchArgument(
         "ekf_config_path",
@@ -42,7 +33,6 @@ def generate_launch_description():
             [FindPackageShare("panther_bringup"), "config", "ekf.yaml"]
         ),
         description="Path to the EKF config file.",
-        condition=IfCondition(use_ekf),
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -72,11 +62,9 @@ def generate_launch_description():
             ("set_pose", "ekf_node/set_pose"),
             ("toggle", "ekf_node/toggle"),
         ],
-        condition=IfCondition(use_ekf),
     )
 
     actions = [
-        declare_use_ekf_arg,  # use_ekf must be before ekf_config_path
         declare_ekf_config_path_arg,
         declare_namespace_arg,
         declare_use_sim_arg,

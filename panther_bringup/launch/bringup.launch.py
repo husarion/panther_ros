@@ -16,7 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
-from launch.conditions import UnlessCondition
+from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -42,6 +42,14 @@ def generate_launch_description():
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
+    )
+
+    use_ekf = LaunchConfiguration("use_ekf")
+    declare_use_ekf_arg = DeclareLaunchArgument(
+        "use_ekf",
+        default_value="True",
+        description="Enable or disable EKF.",
+        choices=["True", "False"],
     )
 
     serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
@@ -96,6 +104,7 @@ def generate_launch_description():
         launch_arguments={
             "namespace": namespace,
         }.items(),
+        condition=IfCondition(use_ekf)
     )
 
     manager_launch = IncludeLaunchDescription(
@@ -123,6 +132,7 @@ def generate_launch_description():
     actions = [
         declare_disable_manager_arg,
         declare_namespace_arg,
+        declare_use_ekf_arg,
         welcome_msg,
         controller_launch,
         system_status_node,

@@ -16,6 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -69,6 +70,14 @@ def generate_launch_description():
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
+    )
+
+    use_ekf = LaunchConfiguration("use_ekf")
+    declare_use_ekf_arg = DeclareLaunchArgument(
+        "use_ekf",
+        default_value="True",
+        description="Enable or disable EKF.",
+        choices=["True", "False"],
     )
 
     x = LaunchConfiguration("x")
@@ -158,6 +167,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindPackageShare("panther_bringup"), "launch", "ekf.launch.py"])
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
+        condition=IfCondition(use_ekf)
     )
 
     simulate_components = IncludeLaunchDescription(
@@ -183,6 +193,7 @@ def generate_launch_description():
             declare_components_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_namespace_arg,
+            declare_use_ekf_arg,
             declare_x_arg,
             declare_y_arg,
             declare_z_arg,
