@@ -213,7 +213,7 @@ void GPIODriver::GPIOMonitorOn()
   gpio_monitor_thread_ = std::make_unique<std::thread>(&GPIODriver::MonitorAsyncEvents, this);
 
   if (
-    monitor_init_cond_var_.wait_for(lck, std::chrono::milliseconds(50)) ==
+    monitor_init_cond_var_.wait_for(lck, std::chrono::milliseconds(100)) ==
     std::cv_status::timeout) {
     throw std::runtime_error("Timeout while waiting for GPIO monitor thread");
   }
@@ -229,8 +229,8 @@ void GPIODriver::MonitorAsyncEvents()
 
   {
     std::lock_guard<std::mutex> lck(monitor_init_mtx_);
-    monitor_init_cond_var_.notify_all();
   }
+  monitor_init_cond_var_.notify_all();
 
   while (gpio_monitor_thread_enabled_) {
     if (line_request_->wait_edge_events(std::chrono::milliseconds(10))) {

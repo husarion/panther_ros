@@ -26,7 +26,6 @@ The package contains the default configuration and launch files necessary to sta
 - `namespace` [*string*, default: **None**] Add namespace to all launched nodes.
 - `publish_robot_state` [*bool*, default: **true**]: whether to publish the default Panther robot description.
 - `shutdown_hosts_config_path` = [*string*, default: **panther_bringup/config/shutdown_hosts.yaml**]: Path to file with list of hosts to request shutdown.
-- `simulation_engine` [*string*, default: **ignition-gazebo**]: simulation engine to use when running Gazebo.
 - `use_ekf` [*bool*, default: **true**]: enable or disable Extended Kalman Filter.
 - `use_sim` [*bool*, default: **false**]: whether simulation is used.
 - `user_led_animations_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.

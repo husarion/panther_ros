@@ -14,7 +14,6 @@
             imu_rot_r:=3.14
             imu_rot_p:=-1.57
             imu_rot_y:=0.0
-            simulation_engine:='ignition-gazebo'
             namespace:=''">
 
     <xacro:if value="${namespace == ''}">
@@ -66,9 +65,7 @@
     <ros2_control name="${ns}panther_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <xacro:if value="${simulation_engine == 'ignition-gazebo'}">
-            <plugin>ign_ros2_control/IgnitionSystem</plugin>
-          </xacro:if>
+          <plugin>ign_ros2_control/IgnitionSystem</plugin>
         </xacro:if>
 
         <xacro:unless value="$(arg use_sim)">
@@ -190,7 +187,9 @@
     </xacro:unless>
 
     <xacro:if value="${use_sim}">
-      <xacro:gazebo.battery config_file="${battery_config_file}" namespace="${namespace}" />
+      <xacro:if value="${battery_config_file != ''}">
+        <xacro:gazebo.battery config_file="${battery_config_file}" namespace="${namespace}" />
+      </xacro:if>
       <xacro:gazebo.controller config_file="${controller_config_file}" namespace="${namespace}" />
       <xacro:gazebo.imu reference_frame="imu_link" namespace="${namespace}" />
       <xacro:gazebo.light reference_frame="front_light_link" name="front_light" namespace="${namespace}" />

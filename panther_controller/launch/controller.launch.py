@@ -34,30 +34,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    panther_version = LaunchConfiguration("panther_version")
-    declare_panther_version_arg = DeclareLaunchArgument(
-        "panther_version",
-    )
-
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
-    )
-
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        description="Path to wheel configuration file.",
-    )
-
-    controller_config_path = LaunchConfiguration("controller_config_path")
-    declare_controller_config_path_arg = DeclareLaunchArgument(
-        "controller_config_path",
-        description="Path to controller configuration file.",
-    )
-
     battery_config_path = LaunchConfiguration("battery_config_path")
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -68,20 +44,37 @@ def generate_launch_description():
         default_value="",
     )
 
-    simulation_engine = LaunchConfiguration("simulation_engine")
-    declare_simulation_engine_arg = DeclareLaunchArgument(
-        "simulation_engine",
-        default_value="ignition-gazebo",
-        description="Which simulation engine will be used",
+    components_config_path = LaunchConfiguration("components_config_path")
+    declare_components_config_path_arg = DeclareLaunchArgument(
+        "components_config_path",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_description"), "config", "components.yaml"]
+        ),
+        description=(
+            "Additional components configuration file. Components described in this file "
+            "are dynamically included in Panther's urdf."
+            "Panther options are described here "
+            "https://husarion.com/manuals/panther/panther-options/"
+        ),
     )
 
-    publish_robot_state = LaunchConfiguration("publish_robot_state")
-    declare_publish_robot_state_arg = DeclareLaunchArgument(
-        "publish_robot_state",
-        default_value="True",
+    wheel_type = LaunchConfiguration(
+        "wheel_type"
+    )  # wheel_type must be before controller_config_path
+    controller_config_path = LaunchConfiguration("controller_config_path")
+    declare_controller_config_path_arg = DeclareLaunchArgument(
+        "controller_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_controller"),
+                "config",
+                PythonExpression(["'", wheel_type, "_controller.yaml'"]),
+            ]
+        ),
         description=(
-            "Whether to launch the robot_state_publisher node."
-            "When set to False, users should publish their own robot description."
+            "Path to controller configuration file. By default, it is located in"
+            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " the path to your custom controller configuration file here. "
         ),
     )
 
@@ -92,16 +85,52 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    components_config_path = LaunchConfiguration("components_config_path")
-    declare_components_config_path_arg = DeclareLaunchArgument(
-        "components_config_path",
-        default_value="None",
+    publish_robot_state = LaunchConfiguration("publish_robot_state")
+    declare_publish_robot_state_arg = DeclareLaunchArgument(
+        "publish_robot_state",
+        default_value="True",
         description=(
-            "Additional components configuration file. Components described in this file "
-            "are dynamically included in Panther's urdf."
-            "Panther options are described here "
-            "https://husarion.com/manuals/panther/panther-options/"
+            "Whether to launch the robot_state_publisher node."
+            "When set to False, users should publish their own robot description."
         ),
+        choices=["True", "False"],
+    )
+
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+        choices=["True", "False"],
+    )
+
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
+        ),
+    )
+
+    use_sim = LaunchConfiguration("use_sim")
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
+            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
+            " parameters. For custom wheels, please define these parameters to point to files that"
+            " accurately describe the custom wheels."
+        ),
+        choices=["WH01", "WH02", "WH04", "custom"],
     )
 
     # Get URDF via xacro
@@ -117,11 +146,9 @@ def generate_launch_description():
                 ]
             ),
             " panther_version:=",
-            panther_version,
+            os.environ.get("PANTHER_ROBOT_VERSION", "1.0"),
             " use_sim:=",
             use_sim,
-            " simulation_engine:=",
-            simulation_engine,
             " wheel_config_file:=",
             wheel_config_path,
             " controller_config_file:=",
@@ -179,7 +206,6 @@ def generate_launch_description():
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        output="both",
         parameters=[robot_description, {"frame_prefix": namespace_ext}],
         namespace=namespace,
         condition=IfCondition(publish_robot_state),
@@ -248,15 +274,14 @@ def generate_launch_description():
     )
 
     actions = [
-        declare_panther_version_arg,
+        declare_battery_config_path_arg,
+        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
+        declare_components_config_path_arg,
+        declare_controller_config_path_arg,
+        declare_namespace_arg,
+        declare_publish_robot_state_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
-        declare_controller_config_path_arg,
-        declare_battery_config_path_arg,
-        declare_simulation_engine_arg,
-        declare_publish_robot_state_arg,
-        declare_namespace_arg,
-        declare_components_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,

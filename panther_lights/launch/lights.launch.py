@@ -18,15 +18,23 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown
 from launch.conditions import UnlessCondition
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration
+from launch.substitutions import (
+    EnvironmentVariable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
     led_config_file = LaunchConfiguration("led_config_file")
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
-        description="Path to a YAML file with a description of led configuration",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
+        ),
+        description="Path to a YAML file with a description of led configuration.",
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -47,7 +55,7 @@ def generate_launch_description():
     declare_user_led_animations_file_arg = DeclareLaunchArgument(
         "user_led_animations_file",
         default_value="",
-        description="Path to a YAML file with a description of the user defined animations",
+        description="Path to a YAML file with a description of the user defined animations.",
     )
 
     lights_driver_node = Node(

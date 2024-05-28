@@ -8,20 +8,23 @@
                   _skipIf="bat_temp &lt;= FATAL_BAT_TEMP">
           <SignalShutdown reason="Fatal battery temperature"/>
         </Sequence>
-        <Sequence name="CriticalBatTempSequence"
-                  _skipIf="bat_temp &lt;= CRITICAL_BAT_TEMP">
-          <CallTriggerService name="TriggerEStop"
-                              service_name="hardware/e_stop_trigger"
-                              _skipIf="e_stop_state"/>
-          <CallSetBoolService name="DisableAUX"
-                              data="false"
-                              service_name="hardware/aux_power_enable"
-                              _skipIf="!aux_state"/>
+        <Sequence name="HighBatTempSequence"
+                  _skipIf="bat_temp &gt; FATAL_BAT_TEMP">
+          <Sequence name="CriticalBatTempSequence"
+                    _skipIf="bat_temp &lt;= CRITICAL_BAT_TEMP">
+            <CallTriggerService name="TriggerEStop"
+                                service_name="hardware/e_stop_trigger"
+                                _skipIf="e_stop_state"/>
+            <CallSetBoolService name="DisableAUX"
+                                data="false"
+                                service_name="hardware/aux_power_enable"
+                                _skipIf="!aux_state"/>
+          </Sequence>
+          <CallSetBoolService name="EnableFan"
+                              data="true"
+                              service_name="hardware/fan_enable"
+                              _skipIf="fan_state"/>
         </Sequence>
-        <CallSetBoolService name="EnableFanIfHighBatTemp"
-                            data="true"
-                            service_name="hardware/fan_enable"
-                            _skipIf="fan_state"/>
       </Sequence>
       <Sequence name="BatteryDeadSequence"
                 _skipIf="battery_health != POWER_SUPPLY_HEALTH_DEAD">
@@ -35,17 +38,17 @@
       </Sequence>
       <RunOnce name="TurnOnFunAtStartup"
                then_skip="true">
-        <CallSetBoolService name="EnableFanIfHighBatTemp"
+        <CallSetBoolService name="EnableFan"
                             data="true"
                             service_name="hardware/fan_enable"/>
       </RunOnce>
       <TickAfterTimeout name="FanOffWithHysteresis"
-                        timeout="60.0">
+                        timeout="{FAN_TURN_OFF_TIMEOUT}">
         <Sequence>
           <Sequence name="HighSysTempSequence"
-                    _skipIf="(cpu_temp &lt;= CPU_FAN_ON_TEMP \
-&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP)">
-            <CallSetBoolService name="EnableFanIfHighBatTemp"
+                    _skipIf="cpu_temp &lt;= CPU_FAN_ON_TEMP \
+&amp;&amp; driver_temp &lt;= DRIVER_FAN_ON_TEMP">
+            <CallSetBoolService name="EnableFan"
                                 data="true"
                                 service_name="hardware/fan_enable"
                                 _skipIf="fan_state"/>
