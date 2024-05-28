@@ -49,12 +49,16 @@ protected:
   virtual void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
   virtual void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
 
-  bool TimeoutReached() const;
-  void BatteryStatusLogger(const BatteryStateMsg & battery_state) const;
+  bool TimeoutReached();
+  void BatteryStatusLogger(const BatteryStateMsg & battery_state);
   bool ChargerConnected() const;
   std::string MapPowerSupplyStatusToString(uint8_t power_supply_status) const;
 
-  rclcpp::Node::SharedPtr node_;
+  rclcpp::Logger GetLogger();
+  rclcpp::Clock::SharedPtr GetClock();
+
+  // Use weak pointer to prevent circular dependency
+  rclcpp::Node::WeakPtr node_;
   std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
 
 private:

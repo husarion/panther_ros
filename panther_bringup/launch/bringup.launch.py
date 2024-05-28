@@ -23,7 +23,6 @@ from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from panther_utils.welcomeMsg import welcomeMsg
 
@@ -62,17 +61,20 @@ def generate_launch_description():
                 [FindPackageShare("panther_controller"), "launch", "controller.launch.py"]
             )
         ),
-        launch_arguments={
-            "namespace": namespace,
-        }.items(),
+        launch_arguments={"namespace": namespace}.items(),
     )
 
-    system_status_node = Node(
-        package="panther_diagnostics",
-        executable="system_status",
-        name="system_status",
-        namespace=namespace,
-        remappings=[("/diagnostics", "diagnostics")],
+    system_status_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("panther_diagnostics"),
+                    "launch",
+                    "system_status.launch.py",
+                ]
+            ),
+        ),
+        launch_arguments={"namespace": namespace}.items(),
     )
 
     lights_launch = IncludeLaunchDescription(
@@ -81,9 +83,7 @@ def generate_launch_description():
                 [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
             )
         ),
-        launch_arguments={
-            "namespace": namespace,
-        }.items(),
+        launch_arguments={"namespace": namespace}.items(),
     )
 
     battery_launch = IncludeLaunchDescription(
@@ -92,18 +92,14 @@ def generate_launch_description():
                 [FindPackageShare("panther_battery"), "launch", "battery.launch.py"]
             ),
         ),
-        launch_arguments={
-            "namespace": namespace,
-        }.items(),
+        launch_arguments={"namespace": namespace}.items(),
     )
 
     ekf_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([FindPackageShare("panther_bringup"), "launch", "ekf.launch.py"])
         ),
-        launch_arguments={
-            "namespace": namespace,
-        }.items(),
+        launch_arguments={"namespace": namespace}.items(),
         condition=IfCondition(use_ekf),
     )
 
@@ -114,9 +110,7 @@ def generate_launch_description():
             )
         ),
         condition=UnlessCondition(disable_manager),
-        launch_arguments={
-            "namespace": namespace,
-        }.items(),
+        launch_arguments={"namespace": namespace}.items(),
     )
 
     delayed_action = TimerAction(
@@ -135,7 +129,7 @@ def generate_launch_description():
         declare_use_ekf_arg,
         welcome_msg,
         controller_launch,
-        system_status_node,
+        system_status_launch,
         delayed_action,
     ]
 

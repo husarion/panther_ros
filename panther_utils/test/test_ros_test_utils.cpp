@@ -23,13 +23,15 @@
 
 #include "panther_utils/test/ros_test_utils.hpp"
 
-TEST(TestTestUtils, WaitForMessage)
+TEST(TestROSTestUtils, WaitForMessage)
 {
+  const auto topic_name = "test";
   auto node = std::make_shared<rclcpp::Node>("node");
-  auto pub = node->create_publisher<std_msgs::msg::Empty>("topic", 10);
+
+  auto pub = node->create_publisher<std_msgs::msg::Empty>(topic_name, 10);
   std_msgs::msg::Empty::SharedPtr empty_msg;
   auto sub = node->create_subscription<std_msgs::msg::Empty>(
-    "topic", 10, [&](const std_msgs::msg::Empty::SharedPtr msg) { empty_msg = msg; });
+    topic_name, 10, [&](const std_msgs::msg::Empty::SharedPtr msg) { empty_msg = msg; });
 
   EXPECT_FALSE(
     panther_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
@@ -37,6 +39,23 @@ TEST(TestTestUtils, WaitForMessage)
   pub->publish(std_msgs::msg::Empty());
   EXPECT_TRUE(
     panther_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
+}
+
+TEST(TestROSTestUtils, PublishAndSpin)
+{
+  const auto topic_name = "test";
+  auto node = std::make_shared<rclcpp::Node>("node");
+
+  std_msgs::msg::Empty published_msg;
+  std_msgs::msg::Empty::SharedPtr received_msg;
+  auto sub = node->create_subscription<std_msgs::msg::Empty>(
+    topic_name, 10, [&](const std_msgs::msg::Empty::SharedPtr msg) { received_msg = msg; });
+
+  EXPECT_FALSE(received_msg);
+
+  panther_utils::test_utils::PublishAndSpin(node, topic_name, published_msg);
+
+  EXPECT_TRUE(received_msg);
 }
 
 int main(int argc, char ** argv)

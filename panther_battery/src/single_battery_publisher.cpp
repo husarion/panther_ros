@@ -35,19 +35,19 @@ SingleBatteryPublisher::SingleBatteryPublisher(
   const std::shared_ptr<Battery> & battery)
 : BatteryPublisher(std::move(node), std::move(diagnostic_updater)), battery_(std::move(battery))
 {
-  battery_pub_ = node_->create_publisher<BatteryStateMsg>("battery", 5);
-  battery_1_pub_ = node_->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
+  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
+  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
 }
 
 void SingleBatteryPublisher::Update()
 {
-  const auto header_stamp = node_->get_clock()->now();
+  const auto header_stamp = this->GetClock()->now();
   battery_->Update(header_stamp, ChargerConnected());
 }
 
 void SingleBatteryPublisher::Reset()
 {
-  const auto header_stamp = node_->get_clock()->now();
+  const auto header_stamp = this->GetClock()->now();
   battery_->Reset(header_stamp);
 }
 
@@ -62,9 +62,8 @@ void SingleBatteryPublisher::PublishBatteryState()
 void SingleBatteryPublisher::LogErrors()
 {
   if (battery_->HasErrorMsg()) {
-    RCLCPP_ERROR_THROTTLE(
-      node_->get_logger(), *node_->get_clock(), 10000, "Battery error: %s",
-      battery_->GetErrorMsg().c_str());
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      GetLogger(), *GetClock(), 10000, "Battery error: " << battery_->GetErrorMsg());
   }
 }
 

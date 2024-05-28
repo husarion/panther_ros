@@ -2,24 +2,20 @@ repositories:
   behaviortree_ros2:
     type: git
     url: https://github.com/BehaviorTree/BehaviorTree.ROS2
-    version: ce923e19c12d28f4734a41b1442c123f2d4a41d2
+    version: a0de087a2f3af5ec5a19edd622aa85506105afcd
   husarion_controllers:
     type: git
     url: https://github.com/husarion/husarion_controllers
-    version: main
+    version: 217b09830f5f42930098b9992eda41710702b625
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: ros2
-  robot_localization: # Caused by this error https://github.com/cra-ros-pkg/robot_localization/pull/876, it can be removed after the next synchronization of apt packages.
-    type: git
-    url: https://github.com/cra-ros-pkg/robot_localization.git
-    version: humble-devel
+    version: c80a3da24dae9a1fab0559d5de687b73d755f6f5
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
-    version: ros2
+    version: f50cee03b163120071e38d7b70f39befd9320a33
   ros2_controllers: # Caused by two error: 1. https://github.com/ros-controls/ros2_controllers/pull/1104 2. There is no nice way to change `sensor_name` imu_bradcaster param when spawning multiple robots -> ros2_control refer only to single imu entity
     type: git
-    url: https://github.com/rafal-gorecki/ros2_controllers.git
-    version: humble
+    url: https://github.com/husarion/ros2_controllers/
+    version: 9da42a07a83bbf3faf5cad11793fff22f25068af

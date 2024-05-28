@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -29,29 +29,16 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    panther_version = float(os.environ.get("PANTHER_ROBOT_VERSION", "1.0"))
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
     panther_manager_dir = FindPackageShare("panther_manager")
 
-    if panther_version >= 1.2:
-        manager_bt_config_path = PathJoinSubstitution(
-            [panther_manager_dir, "config", "manager_bt_config.yaml"]
-        )
-        default_bt_project_path = PathJoinSubstitution(
-            [panther_manager_dir, "behavior_trees", "Panther12BT.btproj"]
-        )
-    else:
-        manager_bt_config_path = PathJoinSubstitution(
-            [panther_manager_dir, "config", "manager_bt_config_106.yaml"]
-        )
-        default_bt_project_path = PathJoinSubstitution(
-            [panther_manager_dir, "behavior_trees", "Panther106BT.btproj"]
-        )
-
-    bt_project_path = LaunchConfiguration("bt_project_path")
-    declare_bt_project_path_arg = DeclareLaunchArgument(
-        "bt_project_path",
-        default_value=default_bt_project_path,
-        description="Path to BehaviorTree project file.",
+    lights_bt_project_path = LaunchConfiguration("lights_bt_project_path")
+    declare_lights_bt_project_path_arg = DeclareLaunchArgument(
+        "lights_bt_project_path",
+        default_value=PathJoinSubstitution(
+            [panther_manager_dir, "behavior_trees", "PantherLightsBT.btproj"]
+        ),
+        description="Path to BehaviorTree project file, responsible for lights management.",
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -59,6 +46,16 @@ def generate_launch_description():
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
+    )
+
+    safety_bt_project_path = LaunchConfiguration("safety_bt_project_path")
+    declare_safety_bt_project_path_arg = DeclareLaunchArgument(
+        "safety_bt_project_path",
+        default_value=PathJoinSubstitution(
+            [panther_manager_dir, "behavior_trees", "PantherSafetyBT.btproj"]
+        ),
+        description="Path to BehaviorTree project file, responsible for safety and shutdown management.",
+        condition=IfCondition(PythonExpression([panther_version, ">=", "1.2"])),
     )
 
     shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
@@ -74,25 +71,39 @@ def generate_launch_description():
         description="Path to file with list of hosts to request shutdown.",
     )
 
-    manager_bt_node = Node(
+    lights_manager_node = Node(
         package="panther_manager",
-        executable="manager_bt_node",
-        name="manager_bt_node",
+        executable="lights_manager_node",
+        name="lights_manager_node",
         parameters=[
-            manager_bt_config_path,
-            {
-                "bt_project_path": bt_project_path,
-                "shutdown_hosts_path": shutdown_hosts_config_path,
-            },
+            PathJoinSubstitution([panther_manager_dir, "config", "lights_manager_config.yaml"]),
+            {"bt_project_path": lights_bt_project_path},
         ],
         namespace=namespace,
     )
 
+    safety_manager_node = Node(
+        package="panther_manager",
+        executable="safety_manager_node",
+        name="safety_manager_node",
+        parameters=[
+            PathJoinSubstitution([panther_manager_dir, "config", "safety_manager_config.yaml"]),
+            {
+                "bt_project_path": safety_bt_project_path,
+                "shutdown_hosts_path": shutdown_hosts_config_path,
+            },
+        ],
+        namespace=namespace,
+        condition=IfCondition(PythonExpression([panther_version, ">=", "1.2"])),
+    )
+
     actions = [
-        declare_bt_project_path_arg,
+        declare_lights_bt_project_path_arg,
+        declare_safety_bt_project_path_arg,
         declare_namespace_arg,
         declare_shutdown_hosts_config_path_arg,
-        manager_bt_node,
+        lights_manager_node,
+        safety_manager_node,
     ]
 
     return LaunchDescription(actions)
