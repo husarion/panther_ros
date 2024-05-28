@@ -167,7 +167,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindPackageShare("panther_bringup"), "launch", "ekf.launch.py"])
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
-        condition=IfCondition(use_ekf)
+        condition=IfCondition(use_ekf),
     )
 
     simulate_components = IncludeLaunchDescription(

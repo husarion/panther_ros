@@ -16,7 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
-from launch.conditions import UnlessCondition, IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -104,7 +104,7 @@ def generate_launch_description():
         launch_arguments={
             "namespace": namespace,
         }.items(),
-        condition=IfCondition(use_ekf)
+        condition=IfCondition(use_ekf),
     )
 
     manager_launch = IncludeLaunchDescription(
@@ -119,7 +119,7 @@ def generate_launch_description():
         }.items(),
     )
 
-    dealyed_action = TimerAction(
+    delayed_action = TimerAction(
         period=10.0,
         actions=[
             battery_launch,
@@ -136,7 +136,7 @@ def generate_launch_description():
         welcome_msg,
         controller_launch,
         system_status_node,
-        dealyed_action,
+        delayed_action,
     ]
 
     return LaunchDescription(actions)
