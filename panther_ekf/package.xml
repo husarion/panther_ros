@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>panther_ekf</name>
+  <name>panther_localization</name>
   <version>2.0.1</version>
   <description>robot localization configuration for Panther</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>

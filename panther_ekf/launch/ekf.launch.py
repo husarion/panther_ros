@@ -30,7 +30,7 @@ def generate_launch_description():
     declare_ekf_config_path_arg = DeclareLaunchArgument(
         "ekf_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_ekf"), "config", "ekf.yaml"]
+            [FindPackageShare("panther_localization"), "config", "ekf.yaml"]
         ),
         description="Path to the EKF config file.",
     )

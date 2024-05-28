@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_ekf)
+project(panther_localization)
 
 find_package(ament_cmake REQUIRED)
 
