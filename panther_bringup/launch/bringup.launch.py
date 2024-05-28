@@ -97,7 +97,7 @@ def generate_launch_description():
 
     ekf_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare("panther_bringup"), "launch", "ekf.launch.py"])
+            PathJoinSubstitution([FindPackageShare("panther_ekf"), "launch", "ekf.launch.py"])
         ),
         launch_arguments={"namespace": namespace}.items(),
         condition=IfCondition(use_ekf),
