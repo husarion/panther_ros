@@ -35,7 +35,7 @@
     battery_config_file="$(arg battery_config_file)"
     namespace="$(arg namespace)" />
 
-  <xacro:arg name="components_config_path" default="$(find panther_bringup)/config/components.yaml" />
+  <xacro:arg name="components_config_path" default="$(find panther_description)/config/components.yaml" />
   <xacro:property name="components_config_path_property" value="$(arg components_config_path)" />
 
   <xacro:unless value="${components_config_path_property == 'None'}">
