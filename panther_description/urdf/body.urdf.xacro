@@ -63,17 +63,7 @@
       <child link="front_light_link" />
     </joint>
 
-    <link name="front_light_link">
-      <visual name="front_light_vis">
-        <cast_shadows>false</cast_shadows>
-        <geometry>
-          <box size="0.001 0.5 0.015"/>
-        </geometry>
-        <material name="white">
-          <color rgba="1 1 1 1"/>
-        </material>
-      </visual>
-    </link>
+    <link name="front_light_link"/>
 
     <joint name="body_to_rear_bumper_joint" type="fixed">
       <origin xyz="-0.363 0.0 0.0" rpy="0.0 0.0 ${pi}" />
@@ -89,17 +79,7 @@
       <child link="rear_light_link" />
     </joint>
 
-    <link name="rear_light_link">
-      <visual name="rear_light_vis">
-        <cast_shadows>false</cast_shadows>
-        <geometry>
-          <box size="0.001 0.5 0.015"/>
-        </geometry>
-        <material name="white">
-          <color rgba="1 1 1 1"/>
-        </material>
-      </visual>
-    </link>
+    <link name="rear_light_link"/>
 
     <joint name="body_to_cover_joint" type="fixed">
       <origin xyz="0.0 0.0 0.1715" rpy="0.0 0.0 0.0" />

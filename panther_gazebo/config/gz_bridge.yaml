@@ -12,6 +12,12 @@
   gz_type_name: ignition.msgs.BatteryState
   direction: GZ_TO_ROS
 
+- ros_topic_name: cmd_vel
+  gz_topic_name: cmd_vel
+  ros_type_name: geometry_msgs/msg/Twist
+  gz_type_name: ignition.msgs.Twist
+  direction: GZ_TO_ROS
+
 - ros_topic_name: _gz_lights
   gz_topic_name: /world/husarion_world/light_config
   ros_type_name: ros_gz_interfaces/msg/Light
