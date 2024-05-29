@@ -35,8 +35,6 @@ namespace panther_hardware_interfaces
 
 CallbackReturn PantherImuSensor::on_init(const hardware_interface::HardwareInfo & hardware_info)
 {
-  RCLCPP_INFO(logger_, "Initializing Panther IMU");
-
   if (hardware_interface::SensorInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
   }
@@ -47,7 +45,7 @@ CallbackReturn PantherImuSensor::on_init(const hardware_interface::HardwareInfo 
     CheckInterfaces();
     SetInitialValues();
   } catch (const std::runtime_error & e) {
-    RCLCPP_FATAL_STREAM(logger_, "Exception during initialization: " << e.what());
+    RCLCPP_ERROR_STREAM(logger_, "An exception occurred while initializing: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -56,57 +54,55 @@ CallbackReturn PantherImuSensor::on_init(const hardware_interface::HardwareInfo 
 
 CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Configuring Panther IMU");
   try {
     ReadObligatoryParams();
   } catch (const std::exception & e) {
-    RCLCPP_FATAL_STREAM(logger_, "Exception during reading obligatory parameters: " << e.what());
+    RCLCPP_ERROR_STREAM(
+      logger_, "An exception occurred while reading the obligatory parameters: " << e.what());
     return CallbackReturn::ERROR;
   }
 
-  RCLCPP_INFO_STREAM(logger_, "Phidgets Spatial IMU obligatory params: ");
-  RCLCPP_INFO_STREAM(logger_, "\tserial_num: " << params_.serial);
-  RCLCPP_INFO_STREAM(logger_, "\thub_port: " << params_.hub_port);
-  RCLCPP_INFO_STREAM(logger_, "\tdata_interval_ms: " << params_.data_interval_ms << "ms");
-  RCLCPP_INFO_STREAM(
+  RCLCPP_DEBUG_STREAM(logger_, "Phidgets Spatial IMU obligatory parameters: ");
+  RCLCPP_DEBUG_STREAM(logger_, "\tserial_num: " << params_.serial);
+  RCLCPP_DEBUG_STREAM(logger_, "\thub_port: " << params_.hub_port);
+  RCLCPP_DEBUG_STREAM(logger_, "\tdata_interval_ms: " << params_.data_interval_ms << "ms");
+  RCLCPP_DEBUG_STREAM(
     logger_, "\tcallback_delta_epsilon_ms " << params_.callback_delta_epsilon_ms << "ms");
 
   try {
     ReadMadgwickFilterParams();
     ConfigureMadgwickFilter();
   } catch (const std::exception & e) {
-    RCLCPP_FATAL_STREAM(logger_, "Exception during reading Madgwick Filter params: " << e.what());
+    RCLCPP_ERROR_STREAM(
+      logger_, "An exception occurred while reading the Madgwick Filter parameters: " << e.what());
     return CallbackReturn::ERROR;
   }
 
-  RCLCPP_INFO_STREAM(logger_, "Phidgets Spatial IMU Madgwick Filter params: ");
-  RCLCPP_INFO_STREAM(logger_, "\tuse_mag: " << params_.use_mag);
-  RCLCPP_INFO_STREAM(logger_, "\tgain: " << params_.gain);
-  RCLCPP_INFO_STREAM(logger_, "\tzeta: " << params_.zeta << " rad/s");
-  RCLCPP_INFO_STREAM(logger_, "\tmag_bias_x " << params_.mag_bias_x);
-  RCLCPP_INFO_STREAM(logger_, "\tmag_bias_y " << params_.mag_bias_y);
-  RCLCPP_INFO_STREAM(logger_, "\tmag_bias_z " << params_.mag_bias_z);
-  RCLCPP_INFO_STREAM(logger_, "\tstateless " << params_.stateless);
-  RCLCPP_INFO_STREAM(logger_, "\tremove_gravity_vector " << params_.remove_gravity_vector);
+  RCLCPP_DEBUG_STREAM(logger_, "Phidgets Spatial IMU Madgwick Filter parameters: ");
+  RCLCPP_DEBUG_STREAM(logger_, "\tuse_mag: " << params_.use_mag);
+  RCLCPP_DEBUG_STREAM(logger_, "\tgain: " << params_.gain);
+  RCLCPP_DEBUG_STREAM(logger_, "\tzeta: " << params_.zeta << " rad/s");
+  RCLCPP_DEBUG_STREAM(logger_, "\tmag_bias_x " << params_.mag_bias_x);
+  RCLCPP_DEBUG_STREAM(logger_, "\tmag_bias_y " << params_.mag_bias_y);
+  RCLCPP_DEBUG_STREAM(logger_, "\tmag_bias_z " << params_.mag_bias_z);
+  RCLCPP_DEBUG_STREAM(logger_, "\tstateless " << params_.stateless);
+  RCLCPP_DEBUG_STREAM(logger_, "\tremove_gravity_vector " << params_.remove_gravity_vector);
 
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherImuSensor::on_cleanup(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Cleaning up Panther Imu");
-
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Activating Panther Imu");
   rclcpp::NodeOptions ros_interface_options;
 
-  RCLCPP_INFO_STREAM(
-    logger_, "Connecting to Phidgets Spatial serial " << params_.serial << ", hub port "
-                                                      << params_.hub_port << "...");
+  RCLCPP_DEBUG_STREAM(
+    logger_, "Connecting to Phidgets Spatial - serial: " << params_.serial
+                                                         << ", hub port: " << params_.hub_port);
 
   try {
     if (!spatial_) {
@@ -118,7 +114,9 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
     }
 
     imu_connected_ = true;
-    RCLCPP_INFO_STREAM(logger_, "Connected to serial " << spatial_->getSerialNumber());
+    RCLCPP_DEBUG_STREAM(
+      logger_, "Successfully connected to the IMU sensor with serial number: "
+                 << spatial_->getSerialNumber());
     Calibrate();
 
     spatial_->setDataInterval(params_.data_interval_ms);
@@ -126,27 +124,25 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
     ConfigureCompassParams();
     ConfigureHeating();
   } catch (const phidgets::Phidget22Error & err) {
-    RCLCPP_ERROR_STREAM(logger_, "Spatial: " << err.what());
+    RCLCPP_ERROR_STREAM(logger_, "An error occurred in the Spatial module: " << err.what());
     return CallbackReturn::ERROR;
   }
+
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Deactivating Panther Imu");
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherImuSensor::on_shutdown(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Shutting down Panther Imu");
   return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn PantherImuSensor::on_error(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_INFO(logger_, "Handling Panther Imu error");
   return CallbackReturn::SUCCESS;
 }
 
@@ -174,15 +170,12 @@ return_type PantherImuSensor::read(
 void PantherImuSensor::CheckSensorName() const
 {
   if (!info_.sensors.size()) {
-    throw std::runtime_error("Sensor is not defined in urdf!");
+    throw std::runtime_error("Sensor is not defined in URDF!");
   }
 }
 
 void PantherImuSensor::CheckStatesSize() const
 {
-  RCLCPP_INFO_STREAM(
-    logger_, "State interfaces count: " << info_.sensors[0].state_interfaces.size());
-
   if (info_.sensors[0].state_interfaces.size() != kImuInterfacesSize) {
     throw std::runtime_error(
       "Wrong number of interfaces defined: " +
@@ -203,7 +196,7 @@ void PantherImuSensor::CheckInterfaces() const
 
   if (!std::equal(
         names_start_iter, names_end_iter, states_iter, compare_name_with_interface_info)) {
-    throw std::runtime_error("Wrong state interfaces' names defined.");
+    throw std::runtime_error("Mismatch detected in the state interfaces' names defined.");
   }
 }
 
@@ -217,8 +210,7 @@ void PantherImuSensor::ReadObligatoryParams()
 
   if (params_.callback_delta_epsilon_ms >= params_.data_interval_ms) {
     throw std::runtime_error(
-      "Callback epsilon is larger than the data interval; this can never "
-      "work");
+      "Invalid configuration: Callback epsilon is larger than the data interval.");
   }
 }
 
@@ -265,10 +257,10 @@ void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
   } else if (world_frame == "enu") {
     world_frame_ = WorldFrame::ENU;
   } else {
-    RCLCPP_WARN(
-      logger_,
-      "The parameter world_frame was set to invalid value. "
-      "Valid values are 'enu', 'ned' and 'nwu'. Setting to 'enu'.");
+    RCLCPP_WARN_STREAM(
+      logger_, "The parameter 'world_frame' was set to an invalid value ("
+                 << world_frame
+                 << "). Valid values are ['enu', 'ned', 'nwu']. Setting to default value 'enu'.");
   }
 }
 
@@ -282,12 +274,14 @@ void PantherImuSensor::Calibrate()
 {
   spatial_->zero();
 
-  RCLCPP_WARN(logger_, "IMU is calibrating. Do not move the robot for 2 seconds!");
+  RCLCPP_WARN(
+    logger_,
+    "Starting IMU sensor calibration. Please ensure the robot remains stationary for 2 seconds.");
 
   std::unique_lock<std::mutex> lock(calibration_mutex_);
   calibration_cv_.wait(lock, [this]() { return imu_calibrated_; });
 
-  RCLCPP_INFO(logger_, "IMU is successfully calibrated.");
+  RCLCPP_INFO(logger_, "IMU sensor calibration completed.");
 }
 
 bool PantherImuSensor::IsParamDefined(const std::string & param_name) const
@@ -317,7 +311,8 @@ void PantherImuSensor::ConfigureCompassParams()
       params_.cc_gain0, params_.cc_gain1, params_.cc_gain2, params_.cc_t0, params_.cc_t1,
       params_.cc_t2, params_.cc_t3, params_.cc_t4, params_.cc_t5);
   } else {
-    RCLCPP_INFO(logger_, "No compass correction params found. Skipping...");
+    RCLCPP_INFO(
+      logger_, "Compass correction parameters not found. Skipping compass configuration.");
   }
 }
 
@@ -328,7 +323,7 @@ void PantherImuSensor::ConfigureHeating()
       hardware_interface::stod(info_.hardware_parameters["heating_enabled"]);
     spatial_->setHeatingEnabled(params_.heating_enabled);
   } else {
-    RCLCPP_INFO(logger_, "No heating enabled found. Skipping...");
+    RCLCPP_INFO(logger_, "Heating configuration parameter not found. Skipping heating setup.");
   }
 }
 
@@ -384,7 +379,7 @@ void PantherImuSensor::InitializeMadgwickAlgorithm(
   geometry_msgs::msg::Quaternion init_q;
   if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, mag_compensated, init_q)) {
     throw std::runtime_error(
-      "The IMU seems to be in free fall, cannot determine gravity direction.");
+      "Couldn't determine gravity direction. The IMU sensor seems to be in free fall.");
   }
   filter_->setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
 
@@ -455,7 +450,8 @@ void PantherImuSensor::SpatialDataCallback(
     try {
       InitializeMadgwickAlgorithm(mag_compensated, lin_acc, timestamp_s);
     } catch (const std::runtime_error & e) {
-      RCLCPP_ERROR_STREAM(logger_, "Exception during algorithm initialization: " << e.what());
+      RCLCPP_ERROR_STREAM(
+        logger_, "An exception occurred while initializing the Madgwick algorithm: " << e.what());
     }
   }
 
@@ -472,7 +468,7 @@ void PantherImuSensor::SpatialDataCallback(
 
 void PantherImuSensor::SpatialAttachCallback()
 {
-  RCLCPP_INFO(logger_, "IMU has attached!");
+  RCLCPP_INFO(logger_, "IMU sensor has successfully attached and is now connected.");
   imu_connected_ = true;
   on_activate(rclcpp_lifecycle::State{});
 }
@@ -480,7 +476,9 @@ void PantherImuSensor::SpatialAttachCallback()
 void PantherImuSensor::SpatialDetachCallback()
 {
   RCLCPP_WARN(
-    logger_, "IMU has detached! If you haven't unplugged the USB IMU cable check the connection!");
+    logger_,
+    "IMU sensor has detached! If the USB IMU cable has not been intentionally unplugged, please "
+    "check the connection.");
   imu_connected_ = false;
   algorithm_initialized_ = false;
   SetStateValuesToNans();
