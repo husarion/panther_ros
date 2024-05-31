@@ -608,7 +608,7 @@ void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_oper
         *motor_controller_write_mtx_, std::defer_lock);
       if (!motor_controller_write_lck.try_lock()) {
         throw std::runtime_error(
-          "Can't acquire mutex for writing commands - E-stop is being triggered");
+          "Can't acquire mutex for writing commands - E-stop is being triggered.");
       }
       pdo_write_operation();
     }
