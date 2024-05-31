@@ -36,6 +36,7 @@ def generate_launch_description():
         parameters=[{"panther_version": panther_version}],
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
+        emulate_tty=True,
     )
 
     actions = [

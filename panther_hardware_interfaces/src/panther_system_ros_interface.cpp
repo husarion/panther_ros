@@ -52,7 +52,8 @@ void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
     response->message = err.what();
 
     RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("PantherSystem"), "Service response: " << response->message);
+      rclcpp::get_logger("PantherSystem"),
+      "An exception ocurred while handling the request: " << err.what());
   }
 }
 

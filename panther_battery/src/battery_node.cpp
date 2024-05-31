@@ -48,7 +48,7 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
 
   diagnostic_updater_->setHardwareID("Battery");
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
 }
 
 void BatteryNode::Initialize()
@@ -59,8 +59,10 @@ void BatteryNode::Initialize()
       InitializeWithADCBattery();
       return;
     } catch (const std::runtime_error & e) {
-      RCLCPP_WARN_STREAM(this->get_logger(), "Failed to initialize ADC Battery: " << e.what());
-      RCLCPP_INFO(this->get_logger(), "Using Roboteq drivers to publish battery data.");
+      RCLCPP_WARN_STREAM(
+        this->get_logger(), "An exception ocurred while initializing with ADC: "
+                              << e.what()
+                              << " Falling back to using Roboteq drivers to publish battery data.");
     }
   }
   InitializeWithRoboteqBattery();
@@ -68,8 +70,6 @@ void BatteryNode::Initialize()
 
 void BatteryNode::InitializeWithADCBattery()
 {
-  RCLCPP_INFO(this->get_logger(), "Initializing battery node using ADC data");
-
   this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
   this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
   this->declare_parameter<int>("adc/ma_window_len/temp", 10);
@@ -95,7 +95,6 @@ void BatteryNode::InitializeWithADCBattery()
     std::bind(&ADCDataReader::GetADCMeasurement, *adc0_reader_, 2, 0), battery_params);
 
   if (battery_2_->Present()) {
-    RCLCPP_INFO(this->get_logger(), "Second battery detected");
     battery_1_ = std::make_shared<ADCBattery>(
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 0, 0),
       std::bind(&ADCDataReader::GetADCMeasurement, *adc1_reader_, 2, kADCCurrentOffset),
@@ -116,12 +115,12 @@ void BatteryNode::InitializeWithADCBattery()
     battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
       this->shared_from_this(), diagnostic_updater_, battery_1_);
   }
+
+  RCLCPP_INFO(this->get_logger(), "Battery driver using ADC data.");
 }
 
 void BatteryNode::InitializeWithRoboteqBattery()
 {
-  RCLCPP_INFO(this->get_logger(), "Initializing battery node using motor controllers data");
-
   this->declare_parameter<float>("roboteq/driver_state_timeout", 0.2);
 
   const RoboteqBatteryParams battery_params = {
@@ -138,13 +137,14 @@ void BatteryNode::InitializeWithRoboteqBattery()
 
   battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
     this->shared_from_this(), diagnostic_updater_, battery_1_);
+
+  RCLCPP_INFO(this->get_logger(), "Battery driver using motor controllers data.");
 }
 
 void BatteryNode::BatteryPubTimerCB()
 {
   if (!battery_publisher_) {
     Initialize();
-    RCLCPP_INFO(this->get_logger(), "Battery publishers initialized");
     return;
   }
   battery_publisher_->Publish();
