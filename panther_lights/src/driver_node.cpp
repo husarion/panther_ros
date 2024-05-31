@@ -45,6 +45,8 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   chanel_2_("/dev/spidev0.1"),
   diagnostic_updater_(this)
 {
+  RCLCPP_INFO(this->get_logger(), "Starting initialization process.");
+
   rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
 
   this->declare_parameter<double>("global_brightness", 1.0);
@@ -54,7 +56,7 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
 }
 
 void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTransport> & it)
@@ -89,7 +91,7 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
     "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
 
-  RCLCPP_INFO(this->get_logger(), "LED panels initialised");
+  RCLCPP_INFO(this->get_logger(), "LED panels initialized.");
 }
 
 void DriverNode::OnShutdown()
@@ -180,11 +182,11 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
 {
   std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"LED panels are initialised properly"};
+  std::string message{"LED panels initialized properly."};
 
   if (!panels_initialised_) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "LED panels initialisation failed";
+    message = "LED panels initialization failed.";
 
     auto pin_available = gpio_driver_->IsPinAvailable(panther_gpiod::GPIOPin::LED_SBC_SEL);
     auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);

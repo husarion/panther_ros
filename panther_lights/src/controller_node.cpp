@@ -43,6 +43,8 @@ namespace panther_lights
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
+  RCLCPP_INFO(this->get_logger(), "Starting initialization process.");
+
   using namespace std::placeholders;
 
   this->declare_parameter<std::string>("led_config_file");
@@ -75,12 +77,12 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
     std::chrono::microseconds(static_cast<std::uint64_t>(1e6 / controller_freq)),
     std::bind(&ControllerNode::ControllerTimerCB, this));
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
 }
 
 void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
 {
-  RCLCPP_INFO(this->get_logger(), "Initializing LED panels");
+  RCLCPP_DEBUG(this->get_logger(), "Initializing LED panels.");
 
   for (auto & panel : panels_description.as<std::vector<YAML::Node>>()) {
     const auto channel = panther_utils::GetYAMLKeyValue<std::size_t>(panel, "channel");
@@ -90,7 +92,7 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
     const auto result = led_panels_.emplace(channel, std::make_unique<LEDPanel>(number_of_leds));
     if (!result.second) {
       throw std::runtime_error(
-        "Multiple panels with channel nr '" + std::to_string(channel) + "' found");
+        "Multiple panels with channel nr '" + std::to_string(channel) + "' found.");
     }
 
     const auto pub_result = panel_publishers_.emplace(
@@ -98,18 +100,17 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
                  "lights/driver/channel_" + std::to_string(channel) + "_frame", 10));
     if (!pub_result.second) {
       throw std::runtime_error(
-        "Multiple panel publishers for channel nr '" + std::to_string(channel) + "' found");
+        "Multiple panel publishers for channel nr '" + std::to_string(channel) + "' found.");
     }
 
-    RCLCPP_INFO_STREAM(
-      this->get_logger(), "Successfully initialized panel with channel nr " << channel);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Initialized panel with channel no. " << channel << ".");
   }
 }
 
 void ControllerNode::InitializeLEDSegments(
   const YAML::Node & segments_description, const float controller_freq)
 {
-  RCLCPP_INFO(this->get_logger(), "Initializing LED segments");
+  RCLCPP_DEBUG(this->get_logger(), "Initializing LED segments.");
   for (auto & segment : segments_description.as<std::vector<YAML::Node>>()) {
     const auto segment_name = panther_utils::GetYAMLKeyValue<std::string>(segment, "name");
 
@@ -117,7 +118,7 @@ void ControllerNode::InitializeLEDSegments(
       const auto result = segments_.emplace(
         segment_name, std::make_shared<LEDSegment>(segment, controller_freq));
       if (!result.second) {
-        throw std::runtime_error("Multiple segments with given name found");
+        throw std::runtime_error("Multiple segments with given name found.");
       }
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
@@ -127,8 +128,7 @@ void ControllerNode::InitializeLEDSegments(
         "Failed to initialize '" + segment_name + "' segment: " + std::string(e.what()));
     }
 
-    RCLCPP_INFO_STREAM(
-      this->get_logger(), "Successfully initialized '" << segment_name << "' segment");
+    RCLCPP_INFO_STREAM(this->get_logger(), "Initialized '" << segment_name << "' segment.");
   }
 }
 
@@ -143,18 +143,18 @@ void ControllerNode::InitializeLEDSegmentsMap(const YAML::Node & segments_map_de
 
 void ControllerNode::LoadDefaultAnimations(const YAML::Node & animations_description)
 {
-  RCLCPP_INFO(this->get_logger(), "Loading users LED animations");
+  RCLCPP_DEBUG(this->get_logger(), "Loading default animations.");
 
   for (auto & animation_description : animations_description.as<std::vector<YAML::Node>>()) {
     LoadAnimation(animation_description);
   }
 
-  RCLCPP_INFO(this->get_logger(), "Animations successfully loaded");
+  RCLCPP_INFO(this->get_logger(), "Loaded default animations.");
 }
 
 void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_file)
 {
-  RCLCPP_INFO(this->get_logger(), "Loading users LED animations");
+  RCLCPP_DEBUG(this->get_logger(), "Loading user's animations.");
 
   try {
     YAML::Node user_led_animations = YAML::LoadFile(user_led_animations_file);
@@ -165,13 +165,13 @@ void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_
       try {
         auto id = panther_utils::GetYAMLKeyValue<std::size_t>(animation_description, "id");
         if (id < 20) {
-          throw std::runtime_error("Animation ID must be greater than 19");
+          throw std::runtime_error("Animation ID must be greater than 19.");
         }
 
         auto priority = panther_utils::GetYAMLKeyValue<std::size_t>(
           animation_description, "priority", LEDAnimation::kDefaultPriority);
         if (priority == 1) {
-          throw std::runtime_error("User animation can not have priority 1");
+          throw std::runtime_error("User animation can not have priority 1.");
         }
 
         LoadAnimation(animation_description);
@@ -184,7 +184,7 @@ void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_
     RCLCPP_WARN_STREAM(this->get_logger(), "Failed to load user animations: " << e.what());
   }
 
-  RCLCPP_INFO(this->get_logger(), "User animations successfully loaded");
+  RCLCPP_INFO(this->get_logger(), "Loaded user's animations.");
 }
 
 void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
@@ -205,7 +205,7 @@ void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
       std::find(
         LEDAnimation::kValidPriorities.begin(), LEDAnimation::kValidPriorities.end(),
         led_animation_desc.priority) == LEDAnimation::kValidPriorities.end()) {
-      throw std::runtime_error("Invalid LED animation priority");
+      throw std::runtime_error("Invalid LED animation priority.");
     }
 
     auto animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
@@ -223,7 +223,7 @@ void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
 
     const auto result = animations_descriptions_.emplace(led_animation_desc.id, led_animation_desc);
     if (!result.second) {
-      throw std::runtime_error("Animation with given ID already exists");
+      throw std::runtime_error("Animation with given ID already exists.");
     }
 
   } catch (const std::runtime_error & e) {
@@ -277,7 +277,7 @@ void ControllerNode::ControllerTimerCB()
   }
 
   if (!current_animation_) {
-    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "Waiting for animation");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "Waiting for animation.");
     return;
   }
 
