@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="panther_mini" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:arg name="panther_version" default="1.0" />
+  <xacro:arg name="use_sim" default="false" />
+  <!-- if lidars have to work correctly, use_gpu has to be true. -->
+  <!-- TODO change IMU pos to real values -->
+  <xacro:arg name="use_gpu" default="true" />
+  <xacro:arg name="imu_pos_x" default="0.169" />
+  <xacro:arg name="imu_pos_y" default="0.025" />
+  <xacro:arg name="imu_pos_z" default="0.092" />
+  <xacro:arg name="imu_rot_r" default="0.0" />
+  <xacro:arg name="imu_rot_p" default="0.0" />
+  <xacro:arg name="imu_rot_y" default="-1.57" />
+  <xacro:arg name="simulation_engine" default="ignition-gazebo" />
+  <xacro:arg name="wheel_config_file"
+    default="$(find panther_mini_description)/config/WH05.yaml" />
+  <xacro:arg name="controller_config_file"
+    default="$(find panther_controller)/config/WH05_controller.yaml" />
+  <xacro:arg name="battery_config_file"
+    default="$(find panther_mini_description)/config/battery_ign_plugin.yaml" />
+  <xacro:arg name="namespace" default="" />
+
+
+  <xacro:include filename="$(find panther_mini_description)/urdf/panther_mini_macro.urdf.xacro" ns="husarion" />
+  <xacro:husarion.panther_mini_robot
+    panther_version="$(arg panther_version)"
+    use_sim="$(arg use_sim)"
+    imu_pos_x="$(arg imu_pos_x)"
+    imu_pos_y="$(arg imu_pos_y)"
+    imu_pos_z="$(arg imu_pos_z)"
+    imu_rot_r="$(arg imu_rot_r)"
+    imu_rot_p="$(arg imu_rot_p)"
+    imu_rot_y="$(arg imu_rot_y)"
+    simulation_engine="$(arg simulation_engine)"
+    wheel_config_file="$(arg wheel_config_file)"
+    controller_config_file="$(arg controller_config_file)"
+    battery_config_file="$(arg battery_config_file)"
+    namespace="$(arg namespace)" />
+
+  <xacro:arg name="components_config_path" default="$(find panther_mini_description)/config/components.yaml" />
+  <xacro:property name="components_config_path_property" value="$(arg components_config_path)" />
+
+  <xacro:unless value="${components_config_path_property == 'None'}">
+    <xacro:include filename="$(find ros_components_description)/urdf/components.urdf.xacro"
+      ns="husarion_components" />
+
+    <xacro:husarion_components.create_components
+      components_config_path="${components_config_path_property}"
+      namespace="$(arg namespace)"
+    />
+  </xacro:unless>
+</robot>

@@ -73,8 +73,7 @@ public:
    */
   void UpdateDriversState();
 
-  const RoboteqData & GetFrontData() { return front_data_; }
-  const RoboteqData & GetRearData() { return rear_data_; }
+  const RoboteqData & GetData() { return data_; }
 
   /**
    * @brief Write speed commands to motors
@@ -127,8 +126,7 @@ private:
 
   CANopenController canopen_controller_;
 
-  RoboteqData front_data_;
-  RoboteqData rear_data_;
+  RoboteqData data_;
 
   RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
 

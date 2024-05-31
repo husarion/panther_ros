@@ -121,38 +121,36 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   node_.reset();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrorFlags(
-  const RoboteqData & front, const RoboteqData & rear)
+void PantherSystemRosInterface::UpdateMsgErrorFlags(const RoboteqData & data)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
   driver_state.header.stamp = node_->get_clock()->now();
 
-  driver_state.front.fault_flag = front.GetFaultFlag().GetMessage();
-  driver_state.front.script_flag = front.GetScriptFlag().GetMessage();
-  driver_state.front.left_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
-  driver_state.front.right_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
+  driver_state.front.fault_flag = data.GetFaultFlag().GetMessage();
+  driver_state.front.script_flag = data.GetScriptFlag().GetMessage();
+  driver_state.front.left_motor_runtime_error = data.GetLeftRuntimeError().GetMessage();
+  driver_state.front.right_motor_runtime_error = data.GetRightRuntimeError().GetMessage();
 
-  driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
-  driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
-  driver_state.rear.left_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
-  driver_state.rear.right_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
+  // driver_state.rear.fault_flag = rear.GetFaultFlag().GetMessage();
+  // driver_state.rear.script_flag = rear.GetScriptFlag().GetMessage();
+  // driver_state.rear.left_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
+  // driver_state.rear.right_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
-void PantherSystemRosInterface::UpdateMsgDriversStates(
-  const DriverState & front, const DriverState & rear)
+void PantherSystemRosInterface::UpdateMsgDriversStates(const DriverState & state)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
 
-  driver_state.front.voltage = front.GetVoltage();
-  driver_state.front.current = front.GetCurrent();
-  driver_state.front.temperature = front.GetTemperature();
-  driver_state.front.heatsink_temperature = front.GetHeatsinkTemperature();
+  driver_state.front.voltage = state.GetVoltage();
+  driver_state.front.current = state.GetCurrent();
+  driver_state.front.temperature = state.GetTemperature();
+  driver_state.front.heatsink_temperature = state.GetHeatsinkTemperature();
 
-  driver_state.rear.voltage = rear.GetVoltage();
-  driver_state.rear.current = rear.GetCurrent();
-  driver_state.rear.temperature = rear.GetTemperature();
-  driver_state.rear.heatsink_temperature = rear.GetHeatsinkTemperature();
+  // driver_state.rear.voltage = rear.GetVoltage();
+  // driver_state.rear.current = rear.GetCurrent();
+  // driver_state.rear.temperature = rear.GetTemperature();
+  // driver_state.rear.heatsink_temperature = rear.GetHeatsinkTemperature();
 }
 
 void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
@@ -164,14 +162,14 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
   driver_state.read_pdo_motor_states_error = can_errors.read_pdo_motor_states_error;
   driver_state.read_pdo_driver_state_error = can_errors.read_pdo_driver_state_error;
 
-  driver_state.front.motor_states_data_timed_out = can_errors.front_motor_states_data_timed_out;
-  driver_state.rear.motor_states_data_timed_out = can_errors.rear_motor_states_data_timed_out;
+  driver_state.front.motor_states_data_timed_out = can_errors.motor_states_data_timed_out;
+  // driver_state.rear.motor_states_data_timed_out = can_errors.rear_motor_states_data_timed_out;
 
-  driver_state.front.driver_state_data_timed_out = can_errors.front_driver_state_data_timed_out;
-  driver_state.rear.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
+  driver_state.front.driver_state_data_timed_out = can_errors.driver_state_data_timed_out;
+  // driver_state.rear.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
 
-  driver_state.front.can_net_err = can_errors.front_can_net_err;
-  driver_state.rear.can_net_err = can_errors.rear_can_net_err;
+  driver_state.front.can_net_err = can_errors.can_net_err;
+  // driver_state.rear.can_net_err = can_errors.rear_can_net_err;
 }
 
 void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)

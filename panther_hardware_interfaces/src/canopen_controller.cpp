@@ -101,8 +101,7 @@ void CANopenController::Deinitialize()
 
   canopen_communication_started_.store(false);
 
-  rear_driver_.reset();
-  front_driver_.reset();
+  driver_.reset();
   master_.reset();
   chan_.reset();
   ctrl_.reset();
@@ -141,10 +140,8 @@ void CANopenController::InitializeCANCommunication()
   master_ = std::make_shared<lely::canopen::AsyncMaster>(
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
-  front_driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.front_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
-  rear_driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
+  driver_ = std::make_shared<RoboteqDriver>(
+    master_, canopen_settings_.driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
@@ -162,18 +159,13 @@ void CANopenController::NotifyCANCommunicationStarted(const bool result)
 void CANopenController::BootDrivers()
 {
   try {
-    auto front_driver_future = front_driver_->Boot();
-    auto rear_driver_future = rear_driver_->Boot();
+    auto driver_future = driver_->Boot();
 
-    auto front_driver_status = front_driver_future.wait_for(std::chrono::seconds(5));
-    auto rear_driver_status = rear_driver_future.wait_for(std::chrono::seconds(5));
+    auto driver_status = driver_future.wait_for(std::chrono::seconds(5));
 
-    if (
-      front_driver_status == std::future_status::ready &&
-      rear_driver_status == std::future_status::ready) {
+    if (driver_status == std::future_status::ready) {
       try {
-        front_driver_future.get();
-        rear_driver_future.get();
+        driver_future.get();
       } catch (const std::exception & e) {
         throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
       }

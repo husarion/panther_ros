@@ -388,9 +388,7 @@ void PantherSystem::ReadCANopenSettings()
 {
   canopen_settings_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-  canopen_settings_.front_driver_can_id =
-    std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-  canopen_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+  canopen_settings_.driver_can_id = std::stoi(info_.hardware_parameters["driver_can_id"]);
   canopen_settings_.pdo_motor_states_timeout_ms =
     std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_motor_states_timeout_ms"]));
   canopen_settings_.pdo_driver_state_timeout_ms =
@@ -499,13 +497,12 @@ void PantherSystem::UpdateDriverState()
 
 void PantherSystem::UpdateHwStates()
 {
-  const auto front = motors_controller_->GetFrontData();
-  const auto rear = motors_controller_->GetRearData();
+  const auto data = motors_controller_->GetData();
 
-  const auto fl = front.GetLeftMotorState();
-  const auto fr = front.GetRightMotorState();
-  const auto rl = rear.GetLeftMotorState();
-  const auto rr = rear.GetRightMotorState();
+  const auto fl = data.GetLeftMotorState();
+  const auto fr = data.GetRightMotorState();
+  const auto rl = data.GetLeftMotorState();
+  const auto rr = data.GetRightMotorState();
 
   hw_states_positions_[0] = fl.GetPosition();
   hw_states_positions_[1] = fr.GetPosition();
@@ -525,13 +522,8 @@ void PantherSystem::UpdateHwStates()
 
 void PantherSystem::UpdateMotorsStatesDataTimedOut()
 {
-  if (
-    motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ||
-    motors_controller_->GetRearData().IsMotorStatesDataTimedOut()) {
-    RCLCPP_WARN_STREAM(
-      logger_, (motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ? "Front " : "")
-                 << (motors_controller_->GetRearData().IsMotorStatesDataTimedOut() ? "Rear " : "")
-                 << "PDO motor state data timeout");
+  if (motors_controller_->GetData().IsMotorStatesDataTimedOut()) {
+    RCLCPP_WARN_STREAM(logger_, "PDO motor state data timeout");
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, false);
@@ -541,11 +533,9 @@ void PantherSystem::UpdateMotorsStatesDataTimedOut()
 void PantherSystem::UpdateDriverStateMsg()
 {
   panther_system_ros_interface_->UpdateMsgDriversStates(
-    motors_controller_->GetFrontData().GetDriverState(),
-    motors_controller_->GetRearData().GetDriverState());
+    motors_controller_->GetData().GetDriverState());
 
-  panther_system_ros_interface_->UpdateMsgErrorFlags(
-    motors_controller_->GetFrontData(), motors_controller_->GetRearData());
+  panther_system_ros_interface_->UpdateMsgErrorFlags(motors_controller_->GetData());
 
   CANErrors can_errors;
   can_errors.error = roboteq_error_filter_->IsError();
@@ -555,32 +545,24 @@ void PantherSystem::UpdateDriverStateMsg()
   can_errors.read_pdo_driver_state_error =
     roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
 
-  can_errors.front_motor_states_data_timed_out =
-    motors_controller_->GetFrontData().IsMotorStatesDataTimedOut();
-  can_errors.rear_motor_states_data_timed_out =
-    motors_controller_->GetRearData().IsMotorStatesDataTimedOut();
+  can_errors.motor_states_data_timed_out =
+    motors_controller_->GetData().IsMotorStatesDataTimedOut();
 
-  can_errors.front_driver_state_data_timed_out =
-    motors_controller_->GetFrontData().IsDriverStateDataTimedOut();
-  can_errors.rear_driver_state_data_timed_out =
-    motors_controller_->GetRearData().IsDriverStateDataTimedOut();
+  can_errors.driver_state_data_timed_out =
+    motors_controller_->GetData().IsDriverStateDataTimedOut();
 
-  can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCANNetErr();
-  can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCANNetErr();
+  can_errors.can_net_err = motors_controller_->GetData().IsCANNetErr();
 
   panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 }
 
 void PantherSystem::UpdateFlagErrors()
 {
-  if (
-    motors_controller_->GetFrontData().IsFlagError() ||
-    motors_controller_->GetRearData().IsFlagError()) {
+  if (motors_controller_->GetData().IsFlagError()) {
     RCLCPP_WARN_STREAM_THROTTLE(
       logger_, steady_clock_, 5000,
-      "Error state on one of the drivers:\n"
-        << "\tFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
-        << "\tRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
+      "Error state on the driver:\n"
+        << "\t" << motors_controller_->GetData().GetFlagErrorLog());
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
 
     HandlePDOWriteOperation([this] { motors_controller_->AttemptErrorFlagResetWithZeroSpeed(); });
@@ -591,13 +573,8 @@ void PantherSystem::UpdateFlagErrors()
 
 void PantherSystem::UpdateDriverStateDataTimedOut()
 {
-  if (
-    motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ||
-    motors_controller_->GetRearData().IsDriverStateDataTimedOut()) {
-    RCLCPP_WARN_STREAM(
-      logger_, (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "Front " : "")
-                 << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "Rear " : "")
-                 << "PDO driver state timeout");
+  if (motors_controller_->GetData().IsDriverStateDataTimedOut()) {
+    RCLCPP_WARN_STREAM(logger_, "PDO driver state timeout");
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, false);
@@ -666,22 +643,13 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"No error detected."};
 
-  const auto front_driver_data = motors_controller_->GetFrontData();
-  if (front_driver_data.IsError()) {
+  const auto driver_data = motors_controller_->GetData();
+  if (driver_data.IsError()) {
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
     panther_utils::diagnostics::AddKeyValueIfTrue(
-      status, front_driver_data.GetErrorMap(), "Front driver error: ");
-  }
-
-  const auto rear_driver_data = motors_controller_->GetRearData();
-  if (rear_driver_data.IsError()) {
-    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "Error detected.";
-
-    panther_utils::diagnostics::AddKeyValueIfTrue(
-      status, rear_driver_data.GetErrorMap(), "Rear driver error: ");
+      status, driver_data.GetErrorMap(), "Driver error: ");
   }
 
   if (roboteq_error_filter_->IsError()) {
@@ -700,12 +668,9 @@ void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper &
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Panther system status monitoring."};
 
-  const auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
-  const auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
+  const auto driver_state = motors_controller_->GetData().GetDriverState();
 
-  auto drivers_states_with_names = {
-    std::make_pair(std::string("Front"), front_driver_state),
-    std::make_pair(std::string("Rear"), rear_driver_state)};
+  auto drivers_states_with_names = {std::make_pair(std::string("Driver"), driver_state)};
 
   for (const auto & [driver_name, driver_state] : drivers_states_with_names) {
     status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
