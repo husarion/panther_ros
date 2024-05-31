@@ -70,6 +70,8 @@ void BatteryNode::Initialize()
 
 void BatteryNode::InitializeWithADCBattery()
 {
+  RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC battery.");
+
   this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
   this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
   this->declare_parameter<int>("adc/ma_window_len/temp", 10);
@@ -121,6 +123,8 @@ void BatteryNode::InitializeWithADCBattery()
 
 void BatteryNode::InitializeWithRoboteqBattery()
 {
+  RCLCPP_DEBUG(this->get_logger(), "Initializing with Roboteq battery.");
+
   this->declare_parameter<float>("roboteq/driver_state_timeout", 0.2);
 
   const RoboteqBatteryParams battery_params = {
