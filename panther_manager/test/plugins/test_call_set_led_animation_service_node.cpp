@@ -178,19 +178,7 @@ TEST_F(TestCallSetLedAnimationService, WrongRepeatingServiceValueDefined)
 
   RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService");
 
-  CreateTree("CallSetLedAnimationService", service);
-  auto & tree = GetTree();
-
-  using panther_msgs::srv::SetLEDAnimation;
-
-  CreateService<SetLEDAnimation>(
-    "set_led_animation", [&](
-                           const SetLEDAnimation::Request::SharedPtr request,
-                           SetLEDAnimation::Response::SharedPtr response) {
-      ServiceCallback(request, response, true, 0, true);
-    });
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
+  EXPECT_THROW({CreateTree("CallSetLedAnimationService", service);}, BT::LogicError);
 }
 
 TEST_F(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
@@ -200,19 +188,7 @@ TEST_F(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
 
   RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService");
 
-  CreateTree("CallSetLedAnimationService", service);
-  auto & tree = GetTree();
-
-  using panther_msgs::srv::SetLEDAnimation;
-
-  CreateService<SetLEDAnimation>(
-    "set_led_animation", [&](
-                           const SetLEDAnimation::Request::SharedPtr request,
-                           SetLEDAnimation::Response::SharedPtr response) {
-      ServiceCallback(request, response, true, 0, true);
-    });
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
+  EXPECT_THROW({CreateTree("CallSetLedAnimationService", service);}, BT::LogicError);
 }
 
 int main(int argc, char ** argv)
