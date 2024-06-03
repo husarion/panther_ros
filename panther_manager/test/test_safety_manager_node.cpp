@@ -76,8 +76,8 @@ private:
     <root BTCPP_format="4" project_name="Test">
       <BehaviorTree ID="Safety">
         <Sequence>
-          <CallTriggerService service_name="dummy_service"/>
-          <CallSetBoolService service_name="dummy_service"/>
+          <CallTriggerService service_name="dummy_service_trigger"/>
+          <CallSetBoolService service_name="dummy_service_set_bool"/>
           <SignalShutdown/>
           <TickAfterTimeout>
             <AlwaysSuccess/>
