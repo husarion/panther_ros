@@ -178,7 +178,7 @@ TEST_F(TestCallSetLedAnimationService, WrongRepeatingServiceValueDefined)
 
   RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService");
 
-  EXPECT_THROW({CreateTree("CallSetLedAnimationService", service);}, BT::LogicError);
+  EXPECT_THROW({ CreateTree("CallSetLedAnimationService", service); }, BT::LogicError);
 }
 
 TEST_F(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
@@ -188,7 +188,7 @@ TEST_F(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
 
   RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService");
 
-  EXPECT_THROW({CreateTree("CallSetLedAnimationService", service);}, BT::LogicError);
+  EXPECT_THROW({ CreateTree("CallSetLedAnimationService", service); }, BT::LogicError);
 }
 
 int main(int argc, char ** argv)

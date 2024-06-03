@@ -87,7 +87,8 @@ TestBatteryPublisher::TestBatteryPublisher()
 
   node_ = std::make_shared<rclcpp::Node>("node", options);
   diagnostic_updater_ = std::make_shared<diagnostic_updater::Updater>(node_);
-  io_state_pub_ = node_->create_publisher<IOStateMsg>("/hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  io_state_pub_ = node_->create_publisher<IOStateMsg>(
+    "/hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   battery_publisher_ = std::make_shared<BatteryPublisherWrapper>(node_, diagnostic_updater_);
 }
 

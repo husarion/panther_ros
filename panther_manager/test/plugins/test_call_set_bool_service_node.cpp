@@ -148,7 +148,7 @@ TEST_F(TestCallSetBoolService, WrongServiceValueDefined)
     });
   RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
 
-  EXPECT_THROW({CreateTree("CallSetBoolService", service);}, BT::LogicError);
+  EXPECT_THROW({ CreateTree("CallSetBoolService", service); }, BT::LogicError);
 }
 
 int main(int argc, char ** argv)

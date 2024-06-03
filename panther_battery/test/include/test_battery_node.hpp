@@ -109,7 +109,8 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
   battery_2_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
     "battery_2_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
 
-  io_state_pub_ = battery_node_->create_publisher<IOStateMsg>("hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  io_state_pub_ = battery_node_->create_publisher<IOStateMsg>(
+    "hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   driver_state_pub_ = battery_node_->create_publisher<DriverStateMsg>(
     "driver/motor_controllers_state", 10);
 }
