@@ -35,7 +35,8 @@ bool ShutdownHostsFromFile::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost
   if (
     !getInput<std::string>("shutdown_hosts_file", shutdown_hosts_file) ||
     shutdown_hosts_file == "") {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [shutdown_hosts_file]");
+    RCLCPP_ERROR_STREAM(
+      *this->logger_, GetLoggerPrefix(name()) << "Failed to get input [shutdown_hosts_file]");
     return false;
   }
 
@@ -43,14 +44,17 @@ bool ShutdownHostsFromFile::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost
   try {
     shutdown_hosts = YAML::LoadFile(shutdown_hosts_file);
   } catch (const YAML::Exception & e) {
-    RCLCPP_ERROR_STREAM(*this->logger_, " Error loading YAML file: " << e.what());
+    RCLCPP_ERROR_STREAM(
+      *this->logger_, GetLoggerPrefix(name()) << " Error loading YAML file: " << e.what());
     return false;
   }
 
   try {
     for (const auto & host : shutdown_hosts["hosts"]) {
       if (!host["ip"] || !host["username"]) {
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger(this->name()), "Missing info for remote host!");
+        RCLCPP_ERROR_STREAM(
+          rclcpp::get_logger(this->name()), GetLoggerPrefix(name())
+                                              << "Missing info for remote host!");
         continue;
       }
 
@@ -66,7 +70,7 @@ bool ShutdownHostsFromFile::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost
         std::make_shared<ShutdownHost>(ip, username, port, command, timeout, ping_for_success));
     }
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(*this->logger_, e.what());
+    RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << e.what());
     return false;
   }
   return true;

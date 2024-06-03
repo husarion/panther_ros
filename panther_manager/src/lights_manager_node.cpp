@@ -37,6 +37,8 @@ LightsManagerNode::LightsManagerNode(
   const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
+  RCLCPP_INFO(this->get_logger(), "Constructing node.");
+
   DeclareParameters();
 
   const auto battery_percent_window_len =
@@ -48,11 +50,13 @@ LightsManagerNode::LightsManagerNode(
   const auto initial_blackboard = CreateLightsInitialBlackboard();
   lights_tree_manager_ = std::make_unique<BehaviorTreeManager>("Lights", initial_blackboard, 5555);
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
 void LightsManagerNode::Initialize()
 {
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
+
   RegisterBehaviorTree();
   lights_tree_manager_->Initialize(factory_);
 
@@ -71,7 +75,7 @@ void LightsManagerNode::Initialize()
   lights_tree_timer_ = this->create_wall_timer(
     timer_period_ms, std::bind(&LightsManagerNode::LightsTreeTimerCB, this));
 
-  RCLCPP_INFO(this->get_logger(), "Node initialized");
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void LightsManagerNode::DeclareParameters()
@@ -101,10 +105,11 @@ void LightsManagerNode::RegisterBehaviorTree()
   const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
   const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
 
-  RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
-
   behavior_tree_utils::RegisterBehaviorTree(
     factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
+
+  RCLCPP_INFO(
+    this->get_logger(), "BehaviorTree registered from path '%s'", bt_project_path.c_str());
 }
 
 std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard()
@@ -149,10 +154,12 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
     {"POWER_SUPPLY_STATUS_FULL", unsigned(BatteryStateMsg::POWER_SUPPLY_STATUS_FULL)},
     // battery health constants
     {"POWER_SUPPLY_HEALTH_OVERHEAT", unsigned(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT)},
+
   };
 
+  RCLCPP_INFO(this->get_logger(), "Blackboard created.");
   return lights_initial_bb;
-}
+}  // namespace panther_manager
 
 void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
 {
@@ -202,7 +209,7 @@ bool LightsManagerNode::SystemReady()
     !lights_tree_manager_->GetBlackboard()->getEntry("battery_status")) {
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 5000,
-      "Waiting for required system messages to arrive");
+      "Waiting for required system messages to arrive.");
     return false;
   }
 

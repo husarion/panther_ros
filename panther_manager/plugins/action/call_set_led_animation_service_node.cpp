@@ -25,19 +25,20 @@ bool CallSetLedAnimationService::setRequest(typename Request::SharedPtr & reques
 {
   unsigned animation_id;
   if (!getInput<unsigned>("id", animation_id)) {
-    RCLCPP_ERROR_STREAM(this->logger(), "Failed to get input [id]");
+    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [id]");
     return false;
   }
 
   request->animation.id = static_cast<uint16_t>(animation_id);
 
   if (!getInput<std::string>("param", request->animation.param)) {
-    RCLCPP_ERROR_STREAM(this->logger(), "Failed to get input [param]");
+    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [param]");
     return false;
   }
 
   if (!getInput<bool>("repeating", request->repeating)) {
-    RCLCPP_ERROR_STREAM(this->logger(), "Failed to get input [repeating]");
+    RCLCPP_ERROR_STREAM(
+      this->logger(), GetLoggerPrefix(name()) << "Failed to get input [repeating]");
     return false;
   }
 
@@ -49,13 +50,13 @@ BT::NodeStatus CallSetLedAnimationService::onResponseReceived(
 {
   if (!response->success) {
     RCLCPP_ERROR_STREAM(
-      this->logger(),
-      "Failed to call " << this->service_name_ << "service, message: " << response->message);
+      this->logger(), GetLoggerPrefix(name()) << "Failed to call " << this->service_name_
+                                              << "service, message: " << response->message);
     return BT::NodeStatus::FAILURE;
   }
   RCLCPP_DEBUG_STREAM(
-    this->logger(),
-    "Successfully called " << this->service_name_ << " service, message: " << response->message);
+    this->logger(), GetLoggerPrefix(name()) << "Successfully called " << this->service_name_
+                                            << " service, message: " << response->message);
   return BT::NodeStatus::SUCCESS;
 }
 

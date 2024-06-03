@@ -30,37 +30,38 @@ bool ShutdownSingleHost::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost>> 
 {
   std::string ip;
   if (!getInput<std::string>("ip", ip) || ip == "") {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [ip]");
+    RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << "Failed to get input [ip]");
     return false;
   }
 
   std::string user;
   if (!getInput<std::string>("username", user) || user == "") {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [user]");
+    RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << "Failed to get input [user]");
     return false;
   }
 
   unsigned port;
   if (!getInput<unsigned>("port", port)) {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [port]");
+    RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << "Failed to get input [port]");
     return false;
   }
 
   std::string command;
   if (!getInput<std::string>("command", command) || command == "") {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [command]");
+    RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << "Failed to get input [command]");
     return false;
   }
 
   float timeout;
   if (!getInput<float>("timeout", timeout)) {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [timeout]");
+    RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << "Failed to get input [timeout]");
     return false;
   }
 
   bool ping_for_success;
   if (!getInput<bool>("ping_for_success", ping_for_success)) {
-    RCLCPP_ERROR_STREAM(*this->logger_, "Failed to get input [ping_for_success]");
+    RCLCPP_ERROR_STREAM(
+      *this->logger_, GetLoggerPrefix(name()) << "Failed to get input [ping_for_success]");
     return false;
   }
 
