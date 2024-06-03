@@ -75,6 +75,8 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   const std::string & node_name, const rclcpp::NodeOptions & node_options)
 : node_(rclcpp::Node::make_shared(node_name, node_options)), diagnostic_updater_(node_)
 {
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Constructing node.");
+
   executor_ = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
   executor_->add_node(node_);
 
@@ -96,6 +98,8 @@ PantherSystemRosInterface::PantherSystemRosInterface(
     std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
 
   diagnostic_updater_.setHardwareID("Panther System");
+
+  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Node constructed successfully.");
 }
 
 PantherSystemRosInterface::~PantherSystemRosInterface()

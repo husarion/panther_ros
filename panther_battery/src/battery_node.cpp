@@ -38,6 +38,8 @@ namespace panther_battery
 BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options), diagnostic_updater_(std::make_shared<diagnostic_updater::Updater>(this))
 {
+  RCLCPP_INFO(this->get_logger(), "Constructing node.");
+
   this->declare_parameter<float>("panther_version", 1.2);
   this->declare_parameter<int>("ma_window_len/voltage", 10);
   this->declare_parameter<int>("ma_window_len/current", 10);
@@ -48,11 +50,13 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
 
   diagnostic_updater_->setHardwareID("Battery");
 
-  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
+  RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
 void BatteryNode::Initialize()
 {
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
+
   const float panther_version = this->get_parameter("panther_version").as_double();
   if (panther_version >= (1.2f - std::numeric_limits<float>::epsilon())) {
     try {
@@ -66,6 +70,8 @@ void BatteryNode::Initialize()
     }
   }
   InitializeWithRoboteqBattery();
+
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void BatteryNode::InitializeWithADCBattery()

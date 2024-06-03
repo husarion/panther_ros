@@ -43,7 +43,7 @@ namespace panther_lights
 ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
-  RCLCPP_INFO(this->get_logger(), "Starting initialization process.");
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
 
   using namespace std::placeholders;
 
@@ -77,7 +77,7 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
     std::chrono::microseconds(static_cast<std::uint64_t>(1e6 / controller_freq)),
     std::bind(&ControllerNode::ControllerTimerCB, this));
 
-  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
@@ -103,7 +103,8 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
         "Multiple panel publishers for channel nr '" + std::to_string(channel) + "' found.");
     }
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "Initialized panel with channel no. " << channel << ".");
+    RCLCPP_DEBUG_STREAM(
+      this->get_logger(), "Initialized panel with channel no. " << channel << ".");
   }
 }
 
@@ -111,6 +112,7 @@ void ControllerNode::InitializeLEDSegments(
   const YAML::Node & segments_description, const float controller_freq)
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing LED segments.");
+
   for (auto & segment : segments_description.as<std::vector<YAML::Node>>()) {
     const auto segment_name = panther_utils::GetYAMLKeyValue<std::string>(segment, "name");
 
@@ -128,17 +130,21 @@ void ControllerNode::InitializeLEDSegments(
         "Failed to initialize '" + segment_name + "' segment: " + std::string(e.what()));
     }
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "Initialized '" << segment_name << "' segment.");
+    RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialized '" << segment_name << "' segment.");
   }
 }
 
 void ControllerNode::InitializeLEDSegmentsMap(const YAML::Node & segments_map_description)
 {
+  RCLCPP_DEBUG(this->get_logger(), "Initializing LED segments map.");
+
   for (const auto & key : segments_map_description) {
     const auto name = key.first.as<std::string>();
     const auto value = key.second.as<std::vector<std::string>>();
     segments_map_.emplace(name, value);
   }
+
+  RCLCPP_DEBUG(this->get_logger(), "Initialized LED segments map.");
 }
 
 void ControllerNode::LoadDefaultAnimations(const YAML::Node & animations_description)

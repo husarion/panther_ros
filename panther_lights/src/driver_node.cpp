@@ -45,7 +45,7 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   chanel_2_("/dev/spidev0.1"),
   diagnostic_updater_(this)
 {
-  RCLCPP_INFO(this->get_logger(), "Starting initialization process.");
+  RCLCPP_INFO(this->get_logger(), "Constructing node.");
 
   rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
 
@@ -56,11 +56,13 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
 
-  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
+  RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
 void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTransport> & it)
 {
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
+
   const float global_brightness = this->get_parameter("global_brightness").as_double();
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
@@ -91,7 +93,7 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
     "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
 
-  RCLCPP_INFO(this->get_logger(), "LED panels initialized.");
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void DriverNode::OnShutdown()

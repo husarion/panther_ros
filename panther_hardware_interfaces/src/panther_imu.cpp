@@ -274,9 +274,8 @@ void PantherImuSensor::Calibrate()
 {
   spatial_->zero();
 
-  RCLCPP_WARN(
-    logger_,
-    "Starting IMU sensor calibration. Please ensure the robot remains stationary for 2 seconds.");
+  RCLCPP_INFO(
+    logger_, "Calibrating IMU sensor please ensure the robot remains stationary for 2 seconds.");
 
   std::unique_lock<std::mutex> lock(calibration_mutex_);
   calibration_cv_.wait(lock, [this]() { return imu_calibrated_; });

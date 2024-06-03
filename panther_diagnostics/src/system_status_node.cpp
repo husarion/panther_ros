@@ -33,6 +33,8 @@ namespace panther_diagnostics
 SystemStatusNode::SystemStatusNode(const std::string & node_name)
 : rclcpp::Node(node_name), diagnostic_updater_(this)
 {
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
+
   param_listener_ =
     std::make_shared<system_status::ParamListener>(this->get_node_parameters_interface());
   params_ = param_listener_->get_params();
@@ -46,7 +48,7 @@ SystemStatusNode::SystemStatusNode(const std::string & node_name)
   diagnostic_updater_.setHardwareID(params_.hardware_id);
   diagnostic_updater_.add("OS status", this, &SystemStatusNode::DiagnoseSystem);
 
-  RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void SystemStatusNode::TimerCallback()
