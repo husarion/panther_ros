@@ -429,6 +429,8 @@ void PantherSystem::ConfigureGPIOController()
   }
 
   gpio_controller_->Start();
+
+  RCLCPP_INFO(logger_, "Successfully configured GPIO controller");
 }
 
 void PantherSystem::ConfigureMotorsController()
@@ -442,6 +444,8 @@ void PantherSystem::ConfigureMotorsController()
         std::bind(&MotorsController::Deinitialize, motors_controller_))) {
     throw std::runtime_error("Roboteq drivers initialization failed.");
   }
+
+  RCLCPP_INFO(logger_, "Successfully configured motors controller");
 }
 
 void PantherSystem::ConfigureEStop()
@@ -461,6 +465,8 @@ void PantherSystem::ConfigureEStop()
       gpio_controller_, roboteq_error_filter_, motors_controller_, motor_controller_write_mtx_,
       std::bind(&PantherSystem::AreVelocityCommandsNearZero, this));
   }
+
+  RCLCPP_INFO(logger_, "Successfully configured E-Stop");
 }
 
 void PantherSystem::UpdateMotorsStates()
