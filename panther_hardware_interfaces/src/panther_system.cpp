@@ -388,7 +388,8 @@ void PantherSystem::ReadCANopenSettings()
 {
   canopen_settings_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-  canopen_settings_.driver_can_id = std::stoi(info_.hardware_parameters["driver_can_id"]);
+  canopen_settings_.drivers_can_ids.emplace(
+    DriverName::DEFAULT, std::stoi(info_.hardware_parameters["driver_can_id"]));
   canopen_settings_.pdo_motor_states_timeout_ms =
     std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_motor_states_timeout_ms"]));
   canopen_settings_.pdo_driver_state_timeout_ms =
@@ -499,10 +500,10 @@ void PantherSystem::UpdateHwStates()
 {
   const auto data = motors_controller_->GetData();
 
-  const auto fl = data.GetLeftMotorState();
-  const auto fr = data.GetRightMotorState();
-  const auto rl = data.GetLeftMotorState();
-  const auto rr = data.GetRightMotorState();
+  const auto fl = data.at(DriverName::DEFAULT).GetLeftMotorState();
+  const auto fr = data.at(DriverName::DEFAULT).GetRightMotorState();
+  const auto rl = data.at(DriverName::DEFAULT).GetLeftMotorState();
+  const auto rr = data.at(DriverName::DEFAULT).GetRightMotorState();
 
   hw_states_positions_[0] = fl.GetPosition();
   hw_states_positions_[1] = fr.GetPosition();
@@ -522,62 +523,68 @@ void PantherSystem::UpdateHwStates()
 
 void PantherSystem::UpdateMotorsStatesDataTimedOut()
 {
-  if (motors_controller_->GetData().IsMotorStatesDataTimedOut()) {
-    RCLCPP_WARN_STREAM(logger_, "PDO motor state data timeout");
-    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
-  } else {
-    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, false);
+  for (auto & [name, data] : motors_controller_->GetData()) {
+    if (data.IsMotorStatesDataTimedOut()) {
+      RCLCPP_WARN_STREAM(logger_, name << "PDO motor state data timeout");
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
+    } else {
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, false);
+    }
   }
 }
 
 void PantherSystem::UpdateDriverStateMsg()
 {
-  panther_system_ros_interface_->UpdateMsgDriversStates(
-    motors_controller_->GetData().GetDriverState());
+  for (auto & [name, data] : motors_controller_->GetData()) {
+    panther_system_ros_interface_->UpdateMsgDriversStates(data.GetDriverState());
 
-  panther_system_ros_interface_->UpdateMsgErrorFlags(motors_controller_->GetData());
+    panther_system_ros_interface_->UpdateMsgErrorFlags(data);
 
-  CANErrors can_errors;
-  can_errors.error = roboteq_error_filter_->IsError();
-  can_errors.write_pdo_cmds_error = roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_PDO_CMDS);
-  can_errors.read_pdo_motor_states_error =
-    roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_MOTOR_STATES);
-  can_errors.read_pdo_driver_state_error =
-    roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
+    CANErrors can_errors;
+    can_errors.error = roboteq_error_filter_->IsError();
+    can_errors.write_pdo_cmds_error =
+      roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_PDO_CMDS);
+    can_errors.read_pdo_motor_states_error =
+      roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_MOTOR_STATES);
+    can_errors.read_pdo_driver_state_error =
+      roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
 
-  can_errors.motor_states_data_timed_out =
-    motors_controller_->GetData().IsMotorStatesDataTimedOut();
+    can_errors.motor_states_data_timed_out = data.IsMotorStatesDataTimedOut();
 
-  can_errors.driver_state_data_timed_out =
-    motors_controller_->GetData().IsDriverStateDataTimedOut();
+    can_errors.driver_state_data_timed_out = data.IsDriverStateDataTimedOut();
 
-  can_errors.can_net_err = motors_controller_->GetData().IsCANNetErr();
+    can_errors.can_net_err = data.IsCANNetErr();
 
-  panther_system_ros_interface_->UpdateMsgErrors(can_errors);
+    panther_system_ros_interface_->UpdateMsgErrors(can_errors);
+  }
 }
 
 void PantherSystem::UpdateFlagErrors()
 {
-  if (motors_controller_->GetData().IsFlagError()) {
-    RCLCPP_WARN_STREAM_THROTTLE(
-      logger_, steady_clock_, 5000,
-      "Error state on the driver:\n"
-        << "\t" << motors_controller_->GetData().GetFlagErrorLog());
-    roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
+  for (auto & [name, data] : motors_controller_->GetData()) {
+    if (data.IsFlagError()) {
+      RCLCPP_WARN_STREAM_THROTTLE(
+        logger_, steady_clock_, 5000,
+        "Error state on the driver:\n"
+          << "\t" << data.GetFlagErrorLog());
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
 
-    HandlePDOWriteOperation([this] { motors_controller_->AttemptErrorFlagResetWithZeroSpeed(); });
-  } else {
-    roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
+      HandlePDOWriteOperation([this] { motors_controller_->AttemptErrorFlagResetWithZeroSpeed(); });
+    } else {
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, false);
+    }
   }
 }
 
 void PantherSystem::UpdateDriverStateDataTimedOut()
 {
-  if (motors_controller_->GetData().IsDriverStateDataTimedOut()) {
-    RCLCPP_WARN_STREAM(logger_, "PDO driver state timeout");
-    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
-  } else {
-    roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, false);
+  for (auto & [name, data] : motors_controller_->GetData()) {
+    if (data.IsDriverStateDataTimedOut()) {
+      RCLCPP_WARN_STREAM(logger_, "PDO driver state timeout");
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
+    } else {
+      roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, false);
+    }
   }
 }
 
@@ -643,13 +650,14 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"No error detected."};
 
-  const auto driver_data = motors_controller_->GetData();
-  if (driver_data.IsError()) {
-    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "Error detected.";
+  for (auto & [name, data] : motors_controller_->GetData()) {
+    if (data.IsError()) {
+      level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
+      message = "Error detected.";
 
-    panther_utils::diagnostics::AddKeyValueIfTrue(
-      status, driver_data.GetErrorMap(), "Driver error: ");
+      panther_utils::diagnostics::AddKeyValueIfTrue(
+        status, data.GetErrorMap(), name + " driver error: ");
+    }
   }
 
   if (roboteq_error_filter_->IsError()) {
@@ -668,17 +676,19 @@ void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper &
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Panther system status monitoring."};
 
-  const auto driver_state = motors_controller_->GetData().GetDriverState();
+  for (auto & [name, data] : motors_controller_->GetData()) {
+    const auto driver_state = data.GetDriverState();
 
-  auto drivers_states_with_names = {std::make_pair(std::string("Driver"), driver_state)};
+    auto drivers_states_with_names = {std::make_pair(name, driver_state)};
 
-  for (const auto & [driver_name, driver_state] : drivers_states_with_names) {
-    status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
-    status.add(driver_name + " driver current (A)", driver_state.GetCurrent());
-    status.add(driver_name + " driver temperature (\u00B0C)", driver_state.GetTemperature());
-    status.add(
-      driver_name + " driver heatsink temperature (\u00B0C)",
-      driver_state.GetHeatsinkTemperature());
+    for (const auto & [driver_name, driver_state] : drivers_states_with_names) {
+      status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
+      status.add(driver_name + " driver current (A)", driver_state.GetCurrent());
+      status.add(driver_name + " driver temperature (\u00B0C)", driver_state.GetTemperature());
+      status.add(
+        driver_name + " driver heatsink temperature (\u00B0C)",
+        driver_state.GetHeatsinkTemperature());
+    }
   }
 
   status.summary(level, message);

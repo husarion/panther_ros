@@ -38,12 +38,19 @@
 namespace panther_hardware_interfaces
 {
 
+struct DriverName
+{
+  static constexpr const char * DEFAULT = "Default";
+  static constexpr const char * FRONT = "Front";
+  static constexpr const char * REAR = "Rear";
+};
+
 struct CANopenSettings
 {
   std::string can_interface_name;
 
   std::uint8_t master_can_id;
-  std::uint8_t driver_can_id;
+  std::map<std::string, std::uint8_t> drivers_can_ids;
 
   std::chrono::milliseconds pdo_motor_states_timeout_ms;
   std::chrono::milliseconds pdo_driver_state_timeout_ms;
@@ -73,7 +80,7 @@ public:
    */
   void Deinitialize();
 
-  std::shared_ptr<RoboteqDriver> GetDriver() { return driver_; }
+  std::map<std::string, std::shared_ptr<RoboteqDriver>> GetDrivers() { return drivers_; }
 
 private:
   void InitializeCANCommunication();
@@ -113,7 +120,7 @@ private:
   std::shared_ptr<lely::io::CanChannel> chan_;
   std::shared_ptr<lely::canopen::AsyncMaster> master_;
 
-  std::shared_ptr<RoboteqDriver> driver_;
+  std::map<std::string, std::shared_ptr<RoboteqDriver>> drivers_;
 
   const CANopenSettings canopen_settings_;
 };

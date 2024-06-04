@@ -73,7 +73,7 @@ public:
    */
   void UpdateDriversState();
 
-  const RoboteqData & GetData() { return data_; }
+  const std::map<std::string, RoboteqData> & GetData() { return data_; }
 
   /**
    * @brief Write speed commands to motors
@@ -126,12 +126,14 @@ private:
 
   CANopenController canopen_controller_;
 
-  RoboteqData data_;
+  std::map<std::string, RoboteqData> data_;
 
   RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
 
   const std::chrono::milliseconds pdo_motor_states_timeout_ms_;
   const std::chrono::milliseconds pdo_driver_state_timeout_ms_;
+
+  const DrivetrainSettings drivetrain_settings_;
 };
 
 }  // namespace panther_hardware_interfaces

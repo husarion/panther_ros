@@ -101,7 +101,9 @@ void CANopenController::Deinitialize()
 
   canopen_communication_started_.store(false);
 
-  driver_.reset();
+  std::for_each(
+    drivers_.begin(), drivers_.end(),
+    [](std::pair<std::string, std::shared_ptr<RoboteqDriver>> driver) { driver.second.reset(); });
   master_.reset();
   chan_.reset();
   ctrl_.reset();
@@ -140,8 +142,11 @@ void CANopenController::InitializeCANCommunication()
   master_ = std::make_shared<lely::canopen::AsyncMaster>(
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
-  driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
+  for (const auto & [name, can_id] : canopen_settings_.drivers_can_ids) {
+    drivers_.emplace(
+      name,
+      std::make_shared<RoboteqDriver>(master_, can_id, canopen_settings_.sdo_operation_timeout_ms));
+  }
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
@@ -158,24 +163,26 @@ void CANopenController::NotifyCANCommunicationStarted(const bool result)
 
 void CANopenController::BootDrivers()
 {
-  try {
-    auto driver_future = driver_->Boot();
+  for (auto & [name, driver] : drivers_) {
+    try {
+      auto driver_future = driver->Boot();
 
-    auto driver_status = driver_future.wait_for(std::chrono::seconds(5));
+      auto driver_status = driver_future.wait_for(std::chrono::seconds(5));
 
-    if (driver_status == std::future_status::ready) {
-      try {
-        driver_future.get();
-      } catch (const std::exception & e) {
-        throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
+      if (driver_status == std::future_status::ready) {
+        try {
+          driver_future.get();
+        } catch (const std::exception & e) {
+          throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
+        }
+      } else {
+        throw std::runtime_error("Boot timed out or failed.");
       }
-    } else {
-      throw std::runtime_error("Boot timed out or failed.");
-    }
 
-  } catch (const std::system_error & e) {
-    throw std::runtime_error(
-      "Exception caught when trying to Boot driver " + std::string(e.what()));
+    } catch (const std::system_error & e) {
+      throw std::runtime_error(
+        "Exception caught when trying to Boot driver " + std::string(e.what()));
+    }
   }
 }
 
