@@ -5,18 +5,17 @@ on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: "Source branch for the release"
+        description: Source branch for the release
         required: true
       target_branch:
-        description: "Target branch for the release"
+        description: Target branch for the release
         required: false
-        default: "ros2"
+        default: ros2
       version:
         description: New version (used for tag and package versioning).
         required: true
       release_name:
-        description:
-          Name of the release to be created. Version in the first place is recommended (e.g.
+        description: Name of the release to be created. Version in the first place is recommended (e.g.
           `2.0.0-alpha`).
         required: true
       automatic_mode:
@@ -64,13 +63,15 @@ jobs:
           --merge --delete-branch
 
       - name: Checkout to target branch
-        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode) == true }}
+        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode)
+          == true }}
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.target_branch }}
 
       - name: Create PR to target branch
-        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode) == true }}
+        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode)
+          == true }}
         run: |
           gh pr create \
           --base ${{ github.event.inputs.target_branch }} \
@@ -79,14 +80,14 @@ jobs:
           --body "This PR incorporates package(s) version and changelog update."
 
       - name: Merge PR to target branch
-        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode) == true }}
+        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode)
+          == true }}
         run: |
           gh pr merge ${{ github.event.inputs.source_branch }} \
           --merge --delete-branch
 
       - name: Create prerelease
-        if:
-          ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
+        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
           == true}}
         run: |
           gh release create ${{ steps.catkin_release.outputs.version }} \
@@ -96,8 +97,7 @@ jobs:
           --prerelease
 
       - name: Create release
-        if:
-          ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
+        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
           == false}}
         run: |
           gh release create ${{ steps.catkin_release.outputs.version }} \
