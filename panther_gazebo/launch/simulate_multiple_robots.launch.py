@@ -95,8 +95,9 @@ def generate_launch_description():
             package="tf2_ros",
             executable="static_transform_publisher",
             name="static_tf_publisher",
-            namespace=robot_name,
             arguments=[x, y, z, roll, pitch, yaw, "world", child_tf],
+            namespace=robot_name,
+            emulate_tty=True,
             condition=IfCondition(add_world_transform),
         )
 

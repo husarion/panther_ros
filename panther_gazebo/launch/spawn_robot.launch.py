@@ -108,6 +108,7 @@ def generate_launch_description():
             yaw,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     return LaunchDescription(
