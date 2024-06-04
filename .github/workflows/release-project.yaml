@@ -5,15 +5,18 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version, must match release candidate version. IMPORTANT - required format
+        description:
+          Release version, must match release candidate version. IMPORTANT - required format
           `X.X.X`, eg `2.0.1`.
         required: true
       date:
-        description: Release date stamp, must match release candidate date. IMPORTANT - required format
+        description:
+          Release date stamp, must match release candidate date. IMPORTANT - required format
           `YYYYMMDD`, eg `20240430`.
         required: true
       release_name:
-        description: Name of the release to be created. Version in the first place is recommended (e.g.
+        description:
+          Name of the release to be created. Version in the first place is recommended (e.g.
           `2.0.0-alpha`).
         required: true
       automatic_mode:
@@ -45,7 +48,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "source_branch": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
@@ -63,13 +66,13 @@ jobs:
         with:
           owner: husarion
           repo: panther_ros
-          github_token: ${{ secrets.GITHUB_TOKEN }}   # Use the default GITHUB_TOKEN for local repository
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN for local repository
           workflow_file_name: release-repository.yaml
           ref: ${{ env.RC_BRANCH_NAME }}
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "source_branch": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",

@@ -4,14 +4,19 @@ name: Release repository
 on:
   workflow_dispatch:
     inputs:
-      target_branch:
-        description: Target branch for the release.
+      source_branch:
+        description: "Source branch for the release"
         required: true
+      target_branch:
+        description: "Target branch for the release"
+        required: false
+        default: "ros2"
       version:
         description: New version (used for tag and package versioning).
         required: true
       release_name:
-        description: Name of the release to be created. Version in the first place is recommended (e.g.
+        description:
+          Name of the release to be created. Version in the first place is recommended (e.g.
           `2.0.0-alpha`).
         required: true
       automatic_mode:
@@ -29,15 +34,14 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      MAIN_BRANCH: ros2
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.target_branch }}
+          ref: ${{ github.event.inputs.source_branch }}
 
-      - name: Create release candidate
-        id: create_release_candidate
+      - name: Catkin release
+        id: catkin_release
         uses: at-wat/catkin-release-action@v1
         with:
           version: ${{ github.event.inputs.version }}
@@ -45,59 +49,58 @@ jobs:
           git_email: action-bot@action-bot.com
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create pull request
+      - name: Create PR
+        run: |
+          gh pr create \
+          --base ${{ github.event.inputs.source_branch }} \
+          --head ${{ steps.catkin_release.outputs.created_branch }} \
+          --title "Release ${{ steps.catkin_release.outputs.version}}" \
+          --body "This PR incorporates package(s) version and changelog update."
+
+      - name: Merge PR
+        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
+        run: |
+          gh pr merge ${{ steps.catkin_release.outputs.created_branch }} \
+          --merge --delete-branch
+
+      - name: Checkout to target branch
+        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode) == true }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.target_branch }}
+
+      - name: Create PR to target branch
+        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode) == true }}
         run: |
           gh pr create \
           --base ${{ github.event.inputs.target_branch }} \
-          --head ${{ steps.create_release_candidate.outputs.created_branch }} \
-          --title "Release ${{ steps.create_release_candidate.outputs.version}}" \
+          --head ${{ github.event.inputs.source_branch }} \
+          --title "Release ${{ steps.catkin_release.outputs.version}} to ${{ github.event.inputs.target_branch }}" \
           --body "This PR incorporates package(s) version and changelog update."
 
-      - name: Merge pull request
-        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
+      - name: Merge PR to target branch
+        if: ${{ github.event.inputs.source_branch != github.event.inputs.target_branch && fromJSON(inputs.automatic_mode) == true }}
         run: |
-          gh pr merge ${{ steps.create_release_candidate.outputs.created_branch }} \
-          --merge --delete-branch
-
-      - name: Checkout to main
-        if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode)
-          == true }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.MAIN_BRANCH }}
-
-      - name: Create pull request to main
-        if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode)
-          == true }}
-        run: |
-          gh pr create \
-          --base ${{ env.MAIN_BRANCH }} \
-          --head ${{ github.event.inputs.target_branch }} \
-          --title "Release ${{ steps.create_release_candidate.outputs.version}} to ${{ env.MAIN_BRANCH }}" \
-          --body "This PR incorporates package(s) version and changelog update."
-
-      - name: Merge pull request to main
-        if: ${{ github.event.inputs.target_branch != env.MAIN_BRANCH && fromJSON(github.event.inputs.automatic_mode)
-          == true }}
-        run: |
-          gh pr merge ${{ github.event.inputs.target_branch }} \
+          gh pr merge ${{ github.event.inputs.source_branch }} \
           --merge --delete-branch
 
       - name: Create prerelease
-        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
+        if:
+          ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
           == true}}
         run: |
-          gh release create ${{ steps.create_release_candidate.outputs.version }} \
-          --target ${{ env.MAIN_BRANCH }} \
+          gh release create ${{ steps.catkin_release.outputs.version }} \
+          --target ${{ github.event.inputs.target_branch }} \
           --title ${{ github.event.inputs.release_name }} \
           --generate-notes \
           --prerelease
 
       - name: Create release
-        if: ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
+        if:
+          ${{ fromJSON(github.event.inputs.automatic_mode) == true && fromJSON(github.event.inputs.prerelease)
           == false}}
         run: |
-          gh release create ${{ steps.create_release_candidate.outputs.version }} \
-          --target ${{ env.MAIN_BRANCH }} \
+          gh release create ${{ steps.catkin_release.outputs.version }} \
+          --target ${{ github.event.inputs.target_branch }} \
           --title ${{ github.event.inputs.release_name }} \
           --generate-notes
