@@ -37,7 +37,7 @@ public:
   MotorsController(
     const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
 
-  ~MotorsController() { Deinitialize(); }
+  virtual ~MotorsController() { Deinitialize(); }
 
   /**
    * @brief Starts CAN communication and waits for boot to finish
@@ -64,16 +64,16 @@ public:
    *
    * @exception std::runtime_error if CAN error was detected
    */
-  void UpdateMotorsStates();
+  virtual void UpdateMotorsStates() = 0;
 
   /**
    * @brief Updates current Roboteq driver state (flags, temperatures, voltage, battery current)
    *
    * @exception std::runtime_error if CAN error was detected
    */
-  void UpdateDriversState();
+  virtual void UpdateDriversState() = 0;
 
-  const std::map<std::string, RoboteqData> & GetData() { return data_; }
+  virtual RoboteqData & GetData(const std::string driver_name) = 0;
 
   /**
    * @brief Write speed commands to motors
@@ -85,22 +85,22 @@ public:
    *
    * @exception std::runtime_error if send command fails or CAN error was detected
    */
-  void SendSpeedCommands(
-    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr);
+  virtual void SendSpeedCommands(
+    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr) = 0;
 
   /**
    * @brief Turns on Roboteq E-stop
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnEStop();
+  virtual void TurnOnEStop() = 0;
 
   /**
    * @brief Turns off Roboteq E-stop
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOffEStop();
+  virtual void TurnOffEStop() = 0;
 
   /**
    * @brief Turns on Roboteq safety stop. To turn it off, it is necessary to send
@@ -108,7 +108,7 @@ public:
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnSafetyStop();
+  virtual void TurnOnSafetyStop() = 0;
 
   /**
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
@@ -116,24 +116,82 @@ public:
    */
   inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
 
-private:
+protected:
+  virtual void DriversResetRoboteqScript() = 0;
+
   void SetMotorsStates(
     RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time);
   void SetDriverState(
     RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time);
 
-  bool initialized_ = false;
-
-  CANopenController canopen_controller_;
-
-  std::map<std::string, RoboteqData> data_;
-
   RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
+
+  std::shared_ptr<CANopenController> canopen_controller_;
+
+private:
+  bool initialized_ = false;
 
   const std::chrono::milliseconds pdo_motor_states_timeout_ms_;
   const std::chrono::milliseconds pdo_driver_state_timeout_ms_;
 
   const DrivetrainSettings drivetrain_settings_;
+};
+
+class PantherMotorsController : public MotorsController
+{
+public:
+  PantherMotorsController(
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
+  : MotorsController(canopen_settings, drivetrain_settings),
+    front_data_(drivetrain_settings),
+    rear_data_(drivetrain_settings)
+  {
+    canopen_controller_ = std::make_shared<PantherCANopenController>(canopen_settings);
+  }
+
+  void SendSpeedCommands(
+    const float speed_fl, const float speed_fr, const float speed_rl,
+    const float speed_rr) override;
+  void TurnOnEStop() override;
+  void TurnOffEStop() override;
+  void TurnOnSafetyStop() override;
+
+  void UpdateMotorsStates() override;
+  void UpdateDriversState() override;
+  RoboteqData & GetData(const std::string driver_name) override;
+
+private:
+  void DriversResetRoboteqScript() override;
+
+  RoboteqData front_data_;
+  RoboteqData rear_data_;
+};
+
+class PantherMiniMotorsController : public MotorsController
+{
+public:
+  PantherMiniMotorsController(
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
+  : MotorsController(canopen_settings, drivetrain_settings), data_(drivetrain_settings)
+  {
+    canopen_controller_ = std::make_shared<PantherMiniCANopenController>(canopen_settings);
+  }
+
+  void SendSpeedCommands(
+    const float speed_fl, const float speed_fr, const float /* speed_rl */,
+    const float /* speed_rr */) override;
+  void TurnOnEStop() override;
+  void TurnOffEStop() override;
+  void TurnOnSafetyStop() override;
+
+  void UpdateMotorsStates() override;
+  void UpdateDriversState() override;
+  RoboteqData & GetData(const std::string driver_name) override;
+
+private:
+  void DriversResetRoboteqScript() override;
+
+  RoboteqData data_;
 };
 
 }  // namespace panther_hardware_interfaces

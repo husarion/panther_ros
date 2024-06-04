@@ -50,7 +50,7 @@ struct CANopenSettings
   std::string can_interface_name;
 
   std::uint8_t master_can_id;
-  std::map<std::string, std::uint8_t> drivers_can_ids;
+  // std::map<std::string, std::uint8_t> drivers_can_ids;
 
   std::chrono::milliseconds pdo_motor_states_timeout_ms;
   std::chrono::milliseconds pdo_driver_state_timeout_ms;
@@ -66,7 +66,7 @@ class CANopenController
 public:
   CANopenController(const CANopenSettings & canopen_settings);
 
-  ~CANopenController() { Deinitialize(); }
+  virtual ~CANopenController() { Deinitialize(); }
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
@@ -80,7 +80,7 @@ public:
    */
   void Deinitialize();
 
-  std::map<std::string, std::shared_ptr<RoboteqDriver>> GetDrivers() { return drivers_; }
+  virtual std::shared_ptr<RoboteqDriver> GetDriver(const std::string driver_name) = 0;
 
 private:
   void InitializeCANCommunication();
@@ -98,7 +98,12 @@ private:
    *
    * @exception std::runtime_error if boot fails
    */
-  void BootDrivers();
+  virtual void BootDrivers() = 0;
+
+  virtual void ResetDrivers() = 0;
+  virtual void InitializeDrivers(
+    std::shared_ptr<lely::canopen::AsyncMaster> & master,
+    const std::chrono::milliseconds sdo_operation_timeout_ms) = 0;
 
   // Priority set to be higher than the priority of the main ros2 control node (50)
   static constexpr unsigned kCANopenThreadSchedPriority = 60;
@@ -120,9 +125,56 @@ private:
   std::shared_ptr<lely::io::CanChannel> chan_;
   std::shared_ptr<lely::canopen::AsyncMaster> master_;
 
-  std::map<std::string, std::shared_ptr<RoboteqDriver>> drivers_;
-
   const CANopenSettings canopen_settings_;
+};
+
+class PantherCANopenController : public CANopenController
+{
+public:
+  PantherCANopenController(const CANopenSettings & canopen_settings)
+  : CANopenController(canopen_settings)
+  {
+  }
+
+  std::shared_ptr<RoboteqDriver> GetDriver(const std::string driver_name) override;
+
+private:
+  void ResetDrivers() override
+  {
+    front_driver_.reset();
+    rear_driver_.reset();
+  }
+
+  void InitializeDrivers(
+    std::shared_ptr<lely::canopen::AsyncMaster> & master,
+    const std::chrono::milliseconds sdo_operation_timeout_ms) override;
+
+  void BootDrivers() override;
+
+  std::shared_ptr<RoboteqDriver> front_driver_;
+  std::shared_ptr<RoboteqDriver> rear_driver_;
+};
+
+class PantherMiniCANopenController : public CANopenController
+{
+public:
+  PantherMiniCANopenController(const CANopenSettings & canopen_settings)
+  : CANopenController(canopen_settings)
+  {
+  }
+
+  std::shared_ptr<RoboteqDriver> GetDriver(const std::string driver_name) override;
+
+private:
+  void ResetDrivers() override { driver_.reset(); }
+
+  void InitializeDrivers(
+    std::shared_ptr<lely::canopen::AsyncMaster> & master,
+    const std::chrono::milliseconds sdo_operation_timeout_ms) override;
+
+  void BootDrivers() override;
+
+  std::shared_ptr<RoboteqDriver> driver_;
 };
 
 }  // namespace panther_hardware_interfaces

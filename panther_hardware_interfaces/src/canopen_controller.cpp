@@ -101,9 +101,7 @@ void CANopenController::Deinitialize()
 
   canopen_communication_started_.store(false);
 
-  std::for_each(
-    drivers_.begin(), drivers_.end(),
-    [](std::pair<std::string, std::shared_ptr<RoboteqDriver>> driver) { driver.second.reset(); });
+  ResetDrivers();
   master_.reset();
   chan_.reset();
   ctrl_.reset();
@@ -142,11 +140,7 @@ void CANopenController::InitializeCANCommunication()
   master_ = std::make_shared<lely::canopen::AsyncMaster>(
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
-  for (const auto & [name, can_id] : canopen_settings_.drivers_can_ids) {
-    drivers_.emplace(
-      name,
-      std::make_shared<RoboteqDriver>(master_, can_id, canopen_settings_.sdo_operation_timeout_ms));
-  }
+  InitializeDrivers(master_, canopen_settings_.sdo_operation_timeout_ms);
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
@@ -161,28 +155,99 @@ void CANopenController::NotifyCANCommunicationStarted(const bool result)
   canopen_communication_started_cond_.notify_all();
 }
 
-void CANopenController::BootDrivers()
+// ------------
+// Panther
+// ------------
+
+std::shared_ptr<RoboteqDriver> PantherCANopenController::GetDriver(const std::string driver_name)
 {
-  for (auto & [name, driver] : drivers_) {
-    try {
-      auto driver_future = driver->Boot();
+  if (driver_name == DriverName::FRONT) {
+    return front_driver_;
+  }
+  if (driver_name == DriverName::REAR) {
+    return rear_driver_;
+  }
 
-      auto driver_status = driver_future.wait_for(std::chrono::seconds(5));
+  throw std::runtime_error("Failed to get driver with name: " + driver_name);
+}
 
-      if (driver_status == std::future_status::ready) {
-        try {
-          driver_future.get();
-        } catch (const std::exception & e) {
-          throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
-        }
-      } else {
-        throw std::runtime_error("Boot timed out or failed.");
+void PantherCANopenController::InitializeDrivers(
+  std::shared_ptr<lely::canopen::AsyncMaster> & master,
+  const std::chrono::milliseconds sdo_operation_timeout_ms)
+{
+  front_driver_ = std::make_shared<RoboteqDriver>(master, 1, sdo_operation_timeout_ms);
+  rear_driver_ = std::make_shared<RoboteqDriver>(master, 2, sdo_operation_timeout_ms);
+}
+
+void PantherCANopenController::BootDrivers()
+{
+  try {
+    auto front_driver_future = front_driver_->Boot();
+    auto rear_driver_future = rear_driver_->Boot();
+
+    auto front_driver_status = front_driver_future.wait_for(std::chrono::seconds(5));
+    auto rear_driver_status = rear_driver_future.wait_for(std::chrono::seconds(5));
+
+    if (
+      front_driver_status == std::future_status::ready &&
+      rear_driver_status == std::future_status::ready) {
+      try {
+        front_driver_future.get();
+        rear_driver_future.get();
+      } catch (const std::exception & e) {
+        throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
       }
-
-    } catch (const std::system_error & e) {
-      throw std::runtime_error(
-        "Exception caught when trying to Boot driver " + std::string(e.what()));
+    } else {
+      throw std::runtime_error("Boot timed out or failed.");
     }
+
+  } catch (const std::system_error & e) {
+    throw std::runtime_error(
+      "Exception caught when trying to Boot driver " + std::string(e.what()));
+  }
+}
+
+// ------------
+// PantherMini
+// ------------
+
+std::shared_ptr<RoboteqDriver> PantherMiniCANopenController::GetDriver(
+  const std::string driver_name)
+{
+  if (driver_name == DriverName::DEFAULT) {
+    return driver_;
+  }
+
+  throw std::runtime_error("Failed to get driver with name: " + driver_name);
+}
+
+void PantherMiniCANopenController::InitializeDrivers(
+  std::shared_ptr<lely::canopen::AsyncMaster> & master,
+  const std::chrono::milliseconds sdo_operation_timeout_ms)
+{
+  driver_ = std::make_shared<RoboteqDriver>(master, 1, sdo_operation_timeout_ms);
+}
+
+void PantherMiniCANopenController::BootDrivers()
+{
+  try {
+    auto driver_future = driver_->Boot();
+
+    auto driver_status = driver_future.wait_for(std::chrono::seconds(5));
+
+    if (driver_status == std::future_status::ready) {
+      try {
+        driver_future.get();
+      } catch (const std::exception & e) {
+        throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
+      }
+    } else {
+      throw std::runtime_error("Boot timed out or failed.");
+    }
+
+  } catch (const std::system_error & e) {
+    throw std::runtime_error(
+      "Exception caught when trying to Boot driver " + std::string(e.what()));
   }
 }
 

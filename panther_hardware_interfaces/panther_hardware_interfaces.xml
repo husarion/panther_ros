@@ -1,6 +1,14 @@
 <library path="panther_hardware_interfaces">
-  <class name="panther_hardware_interfaces/PantherSystem"
-    type="panther_hardware_interfaces::PantherSystem"
+  <class name="panther_hardware_interfaces/ConcretePantherSystem"
+    type="panther_hardware_interfaces::ConcretePantherSystem"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware system controller for Panther's Roboteq motor controller
+    </description>
+  </class>
+
+  <class name="panther_hardware_interfaces/PantherMiniSystem"
+    type="panther_hardware_interfaces::PantherMiniSystem"
     base_class_type="hardware_interface::SystemInterface">
     <description>
       Hardware system controller for Panther's Roboteq motor controller

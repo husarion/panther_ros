@@ -55,11 +55,14 @@ struct CANErrors
   bool read_pdo_motor_states_error;
   bool read_pdo_driver_state_error;
 
-  bool motor_states_data_timed_out;
+  bool front_motor_states_data_timed_out;
+  bool rear_motor_states_data_timed_out;
 
-  bool driver_state_data_timed_out;
+  bool front_driver_state_data_timed_out;
+  bool rear_driver_state_data_timed_out;
 
-  bool can_net_err;
+  bool front_can_net_err;
+  bool rear_can_net_err;
 };
 
 /**
@@ -210,12 +213,12 @@ public:
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
    */
-  void UpdateMsgErrorFlags(const RoboteqData & data);
+  void UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear);
 
   /**
    * @brief Updates parameters of the drivers: voltage, current and temperature
    */
-  void UpdateMsgDriversStates(const DriverState & state);
+  void UpdateMsgDriversStates(const DriverState & front, const DriverState & rear);
 
   /**
    * @brief Updates the current state of communication errors and general error state

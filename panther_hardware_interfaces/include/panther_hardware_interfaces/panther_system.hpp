@@ -86,21 +86,24 @@ protected:
   void UpdateMotorsStates();
   void UpdateDriverState();
 
-  void UpdateHwStates();
-  void UpdateMotorsStatesDataTimedOut();
+  virtual void DefineMotorsController() = 0;
+
+  virtual void UpdateHwStates() = 0;
+  virtual void UpdateMotorsStatesDataTimedOut() = 0;
+
+  virtual void UpdateDriverStateMsg() = 0;
+  virtual void UpdateFlagErrors() = 0;
+  virtual void UpdateDriverStateDataTimedOut() = 0;
+
   bool AreVelocityCommandsNearZero();
   bool IsPantherVersionAtLeast(const float version);
-
-  void UpdateDriverStateMsg();
-  void UpdateFlagErrors();
-  void UpdateDriverStateDataTimedOut();
 
   void HandlePDOWriteOperation(std::function<void()> pdo_write_operation);
 
   void MotorsPowerEnable(const bool enable);
 
-  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status);
-  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status);
+  virtual void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
+  virtual void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
 
   static constexpr size_t kJointsSize = 4;
 
@@ -150,6 +153,42 @@ protected:
 
   rclcpp::Time next_driver_state_update_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Duration driver_states_update_period_{0, 0};
+};
+
+class ConcretePantherSystem : public PantherSystem
+{
+public:
+  RCLCPP_SHARED_PTR_DEFINITIONS(ConcretePantherSystem)
+
+  void DefineMotorsController() override;
+
+  void UpdateHwStates() override;
+  void UpdateMotorsStatesDataTimedOut() override;
+
+  void UpdateDriverStateMsg() override;
+  void UpdateFlagErrors() override;
+  void UpdateDriverStateDataTimedOut() override;
+
+  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) override;
+  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) override;
+};
+
+class PantherMiniSystem : public PantherSystem
+{
+public:
+  RCLCPP_SHARED_PTR_DEFINITIONS(PantherMiniSystem)
+
+  void DefineMotorsController() override;
+
+  void UpdateHwStates() override;
+  void UpdateMotorsStatesDataTimedOut() override;
+
+  void UpdateDriverStateMsg() override;
+  void UpdateFlagErrors() override;
+  void UpdateDriverStateDataTimedOut() override;
+
+  void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) override;
+  void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) override;
 };
 
 }  // namespace panther_hardware_interfaces
