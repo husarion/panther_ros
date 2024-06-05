@@ -46,7 +46,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "source_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
@@ -71,7 +71,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "source_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
@@ -117,7 +117,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "source_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "date": "${{ github.event.inputs.date }}",
               "release_name": "${{ github.event.inputs.release_name }}",
@@ -168,7 +168,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "source_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",

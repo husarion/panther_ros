@@ -109,7 +109,7 @@ jobs:
         with:
           ref: ${{ env.DEVEL_BRANCH }}
 
-      - name: Update version in devel branch
+      - name: Update devel branch
         if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
         run: |
           git pull origin ${{ env.MAIN_BRANCH }}

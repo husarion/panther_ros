@@ -59,7 +59,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "source_branch": "${{ env.RC_BRANCH_NAME }}",
+              "branch_name": "${{ env.RC_BRANCH_NAME }}",
               "image_tag": "humble-${{ env.RC_BRANCH_NAME }}"
             }
 
