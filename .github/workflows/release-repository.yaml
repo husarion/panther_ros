@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: Source branch for the release
+        description: Source branch for the release.
         required: true
       target_branch:
-        description: Target branch for the release
+        description: Target branch for the release.
         required: false
         default: ros2
       version:

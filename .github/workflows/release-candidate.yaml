@@ -38,7 +38,7 @@ jobs:
           repository_owner: husarion
           repository_name: ${{ matrix.repo }}
           new_branch_name: ${{ env.RC_BRANCH_NAME }}
-          new_branch_ref: ros2
+          new_branch_ref: ros2-devel
           access_token: ${{ secrets.GH_PAT}}
 
   update_tags_in_compose:
@@ -58,7 +58,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "source_branch": "${{ env.RC_BRANCH_NAME }}",
               "image_tag": "humble-${{ env.RC_BRANCH_NAME }}"
             }
 
