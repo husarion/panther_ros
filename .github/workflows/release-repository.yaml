@@ -103,13 +103,15 @@ jobs:
       #     --title ${{ github.event.inputs.release_name }} \
       #     --generate-notes
 
-      - name: Checkout to devel branch
-        if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.DEVEL_BRANCH }}
+      # - name: Checkout to devel branch
+      #   if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
+      #   uses: actions/checkout@v4
+      #   with:
+      #     ref: ${{ env.DEVEL_BRANCH }}
 
       - name: Update version in devel branch
         if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
         run: |
+          git checkout ${{ env.DEVEL_BRANCH }}
           git pull origin ${{ env.MAIN_BRANCH }}
+          git push origin ${{ env.DEVEL_BRANCH }}
