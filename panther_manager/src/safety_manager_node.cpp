@@ -195,8 +195,8 @@ void SafetyManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)
 
 void SafetyManagerNode::DriverStateCB(const DriverStateMsg::SharedPtr driver_state)
 {
-  front_driver_temp_ma_->Roll(driver_state->front.temperature);
-  rear_driver_temp_ma_->Roll(driver_state->rear.temperature);
+  front_driver_temp_ma_->Roll(driver_state->motor_controller.temperature);
+  rear_driver_temp_ma_->Roll(driver_state->motor_controller.temperature);
 
   // to simplify conditions pass only higher temp of motor drivers
   safety_tree_manager_->GetBlackboard()->set<double>(

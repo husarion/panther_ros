@@ -46,8 +46,9 @@ void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool /* cha
   driver_state_ = GetDriverState();
   ValidateDriverStateMsg(header_stamp);
 
-  voltage_raw_ = (driver_state_->front.voltage + driver_state_->rear.voltage) / 2.0f;
-  current_raw_ = driver_state_->front.current + driver_state_->rear.current;
+  voltage_raw_ =
+    (driver_state_->motor_controller.voltage + driver_state_->motor_controller.voltage) / 2.0f;
+  current_raw_ = driver_state_->motor_controller.current + driver_state_->motor_controller.current;
   voltage_ma_->Roll(voltage_raw_);
   current_ma_->Roll(current_raw_);
 
@@ -74,7 +75,7 @@ void RoboteqBattery::ValidateDriverStateMsg(const rclcpp::Time & header_stamp)
     throw std::runtime_error("Driver state message timeout");
   }
 
-  if (driver_state_->front.can_net_err || driver_state_->rear.can_net_err) {
+  if (driver_state_->motor_controller.can_net_err || driver_state_->motor_controller.can_net_err) {
     throw std::runtime_error("Motor controller CAN network error");
   }
 }

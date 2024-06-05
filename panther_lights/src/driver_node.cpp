@@ -41,15 +41,16 @@ using std::placeholders::_2;
 
 DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options),
-  chanel_1_("/dev/spidev0.0"),
-  chanel_2_("/dev/spidev0.1"),
+  channel_1_("/dev/spidev0.0"),
+  channel_2_("/dev/spidev0.1"),
   diagnostic_updater_(this)
 {
   rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
 
   this->declare_parameter<double>("global_brightness", 1.0);
   this->declare_parameter<double>("frame_timeout", 0.1);
-  this->declare_parameter<int>("num_led", 46);
+  this->declare_parameter<int>("channel_1_num_led", 46);
+  this->declare_parameter<int>("channel_2_num_led", 46);
 
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
@@ -61,29 +62,30 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
 {
   const float global_brightness = this->get_parameter("global_brightness").as_double();
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
-  num_led_ = this->get_parameter("num_led").as_int();
+  channel_1_num_led_ = this->get_parameter("channel_1_num_led").as_int();
+  channel_2_num_led_ = this->get_parameter("channel_2_num_led").as_int();
 
   std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
     panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
   gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
   gpio_driver_->GPIOMonitorEnable();
 
-  chanel_1_ts_ = this->get_clock()->now();
-  chanel_2_ts_ = this->get_clock()->now();
+  channel_1_ts_ = this->get_clock()->now();
+  channel_2_ts_ = this->get_clock()->now();
 
-  chanel_1_.SetGlobalBrightness(global_brightness);
-  chanel_2_.SetGlobalBrightness(global_brightness);
+  channel_1_.SetGlobalBrightness(global_brightness);
+  channel_2_.SetGlobalBrightness(global_brightness);
 
-  chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
+  channel_1_sub_ = std::make_shared<image_transport::Subscriber>(
     it->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
-      chanel_1_ts_ = msg->header.stamp;
+      FrameCB(msg, channel_1_, channel_1_ts_, "channel_1");
+      channel_1_ts_ = msg->header.stamp;
     }));
 
-  chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
+  channel_2_sub_ = std::make_shared<image_transport::Subscriber>(
     it->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
-      chanel_2_ts_ = msg->header.stamp;
+      FrameCB(msg, channel_2_, channel_2_ts_, "channel_2");
+      channel_2_ts_ = msg->header.stamp;
     }));
 
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
@@ -95,8 +97,8 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
 void DriverNode::OnShutdown()
 {
   // Clear LEDs
-  chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
-  chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  channel_1_.SetPanel(std::vector<std::uint8_t>(channel_1_num_led_ * 4, 0));
+  channel_2_.SetPanel(std::vector<std::uint8_t>(channel_2_num_led_ * 4, 0));
 
   // Give back control over LEDs
   if (panels_initialised_) {
@@ -121,7 +123,9 @@ void DriverNode::FrameCB(
     message = "Incorrect image encoding ('" + msg->encoding + "')";
   } else if (msg->height != 1) {
     message = "Incorrect image height " + std::to_string(msg->height);
-  } else if (msg->width != (std::uint32_t)num_led_) {
+  } else if (
+    msg->width !=
+    (std::uint32_t)(panel_name == "channel_1" ? channel_1_num_led_ : channel_2_num_led_)) {
     message = "Incorrect image width " + std::to_string(msg->width);
   }
 
@@ -160,8 +164,8 @@ void DriverNode::SetBrightnessCB(
   const float brightness = req->data;
 
   try {
-    chanel_1_.SetGlobalBrightness(brightness);
-    chanel_2_.SetGlobalBrightness(brightness);
+    channel_1_.SetGlobalBrightness(brightness);
+    channel_2_.SetGlobalBrightness(brightness);
   } catch (const std::out_of_range & e) {
     res->success = false;
     res->message = "Failed to set brightness: " + std::string(e.what());

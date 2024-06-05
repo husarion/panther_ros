@@ -73,7 +73,7 @@
         </xacro:if>
 
         <xacro:unless value="$(arg use_sim)">
-          <plugin>panther_hardware_interfaces/PantherSystem</plugin>
+          <plugin>panther_hardware_interfaces/PantherMiniSystem</plugin>
 
           <param name="panther_version">${panther_version}</param>
 

@@ -15,11 +15,17 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    IncludeLaunchDescription,
+    TimerAction,
+)
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
+    FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
@@ -108,7 +114,14 @@ def generate_launch_description():
                 [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
             )
         ),
-        launch_arguments={"namespace": namespace}.items(),
+        launch_arguments={
+            "namespace": namespace,
+            "led_config_file": PathJoinSubstitution(
+                [FindPackageShare("panther_lights"), "config", "mini_led_config.yaml"]
+            ),
+            "channel_1_num_led": "20",
+            "channel_2_num_led": "28",
+        }.items(),
     )
 
     battery_launch = IncludeLaunchDescription(
@@ -140,6 +153,21 @@ def generate_launch_description():
         launch_arguments={"namespace": namespace}.items(),
     )
 
+    logo_animation_call = ExecuteProcess(
+        cmd=[
+            [
+                FindExecutable(name="ros2"),
+                " service call ",
+                "/",
+                namespace,
+                "/lights/controller/set/animation  ",
+                "panther_msgs/srv/SetLEDAnimation ",
+                "'{animation: {id: 10}, repeating: true}'",
+            ]
+        ],
+        shell=True,
+    )
+
     delayed_action = TimerAction(
         period=10.0,
         actions=[
@@ -147,6 +175,7 @@ def generate_launch_description():
             lights_launch,
             manager_launch,
             ekf_launch,
+            logo_animation_call,
         ],
     )
 

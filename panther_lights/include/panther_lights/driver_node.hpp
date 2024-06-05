@@ -51,11 +51,12 @@ public:
   void Initialize(const std::shared_ptr<image_transport::ImageTransport> & it);
 
 protected:
-  int num_led_;
+  int channel_1_num_led_;
+  int channel_2_num_led_;
   double frame_timeout_;
   bool panels_initialised_ = false;
-  rclcpp::Time chanel_1_ts_;
-  rclcpp::Time chanel_2_ts_;
+  rclcpp::Time channel_1_ts_;
+  rclcpp::Time channel_2_ts_;
 
 private:
   void OnShutdown();
@@ -79,12 +80,12 @@ private:
   void SetPowerPin(const bool value);
   void DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status);
 
-  apa102::APA102 chanel_1_;
-  apa102::APA102 chanel_2_;
+  apa102::APA102 channel_1_;
+  apa102::APA102 channel_2_;
 
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
-  std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
-  std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
+  std::shared_ptr<image_transport::Subscriber> channel_2_sub_;
+  std::shared_ptr<image_transport::Subscriber> channel_1_sub_;
   std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
   diagnostic_updater::Updater diagnostic_updater_;
 };

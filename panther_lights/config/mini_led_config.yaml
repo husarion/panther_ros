@@ -1,0 +1,112 @@
+panels:
+  - channel: 1
+    number_of_leds: 20
+  - channel: 2
+    number_of_leds: 28
+
+segments:
+  - name: front_left
+    channel: 1
+    led_range: 0-10
+  - name: front_right
+    channel: 2
+    led_range: 27-17
+  - name: rear_left
+    channel: 1
+    led_range: 11-19
+  - name: rear_right
+    channel: 2
+    led_range: 16-8
+  - name: logo
+    channel: 2
+    led_range: 0-7
+
+segments_map:
+  all: [front_left, front_right, rear_left, rear_right]
+  front: [front_left, front_right]
+  rear: [rear_left, rear_right]
+  front_left: [front_left]
+  front_right: [front_right]
+  rear_left: [rear_left]
+  rear_right: [rear_right]
+  logo: [logo]
+
+led_animations:
+  - id: 0
+    name: E_STOP
+    priority: 3
+    animations:
+      - type: panther_lights::ImageAnimation
+        segments: all
+        animation:
+          image: $(find panther_lights)/animations/triangle01_red.png
+          duration: 1
+
+  - id: 1
+    name: READY
+    priority: 3
+    animations:
+      - type: panther_lights::ImageAnimation
+        segments: all
+        animation:
+          image: $(find panther_lights)/animations/triangle01_green.png
+          duration: 1
+
+  - id: 2
+    name: ERROR
+    priority: 1
+    animations:
+      - type: panther_lights::ImageAnimation
+        segments: all
+        animation:
+          image: $(find panther_lights)/animations/strip01_red.png
+          duration: 3
+          repeat: 2
+
+  - id: 6
+    name: LOW_BATTERY
+    priority: 2
+    animations:
+      - type: panther_lights::ImageAnimation
+        segments: all
+        animation:
+          image: $(find panther_lights)/animations/strip01_red.png
+          duration: 2
+          repeat: 2
+          color: 0xffa500
+
+  - id: 7
+    name: CRITICAL_BATTERY
+    priority: 2
+    animations:
+      - type: panther_lights::ImageAnimation
+        segments: all
+        animation:
+          image: $(find panther_lights)/animations/strip01_red.png
+          duration: 2
+          repeat: 2
+          color: 0xff0000
+
+  # The BATTERY_STATE animation is no longer supported.
+  # Animation ID: 8 was intentionally omitted to keep numbering compatibility with ROS 1.
+
+  - id: 9
+    name: CHARGING_BATTERY
+    priority: 3
+    animations:
+      - type: panther_lights::ChargingAnimation
+        segments: all
+        animation:
+          duration: 3
+          repeat: 2
+
+  - id: 10
+    name: TEST_3
+    priority: 3
+    animations:
+      - type: panther_lights::ImageAnimation
+        segments: logo
+        animation:
+          image: $(find panther_lights)/animations/triangle01_red.png
+          duration: 2
+          color: 0xFFFFFF
