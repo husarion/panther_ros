@@ -2,6 +2,35 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#319 <https://github.com/husarion/panther_ros/issues/319>`_ from husarion/ros2-fix-battery-and-manager-tests
+* Formatting
+* Fixed tests
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Use weak_ptr to avoid circular dependency in panther_battery package (`#310 <https://github.com/husarion/panther_ros/issues/310>`_)
+* Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Merge pull request `#314 <https://github.com/husarion/panther_ros/issues/314>`_ from husarion/ros2-logging
+* Changed all RCLCPP logs to streams
+* Changed loggers to stream
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* added diagnostics remapping and namespace to system_status (`#306 <https://github.com/husarion/panther_ros/issues/306>`_)
+* added remappings to diagnostics
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Multi robot spawn working (`#256 <https://github.com/husarion/panther_ros/issues/256>`_)
+* Merge branch 'ros2' into rename_package
+* Merge pull request `#299 <https://github.com/husarion/panther_ros/issues/299>`_ from husarion/ros2-diagnose-charging-current
+* Simplify structure in dual battery
+* Shorten status diagnosis
+* unify system_status_node cmake
+* Add dummy parameter use to avoid compiler warning
+* Provide separate measurements for both batteries
+* Add load current
+* Update unit tests
+* Implement charging current diagnostics
+* Contributors: Dawid, Dawid Kmak, Jakub Delicat, Paweł Irzyk, pawelirh, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#261 <https://github.com/husarion/panther_ros/issues/261>`_ from husarion/ros2-readme

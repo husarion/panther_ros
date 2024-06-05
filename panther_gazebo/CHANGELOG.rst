@@ -2,6 +2,21 @@
 Changelog for package panther_gazebo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Ros2 add components (`#277 <https://github.com/husarion/panther_ros/issues/277>`_)
+* Merge pull request `#303 <https://github.com/husarion/panther_ros/issues/303>`_ from husarion/ros2-controler-patch
+* Patch
+* Remove const name
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Multi robot spawn working (`#256 <https://github.com/husarion/panther_ros/issues/256>`_)
+* Merge pull request `#300 <https://github.com/husarion/panther_ros/issues/300>`_ from husarion/rename_package
+* use new launch
+* Package rename
+* Contributors: Dawid, Jakub Delicat, Paweł Irzyk, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#273 <https://github.com/husarion/panther_ros/issues/273>`_ from husarion/ros2-sim-battery

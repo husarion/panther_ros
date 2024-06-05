@@ -2,6 +2,14 @@
 Changelog for package panther_diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* unify system_status_node cmake
+* Contributors: Dawid, Paweł Irzyk
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#274 <https://github.com/husarion/panther_ros/issues/274>`_ from husarion/ros2-diagnostics-changelog

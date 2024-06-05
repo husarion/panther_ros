@@ -2,6 +2,23 @@
 Changelog for package panther_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* added diagnostics remapping and namespace to system_status (`#306 <https://github.com/husarion/panther_ros/issues/306>`_)
+* added remappings to diagnostics
+* Ros2 add components (`#277 <https://github.com/husarion/panther_ros/issues/277>`_)
+* Merge pull request `#304 <https://github.com/husarion/panther_ros/issues/304>`_ from husarion/ros2-control-fix
+* Merge branch 'ros2' into ros2-control-fix
+* fix ekf
+* Merge pull request `#303 <https://github.com/husarion/panther_ros/issues/303>`_ from husarion/ros2-controler-patch
+* Patch
+* Fix controller with namespace
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Multi robot spawn working (`#256 <https://github.com/husarion/panther_ros/issues/256>`_)
+* Contributors: Dawid, Jakub Delicat, Paweł Irzyk, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#261 <https://github.com/husarion/panther_ros/issues/261>`_ from husarion/ros2-readme

@@ -2,6 +2,43 @@
 Changelog for package panther_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#319 <https://github.com/husarion/panther_ros/issues/319>`_ from husarion/ros2-fix-battery-and-manager-tests
+* Formatting
+* Fixed tests
+* Merge remote-tracking branch 'origin/ros2-fix-bt' into ros2
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Fix behaviour trees
+* Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
+* coderabbit suggestions
+* disable shutdown nodes in tests
+* fix TurnOnFanAtStartup test
+* Merge pull request `#314 <https://github.com/husarion/panther_ros/issues/314>`_ from husarion/ros2-logging
+* speed up tests
+* Changed all RCLCPP logs to streams
+* review fixes
+* format bt files
+* almost there
+* BehaviorTreeManager briefs and tests
+* move factory outside bt manager
+* add BehaviorTreeManager class
+* update parameters names
+* review fixes
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* add behavior trees tests
+* Multi robot spawn working (`#256 <https://github.com/husarion/panther_ros/issues/256>`_)
+* add lights and safety tests
+* update readme
+* update briefs
+* update bt_utils tests
+* add utils briefs
+* move bt registration to bt_utils
+* update behaviortree_ros2 repository
+* update bb in subscribers callbacks
+* move lights and safety to separate nodes
+* Contributors: Dawid, Dawid Kmak, Jakub Delicat, Paweł Irzyk, pawelirh, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#261 <https://github.com/husarion/panther_ros/issues/261>`_ from husarion/ros2-readme
