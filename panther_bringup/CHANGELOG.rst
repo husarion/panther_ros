@@ -2,6 +2,26 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.2 (2024-06-05)
+------------------
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
+* Merge remote-tracking branch 'origin/ros2-logging' into ros2-logging
+* Update package.xml
+* Changed all RCLCPP logs to streams
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* added diagnostics remapping and namespace to system_status (`#306 <https://github.com/husarion/panther_ros/issues/306>`_)
+* added diagnostics remapping and namespace to system_status
+* Ros2 add components (`#277 <https://github.com/husarion/panther_ros/issues/277>`_)
+* Merge pull request `#303 <https://github.com/husarion/panther_ros/issues/303>`_ from husarion/ros2-controler-patch
+* Patch
+* Remove const name
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Patches with: gazebo, ekf and readme fixes (`#302 <https://github.com/husarion/panther_ros/issues/302>`_)
+* Multi robot spawn working (`#256 <https://github.com/husarion/panther_ros/issues/256>`_)
+* unify system_status_node cmake
+* Contributors: Dawid, Jakub Delicat, Paweł Irzyk, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Manager launch fix (`#269 <https://github.com/husarion/panther_ros/issues/269>`_)

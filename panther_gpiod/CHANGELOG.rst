@@ -2,6 +2,13 @@
 Changelog for package panther_gpiod
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.2 (2024-06-05)
+------------------
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Increase the timeout and notify outside the scope (`#312 <https://github.com/husarion/panther_ros/issues/312>`_)
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Contributors: Dawid, Paweł Irzyk
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge branch 'ros2-devel' into ros2-readme
