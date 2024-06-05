@@ -129,7 +129,7 @@ void BatteryNode::InitializeWithADCBattery()
 
 void BatteryNode::InitializeWithRoboteqBattery()
 {
-  RCLCPP_DEBUG(this->get_logger(), "Initializing with Roboteq battery.");
+  RCLCPP_DEBUG(this->get_logger(), "Initializing with Roboteq data.");
 
   this->declare_parameter<float>("roboteq/driver_state_timeout", 0.2);
 
