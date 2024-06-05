@@ -26,7 +26,7 @@
 
     <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
     <!-- TODO change to real value -->
-    <xacro:property name="wheel_separation_x" value="0.44" />
+    <xacro:property name="wheel_separation_x" value="0.35" />
 
     <!-- INCLUDE ROBOT PARTS DEFINITIONS -->
     <xacro:include filename="$(find panther_mini_description)/urdf/body.urdf.xacro" ns="body" />
