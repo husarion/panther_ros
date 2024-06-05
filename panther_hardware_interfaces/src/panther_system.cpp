@@ -599,7 +599,7 @@ void PantherSystem::UpdateDriverStateDataTimedOut()
       logger_, steady_clock_, 1000,
       (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "Front " : "")
         << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "Rear " : "")
-        << "PDO driver state timeout");
+        << "PDO driver state timeout.");
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, false);
