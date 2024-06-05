@@ -532,7 +532,7 @@ void PantherSystem::UpdateMotorsStatesDataTimedOut()
       logger_, steady_clock_, 1000,
       (motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ? "Front " : "")
         << (motors_controller_->GetRearData().IsMotorStatesDataTimedOut() ? "Rear " : "")
-        << "PDO motor state data timeout");
+        << "PDO motor state data timeout.");
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, false);
