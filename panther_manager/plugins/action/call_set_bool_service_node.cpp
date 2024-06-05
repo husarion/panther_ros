@@ -14,13 +14,15 @@
 
 #include "panther_manager/plugins/action/call_set_bool_service_node.hpp"
 
+#include "panther_manager/behavior_tree_utils.hpp"
+
 namespace panther_manager
 {
 
 bool CallSetBoolService::setRequest(typename Request::SharedPtr & request)
 {
   if (!getInput<bool>("data", request->data)) {
-    RCLCPP_ERROR_STREAM(this->logger(), "Failed to get input [data]");
+    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [data]");
     return false;
   }
   return true;
@@ -30,13 +32,13 @@ BT::NodeStatus CallSetBoolService::onResponseReceived(const typename Response::S
 {
   if (!response->success) {
     RCLCPP_ERROR_STREAM(
-      this->logger(),
-      "Failed to call " << this->service_name_ << " service, message: " << response->message);
+      this->logger(), GetLoggerPrefix(name()) << "Failed to call " << this->service_name_
+                                              << " service, message: " << response->message);
     return BT::NodeStatus::FAILURE;
   }
   RCLCPP_DEBUG_STREAM(
-    this->logger(),
-    "Successfully called " << this->service_name_ << " service, message: " << response->message);
+    this->logger(), GetLoggerPrefix(name()) << "Successfully called " << this->service_name_
+                                            << " service, message: " << response->message);
   return BT::NodeStatus::SUCCESS;
 }
 

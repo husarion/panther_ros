@@ -199,6 +199,7 @@ def generate_launch_description():
             ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
+        emulate_tty=True,
     )
 
     namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
@@ -206,6 +207,7 @@ def generate_launch_description():
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        arguments=["--ros-args", "--disable-stdout-logs"],  # Suppress log messages
         parameters=[robot_description, {"frame_prefix": namespace_ext}],
         namespace=namespace,
         condition=IfCondition(publish_robot_state),
@@ -224,6 +226,7 @@ def generate_launch_description():
             namespace,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -239,6 +242,7 @@ def generate_launch_description():
             namespace,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
@@ -262,6 +266,7 @@ def generate_launch_description():
             namespace,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     # Delay start of imu_broadcaster after robot_controller

@@ -31,6 +31,8 @@
 
 #include "panther_manager/plugins/shutdown_host.hpp"
 
+#include "panther_manager/behavior_tree_utils.hpp"
+
 namespace panther_manager
 {
 
@@ -72,13 +74,14 @@ protected:
   BT::NodeStatus onStart()
   {
     if (!UpdateHosts(this->hosts_)) {
-      RCLCPP_ERROR_STREAM(*this->logger_, "Cannot update hosts!");
+      RCLCPP_ERROR_STREAM(*this->logger_, GetLoggerPrefix(name()) << "Cannot update hosts!");
       return BT::NodeStatus::FAILURE;
     }
 
     RemoveDuplicatedHosts(this->hosts_);
     if (this->hosts_.size() <= 0) {
-      RCLCPP_ERROR_STREAM(*this->logger_, "Hosts list is empty! Check configuration!");
+      RCLCPP_ERROR_STREAM(
+        *this->logger_, GetLoggerPrefix(name()) << "Hosts list is empty! Check configuration!");
       return BT::NodeStatus::FAILURE;
     }
     this->hosts_to_check_.resize(this->hosts_.size());
@@ -103,22 +106,26 @@ protected:
     switch (host->GetState()) {
       case ShutdownHostState::RESPONSE_RECEIVED:
         RCLCPP_INFO_STREAM(
-          *this->logger_, "Device at: " << host->GetIp() << " response:\n"
-                                        << host->GetResponse());
+          *this->logger_, GetLoggerPrefix(name())
+                            << "Device at: " << host->GetIp() << " response:\n"
+                            << host->GetResponse());
 
         check_host_index_++;
         break;
 
       case ShutdownHostState::SUCCESS:
-        RCLCPP_INFO_STREAM(*this->logger_, "Successfully shutdown device at: " << host->GetIp());
+        RCLCPP_INFO_STREAM(
+          *this->logger_, GetLoggerPrefix(name())
+                            << "Successfully shutdown device at: " << host->GetIp());
         this->succeeded_hosts_.push_back(host_index);
         this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
         break;
 
       case ShutdownHostState::FAILURE:
         RCLCPP_WARN_STREAM(
-          *this->logger_,
-          "Failed to shutdown device at: " << host->GetIp() << " Error: " << host->GetError());
+          *this->logger_, GetLoggerPrefix(name())
+                            << "Failed to shutdown device at: " << host->GetIp()
+                            << " Error: " << host->GetError());
 
         this->failed_hosts_.push_back(host_index);
         this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
@@ -126,7 +133,8 @@ protected:
 
       case ShutdownHostState::SKIPPED:
         RCLCPP_WARN_STREAM(
-          *this->logger_, "Device at: " << host->GetIp() << " not available, skipping...");
+          *this->logger_, GetLoggerPrefix(name())
+                            << "Device at: " << host->GetIp() << " not available, skipping...");
 
         this->skipped_hosts_.push_back(host_index);
         this->hosts_to_check_.erase(this->hosts_to_check_.begin() + this->check_host_index_);
@@ -153,10 +161,8 @@ protected:
             return false;
           } else {
             RCLCPP_WARN_STREAM(
-              *this->logger_, "Found duplicate host: " << host->GetIp()
-                                                       << " Processing only the "
-                                                          "first "
-                                                          "occurrence.");
+              *this->logger_, GetLoggerPrefix(name()) << "Found duplicate host: " << host->GetIp()
+                                                      << " Processing only the first occurrence.");
             return true;
           }
         }),

@@ -39,6 +39,8 @@ SafetyManagerNode::SafetyManagerNode(
   const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
+  RCLCPP_INFO(this->get_logger(), "Constructing node.");
+
   DeclareParameters();
 
   const auto battery_temp_window_len = this->get_parameter("battery.temp.window_len").as_int();
@@ -64,11 +66,13 @@ SafetyManagerNode::SafetyManagerNode(
   shutdown_tree_manager_ = std::make_unique<BehaviorTreeManager>(
     "Shutdown", shutdown_initial_blackboard, 7777);
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
 void SafetyManagerNode::Initialize()
 {
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
+
   RegisterBehaviorTree();
   safety_tree_manager_->Initialize(factory_);
   shutdown_tree_manager_->Initialize(factory_);
@@ -103,7 +107,7 @@ void SafetyManagerNode::Initialize()
   safety_tree_timer_ = this->create_wall_timer(
     timer_period_ms, std::bind(&SafetyManagerNode::SafetyTreeTimerCB, this));
 
-  RCLCPP_INFO(this->get_logger(), "Node initialized");
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void SafetyManagerNode::DeclareParameters()
@@ -136,10 +140,11 @@ void SafetyManagerNode::RegisterBehaviorTree()
   const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
   const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
 
-  RCLCPP_INFO(this->get_logger(), "Register BehaviorTree from: %s", bt_project_path.c_str());
-
   behavior_tree_utils::RegisterBehaviorTree(
     factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
+
+  RCLCPP_INFO(
+    this->get_logger(), "BehaviorTree registered from path '%s'", bt_project_path.c_str());
 }
 
 std::map<std::string, std::any> SafetyManagerNode::CreateSafetyInitialBlackboard()
@@ -173,6 +178,7 @@ std::map<std::string, std::any> SafetyManagerNode::CreateSafetyInitialBlackboard
      unsigned(BatteryStateMsg::POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE)},
   };
 
+  RCLCPP_INFO(this->get_logger(), "Blackboard created.");
   return safety_initial_bb;
 }
 
@@ -256,7 +262,7 @@ bool SafetyManagerNode::SystemReady()
     !safety_tree_manager_->GetBlackboard()->getEntry("driver_temp")) {
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 5000,
-      "Waiting for required system messages to arrive");
+      "Waiting for required system messages to arrive.");
     return false;
   }
 

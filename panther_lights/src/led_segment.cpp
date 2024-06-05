@@ -36,7 +36,7 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
   const std::size_t split_char = led_range.find('-');
 
   if (split_char == std::string::npos) {
-    throw std::invalid_argument("No '-' character found in the led_range expression");
+    throw std::invalid_argument("No '-' character found in the led_range expression.");
   }
 
   try {
@@ -47,7 +47,7 @@ LEDSegment::LEDSegment(const YAML::Node & segment_description, const float contr
       invert_led_order_ = true;
     }
   } catch (const std::invalid_argument & e) {
-    throw std::invalid_argument("Error converting string to integer");
+    throw std::invalid_argument("Error converting string to integer.");
   }
 
   num_led_ = std::abs(int(last_led_iterator_ - first_led_iterator_)) + 1;
@@ -100,7 +100,7 @@ void LEDSegment::SetAnimation(
 void LEDSegment::UpdateAnimation()
 {
   if (!animation_) {
-    throw std::runtime_error("Segment animation not defined");
+    throw std::runtime_error("Segment animation not defined.");
   }
 
   if (animation_->IsFinished()) {
@@ -124,7 +124,7 @@ void LEDSegment::UpdateAnimation()
 std::vector<std::uint8_t> LEDSegment::GetAnimationFrame() const
 {
   if (!animation_) {
-    throw std::runtime_error("Segment animation not defined");
+    throw std::runtime_error("Segment animation not defined.");
   }
 
   if (default_animation_ && animation_finished_) {
@@ -137,7 +137,7 @@ std::vector<std::uint8_t> LEDSegment::GetAnimationFrame() const
 float LEDSegment::GetAnimationProgress() const
 {
   if (!animation_) {
-    throw std::runtime_error("Segment animation not defined");
+    throw std::runtime_error("Segment animation not defined.");
   }
 
   return animation_->GetProgress();
@@ -146,7 +146,7 @@ float LEDSegment::GetAnimationProgress() const
 void LEDSegment::ResetAnimation()
 {
   if (!animation_) {
-    throw std::runtime_error("Segment animation not defined");
+    throw std::runtime_error("Segment animation not defined.");
   }
 
   animation_->Reset();
@@ -156,7 +156,7 @@ void LEDSegment::ResetAnimation()
 std::uint8_t LEDSegment::GetAnimationBrightness() const
 {
   if (!animation_) {
-    throw std::runtime_error("Segment animation not defined");
+    throw std::runtime_error("Segment animation not defined.");
   }
 
   return animation_->GetBrightness();

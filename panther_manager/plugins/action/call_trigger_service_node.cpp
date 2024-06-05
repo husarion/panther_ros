@@ -16,6 +16,8 @@
 
 #include "behaviortree_cpp/basic_types.h"
 
+#include "panther_manager/behavior_tree_utils.hpp"
+
 namespace panther_manager
 {
 
@@ -25,13 +27,13 @@ BT::NodeStatus CallTriggerService::onResponseReceived(const typename Response::S
 {
   if (!response->success) {
     RCLCPP_ERROR_STREAM(
-      this->logger(),
-      "Failed to call " << this->service_name_ << "service, message: " << response->message);
+      this->logger(), GetLoggerPrefix(name()) << "Failed to call " << this->service_name_
+                                              << "service, message: " << response->message);
     return BT::NodeStatus::FAILURE;
   }
   RCLCPP_DEBUG_STREAM(
-    this->logger(),
-    "Successfully called " << this->service_name_ << " service, message: " << response->message);
+    this->logger(), GetLoggerPrefix(name()) << "Successfully called " << this->service_name_
+                                            << " service, message: " << response->message);
   return BT::NodeStatus::SUCCESS;
 }
 

@@ -35,13 +35,13 @@ template <typename T>
 T GetYAMLKeyValue(const YAML::Node & description, const std::string & key)
 {
   if (!description[key]) {
-    throw std::runtime_error("Missing '" + static_cast<std::string>(key) + "' in description");
+    throw std::runtime_error("Missing '" + static_cast<std::string>(key) + "' in description.");
   }
 
   try {
     return description[key].as<T>();
   } catch (const YAML::BadConversion & e) {
-    throw std::runtime_error("Failed to convert '" + static_cast<std::string>(key) + "' key");
+    throw std::runtime_error("Failed to convert '" + static_cast<std::string>(key) + "' key.");
   }
 }
 

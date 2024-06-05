@@ -38,7 +38,7 @@ LEDAnimation::LEDAnimation(
   for (const auto & animation : led_animation_description_.animations) {
     for (const auto & segment : animation.segments) {
       if (segments.find(segment) == segments.end()) {
-        throw std::runtime_error("No segment with name: " + segment);
+        throw std::runtime_error("No segment with name: " + segment + ".");
       }
       animation_segments_.push_back(segments.at(segment));
     }
@@ -82,7 +82,7 @@ void LEDAnimationsQueue::Put(
   Validate(time);
 
   if (queue_.size() == max_queue_size_) {
-    throw std::runtime_error("Animation queue overloaded");
+    throw std::runtime_error("Animation queue overloaded.");
   }
 
   queue_.push_back(animation);
@@ -101,7 +101,7 @@ std::shared_ptr<LEDAnimation> LEDAnimationsQueue::Get()
     queue_.pop_front();
     return animation;
   }
-  throw std::runtime_error("Queue empty");
+  throw std::runtime_error("Queue empty.");
 }
 
 void LEDAnimationsQueue::Clear(const std::size_t priority)
@@ -119,7 +119,7 @@ void LEDAnimationsQueue::Validate(const rclcpp::Time & time)
     if ((time - it->get()->GetInitTime()).seconds() > it->get()->GetTimeout()) {
       RCLCPP_WARN_STREAM(
         rclcpp::get_logger("controller_node"),
-        "Warning: Timeout for animation: " << it->get()->GetName() << ". Removing from the queue");
+        "Timeout for animation: " << it->get()->GetName() << ". Removing from the queue.");
       it = queue_.erase(it);
     } else {
       ++it;
