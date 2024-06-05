@@ -41,7 +41,8 @@ jobs:
           repo: panther_msgs
           github_token: ${{ secrets.GH_PAT }}
           workflow_file_name: release-repository.yaml
-          ref: ${{ env.RC_BRANCH_NAME }}
+          # ref: ${{ env.RC_BRANCH_NAME }}
+          ref: ros2-improve-release-process
           wait_interval: 10
           client_payload: |
             {
@@ -65,7 +66,8 @@ jobs:
           repo: panther_ros
           github_token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN for local repository
           workflow_file_name: release-repository.yaml
-          ref: ${{ env.RC_BRANCH_NAME }}
+          # ref: ${{ env.RC_BRANCH_NAME }}
+          ref: ros2-improve-release-process
           wait_interval: 10
           client_payload: |
             {
@@ -110,7 +112,8 @@ jobs:
           repo: panther-docker
           github_token: ${{ secrets.GH_PAT }}
           workflow_file_name: release-repository.yaml
-          ref: ${{ env.RC_BRANCH_NAME }}
+          # ref: ${{ env.RC_BRANCH_NAME }}
+          ref: ros2-improve-release-process
           wait_interval: 10
           client_payload: |
             {
@@ -160,7 +163,8 @@ jobs:
           repo: panther-rpi-os-img
           github_token: ${{ secrets.GH_PAT }}
           workflow_file_name: release-repository.yaml
-          ref: ${{ env.RC_BRANCH_NAME }}
+          # ref: ${{ env.RC_BRANCH_NAME }}
+          ref: ros2-improve-release-process
           wait_interval: 10
           client_payload: |
             {
