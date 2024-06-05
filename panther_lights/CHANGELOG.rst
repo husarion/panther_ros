@@ -2,6 +2,24 @@
 Changelog for package panther_lights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Fix circular dependency (`#311 <https://github.com/husarion/panther_ros/issues/311>`_)
+* Merge pull request `#314 <https://github.com/husarion/panther_ros/issues/314>`_ from husarion/ros2-logging
+* update
+* Changed all RCLCPP logs to streams
+* Merge remote-tracking branch 'origin/ros2' into ros2-yaml-format-2-spaces
+* Merge pull request `#270 <https://github.com/husarion/panther_ros/issues/270>`_ from husarion/ros2-remove-obsolate-file
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* added diagnostics remapping and namespace to system_status (`#306 <https://github.com/husarion/panther_ros/issues/306>`_)
+* added remappings to diagnostics
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Multi robot spawn working (`#256 <https://github.com/husarion/panther_ros/issues/256>`_)
+* remove dummy scheduler header
+* Contributors: Dawid, Dawid Kmak, Jakub Delicat, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#264 <https://github.com/husarion/panther_ros/issues/264>`_ from husarion/ros2-use-absolute-url
