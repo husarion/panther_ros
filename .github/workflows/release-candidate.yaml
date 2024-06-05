@@ -54,8 +54,7 @@ jobs:
           repo: panther-docker
           github_token: ${{ secrets.GH_PAT }}
           workflow_file_name: update-tags-in-compose.yaml
-          # ref: ${{ env.RC_BRANCH_NAME }}
-          ref: ros2-improve-release-process
+          ref: ${{ env.RC_BRANCH_NAME }}
           wait_interval: 10
           client_payload: |
             {
