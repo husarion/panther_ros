@@ -49,7 +49,7 @@ def generate_launch_description():
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_mini_description"), "config", "components.yaml"]
+            [FindPackageShare("panther_description"), "config", "components.yaml"]
         ),
         description=(
             "Additional components configuration file. Components described in this file "
@@ -62,6 +62,18 @@ def generate_launch_description():
     wheel_type = LaunchConfiguration(
         "wheel_type"
     )  # wheel_type must be before controller_config_path
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value="WH01",
+        description=(
+            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
+            " 'WH04', 'WH05'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
+            " parameters. For custom wheels, please define these parameters to point to files that"
+            " accurately describe the custom wheels."
+        ),
+        choices=["WH01", "WH02", "WH04", "WH05", "custom"],
+    )
+
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
@@ -98,6 +110,36 @@ def generate_launch_description():
     )
 
     wheel_config_path = LaunchConfiguration("wheel_config_path")
+    declare_wheel_config_path_arg = DeclareLaunchArgument(
+        "wheel_config_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "config",
+                PythonExpression(["'", wheel_type, ".yaml'"]),
+            ]
+        ),
+        description=(
+            "Path to wheel configuration file. By default, it is located in "
+            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "to your custom wheel configuration file here. "
+        ),
+    )
+
+    robot_description_path = LaunchConfiguration("robot_description_path")
+    declare_robot_description_path_arg = DeclareLaunchArgument(
+        "robot_description_path",
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare("panther_description"),
+                "urdf",
+                "panther.urdf.xacro",
+            ]
+        ),
+        description="Path to the robot description file",
+    )
+
+    use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
@@ -105,46 +147,12 @@ def generate_launch_description():
         choices=["True", "False"],
     )
 
-    declare_wheel_config_path_arg = DeclareLaunchArgument(
-        "wheel_config_path",
-        default_value=PathJoinSubstitution(
-            [
-                FindPackageShare("panther_mini_description"),
-                "config",
-                PythonExpression(["'", wheel_type, ".yaml'"]),
-            ]
-        ),
-        description=(
-            "Path to wheel configuration file. By default, it is located in "
-            "'panther_mini_description/config/<wheel_type arg>.yaml'. You can also specify the path "
-            "to your custom wheel configuration file here. "
-        ),
-    )
-
-    use_sim = LaunchConfiguration("use_sim")
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value="WH05",
-        description=(
-            "Type of wheel. If you choose a value from the preset options ('WH05'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
-            " parameters. For custom wheels, please define these parameters to point to files that"
-            " accurately describe the custom wheels."
-        ),
-        choices=["WH05", "custom"],
-    )
-
     # Get URDF via xacro
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_mini_description"),
-                    "urdf",
-                    "panther_mini.urdf.xacro",
-                ]
-            ),
+            robot_description_path,
             " panther_version:=",
             os.environ.get("PANTHER_ROBOT_VERSION", "1.0"),
             " use_sim:=",
@@ -199,6 +207,7 @@ def generate_launch_description():
             ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
+        emulate_tty=True,
     )
 
     namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
@@ -206,6 +215,7 @@ def generate_launch_description():
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        arguments=["--ros-args", "--disable-stdout-logs"],  # Suppress log messages
         parameters=[robot_description, {"frame_prefix": namespace_ext}],
         namespace=namespace,
         condition=IfCondition(publish_robot_state),
@@ -224,6 +234,7 @@ def generate_launch_description():
             namespace,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -239,6 +250,7 @@ def generate_launch_description():
             namespace,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
@@ -262,6 +274,7 @@ def generate_launch_description():
             namespace,
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     # Delay start of imu_broadcaster after robot_controller
@@ -282,6 +295,7 @@ def generate_launch_description():
         declare_publish_robot_state_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
+        declare_robot_description_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         control_node,
         robot_state_pub_node,
