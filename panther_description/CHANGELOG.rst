@@ -2,8 +2,8 @@
 Changelog for package panther_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.2 (2024-06-05)
+------------------
 * Merge pull request `#318 <https://github.com/husarion/panther_ros/issues/318>`_ from husarion/fix-default-path
 * Fix default components config path
 * Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)

@@ -2,8 +2,8 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.2 (2024-06-05)
+------------------
 * Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
 * Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
 * Removed test with wrong imu name (`#305 <https://github.com/husarion/panther_ros/issues/305>`_)
