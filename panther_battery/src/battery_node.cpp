@@ -76,7 +76,7 @@ void BatteryNode::Initialize()
 
 void BatteryNode::InitializeWithADCBattery()
 {
-  RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC battery.");
+  RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC data.");
 
   this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
   this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
