@@ -55,14 +55,9 @@ struct CANErrors
   bool read_pdo_motor_states_error;
   bool read_pdo_driver_state_error;
 
-  bool front_motor_states_data_timed_out;
-  bool rear_motor_states_data_timed_out;
-
-  bool front_driver_state_data_timed_out;
-  bool rear_driver_state_data_timed_out;
-
-  bool front_can_net_err;
-  bool rear_can_net_err;
+  bool can_net_err;
+  bool motor_states_data_timed_out;
+  bool driver_state_data_timed_out;
 };
 
 /**
@@ -213,24 +208,29 @@ public:
   /**
    * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
    */
-  void UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear);
+  virtual void UpdateMsgErrorFlags(const std::string & name, const RoboteqData & roboteq_data) = 0;
 
   /**
    * @brief Updates parameters of the drivers: voltage, current and temperature
    */
-  void UpdateMsgDriversStates(const DriverState & front, const DriverState & rear);
+  virtual void UpdateMsgDriversStates(
+    const std::string & name, const DriverState & driver_state) = 0;
 
   /**
    * @brief Updates the current state of communication errors and general error state
    */
-  void UpdateMsgErrors(const CANErrors & can_errors);
+  virtual void UpdateMsgErrors(const std::string & name, const CANErrors & can_errors) = 0;
+
+  virtual void PublishDriverState() = 0;
 
   void PublishEStopStateMsg(const bool e_stop);
   void PublishEStopStateIfChanged(const bool e_stop);
-  void PublishDriverState();
   void InitializeAndPublishIOStateMsg(
     const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state);
   void PublishIOState(const panther_gpiod::GPIOInfo & gpio_info);
+
+protected:
+  rclcpp::Node::SharedPtr node_;
 
 private:
   /**
@@ -261,14 +261,9 @@ private:
   rclcpp::CallbackGroup::SharedPtr GetOrCreateNodeCallbackGroup(
     const unsigned group_id, rclcpp::CallbackGroupType callback_group_type);
 
-  rclcpp::Node::SharedPtr node_;
   std::unordered_map<unsigned, rclcpp::CallbackGroup::SharedPtr> callback_groups_;
   rclcpp::executors::MultiThreadedExecutor::UniquePtr executor_;
   std::thread executor_thread_;
-
-  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
-    realtime_driver_state_publisher_;
 
   rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_publisher_;
   std::unique_ptr<realtime_tools::RealtimePublisher<IOStateMsg>> realtime_io_state_publisher_;
@@ -279,6 +274,88 @@ private:
   diagnostic_updater::Updater diagnostic_updater_;
 
   std::vector<std::any> service_wrappers_storage_;
+};
+
+// ---------------
+// ConcretePanther
+// ---------------
+
+class ConcretePantherSystemRosInterface : public PantherSystemRosInterface
+{
+public:
+  ConcretePantherSystemRosInterface(
+    const std::string & node_name, const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions())
+  : PantherSystemRosInterface(node_name, node_options)
+  {
+    front_driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
+      "~/driver/front_motor_controllers_state", 5);
+    realtime_front_driver_state_publisher_ =
+      std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(
+        front_driver_state_publisher_);
+
+    rear_driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
+      "~/driver/rear_motor_controllers_state", 5);
+    realtime_rear_driver_state_publisher_ =
+      std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(
+        rear_driver_state_publisher_);
+  }
+
+  ~ConcretePantherSystemRosInterface()
+  {
+    realtime_front_driver_state_publisher_.reset();
+    front_driver_state_publisher_.reset();
+    realtime_rear_driver_state_publisher_.reset();
+    rear_driver_state_publisher_.reset();
+  }
+
+  void UpdateMsgErrorFlags(const std::string & name, const RoboteqData & roboteq_data) override;
+  void UpdateMsgDriversStates(const std::string & name, const DriverState & driver_state) override;
+  void UpdateMsgErrors(const std::string & name, const CANErrors & can_errors) override;
+  void PublishDriverState() override;
+
+private:
+  rclcpp::Publisher<DriverStateMsg>::SharedPtr front_driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
+    realtime_front_driver_state_publisher_;
+
+  rclcpp::Publisher<DriverStateMsg>::SharedPtr rear_driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
+    realtime_rear_driver_state_publisher_;
+};
+
+// ---------------
+// PantherMini
+// ---------------
+
+class PantherMiniSystemRosInterface : public PantherSystemRosInterface
+{
+public:
+  PantherMiniSystemRosInterface(
+    const std::string & node_name, const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions())
+  : PantherSystemRosInterface(node_name, node_options)
+
+  {
+    driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
+      "~/driver/motor_controllers_state", 5);
+    realtime_driver_state_publisher_ =
+      std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
+  }
+
+  ~PantherMiniSystemRosInterface()
+  {
+    realtime_driver_state_publisher_.reset();
+    driver_state_publisher_.reset();
+  }
+
+  void UpdateMsgErrorFlags(const std::string & name, const RoboteqData & roboteq_data) override;
+  void UpdateMsgDriversStates(const std::string & name, const DriverState & driver_state) override;
+  void UpdateMsgErrors(const std::string & name, const CANErrors & can_errors) override;
+  void PublishDriverState() override;
+
+private:
+  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
+    realtime_driver_state_publisher_;
 };
 
 }  // namespace panther_hardware_interfaces

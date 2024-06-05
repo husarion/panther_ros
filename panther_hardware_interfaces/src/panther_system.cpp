@@ -113,8 +113,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     return CallbackReturn::ERROR;
   }
 
-  panther_system_ros_interface_ =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
+  DefinePantherSystemRosInterface();
 
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/fan_enable",
@@ -557,6 +556,18 @@ void PantherSystem::MotorsPowerEnable(const bool enable)
 // PantherConcrete
 // ----------
 
+void ConcretePantherSystem::DefineMotorsController()
+{
+  motors_controller_ = std::make_shared<PantherMotorsController>(
+    canopen_settings_, drivetrain_settings_);
+}
+
+void ConcretePantherSystem::DefinePantherSystemRosInterface()
+{
+  panther_system_ros_interface_ =
+    std::make_unique<ConcretePantherSystemRosInterface>("panther_system_node");
+}
+
 void ConcretePantherSystem::UpdateHwStates()
 {
   const auto front = motors_controller_->GetData(DriverName::FRONT);
@@ -603,34 +614,42 @@ void ConcretePantherSystem::UpdateMotorsStatesDataTimedOut()
 void ConcretePantherSystem::UpdateDriverStateMsg()
 {
   panther_system_ros_interface_->UpdateMsgDriversStates(
-    motors_controller_->GetData(DriverName::FRONT).GetDriverState(),
-    motors_controller_->GetData(DriverName::REAR).GetDriverState());
+    DriverName::FRONT, motors_controller_->GetData(DriverName::FRONT).GetDriverState());
+  panther_system_ros_interface_->UpdateMsgDriversStates(
+    DriverName::REAR, motors_controller_->GetData(DriverName::REAR).GetDriverState());
 
   panther_system_ros_interface_->UpdateMsgErrorFlags(
-    motors_controller_->GetData(DriverName::FRONT), motors_controller_->GetData(DriverName::REAR));
+    DriverName::FRONT, motors_controller_->GetData(DriverName::FRONT));
+  panther_system_ros_interface_->UpdateMsgErrorFlags(
+    DriverName::REAR, motors_controller_->GetData(DriverName::REAR));
 
-  CANErrors can_errors;
-  can_errors.error = roboteq_error_filter_->IsError();
-  can_errors.write_pdo_cmds_error = roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_PDO_CMDS);
-  can_errors.read_pdo_motor_states_error =
+  // TODO: make this independent or move general CAN errors to a different object.
+  CANErrors front_can_errors;
+  front_can_errors.error = roboteq_error_filter_->IsError();
+  front_can_errors.write_pdo_cmds_error =
+    roboteq_error_filter_->IsError(ErrorsFilterIds::WRITE_PDO_CMDS);
+  front_can_errors.read_pdo_motor_states_error =
     roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_MOTOR_STATES);
-  can_errors.read_pdo_driver_state_error =
+  front_can_errors.read_pdo_driver_state_error =
     roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
 
-  can_errors.front_motor_states_data_timed_out =
+  CANErrors rear_can_errors = front_can_errors;
+
+  front_can_errors.motor_states_data_timed_out =
     motors_controller_->GetData(DriverName::FRONT).IsMotorStatesDataTimedOut();
-  can_errors.rear_motor_states_data_timed_out =
+  rear_can_errors.motor_states_data_timed_out =
     motors_controller_->GetData(DriverName::REAR).IsMotorStatesDataTimedOut();
 
-  can_errors.front_driver_state_data_timed_out =
+  front_can_errors.driver_state_data_timed_out =
     motors_controller_->GetData(DriverName::FRONT).IsDriverStateDataTimedOut();
-  can_errors.rear_driver_state_data_timed_out =
+  rear_can_errors.driver_state_data_timed_out =
     motors_controller_->GetData(DriverName::REAR).IsDriverStateDataTimedOut();
 
-  can_errors.front_can_net_err = motors_controller_->GetData(DriverName::FRONT).IsCANNetErr();
-  can_errors.rear_can_net_err = motors_controller_->GetData(DriverName::REAR).IsCANNetErr();
+  front_can_errors.can_net_err = motors_controller_->GetData(DriverName::FRONT).IsCANNetErr();
+  rear_can_errors.can_net_err = motors_controller_->GetData(DriverName::REAR).IsCANNetErr();
 
-  panther_system_ros_interface_->UpdateMsgErrors(can_errors);
+  panther_system_ros_interface_->UpdateMsgErrors(DriverName::FRONT, front_can_errors);
+  panther_system_ros_interface_->UpdateMsgErrors(DriverName::REAR, rear_can_errors);
 }
 
 void ConcretePantherSystem::UpdateFlagErrors()
@@ -726,15 +745,21 @@ void ConcretePantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusW
   status.summary(level, message);
 }
 
-void ConcretePantherSystem::DefineMotorsController()
-{
-  motors_controller_ = std::make_shared<PantherMotorsController>(
-    canopen_settings_, drivetrain_settings_);
-}
-
 // ----------
 // PantherMini
 // ----------
+
+void PantherMiniSystem::DefineMotorsController()
+{
+  motors_controller_ = std::make_shared<PantherMiniMotorsController>(
+    canopen_settings_, drivetrain_settings_);
+}
+
+void PantherMiniSystem::DefinePantherSystemRosInterface()
+{
+  panther_system_ros_interface_ =
+    std::make_unique<PantherMiniSystemRosInterface>("panther_system_node");
+}
 
 void PantherMiniSystem::UpdateHwStates()
 {
@@ -774,12 +799,10 @@ void PantherMiniSystem::UpdateMotorsStatesDataTimedOut()
 void PantherMiniSystem::UpdateDriverStateMsg()
 {
   panther_system_ros_interface_->UpdateMsgDriversStates(
-    motors_controller_->GetData(DriverName::DEFAULT).GetDriverState(),
-    motors_controller_->GetData(DriverName::DEFAULT).GetDriverState());
+    DriverName::DEFAULT, motors_controller_->GetData(DriverName::DEFAULT).GetDriverState());
 
   panther_system_ros_interface_->UpdateMsgErrorFlags(
-    motors_controller_->GetData(DriverName::DEFAULT),
-    motors_controller_->GetData(DriverName::DEFAULT));
+    DriverName::DEFAULT, motors_controller_->GetData(DriverName::DEFAULT));
 
   CANErrors can_errors;
   can_errors.error = roboteq_error_filter_->IsError();
@@ -789,20 +812,15 @@ void PantherMiniSystem::UpdateDriverStateMsg()
   can_errors.read_pdo_driver_state_error =
     roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
 
-  can_errors.front_motor_states_data_timed_out =
-    motors_controller_->GetData(DriverName::DEFAULT).IsMotorStatesDataTimedOut();
-  can_errors.rear_motor_states_data_timed_out =
+  can_errors.motor_states_data_timed_out =
     motors_controller_->GetData(DriverName::DEFAULT).IsMotorStatesDataTimedOut();
 
-  can_errors.front_driver_state_data_timed_out =
-    motors_controller_->GetData(DriverName::DEFAULT).IsDriverStateDataTimedOut();
-  can_errors.rear_driver_state_data_timed_out =
+  can_errors.driver_state_data_timed_out =
     motors_controller_->GetData(DriverName::DEFAULT).IsDriverStateDataTimedOut();
 
-  can_errors.front_can_net_err = motors_controller_->GetData(DriverName::DEFAULT).IsCANNetErr();
-  can_errors.rear_can_net_err = motors_controller_->GetData(DriverName::DEFAULT).IsCANNetErr();
+  can_errors.can_net_err = motors_controller_->GetData(DriverName::DEFAULT).IsCANNetErr();
 
-  panther_system_ros_interface_->UpdateMsgErrors(can_errors);
+  panther_system_ros_interface_->UpdateMsgErrors(DriverName::DEFAULT, can_errors);
 }
 
 void PantherMiniSystem::UpdateFlagErrors()
@@ -893,12 +911,6 @@ void PantherMiniSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapp
   }
 
   status.summary(level, message);
-}
-
-void PantherMiniSystem::DefineMotorsController()
-{
-  motors_controller_ = std::make_shared<PantherMiniMotorsController>(
-    canopen_settings_, drivetrain_settings_);
 }
 
 }  // namespace panther_hardware_interfaces

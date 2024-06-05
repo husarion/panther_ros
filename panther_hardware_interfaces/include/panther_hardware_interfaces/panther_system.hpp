@@ -87,6 +87,7 @@ protected:
   void UpdateDriverState();
 
   virtual void DefineMotorsController() = 0;
+  virtual void DefinePantherSystemRosInterface() = 0;
 
   virtual void UpdateHwStates() = 0;
   virtual void UpdateMotorsStatesDataTimedOut() = 0;
@@ -161,6 +162,7 @@ public:
   RCLCPP_SHARED_PTR_DEFINITIONS(ConcretePantherSystem)
 
   void DefineMotorsController() override;
+  void DefinePantherSystemRosInterface() override;
 
   void UpdateHwStates() override;
   void UpdateMotorsStatesDataTimedOut() override;
@@ -179,6 +181,7 @@ public:
   RCLCPP_SHARED_PTR_DEFINITIONS(PantherMiniSystem)
 
   void DefineMotorsController() override;
+  void DefinePantherSystemRosInterface() override;
 
   void UpdateHwStates() override;
   void UpdateMotorsStatesDataTimedOut() override;
