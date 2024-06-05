@@ -2,8 +2,8 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.2 (2024-06-05)
+------------------
 * Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
 * Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
 * Merge remote-tracking branch 'origin/ros2-logging' into ros2-logging
