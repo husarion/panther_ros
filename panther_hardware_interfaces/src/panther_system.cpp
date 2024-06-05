@@ -430,7 +430,7 @@ void PantherSystem::ConfigureGPIOController()
 
   gpio_controller_->Start();
 
-  RCLCPP_INFO(logger_, "Successfully configured GPIO controller");
+  RCLCPP_INFO(logger_, "Successfully configured GPIO controller.");
 }
 
 void PantherSystem::ConfigureMotorsController()
