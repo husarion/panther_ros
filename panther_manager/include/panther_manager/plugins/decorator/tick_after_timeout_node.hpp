@@ -22,8 +22,6 @@
 #include "behaviortree_cpp/decorator_node.h"
 #include "behaviortree_cpp/tree_node.h"
 
-#include "panther_manager/behavior_tree_utils.hpp"
-
 namespace panther_manager
 {
 class TickAfterTimeout : public BT::DecoratorNode

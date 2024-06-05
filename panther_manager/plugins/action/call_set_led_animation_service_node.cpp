@@ -18,6 +18,8 @@
 
 #include "behaviortree_cpp/basic_types.h"
 
+#include "panther_manager/behavior_tree_utils.hpp"
+
 namespace panther_manager
 {
 

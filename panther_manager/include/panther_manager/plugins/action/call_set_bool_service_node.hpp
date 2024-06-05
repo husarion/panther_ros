@@ -22,8 +22,6 @@
 
 #include "std_srvs/srv/set_bool.hpp"
 
-#include "panther_manager/behavior_tree_utils.hpp"
-
 namespace panther_manager
 {
 

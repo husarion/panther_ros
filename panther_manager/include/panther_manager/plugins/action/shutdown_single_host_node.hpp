@@ -21,7 +21,6 @@
 
 #include "behaviortree_cpp/basic_types.h"
 
-#include "panther_manager/behavior_tree_utils.hpp"
 #include "panther_manager/plugins/shutdown_host.hpp"
 #include "panther_manager/plugins/shutdown_hosts_node.hpp"
 

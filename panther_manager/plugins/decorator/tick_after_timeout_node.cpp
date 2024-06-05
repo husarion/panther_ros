@@ -14,6 +14,8 @@
 
 #include "panther_manager/plugins/decorator/tick_after_timeout_node.hpp"
 
+#include "panther_manager/behavior_tree_utils.hpp"
+
 namespace panther_manager
 {
 

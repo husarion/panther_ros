@@ -14,6 +14,8 @@
 
 #include "panther_manager/plugins/action/call_set_bool_service_node.hpp"
 
+#include "panther_manager/behavior_tree_utils.hpp"
+
 namespace panther_manager
 {
 

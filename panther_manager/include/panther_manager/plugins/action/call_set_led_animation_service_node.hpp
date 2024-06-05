@@ -22,8 +22,6 @@
 
 #include "panther_msgs/srv/set_led_animation.hpp"
 
-#include "panther_manager/behavior_tree_utils.hpp"
-
 namespace panther_manager
 {
 

@@ -24,6 +24,7 @@
 #include "behaviortree_cpp/tree_node.h"
 #include "rclcpp/rclcpp.hpp"
 
+#include "panther_manager/behavior_tree_utils.hpp"
 #include "panther_manager/plugins/shutdown_host.hpp"
 
 namespace panther_manager
