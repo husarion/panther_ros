@@ -159,7 +159,7 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
 
   RCLCPP_INFO(this->get_logger(), "Blackboard created.");
   return lights_initial_bb;
-}  // namespace panther_manager
+}
 
 void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
 {
