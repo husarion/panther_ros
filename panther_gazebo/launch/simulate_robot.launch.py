@@ -101,12 +101,23 @@ def generate_launch_description():
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
     )
 
+    gz_led_strip_manager = Node(
+        package="panther_gazebo",
+        executable="led_strip_manager",
+        namespace=namespace,
+        arguments=[
+            "--config-file",
+            PathJoinSubstitution(
+                [FindPackageShare("panther_gazebo"), "config", "led_strips.yaml"]
+            ),
+        ],
+    )
+
     gz_light_converter = Node(
         package="panther_gazebo",
-        executable="gz_light_converter_node",
+        executable="light_converter_node",
         parameters=[{"light_name": "rear_light"}],
         namespace=namespace,
-        output="screen",
     )
 
     controller_launch = IncludeLaunchDescription(
@@ -172,6 +183,7 @@ def generate_launch_description():
             SetUseSimTime(True),
             spawn_robot_launch,
             lights_launch,
+            gz_led_strip_manager,
             gz_light_converter,
             controller_launch,
             ekf_launch,

@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gazebo/gz_light_converter_node.hpp"
+#include "panther_gazebo/light_converter_node.hpp"
 
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+
+#include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/image_encodings.hpp"
 
 namespace panther_gazebo
@@ -111,3 +116,23 @@ std::tuple<float, float, float, float> GZLightConverter::calculateMeanRGBA(
 }
 
 }  // namespace panther_gazebo
+
+int main(int argc, char ** argv)
+{
+  rclcpp::init(argc, argv);
+
+  auto gz_light_converter =
+    std::make_shared<panther_gazebo::GZLightConverter>("gz_light_converter");
+  gz_light_converter->Initialize();
+
+  try {
+    rclcpp::spin(gz_light_converter);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "[" << gz_light_converter->get_name() << "] Caught exception: " << e.what()
+              << std::endl;
+  }
+
+  std::cout << "[" << gz_light_converter->get_name() << "] Shutting down" << std::endl;
+  rclcpp::shutdown();
+  return 0;
+}

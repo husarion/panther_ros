@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO_GZ_LIGHTS_CONVERTER_HPP_
-#define PANTHER_GAZEBO_GZ_LIGHTS_CONVERTER_HPP_
+#pragma once
 
 #include <string>
 
@@ -51,5 +50,3 @@ private:
 };
 
 }  // namespace panther_gazebo
-
-#endif  // PANTHER_GAZEBO_GZ_LIGHTS_CONVERTER_HPP_
