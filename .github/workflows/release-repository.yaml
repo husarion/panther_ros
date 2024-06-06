@@ -66,6 +66,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.MAIN_BRANCH }}
+          fetch-depth: 0
 
       - name: Create PR to main branch
         if: ${{ github.event.inputs.release_candidate != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode)
