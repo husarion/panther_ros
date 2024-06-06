@@ -2,6 +2,15 @@
 Changelog for package panther_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
+* Remove unused header include
+* Move utils include to cpp files
+* Update panther_manager/src/lights_manager_node.cpp
+* Revise logging in BT panther_manager
+* Contributors: Dawid Kmak, Paweł Irzyk, pawelirh
+
 2.0.2 (2024-06-05)
 ------------------
 * Merge pull request `#319 <https://github.com/husarion/panther_ros/issues/319>`_ from husarion/ros2-fix-battery-and-manager-tests

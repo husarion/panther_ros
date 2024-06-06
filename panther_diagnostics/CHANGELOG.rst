@@ -2,6 +2,13 @@
 Changelog for package panther_diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
+* MInor logging changes
+* Organize logs in panther_diagnostics and panther_description
+* Contributors: Dawid Kmak, pawelirh
+
 2.0.2 (2024-06-05)
 ------------------
 * Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor

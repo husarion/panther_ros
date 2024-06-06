@@ -2,6 +2,12 @@
 Changelog for package panther_gpiod
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
+* Exception changes in hardware_interfaces
+* Contributors: Dawid Kmak, pawelirh
+
 2.0.2 (2024-06-05)
 ------------------
 * Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor

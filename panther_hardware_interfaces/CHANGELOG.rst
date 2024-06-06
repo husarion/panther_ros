@@ -2,6 +2,20 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
+* Update panther_hardware_interfaces/src/panther_system.cpp
+* Update panther_hardware_interfaces/src/panther_system.cpp
+* Update panther_hardware_interfaces/src/panther_system.cpp
+* Clarified log message
+* Add configuration logs in panther_system
+* MInor logging changes
+* Exception changes in hardware_interfaces
+* Revise panther_battery logs
+* Organize logs: panther_system and panther_imu
+* Contributors: Dawid Kmak, Paweł Irzyk, pawelirh
+
 2.0.2 (2024-06-05)
 ------------------
 * Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
