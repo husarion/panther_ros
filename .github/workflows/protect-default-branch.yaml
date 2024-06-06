@@ -1,10 +1,8 @@
 name: Validate PR head branch
 on:
   pull_request:
-    types:
-      - opened
     branches:
-      - ros2
+      - "ros2"
 
 jobs:
   check-head-branch:
