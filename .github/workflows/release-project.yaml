@@ -122,30 +122,6 @@ jobs:
               "prerelease": "${{ github.event.inputs.prerelease }}"
             }
 
-  tag_docker_images:
-    name: Tag panther docker images as stable
-    if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
-    needs:
-      - release_panther_docker
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Trigger repository build workflow
-        uses: convictional/trigger-workflow-and-wait@v1.6.1
-        with:
-          owner: husarion
-          repo: panther-docker
-          github_token: ${{ secrets.GH_PAT }}
-          workflow_file_name: ros-docker-image.yaml
-          ref: ${{ env.MAIN_BRANCH }}
-          wait_interval: 10
-          client_payload: |
-            {
-              "build_type": "stable",
-              "target_distro": "humble",
-              "target_release": "${{ github.event.inputs.version }}",
-              "target_date": "${{ github.event.inputs.date }}"
-            }
-
   release_panther_rpi_os_image:
     name: Release panther-rpi-os-img repository
     if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
