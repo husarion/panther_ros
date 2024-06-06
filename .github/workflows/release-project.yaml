@@ -6,15 +6,15 @@ on:
     inputs:
       version:
         description: Release version, must match release candidate version. IMPORTANT - required format
-          `X.X.X`, eg `2.0.1`.
+          `X.X.X`, (e.g. `2.0.1`).
         required: true
       date:
         description: Release date stamp, must match release candidate date. IMPORTANT - required format
-          `YYYYMMDD`, eg `20240430`.
+          `YYYYMMDD`, (e.g. `20240430`).
         required: true
       release_name:
         description: Name of the release to be created. Version in the first place is recommended (e.g.
-          `2.0.0-alpha`).
+          `2.0.1-alpha`).
         required: true
       automatic_mode:
         type: boolean
@@ -45,7 +45,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
@@ -63,23 +63,44 @@ jobs:
         with:
           owner: husarion
           repo: panther_ros
-          github_token: ${{ secrets.GITHUB_TOKEN }}   # Use the default GITHUB_TOKEN for local repository
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN for local repository
           workflow_file_name: release-repository.yaml
           ref: ${{ env.RC_BRANCH_NAME }}
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
               "prerelease": "${{ github.event.inputs.prerelease }}"
             }
 
+  rebuild_and_push_docker_images:
+    name: Rebuild panther docker images with new version
+    runs-on: ubuntu-22.04
+    needs:
+      - release_panther_ros
+    steps:
+      - name: Trigger repository build workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: husarion
+          repo: panther-docker
+          github_token: ${{ secrets.GH_PAT }}
+          workflow_file_name: ros-docker-image.yaml
+          ref: ${{ env.RC_BRANCH_NAME }}
+          wait_interval: 10
+          client_payload: |
+            {
+              "build_type": "development",
+              "target_distro": "humble"
+            }
+
   release_panther_docker:
     name: Release panther-docker repository
     needs:
-      - release_panther_ros
+      - rebuild_and_push_docker_images
     runs-on: ubuntu-22.04
     steps:
       - name: Trigger repository release workflow
@@ -93,36 +114,12 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "date": "${{ github.event.inputs.date }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
               "prerelease": "${{ github.event.inputs.prerelease }}"
-            }
-
-  build_and_push_docker_images:
-    name: Build panther docker images
-    if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
-    needs:
-      - release_panther_docker
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Trigger repository build workflow
-        uses: convictional/trigger-workflow-and-wait@v1.6.1
-        with:
-          owner: husarion
-          repo: panther-docker
-          github_token: ${{ secrets.GH_PAT }}
-          workflow_file_name: ros-docker-image.yaml
-          ref: ${{ env.MAIN_BRANCH }}
-          wait_interval: 10
-          client_payload: |
-            {
-              "build_type": "stable",
-              "target_distro": "humble",
-              "target_release": "${{ github.event.inputs.version }}",
-              "target_date": "${{ github.event.inputs.date }}"
             }
 
   release_panther_rpi_os_image:
@@ -143,7 +140,7 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "target_branch": "${{ env.RC_BRANCH_NAME }}",
+              "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",

@@ -2,6 +2,17 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2024-06-06)
+------------------
+* Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
+* Update panther_battery/src/battery_node.cpp
+* Update panther_battery/src/battery_node.cpp
+* MInor logging changes
+* Minor log changes
+* Exception changes in hardware_interfaces
+* Revise panther_battery logs
+* Contributors: Dawid Kmak, Paweł Irzyk, pawelirh
+
 2.0.2 (2024-06-05)
 ------------------
 * Merge pull request `#319 <https://github.com/husarion/panther_ros/issues/319>`_ from husarion/ros2-fix-battery-and-manager-tests
