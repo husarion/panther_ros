@@ -116,7 +116,6 @@ jobs:
             {
               "release_candidate": "${{ env.RC_BRANCH_NAME }}",
               "version": "${{ github.event.inputs.version }}",
-              "date": "${{ github.event.inputs.date }}",
               "release_name": "${{ github.event.inputs.release_name }}",
               "automatic_mode": "${{ github.event.inputs.automatic_mode }}",
               "prerelease": "${{ github.event.inputs.prerelease }}"
