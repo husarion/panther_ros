@@ -19,21 +19,21 @@
 
 #include <panther_hardware_interfaces/gpio_controller.hpp>
 
-const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage{
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN1, gpiod::line::direction::INPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN2, gpiod::line::direction::INPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
-  panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
+const std::vector<GPIOInfo> gpio_config_info_storage{
+  GPIOInfo{GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::GPIN1, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::GPIN2, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
 };
 
 class GPIOControllerWrapper : public panther_hardware_interfaces::GPIOControllerPTH12X
@@ -80,8 +80,8 @@ float TestGPIOController::GetRobotVersion()
 
 TEST_F(TestGPIOController, TestMotorsInit)
 {
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::VMOT_ON));
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::DRIVER_EN));
+  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::VMOT_ON));
+  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::DRIVER_EN));
 }
 
 TEST_F(TestGPIOController, TestWatchdog)
@@ -89,7 +89,7 @@ TEST_F(TestGPIOController, TestWatchdog)
   auto edge_cnt = std::make_shared<int>(0);
 
   gpio_controller_wrapper_->RegisterGPIOEventCallback([this, edge_cnt](const auto & state) mutable {
-    if (state.pin == panther_gpiod::GPIOPin::WATCHDOG) {
+    if (state.pin == GPIOPin::WATCHDOG) {
       (*edge_cnt)++;
     }
   });
@@ -117,33 +117,33 @@ TEST_F(TestGPIOController, TestPinsAvailability)
 TEST_F(TestGPIOController, TestFanEnbale)
 {
   gpio_controller_wrapper_->FanEnable(true);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::FAN_SW));
+  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::FAN_SW));
 
   gpio_controller_wrapper_->FanEnable(false);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::FAN_SW));
+  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::FAN_SW));
 }
 
 TEST_F(TestGPIOController, TestAUXPowerEnbale)
 {
   gpio_controller_wrapper_->AUXPowerEnable(true);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::AUX_PW_EN));
+  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::AUX_PW_EN));
 
   gpio_controller_wrapper_->AUXPowerEnable(false);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::AUX_PW_EN));
+  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::AUX_PW_EN));
 }
 
 TEST_F(TestGPIOController, TestChargerEnable)
 {
   gpio_controller_wrapper_->ChargerEnable(true);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::CHRG_DISABLE));
+  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::CHRG_DISABLE));
 
   gpio_controller_wrapper_->ChargerEnable(false);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(panther_gpiod::GPIOPin::CHRG_DISABLE));
+  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::CHRG_DISABLE));
 }
 
 TEST_F(TestGPIOController, TestQueryControlInterfaceIOStates)
 {
-  std::unordered_map<panther_gpiod::GPIOPin, bool> io_states =
+  std::unordered_map<GPIOPin, bool> io_states =
     gpio_controller_wrapper_->QueryControlInterfaceIOStates();
 
   ASSERT_EQ(io_states.size(), 7);

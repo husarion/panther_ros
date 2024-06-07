@@ -26,7 +26,6 @@ set(PACKAGE_INCLUDE_DEPENDS
     controller_interface
     diagnostic_updater
     hardware_interface
-    panther_gpiod
     panther_msgs
     panther_utils
     PkgConfig
@@ -174,8 +173,8 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_gpiod_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils
-                            panther_gpiod)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_controller PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system_ros_interface
@@ -191,13 +190,12 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_panther_system_ros_interface
     diagnostic_updater
     rclcpp
-    panther_gpiod
     panther_msgs
     panther_utils
     realtime_tools
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
-                        PkgConfig::LIBLELY_COAPP)
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp

@@ -43,7 +43,7 @@ As they usually are rare and singular occurrences, it is better to filter some o
 
 ## GPIOController
 
-The GPIOController provides wrappers for the GPIO driver from the `panther_gpiod` package, handling reading and writing pins of the RPi GPIO. It includes the following utilities:
+The GPIOController provides wrappers for the GPIO driver, handling reading and writing pins of the RPi GPIO. It includes the following utilities:
 
 * `GPIOControllerInterface`: Interface for all wrappers that handle GPIO control tasks.
 * `GPIOControllerPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
