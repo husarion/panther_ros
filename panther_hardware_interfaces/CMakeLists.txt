@@ -53,25 +53,29 @@ set(ENV{PKG_CONFIG_PATH}
     "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
+pkg_check_modules(LIBGPIOD REQUIRED IMPORTED_TARGET libgpiodcxx)
 
 add_library(
   ${PROJECT_NAME} SHARED
-  src/panther_system.cpp
-  src/panther_system_ros_interface.cpp
-  src/panther_system_e_stop.cpp
-  src/motors_controller.cpp
   src/canopen_controller.cpp
   src/gpio_controller.cpp
-  src/roboteq_driver.cpp
+  src/gpio_driver.cpp
+  src/motors_controller.cpp
+  src/panther_imu.cpp
+  src/panther_system_e_stop.cpp
+  src/panther_system_ros_interface.cpp
+  src/panther_system.cpp
   src/roboteq_data_converters.cpp
+  src/roboteq_driver.cpp
   src/roboteq_error_filter.cpp
-  src/utils.cpp
-  src/panther_imu.cpp)
+  src/utils.cpp)
+
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})
+
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
-                      phidgets_spatial_parameters)
+                      PkgConfig::LIBGPIOD phidgets_spatial_parameters)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
@@ -99,9 +103,9 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_imu hardware_interface
                             rclcpp panther_utils panther_msgs phidgets_api)
-
   target_link_libraries(${PROJECT_NAME}_test_panther_imu ${PROJECT_NAME}
                         phidgets_spatial_parameters)
+
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
     test/test_roboteq_error_filter.cpp src/roboteq_error_filter.cpp)
