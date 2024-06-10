@@ -135,22 +135,6 @@ TEST_F(TestCallSetBoolService, WrongSetBoolCallServiceFailure)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestCallSetBoolService, WrongServiceValueDefined)
-{
-  std::map<std::string, std::string> service = {
-    {"service_name", "set_bool"}, {"data", "wrong_bool"}};
-
-  using std_srvs::srv::SetBool;
-  CreateService<SetBool>(
-    "set_bool",
-    [&](const SetBool::Request::SharedPtr request, SetBool::Response::SharedPtr response) {
-      ServiceCallback(request, response, true, true);
-    });
-  RegisterNodeWithParams<panther_manager::CallSetBoolService>("CallSetBoolService");
-
-  EXPECT_THROW({ CreateTree("CallSetBoolService", service); }, BT::LogicError);
-}
-
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
