@@ -19,12 +19,12 @@
   <depend>diagnostic_updater</depend>
   <depend>image_transport</depend>
   <depend>libpng-dev</depend>
-  <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
   <depend>panther_utils</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -21,16 +21,15 @@
 #include <string>
 #include <vector>
 
-#include "gpiod.hpp"
-
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
+
 #include "sensor_msgs/image_encodings.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 
 #include "panther_msgs/srv/set_led_brightness.hpp"
 
-#include "panther_gpiod/gpio_driver.hpp"
 #include "panther_lights/apa102.hpp"
 
 namespace panther_lights
@@ -67,10 +66,14 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
 
-  std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
-    panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
-  gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
-  gpio_driver_->GPIOMonitorEnable();
+  enable_led_control_client_ = this->create_client<std_srvs::srv::SetBool>(
+    "hardware/led_control_enable", rmw_qos_profile_services_default);
+
+  if (!enable_led_control_client_->wait_for_service(std::chrono::seconds(1))) {
+    throw std::runtime_error(
+      "Timeout occurred while waiting for service '" +
+      std::string(enable_led_control_client_->get_service_name()) + "'!");
+  }
 
   chanel_1_ts_ = this->get_clock()->now();
   chanel_2_ts_ = this->get_clock()->now();
@@ -104,10 +107,36 @@ void DriverNode::OnShutdown()
 
   // Give back control over LEDs
   if (panels_initialised_) {
-    SetPowerPin(false);
+    ToggleLEDControl(false);
+  }
+}
+
+void DriverNode::ToggleLEDControl(const bool enable)
+{
+  auto service_name = std::string(enable_led_control_client_->get_service_name());
+  std::string enable_str = enable ? "true" : "false";
+
+  auto request = std::make_shared<SetBoolSrv::Request>();
+  request->data = enable;
+
+  auto result = enable_led_control_client_->async_send_request(request);
+  RCLCPP_DEBUG(get_logger(), "Sent request on '%s' service.", service_name.c_str());
+
+  auto status = result.wait_for(std::chrono::seconds(1));
+
+  if (status != std::future_status::ready) {
+    throw std::runtime_error("Timeout on '" + service_name + "' - service didn't response!");
   }
 
-  gpio_driver_.reset();
+  if (result.get()->success) {
+    RCLCPP_INFO(
+      this->get_logger(), "Service '%s' call is successful! Toggled LED control to '%s'.",
+      service_name.c_str(), enable_str.c_str());
+  } else {
+    RCLCPP_WARN(
+      this->get_logger(), "Service '%s' call is not successful: %s", service_name.c_str(),
+      result.get()->message.c_str());
+  }
 }
 
 void DriverNode::FrameCB(
@@ -145,17 +174,11 @@ void DriverNode::FrameCB(
   }
 
   if (!panels_initialised_) {
-    // Take control over LEDs
-    SetPowerPin(true);
+    ToggleLEDControl(true);
     panels_initialised_ = true;
   }
 
   panel.SetPanel(msg->data);
-}
-
-void DriverNode::SetPowerPin(const bool value)
-{
-  gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::LED_SBC_SEL, value);
 }
 
 void DriverNode::SetBrightnessCB(
@@ -182,30 +205,14 @@ void DriverNode::SetBrightnessCB(
 
 void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"LED panels initialized properly."};
 
   if (!panels_initialised_) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "LED panels initialization failed.";
-
-    auto pin_available = gpio_driver_->IsPinAvailable(panther_gpiod::GPIOPin::LED_SBC_SEL);
-    auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
-
-    diagnostic_msgs::msg::KeyValue pin_available_kv;
-    pin_available_kv.key = "LED_SBC_SEL pin available";
-    pin_available_kv.value = pin_available ? "true" : "false";
-
-    diagnostic_msgs::msg::KeyValue pin_active_kv;
-    pin_active_kv.key = "LED_SBC_SEL pin active";
-    pin_active_kv.value = pin_active ? "true" : "false";
-
-    key_values.push_back(pin_available_kv);
-    key_values.push_back(pin_active_kv);
   }
 
-  status.values = key_values;
   status.summary(error_level, message);
 }
 

@@ -22,15 +22,17 @@
 #include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "std_srvs/srv/set_bool.hpp"
+
 #include "panther_msgs/srv/set_led_brightness.hpp"
 
-#include "panther_gpiod/gpio_driver.hpp"
 #include "panther_lights/apa102.hpp"
 
 namespace panther_lights
 {
 
 using ImageMsg = sensor_msgs::msg::Image;
+using SetBoolSrv = std_srvs::srv::SetBool;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
 /**
@@ -54,11 +56,19 @@ protected:
   int num_led_;
   double frame_timeout_;
   bool panels_initialised_ = false;
+
   rclcpp::Time chanel_1_ts_;
   rclcpp::Time chanel_2_ts_;
 
 private:
   void OnShutdown();
+
+  /**
+   * @brief Toggles LED control on or off.
+   *
+   * @param enable True to enable LED control, false to disable.
+   */
+  void ToggleLEDControl(const bool enable);
 
   /**
    * @brief Callback to execute when a message with new frame is received.
@@ -76,16 +86,18 @@ private:
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
-  void SetPowerPin(const bool value);
+
   void DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status);
 
   apa102::APA102 chanel_1_;
   apa102::APA102 chanel_2_;
 
+  rclcpp::Client<SetBoolSrv>::SharedPtr enable_led_control_client_;
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
+
   std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
   std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
-  std::unique_ptr<panther_gpiod::GPIODriver> gpio_driver_;
+
   diagnostic_updater::Updater diagnostic_updater_;
 };
 
