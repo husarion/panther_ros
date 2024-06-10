@@ -41,6 +41,11 @@ Feedback converters are combined in the `RoboteqData` class to provide the full 
 A class that keeps track of different types of errors. In some rare cases, Roboteq controllers can miss for example the SDO response, or PDO can be received a bit later, which results in a timeout.
 As they usually are rare and singular occurrences, it is better to filter some of these errors and escalate only when a certain number of errors happen.
 
+## GPIODriver
+
+The GPIODriver is a low-level class responsible for direct interaction with the GPIO (General Purpose Input/Output) pins on the Raspberry Pi
+It comprises a wrapper implementation for the GPIOD library, enabling real-time manipulation of GPIO pins on the Raspberry Pi. Offering convenient interfaces for setting pin values, altering their direction, monitoring events, and conducting other GPIO operations, this library facilitates effective GPIO pin management on the Panther robot. It simplifies integration within robotic applications.
+
 ## GPIOController
 
 The GPIOController provides wrappers for the GPIO driver, handling reading and writing pins of the RPi GPIO. It includes the following utilities:

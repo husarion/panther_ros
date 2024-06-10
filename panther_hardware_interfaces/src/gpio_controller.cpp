@@ -175,6 +175,11 @@ bool GPIOControllerPTH12X::ChargerEnable(const bool enable)
   return gpio_driver_->SetPinValue(GPIOPin::CHRG_DISABLE, !enable);
 }
 
+bool GPIOControllerPTH12X::LEDControlEnable(const bool enable)
+{
+  return gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, enable);
+}
+
 std::unordered_map<GPIOPin, bool> GPIOControllerPTH12X::QueryControlInterfaceIOStates() const
 {
   std::unordered_map<GPIOPin, bool> io_state;
@@ -261,6 +266,11 @@ bool GPIOControllerPTH10X::DigitalPowerEnable(const bool /* enable */)
 bool GPIOControllerPTH10X::ChargerEnable(const bool /* enable */)
 {
   throw std::runtime_error("This robot version does not support this functionality.");
+}
+
+bool GPIOControllerPTH10X::LEDControlEnable(const bool enable)
+{
+  return gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, enable);
 }
 
 std::unordered_map<GPIOPin, bool> GPIOControllerPTH10X::QueryControlInterfaceIOStates() const

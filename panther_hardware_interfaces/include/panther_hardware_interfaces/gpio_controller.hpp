@@ -95,13 +95,16 @@ public:
   virtual ~GPIOControllerInterface() = default;
 
   virtual void Start() = 0;
+
+  virtual void EStopTrigger() = 0;
+  virtual void EStopReset() = 0;
+
   virtual bool MotorPowerEnable(const bool enable) = 0;
   virtual bool FanEnable(const bool enable) = 0;
   virtual bool AUXPowerEnable(const bool enable) = 0;
   virtual bool DigitalPowerEnable(const bool enable) = 0;
   virtual bool ChargerEnable(const bool enable) = 0;
-  virtual void EStopTrigger() = 0;
-  virtual void EStopReset() = 0;
+  virtual bool LEDControlEnable(const bool enable) = 0;
 
   virtual std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const = 0;
 
@@ -209,6 +212,14 @@ public:
   bool ChargerEnable(const bool enable) override;
 
   /**
+   * @brief Enables or disables the LED control based on the 'enable' parameter.
+   *
+   * @param enable Set to 'true' to enable the LED control, 'false' to disable.
+   * @return 'true' if the LED control pin value is successfully set, 'false' otherwise.
+   */
+  bool LEDControlEnable(const bool enable) override;
+
+  /**
    * @brief Queries the current IO states of the control interface.
    *
    * @return An unordered map containing the GPIOPin as the key and its active state as the value.
@@ -252,6 +263,7 @@ private:
     GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
     GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
     GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
+    GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
   };
 
   std::mutex e_stop_cv_mtx_;
@@ -337,6 +349,14 @@ public:
   bool ChargerEnable(const bool /* enable */) override;
 
   /**
+   * @brief Enables or disables the LED control based on the 'enable' parameter.
+   *
+   * @param enable Set to 'true' to enable the LED control, 'false' to disable.
+   * @return 'true' if the LED control pin value is successfully set, 'false' otherwise.
+   */
+  bool LEDControlEnable(const bool enable) override;
+
+  /**
    * @brief Returns imitation of the IO states of the control interface. In this version of the
    * robot, there is a lack of support for controlling these IOs.
    *
@@ -351,6 +371,7 @@ private:
   const std::vector<GPIOInfo> gpio_config_info_storage_{
     GPIOInfo{GPIOPin::STAGE2_INPUT, gpiod::line::direction::INPUT},
     GPIOInfo{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
   };
 };
 

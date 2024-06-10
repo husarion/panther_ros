@@ -167,6 +167,15 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_motors_controller
                         PkgConfig::LIBLELY_COAPP)
 
+  ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver test/test_gpio_driver.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_gpiod_driver
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
+                        PkgConfig::LIBGPIOD)
+
   ament_add_gtest(
     ${PROJECT_NAME}_test_gpiod_controller test/test_gpio_controller.cpp
     src/gpio_controller.cpp src/gpio_driver.cpp)
