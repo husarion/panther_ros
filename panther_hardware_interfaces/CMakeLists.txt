@@ -20,26 +20,26 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# Find dependencies
 set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
     diagnostic_updater
+    generate_parameter_library
+    geometry_msgs
     hardware_interface
+    imu_filter_madgwick
     panther_msgs
     panther_utils
+    phidgets_api
     PkgConfig
     pluginlib
     rclcpp
     rclcpp_lifecycle
     realtime_tools
     std_srvs
-    imu_filter_madgwick
-    phidgets_api
-    generate_parameter_library
-    tf2_ros
     tf2_geometry_msgs
-    geometry_msgs)
+    tf2_ros)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -167,14 +167,16 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_motors_controller
                         PkgConfig::LIBLELY_COAPP)
 
-  ament_add_gtest(${PROJECT_NAME}_test_gpiod_controller
-                  test/test_gpio_controller.cpp src/gpio_controller.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_gpiod_controller test/test_gpio_controller.cpp
+    src/gpio_controller.cpp src/gpio_driver.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_gpiod_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_gpiod_controller PkgConfig::LIBGPIOD)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
+                        PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system_ros_interface
@@ -182,7 +184,8 @@ if(BUILD_TESTING)
     src/panther_system_ros_interface.cpp
     src/roboteq_data_converters.cpp
     src/utils.cpp
-    src/gpio_controller.cpp)
+    src/gpio_controller.cpp
+    src/gpio_driver.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -195,7 +198,7 @@ if(BUILD_TESTING)
     realtime_tools
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
-                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBLELY_COAPP)
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp

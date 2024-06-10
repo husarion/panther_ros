@@ -19,6 +19,9 @@
 
 #include <panther_hardware_interfaces/gpio_controller.hpp>
 
+using GPIOInfo = panther_hardware_interfaces::GPIOInfo;
+using GPIOPin = panther_hardware_interfaces::GPIOPin;
+
 const std::vector<GPIOInfo> gpio_config_info_storage{
   GPIOInfo{GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
   GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
