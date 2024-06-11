@@ -55,7 +55,7 @@ public:
 protected:
   int num_led_;
   double frame_timeout_;
-  bool panels_initialised_ = false;
+  bool led_control_granted_ = false;
 
   rclcpp::Time chanel_1_ts_;
   rclcpp::Time chanel_2_ts_;
@@ -63,12 +63,21 @@ protected:
 private:
   void OnShutdown();
 
+  void ClearLEDs();
+
   /**
-   * @brief Toggles LED control on or off.
+   * @brief Toggles LED control ON or OFF.
    *
    * @param enable True to enable LED control, false to disable.
    */
   void ToggleLEDControl(const bool enable);
+
+  /**
+   * @brief Callback to execute when service invoked to toggle LED control returns response.
+   *
+   * @param future Future object with request and the future result of the service call.
+   */
+  void ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future);
 
   /**
    * @brief Callback to execute when a message with new frame is received.

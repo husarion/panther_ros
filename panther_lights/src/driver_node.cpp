@@ -52,6 +52,9 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   this->declare_parameter<double>("frame_timeout", 0.1);
   this->declare_parameter<int>("num_led", 46);
 
+  frame_timeout_ = this->get_parameter("frame_timeout").as_double();
+  num_led_ = this->get_parameter("num_led").as_int();
+
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
 
@@ -63,30 +66,28 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
   const float global_brightness = this->get_parameter("global_brightness").as_double();
-  frame_timeout_ = this->get_parameter("frame_timeout").as_double();
-  num_led_ = this->get_parameter("num_led").as_int();
+  chanel_1_.SetGlobalBrightness(global_brightness);
+  chanel_2_.SetGlobalBrightness(global_brightness);
 
-  enable_led_control_client_ = this->create_client<std_srvs::srv::SetBool>(
+  enable_led_control_client_ = this->create_client<SetBoolSrv>(
     "hardware/led_control_enable", rmw_qos_profile_services_default);
 
-  if (!enable_led_control_client_->wait_for_service(std::chrono::seconds(1))) {
+  if (!enable_led_control_client_->wait_for_service(std::chrono::seconds(3))) {
     throw std::runtime_error(
       "Timeout occurred while waiting for service '" +
       std::string(enable_led_control_client_->get_service_name()) + "'!");
   }
 
+  ToggleLEDControl(true);
+
   chanel_1_ts_ = this->get_clock()->now();
-  chanel_2_ts_ = this->get_clock()->now();
-
-  chanel_1_.SetGlobalBrightness(global_brightness);
-  chanel_2_.SetGlobalBrightness(global_brightness);
-
   chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
     it->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
       chanel_1_ts_ = msg->header.stamp;
     }));
 
+  chanel_2_ts_ = this->get_clock()->now();
   chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
     it->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
@@ -101,41 +102,49 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
 
 void DriverNode::OnShutdown()
 {
-  // Clear LEDs
-  chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
-  chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  ClearLEDs();
 
-  // Give back control over LEDs
-  if (panels_initialised_) {
+  if (led_control_granted_) {
     ToggleLEDControl(false);
   }
 }
 
+void DriverNode::ClearLEDs()
+{
+  chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+}
+
 void DriverNode::ToggleLEDControl(const bool enable)
 {
-  auto service_name = std::string(enable_led_control_client_->get_service_name());
-  std::string enable_str = enable ? "true" : "false";
-
   auto request = std::make_shared<SetBoolSrv::Request>();
   request->data = enable;
 
-  auto result = enable_led_control_client_->async_send_request(request);
-  RCLCPP_DEBUG(get_logger(), "Sent request on '%s' service.", service_name.c_str());
+  auto future_result = enable_led_control_client_->async_send_request(
+    request, std::bind(&DriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
 
-  auto status = result.wait_for(std::chrono::seconds(1));
+  RCLCPP_DEBUG(
+    this->get_logger(), "Sent request toggling LED control to '%s'.", enable ? "true" : "false");
+}
 
-  if (status != std::future_status::ready) {
-    throw std::runtime_error("Timeout on '" + service_name + "' - service didn't response!");
-  }
+void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future)
+{
+  RCLCPP_DEBUG(this->get_logger(), "Received response after toggling LED control.");
 
-  if (result.get()->success) {
-    RCLCPP_INFO(
-      this->get_logger(), "Service '%s' call is successful! Toggled LED control to '%s'.",
-      service_name.c_str(), enable_str.c_str());
+  auto result = future.get();
+
+  auto request = result.first;
+  auto response = result.second;
+
+  if (request->data == true && response->success) {
+    led_control_granted_ = true;
+    ClearLEDs();
+    RCLCPP_INFO(this->get_logger(), "LED control granted.");
+  } else if (request->data == false && response->success) {
+    led_control_granted_ = false;
+    RCLCPP_INFO(this->get_logger(), "LED control revoked.");
   } else {
-    RCLCPP_WARN(
-      this->get_logger(), "Service '%s' call is not successful: %s", service_name.c_str(),
-      result.get()->message.c_str());
+    RCLCPP_WARN(this->get_logger(), "Failed to toggle LED control.");
   }
 }
 
@@ -144,7 +153,10 @@ void DriverNode::FrameCB(
   const rclcpp::Time & last_time, const std::string & panel_name)
 {
   std::string message;
-  if (
+
+  if (!led_control_granted_) {
+    message = "LED control not granted, ignoring frame";
+  } else if (
     (this->get_clock()->now() - rclcpp::Time(msg->header.stamp)) >
     rclcpp::Duration::from_seconds(frame_timeout_)) {
     message = "Timeout exceeded, ignoring frame";
@@ -159,23 +171,13 @@ void DriverNode::FrameCB(
   }
 
   if (!message.empty()) {
-    if (panel_name == "channel_1") {
-      RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
-    } else if (panel_name == "channel_2") {
-      RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
-    }
+    RCLCPP_WARN_STREAM_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
 
     auto warn_msg = message + " on " + panel_name + "!";
     diagnostic_updater_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, warn_msg);
 
     return;
-  }
-
-  if (!panels_initialised_) {
-    ToggleLEDControl(true);
-    panels_initialised_ = true;
   }
 
   panel.SetPanel(msg->data);
@@ -206,11 +208,11 @@ void DriverNode::SetBrightnessCB(
 void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"LED panels initialized properly."};
+  std::string message{"Control over LEDs granted."};
 
-  if (!panels_initialised_) {
+  if (!led_control_granted_) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "LED panels initialization failed.";
+    message = "Control over LEDs not granted, initialization failed!";
   }
 
   status.summary(error_level, message);
