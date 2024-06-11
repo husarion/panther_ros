@@ -8,6 +8,19 @@
 
 Package used to control the Husarion Panther Bumper Lights.
 
+## Build in animation
+
+![E_STOP](./.docs/E_STOP.webp) E_STOP - robot E-stop triggered, not ready to operate
+![READY](./.docs/READY.webp) READY - robot E-stop released, ready to operate
+![LOW_BATTERY](./.docs/LOW_BATTERY.webp) LOW_BATTERY - robot battery level below 40%
+![CRITICAL_BATTERY](./.docs/CRITICAL_BATTERY.webp) CRITICAL_BATTERY - robot battery level below 10%
+![BATTERY_STATE](./.docs/BATTERY_STATE.webp) BATTERY_STATE - robot current battery level
+![CHARGING_BATTERY](./.docs/CHARGING_BATTERY.webp) CHARGING_BATTERY - the robot is charging
+![ERROR](./.docs/ERROR.webp) ERROR - a predefined animation for use in custom use cases
+![GOAL_ACHIEVED](./.docs/GOAL_ACHIEVED.webp)
+![AUTONOMOUS_ACTION](./.docs/AUTONOMOUS_ACTION.webp) AUTONOMOUS_ACTION - custom use cases
+![MANUAL_ACTION](./.docs/MANUAL_ACTION.webp) MANUAL_ACTION - custom use cases
+
 [//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
 
 ## ROS Nodes
