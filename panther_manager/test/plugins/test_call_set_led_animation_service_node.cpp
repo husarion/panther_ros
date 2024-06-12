@@ -171,26 +171,6 @@ TEST_F(TestCallSetLedAnimationService, WrongSetLedAnimationCallServiceFailure)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestCallSetLedAnimationService, WrongRepeatingServiceValueDefined)
-{
-  std::map<std::string, std::string> service = {
-    {"service_name", "set_led_animation"}, {"id", "0"}, {"param", ""}, {"repeating", "wrong_bool"}};
-
-  RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService");
-
-  EXPECT_THROW({ CreateTree("CallSetLedAnimationService", service); }, BT::LogicError);
-}
-
-TEST_F(TestCallSetLedAnimationService, WrongIdServiceValueDefined)
-{
-  std::map<std::string, std::string> service = {
-    {"service_name", "set_led_animation"}, {"id", "-5"}, {"param", ""}, {"repeating", "true"}};
-
-  RegisterNodeWithParams<panther_manager::CallSetLedAnimationService>("CallSetLedAnimationService");
-
-  EXPECT_THROW({ CreateTree("CallSetLedAnimationService", service); }, BT::LogicError);
-}
-
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

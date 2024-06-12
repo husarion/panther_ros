@@ -2,6 +2,9 @@
 Changelog for package panther
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2024-06-06)
+------------------
+
 2.0.2 (2024-06-05)
 ------------------
 * Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
