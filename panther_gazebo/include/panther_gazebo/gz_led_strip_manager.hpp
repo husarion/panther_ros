@@ -17,7 +17,7 @@
 #include <yaml-cpp/yaml.h>
 #include <list>
 #include <string>
-#include "panther_gazebo/led_strip.hpp"
+#include "panther_gazebo/gz_led_strip.hpp"
 
 class LedStripManager
 {

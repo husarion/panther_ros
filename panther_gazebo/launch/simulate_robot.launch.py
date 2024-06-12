@@ -103,7 +103,7 @@ def generate_launch_description():
 
     gz_led_strip_manager = Node(
         package="panther_gazebo",
-        executable="led_strip_manager",
+        executable="gz_led_strip_manager",
         namespace=namespace,
         arguments=[
             "--config-file",
@@ -116,7 +116,6 @@ def generate_launch_description():
     gz_light_converter = Node(
         package="panther_gazebo",
         executable="light_converter_node",
-        parameters=[{"light_name": "rear_light"}],
         namespace=namespace,
     )
 

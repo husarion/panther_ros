@@ -19,7 +19,7 @@
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
 
-#include <panther_gazebo/led_strip.hpp>
+#include <panther_gazebo/gz_led_strip.hpp>
 
 LedStrip::LedStrip(
   const gz::math::Vector3d & position, float led_strip_width, const std::string & topic,
@@ -28,10 +28,10 @@ LedStrip::LedStrip(
 {
   gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(10u);  // Setting to high frequency caused lags
-  node.Subscribe(topic_, &LedStrip::imageCallback, this, opts);
+  node.Subscribe(topic_, &LedStrip::ImageCallback, this, opts);
 }
 
-void LedStrip::imageCallback(const gz::msgs::Image & _msg)
+void LedStrip::ImageCallback(const gz::msgs::Image & msg)
 {
   gz::msgs::Marker_V markerMsgs;
 
@@ -51,7 +51,7 @@ void LedStrip::imageCallback(const gz::msgs::Image & _msg)
     float a = numChannels == 4 ? static_cast<unsigned char>(data[pixelIndex + 3]) / 255.0f : 1.0f;
 
     auto markerMsg = markerMsgs.add_marker();
-    createMarker(markerMsg, i + start_id_);
+    CreateMarker(markerMsg, i + start_id_);
     SetColor(markerMsg, r, g, b, a);
 
     // Set the position and size of the box
@@ -68,7 +68,7 @@ void LedStrip::imageCallback(const gz::msgs::Image & _msg)
   node.Request("/marker_array", markerMsgs, timeout, res, result);
 }
 
-void LedStrip::createMarker(ignition::msgs::Marker * marker, int id)
+void LedStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
 {
   marker->set_ns("default");
   marker->set_id(id);

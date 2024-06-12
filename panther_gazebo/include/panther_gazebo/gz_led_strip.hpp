@@ -28,13 +28,14 @@ public:
     int start_id);
 
 private:
-  void imageCallback(const gz::msgs::Image & _msg);
-  void createMarker(ignition::msgs::Marker * marker, int id);
+  void ImageCallback(const gz::msgs::Image & msg);
+  void CreateMarker(ignition::msgs::Marker * marker, int id);
   void SetColor(gz::msgs::Marker * marker, float r, float g, float b, float a);
 
-  gz::transport::Node node;
-  gz::math::Vector3d position_;
-  float led_strip_width_;
-  std::string topic_;
-  int start_id_;
+  const int start_id_;
+  const float led_strip_width_;
+  const std::string topic_;
+
+  const gz::math::Vector3d position_;
+  gz::transport::Node node_;
 };

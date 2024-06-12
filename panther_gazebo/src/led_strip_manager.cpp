@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gazebo/led_strip_manager.hpp"
+#include "panther_gazebo/gz_led_strip_manager.hpp"
 
 LedStripManager::LedStripManager(const std::string & config_file)
 {
