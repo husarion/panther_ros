@@ -45,12 +45,12 @@ public:
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
   /**
-   * @brief Initializes the driver class. This method must be executed manually after creating the
-   * node.
+   * @brief Initializes the ImageTransport subscribers for to subscribe frames. IMPORTANT: this must
+   * be invoked after the node class is instantiated to establish whole functionality.
    *
    * @param it ImageTransport object used to create subscribers for Image topics.
    */
-  void Initialize(const std::shared_ptr<image_transport::ImageTransport> & it);
+  void InitializeSubscribers(const std::shared_ptr<image_transport::ImageTransport> & it);
 
 protected:
   int num_led_;

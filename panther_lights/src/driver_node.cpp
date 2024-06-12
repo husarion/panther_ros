@@ -55,16 +55,6 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
   num_led_ = this->get_parameter("num_led").as_int();
 
-  diagnostic_updater_.setHardwareID("Bumper Lights");
-  diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
-
-  RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
-}
-
-void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTransport> & it)
-{
-  RCLCPP_INFO(this->get_logger(), "Initializing.");
-
   const float global_brightness = this->get_parameter("global_brightness").as_double();
   chanel_1_.SetGlobalBrightness(global_brightness);
   chanel_2_.SetGlobalBrightness(global_brightness);
@@ -72,13 +62,18 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
   enable_led_control_client_ = this->create_client<SetBoolSrv>(
     "hardware/led_control_enable", rmw_qos_profile_services_default);
 
-  if (!enable_led_control_client_->wait_for_service(std::chrono::seconds(3))) {
-    throw std::runtime_error(
-      "Timeout occurred while waiting for service '" +
-      std::string(enable_led_control_client_->get_service_name()) + "'!");
-  }
+  set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
+    "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
 
-  ToggleLEDControl(true);
+  diagnostic_updater_.setHardwareID("Bumper Lights");
+  diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
+
+  RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
+}
+
+void DriverNode::InitializeSubscribers(const std::shared_ptr<image_transport::ImageTransport> & it)
+{
+  RCLCPP_INFO(this->get_logger(), "Initializing ImageTransport subscribers.");
 
   chanel_1_ts_ = this->get_clock()->now();
   chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
@@ -94,10 +89,7 @@ void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTranspor
       chanel_2_ts_ = msg->header.stamp;
     }));
 
-  set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
-    "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
-
-  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
+  RCLCPP_INFO(this->get_logger(), "Initialized ImageTransport successfully.");
 }
 
 void DriverNode::OnShutdown()
@@ -120,7 +112,13 @@ void DriverNode::ToggleLEDControl(const bool enable)
   auto request = std::make_shared<SetBoolSrv::Request>();
   request->data = enable;
 
-  auto future_result = enable_led_control_client_->async_send_request(
+  if (!enable_led_control_client_->wait_for_service(std::chrono::seconds(3))) {
+    throw std::runtime_error(
+      "Timeout occurred while waiting for service '" +
+      std::string(enable_led_control_client_->get_service_name()) + "'!");
+  }
+
+  enable_led_control_client_->async_send_request(
     request, std::bind(&DriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
 
   RCLCPP_DEBUG(
@@ -139,12 +137,13 @@ void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWith
   if (request->data == true && response->success) {
     led_control_granted_ = true;
     ClearLEDs();
-    RCLCPP_INFO(this->get_logger(), "LED control granted.");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control granted.");
   } else if (request->data == false && response->success) {
     led_control_granted_ = false;
-    RCLCPP_INFO(this->get_logger(), "LED control revoked.");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control revoked.");
   } else {
-    RCLCPP_WARN(this->get_logger(), "Failed to toggle LED control.");
+    RCLCPP_ERROR_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, "Failed to toggle LED control.");
   }
 }
 
@@ -152,11 +151,17 @@ void DriverNode::FrameCB(
   const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
   const rclcpp::Time & last_time, const std::string & panel_name)
 {
-  std::string message;
-
   if (!led_control_granted_) {
-    message = "LED control not granted, ignoring frame";
-  } else if (
+    ToggleLEDControl(true);
+
+    auto message = "LED control not granted, ignoring frame!";
+    RCLCPP_WARN_STREAM_SKIPFIRST_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
+    return;
+  }
+
+  std::string message;
+  if (
     (this->get_clock()->now() - rclcpp::Time(msg->header.stamp)) >
     rclcpp::Duration::from_seconds(frame_timeout_)) {
     message = "Timeout exceeded, ignoring frame";
@@ -212,7 +217,7 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
 
   if (!led_control_granted_) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "Control over LEDs not granted, initialization failed!";
+    message = "Control over LEDs not granted, driver is not functional!";
   }
 
   status.summary(error_level, message);

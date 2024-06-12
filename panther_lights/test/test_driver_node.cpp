@@ -59,7 +59,7 @@ public:
       it_->advertise("lights/driver/channel_2_frame", 5));
     set_brightness_client_ =
       node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness");
-    node_->Initialize(it_);
+    node_->InitializeSubscribers(it_);
   }
 
   ~TestDriverNode() { rclcpp::shutdown(); }
