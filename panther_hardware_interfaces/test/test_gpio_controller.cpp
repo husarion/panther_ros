@@ -37,6 +37,7 @@ const std::vector<GPIOInfo> gpio_config_info_storage{
   GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
   GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
   GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT},
 };
 
 class GPIOControllerWrapper : public panther_hardware_interfaces::GPIOControllerPTH12X
@@ -142,6 +143,15 @@ TEST_F(TestGPIOController, TestChargerEnable)
 
   gpio_controller_wrapper_->ChargerEnable(false);
   EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::CHRG_DISABLE));
+}
+
+TEST_F(TestGPIOController, TestLEDControlEnable)
+{
+  gpio_controller_wrapper_->LEDControlEnable(true);
+  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::LED_SBC_SEL));
+
+  gpio_controller_wrapper_->LEDControlEnable(false);
+  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::LED_SBC_SEL));
 }
 
 TEST_F(TestGPIOController, TestQueryControlInterfaceIOStates)
