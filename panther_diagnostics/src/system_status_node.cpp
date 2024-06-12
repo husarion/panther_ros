@@ -33,6 +33,8 @@ namespace panther_diagnostics
 SystemStatusNode::SystemStatusNode(const std::string & node_name)
 : rclcpp::Node(node_name), diagnostic_updater_(this)
 {
+  RCLCPP_INFO(this->get_logger(), "Initializing.");
+
   param_listener_ =
     std::make_shared<system_status::ParamListener>(this->get_node_parameters_interface());
   params_ = param_listener_->get_params();
@@ -46,7 +48,7 @@ SystemStatusNode::SystemStatusNode(const std::string & node_name)
   diagnostic_updater_.setHardwareID(params_.hardware_id);
   diagnostic_updater_.add("OS status", this, &SystemStatusNode::DiagnoseSystem);
 
-  RCLCPP_INFO(this->get_logger(), "Node started");
+  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
 void SystemStatusNode::TimerCallback()
@@ -91,8 +93,8 @@ float SystemStatusNode::GetCPUTemperature(const std::string & filename) const
     file.close();
     return temperature / 1000.0;
   } catch (const std::runtime_error & e) {
-    const std::string msg = std::string("Error when trying to CPU temperature: ") + e.what();
-    RCLCPP_ERROR_STREAM(this->get_logger(), msg);
+    RCLCPP_ERROR_STREAM(
+      this->get_logger(), "An exception ocurred while reading CPU temperature: " << e.what());
   }
   return std::numeric_limits<float>::quiet_NaN();
 }
@@ -130,11 +132,10 @@ panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
 
 void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  params_ = param_listener_->get_params();
-
   auto error_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
-  std::string message = "Status is OK";
+  std::string message = "System parameters are within acceptable limits.";
 
+  params_ = param_listener_->get_params();
   auto system_status = GetSystemStatus();
 
   status.add("CPU usage", system_status.cpu_mean_usage);
@@ -151,11 +152,11 @@ void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrappe
 
   for (const auto & [limit, key_value] : limits) {
     if (std::isnan(std::stod(key_value.value))) {
-      message = "Status is Error. One of the values is unknown.";
+      message = "Detected system parameter with unknown value.";
       error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
       break;
     } else if (std::stod(key_value.value) > limit) {
-      message = "Status is Warn. One of the values is over acceptable threshold.";
+      message = "At least one system parameter is above the warning threshold.";
       error_level = diagnostic_updater::DiagnosticStatusWrapper::WARN;
     }
   }

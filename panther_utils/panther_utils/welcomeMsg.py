@@ -52,13 +52,13 @@ def welcomeMsg(
     pth_txt = click.style(pth_txt, bold=True)
 
     stats_to_show = {
-        "Serial number": serial_number,
-        "Robot version": robot_hw_version,
-        "ROS driver version": pkg_version,
+        "Serial Number": serial_number,
+        "Robot Version": robot_hw_version,
+        "ROS Driver Version": pkg_version,
         **additional_stats,
         "Website": "https://husarion.com",
         "Support": "https://community.husarion.com/",
-        "Bugtracker": "https://github.com/husarion/panther_ros/issues",
+        "Bug Tracker": "https://github.com/husarion/panther_ros/issues",
     }
 
     nested_list_of_stats = [

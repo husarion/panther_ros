@@ -8,6 +8,23 @@
 
 Package used to control the Husarion Panther Bumper Lights.
 
+## Build in animation
+
+The table below shows the default animations for the robot.
+
+| Name                  | Description                            | Animation                                                                                                                   |
+| --------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **E_STOP**            | E-stop triggered, not ready to operate | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/E_STOP.webp" width="400">            |
+| **READY**             | E-stop released, ready to operate      | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/READY.webp" width="400">             |
+| **LOW_BATTERY**       | battery level below 40%                | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/LOW_BATTERY.webp" width="400">       |
+| **CRITICAL_BATTERY**  | battery level below 10%                | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CRITICAL_BATTERY.webp" width="400">  |
+| **BATTERY_STATE**     | current battery level                  | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/BATTERY_STATE.webp" width="400">     |
+| **CHARGING_BATTERY**  | battery is charging                    | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CHARGING_BATTERY.webp" width="400">  |
+| **ERROR**             | custom use cases                       | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/ERROR.webp" width="400">             |
+| **GOAL_ACHIEVED**     | custom use cases                       | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/GOAL_ACHIEVED.webp" width="400">     |
+| **AUTONOMOUS_ACTION** | custom use cases                       | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/AUTONOMOUS_ACTION.webp" width="400"> |
+| **MANUAL_ACTION**     | custom use cases                       | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/MANUAL_ACTION.webp" width="400">     |
+
 [//]: # (ROS_API_PACKAGE_DESCRIPTION_END)
 
 ## ROS Nodes

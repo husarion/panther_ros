@@ -62,6 +62,7 @@ def generate_launch_description():
             ("set_pose", "ekf_node/set_pose"),
             ("toggle", "ekf_node/toggle"),
         ],
+        emulate_tty=True,
     )
 
     actions = [

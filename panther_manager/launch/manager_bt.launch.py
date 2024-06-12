@@ -80,6 +80,7 @@ def generate_launch_description():
             {"bt_project_path": lights_bt_project_path},
         ],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     safety_manager_node = Node(
@@ -94,6 +95,7 @@ def generate_launch_description():
             },
         ],
         namespace=namespace,
+        emulate_tty=True,
         condition=IfCondition(PythonExpression([panther_version, ">=", "1.2"])),
     )
 

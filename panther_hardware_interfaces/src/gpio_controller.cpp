@@ -147,7 +147,7 @@ void GPIOControllerPTH12X::EStopReset()
   if (e_stop_state) {
     watchdog_->TurnOff();
     throw std::runtime_error(
-      "E-stop reset failed, check for pressed E-stop buttons or other triggers");
+      "E-stop reset failed, check for pressed E-stop buttons or other triggers.");
   }
 }
 
@@ -233,7 +233,7 @@ void GPIOControllerPTH10X::EStopReset()
 {
   if (!gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT)) {
     throw std::runtime_error(
-      "Motors are not powered up. Please verify if the main switch is in the 'STAGE2' position");
+      "Motors are not powered up. Please verify if the main switch is in the 'STAGE2' position.");
   }
 }
 
@@ -241,7 +241,7 @@ bool GPIOControllerPTH10X::MotorPowerEnable(const bool enable)
 {
   if (enable && !gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT)) {
     throw std::runtime_error(
-      "Motors are not powered up. Please verify if the main switch is in the 'STAGE2' position");
+      "Motors are not powered up. Please verify if the main switch is in the 'STAGE2' position.");
   }
 
   return gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::MOTOR_ON, enable);
@@ -249,22 +249,22 @@ bool GPIOControllerPTH10X::MotorPowerEnable(const bool enable)
 
 bool GPIOControllerPTH10X::AUXPowerEnable(const bool /* enable */)
 {
-  throw std::runtime_error("This robot version does not support this functionality");
+  throw std::runtime_error("This robot version does not support this functionality.");
 };
 
 bool GPIOControllerPTH10X::FanEnable(const bool /* enable */)
 {
-  throw std::runtime_error("This robot version does not support this functionality");
+  throw std::runtime_error("This robot version does not support this functionality.");
 }
 
 bool GPIOControllerPTH10X::DigitalPowerEnable(const bool /* enable */)
 {
-  throw std::runtime_error("This robot version does not support this functionality");
+  throw std::runtime_error("This robot version does not support this functionality.");
 };
 
 bool GPIOControllerPTH10X::ChargerEnable(const bool /* enable */)
 {
-  throw std::runtime_error("This robot version does not support this functionality");
+  throw std::runtime_error("This robot version does not support this functionality.");
 }
 
 std::unordered_map<panther_gpiod::GPIOPin, bool>

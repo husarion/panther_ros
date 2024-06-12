@@ -56,6 +56,7 @@ def generate_launch_description():
         name="lights_driver_node",
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
+        emulate_tty=True,
         on_exit=Shutdown(),
     )
 
@@ -68,6 +69,7 @@ def generate_launch_description():
             {"user_led_animations_file": user_led_animations_file},
         ],
         namespace=namespace,
+        emulate_tty=True,
         on_exit=Shutdown(),
     )
 

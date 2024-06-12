@@ -66,16 +66,16 @@ void RoboteqBattery::Reset(const rclcpp::Time & header_stamp)
 void RoboteqBattery::ValidateDriverStateMsg(const rclcpp::Time & header_stamp)
 {
   if (!driver_state_) {
-    throw std::runtime_error("Waiting for driver state message to arrive");
+    throw std::runtime_error("Waiting for driver state message to arrive.");
   }
 
   rclcpp::Time msg_time(driver_state_->header.stamp);
   if ((header_stamp - msg_time) > rclcpp::Duration::from_seconds(driver_state_timeout_)) {
-    throw std::runtime_error("Driver state message timeout");
+    throw std::runtime_error("Driver state message timeout.");
   }
 
   if (driver_state_->front.can_net_err || driver_state_->rear.can_net_err) {
-    throw std::runtime_error("Motor controller CAN network error");
+    throw std::runtime_error("Motor controller CAN network error.");
   }
 }
 

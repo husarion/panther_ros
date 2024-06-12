@@ -34,23 +34,23 @@ APA102::APA102(const std::string & device, const std::uint32_t speed, const bool
 : fd_(open(device.c_str(), O_WRONLY)), device_(device), speed_(speed)
 {
   if (fd_ < 0) {
-    throw std::ios_base::failure("Failed to open " + device_);
+    throw std::ios_base::failure("Failed to open " + device_ + ".");
   }
 
   static std::uint8_t mode = cs_high ? SPI_MODE_3 : SPI_MODE_3 | SPI_CS_HIGH;
   if (ioctl(fd_, SPI_IOC_WR_MODE32, &mode) == -1) {
     close(fd_);
-    throw std::ios_base::failure("Failed to set mode for " + device_);
+    throw std::ios_base::failure("Failed to set mode for " + device_ + ".");
   }
 
   if (ioctl(fd_, SPI_IOC_WR_BITS_PER_WORD, &kBits) == -1) {
     close(fd_);
-    throw std::ios_base::failure("Can't set bits per word for " + device_);
+    throw std::ios_base::failure("Can't set bits per word for " + device_ + ".");
   }
 
   if (ioctl(fd_, SPI_IOC_WR_MAX_SPEED_HZ, &speed_) == -1) {
     close(fd_);
-    throw std::ios_base::failure("Can't set speed for " + device_);
+    throw std::ios_base::failure("Can't set speed for " + device_ + ".");
   }
 }
 
@@ -59,7 +59,7 @@ APA102::~APA102() { close(fd_); }
 void APA102::SetGlobalBrightness(const float brightness)
 {
   if (brightness < 0.0f || brightness > 1.0f) {
-    throw std::out_of_range("Brightness out of range <0.0,1.0>");
+    throw std::out_of_range("Brightness out of range <0.0,1.0>.");
   }
   SetGlobalBrightness(std::uint8_t(ceil(brightness * 31.0f)));
 }
@@ -67,7 +67,7 @@ void APA102::SetGlobalBrightness(const float brightness)
 void APA102::SetGlobalBrightness(const std::uint8_t brightness)
 {
   if (brightness > 31) {
-    throw std::out_of_range("Brightness out of range <0,31>");
+    throw std::out_of_range("Brightness out of range <0,31>.");
   }
   global_brightness_ = std::uint16_t(brightness);
 }
@@ -82,7 +82,7 @@ std::vector<std::uint8_t> APA102::RGBAFrameToBGRBuffer(
   const std::vector<std::uint8_t> & frame) const
 {
   if (frame.size() % 4 != 0) {
-    throw std::runtime_error("Incorrect number of bytes to convert frame");
+    throw std::runtime_error("Incorrect number of bytes to convert frame.");
   }
 
   const std::size_t buffer_size = (4 * sizeof(std::uint8_t)) + frame.size() +
@@ -122,7 +122,7 @@ void APA102::SPISendBuffer(const std::vector<std::uint8_t> & buffer) const
   const int ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &tr);
 
   if (ret < 1) {
-    throw std::ios_base::failure("Failed to send data over SPI " + device_);
+    throw std::ios_base::failure("Failed to send data over SPI " + device_ + ".");
   }
 }
 
