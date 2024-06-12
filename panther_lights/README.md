@@ -150,7 +150,7 @@ The `led_animations` section contains list with definitions for various animatio
 
 Default animations can be found in the table below:
 
-|  ID   | NAME              | PRIORITY | DESCRIPTION                                                                                                           |
+|  ID   | NAME              | PRIORITY | ANIMATION                                                                                                           |
 | :---: | ----------------- | :------: | --------------------------------------------------------------------------------------------------------------------- |
 |   0   | E_STOP            |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/E_STOP.webp" width="400">            |
 |   1   | READY             |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/READY.webp" width="400">             |
