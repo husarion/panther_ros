@@ -19,14 +19,14 @@
 #include <string>
 #include "panther_gazebo/gz_led_strip.hpp"
 
-class LedStripManager
+class LEDStripManager
 {
 public:
-  explicit LedStripManager(const std::string & config_file);
+  explicit LEDStripManager(const std::string & config_file);
   void LoadConfig(const std::string & config_file);
-  void CreateLedStrips();
+  void CreateLEDStrips();
 
 private:
   YAML::Node config_;
-  std::list<LedStrip> led_strips_;
+  std::list<LEDStrip> led_strips_;
 };

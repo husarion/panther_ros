@@ -14,8 +14,11 @@
 
 #pragma once
 
+#include <chrono>
+#include <memory>
 #include <string>
-
+#include <tuple>
+#include <vector>
 #include "rclcpp/rclcpp.hpp"
 
 #include "image_transport/image_transport.hpp"
@@ -37,9 +40,9 @@ public:
   void Initialize();
 
 private:
-  void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name_);
+  void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name);
   std::tuple<float, float, float, float> calculateMeanRGBA(
-    const std::vector<unsigned char> & rgbaData);
+    const std::vector<unsigned char> & rgba_data);
 
   rclcpp::Publisher<ros_gz_interfaces::msg::Light>::SharedPtr light_pub_;
   std::shared_ptr<image_transport::ImageTransport> it_;

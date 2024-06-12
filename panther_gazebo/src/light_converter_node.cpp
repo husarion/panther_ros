@@ -54,7 +54,13 @@ void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string l
   }
 
   if (!warn_msg.empty()) {
-    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000, warn_msg);
+    if (led_name == "front_light") {
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, warn_msg << " on " << led_name << "!");
+    } else if (led_name == "rear_light") {
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, warn_msg << " on " << led_name << "!");
+    }
     return;
   }
 
@@ -91,9 +97,9 @@ void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string l
 }
 
 std::tuple<float, float, float, float> GZLightConverter::calculateMeanRGBA(
-  const std::vector<unsigned char> & rgbaData)
+  const std::vector<unsigned char> & rgba_data)
 {
-  size_t pixelCount = rgbaData.size() / 4;
+  size_t pixelCount = rgba_data.size() / 4;
 
   unsigned long long sumR = 0;
   unsigned long long sumG = 0;
@@ -101,10 +107,10 @@ std::tuple<float, float, float, float> GZLightConverter::calculateMeanRGBA(
   unsigned long long sumA = 0;
 
   for (size_t i = 0; i < pixelCount; ++i) {
-    sumR += rgbaData[i * 4 + 0];
-    sumG += rgbaData[i * 4 + 1];
-    sumB += rgbaData[i * 4 + 2];
-    sumA += rgbaData[i * 4 + 3];
+    sumR += rgba_data[i * 4 + 0];
+    sumG += rgba_data[i * 4 + 1];
+    sumB += rgba_data[i * 4 + 2];
+    sumA += rgba_data[i * 4 + 3];
   }
 
   float meanR = static_cast<float>(sumR) / pixelCount;

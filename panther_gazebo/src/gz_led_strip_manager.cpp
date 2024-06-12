@@ -14,28 +14,24 @@
 
 #include "panther_gazebo/gz_led_strip_manager.hpp"
 
-LedStripManager::LedStripManager(const std::string & config_file)
+LEDStripManager::LEDStripManager(const std::string & config_file)
 {
   LoadConfig(config_file);
-  CreateLedStrips();
+  CreateLEDStrips();
 }
 
-void LedStripManager::LoadConfig(const std::string & config_file)
+void LEDStripManager::LoadConfig(const std::string & config_file)
 {
   try {
     config_ = YAML::LoadFile(config_file);
   } catch (const std::exception & e) {
-    std::cerr << "Error loading configuration: " << e.what() << std::endl;
-    throw;
+    throw std::runtime_error("Error loading configuration: " + e.what());
   }
 }
 
-void LedStripManager::CreateLedStrips()
+void LEDStripManager::CreateLEDStrips()
 {
-  for (YAML::const_iterator it = config_.begin(); it != config_.end(); ++it) {
-    auto channel = it->first.as<std::string>();
-    auto details = it->second;
-
+  for (const auto & [channel, details] : config_) {
     auto position = details["position"].as<std::vector<float>>();
     gz::math::Vector3d position_vector(position[0], position[1], position[2]);
     float led_strip_width = details["led_strip_width"].as<float>();
@@ -65,7 +61,7 @@ int main(int argc, char ** argv)
   }
 
   try {
-    LedStripManager manager(configFilePath);
+    LEDStripManager manager(configFilePath);
     gz::transport::waitForShutdown();
   } catch (const std::exception & e) {
     std::cerr << "Error: " << e.what() << std::endl;

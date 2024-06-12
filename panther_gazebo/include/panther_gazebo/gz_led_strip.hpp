@@ -14,16 +14,18 @@
 
 #pragma once
 
+#include <string>
+
 #include <yaml-cpp/yaml.h>
 #include <gz/common/Time.hh>
 #include <gz/math.hh>
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
 
-class LedStrip
+class LEDStrip
 {
 public:
-  LedStrip(
+  LEDStrip(
     const gz::math::Vector3d & position, float led_strip_width, const std::string & topic,
     int start_id);
 

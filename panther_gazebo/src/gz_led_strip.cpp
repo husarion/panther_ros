@@ -21,26 +21,27 @@
 
 #include <panther_gazebo/gz_led_strip.hpp>
 
-LedStrip::LedStrip(
+LEDStrip::LEDStrip(
   const gz::math::Vector3d & position, float led_strip_width, const std::string & topic,
   int start_id)
 : position_(position), led_strip_width_(led_strip_width), topic_(topic), start_id_(start_id)
 {
   gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(10u);  // Setting to high frequency caused lags
-  node.Subscribe(topic_, &LedStrip::ImageCallback, this, opts);
+  node.Subscribe(topic_, &LEDStrip::ImageCallback, this, opts);
 }
 
-void LedStrip::ImageCallback(const gz::msgs::Image & msg)
+void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
-  gz::msgs::Marker_V markerMsgs;
+  gz::msgs::Marker_V marker_msgs;
 
-  int imageWidth = _msg.width();
-  float marker_width = led_strip_width_ / imageWidth;
-  float y_start_pos = led_strip_width_ / 2 - marker_width / 2;
+  const int image_width = _msg.width();
+  const float marker_width = led_strip_width_ / image_width;
+  const float y_start_pos = led_strip_width_ / 2.0f - marker_width / 2.0f;
 
   const std::string & data = _msg.data();
-  int numChannels = _msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3 : 4;
+  const unsigned numChannels = _msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
+                                                                                               : 4;
 
   for (int i = 0; i < imageWidth; ++i) {
     // Extract the pixel color
@@ -50,7 +51,7 @@ void LedStrip::ImageCallback(const gz::msgs::Image & msg)
     float b = static_cast<unsigned char>(data[pixelIndex + 2]) / 255.0f;
     float a = numChannels == 4 ? static_cast<unsigned char>(data[pixelIndex + 3]) / 255.0f : 1.0f;
 
-    auto markerMsg = markerMsgs.add_marker();
+    auto markerMsg = marker_msgs.add_marker();
     CreateMarker(markerMsg, i + start_id_);
     SetColor(markerMsg, r, g, b, a);
 
@@ -65,10 +66,10 @@ void LedStrip::ImageCallback(const gz::msgs::Image & msg)
   gz::msgs::Boolean res;
   bool result;
   unsigned int timeout = 1;
-  node.Request("/marker_array", markerMsgs, timeout, res, result);
+  node.Request("/marker_array", marker_msgs, timeout, res, result);
 }
 
-void LedStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
+void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
 {
   marker->set_ns("default");
   marker->set_id(id);
@@ -78,7 +79,7 @@ void LedStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
   marker->set_visibility(gz::msgs::Marker::GUI);
 }
 
-void LedStrip::SetColor(gz::msgs::Marker * marker, float r, float g, float b, float a)
+void LEDStrip::SetColor(gz::msgs::Marker * marker, float r, float g, float b, float a)
 {
   // Make default gray color
   float maxBrightness = std::max({r, g, b});
