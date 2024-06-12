@@ -50,19 +50,47 @@ def generate_launch_description():
         choices=["True", "False"],
     )
 
-    robot_localization_node = Node(
+    ekf_local = Node(
         package="robot_localization",
         executable="ekf_node",
-        name="ekf_node",
+        name="ekf_local",
         parameters=[ekf_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),
-            ("enable", "ekf_node/enable"),
-            ("set_pose", "ekf_node/set_pose"),
-            ("toggle", "ekf_node/toggle"),
+            ("enable", "~/enable"),
+            ("set_pose", "~/set_pose"),
+            ("toggle", "~/toggle"),
+            ("odometry/filtered", "odometry/filtered/local"),
         ],
-        emulate_tty=True,
+    )
+
+    ekf_global = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_global",
+        parameters=[ekf_config_path, {"tf_prefix": namespace}],
+        namespace=namespace,
+        remappings=[
+            ("/diagnostics", "diagnostics"),
+            ("enable", "~/enable"),
+            ("set_pose", "~/set_pose"),
+            ("toggle", "~/toggle"),
+            ("odometry/filtered", "odometry/filtered/global"),
+        ],
+    )
+
+    navsat_transform = Node(
+        package="robot_localization",
+        executable="navsat_transform_node",
+        name="navsat_transform",
+        parameters=[ekf_config_path, {"tf_prefix": namespace}],
+        namespace=namespace,
+        remappings=[
+            ("odometry/filtered", "odometry/filtered/global"),
+            ("gps/fix", "gps/fix"),
+            ("odometry/gps", "odometry/gps"),
+        ],
     )
 
     actions = [
@@ -70,7 +98,9 @@ def generate_launch_description():
         declare_namespace_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),
-        robot_localization_node,
+        ekf_local,
+        ekf_global,
+        navsat_transform,
     ]
 
     return LaunchDescription(actions)
