@@ -63,6 +63,9 @@ protected:
 private:
   void OnShutdown();
 
+  /**
+   * @brief Clears all LEDs on both channels.
+   */
   void ClearLEDs();
 
   /**
@@ -75,7 +78,7 @@ private:
   /**
    * @brief Callback to execute when service invoked to toggle LED control returns response.
    *
-   * @param future Future object with request and the future result of the service call.
+   * @param future Future object with request and response of the service call.
    */
   void ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future);
 
