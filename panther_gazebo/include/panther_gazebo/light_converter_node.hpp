@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef PANTHER_GAZEBO_LIGHT_CONVERTER_NODE_HPP_
+#define PANTHER_GAZEBO_LIGHT_CONVERTER_NODE_HPP_
 
 #include <chrono>
 #include <memory>
@@ -24,6 +25,8 @@
 #include "image_transport/image_transport.hpp"
 #include "ros_gz_interfaces/msg/light.hpp"
 #include "sensor_msgs/msg/image.hpp"
+
+#include "panther_gazebo/common.hpp"
 
 using namespace std::chrono_literals;
 
@@ -41,8 +44,8 @@ public:
 
 private:
   void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name);
-  std::tuple<float, float, float, float> calculateMeanRGBA(
-    const std::vector<unsigned char> & rgba_data);
+  RGBAColor calculateMeanRGBA(const std::vector<unsigned char> & rgba_data);
+  void GZPublishLight(RGBAColor & rgba);
 
   rclcpp::Publisher<ros_gz_interfaces::msg::Light>::SharedPtr light_pub_;
   std::shared_ptr<image_transport::ImageTransport> it_;
@@ -53,3 +56,5 @@ private:
 };
 
 }  // namespace panther_gazebo
+
+#endif  // PANTHER_GAZEBO_LIGHT_CONVERTER_NODE_HPP_

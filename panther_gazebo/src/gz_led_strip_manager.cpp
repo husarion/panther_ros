@@ -25,20 +25,27 @@ void LEDStripManager::LoadConfig(const std::string & config_file)
   try {
     config_ = YAML::LoadFile(config_file);
   } catch (const std::exception & e) {
-    throw std::runtime_error("Error loading configuration: " + e.what());
+    throw std::runtime_error(std::string("Error loading configuration: ") + e.what());
   }
 }
 
 void LEDStripManager::CreateLEDStrips()
 {
-  for (const auto & [channel, details] : config_) {
-    auto position = details["position"].as<std::vector<float>>();
-    gz::math::Vector3d position_vector(position[0], position[1], position[2]);
-    float led_strip_width = details["led_strip_width"].as<float>();
-    std::string topic = details["topic"].as<std::string>();
-    int start_id = details["start_id"].as<int>();
+  for (YAML::const_iterator it = config_.begin(); it != config_.end(); ++it) {
+    std::string channel_name = it->first.as<std::string>();
+    YAML::Node channel_values = it->second;
 
-    led_strips_.emplace_back(position_vector, led_strip_width, topic, start_id);
+    ChannelProperties channel_properties;
+
+    channel_properties.parent_link = channel_values["parent_link"].as<std::string>();
+    channel_properties.position = channel_values["position"].as<std::vector<double>>();
+    channel_properties.orientation = channel_values["orientation"].as<std::vector<double>>();
+    channel_properties.led_strip_width = channel_values["led_strip_width"].as<double>();
+    channel_properties.topic = channel_values["topic"].as<std::string>();
+    channel_properties.light_name = channel_values["light_name"].as<std::string>();
+    channel_properties.number_of_leds = channel_values["number_of_leds"].as<unsigned int>();
+
+    led_strips_.emplace_back(channel_properties);
   }
 }
 

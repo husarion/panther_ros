@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef PANTHER_GAZEBO_GZ_LED_STRIP_HPP_
+#define PANTHER_GAZEBO_GZ_LED_STRIP_HPP_
 
 #include <string>
 
@@ -22,22 +23,34 @@
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
 
+#include "panther_gazebo/common.hpp"
+
+struct ChannelProperties
+{
+  std::string parent_link;
+  std::vector<double> position;
+  std::vector<double> orientation;
+  double led_strip_width;
+  std::string topic;
+  std::string light_name;
+  unsigned int number_of_leds;
+};
+
 class LEDStrip
 {
 public:
-  LEDStrip(
-    const gz::math::Vector3d & position, float led_strip_width, const std::string & topic,
-    int start_id);
+  LEDStrip(ChannelProperties channel_properties);
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
   void CreateMarker(ignition::msgs::Marker * marker, int id);
-  void SetColor(gz::msgs::Marker * marker, float r, float g, float b, float a);
+  void SetColor(gz::msgs::Marker * marker, RGBAColor & rgba);
 
-  const int start_id_;
-  const float led_strip_width_;
-  const std::string topic_;
+  static unsigned int first_free_available_idx_;
+  const int first_led_marker_idx_;
 
-  const gz::math::Vector3d position_;
+  ChannelProperties channel_properties_;
   gz::transport::Node node_;
 };
+
+#endif  // PANTHER_GAZEBO_GZ_LED_STRIP_HPP_

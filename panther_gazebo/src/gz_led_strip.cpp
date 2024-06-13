@@ -21,59 +21,63 @@
 
 #include <panther_gazebo/gz_led_strip.hpp>
 
-LEDStrip::LEDStrip(
-  const gz::math::Vector3d & position, float led_strip_width, const std::string & topic,
-  int start_id)
-: position_(position), led_strip_width_(led_strip_width), topic_(topic), start_id_(start_id)
+unsigned int LEDStrip::first_free_available_idx_ = 1;  // The marker with id 0 is not modified.
+
+LEDStrip::LEDStrip(ChannelProperties channel_properties)
+: first_led_marker_idx_(first_free_available_idx_), channel_properties_(channel_properties)
 {
+  first_free_available_idx_ += channel_properties_.number_of_leds;
   gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(10u);  // Setting to high frequency caused lags
-  node.Subscribe(topic_, &LEDStrip::ImageCallback, this, opts);
+  node_.Subscribe(channel_properties_.topic, &LEDStrip::ImageCallback, this, opts);
 }
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
   gz::msgs::Marker_V marker_msgs;
 
-  const int image_width = _msg.width();
-  const float marker_width = led_strip_width_ / image_width;
-  const float y_start_pos = led_strip_width_ / 2.0f - marker_width / 2.0f;
+  const int image_width = msg.width();
+  const float marker_width = channel_properties_.led_strip_width / image_width;
+  const float y_start_pos = channel_properties_.led_strip_width / 2.0f - marker_width / 2.0f;
 
-  const std::string & data = _msg.data();
-  const unsigned numChannels = _msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
-                                                                                               : 4;
-
-  for (int i = 0; i < imageWidth; ++i) {
+  const std::string & data = msg.data();
+  const unsigned numChannels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
+                                                                                              : 4;
+  RGBAColor rgba;
+  for (int i = 0; i < image_width; ++i) {
     // Extract the pixel color
     int pixelIndex = i * numChannels;
-    float r = static_cast<unsigned char>(data[pixelIndex]) / 255.0f;
-    float g = static_cast<unsigned char>(data[pixelIndex + 1]) / 255.0f;
-    float b = static_cast<unsigned char>(data[pixelIndex + 2]) / 255.0f;
-    float a = numChannels == 4 ? static_cast<unsigned char>(data[pixelIndex + 3]) / 255.0f : 1.0f;
+    rgba.r = static_cast<unsigned char>(data[pixelIndex]) / 255.0f;
+    rgba.g = static_cast<unsigned char>(data[pixelIndex + 1]) / 255.0f;
+    rgba.b = static_cast<unsigned char>(data[pixelIndex + 2]) / 255.0f;
+    rgba.a = numChannels == 4 ? static_cast<unsigned char>(data[pixelIndex + 3]) / 255.0f : 1.0f;
 
     auto markerMsg = marker_msgs.add_marker();
-    CreateMarker(markerMsg, i + start_id_);
-    SetColor(markerMsg, r, g, b, a);
+    CreateMarker(markerMsg, i + first_led_marker_idx_);
+    SetColor(markerMsg, rgba);
 
     // Set the position and size of the box
     float marker_y_pos = static_cast<float>(i) * marker_width - y_start_pos;
     gz::msgs::Set(
       markerMsg->mutable_pose(),
-      gz::math::Pose3d(position_.X(), position_.Y() + marker_y_pos, position_.Z(), 0, 0, 0));
+      gz::math::Pose3d(
+        channel_properties_.position[0], channel_properties_.position[1] + marker_y_pos,
+        channel_properties_.position[2], channel_properties_.orientation[0],
+        channel_properties_.orientation[1], channel_properties_.orientation[2]));
     gz::msgs::Set(markerMsg->mutable_scale(), gz::math::Vector3d(0.001, marker_width, 0.015));
   }
 
   gz::msgs::Boolean res;
   bool result;
   unsigned int timeout = 1;
-  node.Request("/marker_array", marker_msgs, timeout, res, result);
+  node_.Request("/marker_array", marker_msgs, timeout, res, result);
 }
 
 void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
 {
   marker->set_ns("default");
   marker->set_id(id);
-  marker->set_parent("panther");
+  marker->set_parent(channel_properties_.parent_link);
   marker->set_action(gz::msgs::Marker::ADD_MODIFY);
   marker->set_type(gz::msgs::Marker::BOX);
   marker->set_visibility(gz::msgs::Marker::GUI);

@@ -64,17 +64,21 @@ void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string l
     return;
   }
 
-  auto [meanR, meanG, meanB, meanA] = calculateMeanRGBA(msg->data);
+  auto rgba = calculateMeanRGBA(msg->data);
+  GZPublishLight(rgba);
+}
 
+void GZLightConverter::GZPublishLight(RGBAColor & rgba)
+{
   auto msgL = ros_gz_interfaces::msg::Light();
   msgL.header = msg->header;
   msgL.name = led_name;
   msgL.type = ros_gz_interfaces::msg::Light::SPOT;
 
-  msgL.diffuse.r = meanR;
-  msgL.diffuse.g = meanG;
-  msgL.diffuse.b = meanB;
-  msgL.diffuse.a = meanA;
+  msgL.diffuse.r = rgba.r;
+  msgL.diffuse.g = rgba.g;
+  msgL.diffuse.b = rgba.b;
+  msgL.diffuse.a = rgba.a;
 
   msgL.cast_shadows = true;
   msgL.specular = msgL.diffuse;
@@ -96,8 +100,7 @@ void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string l
   light_pub_->publish(msgL);
 }
 
-std::tuple<float, float, float, float> GZLightConverter::calculateMeanRGBA(
-  const std::vector<unsigned char> & rgba_data)
+RGBAColor GZLightConverter::calculateMeanRGBA(const std::vector<unsigned char> & rgba_data)
 {
   size_t pixelCount = rgba_data.size() / 4;
 
@@ -113,12 +116,13 @@ std::tuple<float, float, float, float> GZLightConverter::calculateMeanRGBA(
     sumA += rgba_data[i * 4 + 3];
   }
 
-  float meanR = static_cast<float>(sumR) / pixelCount;
-  float meanG = static_cast<float>(sumG) / pixelCount;
-  float meanB = static_cast<float>(sumB) / pixelCount;
-  float meanA = static_cast<float>(sumA) / pixelCount;
+  RGBAColor rgba;
+  rgba.r = static_cast<float>(sumR) / pixelCount;
+  rgba.g = static_cast<float>(sumG) / pixelCount;
+  rgba.b = static_cast<float>(sumB) / pixelCount;
+  rgba.a = static_cast<float>(sumA) / pixelCount;
 
-  return std::make_tuple(meanR, meanG, meanB, meanA);
+  return rgba;
 }
 
 }  // namespace panther_gazebo

@@ -12,26 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO_GZ_LED_STRIP_MANAGER_HPP_
-#define PANTHER_GAZEBO_GZ_LED_STRIP_MANAGER_HPP_
-
-#include <list>
-#include <string>
-
-#include <yaml-cpp/yaml.h>
-
-#include "panther_gazebo/gz_led_strip.hpp"
-
-class LEDStripManager
+#ifndef PANTHER_GAZEBO_COMMON_HPP_
+#define PANTHER_GAZEBO_COMMON_HPP_
+struct RGBAColor
 {
-public:
-  explicit LEDStripManager(const std::string & config_file);
-  void LoadConfig(const std::string & config_file);
-  void CreateLEDStrips();
-
-private:
-  YAML::Node config_;
-  std::list<LEDStrip> led_strips_;
+  float r;
+  float g;
+  float b;
+  float a;
 };
 
-#endif  // PANTHER_GAZEBO_GZ_LED_STRIP_MANAGER_HPP_
+#endif  // PANTHER_GAZEBO_COMMON_HPP_

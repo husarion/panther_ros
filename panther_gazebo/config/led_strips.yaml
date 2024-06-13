@@ -1,11 +1,17 @@
 chanel_1:
+  parent_link: panther
   position: [0.362, 0.0, 0.201]
+  orientation: [0.0, 0.0, 0.0]
   led_strip_width: 0.5
   topic: lights/driver/channel_1_frame
-  start_id: 1 # The marker with id 0 is not modified.
+  light_name: front_light
+  number_of_leds: 46
 
 chanel_2:
+  parent_link: panther
   position: [-0.362, 0.0, 0.201]
+  orientation: [0.0, 0.0, 0.0]
   led_strip_width: 0.5
   topic: lights/driver/channel_2_frame
-  start_id: 47
+  light_name: rear_light
+  number_of_leds: 46
