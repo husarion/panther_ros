@@ -50,7 +50,8 @@ void BatteryPublisher::Publish()
     last_battery_info_time_ = GetClock()->now();
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM_THROTTLE(
-      GetLogger(), *GetClock(), 1000, "Error reading battery data: " << e.what());
+      GetLogger(), *GetClock(), 1000,
+      "An exception ocurred while reading battery data: " << e.what());
 
     diagnostic_updater_->broadcast(
       diagnostic_msgs::msg::DiagnosticStatus::ERROR,
@@ -88,13 +89,13 @@ void BatteryPublisher::BatteryStatusLogger(const BatteryStateMsg & battery_state
       msg = "The robot is charging. Current battery percentage: " +
             std::to_string(static_cast<int>(round(battery_state.percentage * 100.0))) + "%.";
 
-      RCLCPP_INFO_STREAM_THROTTLE(GetLogger(), *GetClock(), 180000, msg);
+      RCLCPP_INFO_STREAM_THROTTLE(GetLogger(), *GetClock(), 600000, msg);
       break;
 
     case BatteryStateMsg::POWER_SUPPLY_STATUS_FULL:
       msg = "The battery is fully charged. Robot can be disconnected from the charger.";
 
-      RCLCPP_INFO_STREAM_THROTTLE(GetLogger(), *GetClock(), 180000, msg);
+      RCLCPP_INFO_STREAM_THROTTLE(GetLogger(), *GetClock(), 600000, msg);
       break;
 
     default:

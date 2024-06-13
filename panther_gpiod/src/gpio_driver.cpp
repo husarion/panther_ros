@@ -38,7 +38,7 @@ GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info_storage)
 : gpio_info_storage_(std::move(gpio_info_storage))
 {
   if (gpio_info_storage_.empty()) {
-    throw std::runtime_error("Empty GPIO info vector provided");
+    throw std::runtime_error("The GPIO information vector is empty.");
   }
 
   auto gpio_chip = gpiod::chip(gpio_chip_path_);
@@ -179,7 +179,7 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
     line_request_->set_value(gpio_info.offset, gpio_value);
 
     if (line_request_->get_value(gpio_info.offset) != gpio_value) {
-      throw std::runtime_error("Failed to change GPIO state");
+      throw std::runtime_error("Failed to change GPIO state.");
     }
 
     gpio_info.value = gpio_value;
@@ -189,7 +189,7 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
 
     return true;
   } catch (const std::exception & e) {
-    std::cerr << "Error while setting GPIO pin value: " << e.what() << std::endl;
+    std::cerr << "An exception ocurred while setting GPIO pin value: " << e.what() << std::endl;
     return false;
   }
 }
@@ -215,7 +215,7 @@ void GPIODriver::GPIOMonitorOn()
   if (
     monitor_init_cond_var_.wait_for(lck, std::chrono::milliseconds(100)) ==
     std::cv_status::timeout) {
-    throw std::runtime_error("Timeout while waiting for GPIO monitor thread");
+    throw std::runtime_error("Timeout while waiting for GPIO monitor thread.");
   }
 }
 
@@ -247,10 +247,11 @@ void GPIODriver::HandleEdgeEvent(const gpiod::edge_event & event)
 {
   std::lock_guard lock(gpio_info_storage_mutex_);
   GPIOPin pin;
+
   try {
     pin = GetPinFromOffset(event.line_offset());
   } catch (const std::out_of_range & e) {
-    std::cerr << "An edge event occurred with an unknown pin: " << e.what() << std::endl;
+    std::cerr << "An exception ocurred while handling edge event: " << e.what() << std::endl;
     return;
   }
 
@@ -304,7 +305,7 @@ GPIOPin GPIODriver::GetPinFromOffset(const gpiod::line::offset & offset) const
   }
 
   throw std::out_of_range(
-    "Pin with offset " + std::to_string(offset) + " not found in GPIO info storage");
+    "Pin with offset " + std::to_string(offset) + " not found in GPIO info storage.");
 }
 
 }  // namespace panther_gpiod

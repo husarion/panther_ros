@@ -34,6 +34,7 @@ def generate_launch_description():
         name="system_status_node",
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
+        emulate_tty=True,
     )
 
     actions = [

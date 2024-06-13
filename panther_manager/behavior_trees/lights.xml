@@ -49,7 +49,7 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID"/>
                                     param=""
                                     repeating="true"
                                     service_name="lights/controller/set/animation"
-                                    _skipIf="!e_stop_state || current_anim_id == E_STOP_ANIM_ID"
+                                    _skipIf="(!e_stop_state) || current_anim_id == E_STOP_ANIM_ID"
                                     _onSuccess="current_anim_id = E_STOP_ANIM_ID"/>
         <Sequence name="BatteryStatusSequence">
           <TickAfterTimeout timeout="{LOW_BATTERY_ANIM_PERIOD}"

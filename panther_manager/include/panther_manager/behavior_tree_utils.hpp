@@ -38,7 +38,7 @@ namespace panther_manager::behavior_tree_utils
  * @param plugin_libs A vector containing the names of the nodes that will be registered from
  * plugins.
  */
-void RegisterBehaviorTree(
+inline void RegisterBehaviorTree(
   BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
   const std::vector<std::string> plugin_libs)
 {
@@ -61,7 +61,7 @@ void RegisterBehaviorTree(
  * @param ros_plugin_libs A vector containing the names of the ROS nodes that will be registered
  * from plugins.
  */
-void RegisterBehaviorTree(
+inline void RegisterBehaviorTree(
   BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
   const std::vector<std::string> plugin_libs, const rclcpp::Node::SharedPtr & node,
   const std::vector<std::string> ros_plugin_libs)
@@ -76,5 +76,20 @@ void RegisterBehaviorTree(
 }
 
 }  // namespace panther_manager::behavior_tree_utils
+
+namespace panther_manager
+{
+// TODO: @pawelirh move to a separate file with an appropriate abstraction layer
+/**
+ * @brief Get the Logger Prefix of BT node
+ *
+ * @param bt_node_name Behavior tree node name
+ * @return std::string Logger prefix
+ */
+inline std::string GetLoggerPrefix(const std::string & bt_node_name)
+{
+  return std::string("[" + bt_node_name + "] ");
+}
+}  // namespace panther_manager
 
 #endif  // PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_

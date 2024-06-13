@@ -29,12 +29,13 @@ bool OperationWithAttempts(
       operation();
       return true;
     } catch (const std::runtime_error & e) {
-      std::cerr << "Operation failed: " << e.what() << ". Attempt " << i + 1 << " of "
-                << max_attempts << std::endl;
+      std::cerr << "An exception ocurred while handling operation() function, attempt " << i + 1
+                << " of " << max_attempts << ": " << e.what() << std::endl;
       try {
         on_error();
       } catch (const std::runtime_error & on_error_e) {
-        std::cerr << "on_error function failed: " << on_error_e.what() << std::endl;
+        std::cerr << "An exception ocurred while handling on_error() function: "
+                  << on_error_e.what() << std::endl;
         return false;
       }
     }

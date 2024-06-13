@@ -59,7 +59,7 @@
                               _skipIf="cpu_temp &gt; CPU_FAN_OFF_TEMP \
 || driver_temp &gt; DRIVER_FAN_OFF_TEMP \
 || battery_health == POWER_SUPPLY_HEALTH_OVERHEAT \
-|| !fan_state"/>
+|| (!fan_state)"/>
         </Sequence>
       </TickAfterTimeout>
     </Sequence>

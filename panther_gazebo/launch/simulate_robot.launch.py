@@ -179,6 +179,7 @@ def generate_launch_description():
         name="panther_base_gz_bridge",
         parameters=[{"config_file": namespaced_gz_bridge_config_path}],
         namespace=namespace,
+        emulate_tty=True,
     )
 
     return LaunchDescription(

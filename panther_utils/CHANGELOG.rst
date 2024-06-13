@@ -2,6 +2,20 @@
 Changelog for package panther_utils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2024-06-06)
+------------------
+* Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
+* MInor logging changes
+* Contributors: Dawid Kmak, pawelirh
+
+2.0.2 (2024-06-05)
+------------------
+* Launch refactor (`#307 <https://github.com/husarion/panther_ros/issues/307>`_)
+* Merge pull request `#301 <https://github.com/husarion/panther_ros/issues/301>`_ from husarion/ros2-manager-refactor
+* almost there
+* Merge branch 'ros2' of https://github.com/husarion/panther_ros into ros2-manager-refactor
+* Contributors: Dawid, Paweł Irzyk, rafal-gorecki
+
 2.0.1 (2024-05-01)
 ------------------
 * Merge pull request `#259 <https://github.com/husarion/panther_ros/issues/259>`_ from husarion/ros2-os-diagnostics

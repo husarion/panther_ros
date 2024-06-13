@@ -32,15 +32,15 @@ void ConfigureRT(const unsigned priority)
 {
   if (priority > 99) {
     throw std::runtime_error(
-      "Invalid priority value. Please set a value between 0 and 99 for RT scheduling");
+      "Invalid priority value. Please set a value between 0 and 99 for RT scheduling.");
   }
 
   if (!realtime_tools::has_realtime_kernel()) {
-    throw std::runtime_error("Real-time kernel is not available");
+    throw std::runtime_error("Real-time kernel is not available.");
   }
 
   if (!realtime_tools::configure_sched_fifo(priority)) {
-    throw std::runtime_error("Could not enable FIFO RT scheduling policy");
+    throw std::runtime_error("Could not enable FIFO RT scheduling policy.");
   }
 }
 

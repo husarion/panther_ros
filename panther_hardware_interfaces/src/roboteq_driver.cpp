@@ -77,7 +77,7 @@ std::future<void> RoboteqDriver::Boot()
 {
   std::future<void> future = boot_promise_.get_future();
   if (!LoopDriver::Boot()) {
-    throw std::runtime_error("Boot failed");
+    throw std::runtime_error("Boot failed.");
   }
   return future;
 }
