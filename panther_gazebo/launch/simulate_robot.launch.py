@@ -101,6 +101,15 @@ def generate_launch_description():
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
     )
 
+    manager_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [FindPackageShare("panther_manager"), "launch", "manager_bt.launch.py"]
+            )
+        ),
+        launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
+    )
+
     gz_led_strip_manager = Node(
         package="panther_gazebo",
         executable="gz_led_strip_manager",
@@ -182,6 +191,7 @@ def generate_launch_description():
             SetUseSimTime(True),
             spawn_robot_launch,
             lights_launch,
+            manager_launch,
             gz_led_strip_manager,
             gz_light_converter,
             controller_launch,

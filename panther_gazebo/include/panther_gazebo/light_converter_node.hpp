@@ -25,6 +25,7 @@
 #include "image_transport/image_transport.hpp"
 #include "ros_gz_interfaces/msg/light.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "std_msgs/msg/header.hpp"
 
 #include "panther_gazebo/common.hpp"
 
@@ -45,7 +46,7 @@ public:
 private:
   void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name);
   RGBAColor calculateMeanRGBA(const std::vector<unsigned char> & rgba_data);
-  void GZPublishLight(RGBAColor & rgba);
+  void GZPublishLight(RGBAColor & rgba, std_msgs::msg::Header header, std::string light_name);
 
   rclcpp::Publisher<ros_gz_interfaces::msg::Light>::SharedPtr light_pub_;
   std::shared_ptr<image_transport::ImageTransport> it_;

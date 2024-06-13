@@ -14,6 +14,7 @@
 
 #ifndef PANTHER_GAZEBO_COMMON_HPP_
 #define PANTHER_GAZEBO_COMMON_HPP_
+
 struct RGBAColor
 {
   float r;

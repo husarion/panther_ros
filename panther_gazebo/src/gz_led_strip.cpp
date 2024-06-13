@@ -83,8 +83,13 @@ void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
   marker->set_visibility(gz::msgs::Marker::GUI);
 }
 
-void LEDStrip::SetColor(gz::msgs::Marker * marker, float r, float g, float b, float a)
+void LEDStrip::SetColor(gz::msgs::Marker * marker, RGBAColor & rgba)
 {
+  float r = rgba.r;
+  float g = rgba.g;
+  float b = rgba.b;
+  float a = rgba.a;
+
   // Make default gray color
   float maxBrightness = std::max({r, g, b});
   r = std::max(r, 0.5f - maxBrightness / 2);

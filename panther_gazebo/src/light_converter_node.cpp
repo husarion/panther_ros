@@ -44,7 +44,7 @@ void GZLightConverter::Initialize()
     [&](const ImageMsg::ConstSharedPtr & msg) { FrameCB(msg, "rear_light"); }));
 }
 
-void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string led_name)
+void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name)
 {
   std::string warn_msg;
   if ((this->get_clock()->now() - rclcpp::Time(msg->header.stamp)) > frame_timeout_) {
@@ -54,50 +54,51 @@ void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string l
   }
 
   if (!warn_msg.empty()) {
-    if (led_name == "front_light") {
+    if (light_name == "front_light") {
       RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, warn_msg << " on " << led_name << "!");
-    } else if (led_name == "rear_light") {
+        this->get_logger(), *this->get_clock(), 5000, warn_msg << " on " << light_name << "!");
+    } else if (light_name == "rear_light") {
       RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000, warn_msg << " on " << led_name << "!");
+        this->get_logger(), *this->get_clock(), 5000, warn_msg << " on " << light_name << "!");
     }
     return;
   }
 
   auto rgba = calculateMeanRGBA(msg->data);
-  GZPublishLight(rgba);
+  GZPublishLight(rgba, msg->header, light_name);
 }
 
-void GZLightConverter::GZPublishLight(RGBAColor & rgba)
+void GZLightConverter::GZPublishLight(
+  RGBAColor & rgba, std_msgs::msg::Header header, std::string light_name)
 {
-  auto msgL = ros_gz_interfaces::msg::Light();
-  msgL.header = msg->header;
-  msgL.name = led_name;
-  msgL.type = ros_gz_interfaces::msg::Light::SPOT;
+  auto msg = ros_gz_interfaces::msg::Light();
+  msg.header = header;
+  msg.name = light_name;
+  msg.type = ros_gz_interfaces::msg::Light::SPOT;
 
-  msgL.diffuse.r = rgba.r;
-  msgL.diffuse.g = rgba.g;
-  msgL.diffuse.b = rgba.b;
-  msgL.diffuse.a = rgba.a;
+  msg.diffuse.r = rgba.r;
+  msg.diffuse.g = rgba.g;
+  msg.diffuse.b = rgba.b;
+  msg.diffuse.a = rgba.a;
 
-  msgL.cast_shadows = true;
-  msgL.specular = msgL.diffuse;
+  msg.cast_shadows = true;
+  msg.specular = msg.diffuse;
 
-  msgL.spot_inner_angle = 1.0;
-  msgL.spot_outer_angle = 2.0;
-  msgL.spot_falloff = 0.4;
+  msg.spot_inner_angle = 1.0;
+  msg.spot_outer_angle = 2.0;
+  msg.spot_falloff = 0.4;
 
-  msgL.attenuation_constant = 1.0;
-  msgL.attenuation_linear = 1.0;
-  msgL.attenuation_quadratic = 0.0;
+  msg.attenuation_constant = 1.0;
+  msg.attenuation_linear = 1.0;
+  msg.attenuation_quadratic = 0.0;
 
-  msgL.intensity = 1.0;
-  msgL.range = 10.0;
+  msg.intensity = 1.0;
+  msg.range = 10.0;
 
-  msgL.direction.x = 1.0;
-  msgL.direction.y = 0.0;
-  msgL.direction.z = -0.5;
-  light_pub_->publish(msgL);
+  msg.direction.x = 1.0;
+  msg.direction.y = 0.0;
+  msg.direction.z = -0.5;
+  light_pub_->publish(msg);
 }
 
 RGBAColor GZLightConverter::calculateMeanRGBA(const std::vector<unsigned char> & rgba_data)
