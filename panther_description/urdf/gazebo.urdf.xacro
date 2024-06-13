@@ -31,9 +31,6 @@
         <!-- TODO Because of https://github.com/gazebosim/gz-sim/issues/225 division by 100 -->
         <power_load>${battery_config['power_load']/100.0}</power_load>
         <start_draining>${battery_config['simulate_discharging']}</start_draining>
-        <ros>
-          <namespace>${namespace}</namespace>
-        </ros>
       </plugin>
     </gazebo>
   </xacro:macro>

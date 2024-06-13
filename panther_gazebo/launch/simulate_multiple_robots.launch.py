@@ -52,7 +52,7 @@ def generate_launch_description():
     # If robots arg is empty, use default arguments from simulate_robot.launch.py
     if len(robots_list) == 0:
         robots_list = {
-            LaunchConfiguration("namespace", default=""): {
+            LaunchConfiguration("namespace", default="panther"): {
                 "x": LaunchConfiguration("x", default="0.0"),
                 "y": LaunchConfiguration("y", default="-2.0"),
                 "z": LaunchConfiguration("z", default="0.2"),

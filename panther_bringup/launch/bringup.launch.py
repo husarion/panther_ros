@@ -39,7 +39,7 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value="panther"),
         description="Add namespace to all launched nodes.",
     )
 
