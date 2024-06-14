@@ -51,7 +51,9 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 
 void LEDStrip::CheckMsgValid(const gz::msgs::Image & msg)
 {
-  if (msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8) {
+  if (
+    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8 &&
+    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGB_INT8) {
     throw std::runtime_error("Incorrect image encoding on " + channel_properties_.light_name);
   }
 }
@@ -66,21 +68,18 @@ void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
 {
   gz::msgs::Marker_V marker_msgs;
 
-  const int image_width = msg.width();
-  const float marker_width = channel_properties_.led_strip_width / image_width;
+  const float marker_width = channel_properties_.led_strip_width / msg.width();
   const float y_start_pos = channel_properties_.led_strip_width / 2.0f - marker_width / 2.0f;
 
   const std::string & data = msg.data();
-  const unsigned numChannels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
-                                                                                              : 4;
+  const unsigned num_channels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
+                                                                                               : 4;
   RGBAColor rgba;
-  for (int i = 0; i < image_width; ++i) {
-    // Extract the pixel color
-    int pixelIndex = i * numChannels;
-    rgba.r = static_cast<unsigned char>(data[pixelIndex]) / 255.0f;
-    rgba.g = static_cast<unsigned char>(data[pixelIndex + 1]) / 255.0f;
-    rgba.b = static_cast<unsigned char>(data[pixelIndex + 2]) / 255.0f;
-    rgba.a = numChannels == 4 ? static_cast<unsigned char>(data[pixelIndex + 3]) / 255.0f : 1.0f;
+  for (int i = 0; i < msg.width(); i += num_channels) {
+    rgba.r = static_cast<unsigned char>(data[i]) / 255.0f;
+    rgba.g = static_cast<unsigned char>(data[i + 1]) / 255.0f;
+    rgba.b = static_cast<unsigned char>(data[i + 2]) / 255.0f;
+    rgba.a = num_channels == 4 ? static_cast<unsigned char>(data[i + 3]) / 255.0f : 1.0f;
 
     auto markerMsg = marker_msgs.add_marker();
     CreateMarker(markerMsg, i + first_led_marker_idx_);
@@ -99,37 +98,39 @@ void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
 
   gz::msgs::Boolean res;
   bool result;
-  unsigned int timeout = 1;
-  node_.Request("/marker_array", marker_msgs, timeout, res, result);
+  node_.Request("/marker_array", marker_msgs, 1u, res, result);
 }
 
-RGBAColor LEDStrip::calculateMeanRGBA(const std::string & rgba_data)
+RGBAColor LEDStrip::CalculateMeanRGBA(const gz::msgs::Image & msg)
 {
-  size_t pixelCount = rgba_data.size() / 4;
-  float sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+  const std::string & data = msg.data();
+  const unsigned num_channels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
+                                                                                               : 4;
+  size_t sumR = 0, sumG = 0, sumB = 0, sumA = 0;
 
-  for (size_t i = 0; i < rgba_data.size(); i += 4) {
-    sumR += static_cast<unsigned char>(rgba_data[i]);
-    sumG += static_cast<unsigned char>(rgba_data[i + 1]);
-    sumB += static_cast<unsigned char>(rgba_data[i + 2]);
-    sumA += static_cast<unsigned char>(rgba_data[i + 3]);
+  for (size_t i = 0; i < data.size(); i += num_channels) {
+    sumR += static_cast<unsigned char>(data[i]);
+    sumG += static_cast<unsigned char>(data[i + 1]);
+    sumB += static_cast<unsigned char>(data[i + 2]);
+    sumA += static_cast<unsigned char>(data[i + 3]);
+    rgba.a = num_channels == 4 ? static_cast<unsigned char>(data[i + 3]) : 255;
   }
 
   RGBAColor rgba;
-  rgba.r = sumR / pixelCount / 255.0f;
-  rgba.g = sumG / pixelCount / 255.0f;
-  rgba.b = sumB / pixelCount / 255.0f;
-  rgba.a = sumA / pixelCount / 255.0f;
+  rgba.r = static_cast<float>(sumR) / msg.width() / 255.0f;
+  rgba.g = static_cast<float>(sumG) / msg.width() / 255.0f;
+  rgba.b = static_cast<float>(sumB) / msg.width() / 255.0f;
+  rgba.a = static_cast<float>(sumA) / msg.width() / 255.0f;
 
   return rgba;
 }
 
-void LEDStrip::GZPublishLight(RGBAColor & rgba)
+void LEDStrip::PublishLight(RGBAColor & rgba)
 {
   gz::msgs::Light msg;
   msg.set_name(channel_properties_.light_name);
   msg.set_type(gz::msgs::Light::SPOT);
-  // msg.set_visible(false);
+  // msg.set_visible(false); // Available in gazebo garden
 
   auto * diffuse = msg.mutable_diffuse();
   diffuse->set_r(rgba.r);
@@ -173,7 +174,7 @@ void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
   marker->set_visibility(gz::msgs::Marker::GUI);
 }
 
-void LEDStrip::SetColor(gz::msgs::Marker * marker, RGBAColor & rgba)
+void LEDStrip::SetMarkerColor(RGBAColor & rgba)
 {
   float r = rgba.r;
   float g = rgba.g;

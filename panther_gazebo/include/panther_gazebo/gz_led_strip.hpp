@@ -54,17 +54,16 @@ class LEDStrip
 public:
   LEDStrip(ChannelProperties channel_properties);
   ~LEDStrip();
-  void Initialize();
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
   void CheckMsgValid(const gz::msgs::Image & msg);
   void ManageLights(const gz::msgs::Image & msg);
   void ManageVisualization(const gz::msgs::Image & msg);
-  RGBAColor calculateMeanRGBA(const std::string & rgba_data);
-  void GZPublishLight(RGBAColor & rgba);
+  RGBAColor CalculateMeanRGBA(const gz::msgs::Image & msg);
+  void PublishLight(RGBAColor & rgba);
   void CreateMarker(ignition::msgs::Marker * marker, int id);
-  void SetColor(gz::msgs::Marker * marker, RGBAColor & rgba);
+  void SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba);
 
   static unsigned int first_free_available_marker_idx_;
   const int first_led_marker_idx_;

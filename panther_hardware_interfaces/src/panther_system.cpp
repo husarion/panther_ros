@@ -75,7 +75,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     ConfigureMotorsController();
     ConfigureEStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Failed to initialize GPIO, Motors, or E-Stop controllers. Error: " << e.what());
+    RCLCPP_ERROR_STREAM(
+      logger_, "Failed to initialize GPIO, Motors, or E-Stop controllers. Error: " << e.what());
     return CallbackReturn::ERROR;
   }
 
