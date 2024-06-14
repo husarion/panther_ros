@@ -29,9 +29,3 @@
   ros_type_name: sensor_msgs/msg/Image
   gz_type_name: ignition.msgs.Image
   direction: ROS_TO_GZ
-
-- ros_topic_name: _gz_lights
-  gz_topic_name: /world/husarion_world/light_config
-  ros_type_name: ros_gz_interfaces/msg/Light
-  gz_type_name: gz.msgs.Light
-  direction: ROS_TO_GZ

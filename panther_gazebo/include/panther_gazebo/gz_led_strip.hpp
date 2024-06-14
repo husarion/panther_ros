@@ -15,7 +15,10 @@
 #ifndef PANTHER_GAZEBO_GZ_LED_STRIP_HPP_
 #define PANTHER_GAZEBO_GZ_LED_STRIP_HPP_
 
+#include <chrono>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <yaml-cpp/yaml.h>
 #include <gz/common/Time.hh>
@@ -24,6 +27,8 @@
 #include <gz/transport.hh>
 
 #include "panther_gazebo/common.hpp"
+
+using namespace std::chrono_literals;
 
 struct ChannelProperties
 {
@@ -41,9 +46,15 @@ class LEDStrip
 public:
   LEDStrip(ChannelProperties channel_properties);
   ~LEDStrip();
+  void Initialize();
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
+  void CheckMsgValid(const gz::msgs::Image & msg);
+  void ManageLights(const gz::msgs::Image & msg);
+  void ManageVisualization(const gz::msgs::Image & msg);
+  RGBAColor calculateMeanRGBA(const std::string & rgba_data);
+  void GZPublishLight(RGBAColor & rgba);
   void CreateMarker(ignition::msgs::Marker * marker, int id);
   void SetColor(gz::msgs::Marker * marker, RGBAColor & rgba);
 
@@ -52,6 +63,9 @@ private:
 
   ChannelProperties channel_properties_;
   gz::transport::Node node_;
+  gz::transport::Node::Publisher light_pub_;
+
+  std::chrono::duration<double> frame_timeout_ = std::chrono::duration<double>(1.0);
 };
 
 #endif  // PANTHER_GAZEBO_GZ_LED_STRIP_HPP_

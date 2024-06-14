@@ -9,10 +9,6 @@ find_package(ament_cmake REQUIRED)
 find_package(ignition-transport11 QUIET REQUIRED)
 find_package(ignition-common4 REQUIRED)
 find_package(ignition-msgs8 REQUIRED)
-find_package(image_transport REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(ros_gz_interfaces REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include_directories(include)
@@ -27,13 +23,5 @@ target_link_libraries(
   gz_led_strip_manager ignition-transport${IGN_TRANSPORT_VER}::core
   ignition-msgs${IGN_MSGS_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER} yaml-cpp)
-
-add_executable(light_converter_node src/light_converter_node.cpp)
-ament_target_dependencies(light_converter_node image_transport rclcpp
-                          ros_gz_interfaces sensor_msgs)
-
-install(TARGETS light_converter_node gz_led_strip_manager
-        DESTINATION lib/${PROJECT_NAME})
-install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
 
 ament_package()

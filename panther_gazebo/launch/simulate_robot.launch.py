@@ -122,12 +122,6 @@ def generate_launch_description():
         ],
     )
 
-    gz_light_converter = Node(
-        package="panther_gazebo",
-        executable="gz_light_converter",
-        namespace=namespace,
-    )
-
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -194,7 +188,6 @@ def generate_launch_description():
             lights_launch,
             manager_launch,
             gz_led_strip_manager,
-            gz_light_converter,
             controller_launch,
             ekf_launch,
             simulate_components,

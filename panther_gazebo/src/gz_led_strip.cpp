@@ -29,13 +29,36 @@ LEDStrip::LEDStrip(ChannelProperties channel_properties)
 {
   first_free_available_marker_idx_ += channel_properties_.number_of_leds;
   gz::transport::SubscribeOptions opts;
-  opts.SetMsgsPerSec(10u);  // Setting to high frequency caused lags
+  opts.SetMsgsPerSec(15u);  // Setting to high frequency caused lags
   node_.Subscribe(channel_properties_.topic, &LEDStrip::ImageCallback, this, opts);
+  light_pub_ = node_.Advertise<gz::msgs::Light>("/world/husarion_world/light_config");
 }
 
 LEDStrip::~LEDStrip() { first_free_available_marker_idx_ -= channel_properties_.number_of_leds; }
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
+{
+  CheckMsgValid(msg);
+  ManageLights(msg);
+  ManageVisualization(msg);
+}
+
+void LEDStrip::CheckMsgValid(const gz::msgs::Image & msg)
+{
+  if (msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8) {
+    std::cerr << "Incorrect image encoding on " << channel_properties_.light_name << "!"
+              << std::endl;
+    return;
+  }
+}
+
+void LEDStrip::ManageLights(const gz::msgs::Image & msg)
+{
+  auto mean_rgba = calculateMeanRGBA(msg.data());
+  GZPublishLight(mean_rgba);
+}
+
+void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
 {
   gz::msgs::Marker_V marker_msgs;
 
@@ -74,6 +97,66 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
   bool result;
   unsigned int timeout = 1;
   node_.Request("/marker_array", marker_msgs, timeout, res, result);
+}
+
+RGBAColor LEDStrip::calculateMeanRGBA(const std::string & rgba_data)
+{
+  size_t pixelCount = rgba_data.size() / 4;
+  float sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+
+  for (size_t i = 0; i < rgba_data.size(); i += 4) {
+    sumR += static_cast<unsigned char>(rgba_data[i]);
+    sumG += static_cast<unsigned char>(rgba_data[i + 1]);
+    sumB += static_cast<unsigned char>(rgba_data[i + 2]);
+    sumA += static_cast<unsigned char>(rgba_data[i + 3]);
+  }
+
+  RGBAColor rgba;
+  rgba.r = sumR / pixelCount / 255.0f;
+  rgba.g = sumG / pixelCount / 255.0f;
+  rgba.b = sumB / pixelCount / 255.0f;
+  rgba.a = sumA / pixelCount / 255.0f;
+
+  return rgba;
+}
+
+void LEDStrip::GZPublishLight(RGBAColor & rgba)
+{
+  gz::msgs::Light msg;
+  msg.set_name(channel_properties_.light_name);
+  msg.set_type(gz::msgs::Light::SPOT);
+  // msg.set_visible(false);
+
+  auto * diffuse = msg.mutable_diffuse();
+  diffuse->set_r(rgba.r);
+  diffuse->set_g(rgba.g);
+  diffuse->set_b(rgba.b);
+  diffuse->set_a(rgba.a);
+
+  msg.set_cast_shadows(true);
+  auto * specular = msg.mutable_specular();
+  specular->set_r(rgba.r);
+  specular->set_g(rgba.g);
+  specular->set_b(rgba.b);
+  specular->set_a(rgba.a);
+
+  msg.set_spot_inner_angle(1.0);
+  msg.set_spot_outer_angle(2.0);
+  msg.set_spot_falloff(0.4);
+
+  msg.set_attenuation_constant(1.0);
+  msg.set_attenuation_linear(1.0);
+  msg.set_attenuation_quadratic(0.5);
+
+  msg.set_intensity(1.0);
+  msg.set_range(20.0);
+
+  auto * direction = msg.mutable_direction();
+  direction->set_x(1.0);
+  direction->set_y(0.0);
+  direction->set_z(-0.5);
+
+  light_pub_.Publish(msg);
 }
 
 void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
