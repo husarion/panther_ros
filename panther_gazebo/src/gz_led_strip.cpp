@@ -21,16 +21,19 @@
 
 #include <panther_gazebo/gz_led_strip.hpp>
 
-unsigned int LEDStrip::first_free_available_idx_ = 1;  // The marker with id 0 is not modified.
+unsigned int LEDStrip::first_free_available_marker_idx_ =
+  1;  // The marker with id 0 is not modified.
 
 LEDStrip::LEDStrip(ChannelProperties channel_properties)
-: first_led_marker_idx_(first_free_available_idx_), channel_properties_(channel_properties)
+: first_led_marker_idx_(first_free_available_marker_idx_), channel_properties_(channel_properties)
 {
-  first_free_available_idx_ += channel_properties_.number_of_leds;
+  first_free_available_marker_idx_ += channel_properties_.number_of_leds;
   gz::transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(10u);  // Setting to high frequency caused lags
   node_.Subscribe(channel_properties_.topic, &LEDStrip::ImageCallback, this, opts);
 }
+
+LEDStrip::~LEDStrip() { first_free_available_marker_idx_ -= channel_properties_.number_of_leds; }
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {

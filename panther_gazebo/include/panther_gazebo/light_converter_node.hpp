@@ -44,8 +44,8 @@ public:
   void Initialize();
 
 private:
-  void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name);
-  RGBAColor calculateMeanRGBA(const std::vector<unsigned char> & rgba_data);
+  void FrameCB(const ImageMsg::ConstSharedPtr msg, std::string & light_name);
+  RGBAColor calculateMeanRGBA(const std::vector<std::uint8_t> & rgba_data);
   void GZPublishLight(RGBAColor & rgba, std_msgs::msg::Header header, std::string light_name);
 
   rclcpp::Publisher<ros_gz_interfaces::msg::Light>::SharedPtr light_pub_;

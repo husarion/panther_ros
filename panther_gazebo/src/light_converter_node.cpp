@@ -44,7 +44,7 @@ void GZLightConverter::Initialize()
     [&](const ImageMsg::ConstSharedPtr & msg) { FrameCB(msg, "rear_light"); }));
 }
 
-void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string light_name)
+void GZLightConverter::FrameCB(const ImageMsg::ConstSharedPtr msg, std::string & light_name)
 {
   std::string warn_msg;
   if ((this->get_clock()->now() - rclcpp::Time(msg->header.stamp)) > frame_timeout_) {
@@ -101,7 +101,7 @@ void GZLightConverter::GZPublishLight(
   light_pub_->publish(msg);
 }
 
-RGBAColor GZLightConverter::calculateMeanRGBA(const std::vector<unsigned char> & rgba_data)
+RGBAColor GZLightConverter::calculateMeanRGBA(const std::vector<uint8_t> & rgba_data)
 {
   size_t pixelCount = rgba_data.size() / 4;
 

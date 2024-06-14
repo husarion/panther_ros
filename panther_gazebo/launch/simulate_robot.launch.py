@@ -124,7 +124,7 @@ def generate_launch_description():
 
     gz_light_converter = Node(
         package="panther_gazebo",
-        executable="light_converter_node",
+        executable="gz_light_converter",
         namespace=namespace,
     )
 

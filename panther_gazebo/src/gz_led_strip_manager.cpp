@@ -25,7 +25,7 @@ void LEDStripManager::LoadConfig(const std::string & config_file)
   try {
     config_ = YAML::LoadFile(config_file);
   } catch (const std::exception & e) {
-    throw std::runtime_error(std::string("Error loading configuration: ") + e.what());
+    throw std::runtime_error("Error loading configuration from " + config_file + ": " + e.what());
   }
 }
 

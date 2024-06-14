@@ -40,13 +40,14 @@ class LEDStrip
 {
 public:
   LEDStrip(ChannelProperties channel_properties);
+  ~LEDStrip();
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
   void CreateMarker(ignition::msgs::Marker * marker, int id);
   void SetColor(gz::msgs::Marker * marker, RGBAColor & rgba);
 
-  static unsigned int first_free_available_idx_;
+  static unsigned int first_free_available_marker_idx_;
   const int first_led_marker_idx_;
 
   ChannelProperties channel_properties_;
