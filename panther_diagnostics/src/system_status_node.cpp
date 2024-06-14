@@ -94,7 +94,7 @@ float SystemStatusNode::GetCPUTemperature(const std::string & filename) const
     return temperature / 1000.0;
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(
-      this->get_logger(), "An exception ocurred while reading CPU temperature: " << e.what());
+      this->get_logger(), "An exception occurred while reading CPU temperature: " << e.what());
   }
   return std::numeric_limits<float>::quiet_NaN();
 }

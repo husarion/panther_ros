@@ -64,9 +64,13 @@ void BatteryNode::Initialize()
       return;
     } catch (const std::runtime_error & e) {
       RCLCPP_WARN_STREAM(
-        this->get_logger(), "An exception ocurred while initializing with ADC: "
-                              << e.what()
-                              << " Falling back to using Roboteq drivers to publish battery data.");
+        this->get_logger(),
+        "An exception occurred while initializing with ADC: " << e.what()
+                                                              << " Falling back to "
+                                                                 "using Roboteq "
+                                                                 "drivers to "
+                                                                 "publish battery "
+                                                                 "data.");
     }
   }
   InitializeWithRoboteqBattery();
@@ -78,16 +82,19 @@ void BatteryNode::InitializeWithADCBattery()
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC data.");
 
-  this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
-  this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
+  this->declare_parameter<std::string>("adc/device0", "/dev/battery1");
+  this->declare_parameter<std::string>("adc/device1", "/dev/battery2");
   this->declare_parameter<int>("adc/ma_window_len/temp", 10);
   this->declare_parameter<int>("adc/ma_window_len/charge", 10);
 
-  const std::string adc0_device = this->get_parameter("adc/device0").as_string();
-  const std::string adc1_device = this->get_parameter("adc/device1").as_string();
+  const std::string adc0_device_name = this->get_parameter("adc/device0").as_string();
+  const std::string adc1_device_name = this->get_parameter("adc/device1").as_string();
 
-  adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
-  adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
+  const std::string adc0_device_path = GetBatteryPath(adc0_device_name);
+  const std::string adc1_device_path = GetBatteryPath(adc1_device_name);
+
+  adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device_path);
+  adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device_path);
 
   const ADCBatteryParams battery_params = {
     static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
@@ -158,6 +165,19 @@ void BatteryNode::BatteryPubTimerCB()
     return;
   }
   battery_publisher_->Publish();
+}
+
+std::string BatteryNode::GetBatteryPath(const std::string & adc_device_path) const
+{
+  std::string battery_device_name;
+
+  if (std::filesystem::is_symlink(adc_device_path)) {
+    battery_device_name = std::filesystem::read_symlink(adc_device_path).string();
+  } else {
+    battery_device_name = std::filesystem::path(adc_device_path).filename().string();
+  }
+
+  return std::string("/sys/bus/iio/devices/") + battery_device_name;
 }
 
 }  // namespace panther_battery

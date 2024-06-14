@@ -41,8 +41,8 @@ using std::placeholders::_2;
 
 DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options),
-  chanel_1_("/dev/spidev0.0"),
-  chanel_2_("/dev/spidev0.1"),
+  chanel_1_("/dev/spiledfront"),
+  chanel_2_("/dev/spiledrear"),
   diagnostic_updater_(this)
 {
   RCLCPP_INFO(this->get_logger(), "Constructing node.");
