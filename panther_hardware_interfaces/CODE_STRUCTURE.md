@@ -43,7 +43,7 @@ As they usually are rare and singular occurrences, it is better to filter some o
 
 ## GPIODriver
 
-The GPIODriver is a low-level class responsible for direct interaction with the GPIO (General Purpose Input/Output) pins on the Raspberry Pi
+The GPIODriver is a low-level class responsible for direct interaction with the GPIO (General Purpose Input/Output) pins on the Raspberry Pi.
 It comprises a wrapper implementation for the GPIOD library, enabling real-time manipulation of GPIO pins on the Raspberry Pi. Offering convenient interfaces for setting pin values, altering their direction, monitoring events, and conducting other GPIO operations, this library facilitates effective GPIO pin management on the Panther robot. It simplifies integration within robotic applications.
 
 ## GPIOController
