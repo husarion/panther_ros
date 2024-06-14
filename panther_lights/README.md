@@ -150,17 +150,17 @@ The `led_animations` section contains list with definitions for various animatio
 
 Default animations can be found in the table below:
 
-| ID  | NAME              | PRIORITY | DESCRIPTION                                                 |
-| :-: | ----------------- | :------: | ----------------------------------------------------------- |
-| 0   | E_STOP            | 3        | red expanding from the center to the edges                  |
-| 1   | READY             | 3        | green expanding from center to the edges                    |
-| 2   | ERROR             | 1        | red, whole bumper blinking twice                             |
-| 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
-| 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
-| 5   | GOAL_ACHIEVED     | 2        | purple, whole bumper blinking three times                    |
-| 6   | LOW_BATTERY       | 2        | two orange stripes moving towards the center, repeats twice |
-| 7   | CRITICAL_BATTERY  | 2        | two red stripes moving towards the center, repeats twice    |
-| 9   | CHARGING_BATTERY  | 3        | whole bumper blinks with a duty cycle proportional to the Battery percentage. Short blinking means low Battery, and no blinking means full Battery. The color changes from red to green |
+|  ID   | NAME              | PRIORITY | ANIMATION                                                                                                           |
+| :---: | ----------------- | :------: | --------------------------------------------------------------------------------------------------------------------- |
+|   0   | E_STOP            |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/E_STOP.webp" width="400">            |
+|   1   | READY             |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/READY.webp" width="400">             |
+|   2   | ERROR             |    1     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/ERROR.webp" width="400">             |
+|   3   | MANUAL_ACTION     |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/MANUAL_ACTION.webp" width="400">     |
+|   4   | AUTONOMOUS_ACTION |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/AUTONOMOUS_ACTION.webp" width="400"> |
+|   5   | GOAL_ACHIEVED     |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/GOAL_ACHIEVED.webp" width="400">     |
+|   6   | LOW_BATTERY       |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/LOW_BATTERY.webp" width="400">       |
+|   7   | CRITICAL_BATTERY  |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CRITICAL_BATTERY.webp" width="400">  |
+|   9   | CHARGING_BATTERY  |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CHARGING_BATTERY.webp" width="400">  |
 
 ### Animation Types
 
@@ -266,7 +266,7 @@ ros2 launch panther_bringup bringup.launch user_animations_file:=/my_awesome_use
 Test new animations:
 
 ```bash
-ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}""
+ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}"
 ```
 
 ---
