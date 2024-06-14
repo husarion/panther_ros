@@ -21,6 +21,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "panther_gazebo/gz_led_strip.hpp"
+#include "panther_utils/yaml_utils.hpp"
 
 class LEDStripManager
 {
@@ -28,6 +29,8 @@ public:
   explicit LEDStripManager(const std::string & config_file);
   void LoadConfig(const std::string & config_file);
   void CreateLEDStrips();
+  template <typename T>
+  void assignProperty(const YAML::Node & channel_args, T & property, const std::string & key);
 
 private:
   YAML::Node config_;

@@ -26,12 +26,12 @@
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
 
-#include "panther_gazebo/common.hpp"
-
 using namespace std::chrono_literals;
 
 struct ChannelProperties
 {
+  uint8_t frequency;
+  std::string world_name;
   std::string parent_link;
   std::vector<double> position;
   std::vector<double> orientation;
@@ -39,6 +39,14 @@ struct ChannelProperties
   std::string topic;
   std::string light_name;
   unsigned int number_of_leds;
+};
+
+struct RGBAColor
+{
+  float r;
+  float g;
+  float b;
+  float a;
 };
 
 class LEDStrip

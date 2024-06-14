@@ -12,7 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iostream>
+
+#include <yaml-cpp/yaml.h>
+
 #include "panther_gazebo/gz_led_strip_manager.hpp"
+#include "panther_utils/yaml_utils.hpp"
 
 LEDStripManager::LEDStripManager(const std::string & config_file)
 {
@@ -32,21 +37,28 @@ void LEDStripManager::LoadConfig(const std::string & config_file)
 void LEDStripManager::CreateLEDStrips()
 {
   for (YAML::const_iterator it = config_.begin(); it != config_.end(); ++it) {
-    std::string channel_name = it->first.as<std::string>();
-    YAML::Node channel_values = it->second;
+    YAML::Node channel_args = it->second;
 
-    ChannelProperties channel_properties;
+    ChannelProperties channel_prop;
+    assignProperty(channel_args, channel_prop.frequency, "frequency");
+    assignProperty(channel_args, channel_prop.world_name, "world_name");
+    assignProperty(channel_args, channel_prop.parent_link, "parent_link");
+    assignProperty(channel_args, channel_prop.position, "position");
+    assignProperty(channel_args, channel_prop.orientation, "orientation");
+    assignProperty(channel_args, channel_prop.led_strip_width, "led_strip_width");
+    assignProperty(channel_args, channel_prop.topic, "topic");
+    assignProperty(channel_args, channel_prop.light_name, "light_name");
+    assignProperty(channel_args, channel_prop.number_of_leds, "number_of_leds");
 
-    channel_properties.parent_link = channel_values["parent_link"].as<std::string>();
-    channel_properties.position = channel_values["position"].as<std::vector<double>>();
-    channel_properties.orientation = channel_values["orientation"].as<std::vector<double>>();
-    channel_properties.led_strip_width = channel_values["led_strip_width"].as<double>();
-    channel_properties.topic = channel_values["topic"].as<std::string>();
-    channel_properties.light_name = channel_values["light_name"].as<std::string>();
-    channel_properties.number_of_leds = channel_values["number_of_leds"].as<unsigned int>();
-
-    led_strips_.emplace_back(channel_properties);
+    led_strips_.emplace_back(channel_prop);
   }
+}
+
+template <typename T>
+void LEDStripManager::assignProperty(
+  const YAML::Node & channel_args, T & property, const std::string & key)
+{
+  property = panther_utils::GetYAMLKeyValue<YAML::Node>(channel_args, key).as<T>();
 }
 
 int main(int argc, char ** argv)

@@ -29,16 +29,22 @@ LEDStrip::LEDStrip(ChannelProperties channel_properties)
 {
   first_free_available_marker_idx_ += channel_properties_.number_of_leds;
   gz::transport::SubscribeOptions opts;
-  opts.SetMsgsPerSec(15u);  // Setting to high frequency caused lags
+  opts.SetMsgsPerSec(channel_properties_.frequency);
   node_.Subscribe(channel_properties_.topic, &LEDStrip::ImageCallback, this, opts);
-  light_pub_ = node_.Advertise<gz::msgs::Light>("/world/husarion_world/light_config");
+  light_pub_ =
+    node_.Advertise<gz::msgs::Light>("/world/" + channel_properties_.world_name + "/light_config");
 }
 
 LEDStrip::~LEDStrip() { first_free_available_marker_idx_ -= channel_properties_.number_of_leds; }
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
-  CheckMsgValid(msg);
+  try {
+    CheckMsgValid(msg);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "Error in ImageCallback: " << e.what() << std::endl;
+  }
+
   ManageLights(msg);
   ManageVisualization(msg);
 }
@@ -46,9 +52,7 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 void LEDStrip::CheckMsgValid(const gz::msgs::Image & msg)
 {
   if (msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8) {
-    std::cerr << "Incorrect image encoding on " << channel_properties_.light_name << "!"
-              << std::endl;
-    return;
+    throw std::runtime_error("Incorrect image encoding on " + channel_properties_.light_name);
   }
 }
 
