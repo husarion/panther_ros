@@ -266,7 +266,7 @@ ros2 launch panther_bringup bringup.launch user_animations_file:=/my_awesome_use
 Test new animations:
 
 ```bash
-ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}""
+ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}"
 ```
 
 ---
