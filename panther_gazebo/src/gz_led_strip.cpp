@@ -43,6 +43,7 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
     CheckMsgValid(msg);
   } catch (const std::runtime_error & e) {
     std::cerr << "Error in ImageCallback: " << e.what() << std::endl;
+    return;
   }
 
   ManageLights(msg);
@@ -60,8 +61,8 @@ void LEDStrip::CheckMsgValid(const gz::msgs::Image & msg)
 
 void LEDStrip::ManageLights(const gz::msgs::Image & msg)
 {
-  auto mean_rgba = calculateMeanRGBA(msg.data());
-  GZPublishLight(mean_rgba);
+  auto mean_rgba = CalculateMeanRGBA(msg);
+  PublishLight(mean_rgba);
 }
 
 void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
@@ -75,7 +76,7 @@ void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
   const unsigned num_channels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
                                                                                                : 4;
   RGBAColor rgba;
-  for (int i = 0; i < msg.width(); i += num_channels) {
+  for (unsigned i = 0; i < msg.width(); i += num_channels) {
     rgba.r = static_cast<unsigned char>(data[i]) / 255.0f;
     rgba.g = static_cast<unsigned char>(data[i + 1]) / 255.0f;
     rgba.b = static_cast<unsigned char>(data[i + 2]) / 255.0f;
@@ -83,7 +84,7 @@ void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
 
     auto markerMsg = marker_msgs.add_marker();
     CreateMarker(markerMsg, i + first_led_marker_idx_);
-    SetColor(markerMsg, rgba);
+    SetMarkerColor(markerMsg, rgba);
 
     // Set the position and size of the box
     float marker_y_pos = static_cast<float>(i) * marker_width - y_start_pos;
@@ -113,14 +114,13 @@ RGBAColor LEDStrip::CalculateMeanRGBA(const gz::msgs::Image & msg)
     sumG += static_cast<unsigned char>(data[i + 1]);
     sumB += static_cast<unsigned char>(data[i + 2]);
     sumA += static_cast<unsigned char>(data[i + 3]);
-    rgba.a = num_channels == 4 ? static_cast<unsigned char>(data[i + 3]) : 255;
   }
 
   RGBAColor rgba;
   rgba.r = static_cast<float>(sumR) / msg.width() / 255.0f;
   rgba.g = static_cast<float>(sumG) / msg.width() / 255.0f;
   rgba.b = static_cast<float>(sumB) / msg.width() / 255.0f;
-  rgba.a = static_cast<float>(sumA) / msg.width() / 255.0f;
+  rgba.a = num_channels == 4 ? static_cast<float>(sumA) / msg.width() / 255.0f : 1;
 
   return rgba;
 }
@@ -174,7 +174,7 @@ void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
   marker->set_visibility(gz::msgs::Marker::GUI);
 }
 
-void LEDStrip::SetMarkerColor(RGBAColor & rgba)
+void LEDStrip::SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba)
 {
   float r = rgba.r;
   float g = rgba.g;

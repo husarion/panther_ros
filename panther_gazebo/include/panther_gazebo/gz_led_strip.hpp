@@ -28,6 +28,9 @@
 
 using namespace std::chrono_literals;
 
+/**
+ * @brief Structure to hold properties of each LED channel
+ */
 struct ChannelProperties
 {
   uint8_t frequency;
@@ -41,6 +44,9 @@ struct ChannelProperties
   unsigned int number_of_leds;
 };
 
+/**
+ * @brief Structure to hold RGBA color values
+ */
 struct RGBAColor
 {
   float r;
@@ -49,20 +55,83 @@ struct RGBAColor
   float a;
 };
 
+/**
+ * @brief Class to manage an LED strip in a Gazebo simulation
+ */
 class LEDStrip
 {
 public:
+  /**
+   * @brief Construct a new LEDStrip object
+   *
+   * @param channel_properties Properties of the LED channel
+   */
   LEDStrip(ChannelProperties channel_properties);
+
+  /**
+   * @brief Destroy the LEDStrip object
+   */
   ~LEDStrip();
 
 private:
+  /**
+   * @brief Callback function for image messages
+   *
+   * @param msg The received image message
+   */
   void ImageCallback(const gz::msgs::Image & msg);
+
+  /**
+   * @brief Validate the image message
+   *
+   * @param msg The image message to validate
+   * @throw std::runtime_error if the image format is incorrect
+   */
   void CheckMsgValid(const gz::msgs::Image & msg);
+
+  /**
+   * @brief Manage lights based on the image message
+   *
+   * @param msg The image message
+   */
   void ManageLights(const gz::msgs::Image & msg);
+
+  /**
+   * @brief Manage visualization of the LED strip
+   *
+   * @param msg The image message
+   */
   void ManageVisualization(const gz::msgs::Image & msg);
+
+  /**
+   * @brief Calculate the mean RGBA color from the image message
+   *
+   * @param msg The image message
+   * @return RGBAColor The calculated mean RGBA color
+   */
   RGBAColor CalculateMeanRGBA(const gz::msgs::Image & msg);
+
+  /**
+   * @brief Publish light configuration
+   *
+   * @param rgba The RGBA color to publish
+   */
   void PublishLight(RGBAColor & rgba);
+
+  /**
+   * @brief Create a marker for visualization
+   *
+   * @param marker The marker to create
+   * @param id The ID of the marker
+   */
   void CreateMarker(ignition::msgs::Marker * marker, int id);
+
+  /**
+   * @brief Set the color of a marker
+   *
+   * @param marker The marker to set the color of
+   * @param rgba The RGBA color to set
+   */
   void SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba);
 
   static unsigned int first_free_available_marker_idx_;

@@ -1,6 +1,13 @@
 # panther_gazebo
 
-A package containing the launch files and dependencies needed to run the simulation in Gazebo Fortress.
+The package contains a launch file and source files used to run the robot simulation in Gazebo. The simulator tries to reproduce the behavior of a real robot as much as possible, including the provision of an analogous ROS_API.
+
+## Available Launch File
+
+- `spawn_robot.launch.py` - is responsible for spawning the robot in the simulator
+- `simulate_robot.launch.py` - is responsible for giving birth to the robot and simulating its physical behavior, such as driving, displaying data, etc.
+- `simulate_multiple_robots.launch.py` - similar to the above with logic allowing you to quickly add a swarm of robots
+- **`simulation.launch.py`** - a target file that runs the gazebo simulator and adds and simulates the robot's behavior in accordance with the given arguments.
 
 ## Usage
 
