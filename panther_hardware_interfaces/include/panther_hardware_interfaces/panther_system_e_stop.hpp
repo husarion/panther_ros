@@ -43,7 +43,7 @@ public:
     roboteq_error_filter_(roboteq_error_filter),
     motors_controller_(motors_controller),
     motor_controller_write_mtx_(motor_controller_write_mtx),
-    ZeroVelocityCheck(zero_velocity_check){};
+    ZeroVelocityCheck(zero_velocity_check) {};
 
   virtual ~EStopInterface() = default;
 
@@ -78,7 +78,7 @@ public:
     std::function<bool()> zero_velocity_check)
   : EStopInterface(
       gpio_controller, roboteq_error_filter, motors_controller, motor_controller_write_mtx,
-      zero_velocity_check){};
+      zero_velocity_check) {};
 
   virtual ~EStopPTH12X() override = default;
 
@@ -140,7 +140,7 @@ public:
     std::function<bool()> zero_velocity_check)
   : EStopInterface(
       gpio_controller, roboteq_error_filter, motors_controller, motor_controller_write_mtx,
-      zero_velocity_check){};
+      zero_velocity_check) {};
 
   virtual ~EStopPTH10X() override = default;
 

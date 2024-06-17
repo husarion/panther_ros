@@ -15,11 +15,11 @@
 #include <iostream>
 
 #include <yaml-cpp/yaml.h>
+
 #include <gz/math.hh>
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
-
-#include <panther_gazebo/gz_led_strip.hpp>
+#include "panther_gazebo/gz_led_strip.hpp"
 
 unsigned int LEDStrip::first_free_available_marker_idx_ =
   1;  // The marker with id 0 is not modified.

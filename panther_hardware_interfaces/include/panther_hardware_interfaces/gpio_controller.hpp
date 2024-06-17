@@ -106,7 +106,7 @@ public:
   virtual std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates()
     const = 0;
 
-  virtual void InterruptEStopReset(){};
+  virtual void InterruptEStopReset() {};
 
   /**
    * @brief This method sets the provided callback function to be executed upon GPIO edge events.

@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <yaml-cpp/yaml.h>
+
 #include <gz/common/Time.hh>
 #include <gz/math.hh>
 #include <gz/msgs.hh>
@@ -44,9 +45,6 @@ struct ChannelProperties
   unsigned int number_of_leds;
 };
 
-/**
- * @brief Structure to hold RGBA color values
- */
 struct RGBAColor
 {
   float r;
@@ -67,71 +65,37 @@ public:
    * @param channel_properties Properties of the LED channel
    */
   LEDStrip(ChannelProperties channel_properties);
-
-  /**
-   * @brief Destroy the LEDStrip object
-   */
   ~LEDStrip();
 
 private:
-  /**
-   * @brief Callback function for image messages
-   *
-   * @param msg The received image message
-   */
   void ImageCallback(const gz::msgs::Image & msg);
-
-  /**
-   * @brief Validate the image message
-   *
-   * @param msg The image message to validate
-   * @throw std::runtime_error if the image format is incorrect
-   */
   void CheckMsgValid(const gz::msgs::Image & msg);
 
   /**
-   * @brief Manage lights based on the image message
-   *
-   * @param msg The image message
+   * @brief Manage color of robot simulated lights based on the image message
    */
   void ManageLights(const gz::msgs::Image & msg);
 
   /**
-   * @brief Manage visualization of the LED strip
-   *
-   * @param msg The image message
+   * @brief Manage color of robot LED strip based on the image message
    */
   void ManageVisualization(const gz::msgs::Image & msg);
-
-  /**
-   * @brief Calculate the mean RGBA color from the image message
-   *
-   * @param msg The image message
-   * @return RGBAColor The calculated mean RGBA color
-   */
   RGBAColor CalculateMeanRGBA(const gz::msgs::Image & msg);
 
   /**
-   * @brief Publish light configuration
+   * @brief Sending a message to change the color of the light
    *
    * @param rgba The RGBA color to publish
    */
   void PublishLight(RGBAColor & rgba);
 
   /**
-   * @brief Create a marker for visualization
+   * @brief Create a marker element (single LED from LED Strip)
    *
-   * @param marker The marker to create
-   * @param id The ID of the marker
+   * @param marker The pointer to marker to create
+   * @param id The unique ID of the marker (if not unique, the marker will replace the existing one)
    */
   void CreateMarker(ignition::msgs::Marker * marker, int id);
-
-  /**
-   * @brief Set the color of a marker
-   *
-   * @param marker The marker to set the color of
-   * @param rgba The RGBA color to set
-   */
   void SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba);
 
   static unsigned int first_free_available_marker_idx_;
