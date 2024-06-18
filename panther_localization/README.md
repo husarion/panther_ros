@@ -41,8 +41,10 @@ It converts raw GPS data into odometry data and publishes corrected GPS position
 
 #### ekf_global - Subscriber
 
-- `odometry/filtered/local` [*nav_msgs/msg/Odometry*]: robot odometry calculated from wheels.
+- `cmd_vel` [*geometry_msgs/msg/Twist*]: command velocity value.
+- `imu/data` [*sensor_msgs/msg/Imu*]: filtered IMU data.
 - `_odometry/gps` [*nav_msgs/msg/Odometry*]: transformed GPS data.
+- `odometry/wheels` [*nav_msgs/msg/Odometry*]: robot odometry calculated from wheels.
 - `/tf` [*tf2_msgs/msg/TFMessage*]: transforms of robot system.
 
 #### ekf_global - Publishers

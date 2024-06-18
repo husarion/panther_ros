@@ -98,6 +98,7 @@
       base_link_frame: base_link
       world_frame: map
 
+      # Probably can use odometry/filtered/local here, however, due to the rotated imu_link tf, the orientation.yaw was determined incorrectly
       odom0: odometry/wheels
       odom0_config: [false, false, false,
                     false, false, false,
@@ -130,6 +131,11 @@
       odom1_queue_size: 10
       odom1_differential: false
       odom1_relative: false
+
+      use_control: true
+      control_timeout: 0.5
+      control_config: [true, true, false, false, false, true]
+      acceleration_limits: [2.7, 1.5, 0.0, 0.0, 0.0, 5.7] # Values taken from WH01_controller.yaml and WH02_controller.yaml inside panther_controller/config
 
       process_noise_covariance: [1.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                                 0.0,    1.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
