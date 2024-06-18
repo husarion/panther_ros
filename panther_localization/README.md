@@ -65,4 +65,4 @@ It converts raw GPS data into odometry data and publishes corrected GPS position
 #### navsat_transform - Publishers
 
 - `gps/filtered` [*sensor_msgs/msg/NavSatFix*]: GPS position after including sensor data from `ekf_local`.
-- `_odometry/gps` [*nav_msgs/msg/Odometry*]: transformed raw GPS data to odometry data.
+- `_odometry/gps` [*nav_msgs/msg/Odometry*]: transformed raw GPS data to odometry format.
