@@ -84,7 +84,7 @@
         <enable_metrics>false</enable_metrics>
         <ignition_frame_id>imu_link</ignition_frame_id>
         <imu>
-          <orientation_reference_frame parent_frame="${ns}base_link">
+          <orientation_reference_frame>
             <localization>ENU</localization>
           </orientation_reference_frame>
           <angular_velocity>
