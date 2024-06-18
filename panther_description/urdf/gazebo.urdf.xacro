@@ -47,7 +47,7 @@
           <namespace>${namespace}</namespace>
           <remapping>imu_broadcaster/imu:=imu/data</remapping>
           <remapping>panther_base_controller/cmd_vel_unstamped:=cmd_vel</remapping>
-          <remapping>panther_base_controller/odom:=odom/wheels</remapping>
+          <remapping>panther_base_controller/odom:=odometry/wheels</remapping>
         </ros>
       </plugin>
     </gazebo>
@@ -82,9 +82,11 @@
         <topic>${ns}imu/data_raw</topic>
         <visualize>false</visualize>
         <enable_metrics>false</enable_metrics>
-        <frame_id>imu_link</frame_id>
         <ignition_frame_id>imu_link</ignition_frame_id>
         <imu>
+          <orientation_reference_frame parent_frame="${ns}base_link">
+            <localization>ENU</localization>
+          </orientation_reference_frame>
           <angular_velocity>
             <!-- rad/s -->
             <x>

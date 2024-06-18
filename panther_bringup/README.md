@@ -63,7 +63,7 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `~/odom/wheels` [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
+- `~/odometry/wheels` [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
 - `~/imu/data` [*sensor_msgs/Imu*]: filtered IMU data.
 - `/tf` [*tf2_msgs/TFMessage*]: transforms of robot system.
 

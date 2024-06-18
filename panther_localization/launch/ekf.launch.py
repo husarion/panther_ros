@@ -16,6 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import LaunchConfigurationEquals
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
@@ -33,6 +34,17 @@ def generate_launch_description():
             [FindPackageShare("panther_localization"), "config", "ekf.yaml"]
         ),
         description="Path to the EKF config file.",
+    )
+
+    declare_ekf_configuration_arg = DeclareLaunchArgument(
+        "ekf_configuration",
+        default_value="local",
+        description=(
+            "Set the EKF mode: "
+            "'local' combines wheel odometer and IMU data. "
+            "'global' adds GPS data to this fusion."
+        ),
+        choices=["local", "global"],
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -78,6 +90,7 @@ def generate_launch_description():
             ("toggle", "~/toggle"),
             ("odometry/filtered", "odometry/filtered/global"),
         ],
+        condition=LaunchConfigurationEquals("ekf_configuration", "global"),
     )
 
     navsat_transform = Node(
@@ -87,14 +100,16 @@ def generate_launch_description():
         parameters=[ekf_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
-            ("odometry/filtered", "odometry/filtered/global"),
             ("gps/fix", "gps/fix"),
-            ("odometry/gps", "odometry/gps"),
+            ("odometry/filtered", "odometry/filtered/global"),
+            ("odometry/gps", "_odometry/gps"),
         ],
+        condition=LaunchConfigurationEquals("ekf_configuration", "global"),
     )
 
     actions = [
         declare_ekf_config_path_arg,
+        declare_ekf_configuration_arg,
         declare_namespace_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),

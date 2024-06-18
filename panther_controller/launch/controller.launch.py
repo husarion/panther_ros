@@ -187,7 +187,7 @@ def generate_launch_description():
                 "driver/motor_controllers_state",
             ),
             ("panther_base_controller/cmd_vel_unstamped", "cmd_vel"),
-            ("panther_base_controller/odom", "odom/wheels"),
+            ("panther_base_controller/odom", "odometry/wheels"),
             ("panther_system_node/io_state", "hardware/io_state"),
             ("panther_system_node/e_stop", "hardware/e_stop"),
             ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
