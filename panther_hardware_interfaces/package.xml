@@ -14,8 +14,16 @@
   <author email="maciej.stepien@husarion.com">Maciej Stępień</author>
   <author email="pawel.kowalski@husarion.com">Paweł Kowalski</author>
   <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
+  <author email="pawel.irzyk@husarion.com">Paweł Irzyk</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>autoconf</build_depend>
+  <build_depend>autoconf-archive</build_depend>
+  <build_depend>libtool</build_depend>
+  <build_depend>m4</build_depend>
+  <build_depend>pkg-config</build_depend>
+  <build_depend>pluginlib</build_depend>
 
   <depend>controller_interface</depend>
   <depend>diagnostic_updater</depend>
@@ -23,7 +31,6 @@
   <depend>geometry_msgs</depend>
   <depend>hardware_interface</depend>
   <depend>imu_filter_madgwick</depend>
-  <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
   <depend>panther_utils</depend>
   <depend>phidgets_api</depend>
@@ -34,8 +41,6 @@
   <depend>std_srvs</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
-
-  <build_depend>pluginlib</build_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

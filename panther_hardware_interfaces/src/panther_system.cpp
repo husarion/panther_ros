@@ -75,7 +75,8 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
     ConfigureMotorsController();
     ConfigureEStop();
   } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "Failed to initialize GPIO, Motors, or E-Stop controllers. Error: " << e.what());
+    RCLCPP_ERROR_STREAM(
+      logger_, "Failed to initialize GPIO, Motors, or E-Stop controllers. Error: " << e.what());
     return CallbackReturn::ERROR;
   }
 
@@ -125,6 +126,9 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
+    "~/led_control_enable",
+    std::bind(&GPIOControllerInterface::LEDControlEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/motor_power_enable",
     std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));

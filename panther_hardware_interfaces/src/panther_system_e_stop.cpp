@@ -24,7 +24,7 @@ namespace panther_hardware_interfaces
 
 bool EStopPTH12X::ReadEStopState()
 {
-  e_stop_triggered_ = !gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::E_STOP_RESET);
+  e_stop_triggered_ = !gpio_controller_->IsPinActive(GPIOPin::E_STOP_RESET);
 
   // In the case where E-Stop is triggered by another device within the robot's system (e.g.,
   // Roboteq or Safety Board), disabling the software Watchdog is necessary to prevent an
@@ -82,7 +82,7 @@ void EStopPTH12X::ResetEStop()
 
 bool EStopPTH10X::ReadEStopState()
 {
-  const bool motors_on = gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT);
+  const bool motors_on = gpio_controller_->IsPinActive(GPIOPin::STAGE2_INPUT);
   const bool driver_error = roboteq_error_filter_->IsError();
 
   if ((driver_error || !motors_on) && !e_stop_triggered_) {
@@ -118,7 +118,7 @@ void EStopPTH10X::ResetEStop()
         "controller sends zero commands before trying to reset E-stop.");
     }
 
-    if (!gpio_controller_->IsPinActive(panther_gpiod::GPIOPin::STAGE2_INPUT)) {
+    if (!gpio_controller_->IsPinActive(GPIOPin::STAGE2_INPUT)) {
       throw std::runtime_error("Can't reset E-stop - motors are not powered.");
     }
 

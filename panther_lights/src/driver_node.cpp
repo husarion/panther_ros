@@ -21,16 +21,15 @@
 #include <string>
 #include <vector>
 
-#include "gpiod.hpp"
-
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
+
 #include "sensor_msgs/image_encodings.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 
 #include "panther_msgs/srv/set_led_brightness.hpp"
 
-#include "panther_gpiod/gpio_driver.hpp"
 #include "panther_lights/apa102.hpp"
 
 namespace panther_lights
@@ -53,67 +52,117 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   this->declare_parameter<double>("frame_timeout", 0.1);
   this->declare_parameter<int>("num_led", 46);
 
+  frame_timeout_ = this->get_parameter("frame_timeout").as_double();
+  num_led_ = this->get_parameter("num_led").as_int();
+
+  const float global_brightness = this->get_parameter("global_brightness").as_double();
+  chanel_1_.SetGlobalBrightness(global_brightness);
+  chanel_2_.SetGlobalBrightness(global_brightness);
+
+  enable_led_control_client_ = this->create_client<SetBoolSrv>(
+    "hardware/led_control_enable", rmw_qos_profile_services_default);
+
+  set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
+    "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
+
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
-void DriverNode::Initialize(const std::shared_ptr<image_transport::ImageTransport> & it)
+void DriverNode::InitializeSubscribers(const std::shared_ptr<image_transport::ImageTransport> & it)
 {
-  RCLCPP_INFO(this->get_logger(), "Initializing.");
-
-  const float global_brightness = this->get_parameter("global_brightness").as_double();
-  frame_timeout_ = this->get_parameter("frame_timeout").as_double();
-  num_led_ = this->get_parameter("num_led").as_int();
-
-  std::vector<panther_gpiod::GPIOInfo> gpio_info_storage = {panther_gpiod::GPIOInfo{
-    panther_gpiod::GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true}};
-  gpio_driver_ = std::make_unique<panther_gpiod::GPIODriver>(gpio_info_storage);
-  gpio_driver_->GPIOMonitorEnable();
+  RCLCPP_INFO(this->get_logger(), "Initializing ImageTransport subscribers.");
 
   chanel_1_ts_ = this->get_clock()->now();
-  chanel_2_ts_ = this->get_clock()->now();
-
-  chanel_1_.SetGlobalBrightness(global_brightness);
-  chanel_2_.SetGlobalBrightness(global_brightness);
-
   chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
     it->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
       chanel_1_ts_ = msg->header.stamp;
     }));
 
+  chanel_2_ts_ = this->get_clock()->now();
   chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
     it->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
       chanel_2_ts_ = msg->header.stamp;
     }));
 
-  set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
-    "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
-
-  RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
+  RCLCPP_INFO(this->get_logger(), "Initialized ImageTransport successfully.");
 }
 
 void DriverNode::OnShutdown()
 {
-  // Clear LEDs
+  ClearLEDs();
+
+  if (led_control_granted_) {
+    ToggleLEDControl(false);
+  }
+}
+
+void DriverNode::ClearLEDs()
+{
   chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
   chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+}
 
-  // Give back control over LEDs
-  if (panels_initialised_) {
-    SetPowerPin(false);
+void DriverNode::ToggleLEDControl(const bool enable)
+{
+  auto request = std::make_shared<SetBoolSrv::Request>();
+  request->data = enable;
+
+  if (!enable_led_control_client_->wait_for_service(std::chrono::seconds(3))) {
+    throw std::runtime_error(
+      "Timeout occurred while waiting for service '" +
+      std::string(enable_led_control_client_->get_service_name()) + "'!");
   }
 
-  gpio_driver_.reset();
+  enable_led_control_client_->async_send_request(
+    request, std::bind(&DriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
+
+  RCLCPP_DEBUG(
+    this->get_logger(), "Sent request toggling LED control to '%s'.", enable ? "true" : "false");
+}
+
+void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future)
+{
+  RCLCPP_DEBUG(this->get_logger(), "Received response after toggling LED control.");
+
+  const auto result = future.get();
+
+  const auto request = result.first;
+  const auto response = result.second;
+
+  if (!response->success) {
+    RCLCPP_ERROR_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, "Failed to toggle LED control.");
+    return;
+  }
+
+  if (request->data == true) {
+    led_control_granted_ = true;
+    ClearLEDs();
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control granted.");
+  } else {
+    led_control_granted_ = false;
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control revoked.");
+  }
 }
 
 void DriverNode::FrameCB(
   const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
   const rclcpp::Time & last_time, const std::string & panel_name)
 {
+  if (!led_control_granted_) {
+    ToggleLEDControl(true);
+
+    auto message = "LED control not granted, ignoring frame!";
+    RCLCPP_WARN_STREAM_SKIPFIRST_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
+    return;
+  }
+
   std::string message;
   if (
     (this->get_clock()->now() - rclcpp::Time(msg->header.stamp)) >
@@ -130,6 +179,7 @@ void DriverNode::FrameCB(
   }
 
   if (!message.empty()) {
+    // Since this is throttle warning, we need to add panel name condition to log from both panels
     if (panel_name == "channel_1") {
       RCLCPP_WARN_STREAM_THROTTLE(
         this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
@@ -144,18 +194,7 @@ void DriverNode::FrameCB(
     return;
   }
 
-  if (!panels_initialised_) {
-    // Take control over LEDs
-    SetPowerPin(true);
-    panels_initialised_ = true;
-  }
-
   panel.SetPanel(msg->data);
-}
-
-void DriverNode::SetPowerPin(const bool value)
-{
-  gpio_driver_->SetPinValue(panther_gpiod::GPIOPin::LED_SBC_SEL, value);
 }
 
 void DriverNode::SetBrightnessCB(
@@ -182,30 +221,14 @@ void DriverNode::SetBrightnessCB(
 
 void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
-  std::vector<diagnostic_msgs::msg::KeyValue> key_values;
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
-  std::string message{"LED panels initialized properly."};
+  std::string message{"Control over LEDs granted."};
 
-  if (!panels_initialised_) {
+  if (!led_control_granted_) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "LED panels initialization failed.";
-
-    auto pin_available = gpio_driver_->IsPinAvailable(panther_gpiod::GPIOPin::LED_SBC_SEL);
-    auto pin_active = gpio_driver_->IsPinActive(panther_gpiod::GPIOPin::LED_SBC_SEL);
-
-    diagnostic_msgs::msg::KeyValue pin_available_kv;
-    pin_available_kv.key = "LED_SBC_SEL pin available";
-    pin_available_kv.value = pin_available ? "true" : "false";
-
-    diagnostic_msgs::msg::KeyValue pin_active_kv;
-    pin_active_kv.key = "LED_SBC_SEL pin active";
-    pin_active_kv.value = pin_active ? "true" : "false";
-
-    key_values.push_back(pin_available_kv);
-    key_values.push_back(pin_active_kv);
+    message = "Control over LEDs not granted, driver is not functional!";
   }
 
-  status.values = key_values;
   status.summary(error_level, message);
 }
 

@@ -228,9 +228,8 @@ public:
   void PublishEStopStateMsg(const bool e_stop);
   void PublishEStopStateIfChanged(const bool e_stop);
   void PublishDriverState();
-  void InitializeAndPublishIOStateMsg(
-    const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state);
-  void PublishIOState(const panther_gpiod::GPIOInfo & gpio_info);
+  void InitializeAndPublishIOStateMsg(const std::unordered_map<GPIOPin, bool> & io_state);
+  void PublishIOState(const GPIOInfo & gpio_info);
 
 private:
   /**
@@ -242,7 +241,7 @@ private:
    * @return True if the state update caused a change in the IO state message; returns
    * false otherwise.
    */
-  bool UpdateIOStateMsg(const panther_gpiod::GPIOPin pin, const bool pin_value);
+  bool UpdateIOStateMsg(const GPIOPin pin, const bool pin_value);
 
   /**
    * @brief Retrieves an existing callback group from the internal map or creates
