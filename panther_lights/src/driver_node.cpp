@@ -129,21 +129,24 @@ void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWith
 {
   RCLCPP_DEBUG(this->get_logger(), "Received response after toggling LED control.");
 
-  auto result = future.get();
+  const auto result = future.get();
 
-  auto request = result.first;
-  auto response = result.second;
+  const auto request = result.first;
+  const auto response = result.second;
 
-  if (request->data == true && response->success) {
+  if (!response->success) {
+    RCLCPP_ERROR_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, "Failed to toggle LED control.");
+    return;
+  }
+
+  if (request->data == true) {
     led_control_granted_ = true;
     ClearLEDs();
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control granted.");
-  } else if (request->data == false && response->success) {
+  } else {
     led_control_granted_ = false;
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control revoked.");
-  } else {
-    RCLCPP_ERROR_THROTTLE(
-      this->get_logger(), *this->get_clock(), 5000, "Failed to toggle LED control.");
   }
 }
 
@@ -176,8 +179,14 @@ void DriverNode::FrameCB(
   }
 
   if (!message.empty()) {
-    RCLCPP_WARN_STREAM_THROTTLE(
-      this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
+    // Since this is throttle warning, we need to add panel name condition to log from both panels
+    if (panel_name == "channel_1") {
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
+    } else if (panel_name == "channel_2") {
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
+    }
 
     auto warn_msg = message + " on " + panel_name + "!";
     diagnostic_updater_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, warn_msg);

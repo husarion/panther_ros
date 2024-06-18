@@ -78,7 +78,7 @@ void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOI
 std::unique_ptr<gpiod::line_request> GPIODriver::CreateLineRequest(gpiod::chip & chip)
 {
   auto request_builder = chip.prepare_request();
-  request_builder.set_consumer("panther_gpiod");
+  request_builder.set_consumer("panther_hardware_interfaces");
 
   for (GPIOInfo & gpio_info : gpio_info_storage_) {
     ConfigureLineRequest(chip, request_builder, gpio_info);

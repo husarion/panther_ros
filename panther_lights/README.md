@@ -55,7 +55,7 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
 
-- `hardware/led_control_enable` [*std_srvs/SetBool*]: allows setting animation on Bumper Lights based on animation ID.
+- `hardware/led_control_enable` [*std_srvs/SetBool*]: makes SBC controlling LEDs.
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
 
