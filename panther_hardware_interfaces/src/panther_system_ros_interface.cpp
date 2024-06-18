@@ -253,6 +253,9 @@ bool PantherSystemRosInterface::UpdateIOStateMsg(const GPIOPin pin, const bool p
     case GPIOPin::SHDN_INIT:
       io_state_msg.power_button = pin_value;
       break;
+    case GPIOPin::LED_SBC_SEL:
+      io_state_msg.led_control = pin_value;
+      break;
     default:
       return false;
   }
