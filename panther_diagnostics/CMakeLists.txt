@@ -53,10 +53,12 @@ install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
 install(TARGETS system_status_node DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(ros_testing REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_system_status
-                  test/test_system_status_node.cpp src/system_status_node.cpp)
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_system_status test/unit/test_system_status_node.cpp
+    src/system_status_node.cpp)
   target_include_directories(${PROJECT_NAME}_test_system_status
                              PUBLIC ${CMAKE_INSTALL_PREFIX}/include)
 
@@ -64,6 +66,8 @@ if(BUILD_TESTING)
                             ament_cmake_gtest ${PACKAGE_INCLUDE_DEPENDS})
   target_link_libraries(${PROJECT_NAME}_test_system_status
                         system_status_parameters PkgConfig::CPPUPROFILE)
+
+  add_ros_test(test/integration/system_status_node.test.py)
 
 endif()
 

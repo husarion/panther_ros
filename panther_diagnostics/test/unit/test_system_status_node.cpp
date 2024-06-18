@@ -17,14 +17,27 @@
 #include <memory>
 #include <string>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include "panther_diagnostics/filesystem.hpp"
 #include "panther_diagnostics/system_status_node.hpp"
+
+class MockFilesystem : public panther_diagnostics::FilesystemInterface
+{
+public:
+  MOCK_METHOD(
+    std::filesystem::space_info, GetSpaceInfo, (const std::filesystem::path & path),
+    (const, override));
+};
 
 class SystemStatusNodeWrapper : public panther_diagnostics::SystemStatusNode
 {
 public:
-  SystemStatusNodeWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
+  SystemStatusNodeWrapper(MockFilesystem::SharedPtr filesystem)
+  : panther_diagnostics::SystemStatusNode("test_system_statics", filesystem)
+  {
+  }
 
   std::vector<float> GetCoresUsages() const
   {
@@ -46,7 +59,7 @@ public:
   float GetDiskUsage() const { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
 
   panther_msgs::msg::SystemStatus SystemStatusToMessage(
-    const panther_diagnostics::SystemStatusNode::SystemStatus & status)
+    const panther_diagnostics::SystemStatus & status)
   {
     return panther_diagnostics::SystemStatusNode::SystemStatusToMessage(status);
   }
@@ -58,12 +71,14 @@ public:
   TestSystemStatusNode();
 
 protected:
+  MockFilesystem::SharedPtr filesystem_;
   std::unique_ptr<SystemStatusNodeWrapper> system_status_;
 };
 
 TestSystemStatusNode::TestSystemStatusNode()
 {
-  system_status_ = std::make_unique<SystemStatusNodeWrapper>();
+  filesystem_ = std::make_shared<MockFilesystem>();
+  system_status_ = std::make_unique<SystemStatusNodeWrapper>(filesystem_);
 }
 
 TEST_F(TestSystemStatusNode, CheckCoresUsages)
@@ -107,16 +122,31 @@ TEST_F(TestSystemStatusNode, CheckMemoryReadings)
   EXPECT_TRUE((memory >= 0.0) && (memory <= 100.0));
 }
 
-TEST_F(TestSystemStatusNode, CheckDiskReadings)
-{
-  const auto disk_usage = system_status_->GetDiskUsage();
+// TEST_F(TestSystemStatusNode, CheckDiskReadings)
+// {
+//   const auto disk_usage = system_status_->GetDiskUsage();
 
-  EXPECT_TRUE((disk_usage >= 0.0) && (disk_usage <= 100.0));
+//   EXPECT_TRUE((disk_usage >= 0.0) && (disk_usage <= 100.0));
+// }
+
+TEST(TestDiskUsage, RegularConsumption)
+{
+  auto filesystem_mock = std::make_shared<MockFilesystem>();
+  auto system_status = std::make_unique<SystemStatusNodeWrapper>(filesystem_mock);
+
+  std::filesystem::space_info space_info{1000, 500, 500};
+  std::filesystem::path path = "/";
+
+  EXPECT_CALL(*filesystem_mock, GetSpaceInfo(path)).WillOnce(::testing::Return(space_info));
+
+  auto usage = system_status->GetDiskUsage();
+
+  EXPECT_EQ(usage, 50.0);
 }
 
 TEST_F(TestSystemStatusNode, CheckSystemStatusToMessage)
 {
-  panther_diagnostics::SystemStatusNode::SystemStatus status;
+  panther_diagnostics::SystemStatus status;
   status.core_usages = {50.0, 50.0, 50.0};
   status.cpu_mean_usage = 50.0;
   status.cpu_temperature = 36.6;

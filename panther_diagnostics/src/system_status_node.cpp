@@ -19,19 +19,24 @@
 #include <filesystem>
 #include <fstream>
 
-#include "cppuprofile/uprofile.h"
+#include <cppuprofile/uprofile.h>
 
-#include "diagnostic_updater/diagnostic_updater.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include "panther_msgs/msg/system_status.hpp"
+
 #include "panther_utils/common_utilities.hpp"
+
+#include "panther_diagnostics/filesystem.hpp"
+#include "panther_diagnostics/types.hpp"
 
 namespace panther_diagnostics
 {
 
-SystemStatusNode::SystemStatusNode(const std::string & node_name)
-: rclcpp::Node(node_name), diagnostic_updater_(this)
+SystemStatusNode::SystemStatusNode(
+  const std::string & node_name, FilesystemInterface::SharedPtr filesystem)
+: rclcpp::Node(node_name), diagnostic_updater_(this), filesystem_(filesystem)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
@@ -41,6 +46,7 @@ SystemStatusNode::SystemStatusNode(const std::string & node_name)
 
   system_status_publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>(
     "system_status", 10);
+
   timer_ = this->create_wall_timer(
     std::chrono::milliseconds(static_cast<long long>(params_.publish_rate * 1000)),
     std::bind(&SystemStatusNode::TimerCallback, this));
@@ -59,9 +65,9 @@ void SystemStatusNode::TimerCallback()
   system_status_publisher_->publish(message);
 }
 
-SystemStatusNode::SystemStatus SystemStatusNode::GetSystemStatus() const
+SystemStatus SystemStatusNode::GetSystemStatus() const
 {
-  SystemStatusNode::SystemStatus status;
+  SystemStatus status;
 
   status.core_usages = GetCoresUsages();
   status.cpu_mean_usage = GetCPUMeanUsage(status.core_usages);
@@ -109,13 +115,15 @@ float SystemStatusNode::GetMemoryUsage() const
 float SystemStatusNode::GetDiskUsage() const
 {
   const std::filesystem::directory_entry entry("/");
-  const std::filesystem::space_info si = std::filesystem::space(entry.path());
+  const auto space_info = filesystem_->GetSpaceInfo(entry.path());
 
-  return static_cast<float>(si.capacity - si.available) / si.capacity * 100.0;
+  const auto disk_usage = static_cast<float>(space_info.capacity - space_info.available) /
+                          space_info.capacity * 100.0;
+
+  return disk_usage;
 }
 
-panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
-  const SystemStatusNode::SystemStatus & status)
+panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(const SystemStatus & status)
 {
   panther_msgs::msg::SystemStatus message;
 

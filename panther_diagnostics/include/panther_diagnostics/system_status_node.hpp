@@ -17,12 +17,15 @@
 
 #include <string>
 
-#include "diagnostic_updater/diagnostic_updater.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include "panther_msgs/msg/system_status.hpp"
 
 #include "system_status_parameters.hpp"
+
+#include "panther_diagnostics/filesystem.hpp"
+#include "panther_diagnostics/types.hpp"
 
 using namespace std::chrono_literals;
 
@@ -32,19 +35,11 @@ namespace panther_diagnostics
 class SystemStatusNode : public rclcpp::Node
 {
 public:
-  SystemStatusNode(const std::string & node_name);
-
-  struct SystemStatus
-  {
-    std::vector<float> core_usages;
-    float cpu_mean_usage;
-    float cpu_temperature;
-    float memory_usage;
-    float disk_usage;
-  };
+  SystemStatusNode(const std::string & node_name, FilesystemInterface::SharedPtr filesystem);
 
 protected:
   SystemStatus GetSystemStatus() const;
+
   std::vector<float> GetCoresUsages() const;
   float GetCPUMeanUsage(const std::vector<float> & usages) const;
   float GetCPUTemperature(const std::string & filename) const;
@@ -56,6 +51,8 @@ protected:
 private:
   void TimerCallback();
   void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
+
+  FilesystemInterface::SharedPtr filesystem_;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;

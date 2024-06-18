@@ -18,14 +18,16 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+#include "panther_diagnostics/filesystem.hpp"
 #include "panther_diagnostics/system_status_node.hpp"
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto system_status_node =
-    std::make_shared<panther_diagnostics::SystemStatusNode>("system_status_node");
+  auto filesystem = std::make_shared<panther_diagnostics::Filesystem>();
+  auto system_status_node = std::make_shared<panther_diagnostics::SystemStatusNode>(
+    "system_status_node", filesystem);
 
   try {
     rclcpp::spin(system_status_node);
