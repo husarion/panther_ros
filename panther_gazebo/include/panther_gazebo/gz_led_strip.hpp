@@ -69,7 +69,7 @@ public:
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
-  bool IsMsgValid(const gz::msgs::Image & msg);
+  void MsgValidation(const gz::msgs::Image & msg);
 
   /**
    * @brief Manage color of robot simulated lights based on the image message

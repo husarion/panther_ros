@@ -46,9 +46,10 @@ LEDStrip::~LEDStrip() { first_free_available_marker_idx_ -= channel_properties_.
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
-  if (!IsMsgValid(msg)) {
-    std::cerr << "Error in ImageCallback: Incorrect image encoding on "
-              << channel_properties_.light_name << std::endl;
+  try {
+    MsgValidation(msg);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "[Error] with " << channel_properties_.light_name << ": " << e.what() << std::endl;
     return;
   }
 
@@ -56,10 +57,20 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
   ManageVisualization(msg);
 }
 
-bool LEDStrip::IsMsgValid(const gz::msgs::Image & msg)
+void LEDStrip::MsgValidation(const gz::msgs::Image & msg)
 {
-  return msg.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8 ||
-         msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8;
+  if (
+    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8 &&
+    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGB_INT8) {
+    throw std::runtime_error("Incorrect image encoding");
+  }
+
+  if (msg.width() != channel_properties_.number_of_leds || msg.height() != 1) {
+    throw std::runtime_error(
+      "Image dimensions are incorrect. \nExpected width: " +
+      std::to_string(channel_properties_.number_of_leds) + ", height: 1. \nReceived width: " +
+      std::to_string(msg.width()) + ", height: " + std::to_string(msg.height()));
+  }
 }
 
 void LEDStrip::ManageLights(const gz::msgs::Image & msg)
