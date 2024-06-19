@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "panther_gazebo/gz_led_strip.hpp"
+
+#include <algorithm>
+#include <exception>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include <yaml-cpp/yaml.h>
 
 #include <gz/math.hh>
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
-#include "panther_gazebo/gz_led_strip.hpp"
 
 unsigned int LEDStrip::first_free_available_marker_idx_ =
   1;  // The marker with id 0 is not modified.
@@ -29,20 +34,21 @@ LEDStrip::LEDStrip(ChannelProperties channel_properties)
 {
   first_free_available_marker_idx_ += channel_properties_.number_of_leds;
   gz::transport::SubscribeOptions opts;
+  node_ = std::make_shared<gz::transport::Node>();
   opts.SetMsgsPerSec(channel_properties_.frequency);
-  node_.Subscribe(channel_properties_.topic, &LEDStrip::ImageCallback, this, opts);
-  light_pub_ =
-    node_.Advertise<gz::msgs::Light>("/world/" + channel_properties_.world_name + "/light_config");
+  node_->Subscribe(channel_properties_.topic, &LEDStrip::ImageCallback, this, opts);
+
+  light_pub_ = std::make_shared<gz::transport::Node::Publisher>(node_->Advertise<gz::msgs::Light>(
+    "/world/" + channel_properties_.world_name + "/light_config"));
 }
 
 LEDStrip::~LEDStrip() { first_free_available_marker_idx_ -= channel_properties_.number_of_leds; }
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
-  try {
-    CheckMsgValid(msg);
-  } catch (const std::runtime_error & e) {
-    std::cerr << "Error in ImageCallback: " << e.what() << std::endl;
+  if (!IsMsgValid(msg)) {
+    std::cerr << "Error in ImageCallback: Incorrect image encoding on "
+              << channel_properties_.light_name << std::endl;
     return;
   }
 
@@ -50,18 +56,15 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
   ManageVisualization(msg);
 }
 
-void LEDStrip::CheckMsgValid(const gz::msgs::Image & msg)
+bool LEDStrip::IsMsgValid(const gz::msgs::Image & msg)
 {
-  if (
-    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8 &&
-    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGB_INT8) {
-    throw std::runtime_error("Incorrect image encoding on " + channel_properties_.light_name);
-  }
+  return msg.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8 ||
+         msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8;
 }
 
 void LEDStrip::ManageLights(const gz::msgs::Image & msg)
 {
-  auto mean_rgba = CalculateMeanRGBA(msg);
+  const auto mean_rgba = CalculateMeanRGBA(msg);
   PublishLight(mean_rgba);
 }
 
@@ -82,24 +85,24 @@ void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
     rgba.b = static_cast<unsigned char>(data[i + 2]) / 255.0f;
     rgba.a = num_channels == 4 ? static_cast<unsigned char>(data[i + 3]) / 255.0f : 1.0f;
 
-    auto markerMsg = marker_msgs.add_marker();
-    CreateMarker(markerMsg, i + first_led_marker_idx_);
-    SetMarkerColor(markerMsg, rgba);
+    auto marker_msg = marker_msgs.add_marker();
+    CreateMarker(marker_msg, i + first_led_marker_idx_);
+    SetMarkerColor(marker_msg, rgba);
 
     // Set the position and size of the box
     float marker_y_pos = static_cast<float>(i) * marker_width - y_start_pos;
     gz::msgs::Set(
-      markerMsg->mutable_pose(),
+      marker_msg->mutable_pose(),
       gz::math::Pose3d(
         channel_properties_.position[0], channel_properties_.position[1] + marker_y_pos,
         channel_properties_.position[2], channel_properties_.orientation[0],
         channel_properties_.orientation[1], channel_properties_.orientation[2]));
-    gz::msgs::Set(markerMsg->mutable_scale(), gz::math::Vector3d(0.001, marker_width, 0.015));
+    gz::msgs::Set(marker_msg->mutable_scale(), gz::math::Vector3d(0.001, marker_width, 0.015));
   }
 
   gz::msgs::Boolean res;
   bool result;
-  node_.Request("/marker_array", marker_msgs, 1u, res, result);
+  node_->Request("/marker_array", marker_msgs, 1u, res, result);
 }
 
 RGBAColor LEDStrip::CalculateMeanRGBA(const gz::msgs::Image & msg)
@@ -107,25 +110,25 @@ RGBAColor LEDStrip::CalculateMeanRGBA(const gz::msgs::Image & msg)
   const std::string & data = msg.data();
   const unsigned num_channels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
                                                                                                : 4;
-  size_t sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+  size_t sum_r = 0, sum_g = 0, sum_b = 0, sum_a = 0;
 
   for (size_t i = 0; i < data.size(); i += num_channels) {
-    sumR += static_cast<unsigned char>(data[i]);
-    sumG += static_cast<unsigned char>(data[i + 1]);
-    sumB += static_cast<unsigned char>(data[i + 2]);
-    sumA += static_cast<unsigned char>(data[i + 3]);
+    sum_r += static_cast<unsigned char>(data[i]);
+    sum_g += static_cast<unsigned char>(data[i + 1]);
+    sum_b += static_cast<unsigned char>(data[i + 2]);
+    sum_a += static_cast<unsigned char>(data[i + 3]);
   }
 
   RGBAColor rgba;
-  rgba.r = static_cast<float>(sumR) / msg.width() / 255.0f;
-  rgba.g = static_cast<float>(sumG) / msg.width() / 255.0f;
-  rgba.b = static_cast<float>(sumB) / msg.width() / 255.0f;
-  rgba.a = num_channels == 4 ? static_cast<float>(sumA) / msg.width() / 255.0f : 1;
+  rgba.r = static_cast<float>(sum_r) / msg.width() / 255.0f;
+  rgba.g = static_cast<float>(sum_g) / msg.width() / 255.0f;
+  rgba.b = static_cast<float>(sum_b) / msg.width() / 255.0f;
+  rgba.a = num_channels == 4 ? static_cast<float>(sum_a) / msg.width() / 255.0f : 1;
 
   return rgba;
 }
 
-void LEDStrip::PublishLight(RGBAColor & rgba)
+void LEDStrip::PublishLight(const RGBAColor & rgba)
 {
   gz::msgs::Light msg;
   msg.set_name(channel_properties_.light_name);
@@ -161,10 +164,10 @@ void LEDStrip::PublishLight(RGBAColor & rgba)
   direction->set_y(0.0);
   direction->set_z(-0.5);
 
-  light_pub_.Publish(msg);
+  light_pub_->Publish(msg);
 }
 
-void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
+void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, const int id)
 {
   marker->set_ns("default");
   marker->set_id(id);
@@ -174,7 +177,7 @@ void LEDStrip::CreateMarker(ignition::msgs::Marker * marker, int id)
   marker->set_visibility(gz::msgs::Marker::GUI);
 }
 
-void LEDStrip::SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba)
+void LEDStrip::SetMarkerColor(gz::msgs::Marker * marker, const RGBAColor & rgba)
 {
   float r = rgba.r;
   float g = rgba.g;
@@ -182,10 +185,10 @@ void LEDStrip::SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba)
   float a = rgba.a;
 
   // Make default gray color
-  float maxBrightness = std::max({r, g, b});
-  r = std::max(r, 0.5f - maxBrightness / 2);
-  g = std::max(g, 0.5f - maxBrightness / 2);
-  b = std::max(b, 0.5f - maxBrightness / 2);
+  float max_brightness = std::max({r, g, b});
+  r = std::max(r, 0.5f - max_brightness / 2);
+  g = std::max(g, 0.5f - max_brightness / 2);
+  b = std::max(b, 0.5f - max_brightness / 2);
 
   marker->mutable_material()->mutable_ambient()->set_r(r);
   marker->mutable_material()->mutable_ambient()->set_g(g);

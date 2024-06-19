@@ -22,6 +22,7 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
@@ -67,7 +68,7 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value="panther"),
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
     )
 
@@ -162,9 +163,11 @@ def generate_launch_description():
         }.items(),
     )
 
+    model_name = PythonExpression(["'", namespace, "' if '", namespace, "' else 'panther'"])
+
     namespaced_gz_bridge_config_path = ReplaceString(
         source_file=gz_bridge_config_path,
-        replacements={"<namespace>": namespace, "//": "/"},
+        replacements={"<model_name>": model_name, "<namespace>": namespace, "//": "/"},
     )
 
     gz_bridge = Node(

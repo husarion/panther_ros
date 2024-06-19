@@ -69,7 +69,7 @@ public:
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
-  void CheckMsgValid(const gz::msgs::Image & msg);
+  bool IsMsgValid(const gz::msgs::Image & msg);
 
   /**
    * @brief Manage color of robot simulated lights based on the image message
@@ -87,7 +87,7 @@ private:
    *
    * @param rgba The RGBA color to publish
    */
-  void PublishLight(RGBAColor & rgba);
+  void PublishLight(const RGBAColor & rgba);
 
   /**
    * @brief Create a marker element (single LED from LED Strip)
@@ -95,17 +95,15 @@ private:
    * @param marker The pointer to marker to create
    * @param id The unique ID of the marker (if not unique, the marker will replace the existing one)
    */
-  void CreateMarker(ignition::msgs::Marker * marker, int id);
-  void SetMarkerColor(gz::msgs::Marker * marker, RGBAColor & rgba);
+  void CreateMarker(ignition::msgs::Marker * marker, const int id);
+  void SetMarkerColor(gz::msgs::Marker * marker, const RGBAColor & rgba);
 
   static unsigned int first_free_available_marker_idx_;
   const int first_led_marker_idx_;
 
   ChannelProperties channel_properties_;
-  gz::transport::Node node_;
-  gz::transport::Node::Publisher light_pub_;
-
-  std::chrono::duration<double> frame_timeout_ = std::chrono::duration<double>(1.0);
+  std::shared_ptr<gz::transport::Node> node_;
+  std::shared_ptr<gz::transport::Node::Publisher> light_pub_;
 };
 
 #endif  // PANTHER_GAZEBO_GZ_LED_STRIP_HPP_

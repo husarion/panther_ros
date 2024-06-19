@@ -23,14 +23,23 @@
 #include "panther_gazebo/gz_led_strip.hpp"
 #include "panther_utils/yaml_utils.hpp"
 
+/**
+ * @brief Class to manage multiple LED strip object in Gazebo simulation based on provided
+ * configuration
+ */
 class LEDStripManager
 {
 public:
   explicit LEDStripManager(const std::string & config_file);
   void LoadConfig(const std::string & config_file);
+
+  /**
+   * @brief Create as many LED strips as defined in the configuration file.
+   */
   void CreateLEDStrips();
+
   template <typename T>
-  void assignProperty(const YAML::Node & channel_args, T & property, const std::string & key);
+  void AssignProperty(const YAML::Node & channel_args, T & property, const std::string & key);
 
 private:
   YAML::Node config_;
