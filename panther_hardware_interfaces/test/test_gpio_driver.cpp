@@ -24,10 +24,11 @@
 #include "gpiod.hpp"
 #include "gtest/gtest.h"
 
-#include "panther_gpiod/gpio_driver.hpp"
+#include "panther_hardware_interfaces/gpio_driver.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
-using namespace panther_gpiod;
+using GPIOInfo = panther_hardware_interfaces::GPIOInfo;
+using GPIOPin = panther_hardware_interfaces::GPIOPin;
 
 class TestGPIODriver : public ::testing::Test
 {
@@ -42,7 +43,7 @@ protected:
   void TearDown() override;
   void SetAndVerifyPinState(const GPIOPin & pin);
 
-  std::unique_ptr<GPIODriver> gpio_driver_;
+  std::unique_ptr<panther_hardware_interfaces::GPIODriver> gpio_driver_;
   std::pair<GPIOPin, gpiod::line::value> last_gpio_event_summary_;
   const std::vector<GPIOInfo> gpio_config_info_{
     GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT},
@@ -51,7 +52,7 @@ protected:
 
 void TestGPIODriver::SetUp()
 {
-  gpio_driver_ = std::make_unique<GPIODriver>(gpio_config_info_);
+  gpio_driver_ = std::make_unique<panther_hardware_interfaces::GPIODriver>(gpio_config_info_);
 
   last_gpio_event_summary_.first = static_cast<GPIOPin>(-1);
   last_gpio_event_summary_.second = static_cast<gpiod::line::value>(-1);
@@ -77,7 +78,10 @@ void TestGPIODriver::SetAndVerifyPinState(const GPIOPin & pin)
 TEST(TestGPIODriverInitialization, EmptyInfoStorage)
 {
   EXPECT_THROW(
-    { auto gpio_driver = std::make_unique<GPIODriver>(std::vector<GPIOInfo>{}); },
+    {
+      auto gpio_driver =
+        std::make_unique<panther_hardware_interfaces::GPIODriver>(std::vector<GPIOInfo>{});
+    },
     std::runtime_error);
 }
 
@@ -86,11 +90,11 @@ TEST(TestGPIODriverInitialization, WrongPinConfigFail)
   // There is no OS version that supports simultaneous operation of MOTOR_ON and VMOT_ON pins.
   EXPECT_THROW(
     {
-      auto gpio_driver = std::make_unique<GPIODriver>(
+      auto gpio_driver = std::make_unique<panther_hardware_interfaces::GPIODriver>(
         std::vector<GPIOInfo>{{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT}});
       gpio_driver.reset();
 
-      gpio_driver = std::make_unique<GPIODriver>(
+      gpio_driver = std::make_unique<panther_hardware_interfaces::GPIODriver>(
         std::vector<GPIOInfo>{{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT}});
     },
     std::invalid_argument);

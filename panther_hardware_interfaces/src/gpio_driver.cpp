@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gpiod/gpio_driver.hpp"
+#include "panther_hardware_interfaces/gpio_driver.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -31,7 +31,7 @@
 
 #include "panther_utils/configure_rt.hpp"
 
-namespace panther_gpiod
+namespace panther_hardware_interfaces
 {
 
 GPIODriver::GPIODriver(std::vector<GPIOInfo> gpio_info_storage)
@@ -78,7 +78,7 @@ void GPIODriver::ConfigureEdgeEventCallback(const std::function<void(const GPIOI
 std::unique_ptr<gpiod::line_request> GPIODriver::CreateLineRequest(gpiod::chip & chip)
 {
   auto request_builder = chip.prepare_request();
-  request_builder.set_consumer("panther_gpiod");
+  request_builder.set_consumer("panther_hardware_interfaces");
 
   for (GPIOInfo & gpio_info : gpio_info_storage_) {
     ConfigureLineRequest(chip, request_builder, gpio_info);
@@ -308,4 +308,4 @@ GPIOPin GPIODriver::GetPinFromOffset(const gpiod::line::offset & offset) const
     "Pin with offset " + std::to_string(offset) + " not found in GPIO info storage.");
 }
 
-}  // namespace panther_gpiod
+}  // namespace panther_hardware_interfaces
