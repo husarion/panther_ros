@@ -7,7 +7,7 @@ chanel_1:
   led_strip_width: 0.5
   topic: lights/driver/channel_1_frame
   light_name: front_light
-  number_of_leds: 41
+  number_of_leds: 46
 
 chanel_2:
   frequency: 15  # Setting to high frequency caused lags in the simulation

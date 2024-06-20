@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -197,9 +199,9 @@ void LEDStrip::SetMarkerColor(gz::msgs::Marker * marker, const RGBAColor & rgba)
 
   // Make default gray color
   float max_brightness = std::max({r, g, b});
-  r = std::max(r, 0.5f - max_brightness / 2);
-  g = std::max(g, 0.5f - max_brightness / 2);
-  b = std::max(b, 0.5f - max_brightness / 2);
+  r = std::max(r, 0.5f - max_brightness / 2.0f);
+  g = std::max(g, 0.5f - max_brightness / 2.0f);
+  b = std::max(b, 0.5f - max_brightness / 2.0f);
 
   marker->mutable_material()->mutable_ambient()->set_r(r);
   marker->mutable_material()->mutable_ambient()->set_g(g);
