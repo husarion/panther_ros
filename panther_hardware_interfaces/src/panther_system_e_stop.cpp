@@ -24,13 +24,16 @@ namespace panther_hardware_interfaces
 
 bool EStopPTH12X::ReadEStopState()
 {
-  e_stop_triggered_ = !gpio_controller_->IsPinActive(GPIOPin::E_STOP_RESET);
+  if (e_stop_manipulation_mtx_.try_lock()) {
+    std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);
+    e_stop_triggered_ = !gpio_controller_->IsPinActive(GPIOPin::E_STOP_RESET);
 
-  // In the case where E-Stop is triggered by another device within the robot's system (e.g.,
-  // Roboteq or Safety Board), disabling the software Watchdog is necessary to prevent an
-  // uncontrolled reset.
-  if (e_stop_triggered_) {
-    gpio_controller_->EStopTrigger();
+    // In the case where E-Stop is triggered by another device within the robot's system (e.g.,
+    // Roboteq or Safety Board), disabling the software Watchdog is necessary to prevent an
+    // uncontrolled reset.
+    if (e_stop_triggered_) {
+      gpio_controller_->EStopTrigger();
+    }
   }
 
   return e_stop_triggered_;
@@ -82,11 +85,14 @@ void EStopPTH12X::ResetEStop()
 
 bool EStopPTH10X::ReadEStopState()
 {
-  const bool motors_on = gpio_controller_->IsPinActive(GPIOPin::STAGE2_INPUT);
-  const bool driver_error = roboteq_error_filter_->IsError();
+  if (e_stop_manipulation_mtx_.try_lock()) {
+    std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);
+    const bool motors_on = gpio_controller_->IsPinActive(GPIOPin::STAGE2_INPUT);
+    const bool driver_error = roboteq_error_filter_->IsError();
 
-  if ((driver_error || !motors_on) && !e_stop_triggered_) {
-    TriggerEStop();
+    if ((driver_error || !motors_on) && !e_stop_triggered_) {
+      TriggerEStop();
+    }
   }
 
   return e_stop_triggered_;

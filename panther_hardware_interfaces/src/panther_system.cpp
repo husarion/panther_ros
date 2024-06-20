@@ -136,9 +136,12 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
     "~/e_stop_trigger", std::bind(&EStopInterface::TriggerEStop, e_stop_), 1,
     rclcpp::CallbackGroupType::MutuallyExclusive);
+
+  auto e_stop_reset_qos = rmw_qos_profile_services_default;
+  e_stop_reset_qos.depth = 1;
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
     "~/e_stop_reset", std::bind(&EStopInterface::ResetEStop, e_stop_), 2,
-    rclcpp::CallbackGroupType::MutuallyExclusive);
+    rclcpp::CallbackGroupType::MutuallyExclusive, e_stop_reset_qos);
 
   panther_system_ros_interface_->AddDiagnosticTask(
     std::string("system errors"), this, &PantherSystem::DiagnoseErrors);

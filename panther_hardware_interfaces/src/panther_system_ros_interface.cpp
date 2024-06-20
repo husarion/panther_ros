@@ -33,11 +33,11 @@ template class ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>;
 template <typename SrvT, typename CallbackT>
 void ROSServiceWrapper<SrvT, CallbackT>::RegisterService(
   const rclcpp::Node::SharedPtr node, const std::string & service_name,
-  rclcpp::CallbackGroup::SharedPtr group)
+  rclcpp::CallbackGroup::SharedPtr group, const rmw_qos_profile_t & qos_profile)
 {
   service_ = node->create_service<SrvT>(
     service_name, std::bind(&ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper, this, _1, _2),
-    rmw_qos_profile_services_default, group);
+    qos_profile, group);
 }
 
 template <typename SrvT, typename CallbackT>
@@ -53,7 +53,7 @@ void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
 
     RCLCPP_WARN_STREAM(
       rclcpp::get_logger("PantherSystem"),
-      "An exception ocurred while handling the request: " << err.what());
+      "An exception occurred while handling the request: " << err.what());
   }
 }
 
