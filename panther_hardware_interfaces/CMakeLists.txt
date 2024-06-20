@@ -20,27 +20,26 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# Find dependencies
 set(PACKAGE_INCLUDE_DEPENDS
     ament_cmake
     controller_interface
     diagnostic_updater
+    generate_parameter_library
+    geometry_msgs
     hardware_interface
-    panther_gpiod
+    imu_filter_madgwick
     panther_msgs
     panther_utils
+    phidgets_api
     PkgConfig
     pluginlib
     rclcpp
     rclcpp_lifecycle
     realtime_tools
     std_srvs
-    imu_filter_madgwick
-    phidgets_api
-    generate_parameter_library
-    tf2_ros
     tf2_geometry_msgs
-    geometry_msgs)
+    tf2_ros)
 
 foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -53,25 +52,29 @@ set(ENV{PKG_CONFIG_PATH}
     "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
+pkg_check_modules(LIBGPIOD REQUIRED IMPORTED_TARGET libgpiodcxx)
 
 add_library(
   ${PROJECT_NAME} SHARED
-  src/panther_system.cpp
-  src/panther_system_ros_interface.cpp
-  src/panther_system_e_stop.cpp
-  src/motors_controller.cpp
   src/canopen_controller.cpp
   src/gpio_controller.cpp
-  src/roboteq_driver.cpp
+  src/gpio_driver.cpp
+  src/motors_controller.cpp
+  src/panther_imu.cpp
+  src/panther_system_e_stop.cpp
+  src/panther_system_ros_interface.cpp
+  src/panther_system.cpp
   src/roboteq_data_converters.cpp
+  src/roboteq_driver.cpp
   src/roboteq_error_filter.cpp
-  src/utils.cpp
-  src/panther_imu.cpp)
+  src/utils.cpp)
+
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})
+
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
-                      phidgets_spatial_parameters)
+                      PkgConfig::LIBGPIOD phidgets_spatial_parameters)
 
 target_compile_definitions(${PROJECT_NAME}
                            PRIVATE "PANTHER_HARDWARE_INTERFACES_BUILDING_DLL")
@@ -99,9 +102,9 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_imu hardware_interface
                             rclcpp panther_utils panther_msgs phidgets_api)
-
   target_link_libraries(${PROJECT_NAME}_test_panther_imu ${PROJECT_NAME}
                         phidgets_spatial_parameters)
+
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
     test/test_roboteq_error_filter.cpp src/roboteq_error_filter.cpp)
@@ -164,14 +167,25 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_motors_controller
                         PkgConfig::LIBLELY_COAPP)
 
-  ament_add_gtest(${PROJECT_NAME}_test_gpiod_controller
-                  test/test_gpio_controller.cpp src/gpio_controller.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver test/test_gpio_driver.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_gpiod_driver
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
+                        PkgConfig::LIBGPIOD)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_gpiod_controller test/test_gpio_controller.cpp
+    src/gpio_controller.cpp src/gpio_driver.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_gpiod_controller
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils
-                            panther_gpiod)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
+                        PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system_ros_interface
@@ -179,7 +193,8 @@ if(BUILD_TESTING)
     src/panther_system_ros_interface.cpp
     src/roboteq_data_converters.cpp
     src/utils.cpp
-    src/gpio_controller.cpp)
+    src/gpio_controller.cpp
+    src/gpio_driver.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
@@ -187,13 +202,12 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_panther_system_ros_interface
     diagnostic_updater
     rclcpp
-    panther_gpiod
     panther_msgs
     panther_utils
     realtime_tools
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
-                        PkgConfig::LIBLELY_COAPP)
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_panther_system test/test_panther_system.cpp

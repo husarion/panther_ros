@@ -127,6 +127,9 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     "~/charger_enable",
     std::bind(&GPIOControllerInterface::ChargerEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
+    "~/led_control_enable",
+    std::bind(&GPIOControllerInterface::LEDControlEnable, gpio_controller_, std::placeholders::_1));
+  panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/motor_power_enable",
     std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
 

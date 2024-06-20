@@ -38,7 +38,7 @@ public:
 
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
-  bool isInitialised() const { return panels_initialised_; }
+  bool isInitialised() const { return led_control_granted_; }
   rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
   rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
 };
@@ -59,7 +59,7 @@ public:
       it_->advertise("lights/driver/channel_2_frame", 5));
     set_brightness_client_ =
       node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness");
-    node_->Initialize(it_);
+    node_->InitializeSubscribers(it_);
   }
 
   ~TestDriverNode() { rclcpp::shutdown(); }

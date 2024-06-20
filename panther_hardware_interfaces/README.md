@@ -32,10 +32,27 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Panther system diagnostic messages.
-- `/panther_system_node/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers state and error flags.
+- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Panther system diagnostic messages.
+- `driver/motor_controllers_state` [*panther_msgs/DriverState*]: Current motor controllers state and error flags.
+- `hardware/e_stop` [*std_msgs/Bool*]: Current E-stop state.
+- `hardware/io_state` [*panther_msgs/IOState*]: Current IO state.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
+
+#### Service Servers
+
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
+
+- `hardware/aux_power_enable` [*std_srvs/SetBool*]: Enables or disables AUX power.
+- `hardware/charger_enable` [*std_srvs/SetBool*]: Enables or disables charger.
+- `hardware/digital_power_enable` [*std_srvs/SetBool*]: Enables or disables digital power.
+- `hardware/e_stop_reset` [*std_srvs/Trigger*]: Resets E-stop.
+- `hardware/e_stop_trigger` [*std_srvs/Trigger*]: Triggers E-stop.
+- `hardware/fan_enable` [*std_srvs/SetBool*]: Enables or disables fan.
+- `hardware/led_control_enable` [*std_srvs/SetBool*]: Enables or disables SBC (Single Board Computer) control over the LEDs.
+- `hardware/motor_power_enable` [*std_srvs/SetBool*]: Enables or disables motor power.
+
+[//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 
 #### Parameters
 

@@ -67,14 +67,14 @@ The NavSat sensors requires the spherical coordinates of the world origin to be 
 
 To obtain GPS data in Ignition, follow these steps:
 
-- Include the [external_antenna](https://github.com/husarion/panther_ros/panther_description/urdf/components/external_antenna.urdf.xacro) macro in your robot model by adding the following lines to your [panther.urdf.xacro](https://github.com/husarion/panther_ros/panther_description/urdf/panther.urdf.xacro)  file within the `<robot>` tag:
+- Include the [ANT02](https://github.com/husarion/ros_components_description/blob/ros2/urdf/external_antenna.urdf.xacro) by adding the following lines to your [components.yaml](https://github.com/husarion/panther_ros/blob/ros2/panther_description/config/components.yaml) file inside the `components` list:
 
-```xml
-<xacro:include filename="$(find panther_description)/urdf/components/external_antenna.urdf.xacro" ns="antenna" />
-<xacro:antenna.external_antenna
-  parent_link="cover_link"
-  xyz="0.185 -0.12 0.0"
-  rpy="0.0 0.0 ${pi}" />
+```yaml
+  - type: ANT02
+    parent_link: cover_link
+    xyz: 0.185 -0.12 0.0
+    rpy: 0.0 0.0 3.14
+    device_namespace: gps
 ```
 
 - Add the following tag to your world's SDF file and specify this file using the `world` parameter (the default `husarion_world.sdf` file already includes this tag):
@@ -88,14 +88,4 @@ To obtain GPS data in Ignition, follow these steps:
   <elevation>0</elevation>
   <heading_deg>0</heading_deg>
 </spherical_coordinates>
-```
-
-- Configure the `parameter_bridge` by adding these lines to the [gz_bridge.yaml](https://github.com/husarion/panther_ros/panther_gazebo/config/gz_bridge.yaml) file:
-
-```yaml
-- ros_topic_name: "navsat/fix"
-  gz_topic_name: "/world/husarion_world/model/panther/link/base_link/sensor/navsat/navsat"
-  ros_type_name: "sensor_msgs/msg/NavSatFix"
-  gz_type_name: "ignition.msgs.NavSat"
-  direction: GZ_TO_ROS
 ```

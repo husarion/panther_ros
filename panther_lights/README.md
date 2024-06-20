@@ -26,11 +26,11 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
 
-#### Publishes
+#### Publishers
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: lights diagnostic messages.
+- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: lights diagnostic messages.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -38,8 +38,8 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `~/lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `~/lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -47,9 +47,17 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `~/lights/driver/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows setting global LED brightness, value ranges from **0.0** to **1.0**.
+- `lights/driver/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows setting global LED brightness, value ranges from **0.0** to **1.0**.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
+
+#### Service Clients
+
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
+
+- `hardware/led_control_enable` [*std_srvs/SetBool*]: makes SBC controlling LEDs.
+
+[//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
 
 #### Parameters
 
@@ -80,8 +88,8 @@ This node is responsible for processing animations and publishing frames to be d
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `~/lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `~/lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -89,7 +97,7 @@ This node is responsible for processing animations and publishing frames to be d
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `~/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
+- `lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 
@@ -143,24 +151,24 @@ The `led_animations` section contains list with definitions for various animatio
 - `id` [*int*, default: **None**]: unique ID of an animation.
 - `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to **ANIMATION_<ID>**, where `<ID>` is equal to `id` parameter of the given animation.
 - `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows the behavior when an animation with a given ID arrives:
-    - **1** interrupts and removes animation with priorities **2** and **3**.
-    - **2** interrupts animations with priority **3**.
-    - **3** adds animation to the end of the queue.
+  - **1** interrupts and removes animation with priorities **2** and **3**.
+  - **2** interrupts animations with priority **3**.
+  - **3** adds animation to the end of the queue.
 - `timeout` [*float*, default: **120.0**]: time in **[s]**, after which animation will be removed from the queue.
 
 Default animations can be found in the table below:
 
-| ID  | NAME              | PRIORITY | DESCRIPTION                                                 |
-| :-: | ----------------- | :------: | ----------------------------------------------------------- |
-| 0   | E_STOP            | 3        | red expanding from the center to the edges                  |
-| 1   | READY             | 3        | green expanding from center to the edges                    |
-| 2   | ERROR             | 1        | red, whole bumper blinking twice                             |
-| 3   | MANUAL_ACTION     | 3        | blue expanding from the center to the edges                 |
-| 4   | AUTONOMOUS_ACTION | 3        | orange expanding from center to the edges                   |
-| 5   | GOAL_ACHIEVED     | 2        | purple, whole bumper blinking three times                    |
-| 6   | LOW_BATTERY       | 2        | two orange stripes moving towards the center, repeats twice |
-| 7   | CRITICAL_BATTERY  | 2        | two red stripes moving towards the center, repeats twice    |
-| 9   | CHARGING_BATTERY  | 3        | whole bumper blinks with a duty cycle proportional to the Battery percentage. Short blinking means low Battery, and no blinking means full Battery. The color changes from red to green |
+|  ID   | NAME              | PRIORITY | ANIMATION                                                                                                           |
+| :---: | ----------------- | :------: | --------------------------------------------------------------------------------------------------------------------- |
+|   0   | E_STOP            |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/E_STOP.webp" width="400">            |
+|   1   | READY             |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/READY.webp" width="400">             |
+|   2   | ERROR             |    1     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/ERROR.webp" width="400">             |
+|   3   | MANUAL_ACTION     |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/MANUAL_ACTION.webp" width="400">     |
+|   4   | AUTONOMOUS_ACTION |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/AUTONOMOUS_ACTION.webp" width="400"> |
+|   5   | GOAL_ACHIEVED     |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/GOAL_ACHIEVED.webp" width="400">     |
+|   6   | LOW_BATTERY       |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/LOW_BATTERY.webp" width="400">       |
+|   7   | CRITICAL_BATTERY  |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CRITICAL_BATTERY.webp" width="400">  |
+|   9   | CHARGING_BATTERY  |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CHARGING_BATTERY.webp" width="400">  |
 
 ### Animation Types
 
@@ -266,10 +274,11 @@ ros2 launch panther_bringup bringup.launch user_animations_file:=/my_awesome_use
 Test new animations:
 
 ```bash
-ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}""
+ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}"
 ```
 
 ---
+
 ## Defining a Custom Animation Type
 
 It is possible to define your own animation type with expected, new behavior. For more information, see: [**Animation API**](https://github.com/husarion/panther_ros/panther_lights/LIGHTS_API.md).
