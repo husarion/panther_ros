@@ -88,6 +88,11 @@ bool EStopPTH10X::ReadEStopState()
   if (e_stop_manipulation_mtx_.try_lock()) {
     std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_, std::adopt_lock);
     const bool motors_on = gpio_controller_->IsPinActive(GPIOPin::STAGE2_INPUT);
+    const bool driver_error = roboteq_error_filter_->IsError();
+
+    if ((driver_error || !motors_on) && !e_stop_triggered_) {
+      TriggerEStop();
+    }
   }
 
   return e_stop_triggered_;
