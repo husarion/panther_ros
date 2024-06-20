@@ -92,18 +92,19 @@ void LEDStrip::ManageVisualization(const gz::msgs::Image & msg)
   const unsigned num_channels = msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8 ? 3
                                                                                                : 4;
   RGBAColor rgba;
-  for (unsigned i = 0; i < msg.width(); i += num_channels) {
+  for (unsigned marker_idx = 0; marker_idx < msg.width(); marker_idx++) {
+    const unsigned i = marker_idx * num_channels;
     rgba.r = static_cast<unsigned char>(data[i]) / 255.0f;
     rgba.g = static_cast<unsigned char>(data[i + 1]) / 255.0f;
     rgba.b = static_cast<unsigned char>(data[i + 2]) / 255.0f;
     rgba.a = num_channels == 4 ? static_cast<unsigned char>(data[i + 3]) / 255.0f : 1.0f;
 
     auto marker_msg = marker_msgs.add_marker();
-    CreateMarker(marker_msg, i + first_led_marker_idx_);
+    CreateMarker(marker_msg, marker_idx + first_led_marker_idx_);
     SetMarkerColor(marker_msg, rgba);
 
     // Set the position and size of the box
-    float marker_y_pos = static_cast<float>(i) * marker_width - y_start_pos;
+    float marker_y_pos = static_cast<float>(marker_idx) * marker_width - y_start_pos;
     gz::msgs::Set(
       marker_msg->mutable_pose(),
       gz::math::Pose3d(
