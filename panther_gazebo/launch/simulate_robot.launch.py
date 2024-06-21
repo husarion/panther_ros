@@ -22,6 +22,7 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
@@ -92,6 +93,36 @@ def generate_launch_description():
         }.items(),
     )
 
+    lights_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
+            )
+        ),
+        launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
+    )
+
+    manager_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [FindPackageShare("panther_manager"), "launch", "manager_bt.launch.py"]
+            )
+        ),
+        launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
+    )
+
+    gz_led_strip_manager = Node(
+        package="panther_gazebo",
+        executable="gz_led_strip_manager",
+        namespace=namespace,
+        arguments=[
+            "--config-file",
+            PathJoinSubstitution(
+                [FindPackageShare("panther_gazebo"), "config", "led_strips.yaml"]
+            ),
+        ],
+    )
+
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -132,9 +163,11 @@ def generate_launch_description():
         }.items(),
     )
 
+    model_name = PythonExpression(["'", namespace, "' if '", namespace, "' else 'panther'"])
+
     namespaced_gz_bridge_config_path = ReplaceString(
         source_file=gz_bridge_config_path,
-        replacements={"<namespace>": namespace, "//": "/"},
+        replacements={"<model_name>": model_name, "<namespace>": namespace, "//": "/"},
     )
 
     gz_bridge = Node(
@@ -155,6 +188,9 @@ def generate_launch_description():
             declare_use_ekf_arg,
             SetUseSimTime(True),
             spawn_robot_launch,
+            lights_launch,
+            manager_launch,
+            gz_led_strip_manager,
             controller_launch,
             ekf_launch,
             simulate_components,

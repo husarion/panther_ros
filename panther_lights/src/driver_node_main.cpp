@@ -23,11 +23,9 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto lights_driver_node = std::make_shared<panther_lights::DriverNode>("lights_driver_node");
+  auto it = std::make_shared<image_transport::ImageTransport>(lights_driver_node);
 
-  std::shared_ptr<image_transport::ImageTransport> it;
-  it = std::make_shared<image_transport::ImageTransport>(lights_driver_node);
-
-  lights_driver_node->Initialize(it);
+  lights_driver_node->InitializeSubscribers(it);
 
   try {
     rclcpp::spin(lights_driver_node);

@@ -141,7 +141,7 @@ public:
     return invert_frame_order ? InvertRGBAFrame(frame_) : frame_;
   }
 
-  virtual void SetParam(const std::string & /*param*/){};
+  virtual void SetParam(const std::string & /*param*/) {};
 
   bool IsFinished() const { return finished_; }
   std::size_t GetNumberOfLeds() const { return num_led_; }

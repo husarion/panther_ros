@@ -196,6 +196,7 @@ def generate_launch_description():
             ("panther_system_node/aux_power_enable", "hardware/aux_power_enable"),
             ("panther_system_node/charger_enable", "hardware/charger_enable"),
             ("panther_system_node/digital_power_enable", "hardware/digital_power_enable"),
+            ("panther_system_node/led_control_enable", "hardware/led_control_enable"),
             ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),

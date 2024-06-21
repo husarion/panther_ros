@@ -14,11 +14,9 @@
 
 include(ExternalProject)
 
-set(DEPENDENCIES)
+set(DEPENDENCIES ep_liblely ep_libgpiod)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ep_liblely/include)
-
-list(APPEND DEPENDENCIES ep_liblely)
 ExternalProject_Add(
   ep_liblely
   SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/ep_liblely/upstream
@@ -32,6 +30,20 @@ ExternalProject_Add(
     --prefix=<INSTALL_DIR> --disable-python --disable-tests --disable-static
   BUILD_COMMAND $(MAKE) -C <BINARY_DIR>
   INSTALL_COMMAND make install INSTALL_PREFIX=<INSTALL_DIR>)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ep_libgpiod/include)
+ExternalProject_Add(
+  ep_libgpiod
+  GIT_REPOSITORY git://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+  GIT_TAG v2.0.2
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ep_libgpiod
+  INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+  CONFIGURE_COMMAND
+    sh -c
+    "<SOURCE_DIR>/autogen.sh --prefix=<INSTALL_DIR> --enable-tools=no --enable-bindings-cxx"
+  BUILD_COMMAND make -j ${N}
+  INSTALL_COMMAND make install INSTALL_PREFIX=<INSTALL_DIR>
+  BUILD_IN_SOURCE 1)
 
 ExternalProject_Add(
   ep_panther_hardware_interfaces
