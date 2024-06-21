@@ -98,14 +98,13 @@
       base_link_frame: base_link
       world_frame: map
 
-      # Probably can use odometry/filtered/local here, however, due to the rotated imu_link tf, the orientation.yaw was determined incorrectly
-      odom0: odometry/wheels
+      odom0: odometry/filtered/local
       odom0_config: [false, false, false,
                     false, false, false,
                     true, true, false,
                     false, false, true,
                     false, false, false]
-      odom0_queue_size: 5
+      odom0_queue_size: 3
       odom0_nodelay: true
       odom0_differential: false
       odom0_relative: true
@@ -162,5 +161,5 @@
       zero_altitude: true
       broadcast_cartesian_transform: false
       publish_filtered_gps: true
-      use_odometry_yaw: true
+      use_odometry_yaw: false
       wait_for_datum: false
