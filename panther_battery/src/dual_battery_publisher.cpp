@@ -214,13 +214,6 @@ void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWr
     : charging_status = "Power supply status not determined, check batteries.";
   status.add("Power supply status", charging_status);
 
-  const auto charger_current_bat_1 = battery_1_->GetChargerCurrent();
-  const auto charger_current_bat_2 = battery_2_->GetChargerCurrent();
-  const auto charger_current = charger_current_bat_1 + charger_current_bat_2;
-  status.add("Charger current total (A)", charger_current);
-  status.add("Charger current battery 1 (A)", charger_current_bat_1);
-  status.add("Charger current battery 2 (A)", charger_current_bat_2);
-
   const auto load_current_bat_1 = battery_1_->GetLoadCurrent();
   const auto load_current_bat_2 = battery_2_->GetLoadCurrent();
   const auto load_current = load_current_bat_1 + load_current_bat_2;

@@ -100,9 +100,6 @@ void SingleBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatus
   auto charging_status = MapPowerSupplyStatusToString(battery_msg.power_supply_status);
   status.add("Power supply status", charging_status);
 
-  const auto charger_current = battery_->GetChargerCurrent();
-  status.add("Charger current (A)", charger_current);
-
   const auto load_current = battery_->GetLoadCurrent();
   status.add("Load current (A)", load_current);
 
