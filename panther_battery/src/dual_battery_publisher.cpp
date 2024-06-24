@@ -41,6 +41,7 @@ DualBatteryPublisher::DualBatteryPublisher(
   battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
   battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
   battery_2_pub_ = node->create_publisher<BatteryStateMsg>("battery_2_raw", 5);
+  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("charging_status", 5);
 }
 
 void DualBatteryPublisher::Update()
@@ -62,9 +63,19 @@ void DualBatteryPublisher::PublishBatteryState()
   const auto battery_msg = MergeBatteryMsgs(
     battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
   battery_pub_->publish(battery_msg);
+
   battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
   battery_2_pub_->publish(battery_2_->GetBatteryMsgRaw());
+
   BatteryStatusLogger(battery_msg);
+}
+
+void DualBatteryPublisher::PublishChargingStatus()
+{
+  auto const charging_status_msg = MergeChargingStatusMsgs(
+    battery_1_->GetChargingStatus(), battery_2_->GetChargingStatus());
+
+  charging_status_pub_->publish(charging_status_msg);
 }
 
 void DualBatteryPublisher::LogErrors()
@@ -152,6 +163,21 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
   } else {
     battery_msg.power_supply_health = BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN;
   }
+}
+
+ChargingStatusMsg DualBatteryPublisher::MergeChargingStatusMsgs(
+  const ChargingStatusMsg & charging_status_msg_1, const ChargingStatusMsg & charging_status_msg_2)
+{
+  ChargingStatusMsg charging_status_msg;
+
+  charging_status_msg.header = charging_status_msg_1.header;
+  charging_status_msg.charging = charging_status_msg_1.charging;
+  charging_status_msg.current = charging_status_msg_1.current + charging_status_msg_2.current;
+  charging_status_msg.current_battery_1 = charging_status_msg_1.current;
+  charging_status_msg.current_battery_2 = charging_status_msg_2.current;
+  charging_status_msg.charger_type = charging_status_msg_1.charger_type;
+
+  return charging_status_msg;
 }
 
 void DualBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)

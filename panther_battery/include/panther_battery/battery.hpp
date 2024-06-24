@@ -25,10 +25,13 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
+#include "panther_msgs/msg/charging_status.hpp"
+
 namespace panther_battery
 {
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
 
 class Battery
 {
@@ -48,6 +51,7 @@ public:
   std::string GetErrorMsg() const { return error_msg_; }
   BatteryStateMsg GetBatteryMsg() const { return battery_state_; }
   BatteryStateMsg GetBatteryMsgRaw() const { return battery_state_raw_; }
+  ChargingStatusMsg GetChargingStatus() const { return charging_status_; }
 
 protected:
   void SetErrorMsg(const std::string & error_msg) { error_msg_ = error_msg; }
@@ -96,6 +100,7 @@ protected:
   std::string error_msg_;
   BatteryStateMsg battery_state_;
   BatteryStateMsg battery_state_raw_;
+  ChargingStatusMsg charging_status_;
 };
 
 }  // namespace panther_battery

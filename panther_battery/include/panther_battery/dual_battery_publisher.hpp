@@ -40,6 +40,7 @@ protected:
   void Update() override;
   void Reset() override;
   void PublishBatteryState() override;
+  void PublishChargingStatus() override;
   void LogErrors() override;
   void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) override;
   void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) override;
@@ -51,13 +52,18 @@ protected:
   void MergeBatteryPowerSupplyHealth(
     BatteryStateMsg & battery_msg, const BatteryStateMsg & battery_msg_1,
     const BatteryStateMsg & battery_msg_2);
+  ChargingStatusMsg MergeChargingStatusMsgs(
+    const ChargingStatusMsg & charging_status_msg_1,
+    const ChargingStatusMsg & charging_status_msg_2);
 
 private:
   std::shared_ptr<Battery> battery_1_;
   std::shared_ptr<Battery> battery_2_;
+
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_1_pub_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_2_pub_;
+  rclcpp::Publisher<ChargingStatusMsg>::SharedPtr charging_status_pub_;
 };
 
 }  // namespace panther_battery

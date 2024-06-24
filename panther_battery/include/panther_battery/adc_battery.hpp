@@ -62,6 +62,7 @@ private:
   void UpdateBatteryMsgs(const rclcpp::Time & header_stamp, const bool charger_connected);
   void UpdateBatteryState(const rclcpp::Time & header_stamp, const bool charger_connected);
   void UpdateBatteryStateRaw();
+  void UpdateChargingStatus(const rclcpp::Time & header_stamp, const bool charger_connected);
   std::uint8_t GetBatteryStatus(const float charge, const bool charger_connected);
   std::uint8_t GetBatteryHealth(const float voltage, const float temp);
 

@@ -37,6 +37,7 @@ SingleBatteryPublisher::SingleBatteryPublisher(
 {
   battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
   battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
+  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("charging_status", 5);
 }
 
 void SingleBatteryPublisher::Update()
@@ -57,6 +58,16 @@ void SingleBatteryPublisher::PublishBatteryState()
   battery_pub_->publish(battery_msg);
   battery_1_pub_->publish(battery_->GetBatteryMsgRaw());
   BatteryStatusLogger(battery_msg);
+}
+
+void SingleBatteryPublisher::PublishChargingStatus()
+{
+  auto charging_status_msg = battery_->GetChargingStatus();
+
+  charging_status_msg.current_battery_1 = charging_status_msg.current;
+  charging_status_msg.current_battery_2 = std::numeric_limits<float>::quiet_NaN();
+
+  charging_status_pub_->publish(charging_status_msg);
 }
 
 void SingleBatteryPublisher::LogErrors()
