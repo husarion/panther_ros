@@ -16,35 +16,36 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import LaunchConfigurationEquals
+from launch.conditions import IfCondition
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    ekf_config_path = LaunchConfiguration("ekf_config_path")
-    declare_ekf_config_path_arg = DeclareLaunchArgument(
-        "ekf_config_path",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_localization"), "config", "ekf.yaml"]
-        ),
-        description="Path to the EKF config file.",
+    fuse_gps = LaunchConfiguration("fuse_gps")
+    declare_fuse_gps_arg = DeclareLaunchArgument(
+        "fuse_gps",
+        default_value="False",
+        description="Include GPS for data fusion",
+        choices=["False", "True"],
     )
 
-    declare_ekf_configuration_arg = DeclareLaunchArgument(
-        "ekf_configuration",
-        default_value="local",
+    localization_mode = LaunchConfiguration("localization_mode")
+    declare_localization_mode_arg = DeclareLaunchArgument(
+        "localization_mode",
+        default_value="relative",
         description=(
-            "Set the EKF mode: "
-            "'local' combines wheel odometer and IMU data. "
-            "'global' adds GPS data to this fusion."
+            "Specifies the localization mode:\n"
+            "\t- 'relative' odometry/filtered data is relative to the initial position and orientation.\n"
+            "\t- 'enu' odometry/filtered data is relative to initial position and ENU (East North Up) orientation."
         ),
-        choices=["local", "global"],
+        choices=["relative", "enu"],
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -62,59 +63,57 @@ def generate_launch_description():
         choices=["True", "False"],
     )
 
-    ekf_local = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_local",
-        parameters=[ekf_config_path, {"tf_prefix": namespace}],
-        namespace=namespace,
-        remappings=[
-            ("/diagnostics", "diagnostics"),
-            ("enable", "~/enable"),
-            ("set_pose", "~/set_pose"),
-            ("toggle", "~/toggle"),
-            ("odometry/filtered", "odometry/filtered/local"),
-        ],
+    mode_prefix = PythonExpression(["'", localization_mode, "_'"])
+    gps_postfix = PythonExpression(["'_with_gps' if ", fuse_gps, " else ''"])
+    localization_config_filename = PythonExpression(
+        ["'", mode_prefix, "localization", gps_postfix, ".yaml'"]
     )
 
-    ekf_global = Node(
+    localization_config_path = LaunchConfiguration("localization_config_path")
+    declare_localization_config_path_arg = DeclareLaunchArgument(
+        "localization_config_path",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_localization"), "config", localization_config_filename]
+        ),
+        description="Specify the path to the localization configuration file.",
+    )
+
+    ekf_node = Node(
         package="robot_localization",
         executable="ekf_node",
-        name="ekf_global",
-        parameters=[ekf_config_path, {"tf_prefix": namespace}],
+        name="ekf_node",
+        parameters=[localization_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),
             ("enable", "~/enable"),
             ("set_pose", "~/set_pose"),
             ("toggle", "~/toggle"),
-            ("odometry/filtered", "odometry/filtered/global"),
         ],
-        condition=LaunchConfigurationEquals("ekf_configuration", "global"),
     )
 
     navsat_transform = Node(
         package="robot_localization",
         executable="navsat_transform_node",
         name="navsat_transform",
-        parameters=[ekf_config_path, {"tf_prefix": namespace}],
+        parameters=[localization_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
+            ("imu", "imu/data"),
             ("gps/fix", "gps/fix"),
-            ("odometry/filtered", "odometry/filtered/global"),
             ("odometry/gps", "_odometry/gps"),
         ],
-        condition=LaunchConfigurationEquals("ekf_configuration", "global"),
+        condition=IfCondition(fuse_gps),
     )
 
     actions = [
-        declare_ekf_config_path_arg,
-        declare_ekf_configuration_arg,
+        declare_fuse_gps_arg,
+        declare_localization_mode_arg,
+        declare_localization_config_path_arg,  # localization_config_path use fuse_gps and localization_mode
         declare_namespace_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),
-        ekf_local,
-        ekf_global,
+        ekf_node,
         navsat_transform,
     ]
 
