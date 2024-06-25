@@ -26,6 +26,7 @@
 
 #include "panther_battery/battery.hpp"
 #include "panther_battery/battery_publisher.hpp"
+#include "panther_utils/ros_utils.hpp"
 
 namespace panther_battery
 {
@@ -170,12 +171,35 @@ ChargingStatusMsg DualBatteryPublisher::MergeChargingStatusMsgs(
 {
   ChargingStatusMsg charging_status_msg;
 
-  charging_status_msg.header = charging_status_msg_1.header;
-  charging_status_msg.charging = charging_status_msg_1.charging;
+  try {
+    charging_status_msg.header = panther_utils::ros::MergeHeaders(
+      charging_status_msg_1.header, charging_status_msg_2.header);
+  } catch (const std::exception & e) {
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      GetLogger(), *GetClock(), 10000,
+      "An exception occurred while merging charging status headers: " << e.what());
+  }
+
   charging_status_msg.current = charging_status_msg_1.current + charging_status_msg_2.current;
   charging_status_msg.current_battery_1 = charging_status_msg_1.current;
   charging_status_msg.current_battery_2 = charging_status_msg_2.current;
-  charging_status_msg.charger_type = charging_status_msg_1.charger_type;
+
+  if (charging_status_msg_1.charging != charging_status_msg_2.charging) {
+    RCLCPP_ERROR_THROTTLE(
+      GetLogger(), *GetClock(), 10000, "Charging status mismatch between batteries!");
+    charging_status_msg.charging = false;
+
+  } else {
+    charging_status_msg.charging = charging_status_msg_1.charging;
+  }
+
+  if (charging_status_msg_1.charger_type != charging_status_msg_2.charger_type) {
+    RCLCPP_ERROR_THROTTLE(
+      GetLogger(), *GetClock(), 10000, "Charger type mismatch between batteries!");
+    charging_status_msg.charger_type = ChargingStatusMsg::UNKNOWN;
+  } else {
+    charging_status_msg.charger_type = charging_status_msg_1.charger_type;
+  }
 
   return charging_status_msg;
 }

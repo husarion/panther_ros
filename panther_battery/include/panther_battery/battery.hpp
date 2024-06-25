@@ -62,6 +62,12 @@ protected:
 
   void ResetBatteryMsgs(const rclcpp::Time & header_stamp)
   {
+    ResetBatteryState(header_stamp);
+    ResetChargingStatus(header_stamp);
+  }
+
+  void ResetBatteryState(const rclcpp::Time & header_stamp)
+  {
     battery_state_.header.stamp = header_stamp;
     battery_state_.voltage = std::numeric_limits<float>::quiet_NaN();
     battery_state_.temperature = std::numeric_limits<float>::quiet_NaN();
@@ -81,6 +87,16 @@ protected:
     battery_state_.location = kLocation;
 
     battery_state_raw_ = battery_state_;
+  }
+
+  void ResetChargingStatus(const rclcpp::Time & header_stamp)
+  {
+    charging_status_.header.stamp = header_stamp;
+    charging_status_.charging = false;
+    charging_status_.current = std::numeric_limits<float>::quiet_NaN();
+    charging_status_.current_battery_1 = std::numeric_limits<float>::quiet_NaN();
+    charging_status_.current_battery_2 = std::numeric_limits<float>::quiet_NaN();
+    charging_status_.charger_type = ChargingStatusMsg::UNKNOWN;
   }
 
   static constexpr int kNumberOfCells = 10;
