@@ -36,14 +36,14 @@ void VerifyTimestampGap(
   const std_msgs::msg::Header & header_1, const std_msgs::msg::Header & header_2,
   std::chrono::seconds max_timestamp_gap)
 {
-  if (header_1.stamp.sec == 0 || header_2.stamp.sec == 0) {
-    throw std::runtime_error("Timestamps are not set.");
-  }
-
   const auto timestamp_1_ns = std::chrono::seconds(header_1.stamp.sec) +
                               std::chrono::nanoseconds(header_1.stamp.nanosec);
   const auto timestamp_2_ns = std::chrono::seconds(header_2.stamp.sec) +
                               std::chrono::nanoseconds(header_2.stamp.nanosec);
+
+  if (timestamp_1_ns.count() == 0 || timestamp_2_ns.count() == 0) {
+    throw std::runtime_error("Timestamps are not set.");
+  }
 
   auto timestamp_gap = std::abs(
     std::chrono::duration_cast<std::chrono::seconds>(timestamp_1_ns - timestamp_2_ns).count());
