@@ -13,12 +13,56 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 #include <std_msgs/msg/header.hpp>
 
 #include "panther_utils/ros_utils.hpp"
 
 using HeaderMsg = std_msgs::msg::Header;
+
+TEST(TestVerifyTimestampGap, TimestampGapOk)
+{
+  HeaderMsg header_1;
+  header_1.stamp.sec = 8;
+  header_1.stamp.nanosec = 500000000;
+
+  HeaderMsg header_2;
+  header_2.stamp.sec = 10;
+  header_2.stamp.nanosec = 500000000;
+
+  auto max_timestamp_gap = std::chrono::seconds(2);
+  EXPECT_NO_THROW(panther_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap));
+}
+
+TEST(TestVerifyTimestampGap, TimestampGapExceeding)
+{
+  HeaderMsg header_1;
+  header_1.stamp.sec = 8;
+  header_1.stamp.nanosec = 500000000;
+
+  HeaderMsg header_2;
+  header_2.stamp.sec = 10;
+  header_2.stamp.nanosec = 500000000;
+
+  auto max_timestamp_gap = std::chrono::seconds(1);
+
+  EXPECT_THROW(
+    panther_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap),
+    std::runtime_error);
+}
+
+TEST(TestVerifyTimestampGap, TimestampNotSet)
+{
+  HeaderMsg header_1;
+  HeaderMsg header_2;
+
+  auto max_timestamp_gap = std::chrono::seconds(1);
+
+  EXPECT_THROW(
+    panther_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap),
+    std::runtime_error);
+}
 
 TEST(TestMergeHeaders, SameFrameIds)
 {

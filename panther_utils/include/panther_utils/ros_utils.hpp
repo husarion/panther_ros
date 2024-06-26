@@ -15,10 +15,43 @@
 #ifndef PANTHER_UTILS__ROS_UTILS_HPP_
 #define PANTHER_UTILS__ROS_UTILS_HPP_
 
+#include <chrono>
+
 #include <std_msgs/msg/header.hpp>
 
 namespace panther_utils::ros
 {
+
+/**
+ * Verifies the timestamp gap between two headers and throws an exception if the gap exceeds the
+ * maximum allowed gap.
+ *
+ * @param header_1 The first header containing the timestamp.
+ * @param header_2 The second header containing the timestamp.
+ * @param max_timestamp_gap The maximum allowed timestamp gap in seconds.
+ * @throws `std::runtime_error` If either of the timestamps is not set or if the timestamp gap
+ * exceeds the maximum allowed gap.
+ */
+void VerifyTimestampGap(
+  const std_msgs::msg::Header & header_1, const std_msgs::msg::Header & header_2,
+  std::chrono::seconds max_timestamp_gap)
+{
+  if (header_1.stamp.sec == 0 || header_2.stamp.sec == 0) {
+    throw std::runtime_error("Timestamps are not set.");
+  }
+
+  const auto timestamp_1_ns = std::chrono::seconds(header_1.stamp.sec) +
+                              std::chrono::nanoseconds(header_1.stamp.nanosec);
+  const auto timestamp_2_ns = std::chrono::seconds(header_2.stamp.sec) +
+                              std::chrono::nanoseconds(header_2.stamp.nanosec);
+
+  auto timestamp_gap = std::abs(
+    std::chrono::duration_cast<std::chrono::seconds>(timestamp_1_ns - timestamp_2_ns).count());
+
+  if (timestamp_gap > max_timestamp_gap.count()) {
+    throw std::runtime_error("Timestamp gap exceeds the maximum allowed gap.");
+  }
+}
 
 /**
  * @brief Merges two headers into a single header.
@@ -33,7 +66,7 @@ namespace panther_utils::ros
  * @param header_1 The first header to be merged.
  * @param header_2 The second header to be merged.
  * @return The merged header.
- * @throws std::runtime_error If the frame IDs of the input headers are different.
+ * @throws `std::runtime_error` If the frame IDs of the input headers are different.
  */
 std_msgs::msg::Header MergeHeaders(
   const std_msgs::msg::Header & header_1, const std_msgs::msg::Header & header_2)
@@ -57,6 +90,6 @@ std_msgs::msg::Header MergeHeaders(
   return merged_header;
 }
 
-}  // namespace panther_utils
+}  // namespace panther_utils::ros
 
 #endif  // PANTHER_UTILS__ROS_UTILS_HPP_

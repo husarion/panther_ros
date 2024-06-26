@@ -172,6 +172,9 @@ ChargingStatusMsg DualBatteryPublisher::MergeChargingStatusMsgs(
   ChargingStatusMsg charging_status_msg;
 
   try {
+    panther_utils::ros::VerifyTimestampGap(
+      charging_status_msg_1.header, charging_status_msg_2.header, std::chrono::seconds(1));
+
     charging_status_msg.header = panther_utils::ros::MergeHeaders(
       charging_status_msg_1.header, charging_status_msg_2.header);
   } catch (const std::exception & e) {
