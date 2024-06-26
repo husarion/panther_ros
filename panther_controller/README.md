@@ -113,7 +113,7 @@ Controller which manages mobile robots with a differential drive. It converts ve
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `~/panther_base_controller/odom` [*nav_msgs/msg/Odometry*]: odometry data from wheel encoders.
+- `~/odometry/wheels` [*nav_msgs/msg/Odometry*]: odometry data from wheel encoders.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_END)
