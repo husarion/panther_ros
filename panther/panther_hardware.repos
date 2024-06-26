@@ -10,7 +10,7 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: 42c10ace23fe5931cf61be06018dbb4b5fd426ba
+    version: fa21eada3d8cd332b48c42d70289fd5ba575cc50
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
