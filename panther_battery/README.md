@@ -30,10 +30,11 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: battery diagnostic messages.
-- `~/battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
-- `~/battery_1_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
-- `~/battery_2_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
+- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: battery diagnostic messages.
+- `battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
+- `battery_1_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
+- `battery_2_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
+- `charging_status` [*panther_msgs/ChargingStatus*]: battery charging status.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -41,7 +42,7 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `~/driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
+- `driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 

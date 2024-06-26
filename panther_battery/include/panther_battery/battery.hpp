@@ -25,10 +25,13 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
+#include "panther_msgs/msg/charging_status.hpp"
+
 namespace panther_battery
 {
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
 
 class Battery
 {
@@ -40,7 +43,6 @@ public:
   virtual void Update(const rclcpp::Time & header_stamp, const bool charger_connected) = 0;
   virtual void Reset(const rclcpp::Time & header_stamp) = 0;
 
-  virtual float GetChargerCurrent() = 0;
   virtual float GetLoadCurrent() = 0;
 
   bool HasErrorMsg() const { return !error_msg_.empty(); }
@@ -48,6 +50,7 @@ public:
   std::string GetErrorMsg() const { return error_msg_; }
   BatteryStateMsg GetBatteryMsg() const { return battery_state_; }
   BatteryStateMsg GetBatteryMsgRaw() const { return battery_state_raw_; }
+  ChargingStatusMsg GetChargingStatus() const { return charging_status_; }
 
 protected:
   void SetErrorMsg(const std::string & error_msg) { error_msg_ = error_msg; }
@@ -58,6 +61,12 @@ protected:
   }
 
   void ResetBatteryMsgs(const rclcpp::Time & header_stamp)
+  {
+    ResetBatteryState(header_stamp);
+    ResetChargingStatus(header_stamp);
+  }
+
+  void ResetBatteryState(const rclcpp::Time & header_stamp)
   {
     battery_state_.header.stamp = header_stamp;
     battery_state_.voltage = std::numeric_limits<float>::quiet_NaN();
@@ -80,6 +89,16 @@ protected:
     battery_state_raw_ = battery_state_;
   }
 
+  void ResetChargingStatus(const rclcpp::Time & header_stamp)
+  {
+    charging_status_.header.stamp = header_stamp;
+    charging_status_.charging = false;
+    charging_status_.current = std::numeric_limits<float>::quiet_NaN();
+    charging_status_.current_battery_1 = std::numeric_limits<float>::quiet_NaN();
+    charging_status_.current_battery_2 = std::numeric_limits<float>::quiet_NaN();
+    charging_status_.charger_type = ChargingStatusMsg::UNKNOWN;
+  }
+
   static constexpr int kNumberOfCells = 10;
   static constexpr int kBatPresentMeanLen = 10;
   static constexpr float kChargingCurrentTresh = 0.1;
@@ -96,6 +115,7 @@ protected:
   std::string error_msg_;
   BatteryStateMsg battery_state_;
   BatteryStateMsg battery_state_raw_;
+  ChargingStatusMsg charging_status_;
 };
 
 }  // namespace panther_battery

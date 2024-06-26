@@ -124,7 +124,7 @@ void BatteryNode::InitializeWithADCBattery()
       this->shared_from_this(), diagnostic_updater_, battery_1_);
   }
 
-  RCLCPP_INFO(this->get_logger(), "Battery driver using ADC data.");
+  RCLCPP_INFO(this->get_logger(), "Initialized battery driver using ADC data.");
 }
 
 void BatteryNode::InitializeWithRoboteqBattery()
@@ -148,7 +148,7 @@ void BatteryNode::InitializeWithRoboteqBattery()
   battery_publisher_ = std::make_shared<SingleBatteryPublisher>(
     this->shared_from_this(), diagnostic_updater_, battery_1_);
 
-  RCLCPP_INFO(this->get_logger(), "Battery driver using motor controllers data.");
+  RCLCPP_INFO(this->get_logger(), "Initialized battery driver using motor controllers data.");
 }
 
 void BatteryNode::BatteryPubTimerCB()
