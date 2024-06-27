@@ -36,7 +36,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.release_candidate }}
-          fetch-depth: 0
 
       - name: Catkin release
         id: catkin_release
