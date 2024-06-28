@@ -60,6 +60,11 @@ jobs:
           gh pr merge ${{ steps.catkin_release.outputs.created_branch }} \
           --merge --delete-branch
 
+      - name: Grant permissions # Required permission grant after at-wat/catkin-release-action@v1 action
+        if: ${{ fromJSON(inputs.automatic_mode) == true }}
+        run: | 
+          sudo chmod -R ugo+rwX .
+
       - name: Checkout to main branch
         if: ${{ github.event.inputs.release_candidate != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode)
           == true }}
@@ -103,11 +108,6 @@ jobs:
           --target ${{ env.MAIN_BRANCH }} \
           --title ${{ github.event.inputs.release_name }} \
           --generate-notes
-
-      - name: Grant permissions
-        if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
-        run: | 
-          sudo chmod -R ugo+rwX .
 
       - name: Checkout to devel branch
         if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
