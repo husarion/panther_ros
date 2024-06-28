@@ -2,6 +2,43 @@
 Changelog for package panther_gazebo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
+* Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
+* Fix indexing
+* Suggestions
+* Add image width check
+* Some more suggestions
+* Suggestions and pre-commit update
+* Move antenna to ros-components-description (`#340 <https://github.com/husarion/panther_ros/issues/340>`_)
+* Improve readme
+* Add img encoding check
+* Clean up
+* Simplify lights to one class
+* Fix
+* Code rabbit suggestions
+* Add manager
+* Merge branch 'ros2-devel' into ros2-gz-lights
+* Save work
+* Fixes
+* Add next suggestions
+* Apply some Dawid suggestions
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
+* Merge branch 'ros2' into ros2-build-in-animation
+* update package xml
+* Add markers
+* First marker script
+* Simplify and add cmd_vel
+* Add lights to panther_gazebo
+* Add lights launch to panther_gazebo
+* Merge branch 'ros2' into ros2-gz-lights
+* decrease intensity
+* Steering lights from channel topics
+* Working light changing from ros
+* Add light macro
+* Contributors: Dawid Kmak, pawelirh, rafal-gorecki
+
 2.0.3 (2024-06-06)
 ------------------
 * Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
