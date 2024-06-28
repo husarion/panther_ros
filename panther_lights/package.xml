@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>panther_lights</name>
-  <version>2.0.3</version>
+  <version>2.0.4</version>
   <description>Package used to control the Husarion Panther Bumper Lights</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
@@ -19,12 +19,12 @@
   <depend>diagnostic_updater</depend>
   <depend>image_transport</depend>
   <depend>libpng-dev</depend>
-  <depend>panther_gpiod</depend>
   <depend>panther_msgs</depend>
   <depend>panther_utils</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

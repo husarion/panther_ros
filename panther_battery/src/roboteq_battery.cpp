@@ -83,6 +83,7 @@ void RoboteqBattery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp)
 {
   UpdateBatteryState(header_stamp);
   UpdateBatteryStateRaw();
+  UpdateChargingStatus(header_stamp);
 }
 
 void RoboteqBattery::UpdateBatteryState(const rclcpp::Time & header_stamp)
@@ -116,6 +117,14 @@ void RoboteqBattery::UpdateBatteryStateRaw()
   battery_state_raw_.current = current_raw_;
   battery_state_raw_.percentage = GetBatteryPercent(voltage_raw_);
   battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
+}
+
+void RoboteqBattery::UpdateChargingStatus(const rclcpp::Time & header_stamp)
+{
+  charging_status_.header.stamp = header_stamp;
+  charging_status_.charging = false;
+  charging_status_.current = std::numeric_limits<float>::quiet_NaN();
+  charging_status_.charger_type = ChargingStatusMsg::UNKNOWN;
 }
 
 std::uint8_t RoboteqBattery::GetBatteryHealth(const float voltage)

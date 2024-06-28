@@ -71,6 +71,13 @@ def generate_launch_description():
         description="Path to file with list of hosts to request shutdown.",
     )
 
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
     lights_manager_node = Node(
         package="panther_manager",
         executable="lights_manager_node",
@@ -96,7 +103,7 @@ def generate_launch_description():
         ],
         namespace=namespace,
         emulate_tty=True,
-        condition=IfCondition(PythonExpression([panther_version, ">=", "1.2"])),
+        condition=IfCondition(PythonExpression([panther_version, ">=", "1.2 and not ", use_sim])),
     )
 
     actions = [
@@ -104,6 +111,7 @@ def generate_launch_description():
         declare_safety_bt_project_path_arg,
         declare_namespace_arg,
         declare_shutdown_hosts_config_path_arg,
+        declare_use_sim_arg,
         lights_manager_node,
         safety_manager_node,
     ]

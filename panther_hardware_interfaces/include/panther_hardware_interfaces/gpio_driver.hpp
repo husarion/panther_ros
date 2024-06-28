@@ -12,19 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**
- * @file gpio_driver.hpp
- *
- * @brief Header file containing declarations for the GPIODriver class
- *        responsible for GPIO operations on Panther robot.
- *
- * This file contains the declarations for the GPIODriver class, which
- * manages GPIO pins on the Panther robot by providing functionalities to set pin values,
- * change pin directions, monitor pin events, and more.
- */
-
-#ifndef PANTHER_GPIOD_GPIO_DRIVER_HPP_
-#define PANTHER_GPIOD_GPIO_DRIVER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_GPIO_DRIVER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_GPIO_DRIVER_HPP_
 
 #include <atomic>
 #include <condition_variable>
@@ -40,7 +29,7 @@
 
 #include "gpiod.hpp"
 
-namespace panther_gpiod
+namespace panther_hardware_interfaces
 {
 
 /**
@@ -302,6 +291,6 @@ private:
   const std::filesystem::path gpio_chip_path_ = "/dev/gpiochip0";
 };
 
-}  // namespace panther_gpiod
+}  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_GPIOD_GPIO_DRIVER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_GPIO_DRIVER_HPP_

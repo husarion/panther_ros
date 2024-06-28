@@ -22,12 +22,14 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
+#include "panther_msgs/msg/charging_status.hpp"
 #include "panther_msgs/msg/io_state.hpp"
 
 namespace panther_battery
 {
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
 using IOStateMsg = panther_msgs::msg::IOState;
 
 class BatteryPublisher
@@ -45,6 +47,7 @@ protected:
   virtual void Update() = 0;
   virtual void Reset() = 0;
   virtual void PublishBatteryState() = 0;
+  virtual void PublishChargingStatus() = 0;
   virtual void LogErrors() = 0;
   virtual void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;
   virtual void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) = 0;

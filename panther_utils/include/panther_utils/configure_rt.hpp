@@ -28,7 +28,7 @@ namespace panther_utils
  *
  * @exception std::runtime_error if invalid priority is set, kernel isn't RT or configuration fails.
  */
-void ConfigureRT(const unsigned priority)
+inline void ConfigureRT(const unsigned priority)
 {
   if (priority > 99) {
     throw std::runtime_error(

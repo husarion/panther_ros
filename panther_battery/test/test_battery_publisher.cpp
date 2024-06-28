@@ -49,10 +49,11 @@ public:
   bool ChargerConnected() const { return BatteryPublisher::ChargerConnected(); }
 
   // Mock up methods to make wrapper a valid subclass
-  void Update(){};
-  void Reset(){};
-  void PublishBatteryState(){};
-  void LogErrors(){};
+  void Update() {};
+  void Reset() {};
+  void PublishBatteryState() {};
+  void PublishChargingStatus() {};
+  void LogErrors() {};
   void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
   {
     status.summary(0, "");  // Avoid unused parameter compiler warning

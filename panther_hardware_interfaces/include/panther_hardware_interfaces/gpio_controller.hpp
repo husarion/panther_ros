@@ -14,7 +14,7 @@
 
 /**
  * @file gpio_controller.hpp
- * @brief Header file containing a higher-level wrapper for the panther_gpiod GPIO driver.
+ * @brief Header file containing a higher-level wrapper for the GPIO driver.
  */
 
 #ifndef PANTHER_HARDWARE_INTERFACES_GPIO_CONTROLLER_HPP_
@@ -29,7 +29,7 @@
 
 #include "gpiod.hpp"
 
-#include "panther_gpiod/gpio_driver.hpp"
+#include "panther_hardware_interfaces/gpio_driver.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -54,7 +54,7 @@ public:
    * @exception std::runtime_error if the Watchdog pin is not configured by GPIODriver or not
    * described in GPIOController gpio_info storage
    */
-  Watchdog(std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver);
+  Watchdog(std::shared_ptr<GPIODriver> gpio_driver);
 
   /**
    * @brief Destructor for Watchdog class. Turns off the watchdog thread.
@@ -83,8 +83,8 @@ private:
    */
   void WatchdogThread();
 
-  panther_gpiod::GPIOPin watchdog_pin_ = panther_gpiod::GPIOPin::WATCHDOG;
-  std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver_;
+  GPIOPin watchdog_pin_ = GPIOPin::WATCHDOG;
+  std::shared_ptr<GPIODriver> gpio_driver_;
   std::thread watchdog_thread_;
   std::atomic_bool watchdog_thread_enabled_ = false;
 };
@@ -95,18 +95,20 @@ public:
   virtual ~GPIOControllerInterface() = default;
 
   virtual void Start() = 0;
+
+  virtual void EStopTrigger() = 0;
+  virtual void EStopReset() = 0;
+
   virtual bool MotorPowerEnable(const bool enable) = 0;
   virtual bool FanEnable(const bool enable) = 0;
   virtual bool AUXPowerEnable(const bool enable) = 0;
   virtual bool DigitalPowerEnable(const bool enable) = 0;
   virtual bool ChargerEnable(const bool enable) = 0;
-  virtual void EStopTrigger() = 0;
-  virtual void EStopReset() = 0;
+  virtual bool LEDControlEnable(const bool enable) = 0;
 
-  virtual std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates()
-    const = 0;
+  virtual std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const = 0;
 
-  virtual void InterruptEStopReset(){};
+  virtual void InterruptEStopReset() {};
 
   /**
    * @brief This method sets the provided callback function to be executed upon GPIO edge events.
@@ -130,15 +132,14 @@ public:
    *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
    */
-  void RegisterGPIOEventCallback(
-    const std::function<void(const panther_gpiod::GPIOInfo &)> & callback);
+  void RegisterGPIOEventCallback(const std::function<void(const GPIOInfo &)> & callback);
 
-  bool IsPinActive(const panther_gpiod::GPIOPin pin) const;
+  bool IsPinActive(const GPIOPin pin) const;
 
-  bool IsPinAvailable(const panther_gpiod::GPIOPin pin) const;
+  bool IsPinAvailable(const GPIOPin pin) const;
 
 protected:
-  std::shared_ptr<panther_gpiod::GPIODriver> gpio_driver_;
+  std::shared_ptr<GPIODriver> gpio_driver_;
 };
 
 class GPIOControllerPTH12X : public GPIOControllerInterface
@@ -211,11 +212,19 @@ public:
   bool ChargerEnable(const bool enable) override;
 
   /**
+   * @brief Enables or disables the LED control based on the 'enable' parameter.
+   *
+   * @param enable Set to 'true' to enable the LED control, 'false' to disable.
+   * @return 'true' if the LED control pin value is successfully set, 'false' otherwise.
+   */
+  bool LEDControlEnable(const bool enable) override;
+
+  /**
    * @brief Queries the current IO states of the control interface.
    *
    * @return An unordered map containing the GPIOPin as the key and its active state as the value.
    */
-  std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
+  std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
   void InterruptEStopReset() override;
 
@@ -239,22 +248,22 @@ private:
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
    */
-  const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage_{
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN1, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::GPIN2, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
-    panther_gpiod::GPIOInfo{
-      panther_gpiod::GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
+  const std::vector<GPIOInfo> gpio_config_info_storage_{
+    GPIOInfo{GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
+    GPIOInfo{GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::GPIN1, gpiod::line::direction::INPUT},
+    GPIOInfo{GPIOPin::GPIN2, gpiod::line::direction::INPUT},
+    GPIOInfo{GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
+    GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
+    GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
   };
 
   std::mutex e_stop_cv_mtx_;
@@ -340,20 +349,29 @@ public:
   bool ChargerEnable(const bool /* enable */) override;
 
   /**
+   * @brief Enables or disables the LED control based on the 'enable' parameter.
+   *
+   * @param enable Set to 'true' to enable the LED control, 'false' to disable.
+   * @return 'true' if the LED control pin value is successfully set, 'false' otherwise.
+   */
+  bool LEDControlEnable(const bool enable) override;
+
+  /**
    * @brief Returns imitation of the IO states of the control interface. In this version of the
    * robot, there is a lack of support for controlling these IOs.
    *
    * @return An unordered map containing the GPIOPin as the key and its active state as the value.
    */
-  std::unordered_map<panther_gpiod::GPIOPin, bool> QueryControlInterfaceIOStates() const override;
+  std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
 private:
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
    */
-  const std::vector<panther_gpiod::GPIOInfo> gpio_config_info_storage_{
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::STAGE2_INPUT, gpiod::line::direction::INPUT},
-    panther_gpiod::GPIOInfo{panther_gpiod::GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT},
+  const std::vector<GPIOInfo> gpio_config_info_storage_{
+    GPIOInfo{GPIOPin::STAGE2_INPUT, gpiod::line::direction::INPUT},
+    GPIOInfo{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT},
+    GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
   };
 };
 

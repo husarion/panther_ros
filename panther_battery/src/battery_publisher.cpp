@@ -63,6 +63,7 @@ void BatteryPublisher::Publish()
   }
 
   this->PublishBatteryState();
+  this->PublishChargingStatus();
   this->LogErrors();
 }
 

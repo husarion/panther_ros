@@ -8,12 +8,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(image_transport REQUIRED)
-find_package(panther_gpiod REQUIRED)
 find_package(panther_msgs REQUIRED)
 find_package(panther_utils REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include_directories(include)
@@ -33,10 +33,10 @@ ament_target_dependencies(
   driver_node
   diagnostic_updater
   image_transport
-  panther_gpiod
   panther_msgs
   rclcpp
-  sensor_msgs)
+  sensor_msgs
+  std_srvs)
 
 add_executable(
   controller_node
@@ -178,8 +178,8 @@ if(BUILD_TESTING)
     image_transport
     diagnostic_updater
     panther_msgs
-    panther_gpiod
-    panther_utils)
+    panther_utils
+    std_srvs)
 endif()
 
 ament_package()

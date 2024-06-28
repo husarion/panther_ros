@@ -33,11 +33,11 @@ template class ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>;
 template <typename SrvT, typename CallbackT>
 void ROSServiceWrapper<SrvT, CallbackT>::RegisterService(
   const rclcpp::Node::SharedPtr node, const std::string & service_name,
-  rclcpp::CallbackGroup::SharedPtr group)
+  rclcpp::CallbackGroup::SharedPtr group, const rmw_qos_profile_t & qos_profile)
 {
   service_ = node->create_service<SrvT>(
     service_name, std::bind(&ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper, this, _1, _2),
-    rmw_qos_profile_services_default, group);
+    qos_profile, group);
 }
 
 template <typename SrvT, typename CallbackT>
@@ -53,7 +53,7 @@ void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
 
     RCLCPP_WARN_STREAM(
       rclcpp::get_logger("PantherSystem"),
-      "An exception ocurred while handling the request: " << err.what());
+      "An exception occurred while handling the request: " << err.what());
   }
 }
 
@@ -202,7 +202,7 @@ void PantherSystemRosInterface::PublishDriverState()
 }
 
 void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
-  const std::unordered_map<panther_gpiod::GPIOPin, bool> & io_state)
+  const std::unordered_map<GPIOPin, bool> & io_state)
 {
   for (const auto & [pin, pin_value] : io_state) {
     UpdateIOStateMsg(pin, pin_value);
@@ -213,7 +213,7 @@ void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
   }
 }
 
-void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & gpio_info)
+void PantherSystemRosInterface::PublishIOState(const GPIOInfo & gpio_info)
 {
   const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
 
@@ -226,33 +226,35 @@ void PantherSystemRosInterface::PublishIOState(const panther_gpiod::GPIOInfo & g
   }
 }
 
-bool PantherSystemRosInterface::UpdateIOStateMsg(
-  const panther_gpiod::GPIOPin pin, const bool pin_value)
+bool PantherSystemRosInterface::UpdateIOStateMsg(const GPIOPin pin, const bool pin_value)
 {
   auto & io_state_msg = realtime_io_state_publisher_->msg_;
 
   switch (pin) {
-    case panther_gpiod::GPIOPin::AUX_PW_EN:
+    case GPIOPin::AUX_PW_EN:
       io_state_msg.aux_power = pin_value;
       break;
-    case panther_gpiod::GPIOPin::CHRG_SENSE:
+    case GPIOPin::CHRG_SENSE:
       io_state_msg.charger_connected = pin_value;
       break;
-    case panther_gpiod::GPIOPin::CHRG_DISABLE:
+    case GPIOPin::CHRG_DISABLE:
       io_state_msg.charger_enabled = !pin_value;
       break;
-    case panther_gpiod::GPIOPin::VDIG_OFF:
+    case GPIOPin::VDIG_OFF:
       io_state_msg.digital_power = !pin_value;
       break;
-    case panther_gpiod::GPIOPin::FAN_SW:
+    case GPIOPin::FAN_SW:
       io_state_msg.fan = pin_value;
       break;
-    case panther_gpiod::GPIOPin::VMOT_ON:
-    case panther_gpiod::GPIOPin::MOTOR_ON:
+    case GPIOPin::VMOT_ON:
+    case GPIOPin::MOTOR_ON:
       io_state_msg.motor_on = pin_value;
       break;
-    case panther_gpiod::GPIOPin::SHDN_INIT:
+    case GPIOPin::SHDN_INIT:
       io_state_msg.power_button = pin_value;
+      break;
+    case GPIOPin::LED_SBC_SEL:
+      io_state_msg.led_control = pin_value;
       break;
     default:
       return false;

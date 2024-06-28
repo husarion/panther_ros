@@ -10,11 +10,11 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: c80a3da24dae9a1fab0559d5de687b73d755f6f5
+    version: 12b77cf8f5a8ececfc737ab2806d04df0d7ed60d
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
-    version: f50cee03b163120071e38d7b70f39befd9320a33
+    version: b29f5637a243b0008ac197032575c8df47883b2c
   ros2_controllers: # Caused by two error: 1. https://github.com/ros-controls/ros2_controllers/pull/1104 2. There is no nice way to change `sensor_name` imu_bradcaster param when spawning multiple robots -> ros2_control refer only to single imu entity
     type: git
     url: https://github.com/husarion/ros2_controllers/

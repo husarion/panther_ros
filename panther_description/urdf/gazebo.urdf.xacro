@@ -17,7 +17,7 @@
     <gazebo>
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
-        <battery_name>${ns}panther_battery</battery_name>
+        <battery_name>${ns}battery</battery_name>
         <voltage>41.4</voltage>
         <open_circuit_voltage_constant_coef>42.0</open_circuit_voltage_constant_coef>
         <open_circuit_voltage_linear_coef>-10.0</open_circuit_voltage_linear_coef>
@@ -31,9 +31,6 @@
         <!-- TODO Because of https://github.com/gazebosim/gz-sim/issues/225 division by 100 -->
         <power_load>${battery_config['power_load']/100.0}</power_load>
         <start_draining>${battery_config['simulate_discharging']}</start_draining>
-        <ros>
-          <namespace>${namespace}</namespace>
-        </ros>
       </plugin>
     </gazebo>
   </xacro:macro>
@@ -47,7 +44,7 @@
           <namespace>${namespace}</namespace>
           <remapping>imu_broadcaster/imu:=imu/data</remapping>
           <remapping>panther_base_controller/cmd_vel_unstamped:=cmd_vel</remapping>
-          <remapping>panther_base_controller/odom:=odom/wheels</remapping>
+          <remapping>panther_base_controller/odom:=odometry/wheels</remapping>
         </ros>
       </plugin>
     </gazebo>
@@ -82,9 +79,11 @@
         <topic>${ns}imu/data_raw</topic>
         <visualize>false</visualize>
         <enable_metrics>false</enable_metrics>
-        <frame_id>imu_link</frame_id>
         <ignition_frame_id>imu_link</ignition_frame_id>
         <imu>
+          <orientation_reference_frame>
+            <localization>ENU</localization>
+          </orientation_reference_frame>
           <angular_velocity>
             <!-- rad/s -->
             <x>
@@ -113,4 +112,25 @@
       </sensor>
     </gazebo>
   </xacro:macro>
+
+
+  <!-- Lights -->
+  <xacro:macro name="light" params="reference_frame name namespace:=''">
+    <gazebo reference="${reference_frame}">
+      <light name="${name}" type="spot">
+        <cast_shadows>true</cast_shadows>
+        <visualize>0</visualize>
+        <diffuse>1.0 1.0 1.0</diffuse>
+        <specular>1.0 1.0 1.0</specular>
+        <direction>1 0 0</direction>
+        <intensity>1.0</intensity>
+        <spot>
+          <inner_angle>1.0</inner_angle>
+          <outer_angle>2.0</outer_angle>
+          <falloff>0.4</falloff>
+        </spot>
+      </light>
+    </gazebo>
+  </xacro:macro>
+
 </robot>
