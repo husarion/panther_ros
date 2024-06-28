@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       release_candidate:
-        description: Branch name of the release candidate.
+        description: Branch name of the release candidate. WARNING This branch will be deleted!
         required: true
       version:
         description: New version (used for tag and package versioning).
@@ -103,6 +103,11 @@ jobs:
           --target ${{ env.MAIN_BRANCH }} \
           --title ${{ github.event.inputs.release_name }} \
           --generate-notes
+
+      - name: Grant permissions
+        if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
+        run: | 
+          sudo chmod -R ugo+rwX .
 
       - name: Checkout to devel branch
         if: ${{ env.DEVEL_BRANCH != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode) == true }}
