@@ -2,6 +2,25 @@
 Changelog for package panther_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.4 (2024-06-28)
+------------------
+* Delete unnecessary dependency
+* Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
+* Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
+* Move antenna to ros-components-description (`#340 <https://github.com/husarion/panther_ros/issues/340>`_)
+* Add manager
+* Merge branch 'ros2-devel' into ros2-gz-lights
+* Apply some Dawid suggestions
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
+* Merge branch 'ros2' into ros2-build-in-animation
+* Simplify and add cmd_vel
+* Use default components
+* Merge branch 'ros2' into ros2-gz-lights
+* Steering lights from channel topics
+* Add light macro
+* Add lights to urdf
+* Contributors: Dawid Kmak, pawelirh, rafal-gorecki
+
 2.0.3 (2024-06-06)
 ------------------
 * Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
