@@ -2,8 +2,8 @@
 Changelog for package panther_gazebo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
 * Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
 * Fix indexing

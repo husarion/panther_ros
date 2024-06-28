@@ -2,8 +2,8 @@
 Changelog for package panther_diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Merge branch 'ros2-devel' into ros2-gz-lights
 * Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
 * Merge branch 'ros2' into ros2-build-in-animation

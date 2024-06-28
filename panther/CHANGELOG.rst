@@ -2,8 +2,8 @@
 Changelog for package panther
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * hotfix-allow-unshallow-copy
 * Ros2 battery charger topic (`#353 <https://github.com/husarion/panther_ros/issues/353>`_)
 * Update vcs (`#354 <https://github.com/husarion/panther_ros/issues/354>`_)

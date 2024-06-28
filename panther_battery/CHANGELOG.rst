@@ -2,8 +2,8 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Ros2 battery charger topic (`#353 <https://github.com/husarion/panther_ros/issues/353>`_)
 * Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
 * Suggestions and pre-commit update

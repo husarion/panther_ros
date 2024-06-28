@@ -2,8 +2,8 @@
 Changelog for package panther_utils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Ros2 battery charger topic (`#353 <https://github.com/husarion/panther_ros/issues/353>`_)
 * Merge pull request `#343 <https://github.com/husarion/panther_ros/issues/343>`_ from husarion/ros2-gpio-controller-revision
 * Merge branch 'ros2-devel' into ros2-gz-lights

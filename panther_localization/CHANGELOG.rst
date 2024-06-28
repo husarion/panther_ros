@@ -2,8 +2,8 @@
 Changelog for package panther_localization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
 * Merge branch 'ros2-devel' into ros2-gz-lights
 * Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision

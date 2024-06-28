@@ -2,8 +2,8 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
 * ROS 2 e-stop fixes (`#348 <https://github.com/husarion/panther_ros/issues/348>`_)
 * Merge pull request `#343 <https://github.com/husarion/panther_ros/issues/343>`_ from husarion/ros2-gpio-controller-revision

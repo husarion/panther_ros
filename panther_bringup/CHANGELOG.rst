@@ -2,8 +2,8 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2024-06-28)
+------------------
 * Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
 * Suggestions and pre-commit update
 * Add manager
