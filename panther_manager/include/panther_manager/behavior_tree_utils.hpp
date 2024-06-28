@@ -90,6 +90,32 @@ inline std::string GetLoggerPrefix(const std::string & bt_node_name)
 {
   return std::string("[" + bt_node_name + "] ");
 }
+
+/**
+ * @brief Get the Input Param object.
+ * Wrapper for BT::getInput(), verifies if input parameter has value.
+ *
+ * @tparam ParamType
+ * @param node BT node to use for param retrieve
+ * @param param_name Param to retrieve from blackboard
+ * @throws `BT::RuntimeError` if param has no value or couldn't convert to target type
+ * @return ParamType
+ */
+template <class ParamType>
+ParamType GetInputParam(BT::TreeNode * node, const std::string & param_name)
+{
+  auto input_param = node->getInput<ParamType>(param_name);
+
+  if (!input_param.has_value()) {
+    throw BT::RuntimeError(
+      std::string(GetLoggerPrefix(node->name()) + "Error while reading port [") + param_name +
+        std::string("]: "),
+      input_param.error());
+  }
+
+  return input_param.value();
+}
+
 }  // namespace panther_manager
 
 #endif  // PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_
