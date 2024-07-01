@@ -64,13 +64,9 @@ void BatteryNode::Initialize()
       return;
     } catch (const std::runtime_error & e) {
       RCLCPP_WARN_STREAM(
-        this->get_logger(),
-        "An exception occurred while initializing with ADC: " << e.what()
-                                                              << " Falling back to "
-                                                                 "using Roboteq "
-                                                                 "drivers to "
-                                                                 "publish battery "
-                                                                 "data.");
+        this->get_logger(), "An exception occurred while initializing with ADC: "
+                              << e.what()
+                              << " Falling back to using Roboteq drivers to publish battery data.");
     }
   }
   InitializeWithRoboteqBattery();
