@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4" project_name="PantherLightsBT">
-    <include path="lights.xml"/>
+    <include path="lights.xml" />
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Action ID="CallSetLedAnimationService" editable="true">
@@ -9,6 +9,19 @@
             <input_port name="repeating" default="false">indicates if animation should repeat</input_port>
             <input_port name="service_name">ROS service name</input_port>
         </Action>
+        <Action ID="WaitForTopics"
+            editable="true">
+            <input_port name="timeout_ms">wait for topics timeout</input_port>
+        </Action>
+        <Condition ID="CheckBoolMsg" editable="true">
+            <input_port name="topic_name">ROS topic name</input_port>
+        </Condition>
+        <Condition ID="ReadBatteryState" editable="true">
+            <output_port name="battery_status">battery status</output_port>
+            <output_port name="battery_health">battery state</output_port>
+            <output_port name="battery_percent">battery percentage</output_port>
+            <output_port name="battery_percent_round">battery percentage rounded</output_port>
+        </Condition>
         <Decorator ID="TickAfterTimeout" editable="true">
             <input_port name="timeout">time in s to wait before ticking child again</input_port>
         </Decorator>

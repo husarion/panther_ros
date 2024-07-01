@@ -25,32 +25,47 @@ endforeach()
 
 include_directories(include)
 
+# Action plugins
 add_library(call_set_bool_service_bt_node SHARED
             plugins/action/call_set_bool_service_node.cpp)
 list(APPEND plugin_libs call_set_bool_service_bt_node)
-
-add_library(call_trigger_service_bt_node SHARED
-            plugins/action/call_trigger_service_node.cpp)
-list(APPEND plugin_libs call_trigger_service_bt_node)
 
 add_library(call_set_led_animation_service_bt_node SHARED
             plugins/action/call_set_led_animation_service_node.cpp)
 list(APPEND plugin_libs call_set_led_animation_service_bt_node)
 
-add_library(signal_shutdown_bt_node SHARED
-            plugins/action/signal_shutdown_node.cpp)
-list(APPEND plugin_libs signal_shutdown_bt_node)
-
-add_library(shutdown_single_host_bt_node SHARED
-            plugins/action/shutdown_single_host_node.cpp)
-target_link_libraries(shutdown_single_host_bt_node ssh)
-list(APPEND plugin_libs shutdown_single_host_bt_node)
+add_library(call_trigger_service_bt_node SHARED
+            plugins/action/call_trigger_service_node.cpp)
+list(APPEND plugin_libs call_trigger_service_bt_node)
 
 add_library(shutdown_hosts_from_file_bt_node SHARED
             plugins/action/shutdown_hosts_from_file_node.cpp)
 target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
 
+add_library(shutdown_single_host_bt_node SHARED
+            plugins/action/shutdown_single_host_node.cpp)
+target_link_libraries(shutdown_single_host_bt_node ssh)
+list(APPEND plugin_libs shutdown_single_host_bt_node)
+
+add_library(signal_shutdown_bt_node SHARED
+            plugins/action/signal_shutdown_node.cpp)
+list(APPEND plugin_libs signal_shutdown_bt_node)
+
+add_library(wait_for_topics_bt_node SHARED
+            plugins/action/wait_for_topics_node.cpp)
+list(APPEND plugin_libs wait_for_topics_bt_node)
+
+# Condition plugins
+add_library(check_bool_msg_bt_node SHARED
+            plugins/condition/check_bool_msg_node.cpp)
+list(APPEND plugin_libs check_bool_msg_bt_node)
+
+add_library(read_battery_state_bt_node SHARED
+            plugins/condition/read_battery_state_node.cpp)
+list(APPEND plugin_libs read_battery_state_bt_node)
+
+# Decorator plugins
 add_library(tick_after_timeout_bt_node SHARED
             plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)

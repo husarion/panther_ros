@@ -22,13 +22,15 @@
 #include <string>
 #include <vector>
 
-#include "ament_index_cpp/get_package_share_directory.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-#include "panther_utils/moving_average.hpp"
+#include <sensor_msgs/msg/battery_state.hpp>
 
-#include <panther_manager/behavior_tree_manager.hpp>
-#include <panther_manager/behavior_tree_utils.hpp>
+#include "panther_msgs/msg/led_animation.hpp"
+
+#include "panther_manager/behavior_tree_manager.hpp"
+#include "panther_manager/behavior_tree_utils.hpp"
 
 namespace panther_manager
 {
@@ -40,12 +42,6 @@ LightsManagerNode::LightsManagerNode(
   RCLCPP_INFO(this->get_logger(), "Constructing node.");
 
   DeclareParameters();
-
-  const auto battery_percent_window_len =
-    this->get_parameter("battery.percent.window_len").as_int();
-
-  battery_percent_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
-    battery_percent_window_len, 1.0);
 
   const auto initial_blackboard = CreateLightsInitialBlackboard();
   lights_tree_manager_ = std::make_unique<BehaviorTreeManager>("Lights", initial_blackboard, 5555);
@@ -60,14 +56,7 @@ void LightsManagerNode::Initialize()
   RegisterBehaviorTree();
   lights_tree_manager_->Initialize(factory_);
 
-  using namespace std::placeholders;
-
-  battery_sub_ = this->create_subscription<BatteryStateMsg>(
-    "battery", 10, std::bind(&LightsManagerNode::BatteryCB, this, _1));
-  e_stop_sub_ = this->create_subscription<BoolMsg>(
-    "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
-    std::bind(&LightsManagerNode::EStopCB, this, _1));
-
+  bt_callback_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   const float timer_freq = this->get_parameter("timer_frequency").as_double();
   const auto timer_period_ms =
     std::chrono::milliseconds(static_cast<unsigned>(1.0f / timer_freq * 1000));
@@ -114,7 +103,13 @@ void LightsManagerNode::RegisterBehaviorTree()
 
 std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard()
 {
-  update_charging_anim_step_ = this->get_parameter("battery.charging_anim_step").as_double();
+  const std::string undefined_charging_anim_percent = "";
+  const int undefined_anim_id = -1;
+
+  const int battery_percent_window_len = this->get_parameter("battery.percent.window_len").as_int();
+  const float battery_charging_anim_step =
+    this->get_parameter("battery.charging_anim_step").as_double();
+
   const float critical_battery_anim_period =
     this->get_parameter("battery.animation_period.critical").as_double();
   const float critical_battery_threshold_percent =
@@ -124,12 +119,14 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
   const float low_battery_threshold_percent =
     this->get_parameter("battery.percent.threshold.low").as_double();
 
-  const std::string undefined_charging_anim_percent = "";
-  const int undefined_anim_id = -1;
+  using LEDAnimationMsg = panther_msgs::msg::LEDAnimation;
+  using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
   const std::map<std::string, std::any> lights_initial_bb = {
-    {"charging_anim_percent", undefined_charging_anim_percent},
     {"current_anim_id", undefined_anim_id},
+    {"battery_percent_window_len", battery_percent_window_len},
+    {"battery_charging_anim_setp", battery_charging_anim_step},
+    {"charging_anim_percent", undefined_charging_anim_percent},
     {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
     {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
     {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
@@ -161,59 +158,13 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
   return lights_initial_bb;
 }
 
-void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
-{
-  const auto battery_status = battery_state->power_supply_status;
-  const auto battery_health = battery_state->power_supply_health;
-  lights_tree_manager_->GetBlackboard()->set<unsigned>("battery_status", battery_status);
-  lights_tree_manager_->GetBlackboard()->set<unsigned>("battery_health", battery_health);
-
-  // don't update battery percentage if unknown status or health
-  if (
-    battery_status != BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN &&
-    battery_health != BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN) {
-    battery_percent_ma_->Roll(battery_state->percentage);
-  }
-
-  lights_tree_manager_->GetBlackboard()->set<float>(
-    "battery_percent", battery_percent_ma_->GetAverage());
-  lights_tree_manager_->GetBlackboard()->set<std::string>(
-    "battery_percent_round",
-    std::to_string(
-      round(battery_percent_ma_->GetAverage() / update_charging_anim_step_) *
-      update_charging_anim_step_));
-}
-
-void LightsManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
-{
-  lights_tree_manager_->GetBlackboard()->set<bool>("e_stop_state", e_stop->data);
-}
-
 void LightsManagerNode::LightsTreeTimerCB()
 {
-  if (!SystemReady()) {
-    return;
-  }
-
   lights_tree_manager_->TickOnce();
 
   if (lights_tree_manager_->GetTreeStatus() == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
   }
-}
-
-bool LightsManagerNode::SystemReady()
-{
-  if (
-    !lights_tree_manager_->GetBlackboard()->getEntry("e_stop_state") ||
-    !lights_tree_manager_->GetBlackboard()->getEntry("battery_status")) {
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(), *this->get_clock(), 5000,
-      "Waiting for required system messages to arrive.");
-    return false;
-  }
-
-  return true;
 }
 
 }  // namespace panther_manager

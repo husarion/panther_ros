@@ -16,3 +16,5 @@
         - tick_after_timeout_bt_node
       ros_plugin_libs:
         - call_set_led_animation_service_bt_node
+        - check_bool_msg_bt_node
+        - read_battery_state_bt_node
