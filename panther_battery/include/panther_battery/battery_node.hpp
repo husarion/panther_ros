@@ -43,7 +43,7 @@ private:
   void Initialize();
   void InitializeWithADCBattery();
   void InitializeWithRoboteqBattery();
-  std::string GetBatteryPath(const std::string & adc_device_path) const;
+  std::string GetADCDevicePath(const std::string & adc_device_path) const;
 
   static constexpr int kADCCurrentOffset = 625;
   DriverStateMsg::SharedPtr driver_state_;
