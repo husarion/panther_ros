@@ -138,9 +138,6 @@ protected:
 
   void Calibrate();
 
-  bool IsMagnitudeSynchronizedWithAccelerationAndGyration(
-    const geometry_msgs::msg::Vector3 & mag_compensated);
-
   std::vector<double> imu_sensor_state_;
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
 

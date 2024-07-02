@@ -182,6 +182,7 @@ def generate_launch_description():
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),
+            ("imu_broadcaster/imu", "imu/data"),
             (
                 "panther_system_node/driver/motor_controllers_state",
                 "driver/motor_controllers_state",

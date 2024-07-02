@@ -156,7 +156,7 @@
           <plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
           <param name="serial">-1</param>
           <param name="hub_port">0</param>
-          <param name="data_interval_ms">8</param>
+          <param name="data_interval_ms">10</param>
           <param name="callback_delta_epsilon_ms">1</param>
 
           <!-- Madgwick Filter Params -->
@@ -166,7 +166,7 @@
           <param name="mag_bias_y">0.0</param>
           <param name="mag_bias_z">0.0</param>
           <param name="use_mag">true</param>
-          <param name="stateless">false</param>
+          <param name="stateless">true</param>
           <param name="remove_gravity_vector">false</param>
           <param name="world_frame">enu</param>
         </hardware>

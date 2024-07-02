@@ -411,12 +411,6 @@ bool PantherImuSensor::IsVectorFinite(const geometry_msgs::msg::Vector3 & vec)
   return std::isfinite(vec.x) && std::isfinite(vec.y) && std::isfinite(vec.z);
 }
 
-bool PantherImuSensor::IsMagnitudeSynchronizedWithAccelerationAndGyration(
-  const geometry_msgs::msg::Vector3 & mag_compensated)
-{
-  return IsVectorFinite(mag_compensated);
-}
-
 void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   const double timestamp)
@@ -438,10 +432,8 @@ void PantherImuSensor::SpatialDataCallback(
   const float dt = timestamp_s - last_spatial_data_callback_time_s_;
   last_spatial_data_callback_time_s_ = timestamp_s;
 
-  // Wait for the a magnitude and an acceleration to initialize the algorithm
-  if (
-    !algorithm_initialized_ &&
-    !IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated)) {
+  // wait for mag message without NaN / inf
+  if (!algorithm_initialized_ && !IsVectorFinite(mag_compensated)) {
     return;
   }
 
@@ -455,7 +447,7 @@ void PantherImuSensor::SpatialDataCallback(
   }
 
   if (algorithm_initialized_ && !params_.stateless) {
-    if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated) && params_.use_mag) {
+    if (IsVectorFinite(mag_compensated) && params_.use_mag) {
       UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
     } else {
       UpdateMadgwickAlgorithmIMU(ang_vel, lin_acc, dt);

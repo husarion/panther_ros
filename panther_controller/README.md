@@ -48,7 +48,7 @@ The broadcaster to publish readings of IMU sensors.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `~/imu_broadcaster/imu` [*sensor_msgs/msg/Imu*]: data from IMU sensor.
+- `imu/data` [*sensor_msgs/msg/Imu*]: data from IMU sensor.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_END)
@@ -76,8 +76,8 @@ The broadcaster reads all state interfaces and reports them on specific topics.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `~/dynamic_joint_states` [*control_msgs/msg/DynamicJointState*] - provides information about the state of various movable joints in a robotic system.
-- `~/joint_states` [*sensor_msgs/msg/JointState*] - provides information about the state of various joints in a robotic system.
+- `dynamic_joint_states` [*control_msgs/msg/DynamicJointState*] - provides information about the state of various movable joints in a robotic system.
+- `joint_states` [*sensor_msgs/msg/JointState*] - provides information about the state of various joints in a robotic system.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_END)
@@ -105,7 +105,7 @@ Controller which manages mobile robots with a differential drive. It converts ve
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `~/cmd_vel` [*geometry_msgs/msg/Twist*]: command linear and angular velocity values.
+- `cmd_vel` [*geometry_msgs/msg/Twist*]: command linear and angular velocity values.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -113,7 +113,7 @@ Controller which manages mobile robots with a differential drive. It converts ve
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `~/odometry/wheels` [*nav_msgs/msg/Odometry*]: odometry data from wheel encoders.
+- `odometry/wheels` [*nav_msgs/msg/Odometry*]: odometry data from wheel encoders.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 [//]: # (ROS_API_NODE_END)
