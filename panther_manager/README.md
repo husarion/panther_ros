@@ -17,7 +17,7 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### lights_manager_node
+### lights_manager
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
@@ -30,8 +30,8 @@ Node responsible for managing Bumper Lights animation scheduling.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `~/battery` [*sensor_msgs/BatteryState*]: state of the internal Battery.
-- `~/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
+- `battery/battery_status` [*sensor_msgs/BatteryState*]: state of the internal Battery.
+- `hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -39,7 +39,7 @@ Node responsible for managing Bumper Lights animation scheduling.
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_START)
 
-- `~/lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
+- `~/lights/set_animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
 [//]: # (ROS_API_NODE_SERVICE_CLIENTS_END)
 
@@ -66,7 +66,7 @@ Node responsible for managing Bumper Lights animation scheduling.
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### safety_manager_node
+### safety_manager
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
@@ -79,11 +79,11 @@ Node responsible for managing safety features, and software shutdown of componen
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `~/battery` [*sensor_msgs/BatteryState*]: state of the internal Battery.
-- `~/driver/motor_controllers_state` [*panther_msgs/DriverState*]: state of motor controllers.
-- `~/hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
-- `~/hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
-- `~/system_status` [*panther_msgs/SystemStatus*]: state of the system, including Built-in Computer's CPU temperature and load.
+- `battery/battery_status` [*sensor_msgs/BatteryState*]: state of the internal Battery.
+- `hardware/e_stop` [*std_msgs/Bool*]: state of emergency stop.
+- `hardware/io_state` [*panther_msgs/IOState*]: state of IO pins.
+- `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: state of motor controllers.
+- `system_status` [*panther_msgs/SystemStatus*]: state of the system, including Built-in Computer's CPU temperature and load.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -163,7 +163,7 @@ ssh-copy-id username@10.15.20.XX
 
 #### Faults Handle
 
-After receiving a message on the `~/battery` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply state, please refer to the [adc_node](/panther_battery/README.md#battery-statuses) documentation.
+After receiving a message on the `battery/battery_status` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply state, please refer to the [adc_node](/panther_battery/README.md#battery-statuses) documentation.
 
 | Power Supply Health | Procedure                                                                                                                                                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

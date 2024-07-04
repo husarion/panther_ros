@@ -101,8 +101,8 @@ TestControllerNode::TestControllerNode()
 
   controller_node_ = std::make_shared<ControllerNodeWrapper>("controller_node", options);
 
-  set_led_anim_client_ = controller_node_->create_client<panther_msgs::srv::SetLEDAnimation>(
-    "lights/controller/set/animation");
+  set_led_anim_client_ =
+    controller_node_->create_client<panther_msgs::srv::SetLEDAnimation>("lights/set_animation");
 }
 
 TestControllerNode::~TestControllerNode() { std::filesystem::remove(led_config_file_); }

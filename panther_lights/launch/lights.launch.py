@@ -61,7 +61,7 @@ def generate_launch_description():
     lights_driver_node = Node(
         package="panther_lights",
         executable="driver_node",
-        name="lights_driver_node",
+        name="lights_driver",
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
         emulate_tty=True,
@@ -72,7 +72,7 @@ def generate_launch_description():
     lights_controller_node = Node(
         package="panther_lights",
         executable="controller_node",
-        name="lights_controller_node",
+        name="lights_controller",
         parameters=[
             {"led_config_file": led_config_file},
             {"user_led_animations_file": user_led_animations_file},

@@ -63,7 +63,7 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
     "hardware/led_control_enable", rmw_qos_profile_services_default);
 
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
-    "lights/driver/set/brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
+    "lights/set_brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
 
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
@@ -77,14 +77,14 @@ void DriverNode::InitializeSubscribers(const std::shared_ptr<image_transport::Im
 
   chanel_1_ts_ = this->get_clock()->now();
   chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
-    it->subscribe("lights/driver/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
+    it->subscribe("lights/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
       chanel_1_ts_ = msg->header.stamp;
     }));
 
   chanel_2_ts_ = this->get_clock()->now();
   chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
-    it->subscribe("lights/driver/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
+    it->subscribe("lights/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
       FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
       chanel_2_ts_ = msg->header.stamp;
     }));

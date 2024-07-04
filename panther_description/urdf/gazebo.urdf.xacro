@@ -43,8 +43,8 @@
         <ros>
           <namespace>${namespace}</namespace>
           <remapping>imu_broadcaster/imu:=imu/data</remapping>
-          <remapping>panther_base_controller/cmd_vel_unstamped:=cmd_vel</remapping>
-          <remapping>panther_base_controller/odom:=odometry/wheels</remapping>
+          <remapping>drive_controller/cmd_vel_unstamped:=cmd_vel</remapping>
+          <remapping>drive_controller/odom:=odometry/wheels</remapping>
         </ros>
       </plugin>
     </gazebo>

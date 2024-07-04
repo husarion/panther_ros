@@ -5,7 +5,7 @@
 
       joint_state_broadcaster:
         type: joint_state_broadcaster/JointStateBroadcaster
-      panther_base_controller:
+      drive_controller:
         type: diff_drive_controller/DiffDriveController
       imu_broadcaster:
         type: imu_sensor_broadcaster/IMUSensorBroadcaster
@@ -24,7 +24,7 @@
       # linear_acceleration_stdev: 2.8 mg (27.5 mm/s^2) accelerometer white noise sigma, as per manual
       static_covariance_linear_acceleration: [7.6e-4, 0.0, 0.0, 0.0, 7.6e-4, 0.0, 0.0, 0.0, 7.6e-4]
 
-  panther_base_controller:
+  drive_controller:
     ros__parameters:
       left_wheel_names: [fl_wheel_joint, rl_wheel_joint]
       right_wheel_names: [fr_wheel_joint, rr_wheel_joint]

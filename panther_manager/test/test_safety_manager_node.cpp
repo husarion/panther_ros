@@ -101,8 +101,7 @@ TestSafetyManagerNode::TestSafetyManagerNode()
   rclcpp::NodeOptions options;
   options.parameter_overrides(CreateTestParameters());
 
-  safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>(
-    "test_safety_manager_node", options);
+  safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>("test_safety_manager", options);
   safety_manager_node_->Initialize();
 }
 
@@ -168,7 +167,8 @@ TEST_F(TestSafetyManagerNode, BatteryCBBlackboardUpdate)
   battery_state.power_supply_health = expected_health;
   battery_state.temperature = expected_temp;
 
-  panther_utils::test_utils::PublishAndSpin(safety_manager_node_, "battery", battery_state);
+  panther_utils::test_utils::PublishAndSpin(
+    safety_manager_node_, "battery/battery_status", battery_state);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_EQ(blackboard->get<unsigned>("battery_status"), expected_status);
@@ -199,7 +199,7 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
   driver_state_msg.rear.temperature = expected_temp;
 
   panther_utils::test_utils::PublishAndSpin(
-    safety_manager_node_, "driver/motor_controllers_state", driver_state_msg);
+    safety_manager_node_, "hardware/motor_controllers_state", driver_state_msg);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("driver_temp"), expected_temp);

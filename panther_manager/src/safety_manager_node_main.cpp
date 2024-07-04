@@ -22,17 +22,16 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto safety_manager_node =
-    std::make_shared<panther_manager::SafetyManagerNode>("safety_manager_node");
+  auto safety_manager_node = std::make_shared<panther_manager::SafetyManagerNode>("safety_manager");
   safety_manager_node->Initialize();
 
   try {
     rclcpp::spin(safety_manager_node);
   } catch (const std::runtime_error & err) {
-    std::cerr << "[safety_manager_node] Caught exception: " << err.what() << std::endl;
+    std::cerr << "[safety_manager] Caught exception: " << err.what() << std::endl;
   }
 
-  std::cout << "[safety_manager_node] Shutting down" << std::endl;
+  std::cout << "[safety_manager] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

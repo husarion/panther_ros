@@ -22,17 +22,16 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto lights_manager_node =
-    std::make_shared<panther_manager::LightsManagerNode>("lights_manager_node");
+  auto lights_manager_node = std::make_shared<panther_manager::LightsManagerNode>("lights_manager");
   lights_manager_node->Initialize();
 
   try {
     rclcpp::spin(lights_manager_node);
   } catch (const std::runtime_error & err) {
-    std::cerr << "[lights_manager_node] Caught exception: " << err.what() << std::endl;
+    std::cerr << "[lights_manager] Caught exception: " << err.what() << std::endl;
   }
 
-  std::cout << "[lights_manager_node] Shutting down" << std::endl;
+  std::cout << "[lights_manager] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

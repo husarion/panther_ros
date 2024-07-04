@@ -17,7 +17,7 @@ Package containing nodes monitoring and publishing the internal battery state of
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### battery_node
+### battery_driver
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
@@ -30,11 +30,11 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
+- `_battery/battery_1_status_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
+- `_battery/battery_2_status_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
+- `battery/battery_status` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
+- `battery/charging_status` [*panther_msgs/ChargingStatus*]: battery charging status.
 - `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: battery diagnostic messages.
-- `battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
-- `battery_1_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
-- `battery_2_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
-- `charging_status` [*panther_msgs/ChargingStatus*]: battery charging status.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -42,7 +42,8 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
+- `hardware/io_state` [*panther_msgs/IOState*]: current state of IO.
+- `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 

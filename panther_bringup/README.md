@@ -12,8 +12,8 @@ The package contains the default configuration and launch files necessary to sta
 
 ## Default Nodes Launched
 
-- `battery_node` [*[panther_battery/battery_node](https://github.com/husarion/panther_ros/panther_battery/src/main.cpp)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](https://github.com/husarion/panther_ros/panther_battery/README.md).
-- `ekf_node` [*[robot_localization/ekf_localization_node](https://github.com/cra-ros-pkg/robot_localization/blob/humble-devel/src/ekf_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](https://github.com/husarion/panther_ros/panther_gazebo/config/ekf_config.yaml).
+- `battery_driver` [*[panther_battery/battery_node](https://github.com/husarion/panther_ros/panther_battery/src/main.cpp)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](https://github.com/husarion/panther_ros/panther_battery/README.md).
+- `ekf_filter` [*[robot_localization/ekf_node](https://github.com/cra-ros-pkg/robot_localization/blob/humble-devel/src/ekf_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](https://github.com/husarion/panther_ros/panther_gazebo/config/ekf_config.yaml).
 - `imu_container` [*[phidgets_spatial/phidgets::SpatialRosI](https://github.com/ros-drivers/phidgets_drivers/blob/humble/phidgets_spatial/src/spatial_ros_i.cpp)*, *[imu_filter_madgwick/ImuFilterMadgwickRos](https://github.com/CCNYRoboticsLab/imu_tools/blob/humble/imu_filter_madgwick/src/imu_filter_node.cpp)*]: container responsible for running Phidget Spatial IMU ROS driver, filtering and fusing the IMU data. It composes the `phidgets_spatial_node` and `imu_filter_node`.
 
 ## Bringup Launch Arguments
@@ -31,7 +31,7 @@ The package contains the default configuration and launch files necessary to sta
 - `user_led_animations_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.
 - `wheel_config_path` [*string*, default: **$(find panther_description)/config/<wheel_type arg>.yaml**]: path to YAML file with wheel specification. Arguments become required if `wheel_type` is set to **custom**.
 - `wheel_type` [*string*, default: **WH01**]: type of wheel, possible are: **WH01** - off-road, **WH02** - mecanum, **WH04** - small pneumatic, and **custom** - custom wheel types (requires setting `wheel_config_path` argument accordingly).
-- `components_config_path` [*string*, default: **None**]: Additional components configuration file. Components described in this file          are dynamically included in Panther's urdf. Panther options are described in [the manual](https://husarion.com/manuals/panther/panther-options. Example of configuration you can find [config/components.yaml](config/components.yaml)
+- `components_config_path` [*string*, default: **None**]: Additional components configuration file. Components described in this file          are dynamically included in Panther's urdf. Panther options are described in [the manual](<https://husarion.com/manuals/panther/panther-options>. Example of configuration you can find [config/components.yaml](config/components.yaml)
 
 [//]: # (ROS_API_PACKAGE_START)
 [//]: # (ROS_API_PACKAGE_NAME_START)
@@ -47,7 +47,7 @@ The package contains the default configuration and launch files necessary to sta
 
 [//]: # (ROS_API_NODE_NAME_START)
 
-### ekf_node
+### ekf_filter
 
 [//]: # (ROS_API_NODE_NAME_END)
 
@@ -82,7 +82,7 @@ Extended Kalman Filter node for more accurate odometry. For more information, re
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `~/ekf_node/set_pose` [*robot_localization/SetPose*]: by issuing a *geometry_msgs/PoseWithCovarianceStamped* message to the set_pose topic, users can manually set the state of the filter. This is useful for resetting the filter during testing and allows for interaction with RViz. Alternatively, the state estimation nodes advertise a SetPose service, whose type is *robot_localization/SetPose*.
+- `localization/set_pose` [*robot_localization/SetPose*]: by issuing a *geometry_msgs/PoseWithCovarianceStamped* message to the set_pose topic, users can manually set the state of the filter. This is useful for resetting the filter during testing and allows for interaction with RViz. Alternatively, the state estimation nodes advertise a SetPose service, whose type is *robot_localization/SetPose*.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 [//]: # (ROS_API_NODE_END)

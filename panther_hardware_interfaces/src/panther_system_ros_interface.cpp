@@ -82,8 +82,7 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
   executor_thread_ = std::thread([this]() { executor_->spin(); });
 
-  driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
-    "~/driver/motor_controllers_state", 5);
+  driver_state_publisher_ = node_->create_publisher<DriverStateMsg>("~/motor_controllers_state", 5);
   realtime_driver_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
