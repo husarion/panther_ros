@@ -47,6 +47,9 @@ protected:
   template <typename T>
   void WriteNumberToFile(const T number, const std::string & file_path);
 
+  static constexpr char kADCDevice0[] = "adc0";
+  static constexpr char kADCDevice1[] = "adc1";
+
   std::filesystem::path device0_path_;
   std::filesystem::path device1_path_;
   BatteryStateMsg::SharedPtr battery_state_;
@@ -66,11 +69,12 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
   params.push_back(rclcpp::Parameter("panther_version", panther_version));
 
   if (panther_version >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    device0_path_ = std::filesystem::path(testing::TempDir()) / "device0";
-    device1_path_ = std::filesystem::path(testing::TempDir()) / "device1";
+    device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
+    device1_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice1;
 
-    params.push_back(rclcpp::Parameter("adc/device0", device0_path_));
-    params.push_back(rclcpp::Parameter("adc/device1", device1_path_));
+    params.push_back(rclcpp::Parameter("adc/device0", kADCDevice0));
+    params.push_back(rclcpp::Parameter("adc/device1", kADCDevice1));
+    params.push_back(rclcpp::Parameter("adc/path", testing::TempDir()));
 
     // Create the device0 and device1 directories if they do not exist
     std::filesystem::create_directory(device0_path_);

@@ -80,6 +80,7 @@ void BatteryNode::InitializeWithADCBattery()
 
   this->declare_parameter<std::string>("adc/device0", "/dev/adc0");
   this->declare_parameter<std::string>("adc/device1", "/dev/adc1");
+  this->declare_parameter<std::string>("adc/path", "/sys/bus/iio/devices");
   this->declare_parameter<int>("adc/ma_window_len/temp", 10);
   this->declare_parameter<int>("adc/ma_window_len/charge", 10);
 
@@ -163,17 +164,18 @@ void BatteryNode::BatteryPubTimerCB()
   battery_publisher_->Publish();
 }
 
-std::string BatteryNode::GetADCDevicePath(const std::string & adc_device_path) const
+std::string BatteryNode::GetADCDevicePath(const std::string & adc_device_name) const
 {
-  std::string adc_device_name;
+  const std::string adc_path = this->get_parameter("adc/path").as_string();
+  std::filesystem::path adc_device;
 
-  if (std::filesystem::is_symlink(adc_device_path)) {
-    adc_device_name = std::filesystem::read_symlink(adc_device_path).string();
+  if (std::filesystem::is_symlink(adc_device_name)) {
+    adc_device = std::filesystem::read_symlink(adc_device_name);
   } else {
-    adc_device_name = std::filesystem::path(adc_device_path).filename().string();
+    adc_device = std::filesystem::path(adc_device_name).filename();
   }
 
-  return std::string("/sys/bus/iio/devices/") + adc_device_name;
+  return (adc_path / adc_device).string();
 }
 
 }  // namespace panther_battery
