@@ -22,7 +22,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto lights_driver_node = std::make_shared<panther_lights::DriverNode>("lights_driver_node");
+  auto lights_driver_node = std::make_shared<panther_lights::DriverNode>("lights_driver");
   auto it = std::make_shared<image_transport::ImageTransport>(lights_driver_node);
 
   lights_driver_node->InitializeSubscribers(it);
@@ -30,10 +30,10 @@ int main(int argc, char ** argv)
   try {
     rclcpp::spin(lights_driver_node);
   } catch (const std::runtime_error & e) {
-    std::cerr << "[lights_driver_node] Caught exception: " << e.what() << std::endl;
+    std::cerr << "[lights_driver] Caught exception: " << e.what() << std::endl;
   }
 
-  std::cout << "[lights_driver_node] Shutting down" << std::endl;
+  std::cout << "[lights_driver] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

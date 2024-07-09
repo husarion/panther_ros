@@ -38,8 +38,8 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -47,7 +47,7 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `lights/driver/set/brightness` [*panther_msgs/SetLEDBrightness*]: allows setting global LED brightness, value ranges from **0.0** to **1.0**.
+- `lights/set_brightness` [*panther_msgs/SetLEDBrightness*]: allows setting global LED brightness, value ranges from **0.0** to **1.0**.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 
@@ -88,8 +88,8 @@ This node is responsible for processing animations and publishing frames to be d
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `lights/driver/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `lights/driver/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -97,7 +97,7 @@ This node is responsible for processing animations and publishing frames to be d
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_START)
 
-- `lights/controller/set/animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
+- `lights/set_animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
 
 [//]: # (ROS_API_NODE_SERVICE_SERVERS_END)
 
@@ -274,7 +274,7 @@ ros2 launch panther_bringup bringup.launch user_animations_file:=/my_awesome_use
 Test new animations:
 
 ```bash
-ros2 service call /lights/controller/set/animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}"
+ros2 service call /lights/set_animation panther_msgs/srv/SetLEDAnimation "{animation: {id: 0, param: ''}, repeating: true}"
 ```
 
 ---

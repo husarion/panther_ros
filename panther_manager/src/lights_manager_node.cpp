@@ -63,7 +63,7 @@ void LightsManagerNode::Initialize()
   using namespace std::placeholders;
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
-    "battery", 10, std::bind(&LightsManagerNode::BatteryCB, this, _1));
+    "battery/battery_status", 10, std::bind(&LightsManagerNode::BatteryCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&LightsManagerNode::EStopCB, this, _1));

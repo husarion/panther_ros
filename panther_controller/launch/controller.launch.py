@@ -182,22 +182,26 @@ def generate_launch_description():
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),
+            ("drive_controller/cmd_vel_unstamped", "cmd_vel"),
+            ("drive_controller/odom", "odometry/wheels"),
+            ("drive_controller/transition_event", "_drive_controller/transition_event"),
+            ("hardware_controller/aux_power_enable", "hardware/aux_power_enable"),
+            ("hardware_controller/charger_enable", "hardware/charger_enable"),
+            ("hardware_controller/digital_power_enable", "hardware/digital_power_enable"),
+            ("hardware_controller/e_stop_reset", "hardware/e_stop_reset"),
+            ("hardware_controller/e_stop_trigger", "hardware/e_stop_trigger"),
+            ("hardware_controller/e_stop", "hardware/e_stop"),
+            ("hardware_controller/fan_enable", "hardware/fan_enable"),
+            ("hardware_controller/io_state", "hardware/io_state"),
+            ("hardware_controller/led_control_enable", "hardware/led_control_enable"),
+            ("hardware_controller/motor_controllers_state", "hardware/motor_controllers_state"),
+            ("hardware_controller/motor_power_enable", "hardware/motor_power_enable"),
+            ("imu_broadcaster/imu", "imu/data"),
+            ("imu_broadcaster/transition_event", "_imu_broadcaster/transition_event"),
             (
-                "panther_system_node/driver/motor_controllers_state",
-                "driver/motor_controllers_state",
+                "joint_state_broadcaster/transition_event",
+                "_joint_state_broadcaster/transition_event",
             ),
-            ("panther_base_controller/cmd_vel_unstamped", "cmd_vel"),
-            ("panther_base_controller/odom", "odometry/wheels"),
-            ("panther_system_node/io_state", "hardware/io_state"),
-            ("panther_system_node/e_stop", "hardware/e_stop"),
-            ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
-            ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
-            ("panther_system_node/fan_enable", "hardware/fan_enable"),
-            ("panther_system_node/aux_power_enable", "hardware/aux_power_enable"),
-            ("panther_system_node/charger_enable", "hardware/charger_enable"),
-            ("panther_system_node/digital_power_enable", "hardware/digital_power_enable"),
-            ("panther_system_node/led_control_enable", "hardware/led_control_enable"),
-            ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
         emulate_tty=True,
@@ -214,11 +218,11 @@ def generate_launch_description():
         condition=IfCondition(publish_robot_state),
     )
 
-    robot_controller_spawner = Node(
+    drive_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "panther_base_controller",
+            "drive_controller",
             "--controller-manager",
             "controller_manager",
             "--controller-manager-timeout",
@@ -247,10 +251,10 @@ def generate_launch_description():
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
-    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    delay_drive_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[robot_controller_spawner],
+            on_exit=[drive_controller_spawner],
         )
     )
 
@@ -272,9 +276,9 @@ def generate_launch_description():
 
     # Delay start of imu_broadcaster after robot_controller
     # when spawning without delay ros2_control_node sometimes crashed
-    delay_imu_broadcaster_spawner_after_robot_controller_spawner = RegisterEventHandler(
+    delay_imu_broadcaster_spawner_after_drive_controller_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=robot_controller_spawner,
+            target_action=drive_controller_spawner,
             on_exit=[imu_broadcaster_spawner],
         ),
     )
@@ -292,8 +296,8 @@ def generate_launch_description():
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
+        delay_drive_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_imu_broadcaster_spawner_after_drive_controller_spawner,
     ]
 
     return LaunchDescription(actions)

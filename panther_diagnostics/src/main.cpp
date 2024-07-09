@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto system_status_node =
-    std::make_shared<panther_diagnostics::SystemStatusNode>("system_status_node");
+    std::make_shared<panther_diagnostics::SystemStatusNode>("system_monitor");
 
   try {
     rclcpp::spin(system_status_node);

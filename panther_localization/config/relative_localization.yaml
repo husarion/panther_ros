@@ -1,5 +1,5 @@
 /**:
-  ekf_node:
+  ekf_filter:
     ros__parameters:
       frequency: 50.0
       sensor_timeout: 0.05

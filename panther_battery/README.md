@@ -17,7 +17,7 @@ Package containing nodes monitoring and publishing the internal battery state of
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### battery_node
+### battery_driver
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
@@ -30,11 +30,11 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
+- `_battery/battery_1_status_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
+- `_battery/battery_2_status_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
+- `battery/battery_status` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
+- `battery/charging_status` [*panther_msgs/ChargingStatus*]: battery charging status.
 - `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: battery diagnostic messages.
-- `battery` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
-- `battery_1_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
-- `battery_2_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
-- `charging_status` [*panther_msgs/ChargingStatus*]: battery charging status.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
@@ -42,7 +42,8 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_START)
 
-- `driver/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
+- `hardware/io_state` [*panther_msgs/IOState*]: current state of IO.
+- `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
 
 [//]: # (ROS_API_NODE_SUBSCRIBERS_END)
 
@@ -52,6 +53,7 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 - `~/adc/device0` [*string*, default: **/dev/adc0**]: ADC nr 0 IIO device. Used with Panther version 1.2 and above.
 - `~/adc/device1` [*string*, default: **/dev/adc1**]: ADC nr 1 IIO device. Used with Panther version 1.2 and above.
+- `~/adc/path` [*string*, default: **/sys/bus/iio/devices/**]: path of ADC devices mount.
 - `~/adc/ma_window_len/charge` [*int*, default: **10**]: window length of a moving average, used to smooth out battery charge readings. Used with Panther version 1.2 and above.
 - `~/adc/ma_window_len/temp` [*int*, default: **10**]: window length of a moving average, used to smooth out battery temperature readings. Used with Panther version 1.2 and above.
 - `~/battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If the node fails to read battery data exceeding this duration, the node will publish an unknown battery state.

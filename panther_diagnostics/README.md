@@ -17,7 +17,7 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### system_status_node
+### system_monitor
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
@@ -30,14 +30,15 @@ Publishes system state of the Built-in Computer such as CPU usage, RAM memory us
 
 [//]: # (ROS_API_NODE_PUBLISHERS_START)
 
-- `/diagnostics` [*diagnostic_msgs/DiagnosticArray*]: system status diagnostic messages.
-- `/system_status` [*panther_msgs/SystemStatus*]: system status statistics.
+- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: system status diagnostic messages.
+- `system_status` [*panther_msgs/SystemStatus*]: system status statistics.
 
 [//]: # (ROS_API_NODE_PUBLISHERS_END)
 
 #### Parameters
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
+
 - `~frame_id` [*string*, default: **build_in_computer**]: Frame where computer is located.
 - `~publish_rate` [*double*, default: **0.25**]: System status publish rate in seconds.
 - `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.

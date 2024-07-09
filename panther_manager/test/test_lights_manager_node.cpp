@@ -93,8 +93,7 @@ TestLightsManagerNode::TestLightsManagerNode()
   rclcpp::NodeOptions options;
   options.parameter_overrides(CreateTestParameters());
 
-  lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>(
-    "test_lights_manager_node", options);
+  lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>("test_lights_manager", options);
   lights_manager_node_->Initialize();
 }
 
@@ -147,7 +146,8 @@ TEST_F(TestLightsManagerNode, BatteryCBBlackboardUpdate)
   battery_state.power_supply_status = expected_status;
   battery_state.power_supply_health = expected_health;
 
-  panther_utils::test_utils::PublishAndSpin(lights_manager_node_, "battery", battery_state);
+  panther_utils::test_utils::PublishAndSpin(
+    lights_manager_node_, "battery/battery_status", battery_state);
 
   auto blackboard = lights_manager_node_->GetLightsTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("battery_percent"), expected_percentage);

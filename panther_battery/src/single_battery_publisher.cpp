@@ -35,9 +35,9 @@ SingleBatteryPublisher::SingleBatteryPublisher(
   const std::shared_ptr<Battery> & battery)
 : BatteryPublisher(std::move(node), std::move(diagnostic_updater)), battery_(std::move(battery))
 {
-  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
-  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
-  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("charging_status", 5);
+  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery/battery_status", 5);
+  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("_battery/battery_1_status_raw", 5);
+  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("battery/charging_status", 5);
 }
 
 void SingleBatteryPublisher::Update()

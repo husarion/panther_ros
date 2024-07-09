@@ -62,7 +62,7 @@ jobs:
 
       - name: Grant permissions # Required permission grant after at-wat/catkin-release-action@v1 action
         if: ${{ fromJSON(inputs.automatic_mode) == true }}
-        run: | 
+        run: |
           sudo chmod -R ugo+rwX .
 
       - name: Checkout to main branch

@@ -47,6 +47,9 @@ protected:
   template <typename T>
   void WriteNumberToFile(const T number, const std::string & file_path);
 
+  static constexpr char kADCDevice0[] = "adc0";
+  static constexpr char kADCDevice1[] = "adc1";
+
   std::filesystem::path device0_path_;
   std::filesystem::path device1_path_;
   BatteryStateMsg::SharedPtr battery_state_;
@@ -66,11 +69,12 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
   params.push_back(rclcpp::Parameter("panther_version", panther_version));
 
   if (panther_version >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    device0_path_ = std::filesystem::path(testing::TempDir()) / "device0";
-    device1_path_ = std::filesystem::path(testing::TempDir()) / "device1";
+    device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
+    device1_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice1;
 
-    params.push_back(rclcpp::Parameter("adc/device0", device0_path_));
-    params.push_back(rclcpp::Parameter("adc/device1", device1_path_));
+    params.push_back(rclcpp::Parameter("adc/device0", kADCDevice0));
+    params.push_back(rclcpp::Parameter("adc/device1", kADCDevice1));
+    params.push_back(rclcpp::Parameter("adc/path", testing::TempDir()));
 
     // Create the device0 and device1 directories if they do not exist
     std::filesystem::create_directory(device0_path_);
@@ -100,19 +104,22 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
 
-  battery_node_ = std::make_shared<panther_battery::BatteryNode>("battery_node", options);
+  battery_node_ = std::make_shared<panther_battery::BatteryNode>("battery_driver", options);
 
   battery_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
-    "battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
+    "battery/battery_status", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
   battery_1_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
-    "battery_1_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
+    "_battery/battery_1_status_raw", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
   battery_2_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
-    "battery_2_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
+    "_battery/battery_2_status_raw", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
 
   io_state_pub_ = battery_node_->create_publisher<IOStateMsg>(
     "hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   driver_state_pub_ = battery_node_->create_publisher<DriverStateMsg>(
-    "driver/motor_controllers_state", 10);
+    "hardware/motor_controllers_state", 10);
 }
 
 TestBatteryNode::~TestBatteryNode()
