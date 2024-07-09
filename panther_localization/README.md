@@ -29,7 +29,7 @@ It converts raw GPS data into odometry data and publishes corrected GPS position
 - `cmd_vel` [*geometry_msgs/msg/Twist*]: command velocity value.
 - `odometry/wheels` [*nav_msgs/msg/Odometry*]: robot odometry calculated from wheels.
 - `imu/data` [*sensor_msgs/msg/Imu*]: filtered IMU data.
-- `localization/set_pose` [*geometry_msgs/msg/PoseWithCovarianceStamped*]: state of the filter.
+- `localization/set_pose` [*geometry_msgs/msg/PoseWithCovarianceStamped*]: allows manually set the state of the filter by sending the pose.
 - `/tf` [*tf2_msgs/msg/TFMessage*]: transforms of robot system.
 
 #### ekf_filter - Publishers
