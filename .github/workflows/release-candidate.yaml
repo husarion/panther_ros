@@ -123,5 +123,5 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "panther_image_version": "${{ github.event.inputs.version }}"
+              "image_tag": "${{ github.event.inputs.version }}"
             }
