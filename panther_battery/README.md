@@ -6,13 +6,13 @@ Package containing nodes monitoring and publishing the internal battery state of
 
 This package contains:
 
-- [`battery.launch.py`](#batterylaunchpy) - is responsible for activating battery node, which dealing with reading and publishing battery data.
+- [`battery.launch.py`](#batterylaunchpy---arguments) - is responsible for activating battery node, which dealing with reading and publishing battery data.
 
 ### battery.launch.py - Arguments
 
-| Argument    | *Type:* `Default`                | Description                          |
-| ----------- | -------------------------------- | ------------------------------------ |
-| `namespace` | *string:* `env(ROBOT_NAMESPACE)` | Add namespace to all launched nodes. |
+| Argument    | Description <br/> ***Type:*** `Default`                                         |
+| ----------- | ------------------------------------------------------------------------------- |
+| `namespace` | Add namespace to all launched nodes. <br/> ***string:*** `env(ROBOT_NAMESPACE)` |
 
 ### battery.launch.py - Executable
 
