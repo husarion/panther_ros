@@ -70,9 +70,6 @@ public:
     channel_2_pub_ = driver_node_->create_publisher<ImageMsg>("lights/channel_2_frame", 5);
     set_brightness_client_ =
       driver_node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
-
-    // executor_.add_node(driver_node_);
-    // executor_.add_node(service_node_);
   }
 
   ~TestDriverNode() {}
@@ -97,7 +94,6 @@ protected:
 
   std::shared_ptr<DriverNodeWrapper> driver_node_;
   rclcpp::Node::SharedPtr service_node_;
-  rclcpp::executors::MultiThreadedExecutor executor_;
   rclcpp::Publisher<ImageMsg>::SharedPtr channel_1_pub_;
   rclcpp::Publisher<ImageMsg>::SharedPtr channel_2_pub_;
   rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
@@ -133,6 +129,8 @@ TEST_F(TestDriverNode, ServiceTestFail)
 // TODO check and fix following tests.
 // Following test pass but I'm not sure if they actually test what they indicate they do.
 // This is because the initialization has changed and it works completely different now.
+// Now way to check if publishing / initialization was successful because SPI control is
+// controlled in different package. This has to be refactored but needs more thinking it through.
 TEST_F(TestDriverNode, PublishTimeoutFail)
 {
   auto msg = CreateImageMsg();
@@ -186,6 +184,8 @@ TEST_F(TestDriverNode, PublishWidthFail)
 }
 
 // // TODO: For some reason this function breaks other test that's why PublishSuccess is last one.
+// // Update: now it also fails during destruction because SPI can not be accessed. Commented out
+// // for now.
 // TEST_F(TestDriverNode, PublishSuccess)
 // {
 //   auto msg_1 = CreateImageMsg();

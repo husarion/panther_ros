@@ -96,9 +96,6 @@ void DriverNode::OnShutdown()
 {
   if (led_control_status_ == LEDControlStatus::GRANTED) {
     ClearLEDs();
-
-    // this is not called because service server dies first, but freezes waiting for it
-    ToggleLEDControl(false);
   }
 }
 
