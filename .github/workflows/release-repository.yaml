@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       release_candidate:
-        description: Branch name of the release candidate.
+        description: Branch name of the release candidate. WARNING This branch will be deleted!
         required: true
       version:
         description: New version (used for tag and package versioning).
@@ -36,7 +36,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.release_candidate }}
-          fetch-depth: 0
 
       - name: Catkin release
         id: catkin_release
@@ -60,6 +59,11 @@ jobs:
         run: |
           gh pr merge ${{ steps.catkin_release.outputs.created_branch }} \
           --merge --delete-branch
+
+      - name: Grant permissions # Required permission grant after at-wat/catkin-release-action@v1 action
+        if: ${{ fromJSON(inputs.automatic_mode) == true }}
+        run: |
+          sudo chmod -R ugo+rwX .
 
       - name: Checkout to main branch
         if: ${{ github.event.inputs.release_candidate != env.MAIN_BRANCH && fromJSON(inputs.automatic_mode)

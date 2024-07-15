@@ -81,7 +81,7 @@ def generate_launch_description():
     lights_manager_node = Node(
         package="panther_manager",
         executable="lights_manager_node",
-        name="lights_manager_node",
+        name="lights_manager",
         parameters=[
             PathJoinSubstitution([panther_manager_dir, "config", "lights_manager_config.yaml"]),
             {"bt_project_path": lights_bt_project_path},
@@ -93,7 +93,7 @@ def generate_launch_description():
     safety_manager_node = Node(
         package="panther_manager",
         executable="safety_manager_node",
-        name="safety_manager_node",
+        name="safety_manager",
         parameters=[
             PathJoinSubstitution([panther_manager_dir, "config", "safety_manager_config.yaml"]),
             {

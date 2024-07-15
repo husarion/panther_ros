@@ -2,7 +2,9 @@
 
 The package contains the default configuration and launch files necessary to start all the basic functionalities of the Husarion Panther robot.
 
-## Launch Files
+## Content
+
+### Launch Files
 
 This package contains:
 
@@ -42,6 +44,6 @@ This package contains:
 | `manager_bt.launch.py`    | [*panther_manager/manager_bt.launch.py*](.)        |
 | `system_status.launch.py` | [*panther_diagnostics/system_status.launch.py*](.) |
 
-## Running nodes
+## ROS Nodes
 
-This package only runs the launch files. If you want to learn how to configure individual nodes, check the appropriate package.
+This package only runs external nodes. If you want to learn how to configure individual nodes, please check the appropriate package.

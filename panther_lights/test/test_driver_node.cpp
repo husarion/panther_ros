@@ -51,14 +51,13 @@ public:
   TestDriverNode()
   {
     rclcpp::init(0, nullptr);
-    node_ = std::make_shared<DriverNodeWrapper>("test_lights_driver_node");
+    node_ = std::make_shared<DriverNodeWrapper>("test_lights_driver");
     it_ = std::make_shared<image_transport::ImageTransport>(node_->shared_from_this());
-    channel_1_pub_ = std::make_shared<image_transport::Publisher>(
-      it_->advertise("lights/driver/channel_1_frame", 5));
-    channel_2_pub_ = std::make_shared<image_transport::Publisher>(
-      it_->advertise("lights/driver/channel_2_frame", 5));
-    set_brightness_client_ =
-      node_->create_client<SetLEDBrightnessSrv>("lights/driver/set/brightness");
+    channel_1_pub_ =
+      std::make_shared<image_transport::Publisher>(it_->advertise("lights/channel_1_frame", 5));
+    channel_2_pub_ =
+      std::make_shared<image_transport::Publisher>(it_->advertise("lights/channel_2_frame", 5));
+    set_brightness_client_ = node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
     node_->InitializeSubscribers(it_);
   }
 

@@ -64,7 +64,7 @@ void BatteryNode::Initialize()
       return;
     } catch (const std::runtime_error & e) {
       RCLCPP_WARN_STREAM(
-        this->get_logger(), "An exception ocurred while initializing with ADC: "
+        this->get_logger(), "An exception occurred while initializing with ADC: "
                               << e.what()
                               << " Falling back to using Roboteq drivers to publish battery data.");
     }
@@ -78,16 +78,20 @@ void BatteryNode::InitializeWithADCBattery()
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC data.");
 
-  this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
-  this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
+  this->declare_parameter<std::string>("adc/device0", "/dev/adc0");
+  this->declare_parameter<std::string>("adc/device1", "/dev/adc1");
+  this->declare_parameter<std::string>("adc/path", "/sys/bus/iio/devices");
   this->declare_parameter<int>("adc/ma_window_len/temp", 10);
   this->declare_parameter<int>("adc/ma_window_len/charge", 10);
 
-  const std::string adc0_device = this->get_parameter("adc/device0").as_string();
-  const std::string adc1_device = this->get_parameter("adc/device1").as_string();
+  const std::string adc0_device_name = this->get_parameter("adc/device0").as_string();
+  const std::string adc1_device_name = this->get_parameter("adc/device1").as_string();
 
-  adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device);
-  adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device);
+  const std::string adc0_device_path = GetADCDevicePath(adc0_device_name);
+  const std::string adc1_device_path = GetADCDevicePath(adc1_device_name);
+
+  adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device_path);
+  adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device_path);
 
   const ADCBatteryParams battery_params = {
     static_cast<std::size_t>(this->get_parameter("ma_window_len/voltage").as_int()),
@@ -140,7 +144,7 @@ void BatteryNode::InitializeWithRoboteqBattery()
   };
 
   driver_state_sub_ = this->create_subscription<DriverStateMsg>(
-    "driver/motor_controllers_state", 5,
+    "hardware/motor_controllers_state", 5,
     [&](const DriverStateMsg::SharedPtr msg) { driver_state_ = msg; });
 
   battery_1_ = std::make_shared<RoboteqBattery>([&]() { return driver_state_; }, battery_params);
@@ -158,6 +162,20 @@ void BatteryNode::BatteryPubTimerCB()
     return;
   }
   battery_publisher_->Publish();
+}
+
+std::string BatteryNode::GetADCDevicePath(const std::string & adc_device_name) const
+{
+  const std::string adc_path = this->get_parameter("adc/path").as_string();
+  std::filesystem::path adc_device;
+
+  if (std::filesystem::is_symlink(adc_device_name)) {
+    adc_device = std::filesystem::read_symlink(adc_device_name);
+  } else {
+    adc_device = std::filesystem::path(adc_device_name).filename();
+  }
+
+  return (adc_path / adc_device).string();
 }
 
 }  // namespace panther_battery
