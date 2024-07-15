@@ -19,9 +19,9 @@
 #include <string>
 
 #include "diagnostic_updater/diagnostic_updater.hpp"
-#include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "sensor_msgs/msg/image.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "panther_msgs/srv/set_led_brightness.hpp"
@@ -35,6 +35,14 @@ using ImageMsg = sensor_msgs::msg::Image;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
+enum LEDControlStatus {
+  IDLE = 0,
+  PENDING,
+  GRANTED,
+  NOT_GRANTED,
+  ERROR,
+};
+
 /**
  * @brief Class for controlling APA102 LEDs based on a ROS Image topic.
  */
@@ -42,20 +50,13 @@ class DriverNode : public rclcpp::Node
 {
 public:
   DriverNode(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-
-  /**
-   * @brief Initializes the ImageTransport subscribers for to subscribe frames. IMPORTANT: this must
-   * be invoked after the node class is instantiated to establish whole functionality.
-   *
-   * @param it ImageTransport object used to create subscribers for Image topics.
-   */
-  void InitializeSubscribers(const std::shared_ptr<image_transport::ImageTransport> & it);
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions().use_intra_process_comms(true));
 
 protected:
   int num_led_;
   double frame_timeout_;
-  bool led_control_granted_ = false;
+
+  LEDControlStatus led_control_status_;
 
   rclcpp::Time chanel_1_ts_;
   rclcpp::Time chanel_2_ts_;
@@ -92,8 +93,8 @@ private:
    * logging. Valid names are: 'channel_1', 'channel_2'.
    */
   void FrameCB(
-    const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
-    const rclcpp::Time & last_time, const std::string & panel_name);
+    const ImageMsg::UniquePtr & msg, const apa102::APA102 & panel, const rclcpp::Time & last_time,
+    const std::string & panel_name);
 
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
@@ -107,8 +108,10 @@ private:
   rclcpp::Client<SetBoolSrv>::SharedPtr enable_led_control_client_;
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
 
-  std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
-  std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
+  rclcpp::CallbackGroup::SharedPtr client_callback_group_;
+
+  rclcpp::Subscription<ImageMsg>::SharedPtr chanel_1_sub_;
+  rclcpp::Subscription<ImageMsg>::SharedPtr chanel_2_sub_;
 
   diagnostic_updater::Updater diagnostic_updater_;
 };

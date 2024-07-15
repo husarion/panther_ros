@@ -42,7 +42,7 @@ class ControllerNode : public rclcpp::Node
 {
 public:
   ControllerNode(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions().use_intra_process_comms(true));
   ~ControllerNode() {}
 
 protected:
@@ -104,15 +104,6 @@ protected:
    * exists in the map
    */
   void LoadAnimation(const YAML::Node & animation_description);
-
-  /**
-   * @brief Sets animation with requested ID
-   *
-   * @param animation_id Animation ID
-   *
-   * @exception std::runtime_error animation with give ID does not exists or (to be updated)
-   */
-  void SetAnimation(const std::size_t animation_id, const bool repeating);
 
   /**
    * @brief Updates all segments animations, converts then into panel frames and publishes panel

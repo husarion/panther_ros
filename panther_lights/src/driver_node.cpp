@@ -26,6 +26,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "sensor_msgs/image_encodings.hpp"
+#include "sensor_msgs/msg/image.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "panther_msgs/srv/set_led_brightness.hpp"
@@ -38,8 +39,9 @@ namespace panther_lights
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options),
+DriverNode::DriverNode(const rclcpp::NodeOptions & options)
+: Node("lights_driver", options),
+  led_control_status_(LEDControlStatus::IDLE),
   chanel_1_("/dev/spiled-channel1"),
   chanel_2_("/dev/spiled-channel2"),
   diagnostic_updater_(this)
@@ -59,44 +61,43 @@ DriverNode::DriverNode(const std::string & node_name, const rclcpp::NodeOptions 
   chanel_1_.SetGlobalBrightness(global_brightness);
   chanel_2_.SetGlobalBrightness(global_brightness);
 
+  client_callback_group_ =
+    this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
   enable_led_control_client_ = this->create_client<SetBoolSrv>(
-    "hardware/led_control_enable", rmw_qos_profile_services_default);
+    "hardware/led_control_enable", rmw_qos_profile_services_default, client_callback_group_);
 
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
     "lights/set_brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
 
+  chanel_1_ts_ = this->get_clock()->now();
+  chanel_1_sub_ = this->create_subscription<ImageMsg>(
+    "lights/channel_1_frame", 5, [&](const ImageMsg::UniquePtr & msg) {
+      FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
+      chanel_1_ts_ = msg->header.stamp;
+    });
+
+  chanel_2_ts_ = this->get_clock()->now();
+  chanel_2_sub_ = this->create_subscription<ImageMsg>(
+    "lights/channel_2_frame", 5, [&](const ImageMsg::UniquePtr & msg) {
+      FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
+      chanel_2_ts_ = msg->header.stamp;
+    });
+
   diagnostic_updater_.setHardwareID("Bumper Lights");
   diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
 
+  ToggleLEDControl(true);
+
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
-}
-
-void DriverNode::InitializeSubscribers(const std::shared_ptr<image_transport::ImageTransport> & it)
-{
-  RCLCPP_INFO(this->get_logger(), "Initializing ImageTransport subscribers.");
-
-  chanel_1_ts_ = this->get_clock()->now();
-  chanel_1_sub_ = std::make_shared<image_transport::Subscriber>(
-    it->subscribe("lights/channel_1_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, chanel_1_, chanel_1_ts_, "channel_1");
-      chanel_1_ts_ = msg->header.stamp;
-    }));
-
-  chanel_2_ts_ = this->get_clock()->now();
-  chanel_2_sub_ = std::make_shared<image_transport::Subscriber>(
-    it->subscribe("lights/channel_2_frame", 5, [&](const ImageMsg::ConstSharedPtr & msg) {
-      FrameCB(msg, chanel_2_, chanel_2_ts_, "channel_2");
-      chanel_2_ts_ = msg->header.stamp;
-    }));
-
-  RCLCPP_INFO(this->get_logger(), "Initialized ImageTransport successfully.");
 }
 
 void DriverNode::OnShutdown()
 {
   ClearLEDs();
 
-  if (led_control_granted_) {
+  // this is not called because service server dies first, but freezes waiting for it
+  if (led_control_status_ == LEDControlStatus::GRANTED) {
     ToggleLEDControl(false);
   }
 }
@@ -109,6 +110,12 @@ void DriverNode::ClearLEDs()
 
 void DriverNode::ToggleLEDControl(const bool enable)
 {
+  RCLCPP_DEBUG(
+    this->get_logger(), "Calling service to toggle LED control to '%s'.",
+    enable ? "true" : "false");
+
+  led_control_status_ = LEDControlStatus::PENDING;
+
   auto request = std::make_shared<SetBoolSrv::Request>();
   request->data = enable;
 
@@ -137,29 +144,36 @@ void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWith
   if (!response->success) {
     RCLCPP_ERROR_THROTTLE(
       this->get_logger(), *this->get_clock(), 5000, "Failed to toggle LED control.");
+    led_control_status_ = LEDControlStatus::ERROR;
     return;
   }
 
   if (request->data == true) {
-    led_control_granted_ = true;
+    led_control_status_ = LEDControlStatus::GRANTED;
     ClearLEDs();
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control granted.");
   } else {
-    led_control_granted_ = false;
+    led_control_status_ = LEDControlStatus::NOT_GRANTED;
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "LED control revoked.");
   }
 }
 
 void DriverNode::FrameCB(
-  const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
-  const rclcpp::Time & last_time, const std::string & panel_name)
+  const ImageMsg::UniquePtr & msg, const apa102::APA102 & panel, const rclcpp::Time & last_time,
+  const std::string & panel_name)
 {
-  if (!led_control_granted_) {
+  if (led_control_status_ != LEDControlStatus::GRANTED) {
+    if (led_control_status_ == LEDControlStatus::PENDING) {
+      RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000,
+        "Waiting for LED control to be granted. Ignoring frame for " << panel_name << "!");
+      return;
+    }
+
+    RCLCPP_WARN_STREAM_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000, "LED control not granted. Retrying.");
     ToggleLEDControl(true);
 
-    auto message = "LED control not granted, ignoring frame!";
-    RCLCPP_WARN_STREAM_SKIPFIRST_THROTTLE(
-      this->get_logger(), *this->get_clock(), 5000, message << " on " << panel_name << "!");
     return;
   }
 
@@ -224,7 +238,7 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Control over LEDs granted."};
 
-  if (!led_control_granted_) {
+  if (led_control_status_ != LEDControlStatus::GRANTED) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Control over LEDs not granted, driver is not functional!";
   }
@@ -233,3 +247,6 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
 }
 
 }  // namespace panther_lights
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::DriverNode)

@@ -40,8 +40,8 @@
 namespace panther_lights
 {
 
-ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options)
+ControllerNode::ControllerNode(const rclcpp::NodeOptions & options)
+: Node("lights_controller", options)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
@@ -369,3 +369,6 @@ void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_a
 }
 
 }  // namespace panther_lights
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::ControllerNode)
