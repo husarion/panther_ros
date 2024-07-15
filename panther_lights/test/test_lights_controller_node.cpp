@@ -26,7 +26,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_lights/controller_node.hpp"
+#include "panther_lights/lights_controller_node.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 class ControllerNodeWrapper : public panther_lights::ControllerNode

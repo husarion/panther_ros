@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/controller_node.hpp"
+#include "panther_lights/lights_controller_node.hpp"
 
 #include <chrono>
 #include <cstdint>

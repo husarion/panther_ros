@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_DRIVER_NODE_HPP_
-#define PANTHER_LIGHTS_DRIVER_NODE_HPP_
+#ifndef PANTHER_LIGHTS_LIGHTS_DRIVER_NODE_HPP_
+#define PANTHER_LIGHTS_LIGHTS_DRIVER_NODE_HPP_
 
 #include <memory>
 #include <string>
@@ -118,4 +118,4 @@ private:
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_DRIVER_NODE_HPP_
+#endif  // PANTHER_LIGHTS_LIGHTS_DRIVER_NODE_HPP_

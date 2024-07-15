@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/driver_node.hpp"
+#include "panther_lights/lights_driver_node.hpp"
 
 #include <cstdint>
 #include <filesystem>

@@ -27,9 +27,10 @@ add_library(
 ament_target_dependencies(panther_animation_plugins panther_utils pluginlib)
 target_link_libraries(panther_animation_plugins png yaml-cpp)
 
-add_library(driver_node_component SHARED src/driver_node.cpp src/apa102.cpp)
+add_library(lights_driver_node_component SHARED src/lights_driver_node.cpp
+                                                src/apa102.cpp)
 ament_target_dependencies(
-  driver_node_component
+  lights_driver_node_component
   diagnostic_updater
   image_transport
   panther_msgs
@@ -39,39 +40,39 @@ ament_target_dependencies(
   std_srvs)
 
 add_library(
-  controller_node_component SHARED
-  src/controller_node.cpp src/led_segment.cpp src/led_panel.cpp
+  lights_controller_node_component SHARED
+  src/lights_controller_node.cpp src/led_segment.cpp src/led_panel.cpp
   src/segment_converter.cpp src/led_animations_queue.cpp)
 ament_target_dependencies(
-  controller_node_component
+  lights_controller_node_component
   panther_msgs
   panther_utils
   pluginlib
   rclcpp
   rclcpp_components
   sensor_msgs)
-target_link_libraries(controller_node_component yaml-cpp)
+target_link_libraries(lights_controller_node_component yaml-cpp)
 
 rclcpp_components_register_node(
-  driver_node_component PLUGIN "panther_lights::DriverNode" EXECUTABLE
-  driver_node)
+  lights_driver_node_component PLUGIN "panther_lights::DriverNode" EXECUTABLE
+  lights_driver_node)
 
 rclcpp_components_register_node(
-  controller_node_component PLUGIN "panther_lights::ControllerNode" EXECUTABLE
-  controller_node)
+  lights_controller_node_component PLUGIN "panther_lights::ControllerNode"
+  EXECUTABLE lights_controller_node)
 
-ament_export_targets(export_driver_node_component)
+ament_export_targets(export_lights_driver_node_component)
 install(
-  TARGETS driver_node_component
-  EXPORT export_driver_node_component
+  TARGETS lights_driver_node_component
+  EXPORT export_lights_driver_node_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
-ament_export_targets(export_controller_node_component)
+ament_export_targets(export_lights_controller_node_component)
 install(
-  TARGETS controller_node_component
-  EXPORT export_controller_node_component
+  TARGETS lights_controller_node_component
+  EXPORT export_lights_controller_node_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
@@ -171,20 +172,21 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_led_animations_queue yaml-cpp)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_controller_node
-    test/test_controller_node.cpp
-    src/controller_node.cpp
+    ${PROJECT_NAME}_test_lights_controller_node
+    test/test_lights_controller_node.cpp
+    src/lights_controller_node.cpp
     src/led_segment.cpp
     src/led_panel.cpp
     src/segment_converter.cpp
     src/led_animations_queue.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_controller_node
+    ${PROJECT_NAME}_test_lights_controller_node
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_controller_node panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_controller_node
-                        controller_node_component yaml-cpp)
+  ament_target_dependencies(${PROJECT_NAME}_test_lights_controller_node
+                            panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_lights_controller_node
+                        lights_controller_node_component yaml-cpp)
 
   ament_add_gtest(${PROJECT_NAME}_test_apa102 test/test_apa102.cpp
                   src/apa102.cpp)
@@ -193,14 +195,17 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
 
-  ament_add_gtest(${PROJECT_NAME}_test_driver_node test/test_driver_node.cpp
-                  src/apa102.cpp src/driver_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_lights_driver_node test/test_lights_driver_node.cpp
+    src/apa102.cpp src/lights_driver_node.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_driver_node
+    ${PROJECT_NAME}_test_lights_driver_node
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_driver_node panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_driver_node driver_node_component)
+  ament_target_dependencies(${PROJECT_NAME}_test_lights_driver_node
+                            panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_lights_driver_node
+                        lights_driver_node_component)
 endif()
 
 ament_package()
