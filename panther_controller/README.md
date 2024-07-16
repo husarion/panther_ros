@@ -39,19 +39,11 @@ The package contains the default configuration and launch files necessary to sta
 
 ### imu_broadcaster
 
-External node type:*[imu_sensor_broadcaster/imu_sensor_broadcaster](https://github.com/ros-controls/ros2_controllers/tree/master/imu_sensor_broadcaster)*.
-
-The broadcaster to publish readings of IMU sensors.
-
 #### Publishers
 
 - `imu/data` [*sensor_msgs/msg/Imu*]: data from IMU sensor.
 
 ### joint_state_broadcaster
-
-External node type:*[joint_state_broadcaster/joint_state_broadcaster](https://github.com/ros-controls/ros2_controllers/tree/master/joint_state_broadcaster)*.
-
-The broadcaster reads all state interfaces and reports them on specific topics.
 
 #### Publishers
 
@@ -59,10 +51,6 @@ The broadcaster reads all state interfaces and reports them on specific topics.
 - `joint_states` [*sensor_msgs/msg/JointState*] - provides information about the state of various joints in a robotic system.
 
 ### drive_controller
-
-External node type:*[diff_drive_controller/diff_drive_controller](https://github.com/ros-controls/ros2_controllers/tree/master/diff_drive_controller)*.
-
-Controller which manages mobile robots with a differential drive. It converts velocity commands for the robot body into wheel commands for the base. It also calculates odometry from hardware feedback and shares it.
 
 #### Subscribers
 
@@ -72,6 +60,12 @@ Controller which manages mobile robots with a differential drive. It converts ve
 
 - `/tf` [*tf2_msgs/msg/TFMessage*]: tf tree. Published only if `enable_odom_tf=true`
 - `odometry/wheels` [*nav_msgs/msg/Odometry*]: odometry data from wheel encoders.
+
+### robot_state_publisher
+
+#### Publishers
+
+- `/robot_description` [*std_msgs/msg/String*]: contains information about robot description from URDF file.
 
 ## Configuration
 
