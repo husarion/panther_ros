@@ -193,7 +193,7 @@ A tree responsible for scheduling animations displayed on the Bumper Lights base
 
 <!-- TODO: Update tree image (remove timeouts from leafs) -->
 <p align="center">
-  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/lights_tree.svg">
+  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/lights_tree.svg"/>
 </p>
 
 Default blackboard entries:
@@ -234,7 +234,7 @@ A tree responsible for monitoring the Panther robot's state and handling safety 
 
 <!-- TODO: Update tree image (remove timeouts from leafs) -->
 <p align="center">
-  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/safety_tree.svg">
+  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/safety_tree.svg"/>
 </p>
 
 Default blackboard entries:
@@ -270,7 +270,7 @@ A tree responsible for the graceful shutdown of robot components, user computers
 
 <!-- TODO: Update tree image (remove timeouts from leafs) -->
 <p align="center">
-  <img src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/shutdown_tree.svg">
+  <img src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/shutdown_tree.svg"/>
 </p>
 
 Default constant blackboard entries:
