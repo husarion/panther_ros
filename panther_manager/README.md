@@ -137,9 +137,9 @@ After receiving a message on the `battery/battery_status` topic, the `panther_ma
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | GOOD                | -                                                                                                                                                                                                                             |
 | UNKNOWN             | -                                                                                                                                                                                                                             |
-| OVERHEAT            | 1. Turn on the fan. <br> 2. If the Battery temperature is higher than 55.0 **[&deg;C]**, trigger an emergency stop and turn off AUX. <br> 3. If the Battery temperature is higher than 62.0 **[&deg;C]**, shutdown the robot. |
+| OVERHEAT            | 1. Turn on the fan. <br/> 2. If the Battery temperature is higher than 55.0 **[&deg;C]**, trigger an emergency stop and turn off AUX. <br/> 3. If the Battery temperature is higher than 62.0 **[&deg;C]**, shutdown the robot. |
 | DEAD                | Shutdown the robot.                                                                                                                                                                                                           |
-| OVERVOLTAGE         | 1. Initiate an emergency stop. <br> 2. Display an error animation if the charger is connected.                                                                                                                                |
+| OVERVOLTAGE         | 1. Initiate an emergency stop. <br/> 2. Display an error animation if the charger is connected.                                                                                                                                |
 | COLD                | -                                                                                                                                                                                                                             |
 
 > **NOTE**

@@ -98,7 +98,7 @@ The `led_animations` section contains list with definitions for various animatio
   - `segments` [*string*, default **None**]: Indicates which segment mapping this particular animation applies to (e.g., all, front, rear).
   - `animation` [*yaml*, default: **None**]: An animation to be displayed on segments. The keys for the configuration of different animation types are explained in detail under the [**Animation Types**](#animation-types) section.
 - `id` [*int*, default: **None**]: unique ID of an animation.
-- `name` [*string*, default: **ANIMATION_<ID>**]: name of an animation. If not provided will default to **ANIMATION_<ID>**, where `<ID>` is equal to `id` parameter of the given animation.
+- `name` [*string*, default: **ANIMATION_{ID}**]: name of an animation. If not provided will default to **ANIMATION_{ID}**, where `{ID}` is equal to `id` parameter of the given animation.
 - `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows the behavior when an animation with a given ID arrives:
   - **1** interrupts and removes animation with priorities **2** and **3**.
   - **2** interrupts animations with priority **3**.
