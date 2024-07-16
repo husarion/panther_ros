@@ -49,8 +49,7 @@ enum LEDControlStatus {
 class DriverNode : public rclcpp::Node
 {
 public:
-  DriverNode(
-    const rclcpp::NodeOptions & options = rclcpp::NodeOptions().use_intra_process_comms(true));
+  DriverNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
   int num_led_;

@@ -41,8 +41,7 @@ using SetLEDAnimationSrv = panther_msgs::srv::SetLEDAnimation;
 class ControllerNode : public rclcpp::Node
 {
 public:
-  ControllerNode(
-    const rclcpp::NodeOptions & options = rclcpp::NodeOptions().use_intra_process_comms(true));
+  ControllerNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
   ~ControllerNode() {}
 
 protected:

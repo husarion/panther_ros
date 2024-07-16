@@ -96,6 +96,7 @@ void DriverNode::OnShutdown()
 {
   if (led_control_status_ == LEDControlStatus::GRANTED) {
     ClearLEDs();
+    ToggleLEDControl(false);
   }
 }
 
@@ -235,7 +236,10 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Control over LEDs granted."};
 
-  if (led_control_status_ != LEDControlStatus::GRANTED) {
+  if (
+    led_control_status_ != LEDControlStatus::GRANTED &&
+    led_control_status_ != LEDControlStatus::PENDING &&
+    led_control_status_ != LEDControlStatus::IDLE) {
     error_level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Control over LEDs not granted, driver is not functional!";
   }

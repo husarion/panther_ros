@@ -71,6 +71,9 @@ def generate_launch_description():
                 name="lights_driver",
                 namespace=namespace,
                 remappings=[("/diagnostics", "diagnostics")],
+                extra_arguments=[
+                    {"use_intra_process_comms": True},
+                ],
                 condition=UnlessCondition(use_sim),
             ),
             ComposableNode(
@@ -81,6 +84,9 @@ def generate_launch_description():
                 parameters=[
                     {"led_config_file": led_config_file},
                     {"user_led_animations_file": user_led_animations_file},
+                ],
+                extra_arguments=[
+                    {"use_intra_process_comms": True},
                 ],
             ),
         ],
