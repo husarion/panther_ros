@@ -14,11 +14,15 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 
 ### system_status.launch.py - Nodes
 
-`system_monitor`
+``
+
+| Node name        | *Type*                                        |
+| ---------------- | --------------------------------------------- |
+| `system_monitor` | *[panther_diagnostics/system_status_node](.)* |
 
 ## ROS Nodes
 
-### system_monitor
+### system_status_node
 
 Publishes system state of the Built-in Computer such as CPU usage, RAM memory usage, disk usage and  CPU temperature.
 

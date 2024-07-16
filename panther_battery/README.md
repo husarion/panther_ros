@@ -16,7 +16,7 @@ This package contains:
 
 ### battery.launch.py - Nodes
 
-| Node            | *Type*                             |
+| Node name            | *Type*                             |
 | ---------------- | ---------------------------------- |
 | `battery_driver` | [*panther_batter/battery_node*](.) |
 

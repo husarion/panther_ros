@@ -26,9 +26,7 @@ The package contains a launch file and source files used to run the robot simula
 | `user_led_animations_file`  | Path to a YAML file with a description of the user defined animations. <br/> ***string:*** `''`                                                                                                                                                                                                                                                                                                                                                                                   |
 | All `spawn_robot.launch.py` arguments              | All the previously mentioned arguments are also available for this launch file.                                                                                                                                                                                                                                                                                                                                                                                                   |
 
-### Changing Wheel Type
-
-It is possible to change Panther wheels model in simulation. All you need to do is to point to new wheel and controller configuration files using `wheel_config_path` and `controller_config_path` parameters. These files should be based on the default ones, i.e., [WH01_controller.yaml](https://github.com/husarion/panther_ros/panther_controller/config/WH01_controller.yaml) and [WH01.yaml](https://github.com/husarion/panther_ros/panther_description/config/WH01.yaml).
+## Configuration
 
 ### Linear Battery Plugin
 

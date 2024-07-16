@@ -18,9 +18,9 @@ This package contains:
 | `namespace`                | *string*: `env(ROBOT_NAMESPACE)` | Add namespace to all launched nodes.                                                                                                                                                                                                                |
 | `use_sim`                  | *bool*: `False`                  | Whether simulation is used.                                                                                                                                                                                                                         |
 
-| Node               | *Type*                                                                                                    |
+| Node name          | *Type*                                                                                                    |
 | ------------------ | --------------------------------------------------------------------------------------------------------- |
-| `ekf_filter`         | [*robot_localization/ekf_node*](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)              |
+| `ekf_filter`       | [*robot_localization/ekf_node*](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)              |
 | `navsat_transform` | [*robot_localization/navsat_transform_node*](https://github.com/cra-ros-pkg/robot_localization/tree/ros2) |
 
 ## Running Nodes
