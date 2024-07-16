@@ -78,17 +78,13 @@ void BatteryNode::InitializeWithADCBattery()
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC data.");
 
-  this->declare_parameter<std::string>("adc/device0", "/dev/adc0");
-  this->declare_parameter<std::string>("adc/device1", "/dev/adc1");
-  this->declare_parameter<std::string>("adc/path", "/sys/bus/iio/devices");
+  this->declare_parameter<std::string>("adc/device0", "/sys/bus/iio/devices/iio:device0");
+  this->declare_parameter<std::string>("adc/device1", "/sys/bus/iio/devices/iio:device1");
   this->declare_parameter<int>("adc/ma_window_len/temp", 10);
   this->declare_parameter<int>("adc/ma_window_len/charge", 10);
 
-  const std::string adc0_device_name = this->get_parameter("adc/device0").as_string();
-  const std::string adc1_device_name = this->get_parameter("adc/device1").as_string();
-
-  const std::string adc0_device_path = GetADCDevicePath(adc0_device_name);
-  const std::string adc1_device_path = GetADCDevicePath(adc1_device_name);
+  const std::string adc0_device_path = this->get_parameter("adc/device0").as_string();
+  const std::string adc1_device_path = this->get_parameter("adc/device1").as_string();
 
   adc0_reader_ = std::make_shared<ADCDataReader>(adc0_device_path);
   adc1_reader_ = std::make_shared<ADCDataReader>(adc1_device_path);
@@ -162,20 +158,6 @@ void BatteryNode::BatteryPubTimerCB()
     return;
   }
   battery_publisher_->Publish();
-}
-
-std::string BatteryNode::GetADCDevicePath(const std::string & adc_device_name) const
-{
-  const std::string adc_path = this->get_parameter("adc/path").as_string();
-  std::filesystem::path adc_device;
-
-  if (std::filesystem::is_symlink(adc_device_name)) {
-    adc_device = std::filesystem::read_symlink(adc_device_name);
-  } else {
-    adc_device = std::filesystem::path(adc_device_name).filename();
-  }
-
-  return (adc_path / adc_device).string();
 }
 
 }  // namespace panther_battery

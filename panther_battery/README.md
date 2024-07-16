@@ -51,9 +51,8 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 
 [//]: # (ROS_API_NODE_PARAMETERS_START)
 
-- `~/adc/device0` [*string*, default: **/dev/adc0**]: ADC nr 0 IIO device. Used with Panther version 1.2 and above.
-- `~/adc/device1` [*string*, default: **/dev/adc1**]: ADC nr 1 IIO device. Used with Panther version 1.2 and above.
-- `~/adc/path` [*string*, default: **/sys/bus/iio/devices/**]: path of ADC devices mount.
+- `~/adc/device0` [*string*, default: **/sys/bus/iio/devices/iio:device0**]: ADC nr 0 IIO device. Used with Panther version 1.2 and above.
+- `~/adc/device1` [*string*, default: **/sys/bus/iio/devices/iio:device1**]: ADC nr 1 IIO device. Used with Panther version 1.2 and above.
 - `~/adc/ma_window_len/charge` [*int*, default: **10**]: window length of a moving average, used to smooth out battery charge readings. Used with Panther version 1.2 and above.
 - `~/adc/ma_window_len/temp` [*int*, default: **10**]: window length of a moving average, used to smooth out battery temperature readings. Used with Panther version 1.2 and above.
 - `~/battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If the node fails to read battery data exceeding this duration, the node will publish an unknown battery state.

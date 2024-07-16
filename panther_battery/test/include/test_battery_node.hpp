@@ -47,8 +47,8 @@ protected:
   template <typename T>
   void WriteNumberToFile(const T number, const std::string & file_path);
 
-  static constexpr char kADCDevice0[] = "adc0";
-  static constexpr char kADCDevice1[] = "adc1";
+  static constexpr char kADCDevice0[] = "iio:device0";
+  static constexpr char kADCDevice1[] = "iio:device1";
 
   std::filesystem::path device0_path_;
   std::filesystem::path device1_path_;
@@ -72,8 +72,8 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
     device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
     device1_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice1;
 
-    params.push_back(rclcpp::Parameter("adc/device0", kADCDevice0));
-    params.push_back(rclcpp::Parameter("adc/device1", kADCDevice1));
+    params.push_back(rclcpp::Parameter("adc/device0", device0_path_.string()));
+    params.push_back(rclcpp::Parameter("adc/device1", device1_path_.string()));
     params.push_back(rclcpp::Parameter("adc/path", testing::TempDir()));
 
     // Create the device0 and device1 directories if they do not exist

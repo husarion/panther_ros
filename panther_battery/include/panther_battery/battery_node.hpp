@@ -43,7 +43,6 @@ private:
   void Initialize();
   void InitializeWithADCBattery();
   void InitializeWithRoboteqBattery();
-  std::string GetADCDevicePath(const std::string & adc_device_name) const;
 
   static constexpr int kADCCurrentOffset = 625;
 
