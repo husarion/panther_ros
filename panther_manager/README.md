@@ -2,6 +2,29 @@
 
 A package containing nodes responsible for high-level control of Husarion Panther robot.
 
+## Launch Files
+
+This package contains:
+
+- [`manager_bt.launch.py`](#manager_btlaunchpy---arguments) - is responsible for activating whole robot system.
+
+### manager_bt.launch.py - Arguments
+
+| Argument                     | Description <br/> ***Type:*** `Default`                                                                                                                                                                    |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lights_bt_project_path`     | Path to BehaviorTree project file, responsible for lights management. <br/> ***string:*** `LocalVar('FindPackageShare(pkg='panther_manager') + 'behavior_trees' + 'PantherLightsBT.btproj'')`              |
+| `safety_bt_project_path`*    | Path to BehaviorTree project file, responsible for safety and shutdown management. <br/> ***string:*** `LocalVar('FindPackageShare(pkg='panther_manager') + 'behavior_trees' + 'PantherSafetyBT.btproj'')` |
+| `namespace`                  | Add namespace to all launched nodes. <br/> ***string:*** `EnvVar('ROBOT_NAMESPACE')`                                                                                                                       |
+| `shutdown_hosts_config_path` | Path to file with list of hosts to request shutdown. <br/> ***string:*** `LocalVar('FindPackageShare(pkg='panther_manager') + 'config' + 'shutdown_hosts.yaml'')`                                          |
+| `use_sim`                    | Whether simulation is used. <br/> ***boolean:*** `'False'`                                                                                                                                                 |
+
+### manager_bt.launch.py - Nodes
+
+| Node name        | *Type*                                     |
+| ---------------- | ------------------------------------------ |
+| `lights_manager` | [*panther_manager/battery_node*](.)        |
+| `safety_manager` | [*panther_manager/safety_manager_node*](.) |
+
 ## ROS Nodes
 
 ### lights_manager
@@ -110,14 +133,14 @@ ssh-copy-id username@10.15.20.XX
 
 After receiving a message on the `battery/battery_status` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply state, please refer to the [adc_node](/panther_battery/README.md#battery-statuses) documentation.
 
-| Power Supply Health | Procedure                                                                                                                                                                                                          |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GOOD                | -                                                                                                                                                                                                                  |
-| UNKNOWN             | -                                                                                                                                                                                                                  |
+| Power Supply Health | Procedure                                                                                                                                                                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GOOD                | -                                                                                                                                                                                                                             |
+| UNKNOWN             | -                                                                                                                                                                                                                             |
 | OVERHEAT            | 1. Turn on the fan. <br> 2. If the Battery temperature is higher than 55.0 **[&deg;C]**, trigger an emergency stop and turn off AUX. <br> 3. If the Battery temperature is higher than 62.0 **[&deg;C]**, shutdown the robot. |
-| DEAD                | Shutdown the robot.                                                                                                                                                                                               |
-| OVERVOLTAGE         | 1. Initiate an emergency stop. <br> 2. Display an error animation if the charger is connected.                                                                                                                     |
-| COLD                | -                                                                                                                                                                                                                  |
+| DEAD                | Shutdown the robot.                                                                                                                                                                                                           |
+| OVERVOLTAGE         | 1. Initiate an emergency stop. <br> 2. Display an error animation if the charger is connected.                                                                                                                                |
+| COLD                | -                                                                                                                                                                                                                             |
 
 > **NOTE**
 >

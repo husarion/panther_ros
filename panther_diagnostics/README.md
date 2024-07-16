@@ -2,6 +2,20 @@
 
 Package containing nodes monitoring and publishing the Built-in Computer status of Husarion Panther robot.
 
+## Launch Files
+
+`system_status.launch.py` - launch a node that analyzes the state of the most important components in the robot
+
+### system_status.launch.py - Arguments
+
+| Argument    | Description <br/> ***Type:*** `Default`                                         |
+| ----------- | ------------------------------------------------------------------------------- |
+| `namespace` | Add namespace to all launched nodes. <br/> ***string:*** `env(ROBOT_NAMESPACE)` |
+
+### system_status.launch.py - Nodes
+
+`system_monitor`
+
 ## ROS Nodes
 
 ### system_monitor

@@ -16,8 +16,8 @@ This package contains:
 
 ### battery.launch.py - Nodes
 
-| Executable     | *Type*                             |
-| -------------- | ---------------------------------- |
+| Node            | *Type*                             |
+| ---------------- | ---------------------------------- |
 | `battery_driver` | [*panther_batter/battery_node*](.) |
 
 ## ROS Nodes

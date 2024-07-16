@@ -2,9 +2,7 @@
 
 The package contains the default configuration and launch files necessary to start all the basic functionalities of the Husarion Panther robot.
 
-## Content
-
-### Launch Files
+## Launch Files
 
 This package contains:
 
@@ -33,16 +31,24 @@ This package contains:
 | `wheel_config_path`          | Path to wheel configuration file. By default, it is located in 'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path to your custom wheel configuration file here. <br/>  ***string:*** [`<wheel_type arg>.yaml`](../panther_description/config)                                                                                   |
 | `wheel_type`                 | Type of wheel. If you choose a value from the preset options ('WH01', 'WH02', 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path' parameters. For custom wheels, please define these parameters to point to files that accurately describe the custom wheels. <br/>  ***string:*** `WH01` (choices: `WH01`, `WH02`, `WH04`, `custom`) |
 
-### bringup.launch.py - Executables
+### bringup.launch.py - Nodes
 
-| Executable                | *Type*                                             |
-| ------------------------- | -------------------------------------------------- |
-| `battery.launch.py`       | [*panther_batter/battery.launch.py*](.)            |
-| `controller.launch.py`    | [*panther_controller/controller.launch.py*](.)     |
-| `battery.launch.py`       | [*panther_batter/battery.launch.py*](.)            |
-| `lights.launch.py`        | [*panther_lights/lights.launch.py*](.)             |
-| `manager_bt.launch.py`    | [*panther_manager/manager_bt.launch.py*](.)        |
-| `system_status.launch.py` | [*panther_diagnostics/system_status.launch.py*](.) |
+| Node                      | *Type*                                                                                                                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `battery_driver`          | [*panther_battery/battery_node*](../panther_battery) |
+| `controller_manager`      | [*controller_manager/ros2_control_node*](https://github.com/ros-controls/ros2_control)                                                                                                                                                |
+| `ekf_filter`              | [*robot_localization/ekf_node*](https://github.com/cra-ros-pkg/robot_localization)                     |
+| `imu_broadcaster`         | [*ros2_controllers/imu_broadcaster*](https://github.com/ros-controls/ros2_controllers)                                                                                                                                                |
+| `joint_state_broadcaster` | [*ros2_controllers/joint_state_broadcaster*](https://github.com/ros-controls/ros2_controllers)                                                                                                                                        |
+| `lights_controller`       | [*panther_lights/lights_controller_node*](../panther_lights)                                                                                                                                                   |
+| `lights_driver`           | [*panther_lights/lights_driver_node*](../panther_lights)                                                                                                                                                       |
+| `lights_manager`          | [*panther_lights/lights_manager_node*](../panther_lights)                                                                                                                                                      |
+| `navsat_transform`        | [*robot_localization/navsat_transform_node*](https://github.com/cra-ros-pkg/robot_localization)        |
+| `panther_base_controller` |                                                                                                                                                                                                                                             |
+| `panther_system`          | [*panther_hardware_interfaces/PantherSystem*](../panther_hardware_interfaces)                                                                                                                                               |
+| `robot_state_publisher`   | [*robot_state_publisher/robot_state_publisher*](https://github.com/ros/robot_state_publisher)                                                                                                                                         |
+| `safety_manager`          | [*panther_manager/safety_manager_node*](../panther_manager)                                                                                                                                                     |
+| `system_status`           | [*panther_diagnostics/system_status_node*](../panther_diagnostics)                                                                                                                                                  |
 
 ## ROS Nodes
 

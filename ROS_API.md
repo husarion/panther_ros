@@ -1,35 +1,14 @@
 # ROS API
 
-## Running Nodes
-
-Node names apply only to the physical robot.
-
-| Node                      | Description                                                                                                                                                                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `battery`                 | Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier versions of the robot.<br/> [*panther_batter/battery_node*](https://github.com/husarion/panther_ros/) |
-| `controller_manager`      | <br/> [*controller_manager/ros2_control_node*](https://github.com/ros-controls/ros2_control)                                                                                                                                                |
-| `ekf_filter`              | The Extended Kalman Filter node is designed to fuse odometry data from various sources, including wheel encoders, IMU, and GPS.<br/> [*robot_localization/ekf_node*](https://github.com/cra-ros-pkg/robot_localization)                     |
-| `imu_broadcaster`         | <br/> [*ros2_controllers/imu_broadcaster*](https://github.com/ros-controls/ros2_controllers)                                                                                                                                                |
-| `joint_state_broadcaster` | <br/> [*ros2_controllers/joint_state_broadcaster*](https://github.com/ros-controls/ros2_controllers)                                                                                                                                        |
-| `lights_controller`       | <br/> [*panther_lights/lights_controller_node*](https://github.com/husarion/panther_ros/)                                                                                                                                                   |
-| `lights_driver`           | <br/> [*panther_lights/lights_driver_node*](https://github.com/husarion/panther_ros/)                                                                                                                                                       |
-| `lights_manager`          | <br/> [*panther_lights/lights_manager_node*](https://github.com/husarion/panther_ros/)                                                                                                                                                      |
-| `navsat_transform`        | It converts raw GPS data into odometry data and publishes corrected GPS positions based on sensor data at a higher frequency.  <br/> [*robot_localization/navsat_transform_node*](https://github.com/cra-ros-pkg/robot_localization)        |
-| `panther_base_controller` |                                                                                                                                                                                                                                             |
-| `panther_system`          | <br/> [*panther_hardware_interfaces/PantherSystem*](https://github.com/husarion/panther_ros/)                                                                                                                                               |
-| `robot_state_publisher`   | <br/> [*robot_state_publisher/robot_state_publisher*](https://github.com/ros/robot_state_publisher)                                                                                                                                         |
-| `safety_manager`          | <br/> [*panther_manager/safety_manager_node*](https://github.com/husarion/panther_ros/)                                                                                                                                                     |
-| `system_status`           | <br/> [*panther_diagnostics/system_status_node*](https://github.com/husarion/panther_ros/)                                                                                                                                                  |
-
-## Topics
-
 Below is information about the physical robot API. For the simulation, topics and services are identical to the physical robot, but due to certain limitations, not all interfaces are present in the simulation.
 
-| Symbol | Meaning                                         |
-| ------ | ----------------------------------------------- |
-| 🤖      | Available for physical robot                    |
-| 🖥️      | Available in simulated robot                    |
-| ⚙️      | Requires specific launch argument configuration |
+| Symbol | Meaning                         |
+| ------ | ------------------------------- |
+| 🤖      | Available for physical robot    |
+| 🖥️      | Available in simulated robot    |
+| ⚙️      | Requires specific configuration |
+
+## Topics
 
 |     | Topic                            | Description                                                                                                                                                                                                                                                                                                                                                               |
 | --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
