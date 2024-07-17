@@ -36,11 +36,9 @@ using SetBoolSrv = std_srvs::srv::SetBool;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
 enum LEDControlStatus {
-  IDLE = 0,
+  NOT_GRANTED = 0,
   PENDING,
   GRANTED,
-  NOT_GRANTED,
-  ERROR,
 };
 
 /**
@@ -62,6 +60,8 @@ protected:
 
 private:
   void OnShutdown();
+
+  void InitializationTimerCB();
 
   /**
    * @brief Clears all LEDs on both channels.
@@ -99,10 +99,29 @@ private:
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
 
+  /**
+   * @brief Logs a warning message to the panel throttle log. Since this is throttle warning, we
+   * need to add panel name condition to log from both panels.
+   *
+   * @param panel_name name of the panel for which the message was received, used for improved
+   * logging. Valid names are: 'channel_1', 'channel_2'.
+   * @param message warning message to log.
+   */
+  void PanelThrottleWarnLog(const std::string panel_name, const std::string message);
+
   void DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status);
+
+  static constexpr unsigned kMaxInitializationAttempts = 3;
+  static constexpr unsigned kServiceResponseTimeout = 3;
+  static constexpr unsigned kWaitForServiceTimeout = 3;
+
+  unsigned initialization_attempt_;
+  rclcpp::Time led_control_call_time_;
 
   apa102::APA102 chanel_1_;
   apa102::APA102 chanel_2_;
+
+  rclcpp::TimerBase::SharedPtr initialization_timer_;
 
   rclcpp::Client<SetBoolSrv>::SharedPtr enable_led_control_client_;
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
