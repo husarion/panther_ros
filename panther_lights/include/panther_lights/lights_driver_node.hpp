@@ -35,12 +35,6 @@ using ImageMsg = sensor_msgs::msg::Image;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
-enum LEDControlStatus {
-  NOT_GRANTED = 0,
-  PENDING,
-  GRANTED,
-};
-
 /**
  * @brief Class for controlling APA102 LEDs based on a ROS Image topic.
  */
@@ -52,8 +46,8 @@ public:
 protected:
   int num_led_;
   double frame_timeout_;
-
-  LEDControlStatus led_control_status_;
+  bool led_control_granted_;
+  bool led_control_pending_;
 
   rclcpp::Time chanel_1_ts_;
   rclcpp::Time chanel_2_ts_;

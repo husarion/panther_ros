@@ -41,7 +41,8 @@ using std::placeholders::_2;
 
 DriverNode::DriverNode(const rclcpp::NodeOptions & options)
 : Node("lights_driver", options),
-  led_control_status_(LEDControlStatus::NOT_GRANTED),
+  led_control_granted_(false),
+  led_control_pending_(false),
   initialization_attempt_(0),
   chanel_1_("/dev/spiled-channel1"),
   chanel_2_("/dev/spiled-channel2"),
@@ -99,19 +100,19 @@ void DriverNode::OnShutdown()
 {
   ClearLEDs();
 
-  if (led_control_status_ == LEDControlStatus::GRANTED) {
+  if (led_control_granted_) {
     ToggleLEDControl(false);
   }
 }
 
 void DriverNode::InitializationTimerCB()
 {
-  if (led_control_status_ == LEDControlStatus::GRANTED) {
+  if (led_control_granted_) {
     initialization_timer_->cancel();
     return;
   }
 
-  if (led_control_status_ == LEDControlStatus::PENDING) {
+  if (led_control_pending_) {
     if (
       this->now() - led_control_call_time_ <=
       rclcpp::Duration(std::chrono::seconds(kServiceResponseTimeout))) {
@@ -119,7 +120,7 @@ void DriverNode::InitializationTimerCB()
     }
 
     RCLCPP_WARN(this->get_logger(), "LED control service response timeout.");
-    led_control_status_ = LEDControlStatus::NOT_GRANTED;
+    led_control_pending_ = false;
   }
 
   if (initialization_attempt_ >= kMaxInitializationAttempts) {
@@ -149,14 +150,13 @@ void DriverNode::ToggleLEDControl(const bool enable)
     RCLCPP_WARN_STREAM(
       this->get_logger(), "Timeout occurred while waiting for service '"
                             << enable_led_control_client_->get_service_name() << "'!");
-    led_control_status_ = LEDControlStatus::NOT_GRANTED;
     return;
   }
 
   enable_led_control_client_->async_send_request(
     request, std::bind(&DriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
 
-  led_control_status_ = LEDControlStatus::PENDING;
+  led_control_pending_ = true;
   led_control_call_time_ = this->now();
   RCLCPP_DEBUG(
     this->get_logger(), "Sent request toggling LED control to '%s'.", enable ? "true" : "false");
@@ -173,25 +173,27 @@ void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWith
 
   if (!response->success) {
     RCLCPP_ERROR(this->get_logger(), "Failed to toggle LED control.");
-    led_control_status_ = request->data ? LEDControlStatus::NOT_GRANTED : LEDControlStatus::GRANTED;
+    led_control_pending_ = false;
     return;
   }
 
   if (request->data == true) {
-    led_control_status_ = LEDControlStatus::GRANTED;
+    led_control_granted_ = true;
     ClearLEDs();
     RCLCPP_INFO(this->get_logger(), "LED control granted.");
   } else {
-    led_control_status_ = LEDControlStatus::NOT_GRANTED;
+    led_control_granted_ = false;
     RCLCPP_INFO(this->get_logger(), "LED control revoked.");
   }
+
+  led_control_pending_ = false;
 }
 
 void DriverNode::FrameCB(
   const ImageMsg::UniquePtr & msg, const apa102::APA102 & panel, const rclcpp::Time & last_time,
   const std::string & panel_name)
 {
-  if (led_control_status_ != LEDControlStatus::GRANTED) {
+  if (!led_control_granted_) {
     PanelThrottleWarnLog(
       panel_name, "Waiting for LED control to be granted. Ignoring frame for " + panel_name + "!");
     return;
@@ -259,19 +261,14 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
   std::string message{"Driver is not functional!"};
   std::string led_control_status{"NOT_GRANTED"};
 
-  switch (led_control_status_) {
-    case LEDControlStatus::PENDING:
-      error_level = diagnostic_updater::DiagnosticStatusWrapper::WARN;
-      message = "Driver is not yet functional!";
-      led_control_status = "PENDING";
-      break;
-    case LEDControlStatus::GRANTED:
-      error_level = diagnostic_updater::DiagnosticStatusWrapper::OK;
-      message = "Driver is fully functional.";
-      led_control_status = "GRANTED";
-      break;
-    default:
-      break;
+  if (led_control_granted_) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::OK;
+    message = "Driver is fully functional.";
+    led_control_status = "GRANTED";
+  } else if (led_control_pending_) {
+    error_level = diagnostic_updater::DiagnosticStatusWrapper::WARN;
+    message = "Driver is not yet functional!";
+    led_control_status = "PENDING";
   }
 
   status.add("LED control status", led_control_status);
