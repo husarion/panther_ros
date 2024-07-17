@@ -43,7 +43,6 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & options)
 : Node("lights_driver", options),
   led_control_status_(LEDControlStatus::NOT_GRANTED),
   initialization_attempt_(0),
-  led_control_call_time_(this->now()),
   chanel_1_("/dev/spiled-channel1"),
   chanel_2_("/dev/spiled-channel2"),
   diagnostic_updater_(this)
@@ -157,10 +156,10 @@ void DriverNode::ToggleLEDControl(const bool enable)
   enable_led_control_client_->async_send_request(
     request, std::bind(&DriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
 
-  RCLCPP_DEBUG(
-    this->get_logger(), "Sent request toggling LED control to '%s'.", enable ? "true" : "false");
   led_control_status_ = LEDControlStatus::PENDING;
   led_control_call_time_ = this->now();
+  RCLCPP_DEBUG(
+    this->get_logger(), "Sent request toggling LED control to '%s'.", enable ? "true" : "false");
 }
 
 void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future)
@@ -174,7 +173,7 @@ void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWith
 
   if (!response->success) {
     RCLCPP_ERROR(this->get_logger(), "Failed to toggle LED control.");
-    led_control_status_ = LEDControlStatus::NOT_GRANTED;
+    led_control_status_ = request->data ? LEDControlStatus::NOT_GRANTED : LEDControlStatus::GRANTED;
     return;
   }
 
@@ -192,7 +191,7 @@ void DriverNode::FrameCB(
   const ImageMsg::UniquePtr & msg, const apa102::APA102 & panel, const rclcpp::Time & last_time,
   const std::string & panel_name)
 {
-  if (led_control_status_ == LEDControlStatus::PENDING) {
+  if (led_control_status_ != LEDControlStatus::GRANTED) {
     PanelThrottleWarnLog(
       panel_name, "Waiting for LED control to be granted. Ignoring frame for " + panel_name + "!");
     return;
