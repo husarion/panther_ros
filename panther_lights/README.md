@@ -17,7 +17,7 @@ Package used to control the Husarion Panther Bumper Lights.
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### driver_node
+### lights_driver_node
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
@@ -75,7 +75,7 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 [//]: # (ROS_API_NODE_COMPATIBLE_1_2)
 [//]: # (ROS_API_NODE_NAME_START)
 
-### controller_node
+### lights_controller_node
 
 [//]: # (ROS_API_NODE_NAME_END)
 [//]: # (ROS_API_NODE_DESCRIPTION_START)

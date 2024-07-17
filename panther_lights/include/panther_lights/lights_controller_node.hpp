@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
-#define PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
+#ifndef PANTHER_LIGHTS_LIGHTS_CONTROLLER_NODE_HPP_
+#define PANTHER_LIGHTS_LIGHTS_CONTROLLER_NODE_HPP_
 
 #include <memory>
 #include <string>
@@ -41,8 +41,7 @@ using SetLEDAnimationSrv = panther_msgs::srv::SetLEDAnimation;
 class ControllerNode : public rclcpp::Node
 {
 public:
-  ControllerNode(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+  ControllerNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
   ~ControllerNode() {}
 
 protected:
@@ -106,15 +105,6 @@ protected:
   void LoadAnimation(const YAML::Node & animation_description);
 
   /**
-   * @brief Sets animation with requested ID
-   *
-   * @param animation_id Animation ID
-   *
-   * @exception std::runtime_error animation with give ID does not exists or (to be updated)
-   */
-  void SetAnimation(const std::size_t animation_id, const bool repeating);
-
-  /**
    * @brief Updates all segments animations, converts then into panel frames and publishes panel
    * frames on respective topics
    */
@@ -166,4 +156,4 @@ private:
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_CONTROLLER_NODE_HPP_
+#endif  // PANTHER_LIGHTS_LIGHTS_CONTROLLER_NODE_HPP_
