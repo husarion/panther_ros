@@ -7,7 +7,7 @@ Package that implements SystemInterface from ros2_control for Panther.
 ### PantherSystem
 
 This package doesn't contain any standalone nodes - `PantherSystem` is a plugin loaded by the resource manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/panther_description/)) and add a controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/panther_controller/) package).
+To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)) and add a controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2/panther_controller/) package).
 That said apart from the usual interface provided by the ros2_control, this plugin also provides additional published topics and services specific for Panther.
 
 #### Publishers
@@ -30,7 +30,7 @@ That said apart from the usual interface provided by the ros2_control, this plug
 
 #### Parameters
 
-Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](https://github.com/husarion/panther_ros/panther_description/urdf/panther_macro.urdf.xacro)).
+Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
 
@@ -43,9 +43,9 @@ Physical properties
 CAN settings
 
 - `can_interface_name` [*string*, default: **panther_can**]: name of the CAN interface.
-- `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](https://github.com/husarion/panther_ros/panther_hardware_interfaces/config/canopen_configuration.yaml)).
-- `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](https://github.com/husarion/panther_ros/panther_hardware_interfaces/config/canopen_configuration.yaml)).
-- `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](https://github.com/husarion/panther_ros/panther_hardware_interfaces/config/canopen_configuration.yaml)).
+- `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+- `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+- `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
 - `sdo_operation_timeout_ms` [*int*, default: **100**]: timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
 - `pdo_motor_states_timeout_ms` [*int*, default: **15**]: depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
 - `pdo_driver_state_timeout_ms` [*int*, default: **75**]: depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default, there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. The default value is set to be expected period +50% margin.
@@ -62,11 +62,11 @@ CAN settings
 ### PantherImuSensor
 
 This package doesn't contain any standalone nodes - `PantherImuSensor` is a plugin loaded by the resource manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_description/)) and add an `imu_sensor_broadcaster` controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_controller/) package).
+To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)) and add an `imu_sensor_broadcaster` controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2/panther_controller/) package).
 
 #### Parameters
 
-Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_description/urdf/panther_macro.urdf.xacro)).
+Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
 
@@ -127,7 +127,7 @@ zeta = sqrt(3/4)* gyroMeasDrift = 0.00151
 
 ## Code structure
 
-The code structure is described in more detail in a [separate file](https://github.com/husarion/panther_ros/panther_hardware_interfaces/CODE_STRUCTURE.md).
+The code structure is described in more detail in a [separate file](./CODE_STRUCTURE.md).
 
 ## Generating CAN config
 

@@ -7,12 +7,12 @@
 > We would be grateful for your feedback related to Panther ROS 2 driver. You can reach us the following ways:
 >
 > - by email at [support@husarion.com](mailto:support@husarion.com)
-> - via our community forum: [https://community.husarion.com](https://community.husarion.com)
-> - using issue request on GitHub: https://github.com/husarion/panther_ros/issues
+> - via our community forum: [Husarion Community](https://community.husarion.com)
+> - using issue request on [GitHub](https://github.com/husarion/panther_ros/issues)
 
 ## ROS 2 System Design
 
-This section describes the ROS packages in the Panther ROS system. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros/tree/ros2-devel) GitHub repository.
+This section describes the ROS packages in the Panther ROS system. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros) GitHub repository.
 
 > [!NOTE] Differences in ROS System
 >
