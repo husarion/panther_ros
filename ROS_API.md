@@ -1,5 +1,33 @@
 # ROS API
 
+> [!WARNING] Initial Release Warning
+>
+> Please be advised that the software you are about to use is the first publicly available version of ROS 2 Driver for Panther. It is functional and architecture will not change in a significant way. It was tested by Husarion team, however some stability issues and bugs might still occur. Also, the ROS 2 API may face some minor changes in the following releases.
+>
+> We would be grateful for your feedback related to Panther ROS 2 driver. You can reach us the following ways:
+>
+> - by email at [support@husarion.com](mailto:support@husarion.com)
+> - via our community forum: [https://community.husarion.com](https://community.husarion.com)
+> - using issue request on GitHub: https://github.com/husarion/panther_ros/issues
+
+## ROS 2 System Design
+
+This section describes the ROS packages in the Panther ROS system. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros/tree/ros2-devel) GitHub repository.
+
+> [!NOTE] Differences in ROS System
+>
+> ROS 2 nodes differs slightly between **Panther v1.06** and **Panther v1.2+**. This is caused by internal hardware differences. Despite that, the ROS API was kept as closely matched between those revisions as possible and should be transparent in most of the use cases.
+
+<!-- TODO: add this differences -->
+
+The default way to communicate with Panther's hardware is via the Robot Operating System (ROS). All of the drivers were written in ROS 2 framework. The ROS API is provided by ROS packages found in the GitHub repository [husarion/panther_ros](https://github.com/husarion/panther_ros). These packages are responsible for accessing the hardware components of the robot.
+
+The graph below represents Panther's ROS system. Some topics and services have been excluded from the graph for the sake of clarity.
+
+![Panther ROS 2 API Diagram](.docs/panther_ros2_api_diagram.png)
+
+## ROS Interfaces
+
 Below is information about the physical robot API. For the simulation, topics and services are identical to the physical robot, but due to certain limitations, not all interfaces are present in the simulation.
 
 | Symbol | Meaning                         |
@@ -8,7 +36,7 @@ Below is information about the physical robot API. For the simulation, topics an
 | 🖥️      | Available in simulated robot    |
 | ⚙️      | Requires specific configuration |
 
-## Topics
+### Topics
 
 |     | Topic                            | Description                                                                                                                                                                                                                                                                                                                                                               |
 | --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -34,7 +62,7 @@ Below is information about the physical robot API. For the simulation, topics an
 | 🤖🖥️  | `tf`                             | Transforms of robot system.<br/> [`tf2_msgs/TFMessage`](https://docs.ros2.org/latest/api/tf2_msgs/msg/TFMessage.html)                                                                                                                                                                                                                                                     |
 | 🤖🖥️  | `tf_static`                      | <br/> [`tf2_msgs/TFMessage`](https://docs.ros2.org/latest/api/tf2_msgs/msg/TFMessage.html)                                                                                                                                                                                                                                                                                |
 
-### Hidden topics
+#### Hidden topics
 
 |     | Topic            | Description                                                                                                                                                           |
 | --- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -42,7 +70,7 @@ Below is information about the physical robot API. For the simulation, topics an
 | 🤖   | `_battery_2_raw` | Second battery raw state. Published if second battery detected.<br/> [`sensor_msgs/BatteryState`](https://docs.ros2.org/latest/api/sensor_msgs/msg/BatteryState.html) |
 | 🤖🖥️⚙️ | `_odometry/gps`  | Transformed raw GPS data to odometry format.<br/> [`nav_msgs/Odometry`](https://docs.ros2.org/latest/api/nav_msgs/msg/Odometry.html)                                  |
 
-## Services
+### Services
 
 | Service                                           | Description                                                                                                                                                 |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -14,8 +14,6 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 
 ### system_status.launch.py - Nodes
 
-``
-
 | Node name        | *Type*                                        |
 | ---------------- | --------------------------------------------- |
 | `system_monitor` | *[panther_diagnostics/system_status_node](.)* |
