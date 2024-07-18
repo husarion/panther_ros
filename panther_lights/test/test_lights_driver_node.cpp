@@ -38,7 +38,6 @@ public:
   : DriverNode(options)
   {
   }
-  ~DriverNodeWrapper() {}
 
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
@@ -70,7 +69,7 @@ public:
       driver_node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
   }
 
-  ~TestDriverNode() { driver_node_.reset(); }
+  ~TestDriverNode() {}
 
 protected:
   ImageMsg::UniquePtr CreateImageMsg()
