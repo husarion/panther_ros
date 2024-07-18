@@ -7,7 +7,7 @@ repositories:
   husarion_controllers:
     type: git
     url: https://github.com/husarion/husarion_controllers
-    version: 478084b41de91033534f3e5853e63890fc4e4dd6
+    version: 61da6f9723c41b48e23b3a3e4d3b1cf28df1f28a
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
