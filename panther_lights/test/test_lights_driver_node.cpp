@@ -38,13 +38,11 @@ public:
   : DriverNode(options)
   {
   }
+  ~DriverNodeWrapper() {}
 
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
-  bool isInitialised() const
-  {
-    return led_control_status_ == panther_lights::LEDControlStatus::GRANTED;
-  }
+  bool isInitialised() const { return led_control_granted_; }
   rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
   rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
 };
@@ -72,7 +70,7 @@ public:
       driver_node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
   }
 
-  ~TestDriverNode() {}
+  ~TestDriverNode() { driver_node_.reset(); }
 
 protected:
   ImageMsg::UniquePtr CreateImageMsg()
