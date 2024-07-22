@@ -111,7 +111,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   panther_system_ros_interface_ =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
+    std::make_unique<PantherSystemRosInterface>("hardware_controller");
 
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/fan_enable",

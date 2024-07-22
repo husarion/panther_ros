@@ -84,9 +84,9 @@ void SafetyManagerNode::Initialize()
   using namespace std::placeholders;
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
-    "battery", 10, std::bind(&SafetyManagerNode::BatteryCB, this, _1));
+    "battery/battery_status", 10, std::bind(&SafetyManagerNode::BatteryCB, this, _1));
   driver_state_sub_ = this->create_subscription<DriverStateMsg>(
-    "driver/motor_controllers_state", 10, std::bind(&SafetyManagerNode::DriverStateCB, this, _1));
+    "hardware/motor_controllers_state", 10, std::bind(&SafetyManagerNode::DriverStateCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&SafetyManagerNode::EStopCB, this, _1));

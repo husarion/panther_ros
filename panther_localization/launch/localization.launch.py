@@ -78,21 +78,21 @@ def generate_launch_description():
         description="Specify the path to the localization configuration file.",
     )
 
-    ekf_node = Node(
+    ekf_filter_node = Node(
         package="robot_localization",
         executable="ekf_node",
-        name="ekf_node",
+        name="ekf_filter",
         parameters=[localization_config_path, {"tf_prefix": namespace}],
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),
-            ("enable", "~/enable"),
-            ("set_pose", "~/set_pose"),
-            ("toggle", "~/toggle"),
+            ("enable", "localization/enable"),
+            ("set_pose", "localization/set_pose"),
+            ("toggle", "localization/toggle"),
         ],
     )
 
-    navsat_transform = Node(
+    navsat_transform_node = Node(
         package="robot_localization",
         executable="navsat_transform_node",
         name="navsat_transform",
@@ -113,8 +113,8 @@ def generate_launch_description():
         declare_namespace_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),
-        ekf_node,
-        navsat_transform,
+        ekf_filter_node,
+        navsat_transform_node,
     ]
 
     return LaunchDescription(actions)

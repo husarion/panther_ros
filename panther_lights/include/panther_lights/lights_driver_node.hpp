@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_DRIVER_NODE_HPP_
-#define PANTHER_LIGHTS_DRIVER_NODE_HPP_
+#ifndef PANTHER_LIGHTS_LIGHTS_DRIVER_NODE_HPP_
+#define PANTHER_LIGHTS_LIGHTS_DRIVER_NODE_HPP_
 
 #include <memory>
 #include <string>
 
 #include "diagnostic_updater/diagnostic_updater.hpp"
-#include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "sensor_msgs/msg/image.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "panther_msgs/srv/set_led_brightness.hpp"
@@ -41,27 +41,21 @@ using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 class DriverNode : public rclcpp::Node
 {
 public:
-  DriverNode(
-    const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-
-  /**
-   * @brief Initializes the ImageTransport subscribers for to subscribe frames. IMPORTANT: this must
-   * be invoked after the node class is instantiated to establish whole functionality.
-   *
-   * @param it ImageTransport object used to create subscribers for Image topics.
-   */
-  void InitializeSubscribers(const std::shared_ptr<image_transport::ImageTransport> & it);
+  DriverNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
   int num_led_;
   double frame_timeout_;
-  bool led_control_granted_ = false;
+  bool led_control_granted_;
+  bool led_control_pending_;
 
   rclcpp::Time chanel_1_ts_;
   rclcpp::Time chanel_2_ts_;
 
 private:
   void OnShutdown();
+
+  void InitializationTimerCB();
 
   /**
    * @brief Clears all LEDs on both channels.
@@ -92,27 +86,48 @@ private:
    * logging. Valid names are: 'channel_1', 'channel_2'.
    */
   void FrameCB(
-    const ImageMsg::ConstSharedPtr & msg, const apa102::APA102 & panel,
-    const rclcpp::Time & last_time, const std::string & panel_name);
+    const ImageMsg::UniquePtr & msg, const apa102::APA102 & panel, const rclcpp::Time & last_time,
+    const std::string & panel_name);
 
   void SetBrightnessCB(
     const SetLEDBrightnessSrv::Request::SharedPtr & request,
     SetLEDBrightnessSrv::Response::SharedPtr response);
 
+  /**
+   * @brief Logs a warning message to the panel throttle log. Since this is throttle warning, we
+   * need to add panel name condition to log from both panels.
+   *
+   * @param panel_name name of the panel for which the message was received, used for improved
+   * logging. Valid names are: 'channel_1', 'channel_2'.
+   * @param message warning message to log.
+   */
+  void PanelThrottleWarnLog(const std::string panel_name, const std::string message);
+
   void DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status);
+
+  static constexpr unsigned kMaxInitializationAttempts = 3;
+  static constexpr unsigned kServiceResponseTimeout = 3;
+  static constexpr unsigned kWaitForServiceTimeout = 3;
+
+  unsigned initialization_attempt_;
+  rclcpp::Time led_control_call_time_;
 
   apa102::APA102 chanel_1_;
   apa102::APA102 chanel_2_;
 
+  rclcpp::TimerBase::SharedPtr initialization_timer_;
+
   rclcpp::Client<SetBoolSrv>::SharedPtr enable_led_control_client_;
   rclcpp::Service<SetLEDBrightnessSrv>::SharedPtr set_brightness_server_;
 
-  std::shared_ptr<image_transport::Subscriber> chanel_2_sub_;
-  std::shared_ptr<image_transport::Subscriber> chanel_1_sub_;
+  rclcpp::CallbackGroup::SharedPtr client_callback_group_;
+
+  rclcpp::Subscription<ImageMsg>::SharedPtr chanel_1_sub_;
+  rclcpp::Subscription<ImageMsg>::SharedPtr chanel_2_sub_;
 
   diagnostic_updater::Updater diagnostic_updater_;
 };
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_DRIVER_NODE_HPP_
+#endif  // PANTHER_LIGHTS_LIGHTS_DRIVER_NODE_HPP_

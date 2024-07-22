@@ -189,7 +189,7 @@ bool GPIODriver::SetPinValue(const GPIOPin pin, const bool value)
 
     return true;
   } catch (const std::exception & e) {
-    std::cerr << "An exception ocurred while setting GPIO pin value: " << e.what() << std::endl;
+    std::cerr << "An exception occurred while setting GPIO pin value: " << e.what() << std::endl;
     return false;
   }
 }
@@ -251,7 +251,7 @@ void GPIODriver::HandleEdgeEvent(const gpiod::edge_event & event)
   try {
     pin = GetPinFromOffset(event.line_offset());
   } catch (const std::out_of_range & e) {
-    std::cerr << "An exception ocurred while handling edge event: " << e.what() << std::endl;
+    std::cerr << "An exception occurred while handling edge event: " << e.what() << std::endl;
     return;
   }
 

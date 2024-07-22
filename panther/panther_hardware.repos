@@ -3,11 +3,10 @@ repositories:
     type: git
     url: https://github.com/BehaviorTree/BehaviorTree.ROS2
     version: a0de087a2f3af5ec5a19edd622aa85506105afcd
-  # Fix mecanum namespaces
   husarion_controllers:
     type: git
     url: https://github.com/husarion/husarion_controllers
-    version: 61da6f9723c41b48e23b3a3e4d3b1cf28df1f28a
+    version: d184d9b5936ec3f51084b70dc7d3825fa5ecaee0
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/controller_node.hpp"
+#include "panther_lights/lights_controller_node.hpp"
 
 #include <chrono>
 #include <cstdint>
@@ -40,8 +40,8 @@
 namespace panther_lights
 {
 
-ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options)
+ControllerNode::ControllerNode(const rclcpp::NodeOptions & options)
+: Node("lights_controller", options)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
@@ -71,7 +71,7 @@ ControllerNode::ControllerNode(const std::string & node_name, const rclcpp::Node
   animations_queue_ = std::make_shared<LEDAnimationsQueue>(10);
 
   set_led_animation_server_ = this->create_service<SetLEDAnimationSrv>(
-    "lights/controller/set/animation", std::bind(&ControllerNode::SetLEDAnimationCB, this, _1, _2));
+    "lights/set_animation", std::bind(&ControllerNode::SetLEDAnimationCB, this, _1, _2));
 
   controller_timer_ = this->create_wall_timer(
     std::chrono::microseconds(static_cast<std::uint64_t>(1e6 / controller_freq)),
@@ -96,8 +96,8 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
     }
 
     const auto pub_result = panel_publishers_.emplace(
-      channel, this->create_publisher<ImageMsg>(
-                 "lights/driver/channel_" + std::to_string(channel) + "_frame", 10));
+      channel,
+      this->create_publisher<ImageMsg>("lights/channel_" + std::to_string(channel) + "_frame", 10));
     if (!pub_result.second) {
       throw std::runtime_error(
         "Multiple panel publishers for channel nr '" + std::to_string(channel) + "' found.");
@@ -369,3 +369,6 @@ void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_a
 }
 
 }  // namespace panther_lights
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::ControllerNode)
