@@ -32,10 +32,10 @@ The package contains the default configuration and launch files necessary to sta
 ## ROS Nodes
 
 - `ros2_control_node`: Controller Manager performs two main functions. First, it manages controllers and their required interfaces, handling tasks like loading, activating, deactivating, and unloading. Second, it interacts with hardware components, ensuring access to their interfaces. For more information, refer to  [controller_manager](https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html). This node manages the following controllers:
-  - `imu_broadcaster`: The broadcaster to publish readings of IMU sensors.
-  - `joint_state_broadcaster`: The broadcaster reads all state interfaces and reports them on specific topics.
-  - `drive_controller`: Controller which manages mobile robots with a differential drive. It converts velocity commands for the robot body into wheel commands for the base. It also calculates odometry from hardware feedback and shares it.
-- `robot_state_publisher`: The Robot State Publisher broadcasts a robot's state to tf2 using a provided URDF model and joint states. It updates the model and broadcasts poses for fixed and movable joints to tf2 topics.
+  - `imu_broadcaster` publishes readings of IMU sensors.
+  - `joint_state_broadcaster` reads all state interfaces and reports them on specific topics.
+  - `drive_controller` manages mobile robots with a differential drive. It converts velocity commands for the robot body into wheel commands for the base. It also calculates odometry from hardware feedback and shares it.
+- `robot_state_publisher` broadcasts a robot's state to tf2 using a provided URDF model and joint states. It updates the model and broadcasts poses for fixed and movable joints to tf2 topics.
 
 ### imu_broadcaster
 
