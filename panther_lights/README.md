@@ -4,7 +4,7 @@ Package used to control the Husarion Panther Bumper Lights. The following animat
 
 ## ROS Nodes
 
-### driver_node
+### lights_driver_node
 
 This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
 
@@ -31,7 +31,7 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. The range between **[0.0, 1.0]**.
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single bumper.
 
-### controller_node
+### lights_controller_node
 
 This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
 

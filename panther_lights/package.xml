@@ -23,6 +23,7 @@
   <depend>panther_utils</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
 

@@ -26,16 +26,13 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_lights/controller_node.hpp"
+#include "panther_lights/lights_controller_node.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 class ControllerNodeWrapper : public panther_lights::ControllerNode
 {
 public:
-  ControllerNodeWrapper(const std::string & node_name, const rclcpp::NodeOptions & options)
-  : ControllerNode(node_name, options)
-  {
-  }
+  ControllerNodeWrapper(const rclcpp::NodeOptions & options) : ControllerNode(options) {}
 
   void InitializeLEDPanels(const YAML::Node & panels_description)
   {
@@ -99,7 +96,7 @@ TestControllerNode::TestControllerNode()
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
 
-  controller_node_ = std::make_shared<ControllerNodeWrapper>("controller_node", options);
+  controller_node_ = std::make_shared<ControllerNodeWrapper>(options);
 
   set_led_anim_client_ =
     controller_node_->create_client<panther_msgs::srv::SetLEDAnimation>("lights/set_animation");
