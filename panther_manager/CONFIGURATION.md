@@ -1,4 +1,3 @@
-
 # panther_manager
 
 ## Shutdown Behavior

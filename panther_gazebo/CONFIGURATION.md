@@ -1,4 +1,3 @@
-
 # panther_gazebo
 
 ## Use of GPS in Simulation
