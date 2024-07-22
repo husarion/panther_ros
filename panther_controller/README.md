@@ -66,9 +66,3 @@ The package contains the default configuration and launch files necessary to sta
 #### Publishers
 
 - `/robot_description` [*std_msgs/msg/String*]: contains information about robot description from URDF file.
-
-## Configuration
-
-### Changing Wheel Type
-
-It is possible to change Panther wheels model in simulation. All you need to do is to point to new wheel and controller configuration files using `wheel_config_path` and `controller_config_path` parameters. These files should be based on the default ones, i.e., [WH01_controller.yaml](./config/WH01_controller.yaml) and [WH01.yaml](../panther_description/config/WH01.yaml).
