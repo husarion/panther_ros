@@ -68,84 +68,12 @@ ros2 launch panther_gazebo simulation.launch.py
 
 ### Launch Arguments
 
+Launch arguments are largely common to both simulation and physical robot. However, there is a group of arguments that apply only to hardware or only to the simulator. Below is a legend to the tables with all launch arguments.
+
 | Symbol | Meaning                      |
 | ------ | ---------------------------- |
 | 🤖      | Available for physical robot |
 | 🖥️      | Available in simulated robot |
-
-    'battery_config_path':
-        Path to the Ignition LinearBatteryPlugin configuration file. This configuration is intended for use in simulations only.
-        (default: LocalVar('FindPackageShare(pkg='panther_gazebo') + 'config' + 'battery_plugin_config.yaml''))
-
-    'components_config_path':
-        Additional components configuration file. Components described in this file are dynamically included in Panther's urdf.Panther options are described here https://husarion.com/manuals/panther/panther-options/
-        (default: LocalVar('FindPackageShare(pkg='panther_description') + 'config' + 'components.yaml''))
-
-    'gz_bridge_config_path':
-        Path to the parameter_bridge configuration file.
-        (default: LocalVar('FindPackageShare(pkg='panther_gazebo') + 'config' + 'gz_bridge.yaml''))
-
-    'namespace':
-        Add namespace to all launched nodes.
-        (default: EnvVar('ROBOT_NAMESPACE'))
-
-    'use_ekf':
-        Enable or disable EKF. Valid choices are: ['True', 'False']
-        (default: 'True')
-
-    'wheel_type':
-        Type of wheel. If you choose a value from the preset options ('WH01', 'WH02', 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path' parameters. For custom wheels, please define these parameters to point to files that accurately describe the custom wheels. Valid choices are: ['WH01', 'WH02', 'WH04', 'custom']
-        (default: 'WH01')
-
-    'controller_config_path':
-        Path to controller configuration file. By default, it is located in 'panther_controller/config/{wheel_type}_controller.yaml'. You can also specify the path to your custom controller configuration file here.
-        (default: LocalVar('FindPackageShare(pkg='panther_controller') + 'config' + PythonExpr(''' + LaunchConfig('wheel_type') + '_controller.yaml'')'))
-
-    'use_sim':
-        Whether simulation is used. Valid choices are: ['True', 'False']
-        (default: 'False')
-
-    'wheel_config_path':
-        Path to wheel configuration file. By default, it is located in 'panther_description/config/{wheel_type}.yaml'. You can also specify the path to your custom wheel configuration file here.
-        (default: LocalVar('FindPackageShare(pkg='panther_description') + 'config' + PythonExpr(''' + LaunchConfig('wheel_type') + '.yaml'')'))
-
-    'led_config_file':
-        Path to a YAML file with a description of led configuration.
-        (default: LocalVar('FindPackageShare(pkg='panther_lights') + 'config' + 'led_config.yaml''))
-
-    'user_led_animations_file':
-        Path to a YAML file with a description of the user defined animations.
-        (default: '')
-
-    'lights_bt_project_path':
-        Path to BehaviorTree project file, responsible for lights management.
-        (default: LocalVar('FindPackageShare(pkg='panther_manager') + 'behavior_trees' + 'PantherLightsBT.btproj''))
-
-    'safety_bt_project_path':*
-        Path to BehaviorTree project file, responsible for safety and shutdown management.
-        (default: LocalVar('FindPackageShare(pkg='panther_manager') + 'behavior_trees' + 'PantherSafetyBT.btproj''))
-
-    'shutdown_hosts_config_path':
-        Path to file with list of hosts to request shutdown.
-        (default: LocalVar('FindPackageShare(pkg='panther_manager') + 'config' + 'shutdown_hosts.yaml''))
-
-    'publish_robot_state':
-        Whether to launch the robot_state_publisher node.When set to False, users should publish their own robot description. Valid choices are: ['True', 'False']
-        (default: 'True')
-
-    'fuse_gps':
-        Include GPS for data fusion. Valid choices are: ['False', 'True']
-        (default: 'False')
-
-    'localization_mode':
-        Specifies the localization mode:
-        - 'relative' odometry/filtered data is relative to the initial position and orientation.
-        - 'enu' odometry/filtered data is relative to initial position and ENU (East North Up) orientation. Valid choices are: ['relative', 'enu']
-        (default: 'relative')
-
-    'localization_config_path':
-        Specify the path to the localization configuration file.
-        (default: LocalVar('FindPackageShare(pkg='panther_localization') + 'config' + PythonExpr(''' + PythonExpr(''' + LaunchConfig('localization_mode') + '_'') + 'localization' + PythonExpr(''_with_gps' if ' + LaunchConfig('fuse_gps') + ' else ''') + '.yaml'')'))
 
 |     | Argument                     | Description <br/> ***Type:*** `Default`                                                                                                                                                                                                                                                                                                                        |
 | --- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -184,7 +112,7 @@ ros2 launch panther_gazebo simulation.launch.py
 
 > [!TIP]
 >
-> Others packages also contains
+> To read the arguments for individual packages, add the `-s` flag to the `ros2 launch` command (e.g. `ros2 launch panther_bringup bringup.launch.py ​​-s`)
 
 ## Developer Info
 
