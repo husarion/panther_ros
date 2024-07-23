@@ -53,9 +53,9 @@ public:
 
   void InitializeMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & mag_compensated,
-    const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s)
+    const geometry_msgs::msg::Vector3 & lin_acc, const rclcpp::Time timestamp)
   {
-    PantherImuSensor::InitializeMadgwickAlgorithm(mag_compensated, lin_acc, timestamp_s);
+    PantherImuSensor::InitializeMadgwickAlgorithm(mag_compensated, lin_acc, timestamp);
   }
 
   void SpatialDataCallback(
