@@ -6,17 +6,7 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 This package contains:
 
-- [`manager_bt.launch.py`](#manager_btlaunchpy---arguments) - is responsible for activating whole robot system.
-
-### manager_bt.launch.py - Arguments
-
-| Argument                     | Description <br/> ***Type:*** `Default`                                                                                                                                                                    |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lights_bt_project_path`     | Path to BehaviorTree project file, responsible for lights management. <br/> ***string:*** `LocalVar('FindPackageShare(pkg='panther_manager') + 'behavior_trees' + 'PantherLightsBT.btproj'')`              |
-| `safety_bt_project_path`*    | Path to BehaviorTree project file, responsible for safety and shutdown management. <br/> ***string:*** `LocalVar('FindPackageShare(pkg='panther_manager') + 'behavior_trees' + 'PantherSafetyBT.btproj'')` |
-| `namespace`                  | Add namespace to all launched nodes. <br/> ***string:*** `EnvVar('ROBOT_NAMESPACE')`                                                                                                                       |
-| `shutdown_hosts_config_path` | Path to file with list of hosts to request shutdown. <br/> ***string:*** `LocalVar('FindPackageShare(pkg='panther_manager') + 'config' + 'shutdown_hosts.yaml'')`                                          |
-| `use_sim`                    | Whether simulation is used. <br/> ***boolean:*** `'False'`                                                                                                                                                 |
+- `manager_bt.launch.py` - is responsible for activating whole robot system.
 
 ### manager_bt.launch.py - Nodes
 

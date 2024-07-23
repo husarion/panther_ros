@@ -4,20 +4,7 @@ The package contains the default configuration and launch files necessary to sta
 
 ## Launch Files
 
-- [`controller.launch.py`](#controllerlaunchpy---arguments) - establishes communication with the hardware by loading the robot's URDF with plugins and configures the controllers to exchange information between the engine driver and the IMU.
-
-### controller.launch.py - Arguments
-
-| Argument                 | Description <br/> ***Type:*** `Default`                                                                                                                                                                                                                                                                                                                        |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `battery_config_path`    | Path to the Ignition LinearBatteryPlugin configuration file. This configuration is intended for use in simulations only. <br/> ***string:*** `''`                                                                                                                                                                                                              |
-| `components_config_path` | Additional components configuration file. Components described in this file are dynamically included in Panther's urdf. Panther options are described [here](https://husarion.com/manuals/panther/panther-options/). <br/> ***string:*** [`components.yaml`](../panther_description/config/components.yaml)                                                    |
-| `controller_config_path` | Path to controller configuration file. <br/> ***string:*** [`{wheel_type}_controller.yaml`](../panther_controller/config/)                                                     |
-| `namespace`              | Add namespace to all launched nodes. <br/> ***string:*** `env(ROBOT_NAMESPACE)`                                                                                                                                                                                                                                                                                |
-| `publish_robot_state`    | Whether to publish the default Panther robot description.  <br/>  ***bool:*** `True` (choices: `True`, `False`)                                                                                                                                                                                                                                                |
-| `use_sim`                | Whether simulation is used.  <br/>  ***bool:*** `False` (choices: `True`, `False`)                                                                                                                                                                                                                                                                             |
-| `wheel_config_path`      | Path to wheel configuration file.   <br/>  ***string:*** [`{wheel_type}.yaml`](../panther_description/config)                                                                                   |
-| `wheel_type`             | Type of wheel. If you choose a value from the preset options ('WH01', 'WH02', 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path' parameters. For custom wheels, please define these parameters to point to files that accurately describe the custom wheels. <br/>  ***string:*** `WH01` (choices: `WH01`, `WH02`, `WH04`, `custom`) |
+- `controller.launch.py` - establishes communication with the hardware by loading the robot's URDF with plugins and configures the controllers to exchange information between the engine driver and the IMU.
 
 ### controller.launch.py - Nodes
 
@@ -28,6 +15,12 @@ The package contains the default configuration and launch files necessary to sta
 | `joint_state_broadcaster` | *[joint_state_broadcaster/joint_state_broadcaster](https://github.com/ros-controls/ros2_controllers/tree/master/joint_state_broadcaster)* |
 | `drive_controller`        | *[diff_drive_controller/diff_drive_controller](https://github.com/ros-controls/ros2_controllers/tree/master/diff_drive_controller)*       |
 | `robot_state_publisher`   | *[robot_state_publisher/robot_state_publisher](https://github.com/ros/robot_state_publisher)*                                             |
+
+## Configuration Files
+
+- [`WH01_controller.yaml`](./config/WH01_controller.yaml) - contains the default controller configuration for WH01 wheels
+- [`WH02_controller.yaml`](./config/WH02_controller.yaml) - contains the controller configuration for mecanum WH02 wheels
+- [`WH04_controller.yaml`](./config/WH04_controller.yaml) - contains an example controller configuration for custom WH04 wheels
 
 ## ROS Nodes
 

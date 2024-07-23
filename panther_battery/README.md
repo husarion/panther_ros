@@ -6,17 +6,11 @@ The package containing nodes monitoring and publishing the internal battery stat
 
 This package contains:
 
-- [`battery.launch.py`](#batterylaunchpy---arguments) - is responsible for activating battery node, which dealing with reading and publishing battery data.
-
-### battery.launch.py - Arguments
-
-| Argument    | Description <br/> ***Type:*** `Default`                                         |
-| ----------- | ------------------------------------------------------------------------------- |
-| `namespace` | Add namespace to all launched nodes. <br/> ***string:*** `env(ROBOT_NAMESPACE)` |
+- `battery.launch.py` - is responsible for activating battery node, which dealing with reading and publishing battery data.
 
 ### battery.launch.py - Nodes
 
-| Node name            | *Type*                             |
+| Node name        | *Type*                             |
 | ---------------- | ---------------------------------- |
 | `battery_driver` | [*panther_batter/battery_node*](.) |
 

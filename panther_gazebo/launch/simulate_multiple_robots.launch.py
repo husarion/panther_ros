@@ -37,6 +37,7 @@ def generate_launch_description():
             "Adds a world frame that connects the tf trees of individual robots (useful when running"
             " multiple robots)."
         ),
+        choices=["True", "False"],
     )
 
     declare_robots_arg = DeclareLaunchArgument(

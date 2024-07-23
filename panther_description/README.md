@@ -6,19 +6,6 @@ The package contains URDF files responsible for creating a representation of the
 
 - `load_urdf.launch.py` - loads the robot's URDF and creates simple bindings to display moving joints.
 
-### load_urdf.launch.py - Arguments
-
-| Argument                 | Description <br/> ***Type:*** `Default`                                                                                                                                                                                                                                                                                                                        |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `add_wheel_joints`       | Flag enabling joint_state_publisher to publish information about the wheel position. Should be false when there is a controller that sends this information. <br/> ***bool:*** `True` (choices: `True`, `False`)                                                                                                                                               |
-| `battery_config_path`    | Path to the Ignition LinearBatteryPlugin configuration file. This configuration is intended for use in simulations only. <br/>  ***string:*** `''`                                                                                                                                                                                                             |
-| `components_config_path` | Additional components configuration file. Components described in this file are dynamically included in Panther's urdf. Panther options are described in [the manual](https://husarion.com/manuals/panther/panther-options).  <br/>  ***string:*** [`components.yaml`](../panther_description/config/components.yaml)                                          |
-| `controller_config_path` | Path to controller configuration file. A path to custom configuration can be specified here. <br/>  ***string:*** [`{wheel_type}_controller.yaml`](../panther_controller/config/)                                                                                                                                                                          |
-| `namespace`              | Add namespace to all launched nodes. <br/>  ***string:*** `env(ROBOT_NAMESPACE)`                                                                                                                                                                                                                                                                               |
-| `use_sim`                | Whether simulation is used.  <br/>  ***bool:*** `False` (choices: `True`, `False`)                                                                                                                                                                                                                                                                             |
-| `wheel_config_path`      | Path to wheel configuration file.   <br/>  ***string:*** [`{wheel_type}.yaml`](../panther_description/config)                                                                                   |
-| `wheel_type`             | Type of wheel. If you choose a value from the preset options ('WH01', 'WH02', 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path' parameters. For custom wheels, please define these parameters to point to files that accurately describe the custom wheels. <br/>  ***string:*** `WH01` (choices: `WH01`, `WH02`, `WH04`, `custom`) |
-
 ### load_urdf.launch.py - Nodes
 
 | Node name               | *Type*                                                                                        |
@@ -28,4 +15,17 @@ The package contains URDF files responsible for creating a representation of the
 
 ## ROS Nodes
 
-This package only runs external nodes. If you want to learn how to configure individual nodes, please check the appropriate package.
+- `joint_state_publisher` this node will continually publish values for all of the movable joints in the URDF to the `/joint_states` topic. In combination with robot_state_publisher, this ensures that there is a valid transform for all joints even when the joint doesn't have encoder data.
+- `robot_state_publisher` broadcasts a robot's state to tf2 using a provided URDF model and joint states. It updates the model and broadcasts poses for fixed and movable joints to tf2 topics.
+
+### joint_state_publisher
+
+#### Publishers
+
+- `/joint_states` [*std_msgs/msg/String*]: contains information about robot description from URDF file.
+
+### robot_state_publisher
+
+#### Publishers
+
+- `/robot_description` [*std_msgs/msg/String*]: contains information about robot description from URDF file.

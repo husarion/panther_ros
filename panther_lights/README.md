@@ -2,6 +2,18 @@
 
 Package used to control the Husarion Panther Bumper Lights. The following animations are configured by default:
 
+## Launch files
+
+This package contains:
+
+- `lights.launch.py` - is responsible for activating EKF filtration along with the necessary dependencies needed to operate GPS
+
+### lights.launch.py - Nodes
+
+| Node name          | *Type*                |
+| ------------------ | --------------------- |
+| `lights_container` | *[panther_lights](.)* |
+
 ## ROS Nodes
 
 ### lights_driver_node
