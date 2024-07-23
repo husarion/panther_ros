@@ -21,7 +21,7 @@ hosts:
 ```
 
 To set up a connection with a new User Computer and allow execution of commands, login to the Built-in Computer with `ssh husarion@10.15.20.2`.
-Add Built-in Computer's public key to **known_hosts** of a computer you want to shutdown automatically:
+Add Built-in Computer's public key to **known_hosts** of a computer you want to shut down automatically:
 
 ``` bash
 ssh-copy-id username@10.15.20.XX
@@ -75,9 +75,9 @@ For a BehaviorTree project to work correctly, it must contain a tree with correc
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
 - `CallTriggerService` - allows calling the standard **std_srvs/Trigger** ROS service. The provided ports are:
   - `service_name` [*input*, *string*, default: **None**]: ROS service name.
-- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and the shutdown of all defined hosts was successful. Nodes are processed in a semi-parallel fashion. Every tick of the tree updates the state of a host. This allows some hosts to wait for a SSH response, while others are already pinged and awaiting a full shutdown. If a host is shutdown it is no longer processed. In the case of a long timeout is used for a given host, other hosts will be processed simultaneously. The provided ports are:
+- `ShutdownHostsFromFile` - allows to shutdown devices based on a YAML file. Returns `SUCCESS` only when a YAML file is valid and the shutdown of all defined hosts was successful. Nodes are processed in a semi-parallel fashion. Every tick of the tree updates the state of a host. This allows some hosts to wait for a SSH response, while others are already pinged and awaiting a full shutdown. If a host is shutdown, it is no longer processed. In the case of a long timeout is used for a given host, other hosts will be processed simultaneously. The provided ports are:
   - `shutdown_host_file` [*input*, *string*, default: **None**]: global path to YAML file with hosts to shutdown.
-- `ShutdownSingleHost` - allows to shutdown a single device. Will return `SUCCESS` only when the device has been successfully shutdown. The provided ports are:
+- `ShutdownSingleHost` - allows to shut down a single device. Will return `SUCCESS` only when the device has been successfully shutdown. The provided ports are:
   - `command` [*input*, *string*, default: **sudo shutdown now**]: command to execute on shutdown.
   - `ip` [*input*, *string*, default: **None**]: IP of the host to shutdown.
   - `ping_for_success` [*input*, *bool*, default: **true**]: ping host until it is not available or timeout is reached.
@@ -100,7 +100,7 @@ A tree responsible for scheduling animations displayed on the Bumper Lights base
 
 <!-- TODO: Update tree image (remove timeouts from leafs) -->
 <p align="center">
-  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/lights_tree.svg"/>
+  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/lights_tree.svg" alt="Lights Behavior Tree"/>
 </p>
 
 Default blackboard entries:
@@ -141,7 +141,7 @@ A tree responsible for monitoring the Panther robot's state and handling safety 
 
 <!-- TODO: Update tree image (remove timeouts from leafs) -->
 <p align="center">
-  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/safety_tree.svg"/>
+  <img align="center" src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/safety_tree.svg" alt="Safety Behavior Tree"/>
 </p>
 
 Default blackboard entries:
@@ -177,7 +177,7 @@ A tree responsible for the graceful shutdown of robot components, user computers
 
 <!-- TODO: Update tree image (remove timeouts from leafs) -->
 <p align="center">
-  <img src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/shutdown_tree.svg"/>
+  <img src="https://github-readme-figures.s3.eu-central-1.amazonaws.com/panther/panther_ros/shutdown_tree.svg" alt="Shutdown Behavior Tree"/>
 </p>
 
 Default constant blackboard entries:

@@ -14,7 +14,7 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 
 | Node name        | Description <br/> *Type*                                                                                                                                               |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `system_monitor` | Publishes system state of the Built-in Computer such as CPU usage, RAM memory usage, disk usage and  CPU temperature. <br/> *[panther_diagnostic/system_status_node](.)* |
+| `system_monitor` | Publishes system state of the Built-in Computer such as CPU usage, RAM usage, disk usage and  CPU temperature. <br/> *[panther_diagnostic/system_status_node](.)* |
 
 ### system_status_node
 
