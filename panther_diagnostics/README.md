@@ -4,19 +4,19 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 
 ## Launch Files
 
-`system_status.launch.py` - launch a node that analyzes the state of the most important components in the robot
+- `system_status.launch.py` - launch a node that analyzes the state of the most important components in the robot
 
-### system_status.launch.py - Nodes
+## Configuration Files
 
-| Node name        | *Type*                                        |
-| ---------------- | --------------------------------------------- |
-| `system_monitor` | *[panther_diagnostics/system_status_node](.)* |
+- [`system_status_parameters.yaml`](./config/system_status_parameters.yaml): defines parameters for `system_status_node`.
 
 ## ROS Nodes
 
-### system_status_node
+| Node name        | Description <br/> *Type*                                                                                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `system_monitor` | Publishes system state of the Built-in Computer such as CPU usage, RAM memory usage, disk usage and  CPU temperature. <br/> *[panther_diagnostic/system_status_node](.)* |
 
-Publishes system state of the Built-in Computer such as CPU usage, RAM memory usage, disk usage and  CPU temperature.
+### system_status_node
 
 #### Publishes
 

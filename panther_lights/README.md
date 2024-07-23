@@ -8,17 +8,20 @@ This package contains:
 
 - `lights.launch.py` - is responsible for activating EKF filtration along with the necessary dependencies needed to operate GPS
 
-### lights.launch.py - Nodes
+## Configuration Files
 
-| Node name          | *Type*                |
-| ------------------ | --------------------- |
-| `lights_container` | *[panther_lights](.)* |
+- [`led_config.yaml`](./config/led_config.yaml): describe the appearance and parameters of the animation
 
 ## ROS Nodes
 
-### lights_driver_node
+| Node name           | Description <br/> *Type*                                                                                                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lights_container`  | Node for dynamically loadable components such as plugins <br/> *[rclcpp_components/component_container](https://github.com/ros2/rclcpp/tree/rolling/rclcpp_components)*                          |
+| `lights_controller` | This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights. <br/> *[panther_lights/ControllerNode](./panther_lights)* |
+| `lights_driver`     | This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights. <br/> *[panther_lights/DriverNode](./panther_lights)*                                             |
+| `lights_manager`    | Node responsible for managing Bumper Lights animation scheduling. <br/> *[panther_manager/lights_manager_node](../panther_manager/)*                                                            |
 
-This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
+### lights_driver
 
 #### Publishers
 
@@ -44,8 +47,6 @@ This node is responsible for displaying frames on the Husarion Panther robot's B
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single bumper.
 
 ### lights_controller_node
-
-This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
 
 #### Publishers
 

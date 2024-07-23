@@ -8,13 +8,6 @@ This package contains:
 
 - `localization.launch.py` - is responsible for activating EKF filtration along with the necessary dependencies needed to operate GPS
 
-### localization.launch.py - Nodes
-
-| Node name          | *Type*                                                                                          |
-| ------------------ | ----------------------------------------------------------------------------------------------- |
-| `ekf_filter`       | *[robot_localization/ekf_filter]([.](https://github.com/cra-ros-pkg/robot_localization))*       |
-| `navsat_transform` | *[robot_localization/navsat_transform]([.](https://github.com/cra-ros-pkg/robot_localization))* |
-
 ## Configuration Files
 
 - [`enu_localization.yaml`](./config/enu_localization.yaml): configures data fusion for `ekf_filter` and `navsat_transform` nodes, using **wheel encoders** and **IMU**. Orientation follows East-North-Up (ENU) coordinates.
@@ -24,8 +17,10 @@ This package contains:
 
 ## ROS Nodes
 
-- `ekf_filter`: The Extended Kalman Filter node is designed to fuse odometry data from various sources, including wheel encoders, IMU, and GPS.
-- `navsat_transform`: It converts raw GPS data into odometry data and publishes corrected GPS positions based on sensor data at a higher frequency.
+| Node name          | Description <br/> *Type*                                                                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ekf_filter`       | The Extended Kalman Filter node is designed to fuse odometry data from various sources, including wheel encoders, IMU, and GPS. <br/> *[robot_localization/ekf_filter](https://github.com/cra-ros-pkg/robot_localization)*     |
+| `navsat_transform` | It converts raw GPS data into odometry data and publishes corrected GPS positions based on sensor data at a higher frequency. <br/> *[robot_localization/navsat_transform](https://github.com/cra-ros-pkg/robot_localization)* |
 
 ### ekf_filter
 
@@ -46,11 +41,10 @@ This package contains:
 #### Service Servers
 
 - `localization/set_pose` [*robot_localization/srv/SetPose*]: upon request, users can manually set the robot's position and speed. This is useful for resetting positions, e.g. during tests.
-- `odometry/filtered/global`[*nav_msgs/msg/Odometry*]: contains information about the position and velocities in relation to the initial position and orientation based on geographic  ENU convention (x-east, y-north, z-up). [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
 
 #### Parameters
 
-A detailed explanation of the parameters described there can be found in the robot localization package documentation for the [state_estimation_nodes](http://docs.ros.org/en/noetic/api/robot_localization/html/state_estimation_nodes.html).
+A detailed explanation of the parameters can be found in the robot localization package documentation for [state_estimation_nodes](http://docs.ros.org/en/api/robot_localization/html/state_estimation_nodes.html).
 
 ### navsat_transform
 
@@ -66,4 +60,4 @@ A detailed explanation of the parameters described there can be found in the rob
 
 #### Parameters
 
-A detailed explanation of the parameters described there can be found in the robot localization package documentation for the [state_estimation_nodes](http://docs.ros.org/en/noetic/api/robot_localization/html/state_estimation_nodes.html).
+A detailed explanation of the parameters can be found in the robot localization package documentation for [navsat_transform_node](http://docs.ros.org/en/api/robot_localization/html/navsat_transform_node.html).

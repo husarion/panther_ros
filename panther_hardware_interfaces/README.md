@@ -4,11 +4,14 @@ Package that implements SystemInterface from ros2_control for Panther.
 
 ## ROS Nodes
 
-### PantherSystem
+This package contains plugins that are loaded by the resource manager. To use this hardware interface, add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)).
 
-This package doesn't contain any standalone nodes - `PantherSystem` is a plugin loaded by the resource manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)) and add a controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2/panther_controller/) package).
-That said apart from the usual interface provided by the ros2_control, this plugin also provides additional published topics and services specific for Panther.
+| Node name          | Description <br/> *Type*                                                                                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PantherSystem`    | Plugin responsible for communicating with engine controllers via the CAN bus and providing E-Stop functionalities. <br/> *[`panther_hardware_interfaces/PantherSystem`](.)* |
+| `PantherImuSensor` | Plugin responsible for communicating with IMU and filtering data using Madgwick Filter. <br/> *[`panther_hardware_interfaces/PantherImuSensor`](.)*                         |
+
+### PantherSystem
 
 #### Publishers
 
@@ -60,9 +63,6 @@ CAN settings
 > `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
 
 ### PantherImuSensor
-
-This package doesn't contain any standalone nodes - `PantherImuSensor` is a plugin loaded by the resource manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)) and add an `imu_sensor_broadcaster` controller (example configuration provided in [panther_controller](https://github.com/husarion/panther_ros/tree/ros2/panther_controller/) package).
 
 #### Parameters
 

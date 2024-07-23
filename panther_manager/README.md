@@ -8,18 +8,25 @@ This package contains:
 
 - `manager_bt.launch.py` - is responsible for activating whole robot system.
 
-### manager_bt.launch.py - Nodes
+### Configuration Files
 
-| Node name        | *Type*                                     |
-| ---------------- | ------------------------------------------ |
-| `lights_manager` | [*panther_manager/battery_node*](.)        |
-| `safety_manager` | [*panther_manager/safety_manager_node*](.) |
+- [`lights.xml`](./behavior_trees/lights.xml): BehaviorTree for managing lights.
+- [`PantherLightsBT.btproj`](./behavior_trees/PantherLightsBT.btproj): BehaviorTree project for managing Panther lights.
+- [`PantherSafetyBT.btproj`](./behavior_trees/PantherSafetyBT.btproj): BehaviorTree project for managing Panther safety protocols.
+- [`safety.xml`](./behavior_trees/safety.xml): BehaviorTree for monitoring and managing dangerous situations.
+- [`shutdown.xml`](./behavior_trees/shutdown.xml): BehaviorTree for initiating shutdown procedures.
+- [`lights_manager_config.yaml`](./config/lights_manager_config.yaml): Contains parameters for the `lights_manager` node.
+- [`safety_manager_config.yaml`](./config/safety_manager_config.yaml): Contains parameters for the `safety_manager` node.
+- [`shutdown_hosts.yaml`](./config/shutdown_hosts.yaml): Lists all hosts to request shutdown.
 
 ## ROS Nodes
 
-### lights_manager
+| Node name        | Description <br/> *Type*                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `lights_manager` | Node responsible for managing Bumper Lights animation scheduling. <br/> [*panther_manager/lights_manager_node*](.)                          |
+| `safety_manager` | Node responsible for managing safety features, and software shutdown of components. <br/> [*panther_manager/safety_manager_node*](.) |
 
-Node responsible for managing Bumper Lights animation scheduling.
+### lights_manager
 
 #### Subscribers
 
@@ -44,8 +51,6 @@ Node responsible for managing Bumper Lights animation scheduling.
 - `timer_frequency` [*float*, default: **10.0**]: frequency **[Hz]** at which lights tree will be ticked.
 
 ### safety_manager
-
-Node responsible for managing safety features, and software shutdown of components.
 
 #### Subscribers
 
