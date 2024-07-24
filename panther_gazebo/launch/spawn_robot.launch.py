@@ -82,6 +82,7 @@ def generate_launch_description():
         launch_arguments={
             "add_wheel_joints": add_wheel_joints,
             "namespace": namespace,
+            "panther_version": "1.23",
             "use_sim": "True",
         }.items(),
     )

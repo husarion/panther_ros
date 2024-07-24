@@ -8,20 +8,18 @@
             controller_config_file
             battery_config_file
             use_sim:=false
-            imu_pos_x:=0.168
-            imu_pos_y:=0.028
-            imu_pos_z:=0.083
-            imu_rot_r:=3.14
-            imu_rot_p:=-1.57
-            imu_rot_y:=0.0
             namespace:=''">
 
-    <xacro:if value="${namespace == ''}">
-      <xacro:property name="ns" value="" />
+    <xacro:if value="${float(panther_version) >= 1.0}" >
+      <xacro:property name="imu_xyz" value="0.168 0.028 0.083" lazy_eval="false"/>
+      <xacro:property name="imu_rpy" value="3.14 -1.57 0.0" lazy_eval="false"/>
     </xacro:if>
-    <xacro:unless value="${namespace == ''}">
-        <xacro:property name="ns" value="${namespace}/" />
-    </xacro:unless>
+    <xacro:if value="${float(panther_version) > 1.06}">
+      <xacro:property name="imu_xyz" value="-0.195 0.010 0.085" />
+      <xacro:property name="imu_rpy" value="0.000 -0.000 3.142" />
+    </xacro:if>
+
+    <xacro:property name="ns" value='${namespace + "/" if namespace else ""}' />
 
     <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
     <xacro:property name="wheel_separation_x" value="0.44" />
@@ -34,12 +32,8 @@
     <!-- BODY DECLARATION -->
     <xacro:body.body
       wheel_radius="${wheel_config['wheel_radius']}"
-      imu_pos_x="${imu_pos_x}"
-      imu_pos_y="${imu_pos_y}"
-      imu_pos_z="${imu_pos_z}"
-      imu_rot_r="${imu_rot_r}"
-      imu_rot_p="${imu_rot_p}"
-      imu_rot_y="${imu_rot_y}" />
+      imu_xyz="${imu_xyz}"
+      imu_rpy="${imu_rpy}" />
 
     <!-- WHEEL DECLARATION -->
     <xacro:wheel.wheel
