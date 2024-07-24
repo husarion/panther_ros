@@ -121,7 +121,8 @@ panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
   panther_msgs::msg::SystemStatus message;
 
   message.header.stamp = this->get_clock()->now();
-  message.header.frame_id = panther_utils::ros::AddNamespaceToFrameID(params_.frame_id, std::string(this->get_namespace()));
+  message.header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
+    params_.frame_id, std::string(this->get_namespace()));
   message.cpu_percent = status.core_usages;
   message.avg_load_percent = status.cpu_mean_usage;
   message.cpu_temp = status.cpu_temperature;
