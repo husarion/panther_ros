@@ -17,7 +17,7 @@
 
 #include <chrono>
 
-#include <std_msgs/msg/header.hpp>
+#include "std_msgs/msg/header.hpp"
 
 namespace panther_utils::ros
 {
@@ -32,23 +32,24 @@ namespace panther_utils::ros
  * @throws `std::runtime_error` If either of the timestamps is not set or if the timestamp gap
  * exceeds the maximum allowed gap.
  */
-void VerifyTimestampGap(
-  const std_msgs::msg::Header & header_1, const std_msgs::msg::Header & header_2,
-  std::chrono::seconds max_timestamp_gap)
+void VerifyTimestampGap(const std_msgs::msg::Header& header_1, const std_msgs::msg::Header& header_2,
+                        std::chrono::seconds max_timestamp_gap)
 {
-  const auto timestamp_1_ns = std::chrono::seconds(header_1.stamp.sec) +
-                              std::chrono::nanoseconds(header_1.stamp.nanosec);
-  const auto timestamp_2_ns = std::chrono::seconds(header_2.stamp.sec) +
-                              std::chrono::nanoseconds(header_2.stamp.nanosec);
+  const auto timestamp_1_ns =
+      std::chrono::seconds(header_1.stamp.sec) + std::chrono::nanoseconds(header_1.stamp.nanosec);
+  const auto timestamp_2_ns =
+      std::chrono::seconds(header_2.stamp.sec) + std::chrono::nanoseconds(header_2.stamp.nanosec);
 
-  if (timestamp_1_ns.count() == 0 || timestamp_2_ns.count() == 0) {
+  if (timestamp_1_ns.count() == 0 || timestamp_2_ns.count() == 0)
+  {
     throw std::runtime_error("Timestamps are not set.");
   }
 
-  auto timestamp_gap = std::abs(
-    std::chrono::duration_cast<std::chrono::seconds>(timestamp_1_ns - timestamp_2_ns).count());
+  auto timestamp_gap =
+      std::abs(std::chrono::duration_cast<std::chrono::seconds>(timestamp_1_ns - timestamp_2_ns).count());
 
-  if (timestamp_gap > max_timestamp_gap.count()) {
+  if (timestamp_gap > max_timestamp_gap.count())
+  {
     throw std::runtime_error("Timestamp gap exceeds the maximum allowed gap.");
   }
 }
@@ -68,26 +69,45 @@ void VerifyTimestampGap(
  * @return The merged header.
  * @throws `std::runtime_error` If the frame IDs of the input headers are different.
  */
-std_msgs::msg::Header MergeHeaders(
-  const std_msgs::msg::Header & header_1, const std_msgs::msg::Header & header_2)
+std_msgs::msg::Header MergeHeaders(const std_msgs::msg::Header& header_1, const std_msgs::msg::Header& header_2)
 {
   std_msgs::msg::Header merged_header;
 
-  if (header_1.frame_id != header_2.frame_id) {
+  if (header_1.frame_id != header_2.frame_id)
+  {
     throw std::runtime_error("Provided frame IDs are different, can't merge headers.");
   }
 
   merged_header.frame_id = header_1.frame_id;
 
-  if (
-    header_1.stamp.sec < header_2.stamp.sec ||
-    (header_1.stamp.sec == header_2.stamp.sec && header_1.stamp.nanosec < header_2.stamp.nanosec)) {
+  if (header_1.stamp.sec < header_2.stamp.sec ||
+      (header_1.stamp.sec == header_2.stamp.sec && header_1.stamp.nanosec < header_2.stamp.nanosec))
+  {
     merged_header.stamp = header_1.stamp;
-  } else {
+  }
+  else
+  {
     merged_header.stamp = header_2.stamp;
   }
 
   return merged_header;
+}
+
+std::string AddNamespaceToFrameID(const std::string& frame_id, const std::string& node_namespace)
+{
+  std::string tf_prefix = node_namespace;
+
+  if (tf_prefix != "/")
+  {
+    tf_prefix += '/';
+  }
+  
+  if (tf_prefix.front() == '/')
+  {
+    tf_prefix.erase(0, 1);
+  }
+
+  return tf_prefix + frame_id;
 }
 
 }  // namespace panther_utils::ros

@@ -26,6 +26,7 @@
 
 #include "panther_msgs/msg/system_status.hpp"
 #include "panther_utils/common_utilities.hpp"
+#include "panther_utils/ros_utils.hpp"
 
 namespace panther_diagnostics
 {
@@ -120,7 +121,7 @@ panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
   panther_msgs::msg::SystemStatus message;
 
   message.header.stamp = this->get_clock()->now();
-  message.header.frame_id = params_.frame_id;
+  message.header.frame_id = panther_utils::ros::AddNamespaceToFrameID(params_.frame_id, std::string(this->get_namespace()));
   message.cpu_percent = status.core_usages;
   message.avg_load_percent = status.cpu_mean_usage;
   message.cpu_temp = status.cpu_temperature;
