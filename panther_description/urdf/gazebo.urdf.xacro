@@ -6,7 +6,12 @@
 
     <!-- Read property -->
     <xacro:property name="battery_config" value="${xacro.load_yaml(config_file)}" />
-    <xacro:property name="ns" value='${namespace + "/" if namespace else ""}' />
+    <xacro:if value="${namespace == ''}">
+      <xacro:property name="ns" value="" />
+    </xacro:if>
+    <xacro:unless value="${namespace == ''}">
+        <xacro:property name="ns" value="${namespace}/" />
+    </xacro:unless>
 
     <!-- Sim Battery -->
     <gazebo>
@@ -60,7 +65,12 @@
   <!-- IMU specification: https://www.phidgets.com/?tier=3&catid=10&pcid=8&prodid=1025#Tab_Specifications -->
   <xacro:macro name="imu" params="reference_frame namespace:=''">
 
-    <xacro:property name="ns" value='${namespace + "/" if namespace else ""}' />
+    <xacro:if value="${namespace == ''}">
+      <xacro:property name="ns" value="" />
+    </xacro:if>
+    <xacro:unless value="${namespace == ''}">
+        <xacro:property name="ns" value="${namespace}/" />
+    </xacro:unless>
 
     <gazebo reference="${reference_frame}">
       <sensor name="${ns}imu" type="imu">
