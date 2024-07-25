@@ -35,6 +35,7 @@
 #include "panther_lights/led_panel.hpp"
 #include "panther_lights/led_segment.hpp"
 #include "panther_lights/segment_converter.hpp"
+#include "panther_utils/ros_utils.hpp"
 #include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
@@ -257,7 +258,8 @@ void ControllerNode::PublishPanelFrame(const std::size_t channel)
   const auto number_of_leds = panel->GetNumberOfLeds();
 
   ImageMsg::UniquePtr image(new ImageMsg);
-  image->header.frame_id = "lights_channel_" + std::to_string(channel);
+  image->header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
+    "lights_channel_" + std::to_string(channel), std::string(this->get_namespace()));
   image->header.stamp = this->get_clock()->now();
   image->encoding = "rgba8";
   image->height = 1;
