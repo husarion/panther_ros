@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
@@ -88,13 +90,6 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    panther_version = LaunchConfiguration("panther_version")
-    declare_panther_version_arg = DeclareLaunchArgument(
-        "panther_version",
-        default_value=EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0"),
-        description="Hardware version of Panther robot.",
-    )
-
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -132,6 +127,7 @@ def generate_launch_description():
         choices=["WH01", "WH02", "WH04", "custom"],
     )
 
+    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -150,6 +146,10 @@ def generate_launch_description():
             controller_config_path,
             " battery_config_file:=",
             battery_config_path,
+            " imu_xyz:=",
+            f"\"{os.environ.get('PANTHER_IMU_LOCALIZATION_X', '0.168')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Y', '0.028')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Z', '0.083')}\"",
+            " imu_rpy:=",
+            f"\"{os.environ.get('PANTHER_IMU_ORIENTATION_R', '3.14')} {os.environ.get('PANTHER_IMU_ORIENTATION_P', '-1.57')} {os.environ.get('PANTHER_IMU_ORIENTATION_Y', '0.0')}\"",
             " namespace:=",
             namespace,
             " components_config_path:=",
@@ -185,7 +185,6 @@ def generate_launch_description():
         declare_wheel_type_arg,  # wheel_type is used by controller_config_path
         declare_controller_config_path_arg,
         declare_namespace_arg,
-        declare_panther_version_arg,
         declare_use_sim_arg,
         declare_wheel_config_path_arg,
         SetParameter(name="use_sim_time", value=use_sim),
