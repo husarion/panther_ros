@@ -1,6 +1,7 @@
 # ROS API
 
-> [!WARNING] Initial Release Warning
+> [!WARNING] 
+> **Initial Release Warning**
 >
 > Please be advised that the software you are about to use is the first publicly available version of ROS 2 Driver for Panther. It is functional and architecture will not change in a significant way. It was tested by Husarion team, however some stability issues and bugs might still occur. Also, the ROS 2 API may face some minor changes in the following releases.
 >
@@ -14,7 +15,8 @@
 
 This section describes the ROS packages in the Panther ROS system. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros) GitHub repository.
 
-> [!NOTE] Differences in ROS System
+> [!NOTE] 
+> **Differences in ROS System**
 >
 > ROS 2 nodes differs slightly between **Panther v1.06** and **Panther v1.2+**. This is caused by internal hardware differences. Despite that, the ROS API was kept as closely matched between those revisions as possible and should be transparent in most of the use cases.
 
@@ -84,9 +86,9 @@ Below is information about the physical robot API. For the simulation, topics an
 | `controller_manager/set_hardware_component_state` | <br/> [controller_manager_msgs/srv/SetHardwareComponentState](https://github.com/ros-controls/ros2_control/tree/master/controller_manager_msgs)             |
 | `controller_manager/switch_controller`            | <br/> [controller_manager_msgs/srv/SwitchController](https://github.com/ros-controls/ros2_control/tree/master/controller_manager_msgs)                      |
 | `controller_manager/unload_controller`            | <br/> [controller_manager_msgs/srv/UnloadController](https://github.com/ros-controls/ros2_control/tree/master/controller_manager_msgs)                      |
-| `ekf_node/enable`                                 | Enable EKF node.<br/> [std_srvs/srv/Empty](https://docs.ros2.org/latest/api/std_srvs/srv/Empty.html)                                                        |
-| `ekf_node/set_pose`                               | Set pose of EKF node.<br/> [robot_localization/srv/SetPose](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)                                    |
-| `ekf_node/toggle`                                 | Toggle filter processing in the EKF node.<br/> [robot_localization/srv/ToggleFilterProcessing](https://github.com/cra-ros-pkg/robot_localization/tree/ros2) |
+| `ekf_filter/enable`                               | Enable EKF node.<br/> [std_srvs/srv/Empty](https://docs.ros2.org/latest/api/std_srvs/srv/Empty.html)                                                        |
+| `ekf_filter/set_pose`                             | Set pose of EKF node.<br/> [robot_localization/srv/SetPose](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)                                    |
+| `ekf_filter/toggle`                               | Toggle filter processing in the EKF node.<br/> [robot_localization/srv/ToggleFilterProcessing](https://github.com/cra-ros-pkg/robot_localization/tree/ros2) |
 | `hardware/aux_power_enable`                       | Enables or disables AUX power.<br/> [std_srvs/srv/SetBool](https://docs.ros2.org/latest/api/std_srvs/srv/SetBool.html)                                      |
 | `hardware/charger_enable`                         | Enables or disables charger.<br/> [std_srvs/srv/SetBool](https://docs.ros2.org/latest/api/std_srvs/srv/SetBool.html)                                        |
 | `hardware/digital_power_enable`                   | Enables or disables digital power.<br/> [std_srvs/srv/SetBool](https://docs.ros2.org/latest/api/std_srvs/srv/SetBool.html)                                  |
