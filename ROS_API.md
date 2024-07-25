@@ -33,7 +33,7 @@ Below is information about the physical robot API. For the simulation, topics an
 | Symbol | Meaning                         |
 | ------ | ------------------------------- |
 | 🤖      | Available for physical robot    |
-| 🖥️      | Available in simulated robot    |
+| 🖥️      | Available in simulation         |
 | ⚙️      | Requires specific configuration |
 
 ### Topics
