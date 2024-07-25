@@ -259,7 +259,7 @@ void ControllerNode::PublishPanelFrame(const std::size_t channel)
 
   ImageMsg::UniquePtr image(new ImageMsg);
   image->header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
-    "lights_channel_" + std::to_string(channel), std::string(this->get_namespace()));
+    "lights_channel_" + std::to_string(channel) + "_link", std::string(this->get_namespace()));
   image->header.stamp = this->get_clock()->now();
   image->encoding = "rgba8";
   image->height = 1;
