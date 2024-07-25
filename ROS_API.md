@@ -1,9 +1,9 @@
 # ROS API
 
-> [!WARNING] 
-> **Initial Release Warning**
+> [!WARNING]
+> **Beta Release**
 >
-> Please be advised that the software you are about to use is the first publicly available version of ROS 2 Driver for Panther. It is functional and architecture will not change in a significant way. It was tested by Husarion team, however some stability issues and bugs might still occur. Also, the ROS 2 API may face some minor changes in the following releases.
+> Please be advised that the software you are about to use is the Beta version of the ROS 2 Driver for Panther. It is functional and the architecture will not change significantly. It was tested by the Husarion team, however, some stability issues and bugs might still occur. Additionally, the ROS 2 API may face some minor changes in the following releases.
 >
 > We would be grateful for your feedback related to Panther ROS 2 driver. You can reach us the following ways:
 >
@@ -15,14 +15,14 @@
 
 This section describes the ROS packages in the Panther ROS system. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros) GitHub repository.
 
-> [!NOTE] 
+> [!NOTE]
 > **Differences in ROS System**
 >
 > ROS 2 nodes differs slightly between **Panther v1.06** and **Panther v1.2+**. This is caused by internal hardware differences. Despite that, the ROS API was kept as closely matched between those revisions as possible and should be transparent in most of the use cases.
 
 <!-- TODO: add this differences -->
 
-The default way to communicate with Panther's hardware is via the Robot Operating System (ROS). All of the drivers were written in ROS 2 framework. The ROS API is provided by ROS packages found in the GitHub repository [husarion/panther_ros](https://github.com/husarion/panther_ros). These packages are responsible for accessing the hardware components of the robot.
+The default way to communicate with Panther's hardware is via the Robot Operating System (ROS). All the drivers were written in ROS 2 framework. The ROS API is provided by ROS packages found in the GitHub repository [husarion/panther_ros](https://github.com/husarion/panther_ros). These packages are responsible for accessing the hardware components of the robot.
 
 The graph below represents Panther's ROS system. Some topics and services have been excluded from the graph for the sake of clarity.
 
