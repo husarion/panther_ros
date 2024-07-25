@@ -27,7 +27,8 @@ Add Built-in Computer's public key to **known_hosts** of a computer you want to 
 ssh-copy-id username@10.15.20.XX
 ```
 
-> **Warning**
+> [!IMPORTANT]
+>
 > To allow your computer to be shutdown without the sudo password, ssh into it and execute
 > (if needed replace **husarion** with username of your choice):
 >
