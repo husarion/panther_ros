@@ -55,8 +55,6 @@ After receiving a message on the `battery/battery_status` topic, the `panther_ma
 > 1. The fan exhibits a form of hysteresis, allowing it to be turned off after a delay of at least 60 seconds.
 > 2. Once the Panther ROS stack initializes, the fan activates and operates for a duration of approximately 60 seconds.
 
----
-
 ## BehaviorTree
 
 This package contains two main BehaviorTree projects. One is designed for lights handling and the other for safety and system shutdown.
