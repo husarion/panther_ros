@@ -224,7 +224,9 @@ AccessType=rw
 CompactSubObj=127
 
 [1016Value]
-NrOfEntries=0
+NrOfEntries=2
+1=0x0001012C
+2=0x0002012C
 
 [1017]
 ParameterName=Producer heartbeat time
