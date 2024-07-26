@@ -4,9 +4,7 @@
   <!-- body defining macro -->
   <xacro:macro
     name="body"
-    params="wheel_radius
-            imu_pos_x imu_pos_y imu_pos_z
-            imu_rot_r imu_rot_p imu_rot_y">
+    params="wheel_radius imu_xyz imu_rpy">
 
     <link name="base_link" />
 
@@ -41,8 +39,7 @@
     </link>
 
     <joint name="body_to_imu_joint" type="fixed">
-      <origin xyz="${imu_pos_x} ${imu_pos_y} ${imu_pos_z}"
-        rpy="${imu_rot_r} ${imu_rot_p} ${imu_rot_y}" />
+      <origin xyz="${imu_xyz}" rpy="${imu_rpy}" />
       <parent link="body_link" />
       <child link="imu_link" />
     </joint>
