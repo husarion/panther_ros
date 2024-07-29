@@ -121,7 +121,7 @@ protected:
 
   static constexpr float battery_approx_ranges[4] = {41.25, 37, 35, 33.7};
   static constexpr float battery_approx_a_values[5] = {1.733, 9.153, 19.8, 10.538, 0.989};
-  static constexpr float battery_approx_b_values[5] = {27.214, -278.861, -672.6, -351.47, -29.669};
+  static constexpr float battery_approx_b_values[5] = {27.214, -278.861, -672.6, -351.47, -29.67};
 
   std::string error_msg_;
   BatteryStateMsg battery_state_;

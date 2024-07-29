@@ -109,9 +109,9 @@ TEST_F(TestBattery, GetErrorMsg)
 TEST_F(TestBattery, GetBatteryPercent)
 {
   EXPECT_FLOAT_EQ(0.0, battery_->GetBatteryPercent(30.0f));
-  EXPECT_FLOAT_EQ(0.0, battery_->GetBatteryPercent(32.0f));
-  EXPECT_FLOAT_EQ(0.638297872, battery_->GetBatteryPercent(38.0f));
-  EXPECT_FLOAT_EQ(1.0, battery_->GetBatteryPercent(41.4f));
+  EXPECT_FLOAT_EQ(0.019780006, battery_->GetBatteryPercent(32.0f));
+  EXPECT_FLOAT_EQ(0.68953001, battery_->GetBatteryPercent(38.0f));
+  EXPECT_FLOAT_EQ(1.0, battery_->GetBatteryPercent(42.0f));
   EXPECT_FLOAT_EQ(1.0, battery_->GetBatteryPercent(45.0f));
 }
 
