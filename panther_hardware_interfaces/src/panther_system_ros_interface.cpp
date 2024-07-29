@@ -176,6 +176,9 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
 
   driver_state.front.can_net_err = can_errors.front_can_net_err;
   driver_state.rear.can_net_err = can_errors.rear_can_net_err;
+
+  driver_state.front.heartbeat_timeout_error = can_errors.front_heartbeat_timeout;
+  driver_state.rear.heartbeat_timeout_error = can_errors.rear_heartbeat_timeout;
 }
 
 void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)

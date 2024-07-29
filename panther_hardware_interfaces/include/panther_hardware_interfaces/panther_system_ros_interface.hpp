@@ -63,6 +63,9 @@ struct CANErrors
 
   bool front_can_net_err;
   bool rear_can_net_err;
+
+  bool front_heartbeat_timeout;
+  bool rear_heartbeat_timeout;
 };
 
 /**

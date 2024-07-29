@@ -264,6 +264,7 @@ std::map<std::string, bool> RoboteqData::GetErrorMap() const
   error_map.emplace("motor_states_data_timed_out", IsMotorStatesDataTimedOut());
   error_map.emplace("driver_state_data_timed_out", IsDriverStateDataTimedOut());
   error_map.emplace("can_net_err", IsCANNetErr());
+  error_map.emplace("heartbeat_timeout_error", IsHeartbeatTimeout());
 
   return error_map;
 }
