@@ -6,7 +6,7 @@ The package is responsible for activating mods responsible for fusion of data re
 
 This package contains:
 
-- `localization.launch.py` - is responsible for activating EKF filtration along with the necessary dependencies needed to operate GPS
+- `localization.launch.py` - is responsible for activating EKF filtration along with the necessary dependencies needed to operate GPS.
 
 ## Configuration Files
 
