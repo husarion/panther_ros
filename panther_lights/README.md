@@ -19,7 +19,23 @@ This package contains:
 | `lights_container`  | Node for dynamically loadable components such as plugins <br/> *[rclcpp_components/component_container](https://github.com/ros2/rclcpp/tree/rolling/rclcpp_components)*                          |
 | `lights_controller` | This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights. <br/> *[panther_lights/ControllerNode](./panther_lights)* |
 | `lights_driver`     | This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights. <br/> *[panther_lights/DriverNode](./panther_lights)*                                             |
-| `lights_manager`    | Node responsible for managing Bumper Lights animation scheduling. <br/> *[panther_manager/lights_manager_node](../panther_manager/)*                                                            |
+
+### lights_controller_node
+
+#### Publishers
+
+- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
+- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+
+#### Service Servers
+
+- `lights/set_animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
+
+#### Parameters
+
+- `~controller_frequency` [*float*, default: **50.0**]: frequency [Hz] at which the lights controller node will process animations.
+- `~led_config_file` [*string*, default: **$(find panther_lights)/panther_lights/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
+- `~user_led_animations_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.
 
 ### lights_driver
 
@@ -45,20 +61,3 @@ This package contains:
 - `~frame_timeout` [*float*, default: **0.1**]: time in **[s]** after which an incoming frame will be considered too old.
 - `~global_brightness` [*float*, default: **1.0**]: LED global brightness. The range between **[0.0, 1.0]**.
 - `~num_led` [*int*, default: **46**]: number of LEDs in a single bumper.
-
-### lights_controller_node
-
-#### Publishers
-
-- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
-
-#### Service Servers
-
-- `lights/set_animation` [*panther_msgs/SetLEDAnimation*]: allows setting animation on Bumper Lights based on animation ID.
-
-#### Parameters
-
-- `~controller_frequency` [*float*, default: **50.0**]: frequency [Hz] at which the lights controller node will process animations.
-- `~led_config_file` [*string*, default: **$(find panther_lights)/panther_lights/config/led_config.yaml**]: path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
-- `~user_led_animations_file` [*string*, default: **None**]: path to a YAML file with a description of the user defined animations.
