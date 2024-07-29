@@ -10,7 +10,8 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: 12b77cf8f5a8ececfc737ab2806d04df0d7ed60d
+    # version: 12b77cf8f5a8ececfc737ab2806d04df0d7ed60d
+    version: hotfix-handle-can-timeout # TODO: update before merging!
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
