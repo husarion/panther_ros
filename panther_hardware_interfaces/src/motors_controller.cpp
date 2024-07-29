@@ -98,8 +98,8 @@ void MotorsController::Activate()
 
 void MotorsController::UpdateCommunicationState()
 {
-  front_data_.SetCANNetErr(canopen_controller_.GetFrontDriver()->IsCANError());
-  rear_data_.SetCANNetErr(canopen_controller_.GetRearDriver()->IsCANError());
+  front_data_.SetCANError(canopen_controller_.GetFrontDriver()->IsCANError());
+  rear_data_.SetCANError(canopen_controller_.GetRearDriver()->IsCANError());
 
   front_data_.SetHeartbeatTimeout(canopen_controller_.GetFrontDriver()->IsHeartbeatTimeout());
   rear_data_.SetHeartbeatTimeout(canopen_controller_.GetRearDriver()->IsHeartbeatTimeout());
@@ -117,7 +117,7 @@ void MotorsController::UpdateMotorsState()
 
   UpdateCommunicationState();
 
-  if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
+  if (front_data_.IsCANError() || rear_data_.IsCANError()) {
     throw std::runtime_error("CAN error.");
   }
 
@@ -138,7 +138,7 @@ void MotorsController::UpdateDriversState()
 
   UpdateCommunicationState();
 
-  if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
+  if (front_data_.IsCANError() || rear_data_.IsCANError()) {
     throw std::runtime_error("CAN error.");
   }
 

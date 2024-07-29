@@ -587,8 +587,8 @@ void PantherSystem::UpdateDriverStateMsg()
   can_errors.rear_driver_state_data_timed_out =
     motors_controller_->GetRearData().IsDriverStateDataTimedOut();
 
-  can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCANNetErr();
-  can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCANNetErr();
+  can_errors.front_can_error = motors_controller_->GetFrontData().IsCANError();
+  can_errors.rear_can_error = motors_controller_->GetRearData().IsCANError();
 
   can_errors.front_heartbeat_timeout = motors_controller_->GetFrontData().IsHeartbeatTimeout();
   can_errors.rear_heartbeat_timeout = motors_controller_->GetRearData().IsHeartbeatTimeout();

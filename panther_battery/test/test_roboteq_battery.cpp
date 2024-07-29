@@ -243,10 +243,10 @@ TEST_F(TestRoboteqBattery, ValidateDriverStateMsg)
   EXPECT_NO_THROW(battery_->ValidateDriverStateMsg(stamp));
 
   // Check can net error throw
-  driver_state_->front.can_net_err = true;
+  driver_state_->front.can_error = true;
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
-  driver_state_->front.can_net_err = false;
-  driver_state_->rear.can_net_err = true;
+  driver_state_->front.can_error = false;
+  driver_state_->rear.can_error = true;
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
 }
 
