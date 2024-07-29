@@ -4,11 +4,11 @@ Package that implements SystemInterface from ros2_control for Panther.
 
 ## ROS Nodes
 
-This package contains plugins that are loaded by the resource manager. To use this hardware interface, add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)).
+This package doesn't contain any standalone nodes, only plugins that are loaded by the resource manager. To use this hardware interface, add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)).
 
 | Node name          | Description <br/> *Type*                                                                                                                                                    |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PantherSystem`    | Plugin responsible for communicating with engine controllers via the CAN bus and providing E-Stop functionalities. <br/> *[`panther_hardware_interfaces/PantherSystem`](.)* |
+| `PantherSystem`    | Plugin responsible for communicating with engine controllers via the CAN bus, providing E-Stop functionalities and managing Built-in Computer GPIO ports. <br/> *[`panther_hardware_interfaces/PantherSystem`](.)* |
 | `PantherImuSensor` | Plugin responsible for communicating with IMU and filtering data using Madgwick Filter. <br/> *[`panther_hardware_interfaces/PantherImuSensor`](.)*                         |
 
 ### PantherSystem

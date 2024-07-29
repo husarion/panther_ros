@@ -10,7 +10,7 @@ The package contains the default configuration and launch files necessary to sta
 
 - [`WH01_controller.yaml`](./config/WH01_controller.yaml) - configures `imu_broadcaster`, `joint_state_broadcaster` and `drive_controller`  controllers for WH01 wheels.
 - [`WH02_controller.yaml`](./config/WH02_controller.yaml) - configures `imu_broadcaster`, `joint_state_broadcaster` and `drive_controller`  controllers for mecanum WH02 wheels.
-- [`WH04_controller.yaml`](./config/WH04_controller.yaml) - configures `imu_broadcaster`, `joint_state_broadcaster` and `drive_controller`  controllers for custom WH04 wheels.
+- [`WH04_controller.yaml`](./config/WH04_controller.yaml) - configures `imu_broadcaster`, `joint_state_broadcaster` and `drive_controller`  controllers for small pneumatic WH04 wheels.
 
 ## ROS Nodes
 

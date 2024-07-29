@@ -6,7 +6,7 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 This package contains:
 
-- `manager_bt.launch.py` - is responsible for activating whole robot system.
+- `manager_bt.launch.py` - is responsible for launching behavior trees responsible for safety and LED animations scheduling.
 
 ### Configuration Files
 
@@ -17,7 +17,7 @@ This package contains:
 - [`shutdown.xml`](./behavior_trees/shutdown.xml): BehaviorTree for initiating shutdown procedures.
 - [`lights_manager_config.yaml`](./config/lights_manager_config.yaml): Contains parameters for the `lights_manager` node.
 - [`safety_manager_config.yaml`](./config/safety_manager_config.yaml): Contains parameters for the `safety_manager` node.
-- [`shutdown_hosts.yaml`](./config/shutdown_hosts.yaml): Lists all hosts to request shutdown.
+- [`shutdown_hosts.yaml`](./config/shutdown_hosts.yaml): List with all hosts to request shutdown.
 
 ## ROS Nodes
 

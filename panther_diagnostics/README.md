@@ -21,11 +21,11 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 #### Publishes
 
 - `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: system status diagnostic messages.
-- `system_status` [*panther_msgs/SystemStatus*]: system status statistics.
+- `system_status` [*panther_msgs/SystemStatus*]: state of the system, including Built-in Computer's CPU temperature and load.
 
 #### Parameters
 
-- `~frame_id` [*string*, default: **build_in_computer**]: Frame where computer is located.
+- `~frame_id` [*string*, default: **built_in_computer**]: Frame where computer is located.
 - `~publish_rate` [*double*, default: **0.25**]: System status publish rate in seconds.
 - `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.
 - `~memory_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for memory usage warning in percentage.

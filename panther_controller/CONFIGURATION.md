@@ -2,7 +2,7 @@
 
 ## Changing Velocity Smoothing Parameters
 
-The Panther uses [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) from [ros2 control](https://control.ros.org/master/index.html). This controller can be customized, among others: by modifying the robot's dynamic parameters (e.g. smooth the speed or limit the robot's speed and acceleration). Its parameters can be found in the [panther_controller](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_controller/config). By default, these values correspond to the upper limits of the robot's velocities and accelerations.
+The Panther by default uses [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) from [ros2 control](https://control.ros.org/master/index.html) or [mecanum_drive_controller](https://github.com/husarion/husarion_controllers/tree/main/mecanum_drive_controller). This controller can be customized, among others: by modifying the robot's dynamic parameters (e.g. smooth the speed or limit the robot's speed and acceleration). Its parameters can be found in the [panther_controller](https://github.com/husarion/panther_ros/tree/ros2-devel/panther_controller/config). By default, these values correspond to the upper limits of the robot's velocities and accelerations.
 
 ## Changing Wheel Type
 

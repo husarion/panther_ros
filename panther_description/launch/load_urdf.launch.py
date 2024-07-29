@@ -38,7 +38,7 @@ def generate_launch_description():
         "add_wheel_joints",
         default_value="True",
         description="Flag enabling joint_state_publisher to publish information about the wheel position. Should be false when there is a controller that sends this information.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     battery_config_path = LaunchConfiguration("battery_config_path")
@@ -95,7 +95,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     declare_wheel_config_path_arg = DeclareLaunchArgument(

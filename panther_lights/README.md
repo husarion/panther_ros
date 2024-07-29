@@ -1,24 +1,24 @@
 # panther_lights
 
-Package used to control the Husarion Panther Bumper Lights. The following animations are configured by default:
+Package used to control the Husarion Panther Bumper Lights.
 
 ## Launch files
 
 This package contains:
 
-- `lights.launch.py` - is responsible for activating EKF filtration along with the necessary dependencies needed to operate GPS
+- `lights.launch.py` - is responsible for launching the nodes required to control the Panther Bumper Lights.
 
 ## Configuration Files
 
-- [`led_config.yaml`](./config/led_config.yaml): describe the appearance and parameters of the animation
+- [`led_config.yaml`](./config/led_config.yaml): describes the appearance and parameters of the animations.
 
 ## ROS Nodes
 
-| Node name           | Description <br/> *Type*                                                                                                                                                                        |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lights_container`  | Node for dynamically loadable components such as plugins <br/> *[rclcpp_components/component_container](https://github.com/ros2/rclcpp/tree/rolling/rclcpp_components)*                          |
-| `lights_controller` | This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights. <br/> *[panther_lights/ControllerNode](./panther_lights)* |
-| `lights_driver`     | This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights. <br/> *[panther_lights/DriverNode](./panther_lights)*                                             |
+| Node name           | Description <br/> *Type*                                                                                                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lights_container`  | Node for managing ROS components. This node menages: `lights_controller`, `lights_driver`. <br/> *[rclcpp_components/component_container](https://github.com/ros2/rclcpp/tree/rolling/rclcpp_components)* |
+| `lights_controller` | This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights. <br/> *[panther_lights/ControllerNode](./panther_lights)*           |
+| `lights_driver`     | This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights. <br/> *[panther_lights/DriverNode](./panther_lights)*                                                       |
 
 ### lights_controller_node
 
@@ -45,8 +45,8 @@ This package contains:
 
 #### Subscribers
 
-- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Front Bumper Lights.
-- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: an animation frame to be displayed on robot Rear Bumper Lights.
+- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: frame to be displayed on robot Front Bumper Lights.
+- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: frame to be displayed on robot Rear Bumper Lights.
 
 #### Service Servers
 

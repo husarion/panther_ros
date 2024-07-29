@@ -105,7 +105,7 @@ user_animations:
   - id: 22
     name: ANIMATION_2
     priority: 3
-    animation:
+    animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
@@ -117,7 +117,7 @@ user_animations:
   - id: 23
     name: ANIMATION_3
     priority: 3
-    animation:
+    animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
@@ -129,7 +129,7 @@ user_animations:
   - id: 24
     name: ANIMATION_4
     priority: 3
-    animation:
+    animations:
       - type: panther_lights::ImageAnimation
         segments: front
         animation:
