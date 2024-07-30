@@ -6,7 +6,7 @@ chanel_1:
   orientation: [0.0, 0.0, 0.0]
   led_strip_width: 0.5
   topic: lights/channel_1_frame
-  light_name: front_light
+  light_name: lights_channel_1
   number_of_leds: 46
 
 chanel_2:
@@ -17,5 +17,5 @@ chanel_2:
   orientation: [0.0, 0.0, 0.0]
   led_strip_width: 0.5
   topic: lights/channel_2_frame
-  light_name: rear_light
+  light_name: lights_channel_2
   number_of_leds: 46
