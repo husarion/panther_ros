@@ -242,11 +242,11 @@ TEST_F(TestRoboteqBattery, ValidateDriverStateMsg)
   stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
   EXPECT_NO_THROW(battery_->ValidateDriverStateMsg(stamp));
 
-  // Check can net error throw
-  driver_state_->front.can_error = true;
+  // Check heartbeat timeout error throw
+  driver_state_->front.heartbeat_timeout = true;
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
-  driver_state_->front.can_error = false;
-  driver_state_->rear.can_error = true;
+  driver_state_->front.heartbeat_timeout = false;
+  driver_state_->rear.heartbeat_timeout = true;
   EXPECT_THROW(battery_->ValidateDriverStateMsg(stamp), std::runtime_error);
 }
 
