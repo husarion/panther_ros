@@ -66,7 +66,7 @@ CAN settings
 
 #### Parameters
 
-Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
+Required parameters are defined when including the interface in the URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
 

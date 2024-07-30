@@ -10,7 +10,7 @@ This package contains:
 
 ## Configuration Files
 
-- [`led_config.yaml`](./config/led_config.yaml): describes the appearance and parameters of the animations.
+- [`led_config.yaml`](./config/led_config.yaml): defines and describes the appearance and parameters of the animations.
 
 ## ROS Nodes
 

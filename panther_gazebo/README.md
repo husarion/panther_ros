@@ -4,14 +4,14 @@ The package contains a launch file and source files used to run the robot simula
 
 ## Launch Files
 
-- `spawn_robot.launch.py` - is responsible for spawning the robot in the simulator
+- `spawn_robot.launch.py` - is responsible for spawning the robot in the simulator.
 - `simulate_robot.launch.py` - is responsible for giving birth to the robot and simulating its physical behavior, such as driving, displaying data, etc.
-- `simulate_multiple_robots.launch.py` - similar to the above with logic allowing you to quickly add a swarm of robots
-- **`simulation.launch.py`** - a target file that runs the gazebo simulator and adds and simulates the robot's behavior in accordance with the given arguments.
+- `simulate_multiple_robots.launch.py` - similar to the above with logic allowing you to quickly add a swarm of robots.
+- **`simulation.launch.py`** - a target file that runs the gazebo simulator that adds and simulates the robot's behavior in accordance with the given arguments.
 
 ## Configuration Files
 
-- [`battery_plugin_config.yaml`](./config/battery_plugin_config.yaml): simulated LinearBatteryPlugin configuration
+- [`battery_plugin_config.yaml`](./config/battery_plugin_config.yaml): simulated LinearBatteryPlugin configuration.
 - [`gz_bridge.yaml`](./config/gz_bridge.yaml): specify data to exchange between ROS and Gazebo simulation.
 - [`led_strips.yaml`](./config/led_strips.yaml): configure properties of led strips in simulation to animate lights.
 

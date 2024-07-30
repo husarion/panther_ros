@@ -26,7 +26,7 @@ The default way to communicate with Panther's hardware is via the Robot Operatin
 
 The graph below represents Panther's ROS system. Some topics and services have been excluded from the graph for the sake of clarity.
 
-![Panther ROS 2 API Diagram](.docs/panther_ros2_api_diagram.png)
+![Panther ROS 2 API Diagram](.docs/panther_ros2_api.drawio.svg)
 
 ## ROS Interfaces
 
@@ -95,7 +95,6 @@ Below is information about the physical robot API. For the simulation, topics an
 | `hardware/motor_power_enable`                     | Enables or disables motor power.<br/> [std_srvs/srv/SetBool](https://docs.ros2.org/latest/api/std_srvs/srv/SetBool.html)                                                                               |
 | `lights/set_animation`                            | Sets LED animation.<br/> [panther_msgs/srv/SetLEDAnimation](https://github.com/husarion/panther_msgs)                                                                                                  |
 | `lights/set_brightness`                           | Sets global LED brightness, value ranges from **0.0** to **1.0**.<br/> [panther_msgs/SetLEDBrightness](https://github.com/husarion/panther_msgs)                                                       |
-| `lights/driver/set/brightness`                    | Sets LED brightness.<br/> [panther_msgs/srv/SetLEDBrightness](https://github.com/husarion/panther_msgs)                                                                                                |
 | `localization/enable`                             | Enable EKF node.<br/> [std_srvs/srv/Empty](https://docs.ros2.org/latest/api/std_srvs/srv/Empty.html)                                                                                                   |
 | `localization/set_pose`                           | Set pose of EKF node.<br/> [robot_localization/srv/SetPose](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)                                                                               |
 | `localization/toggle`                             | Toggle filter processing in the EKF node.<br/> [robot_localization/srv/ToggleFilterProcessing](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)                                            |

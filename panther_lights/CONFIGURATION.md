@@ -28,12 +28,12 @@ The `panels` section of the YAML file lists all the physical LED panels on the r
 The `segments` section is used to create virtual segments on the robot by dividing the LED panels into different parts. This allows for more precise control over which LEDs are lit up for different effects or indicators. Each segment has three attributes:
 
 - `name`: the identifier for the segment, such as "front" or "rear". It is used to differentiate between multiple segments.
-- `channel`: This specifies which LED panel the segment belongs to. It have to match one of the channels defined in the `panels` section.
+- `channel`: This specifies which LED panel the segment belongs to. It has to match one of the channels defined in the `panels` section.
 - `led_range`: This defines the range of LEDs within the panel that the segment covers. The range is specified as a start-end pair (e.g. 0-45). The range can be specified in reverse order (e.g. 45-0), which may be useful for wiring or orientation reasons.
 
 ### Segments map
 
-The `segments_map` section allows creating named groups of segments on which animations can be displayed. Each entry under `segments_map` consists of a key representing the group name and a list of segments included in the group. Segment names have to match one of the segments defined in the `segments` section. By default you can use provided mapping:
+The `segments_map` section allows creating named groups of segments on which animations can be displayed. Each entry under `segments_map` consists of a key representing the group name and a list of segments included in the group. Segment names have to match one of the segments defined in the `segments` section. By default, you can use provided mapping:
 
 - `all` [*list*, default: **None**]: Grouping both `front` and `rear` segments together.
 - `front` [*list*, default: **None**]: Containing only the `front` segment.
@@ -41,14 +41,14 @@ The `segments_map` section allows creating named groups of segments on which ani
 
 ### Animations
 
-The `led_animations` section contains list with definitions for various animations that can be displayed on the LED segments. Supported keys are:
+The `led_animations` section contains a list with definitions for various animations that can be displayed on the LED segments. Supported keys are:
 
 - `animations` [*list*, default: **None**]: definition of animation for each Bumper Lights. Supported keys are:
   - `type` [*string*, default **None**]: Specifies the type of animation. Default animation types are: `panther_lights::ImageAnimation`, `panther_lights::ChargingAnimation`.
   - `segments` [*string*, default **None**]: Indicates which segment mapping this particular animation applies to (e.g., all, front, rear).
   - `animation` [*yaml*, default: **None**]: An animation to be displayed on segments. The keys for the configuration of different animation types are explained in detail under the [**Animation Types**](#animation-types) section.
 - `id` [*int*, default: **None**]: unique ID of an animation.
-- `name` [*string*, default: **ANIMATION_`ID`**]: name of an animation. If not provided will default to **ANIMATION_`ID`**, where `ID` is equal to `id` parameter of the given animation.
+- `name` [*string*, default: **ANIMATION_`ID`**]: name of an animation. If not provided, it will default to **ANIMATION_`ID`**, where `ID` is equal to `id` parameter of the given animation.
 - `priority` [*int*, default: **3**]: priority at which animation will be placed in the queue. The list below shows the behavior when an animation with a given ID arrives:
   - **1** interrupts and removes animation with priorities **2** and **3**.
   - **2** interrupts animations with priority **3**.
@@ -66,7 +66,7 @@ Basic animation definition. Keys are inherited from the basic **Animation** clas
 - `repeat` [*int*, default: **1**]: number of times the animation will be repeated.
 
 > [!NOTE]
-> Overall display duration of an animation is a product of a single image duration and repeat count. The result of `duration` x `repeat`  can't exceed 10 **[s]**. If animation fails to fulfill the requirement it will result in an error.
+> Overall display duration of an animation is a product of a single image duration and repeat count. The result of `duration` x `repeat`  can't exceed 10 **[s]**. If animation fails to fulfill the requirement, it will result in an error.
 
 #### ImageAnimation
 
