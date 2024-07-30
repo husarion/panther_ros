@@ -6,10 +6,8 @@ Package that implements SystemInterface from ros2_control for Panther.
 
 This package doesn't contain any standalone nodes, only plugins that are loaded by the resource manager. To use this hardware interface, add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)).
 
-| Node name          | Description <br/> *Type*                                                                                                                                                    |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PantherSystem`    | Plugin responsible for communicating with engine controllers via the CAN bus, providing E-Stop functionalities and managing Built-in Computer GPIO ports. <br/> *[`panther_hardware_interfaces/PantherSystem`](.)* |
-| `PantherImuSensor` | Plugin responsible for communicating with IMU and filtering data using Madgwick Filter. <br/> *[`panther_hardware_interfaces/PantherImuSensor`](.)*                         |
+[`PantherSystem`](#panthersystem): Plugin responsible for communicating with engine controllers via the CAN bus, providing E-Stop functionalities and managing Built-in Computer GPIO ports.
+[`PantherImuSensor`](#pantherimusensor): Plugin responsible for communicating with IMU and filtering data using Madgwick Filter.
 
 ### PantherSystem
 
@@ -33,31 +31,31 @@ This package doesn't contain any standalone nodes, only plugins that are loaded 
 
 #### Parameters
 
-Parameters that are required, are defined when including interface in URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
+Required parameters are defined when including the interface in the URDF (you can check out [panther_macro.urdf.xacro](../panther_description/urdf/panther_macro.urdf.xacro)).
 
 Physical properties
 
-- `encoder_resolution` [*int*, default: **1600**]: property of the encoder used, shouldn't be changed.
-- `gear_ratio` [*float*, default: **30.08**]: property of the gearbox used, shouldn't be changed.
-- `motor_torque_constant` [*float*, default: **0.11**]: same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor.
-- `max_rpm_motor_speed` [*float*, default: **3600.0**]: max RPM speed set in the Roboteq driver (MXRPM parameter).
-- `gearbox_efficiency` [*float*, default: **0.75**]: measured efficiency, used for converting read current to torque, can vary depending on different factors such as temperature and wear.
+- `encoder_resolution` [*int*, default: **1600**]: Property of the encoder used, shouldn't be changed.
+- `gear_ratio` [*float*, default: **30.08**]: Property of the gearbox used, shouldn't be changed.
+- `motor_torque_constant` [*float*, default: **0.11**]: Same as set in the Roboteq driver (TNM parameter), also shouldn't be changed, as it is measured property of the motor.
+- `max_rpm_motor_speed` [*float*, default: **3600.0**]: Max RPM speed set in the Roboteq driver (MXRPM parameter).
+- `gearbox_efficiency` [*float*, default: **0.75**]: Measured efficiency, used for converting read current to torque, can vary depending on different factors such as temperature and wear.
 
 CAN settings
 
-- `can_interface_name` [*string*, default: **panther_can**]: name of the CAN interface.
+- `can_interface_name` [*string*, default: **panther_can**]: Name of the CAN interface.
 - `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
 - `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
 - `rear_driver_can_id` [*int*, default: **2**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
-- `sdo_operation_timeout_ms` [*int*, default: **100**]: timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
-- `pdo_motor_states_timeout_ms` [*int*, default: **15**]: depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
-- `pdo_driver_state_timeout_ms` [*int*, default: **75**]: depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default, there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. The default value is set to be expected period +50% margin.
-- `driver_states_update_frequency` [*float*, default: **20.0**]: as by default, the driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. The exact frequency at which driver state is published won't match this value - it will also depend on the frequency of the controller (the exact value of the period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`).
-- `max_roboteq_initialization_attempts` [*int*, default: **5**]: in some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to a general error.
-- `max_roboteq_activation_attempts` [*int*, default: **5**]: similar to initialization, it is possible to allow some SDO errors before escalating to error.
-- `max_write_pdo_cmds_errors_count` [*int*, default: **2**]: how many consecutive errors can happen before escalating to general error.
-- `max_read_pdo_motor_states_errors_count` [*int*, default: **2**]: how many consecutive errors can happen before escalating to general error.
-- `max_read_pdo_driver_state_errors_count` [*int*, default: **2**]: how many consecutive errors can happen before escalating to general error.
+- `sdo_operation_timeout_ms` [*int*, default: **100**]: Timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
+- `pdo_motor_states_timeout_ms` [*int*, default: **15**]: Depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
+- `pdo_driver_state_timeout_ms` [*int*, default: **75**]: Depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default, there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. The default value is set to be expected period +50% margin.
+- `driver_states_update_frequency` [*float*, default: **20.0**]: As by default, the driver state is published with lower frequency, it also shouldn't be updated with every controller loop iteration. The exact frequency at which driver state is published won't match this value - it will also depend on the frequency of the controller (the exact value of the period can be calculated with the following formula `controller_frequency / ceil(controller_frequency / driver_states_update_frequency)`).
+- `max_roboteq_initialization_attempts` [*int*, default: **5**]: In some cases, an SDO error can happen during initialization, it is possible to configure more attempts, before escalating to a general error.
+- `max_roboteq_activation_attempts` [*int*, default: **5**]: Similar to initialization, it is possible to allow some SDO errors before escalating to error.
+- `max_write_pdo_cmds_errors_count` [*int*, default: **2**]: How many consecutive errors can happen before escalating to general error.
+- `max_read_pdo_motor_states_errors_count` [*int*, default: **2**]: How many consecutive errors can happen before escalating to general error.
+- `max_read_pdo_driver_state_errors_count` [*int*, default: **2**]: How many consecutive errors can happen before escalating to general error.
 
 > [!CAUTION]
 > `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.

@@ -6,36 +6,34 @@ The package containing nodes monitoring and publishing the internal battery stat
 
 This package contains:
 
-- `battery.launch.py` - is responsible for activating battery node, which dealing with reading and publishing battery data.
+- `battery.launch.py`: Responsible for activating battery node, which dealing with reading and publishing battery data.
 
 ## ROS Nodes
 
-| Node name        | Description <br/> *Type*                                                                                                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `battery_driver` | Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier versions of the robot. <br/> *[panther_batter/battery_node](.)* |
+- [`battery_node`](#battery_node): Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier versions of the robot.
 
-### battery_driver
+### battery_node
 
 #### Publishes
 
-- `_battery/battery_1_status_raw` [*sensor_msgs/BatteryState*]: first battery raw state.
-- `_battery/battery_2_status_raw` [*sensor_msgs/BatteryState*]: second battery raw state. Published if second battery detected.
-- `battery/battery_status` [*sensor_msgs/BatteryState*]: mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
-- `battery/charging_status` [*panther_msgs/ChargingStatus*]: battery charging status.
-- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: battery diagnostic messages.
+- `_battery/battery_1_status_raw` [*sensor_msgs/BatteryState*]: First battery raw state.
+- `_battery/battery_2_status_raw` [*sensor_msgs/BatteryState*]: Second battery raw state. Published if second battery detected.
+- `battery/battery_status` [*sensor_msgs/BatteryState*]: Mean values of both batteries if Panther has two batteries. Otherwise, the state of the single battery will be published.
+- `battery/charging_status` [*panther_msgs/ChargingStatus*]: Battery charging status.
+- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Battery diagnostic messages.
 
 #### Subscribes
 
-- `hardware/io_state` [*panther_msgs/IOState*]: current state of IO.
-- `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
+- `hardware/io_state` [*panther_msgs/IOState*]: Current state of IO.
+- `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: Current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
 
 #### Parameters
 
 - `~/adc/device0` [*string*, default: **/sys/bus/iio/devices/iio:device0**]: ADC nr 0 IIO device. Used with Panther version 1.2 and above.
 - `~/adc/device1` [*string*, default: **/sys/bus/iio/devices/iio:device1**]: ADC nr 1 IIO device. Used with Panther version 1.2 and above.
-- `~/adc/ma_window_len/charge` [*int*, default: **10**]: window length of a moving average, used to smooth out battery charge readings. Used with Panther version 1.2 and above.
-- `~/adc/ma_window_len/temp` [*int*, default: **10**]: window length of a moving average, used to smooth out battery temperature readings. Used with Panther version 1.2 and above.
-- `~/battery_timeout` [*float*, default: **1.0**]: specifies the timeout in seconds. If the node fails to read battery data exceeding this duration, the node will publish an unknown battery state.
-- `~/ma_window_len/voltage` [*int*, default: **10**]: window length of a moving average, used to smooth out battery voltage readings.
-- `~/ma_window_len/current` [*int*, default: **10**]: window length of a moving average, used to smooth out battery current readings.
-- `~/roboteq/driver_state_timeout` [*float*, default: **0.2**]: specifies timeout in seconds after which driver state messages will be considered old. Used with Panther version 1.06 and earlier.
+- `~/adc/ma_window_len/charge` [*int*, default: **10**]: Window length of a moving average, used to smooth out battery charge readings. Used with Panther version 1.2 and above.
+- `~/adc/ma_window_len/temp` [*int*, default: **10**]: Window length of a moving average, used to smooth out battery temperature readings. Used with Panther version 1.2 and above.
+- `~/battery_timeout` [*float*, default: **1.0**]: Specifies the timeout in seconds. If the node fails to read battery data exceeding this duration, the node will publish an unknown battery state.
+- `~/ma_window_len/voltage` [*int*, default: **10**]: Window length of a moving average, used to smooth out battery voltage readings.
+- `~/ma_window_len/current` [*int*, default: **10**]: Window length of a moving average, used to smooth out battery current readings.
+- `~/roboteq/driver_state_timeout` [*float*, default: **0.2**]: Specifies timeout in seconds after which driver state messages will be considered old. Used with Panther version 1.06 and earlier.
