@@ -249,12 +249,12 @@ TEST(TestRoboteqDataConverters, RoboteqData)
 
   ASSERT_FALSE(roboteq_data.IsError());
 
-  roboteq_data.SetCANNetErr(true);
+  roboteq_data.SetCANError(true);
 
   ASSERT_TRUE(roboteq_data.IsError());
-  ASSERT_TRUE(roboteq_data.IsCANNetErr());
+  ASSERT_TRUE(roboteq_data.IsCANError());
 
-  roboteq_data.SetCANNetErr(false);
+  roboteq_data.SetCANError(false);
   ASSERT_FALSE(roboteq_data.IsError());
 
   const float pos_to_radians = 0.00013055156;

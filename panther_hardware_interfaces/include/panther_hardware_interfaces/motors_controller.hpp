@@ -47,7 +47,7 @@ public:
   void Initialize();
 
   /**
-   * @brief Deinitializes can communication
+   * @brief Deinitialize can communication
    */
   void Deinitialize();
 
@@ -60,11 +60,18 @@ public:
   void Activate();
 
   /**
-   * @brief Updates current motors' states (position, velocity, current).
+   * @brief Updates current communication state with Roboteq drivers
    *
    * @exception std::runtime_error if CAN error was detected
    */
-  void UpdateMotorsStates();
+  void UpdateCommunicationState();
+
+  /**
+   * @brief Updates current motors' state (position, velocity, current).
+   *
+   * @exception std::runtime_error if CAN error was detected
+   */
+  void UpdateMotorsState();
 
   /**
    * @brief Updates current Roboteq driver state (flags, temperatures, voltage, battery current)
