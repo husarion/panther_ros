@@ -14,11 +14,9 @@ This package contains:
 
 ## ROS Nodes
 
-[`lights_container`](https://github.com/ros2/rclcpp/tree/rolling/rclcpp_components): Node for managing ROS components. This node manages: `lights_controller`, `lights_driver`.
-[`lights_controller_node`](#lights_controller_node): This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
-[`lights_driver`](#lights_driver): This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
-
 ### lights_controller_node
+
+This node is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
 
 #### Publishers
 
@@ -36,6 +34,8 @@ This package contains:
 - `~user_led_animations_file` [*string*, default: **None**]: Path to a YAML file with a description of the user defined animations.
 
 ### lights_driver
+
+This node is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
 
 #### Publishers
 

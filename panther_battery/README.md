@@ -8,11 +8,9 @@ This package contains:
 
 - `battery.launch.py`: Responsible for activating battery node, which dealing with reading and publishing battery data.
 
-## ROS Nodes
-
-- [`battery_node`](#battery_node): Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier versions of the robot.
-
 ### battery_node
+
+Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier.versions of the robot.
 
 #### Publishes
 
