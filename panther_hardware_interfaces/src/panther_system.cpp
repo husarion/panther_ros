@@ -486,7 +486,7 @@ void PantherSystem::UpdateMotorsState()
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
 
     RCLCPP_ERROR_STREAM_THROTTLE(
-      logger_, steady_clock_, 10000,
+      logger_, steady_clock_, 5000,
       "An exception occurred while updating motors states: " << e.what());
   }
 }
@@ -501,7 +501,7 @@ void PantherSystem::UpdateDriverState()
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
 
     RCLCPP_ERROR_STREAM_THROTTLE(
-      logger_, steady_clock_, 10000,
+      logger_, steady_clock_, 5000,
       "An exception occurred while updating drivers states: " << e.what());
   }
 }
