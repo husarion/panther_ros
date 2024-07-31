@@ -6,7 +6,7 @@ The package contains URDF files responsible for creating a representation of the
 
 - `load_urdf.launch.py` - loads the robot's URDF and creates simple bindings to display moving joints.
 
-### Configuration Files
+## Configuration Files
 
 - [`components.yaml`](./config/components.yaml): Allows you to quickly add visualization of sensors, TF connections and simulate their behavior in the simulator.
 - [`WH01.yaml`](./config/WH01.yaml): Description of physical and visual parameters for the wheel WH01.

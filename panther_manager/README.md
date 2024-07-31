@@ -8,7 +8,7 @@ This package contains:
 
 - `manager_bt.launch.py`: Responsible for launching behavior trees responsible for safety and LED animations scheduling.
 
-### Configuration Files
+## Configuration Files
 
 - [`lights.xml`](./behavior_trees/lights.xml): BehaviorTree for managing lights.
 - [`PantherLightsBT.btproj`](./behavior_trees/PantherLightsBT.btproj): BehaviorTree project for managing Panther lights.
@@ -21,10 +21,9 @@ This package contains:
 
 ## ROS Nodes
 
-- [`lights_manager`](#lights_manager): Node responsible for managing Bumper Lights animation scheduling.
-- [`safety_manager`](#safety_manager): Node responsible for managing safety features, and software shutdown of components.
+### lights_manager_node
 
-### lights_manager
+Node responsible for managing Bumper Lights animation scheduling.
 
 #### Subscribers
 
@@ -48,7 +47,9 @@ This package contains:
 - `ros_plugin_libs` [*list*, default: **Empty list**]: List with names of ROS plugins that are used in a BT project.
 - `timer_frequency` [*float*, default: **10.0**]: Frequency **[Hz]** at which lights tree will be ticked.
 
-### safety_manager
+### safety_manager_node
+
+Node responsible for managing safety features, and software shutdown of components.
 
 #### Subscribers
 
