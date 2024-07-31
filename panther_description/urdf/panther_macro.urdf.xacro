@@ -189,8 +189,8 @@
       </xacro:if>
       <xacro:gazebo.controller config_file="${controller_config_file}" namespace="${namespace}" />
       <xacro:gazebo.imu reference_frame="imu_link" namespace="${namespace}" />
-      <xacro:gazebo.light reference_frame="front_light_link" name="front_light" namespace="${namespace}" />
-      <xacro:gazebo.light reference_frame="rear_light_link" name="rear_light" namespace="${namespace}" />
+      <xacro:gazebo.light reference_frame="lights_channel_1_link" name="lights_channel_1" namespace="${namespace}" />
+      <xacro:gazebo.light reference_frame="lights_channel_2_link" name="lights_channel_2" namespace="${namespace}" />
     </xacro:if>
   </xacro:macro>
 
