@@ -2,6 +2,14 @@
 Changelog for package panther
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Merge pull request `#375 <https://github.com/husarion/panther_ros/issues/375>`_ from husarion/hotfix-handle-can-timeout
+* Update panther_msgs version
+* Update repos version
+* Ubdate-vcs (`#368 <https://github.com/husarion/panther_ros/issues/368>`_)
+* Contributors: Dawid Kmak, pawelirh, rafal-gorecki
+
 2.0.4 (2024-06-28)
 ------------------
 * hotfix-allow-unshallow-copy

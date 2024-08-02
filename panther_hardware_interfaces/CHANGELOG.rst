@@ -2,6 +2,22 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Merge pull request `#375 <https://github.com/husarion/panther_ros/issues/375>`_ from husarion/hotfix-handle-can-timeout
+* Decrease throttle interval on update
+* Rename CAN communication errors
+* Add heartbeat on CAN
+* Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
+* configure heartbeat
+* Merge pull request `#371 <https://github.com/husarion/panther_ros/issues/371>`_ from husarion/bugfix-imu-orientation
+* FIx timestamp calculation and implement some minor changes
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Minor readme updates
+* Enhance ROS API names in the stack
+* Add devices symlink (`#347 <https://github.com/husarion/panther_ros/issues/347>`_)
+* Contributors: Dawid, Dawid Kmak, Jakub Delicat, pawelirh
+
 2.0.4 (2024-06-28)
 ------------------
 * Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights

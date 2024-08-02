@@ -2,6 +2,16 @@
 Changelog for package panther_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Fixed gazebo lights tfs (`#377 <https://github.com/husarion/panther_ros/issues/377>`_)
+* Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
+* Fix imu tf frame (`#373 <https://github.com/husarion/panther_ros/issues/373>`_)
+* Ros2 fix wheels friction (`#370 <https://github.com/husarion/panther_ros/issues/370>`_)
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Enhance ROS API names in the stack
+* Contributors: Dawid Kmak, Jakub Delicat, pawelirh, rafal-gorecki
+
 2.0.4 (2024-06-28)
 ------------------
 * Delete unnecessary dependency
