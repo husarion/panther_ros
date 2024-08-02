@@ -2,8 +2,8 @@
 Changelog for package panther_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Fix imu tf frame (`#373 <https://github.com/husarion/panther_ros/issues/373>`_)
 * Process noise update (`#361 <https://github.com/husarion/panther_ros/issues/361>`_)
 * Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization

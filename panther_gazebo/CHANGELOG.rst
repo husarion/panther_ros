@@ -2,8 +2,8 @@
 Changelog for package panther_gazebo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Fixed gazebo lights tfs (`#377 <https://github.com/husarion/panther_ros/issues/377>`_)
 * Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
 * Fix battery topic in simulation

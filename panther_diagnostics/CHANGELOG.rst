@@ -2,8 +2,8 @@
 Changelog for package panther_diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
 * Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
 * Enhance ROS API names in the stack

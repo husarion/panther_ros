@@ -2,8 +2,8 @@
 Changelog for package panther_localization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Process noise update (`#361 <https://github.com/husarion/panther_ros/issues/361>`_)
 * Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
 * Improve set_pose topic description

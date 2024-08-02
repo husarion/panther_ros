@@ -2,8 +2,8 @@
 Changelog for package panther_utils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
 * Contributors: Jakub Delicat
 

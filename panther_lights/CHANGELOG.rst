@@ -2,8 +2,8 @@
 Changelog for package panther_lights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
 * Ros2 fix lights build (`#367 <https://github.com/husarion/panther_ros/issues/367>`_)
 * Redesign lights initialization process (`#365 <https://github.com/husarion/panther_ros/issues/365>`_)

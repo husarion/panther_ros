@@ -2,8 +2,8 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2024-08-02)
+------------------
 * Merge pull request `#375 <https://github.com/husarion/panther_ros/issues/375>`_ from husarion/hotfix-handle-can-timeout
 * Decrease throttle interval on update
 * Rename CAN communication errors
