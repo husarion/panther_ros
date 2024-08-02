@@ -2,6 +2,20 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#375 <https://github.com/husarion/panther_ros/issues/375>`_ from husarion/hotfix-handle-can-timeout
+* Update error checking in battery
+* Rename CAN communication errors
+* Merge pull request `#366 <https://github.com/husarion/panther_ros/issues/366>`_ from husarion/ros2-remove-battery-symlink
+* Remove battery symlink
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Add adc/path parameter and fix unit tests
+* Enhance ROS API names in the stack
+* Update symlink names (`#359 <https://github.com/husarion/panther_ros/issues/359>`_)
+* Add devices symlink (`#347 <https://github.com/husarion/panther_ros/issues/347>`_)
+* Contributors: Dawid Kmak, Jakub Delicat, pawelirh
+
 2.0.4 (2024-06-28)
 ------------------
 * Ros2 battery charger topic (`#353 <https://github.com/husarion/panther_ros/issues/353>`_)

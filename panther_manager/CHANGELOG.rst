@@ -2,6 +2,12 @@
 Changelog for package panther_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Enhance ROS API names in the stack
+* Contributors: Dawid Kmak, pawelirh
+
 2.0.4 (2024-06-28)
 ------------------
 * Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights

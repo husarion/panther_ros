@@ -2,6 +2,15 @@
 Changelog for package panther_localization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Process noise update (`#361 <https://github.com/husarion/panther_ros/issues/361>`_)
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Improve set_pose topic description
+* Minor readme updates
+* Enhance ROS API names in the stack
+* Contributors: Dawid Kmak, pawelirh, rafal-gorecki
+
 2.0.4 (2024-06-28)
 ------------------
 * Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)

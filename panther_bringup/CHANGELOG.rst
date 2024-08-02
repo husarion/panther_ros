@@ -2,6 +2,13 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Update panther_bringup/README.md
+* Enhance ROS API names in the stack
+* Contributors: Dawid Kmak, Paweł Irzyk, pawelirh
+
 2.0.4 (2024-06-28)
 ------------------
 * Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
