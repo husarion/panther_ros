@@ -43,7 +43,7 @@ public:
       [&](const panther_msgs::msg::DriverState::SharedPtr msg) { driver_state_msg_ = msg; });
 
     panther_system_ros_interface_ =
-      std::make_unique<PantherSystemRosInterface>("panther_system_node");
+      std::make_unique<PantherSystemRosInterface>("hardware_controller");
   }
 
   ~TestPantherSystemRosInterface() { panther_system_ros_interface_.reset(); }
@@ -61,7 +61,7 @@ TEST(TestPantherSystemRosInterfaceInitialization, NodeCreation)
   using panther_hardware_interfaces::PantherSystemRosInterface;
 
   std::vector<std::string> node_names;
-  const std::string panther_system_node_name = "panther_system_node";
+  const std::string panther_system_node_name = "hardware_controller";
   const std::string panther_system_node_name_with_ns = "/" + panther_system_node_name;
 
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
@@ -103,7 +103,7 @@ TEST(TestPantherSystemRosInterfaceInitialization, Activation)
   rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_panther_system_node");
 
   std::unique_ptr<PantherSystemRosInterface> panther_system_ros_interface =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
+    std::make_unique<PantherSystemRosInterface>("hardware_controller");
 
   // Necessary to add some waiting, so that topic lists are updated
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -120,7 +120,7 @@ TEST(TestPantherSystemRosInterfaceInitialization, Activation)
   ASSERT_FALSE(
     topic_names_and_types.find(kMotorControllersStateTopic) != topic_names_and_types.end());
 
-  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>("panther_system_node");
+  panther_system_ros_interface = std::make_unique<PantherSystemRosInterface>("hardware_controller");
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -238,8 +238,8 @@ TEST_F(TestPantherSystemRosInterface, Errors)
   can_errors.front_driver_state_data_timed_out = false;
   can_errors.rear_driver_state_data_timed_out = true;
 
-  can_errors.front_can_net_err = false;
-  can_errors.rear_can_net_err = true;
+  can_errors.front_can_error = false;
+  can_errors.rear_can_error = true;
 
   panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 
@@ -260,8 +260,8 @@ TEST_F(TestPantherSystemRosInterface, Errors)
   EXPECT_FALSE(driver_state_msg_->front.driver_state_data_timed_out);
   EXPECT_TRUE(driver_state_msg_->rear.driver_state_data_timed_out);
 
-  EXPECT_FALSE(driver_state_msg_->front.can_net_err);
-  EXPECT_TRUE(driver_state_msg_->rear.can_net_err);
+  EXPECT_FALSE(driver_state_msg_->front.can_error);
+  EXPECT_TRUE(driver_state_msg_->rear.can_error);
 }
 
 int main(int argc, char ** argv)

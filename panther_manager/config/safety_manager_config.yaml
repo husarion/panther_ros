@@ -1,5 +1,5 @@
 /**:
-  safety_manager_node:
+  safety_manager:
     ros__parameters:
       timer_frequency: 10.0
       fan_turn_off_timeout: 60.0

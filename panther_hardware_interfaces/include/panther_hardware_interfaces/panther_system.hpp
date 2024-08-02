@@ -83,11 +83,12 @@ protected:
   void ConfigureMotorsController();
   void ConfigureEStop();
 
-  void UpdateMotorsStates();
+  void UpdateMotorsState();
   void UpdateDriverState();
+  void UpdateEStopState();
 
   void UpdateHwStates();
-  void UpdateMotorsStatesDataTimedOut();
+  void UpdateMotorsStateDataTimedOut();
   bool AreVelocityCommandsNearZero();
   bool IsPantherVersionAtLeast(const float version);
 

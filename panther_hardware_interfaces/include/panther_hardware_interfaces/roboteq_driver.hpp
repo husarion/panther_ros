@@ -80,7 +80,15 @@ public:
    */
   std::future<void> Boot();
 
+  /**
+   * @brief Returns true if CAN error was detected.
+   */
   bool IsCANError() const { return can_error_.load(); }
+
+  /**
+   * @brief Returns true if heartbeat timeout encountered.
+   */
+  bool IsHeartbeatTimeout() const { return heartbeat_timeout_.load(); }
 
   /**
    * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
@@ -150,9 +158,13 @@ private:
     can_error_.store(true);
   }
 
+  void OnHeartbeat(const bool occurred) noexcept override { heartbeat_timeout_.store(occurred); }
+
+  std::mutex boot_mtx_;
   std::promise<void> boot_promise_;
 
   std::atomic_bool can_error_;
+  std::atomic_bool heartbeat_timeout_;
 
   std::mutex position_timestamp_mtx_;
   timespec last_position_timestamp_;

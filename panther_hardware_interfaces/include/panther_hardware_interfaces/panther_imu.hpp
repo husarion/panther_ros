@@ -113,7 +113,7 @@ protected:
 
   void InitializeMadgwickAlgorithm(
     const geometry_msgs::msg::Vector3 & mag_compensated,
-    const geometry_msgs::msg::Vector3 & lin_acc, const double timestamp_s);
+    const geometry_msgs::msg::Vector3 & lin_acc, const rclcpp::Time & timestamp);
   void RestartMadgwickAlgorithm();
 
   bool IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated);
@@ -142,7 +142,9 @@ protected:
     const geometry_msgs::msg::Vector3 & mag_compensated);
 
   std::vector<double> imu_sensor_state_;
+
   rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
+  rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   inline static const std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
     "orientation.x",         "orientation.y",         "orientation.z",      "orientation.w",
@@ -175,7 +177,7 @@ protected:
   std::condition_variable calibration_cv_;
 
   bool algorithm_initialized_ = false;
-  double last_spatial_data_callback_time_s_;
+  rclcpp::Time last_spatial_data_timestamp_;
 };
 
 }  // namespace panther_hardware_interfaces

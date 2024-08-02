@@ -137,6 +137,42 @@ TEST(TestMergeHeaders, LaterTimestamp)
   EXPECT_EQ(merged_header.stamp.nanosec, 500000000);
 }
 
+TEST(TestAddNamespaceToFrameID, WithoutNamespace)
+{
+  std::string frame_id = "frame";
+  std::string ns = "";
+
+  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  EXPECT_EQ(result, "frame");
+}
+
+TEST(TestAddNamespaceToFrameID, WithSlashNamespace)
+{
+  std::string frame_id = "frame";
+  std::string ns = "/";
+
+  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  EXPECT_EQ(result, "frame");
+}
+
+TEST(TestAddNamespaceToFrameID, WithSlashedNamespace)
+{
+  std::string frame_id = "frame";
+  std::string ns = "/namespace";
+
+  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  EXPECT_EQ(result, "namespace/frame");
+}
+
+TEST(TestAddNamespaceToFrameID, WithNamespace)
+{
+  std::string frame_id = "frame";
+  std::string ns = "namespace";
+
+  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  EXPECT_EQ(result, "namespace/frame");
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

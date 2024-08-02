@@ -17,7 +17,7 @@
 
 #include <chrono>
 
-#include <std_msgs/msg/header.hpp>
+#include "std_msgs/msg/header.hpp"
 
 namespace panther_utils::ros
 {
@@ -88,6 +88,21 @@ std_msgs::msg::Header MergeHeaders(
   }
 
   return merged_header;
+}
+
+std::string AddNamespaceToFrameID(const std::string & frame_id, const std::string & node_namespace)
+{
+  std::string tf_prefix = node_namespace;
+
+  if (tf_prefix != "/") {
+    tf_prefix += '/';
+  }
+
+  if (tf_prefix.front() == '/') {
+    tf_prefix.erase(0, 1);
+  }
+
+  return tf_prefix + frame_id;
 }
 
 }  // namespace panther_utils::ros

@@ -39,10 +39,10 @@ DualBatteryPublisher::DualBatteryPublisher(
   battery_1_(std::move(battery_1)),
   battery_2_(std::move(battery_2))
 {
-  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
-  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
-  battery_2_pub_ = node->create_publisher<BatteryStateMsg>("battery_2_raw", 5);
-  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("charging_status", 5);
+  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery/battery_status", 5);
+  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("_battery/battery_1_status_raw", 5);
+  battery_2_pub_ = node->create_publisher<BatteryStateMsg>("_battery/battery_2_status_raw", 5);
+  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("battery/charging_status", 5);
 }
 
 void DualBatteryPublisher::Update()

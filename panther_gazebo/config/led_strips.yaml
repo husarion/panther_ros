@@ -5,8 +5,8 @@ chanel_1:
   position: [0.362, 0.0, 0.201]
   orientation: [0.0, 0.0, 0.0]
   led_strip_width: 0.5
-  topic: lights/driver/channel_1_frame
-  light_name: front_light
+  topic: lights/channel_1_frame
+  light_name: lights_channel_1
   number_of_leds: 46
 
 chanel_2:
@@ -16,6 +16,6 @@ chanel_2:
   position: [-0.362, 0.0, 0.201]
   orientation: [0.0, 0.0, 0.0]
   led_strip_width: 0.5
-  topic: lights/driver/channel_2_frame
-  light_name: rear_light
+  topic: lights/channel_2_frame
+  light_name: lights_channel_2
   number_of_leds: 46

@@ -111,7 +111,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   }
 
   panther_system_ros_interface_ =
-    std::make_unique<PantherSystemRosInterface>("panther_system_node");
+    std::make_unique<PantherSystemRosInterface>("hardware_controller");
 
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
     "~/fan_enable",
@@ -246,16 +246,16 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
 
 return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
 {
-  UpdateMotorsStates();
-
-  const bool e_stop = e_stop_->ReadEStopState();
-  panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop);
+  UpdateMotorsState();
 
   if (time >= next_driver_state_update_time_) {
     UpdateDriverState();
+    UpdateDriverStateMsg();
     panther_system_ros_interface_->PublishDriverState();
     next_driver_state_update_time_ = time + driver_states_update_period_;
   }
+
+  UpdateEStopState();
 
   return return_type::OK;
 }
@@ -476,16 +476,17 @@ void PantherSystem::ConfigureEStop()
   RCLCPP_INFO(logger_, "Successfully configured E-Stop");
 }
 
-void PantherSystem::UpdateMotorsStates()
+void PantherSystem::UpdateMotorsState()
 {
   try {
-    motors_controller_->UpdateMotorsStates();
+    motors_controller_->UpdateMotorsState();
     UpdateHwStates();
-    UpdateMotorsStatesDataTimedOut();
+    UpdateMotorsStateDataTimedOut();
   } catch (const std::runtime_error & e) {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
-    RCLCPP_WARN_STREAM_THROTTLE(
-      logger_, steady_clock_, 1000,
+
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      logger_, steady_clock_, 5000,
       "An exception occurred while updating motors states: " << e.what());
   }
 }
@@ -494,14 +495,27 @@ void PantherSystem::UpdateDriverState()
 {
   try {
     motors_controller_->UpdateDriversState();
-    UpdateDriverStateMsg();
     UpdateFlagErrors();
     UpdateDriverStateDataTimedOut();
   } catch (const std::runtime_error & e) {
-    RCLCPP_WARN_STREAM(
-      logger_, "An exception occurred while updating drivers states: " << e.what());
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
+
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      logger_, steady_clock_, 5000,
+      "An exception occurred while updating drivers states: " << e.what());
   }
+}
+
+void PantherSystem::UpdateEStopState()
+{
+  if (
+    motors_controller_->GetFrontData().IsHeartbeatTimeout() ||
+    motors_controller_->GetRearData().IsHeartbeatTimeout()) {
+    e_stop_->TriggerEStop();
+  }
+
+  const bool e_stop = e_stop_->ReadEStopState();
+  panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop);
 }
 
 void PantherSystem::UpdateHwStates()
@@ -530,7 +544,7 @@ void PantherSystem::UpdateHwStates()
   hw_states_efforts_[3] = rr.GetTorque();
 }
 
-void PantherSystem::UpdateMotorsStatesDataTimedOut()
+void PantherSystem::UpdateMotorsStateDataTimedOut()
 {
   if (
     motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ||
@@ -573,8 +587,11 @@ void PantherSystem::UpdateDriverStateMsg()
   can_errors.rear_driver_state_data_timed_out =
     motors_controller_->GetRearData().IsDriverStateDataTimedOut();
 
-  can_errors.front_can_net_err = motors_controller_->GetFrontData().IsCANNetErr();
-  can_errors.rear_can_net_err = motors_controller_->GetRearData().IsCANNetErr();
+  can_errors.front_can_error = motors_controller_->GetFrontData().IsCANError();
+  can_errors.rear_can_error = motors_controller_->GetRearData().IsCANError();
+
+  can_errors.front_heartbeat_timeout = motors_controller_->GetFrontData().IsHeartbeatTimeout();
+  can_errors.rear_heartbeat_timeout = motors_controller_->GetRearData().IsHeartbeatTimeout();
 
   panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 }

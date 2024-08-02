@@ -17,6 +17,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -75,7 +76,9 @@ RoboteqDriver::RoboteqDriver(
 
 std::future<void> RoboteqDriver::Boot()
 {
+  std::lock_guard<std::mutex> lck(boot_mtx_);
   std::future<void> future = boot_promise_.get_future();
+
   if (!LoopDriver::Boot()) {
     throw std::runtime_error("Boot failed.");
   }
@@ -250,11 +253,18 @@ void RoboteqDriver::OnBoot(
   const lely::canopen::NmtState st, const char es, const std::string & what) noexcept
 {
   LoopDriver::OnBoot(st, es, what);
+  std::lock_guard<std::mutex> lck(boot_mtx_);
 
-  if (!es || es == 'L') {
-    boot_promise_.set_value();
-  } else {
-    boot_promise_.set_exception(std::make_exception_ptr(std::runtime_error(what)));
+  try {
+    if (!es || es == 'L') {
+      boot_promise_.set_value();
+    } else {
+      boot_promise_.set_exception(std::make_exception_ptr(std::runtime_error(what)));
+    }
+  } catch (const std::future_error & e) {
+    if (e.code() == std::make_error_code(std::future_errc::promise_already_satisfied)) {
+      std::cerr << "An exception occurred while setting boot promise: " << e.what() << std::endl;
+    }
   }
 }
 

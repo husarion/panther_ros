@@ -82,8 +82,7 @@ PantherSystemRosInterface::PantherSystemRosInterface(
 
   executor_thread_ = std::thread([this]() { executor_->spin(); });
 
-  driver_state_publisher_ = node_->create_publisher<DriverStateMsg>(
-    "~/driver/motor_controllers_state", 5);
+  driver_state_publisher_ = node_->create_publisher<DriverStateMsg>("~/motor_controllers_state", 5);
   realtime_driver_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<DriverStateMsg>>(driver_state_publisher_);
 
@@ -175,8 +174,11 @@ void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
   driver_state.front.driver_state_data_timed_out = can_errors.front_driver_state_data_timed_out;
   driver_state.rear.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
 
-  driver_state.front.can_net_err = can_errors.front_can_net_err;
-  driver_state.rear.can_net_err = can_errors.rear_can_net_err;
+  driver_state.front.can_error = can_errors.front_can_error;
+  driver_state.rear.can_error = can_errors.rear_can_error;
+
+  driver_state.front.heartbeat_timeout = can_errors.front_heartbeat_timeout;
+  driver_state.rear.heartbeat_timeout = can_errors.rear_heartbeat_timeout;
 }
 
 void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)

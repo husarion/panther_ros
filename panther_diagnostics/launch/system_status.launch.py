@@ -31,7 +31,7 @@ def generate_launch_description():
     system_status_node = Node(
         package="panther_diagnostics",
         executable="system_status_node",
-        name="system_status_node",
+        name="system_monitor",
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
         emulate_tty=True,

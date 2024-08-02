@@ -193,7 +193,8 @@ public:
     const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
     const bool data_timed_out);
   void SetDriverState(const RoboteqDriverState & state, const bool data_timed_out);
-  void SetCANNetErr(const bool can_net_err) { can_net_err_ = can_net_err; }
+  void SetCANError(const bool can_error) { can_error_ = can_error; }
+  void SetHeartbeatTimeout(const bool heartbeat_timeout) { heartbeat_timeout_ = heartbeat_timeout; }
 
   bool IsFlagError() const
   {
@@ -204,7 +205,7 @@ public:
   bool IsError() const
   {
     return IsFlagError() || motor_states_data_timed_out_ || driver_state_data_timed_out_ ||
-           can_net_err_;
+           can_error_ || heartbeat_timeout_;
   }
 
   const MotorState & GetLeftMotorState() const { return left_motor_state_; }
@@ -213,7 +214,8 @@ public:
 
   bool IsMotorStatesDataTimedOut() const { return motor_states_data_timed_out_; }
   bool IsDriverStateDataTimedOut() const { return driver_state_data_timed_out_; }
-  bool IsCANNetErr() const { return can_net_err_; }
+  bool IsCANError() const { return can_error_; }
+  bool IsHeartbeatTimeout() const { return heartbeat_timeout_; }
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }
@@ -238,7 +240,8 @@ private:
 
   bool motor_states_data_timed_out_ = false;
   bool driver_state_data_timed_out_ = false;
-  bool can_net_err_ = false;
+  bool can_error_ = false;
+  bool heartbeat_timeout_ = false;
 };
 
 }  // namespace panther_hardware_interfaces

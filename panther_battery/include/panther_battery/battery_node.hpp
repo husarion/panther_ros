@@ -45,6 +45,7 @@ private:
   void InitializeWithRoboteqBattery();
 
   static constexpr int kADCCurrentOffset = 625;
+
   DriverStateMsg::SharedPtr driver_state_;
 
   std::shared_ptr<ADCDataReader> adc0_reader_;

@@ -20,27 +20,27 @@ This package contains:
 
 ### localization.launch.py - Nodes Launched
 
-- `ekf_node` [*[robot_localization/ekf_node](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)*]: The Extended Kalman Filter node is designed to fuse odometry data from various sources, including wheel encoders, IMU, and GPS.
+- `ekf_filter` [*[robot_localization/ekf_node](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)*]: The Extended Kalman Filter node is designed to fuse odometry data from various sources, including wheel encoders, IMU, and GPS.
 - `navsat_transform` [*[robot_localization/navsat_transform_node](https://github.com/cra-ros-pkg/robot_localization/tree/ros2)*]:
 It converts raw GPS data into odometry data and publishes corrected GPS positions based on sensor data at a higher frequency.
 
-#### ekf_node - Subscriber
+#### ekf_filter - Subscriber
 
 - `cmd_vel` [*geometry_msgs/msg/Twist*]: command velocity value.
 - `odometry/wheels` [*nav_msgs/msg/Odometry*]: robot odometry calculated from wheels.
 - `imu/data` [*sensor_msgs/msg/Imu*]: filtered IMU data.
+- `localization/set_pose` [*geometry_msgs/msg/PoseWithCovarianceStamped*]: allows manually set the state of the filter by sending the pose.
 - `/tf` [*tf2_msgs/msg/TFMessage*]: transforms of robot system.
 
-#### ekf_node - Publishers
+#### ekf_filter - Publishers
 
 - `diagnostics` [*diagnostic_msgs/msg/DiagnosticArray*]: diagnostic data.
 - `odometry/filtered` [*nav_msgs/msg/Odometry*]: contains information about the filtered position and orientation. When `localization_mode` is `relative`, the position and orientation are relative to the starting point. When `localization_mode` is `enu`, the orientation is relative to the east-north-up (ENU) coordinates.
 - `/tf` [*tf2_msgs/msg/TFMessage*]: publishes `odom` to `base_link` transform.
 
-#### ekf_node - Service Servers
+#### ekf_filter - Service Servers
 
-- `~/set_pose` [*robot_localization/srv/SetPose*]: upon request, users can manually set the robot's position and speed. This is useful for resetting positions, e.g. during tests.
-
+- `localization/set_pose` [*robot_localization/srv/SetPose*]: upon request, users can manually set the robot's position and speed. This is useful for resetting positions, e.g. during tests.
 - `odometry/filtered/global`[*nav_msgs/msg/Odometry*]: contains information about the position and velocities in relation to the initial position and orientation based on geographic  ENU convention (x-east, y-north, z-up). [*nav_msgs/Odometry*]: robot odometry calculated from wheels.
 
 #### navsat_transform - Subscriber
@@ -50,5 +50,5 @@ It converts raw GPS data into odometry data and publishes corrected GPS position
 
 #### navsat_transform - Publishers
 
-- `gps/filtered` [*sensor_msgs/msg/NavSatFix*]: GPS position after including sensor data from `ekf_node`.
+- `gps/filtered` [*sensor_msgs/msg/NavSatFix*]: GPS position after including sensor data from `ekf_filter`.
 - `_odometry/gps` [*nav_msgs/msg/Odometry*]: transformed raw GPS data to odometry format.

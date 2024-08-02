@@ -23,7 +23,8 @@ from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-from launch_ros.actions import Node
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -58,26 +59,37 @@ def generate_launch_description():
         description="Path to a YAML file with a description of the user defined animations.",
     )
 
-    lights_driver_node = Node(
-        package="panther_lights",
-        executable="driver_node",
-        name="lights_driver_node",
+    lights_container = ComposableNodeContainer(
+        package="rclcpp_components",
+        name="lights_container",
         namespace=namespace,
-        remappings=[("/diagnostics", "diagnostics")],
-        emulate_tty=True,
-        on_exit=Shutdown(),
-        condition=UnlessCondition(use_sim),
-    )
-
-    lights_controller_node = Node(
-        package="panther_lights",
-        executable="controller_node",
-        name="lights_controller_node",
-        parameters=[
-            {"led_config_file": led_config_file},
-            {"user_led_animations_file": user_led_animations_file},
+        executable="component_container",
+        composable_node_descriptions=[
+            ComposableNode(
+                package="panther_lights",
+                plugin="panther_lights::DriverNode",
+                name="lights_driver",
+                namespace=namespace,
+                remappings=[("/diagnostics", "diagnostics")],
+                extra_arguments=[
+                    {"use_intra_process_comms": True},
+                ],
+                condition=UnlessCondition(use_sim),
+            ),
+            ComposableNode(
+                package="panther_lights",
+                plugin="panther_lights::ControllerNode",
+                name="lights_controller",
+                namespace=namespace,
+                parameters=[
+                    {"led_config_file": led_config_file},
+                    {"user_led_animations_file": user_led_animations_file},
+                ],
+                extra_arguments=[
+                    {"use_intra_process_comms": True},
+                ],
+            ),
         ],
-        namespace=namespace,
         emulate_tty=True,
         on_exit=Shutdown(),
     )
@@ -87,8 +99,7 @@ def generate_launch_description():
         declare_namespace_arg,
         declare_use_sim_arg,
         declare_user_led_animations_file_arg,
-        lights_driver_node,
-        lights_controller_node,
+        lights_container,
     ]
 
     return LaunchDescription(actions)
