@@ -22,12 +22,15 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
+#include "panther_msgs/msg/charging_status.hpp"
+
 #include "panther_battery/adc_battery.hpp"
 #include "panther_battery/battery.hpp"
 #include "panther_battery/dual_battery_publisher.hpp"
 #include "panther_utils/test/ros_test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
 
 class DualBatteryPublisherWrapper : public panther_battery::DualBatteryPublisher
 {
@@ -59,6 +62,14 @@ public:
   {
     return DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
       battery_msg, battery_msg_1, battery_msg_2);
+  }
+
+  ChargingStatusMsg MergeChargingStatusMsgs(
+    const ChargingStatusMsg & charging_status_msg_1,
+    const ChargingStatusMsg & charging_status_msg_2)
+  {
+    return DualBatteryPublisher::MergeChargingStatusMsgs(
+      charging_status_msg_1, charging_status_msg_2);
   }
 };
 
@@ -100,11 +111,14 @@ TestDualBatteryPublisher::TestDualBatteryPublisher()
   node_ = std::make_shared<rclcpp::Node>("node");
   diagnostic_updater_ = std::make_shared<diagnostic_updater::Updater>(node_);
   battery_sub_ = node_->create_subscription<BatteryStateMsg>(
-    "/battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
+    "/battery/battery_status", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
   battery_1_sub_ = node_->create_subscription<BatteryStateMsg>(
-    "/battery_1_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
+    "/_battery/battery_1_status_raw", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
   battery_2_sub_ = node_->create_subscription<BatteryStateMsg>(
-    "/battery_2_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
+    "/_battery/battery_2_status_raw", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
   battery_publisher_ = std::make_shared<DualBatteryPublisherWrapper>(
     node_, diagnostic_updater_, battery_1_, battery_2_);
 }
@@ -301,6 +315,83 @@ TEST_F(TestDualBatteryPublisher, MergeBatteryMsg)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, bat.power_supply_technology);
   EXPECT_TRUE(bat.present);
   EXPECT_EQ("user_compartment", bat.location);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeChargingStatusMsgsCharging)
+{
+  ChargingStatusMsg charging_status_1;
+  charging_status_1.charging = true;
+
+  ChargingStatusMsg charging_status_2;
+  charging_status_2.charging = true;
+
+  auto merged_charging_status = battery_publisher_->MergeChargingStatusMsgs(
+    charging_status_1, charging_status_2);
+
+  EXPECT_TRUE(merged_charging_status.charging);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeChargingStatusMsgsChargingMismatch)
+{
+  ChargingStatusMsg charging_status_1;
+  charging_status_1.charging = true;
+
+  ChargingStatusMsg charging_status_2;
+  charging_status_2.charging = false;
+
+  auto merged_charging_status = battery_publisher_->MergeChargingStatusMsgs(
+    charging_status_1, charging_status_2);
+
+  EXPECT_FALSE(merged_charging_status.charging);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeChargingStatusMsgsCurrent)
+{
+  const auto current_bat_1 = 0.7;
+  const auto current_bat_2 = 0.3;
+
+  ChargingStatusMsg charging_status_1;
+  charging_status_1.current = current_bat_1;
+  charging_status_1.charger_type = ChargingStatusMsg::WIRED;
+
+  ChargingStatusMsg charging_status_2;
+  charging_status_2.current = current_bat_2;
+  charging_status_2.charger_type = ChargingStatusMsg::WIRED;
+
+  auto merged_charging_status = battery_publisher_->MergeChargingStatusMsgs(
+    charging_status_1, charging_status_2);
+
+  EXPECT_FLOAT_EQ(current_bat_1 + current_bat_2, merged_charging_status.current);
+  EXPECT_FLOAT_EQ(current_bat_1, merged_charging_status.current_battery_1);
+  EXPECT_FLOAT_EQ(current_bat_2, merged_charging_status.current_battery_2);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeChargingStatusMsgsChargerType)
+{
+  ChargingStatusMsg charging_status_1;
+  charging_status_1.charger_type = ChargingStatusMsg::WIRED;
+
+  ChargingStatusMsg charging_status_2;
+  charging_status_2.charger_type = ChargingStatusMsg::WIRED;
+
+  auto merged_charging_status = battery_publisher_->MergeChargingStatusMsgs(
+    charging_status_1, charging_status_2);
+
+  EXPECT_EQ(ChargingStatusMsg::WIRED, merged_charging_status.charger_type);
+}
+
+TEST_F(TestDualBatteryPublisher, MergeChargingStatusMsgsChargerTypeMismatch)
+{
+  ChargingStatusMsg charging_status_1;
+  charging_status_1.charger_type = ChargingStatusMsg::WIRED;
+
+  ChargingStatusMsg charging_status_2;
+  charging_status_2.charger_type = ChargingStatusMsg::WIRELESS;
+
+  auto merged_charging_status = battery_publisher_->MergeChargingStatusMsgs(
+    charging_status_1, charging_status_2);
+
+  EXPECT_EQ(ChargingStatusMsg::UNKNOWN, merged_charging_status.charger_type);
 }
 
 int main(int argc, char ** argv)

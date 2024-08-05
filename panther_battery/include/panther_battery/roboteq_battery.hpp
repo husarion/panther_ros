@@ -51,7 +51,6 @@ public:
   void Update(const rclcpp::Time & header_stamp, const bool /* charger_connected */) override;
   void Reset(const rclcpp::Time & header_stamp) override;
 
-  float GetChargerCurrent() override { return std::numeric_limits<float>::quiet_NaN(); }
   float GetLoadCurrent() override { return std::numeric_limits<float>::quiet_NaN(); }
 
 protected:
@@ -61,6 +60,7 @@ private:
   void UpdateBatteryMsgs(const rclcpp::Time & header_stamp);
   void UpdateBatteryState(const rclcpp::Time & header_stamp);
   void UpdateBatteryStateRaw();
+  void UpdateChargingStatus(const rclcpp::Time & header_stamp);
   std::uint8_t GetBatteryHealth(const float voltage);
 
   std::function<DriverStateMsg::SharedPtr()> GetDriverState;

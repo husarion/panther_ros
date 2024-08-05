@@ -2,19 +2,19 @@ repositories:
   behaviortree_ros2:
     type: git
     url: https://github.com/BehaviorTree/BehaviorTree.ROS2
-    version: ce923e19c12d28f4734a41b1442c123f2d4a41d2
+    version: a0de087a2f3af5ec5a19edd622aa85506105afcd
   husarion_controllers:
     type: git
     url: https://github.com/husarion/husarion_controllers
-    version: 217b09830f5f42930098b9992eda41710702b625
+    version: d184d9b5936ec3f51084b70dc7d3825fa5ecaee0
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: fa21eada3d8cd332b48c42d70289fd5ba575cc50
+    version: fcee4d9f249a62adc113eb80be4885b08024ee9c
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
-    version: f50cee03b163120071e38d7b70f39befd9320a33
+    version: b29f5637a243b0008ac197032575c8df47883b2c
   ros2_controllers: # Caused by two error: 1. https://github.com/ros-controls/ros2_controllers/pull/1104 2. There is no nice way to change `sensor_name` imu_bradcaster param when spawning multiple robots -> ros2_control refer only to single imu entity
     type: git
     url: https://github.com/husarion/ros2_controllers/
@@ -22,4 +22,4 @@ repositories:
   husarion_gz_worlds:
     type: git
     url: https://github.com/husarion/husarion_gz_worlds.git
-    version: 3d0b9a084cd22b936af8e2a6df5129d737030afa
+    version: bba5074af5eabf404850245a70a1d60192912a3b

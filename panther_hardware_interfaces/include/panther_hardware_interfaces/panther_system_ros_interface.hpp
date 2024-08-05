@@ -61,8 +61,11 @@ struct CANErrors
   bool front_driver_state_data_timed_out;
   bool rear_driver_state_data_timed_out;
 
-  bool front_can_net_err;
-  bool rear_can_net_err;
+  bool front_can_error;
+  bool rear_can_error;
+
+  bool front_heartbeat_timeout;
+  bool rear_heartbeat_timeout;
 };
 
 /**

@@ -52,6 +52,7 @@ public:
   void Update() {};
   void Reset() {};
   void PublishBatteryState() {};
+  void PublishChargingStatus() {};
   void LogErrors() {};
   void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
   {

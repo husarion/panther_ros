@@ -50,6 +50,13 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
 
+  ament_add_gtest(${PROJECT_NAME}_test_ros_utils test/test_ros_utils.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_ros_utils
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_ros_utils std_msgs)
+
   ament_add_gtest(${PROJECT_NAME}_test_ros_test_utils
                   test/test_ros_test_utils.cpp)
   target_include_directories(

@@ -51,7 +51,7 @@ repos:
             "--ignore-words-list",
             "ned" # north, east, down (NED)
           ]
-        exclude_types: [rst]
+        exclude_types: [rst, svg]
         language: python
         types: [text]
 

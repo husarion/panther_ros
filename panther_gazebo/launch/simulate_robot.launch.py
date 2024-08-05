@@ -16,7 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -77,7 +77,7 @@ def generate_launch_description():
         "use_ekf",
         default_value="True",
         description="Enable or disable EKF.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     spawn_robot_launch = IncludeLaunchDescription(
@@ -111,22 +111,31 @@ def generate_launch_description():
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
     )
 
+    gz_led_strip_config = PathJoinSubstitution(
+        [FindPackageShare("panther_gazebo"), "config", "led_strips.yaml"]
+    )
+
+    gz_led_strip_config = ReplaceString(
+        source_file=gz_led_strip_config,
+        replacements={"parent_link: panther": ["parent_link: ", namespace]},
+        condition=UnlessCondition(PythonExpression(["'", namespace, "' == ''"])),
+    )
+
     gz_led_strip_manager = Node(
         package="panther_gazebo",
         executable="gz_led_strip_manager",
         namespace=namespace,
-        arguments=[
-            "--config-file",
-            PathJoinSubstitution(
-                [FindPackageShare("panther_gazebo"), "config", "led_strips.yaml"]
-            ),
-        ],
+        arguments=["--config-file", gz_led_strip_config],
     )
 
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_controller"), "launch", "controller.launch.py"]
+                [
+                    FindPackageShare("panther_controller"),
+                    "launch",
+                    "controller.launch.py",
+                ]
             )
         ),
         launch_arguments={
@@ -139,7 +148,11 @@ def generate_launch_description():
     ekf_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_localization"), "launch", "ekf.launch.py"]
+                [
+                    FindPackageShare("panther_localization"),
+                    "launch",
+                    "localization.launch.py",
+                ]
             )
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),

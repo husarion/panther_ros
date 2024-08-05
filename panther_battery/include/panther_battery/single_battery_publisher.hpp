@@ -39,6 +39,7 @@ protected:
   void Update() override;
   void Reset() override;
   void PublishBatteryState() override;
+  void PublishChargingStatus() override;
   void LogErrors() override;
   void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) override;
   void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) override;
@@ -47,6 +48,7 @@ private:
   std::shared_ptr<Battery> battery_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_1_pub_;
+  rclcpp::Publisher<ChargingStatusMsg>::SharedPtr charging_status_pub_;
 };
 
 }  // namespace panther_battery

@@ -46,7 +46,8 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_battery
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_battery rclcpp sensor_msgs)
+  ament_target_dependencies(${PROJECT_NAME}_test_battery rclcpp sensor_msgs
+                            panther_msgs)
 
   ament_add_gtest(${PROJECT_NAME}_test_adc_battery test/test_adc_battery.cpp
                   src/adc_battery.cpp)
@@ -54,7 +55,8 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_adc_battery
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_adc_battery rclcpp sensor_msgs)
+  ament_target_dependencies(${PROJECT_NAME}_test_adc_battery rclcpp sensor_msgs
+                            panther_msgs)
 
   ament_add_gtest(${PROJECT_NAME}_test_roboteq_battery
                   test/test_roboteq_battery.cpp src/roboteq_battery.cpp)

@@ -56,9 +56,11 @@ TestSingleBatteryPublisher::TestSingleBatteryPublisher()
   node_ = std::make_shared<rclcpp::Node>("node");
   diagnostic_updater_ = std::make_shared<diagnostic_updater::Updater>(node_);
   battery_sub_ = node_->create_subscription<BatteryStateMsg>(
-    "/battery", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
+    "/battery/battery_status", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
   battery_1_sub_ = node_->create_subscription<BatteryStateMsg>(
-    "/battery_1_raw", 10, [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
+    "/_battery/battery_1_status_raw", 10,
+    [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
   battery_publisher_ = std::make_shared<panther_battery::SingleBatteryPublisher>(
     node_, diagnostic_updater_, battery_);
 }

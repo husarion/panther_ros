@@ -57,6 +57,8 @@ void LightsManagerNode::Initialize()
   lights_tree_manager_->Initialize(factory_);
 
   bt_callback_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  using namespace std::placeholders;
+
   const float timer_freq = this->get_parameter("timer_frequency").as_double();
   const auto timer_period_ms =
     std::chrono::milliseconds(static_cast<unsigned>(1.0f / timer_freq * 1000));

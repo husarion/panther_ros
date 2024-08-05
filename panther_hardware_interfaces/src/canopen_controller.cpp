@@ -47,7 +47,7 @@ void CANopenController::Initialize()
     try {
       panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
     } catch (const std::runtime_error & e) {
-      std::cerr << "An exception ocurred while configuring RT: " << e.what() << std::endl
+      std::cerr << "An exception occurred while configuring RT: " << e.what() << std::endl
                 << "Continuing with regular thread settings (it may have a negative impact on the "
                    "performance)."
                 << std::endl;
@@ -56,7 +56,7 @@ void CANopenController::Initialize()
     try {
       InitializeCANCommunication();
     } catch (const std::system_error & e) {
-      std::cerr << "An exception ocurred while initializing CAN: " << e.what() << std::endl;
+      std::cerr << "An exception occurred while initializing CAN: " << e.what() << std::endl;
       NotifyCANCommunicationStarted(false);
       return;
     }
@@ -68,7 +68,7 @@ void CANopenController::Initialize()
     } catch (const std::system_error & e) {
       // If the error happens and loop stops SDO and PDO operations will timeout and in result
       // system will switch to error state
-      std::cerr << "An exception ocurred in loop run: " << e.what() << std::endl;
+      std::cerr << "An exception occurred in loop run: " << e.what() << std::endl;
     }
   });
 
@@ -183,7 +183,7 @@ void CANopenController::BootDrivers()
 
   } catch (const std::system_error & e) {
     throw std::runtime_error(
-      "An exception ocurred while trying to Boot driver " + std::string(e.what()));
+      "An exception occurred while trying to Boot driver " + std::string(e.what()));
   }
 }
 

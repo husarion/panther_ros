@@ -26,6 +26,7 @@
 
 #include "panther_battery/battery.hpp"
 #include "panther_battery/battery_publisher.hpp"
+#include "panther_utils/ros_utils.hpp"
 
 namespace panther_battery
 {
@@ -38,9 +39,10 @@ DualBatteryPublisher::DualBatteryPublisher(
   battery_1_(std::move(battery_1)),
   battery_2_(std::move(battery_2))
 {
-  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
-  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
-  battery_2_pub_ = node->create_publisher<BatteryStateMsg>("battery_2_raw", 5);
+  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery/battery_status", 5);
+  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("_battery/battery_1_status_raw", 5);
+  battery_2_pub_ = node->create_publisher<BatteryStateMsg>("_battery/battery_2_status_raw", 5);
+  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("battery/charging_status", 5);
 }
 
 void DualBatteryPublisher::Update()
@@ -62,9 +64,19 @@ void DualBatteryPublisher::PublishBatteryState()
   const auto battery_msg = MergeBatteryMsgs(
     battery_1_->GetBatteryMsg(), battery_2_->GetBatteryMsg());
   battery_pub_->publish(battery_msg);
+
   battery_1_pub_->publish(battery_1_->GetBatteryMsgRaw());
   battery_2_pub_->publish(battery_2_->GetBatteryMsgRaw());
+
   BatteryStatusLogger(battery_msg);
+}
+
+void DualBatteryPublisher::PublishChargingStatus()
+{
+  auto const charging_status_msg = MergeChargingStatusMsgs(
+    battery_1_->GetChargingStatus(), battery_2_->GetChargingStatus());
+
+  charging_status_pub_->publish(charging_status_msg);
 }
 
 void DualBatteryPublisher::LogErrors()
@@ -154,6 +166,47 @@ void DualBatteryPublisher::MergeBatteryPowerSupplyHealth(
   }
 }
 
+ChargingStatusMsg DualBatteryPublisher::MergeChargingStatusMsgs(
+  const ChargingStatusMsg & charging_status_msg_1, const ChargingStatusMsg & charging_status_msg_2)
+{
+  ChargingStatusMsg charging_status_msg;
+
+  try {
+    panther_utils::ros::VerifyTimestampGap(
+      charging_status_msg_1.header, charging_status_msg_2.header, std::chrono::seconds(1));
+
+    charging_status_msg.header = panther_utils::ros::MergeHeaders(
+      charging_status_msg_1.header, charging_status_msg_2.header);
+  } catch (const std::exception & e) {
+    RCLCPP_ERROR_STREAM_THROTTLE(
+      GetLogger(), *GetClock(), 10000,
+      "An exception occurred while merging charging status headers: " << e.what());
+  }
+
+  charging_status_msg.current = charging_status_msg_1.current + charging_status_msg_2.current;
+  charging_status_msg.current_battery_1 = charging_status_msg_1.current;
+  charging_status_msg.current_battery_2 = charging_status_msg_2.current;
+
+  if (charging_status_msg_1.charging != charging_status_msg_2.charging) {
+    RCLCPP_ERROR_THROTTLE(
+      GetLogger(), *GetClock(), 10000, "Charging status mismatch between batteries!");
+    charging_status_msg.charging = false;
+
+  } else {
+    charging_status_msg.charging = charging_status_msg_1.charging;
+  }
+
+  if (charging_status_msg_1.charger_type != charging_status_msg_2.charger_type) {
+    RCLCPP_ERROR_THROTTLE(
+      GetLogger(), *GetClock(), 10000, "Charger type mismatch between batteries!");
+    charging_status_msg.charger_type = ChargingStatusMsg::UNKNOWN;
+  } else {
+    charging_status_msg.charger_type = charging_status_msg_1.charger_type;
+  }
+
+  return charging_status_msg;
+}
+
 void DualBatteryPublisher::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::OK};
@@ -187,13 +240,6 @@ void DualBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWr
     ? charging_status = charging_status_bat_1
     : charging_status = "Power supply status not determined, check batteries.";
   status.add("Power supply status", charging_status);
-
-  const auto charger_current_bat_1 = battery_1_->GetChargerCurrent();
-  const auto charger_current_bat_2 = battery_2_->GetChargerCurrent();
-  const auto charger_current = charger_current_bat_1 + charger_current_bat_2;
-  status.add("Charger current total (A)", charger_current);
-  status.add("Charger current battery 1 (A)", charger_current_bat_1);
-  status.add("Charger current battery 2 (A)", charger_current_bat_2);
 
   const auto load_current_bat_1 = battery_1_->GetLoadCurrent();
   const auto load_current_bat_2 = battery_2_->GetLoadCurrent();

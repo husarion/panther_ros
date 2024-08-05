@@ -51,7 +51,7 @@ void BatteryPublisher::Publish()
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM_THROTTLE(
       GetLogger(), *GetClock(), 1000,
-      "An exception ocurred while reading battery data: " << e.what());
+      "An exception occurred while reading battery data: " << e.what());
 
     diagnostic_updater_->broadcast(
       diagnostic_msgs::msg::DiagnosticStatus::ERROR,
@@ -63,6 +63,7 @@ void BatteryPublisher::Publish()
   }
 
   this->PublishBatteryState();
+  this->PublishChargingStatus();
   this->LogErrors();
 }
 

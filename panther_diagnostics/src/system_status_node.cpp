@@ -26,6 +26,7 @@
 
 #include "panther_msgs/msg/system_status.hpp"
 #include "panther_utils/common_utilities.hpp"
+#include "panther_utils/ros_utils.hpp"
 
 namespace panther_diagnostics
 {
@@ -94,7 +95,7 @@ float SystemStatusNode::GetCPUTemperature(const std::string & filename) const
     return temperature / 1000.0;
   } catch (const std::runtime_error & e) {
     RCLCPP_ERROR_STREAM(
-      this->get_logger(), "An exception ocurred while reading CPU temperature: " << e.what());
+      this->get_logger(), "An exception occurred while reading CPU temperature: " << e.what());
   }
   return std::numeric_limits<float>::quiet_NaN();
 }
@@ -120,7 +121,8 @@ panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
   panther_msgs::msg::SystemStatus message;
 
   message.header.stamp = this->get_clock()->now();
-  message.header.frame_id = params_.frame_id;
+  message.header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
+    params_.frame_id, std::string(this->get_namespace()));
   message.cpu_percent = status.core_usages;
   message.avg_load_percent = status.cpu_mean_usage;
   message.cpu_temp = status.cpu_temperature;

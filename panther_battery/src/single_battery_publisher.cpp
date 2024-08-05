@@ -35,8 +35,9 @@ SingleBatteryPublisher::SingleBatteryPublisher(
   const std::shared_ptr<Battery> & battery)
 : BatteryPublisher(std::move(node), std::move(diagnostic_updater)), battery_(std::move(battery))
 {
-  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery", 5);
-  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("battery_1_raw", 5);
+  battery_pub_ = node->create_publisher<BatteryStateMsg>("battery/battery_status", 5);
+  battery_1_pub_ = node->create_publisher<BatteryStateMsg>("_battery/battery_1_status_raw", 5);
+  charging_status_pub_ = node->create_publisher<ChargingStatusMsg>("battery/charging_status", 5);
 }
 
 void SingleBatteryPublisher::Update()
@@ -57,6 +58,16 @@ void SingleBatteryPublisher::PublishBatteryState()
   battery_pub_->publish(battery_msg);
   battery_1_pub_->publish(battery_->GetBatteryMsgRaw());
   BatteryStatusLogger(battery_msg);
+}
+
+void SingleBatteryPublisher::PublishChargingStatus()
+{
+  auto charging_status_msg = battery_->GetChargingStatus();
+
+  charging_status_msg.current_battery_1 = charging_status_msg.current;
+  charging_status_msg.current_battery_2 = std::numeric_limits<float>::quiet_NaN();
+
+  charging_status_pub_->publish(charging_status_msg);
 }
 
 void SingleBatteryPublisher::LogErrors()
@@ -88,9 +99,6 @@ void SingleBatteryPublisher::DiagnoseStatus(diagnostic_updater::DiagnosticStatus
 
   auto charging_status = MapPowerSupplyStatusToString(battery_msg.power_supply_status);
   status.add("Power supply status", charging_status);
-
-  const auto charger_current = battery_->GetChargerCurrent();
-  status.add("Charger current (A)", charger_current);
 
   const auto load_current = battery_->GetLoadCurrent();
   status.add("Load current (A)", load_current);

@@ -1,3 +1,6 @@
+options:
+  heartbeat_multiplier: 3.0
+
 master:
   node_id: 3
   sync_period: 1000000 # us

@@ -22,10 +22,13 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
+#include "panther_msgs/msg/charging_status.hpp"
+
 #include "panther_battery/battery.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
 
 class BatteryWrapper : public panther_battery::Battery
 {
@@ -34,9 +37,14 @@ public:
 
   float GetBatteryPercent(const float voltage) const { return Battery::GetBatteryPercent(voltage); }
 
-  void ResetBatteryMsgs(const rclcpp::Time & header_stamp)
+  void ResetBatteryState(const rclcpp::Time & header_stamp)
   {
-    return Battery::ResetBatteryMsgs(header_stamp);
+    return Battery::ResetBatteryState(header_stamp);
+  }
+
+  void ResetChargingStatus(const rclcpp::Time & header_stamp)
+  {
+    return Battery::ResetChargingStatus(header_stamp);
   }
 
   void SetErrorMsg(const std::string error_msg) { return Battery::SetErrorMsg(error_msg); }
@@ -45,7 +53,6 @@ public:
   bool Present() { return true; }
   void Update(const rclcpp::Time & /* header_stamp */, bool /* charger_connected */) {}
   void Reset(const rclcpp::Time & /* header_stamp */) {}
-  float GetChargerCurrent() { return 0.0; }
   float GetLoadCurrent() { return 0.0; }
 };
 
@@ -108,21 +115,46 @@ TEST_F(TestBattery, GetBatteryPercent)
   EXPECT_FLOAT_EQ(1.0, battery_->GetBatteryPercent(45.0f));
 }
 
-TEST_F(TestBattery, ResetBatteryMsgs)
+TEST_F(TestBattery, ResetBatteryState)
 {
-  // Expect empty message at the beginning
-  EXPECT_EQ(BatteryStateMsg(), battery_->GetBatteryMsg());
-  EXPECT_EQ(BatteryStateMsg(), battery_->GetBatteryMsgRaw());
+  auto empty_battery_msg = BatteryStateMsg();
+  ASSERT_EQ(empty_battery_msg, battery_->GetBatteryMsg());
 
   auto stamp = rclcpp::Time(0);
-  battery_->ResetBatteryMsgs(stamp);
+  battery_->ResetBatteryState(stamp);
+
   battery_state_ = battery_->GetBatteryMsg();
   TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
+}
+
+TEST_F(TestBattery, ResetBatteryStateRaw)
+{
+  auto empty_battery_msg = BatteryStateMsg();
+  ASSERT_EQ(empty_battery_msg, battery_->GetBatteryMsgRaw());
+
+  auto stamp = rclcpp::Time(0);
+  battery_->ResetBatteryState(stamp);
 
   battery_state_ = battery_->GetBatteryMsgRaw();
   TestDefaultBatteryStateMsg(
     BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN);
+}
+
+TEST_F(TestBattery, ResetChargingStatus)
+{
+  auto empty_charging_status = ChargingStatusMsg();
+  ASSERT_EQ(empty_charging_status, battery_->GetChargingStatus());
+
+  auto stamp = rclcpp::Time(0);
+  battery_->ResetChargingStatus(stamp);
+
+  const auto charging_status = battery_->GetChargingStatus();
+  EXPECT_EQ(false, charging_status.charging);
+  EXPECT_TRUE(std::isnan(charging_status.current));
+  EXPECT_TRUE(std::isnan(charging_status.current_battery_1));
+  EXPECT_TRUE(std::isnan(charging_status.current_battery_2));
+  EXPECT_EQ(ChargingStatusMsg::UNKNOWN, charging_status.charger_type);
 }
 
 int main(int argc, char ** argv)

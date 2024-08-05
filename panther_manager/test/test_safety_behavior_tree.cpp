@@ -108,8 +108,7 @@ TestSafetyBehaviorTree::TestSafetyBehaviorTree()
   rclcpp::NodeOptions options;
   options.parameter_overrides(CreateTestParameters());
 
-  safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>(
-    "test_safety_manager_node", options);
+  safety_manager_node_ = std::make_shared<SafetyManagerNodeWrapper>("test_safety_manager", options);
 
   fan_server_ = safety_manager_node_->create_service<SetBoolSrv>(
     "hardware/fan_enable", std::bind(&TestSafetyBehaviorTree::FanServerCB, this, _1, _2));

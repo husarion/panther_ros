@@ -22,10 +22,13 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
+#include "panther_msgs/msg/charging_status.hpp"
+
 #include "panther_battery/adc_battery.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
+using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
 
 class TestADCBattery : public testing::Test
 {
@@ -37,6 +40,7 @@ protected:
   void UpdateBattery(
     const float & voltage_raw, const float & current_raw, const float & temp_raw,
     const float & charge_raw, const bool & charging);
+
   void TestDefaultBatteryStateMsg(
     const std::uint8_t & power_supply_status, const std::uint8_t & power_supply_health);
 
@@ -49,8 +53,11 @@ protected:
   float battery_current_raw_;
   float battery_temp_raw_;
   float battery_charge_raw_;
+
   std::unique_ptr<panther_battery::Battery> battery_;
+
   BatteryStateMsg battery_state_;
+  ChargingStatusMsg charging_status_;
 };
 
 TestADCBattery::TestADCBattery()
@@ -74,6 +81,7 @@ void TestADCBattery::UpdateBattery(
 
   battery_->Update(stamp, charging);
   battery_state_ = battery_->GetBatteryMsg();
+  charging_status_ = battery_->GetChargingStatus();
 }
 
 void TestADCBattery::TestDefaultBatteryStateMsg(
@@ -252,6 +260,20 @@ TEST_F(TestADCBattery, BatteryMsgStatusNotCharging)
   UpdateBattery(1.5, 0.01, 0.98, 0.04, true);
 
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_NOT_CHARGING, battery_state_.power_supply_status);
+}
+
+TEST_F(TestADCBattery, ChargingStatusMsgCharging)
+{
+  UpdateBattery(1.5, 0.01, 0.98, 0.5, true);
+
+  EXPECT_TRUE(charging_status_.charging);
+}
+
+TEST_F(TestADCBattery, ChargingStatusMsgNotCharging)
+{
+  UpdateBattery(1.5, 0.01, 0.98, 0.04, false);
+
+  EXPECT_FALSE(charging_status_.charging);
 }
 
 TEST_F(TestADCBattery, GetErrorMsg)

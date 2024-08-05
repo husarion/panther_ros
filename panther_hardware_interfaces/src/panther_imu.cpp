@@ -152,7 +152,8 @@ std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
 
   for (size_t i = 0; i < kImuInterfacesSize; i++) {
     state_interfaces.emplace_back(
-      info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &imu_sensor_state_[i]);
+      info_.sensors.at(0).name, info_.sensors.at(0).state_interfaces.at(i).name,
+      &imu_sensor_state_.at(i));
   }
 
   return state_interfaces;
@@ -176,10 +177,10 @@ void PantherImuSensor::CheckSensorName() const
 
 void PantherImuSensor::CheckStatesSize() const
 {
-  if (info_.sensors[0].state_interfaces.size() != kImuInterfacesSize) {
+  if (info_.sensors.at(0).state_interfaces.size() != kImuInterfacesSize) {
     throw std::runtime_error(
       "Wrong number of interfaces defined: " +
-      std::to_string(info_.sensors[0].state_interfaces.size()) + ", " +
+      std::to_string(info_.sensors.at(0).state_interfaces.size()) + ", " +
       std::to_string(kImuInterfacesSize) + " expected.");
   }
 }
@@ -188,7 +189,7 @@ void PantherImuSensor::CheckInterfaces() const
 {
   const auto names_start_iter = kImuInterfacesNames.begin();
   const auto names_end_iter = kImuInterfacesNames.end();
-  const auto states_iter = info_.sensors[0].state_interfaces.begin();
+  const auto states_iter = info_.sensors.at(0).state_interfaces.begin();
   auto compare_name_with_interface_info =
     [](const std::string & name, const hardware_interface::InterfaceInfo & interface_info) {
       return name == interface_info.name;
@@ -202,11 +203,11 @@ void PantherImuSensor::CheckInterfaces() const
 
 void PantherImuSensor::ReadObligatoryParams()
 {
-  params_.serial = std::stoi(info_.hardware_parameters["serial"]);
-  params_.hub_port = std::stoi(info_.hardware_parameters["hub_port"]);
-  params_.data_interval_ms = std::stoi(info_.hardware_parameters["data_interval_ms"]);
+  params_.serial = std::stoi(info_.hardware_parameters.at("serial"));
+  params_.hub_port = std::stoi(info_.hardware_parameters.at("hub_port"));
+  params_.data_interval_ms = std::stoi(info_.hardware_parameters.at("data_interval_ms"));
   params_.callback_delta_epsilon_ms =
-    std::stoi(info_.hardware_parameters["callback_delta_epsilon_ms"]);
+    std::stoi(info_.hardware_parameters.at("callback_delta_epsilon_ms"));
 
   if (params_.callback_delta_epsilon_ms >= params_.data_interval_ms) {
     throw std::runtime_error(
@@ -267,7 +268,7 @@ void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
 void PantherImuSensor::SetInitialValues()
 {
   imu_sensor_state_.resize(
-    info_.sensors[0].state_interfaces.size(), std::numeric_limits<double>::quiet_NaN());
+    info_.sensors.at(0).state_interfaces.size(), std::numeric_limits<double>::quiet_NaN());
 }
 
 void PantherImuSensor::Calibrate()
@@ -373,16 +374,18 @@ geometry_msgs::msg::Vector3 PantherImuSensor::ParseAcceleration(const double acc
 
 void PantherImuSensor::InitializeMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
-  const double timestamp_s)
+  const rclcpp::Time & timestamp)
 {
   geometry_msgs::msg::Quaternion init_q;
+
   if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, mag_compensated, init_q)) {
     throw std::runtime_error(
       "Couldn't determine gravity direction. The IMU sensor seems to be in free fall.");
   }
+
   filter_->setOrientation(init_q.w, init_q.x, init_q.y, init_q.z);
 
-  last_spatial_data_callback_time_s_ = timestamp_s;
+  last_spatial_data_timestamp_ = timestamp;
   algorithm_initialized_ = true;
 }
 
@@ -421,8 +424,6 @@ void PantherImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   const double timestamp)
 {
-  const auto timestamp_s = timestamp * 1e-3;
-
   const auto mag_compensated = ParseMagnitude(magnetic_field);
   const auto ang_vel = ParseGyration(angular_rate);
   const auto lin_acc = ParseAcceleration(acceleration);
@@ -435,8 +436,10 @@ void PantherImuSensor::SpatialDataCallback(
     calibration_cv_.notify_one();
   }
 
-  const float dt = timestamp_s - last_spatial_data_callback_time_s_;
-  last_spatial_data_callback_time_s_ = timestamp_s;
+  rclcpp::Time spatial_data_timestamp =
+    rclcpp::Time(timestamp * 1e6);  // timestamp comes in milliseconds
+  auto dt = (spatial_data_timestamp - last_spatial_data_timestamp_).seconds();
+  last_spatial_data_timestamp_ = spatial_data_timestamp;
 
   // Wait for the a magnitude and an acceleration to initialize the algorithm
   if (
@@ -447,7 +450,7 @@ void PantherImuSensor::SpatialDataCallback(
 
   if (!algorithm_initialized_ || params_.stateless) {
     try {
-      InitializeMadgwickAlgorithm(mag_compensated, lin_acc, timestamp_s);
+      InitializeMadgwickAlgorithm(mag_compensated, lin_acc, spatial_data_timestamp);
     } catch (const std::runtime_error & e) {
       RCLCPP_ERROR_STREAM(
         logger_, "An exception occurred while initializing the Madgwick algorithm: " << e.what());
@@ -455,6 +458,13 @@ void PantherImuSensor::SpatialDataCallback(
   }
 
   if (algorithm_initialized_ && !params_.stateless) {
+    if (dt == 0.0) {
+      RCLCPP_WARN_THROTTLE(
+        logger_, steady_clock_, 5000,
+        "Time difference between acquired IMU data is 0, Madgwick Filter will not update the "
+        "orientation!");
+    }
+
     if (IsMagnitudeSynchronizedWithAccelerationAndGyration(mag_compensated) && params_.use_mag) {
       UpdateMadgwickAlgorithm(ang_vel, lin_acc, mag_compensated, dt);
     } else {

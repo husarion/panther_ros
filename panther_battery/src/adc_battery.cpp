@@ -114,6 +114,7 @@ void ADCBattery::UpdateBatteryMsgs(const rclcpp::Time & header_stamp, const bool
 {
   UpdateBatteryState(header_stamp, charger_connected);
   UpdateBatteryStateRaw();
+  UpdateChargingStatus(header_stamp, charger_connected);
 }
 
 void ADCBattery::UpdateBatteryState(const rclcpp::Time & header_stamp, const bool charger_connected)
@@ -150,6 +151,15 @@ void ADCBattery::UpdateBatteryStateRaw()
   battery_state_raw_.current = -current_raw_ + charge_raw_;
   battery_state_raw_.percentage = GetBatteryPercent(voltage_raw_);
   battery_state_raw_.charge = battery_state_raw_.percentage * battery_state_raw_.design_capacity;
+}
+
+void ADCBattery::UpdateChargingStatus(
+  const rclcpp::Time & header_stamp, const bool charger_connected)
+{
+  charging_status_.header.stamp = header_stamp;
+  charging_status_.charging = charger_connected;
+  charging_status_.current = charge_ma_->GetAverage();
+  charging_status_.charger_type = ChargingStatusMsg::UNKNOWN;  // Currently not supported
 }
 
 std::uint8_t ADCBattery::GetBatteryStatus(const float charge, const bool charger_connected)

@@ -2,6 +2,47 @@
 Changelog for package panther_lights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
+* Ros2 fix lights build (`#367 <https://github.com/husarion/panther_ros/issues/367>`_)
+* Redesign lights initialization process (`#365 <https://github.com/husarion/panther_ros/issues/365>`_)
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Update spiled channel device names (`#363 <https://github.com/husarion/panther_ros/issues/363>`_)
+* Enhance ROS API names in the stack
+* Update symlink names (`#359 <https://github.com/husarion/panther_ros/issues/359>`_)
+* Add devices symlink (`#347 <https://github.com/husarion/panther_ros/issues/347>`_)
+* Contributors: Dawid Kmak, Jakub Delicat, pawelirh, rafal-gorecki
+
+2.0.4 (2024-06-28)
+------------------
+* Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
+* Merge pull request `#343 <https://github.com/husarion/panther_ros/issues/343>`_ from husarion/ros2-gpio-controller-revision
+* Minor changes based on PR review
+* Suggestions and pre-commit update
+* Update README.md (`#345 <https://github.com/husarion/panther_ros/issues/345>`_)
+* Merge branch 'ros2-devel' into ros2-gz-lights
+* Improve description in header
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
+* Grant hardware access on frame callback
+* Merge pull request `#342 <https://github.com/husarion/panther_ros/issues/342>`_ from husarion/ros2-build-in-animation
+* Delete first table
+* Merge branch 'ros2' into ros2-build-in-animation
+* column name
+* Merge table
+* Readme - add built-in animation table (`#341 <https://github.com/husarion/panther_ros/issues/341>`_)
+* Use ros2 branch
+* Add panther_lights to url
+* Use ros2-devel branch
+* Update documentation panther_lights and panther_hardware_interfaces
+* Redesign initialization
+* Absolute url
+* Add battery description
+* Implement changes in driver node
+* Merge branch 'ros2' into ros2-gz-lights
+* Steering lights from channel topics
+* Contributors: Dawid Kmak, Jakub Delicat, pawelirh, rafal-gorecki
+
 2.0.3 (2024-06-06)
 ------------------
 * Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs
