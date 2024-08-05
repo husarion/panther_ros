@@ -1,0 +1,10 @@
+<library path="panther_hardware_plugins">
+  <class
+    name="panther_gazebo/PantherSystem"
+    type="panther_gazebo::PantherSystem"
+    base_class_type="ign_ros2_control::IgnitionSystemInterface">
+    <description>
+      Control joints position with E-Stop functionaliteis in Gazebo using ROS2.
+    </description>
+  </class>
+</library>
