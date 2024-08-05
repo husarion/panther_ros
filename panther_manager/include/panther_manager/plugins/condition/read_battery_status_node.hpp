@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER__PLUGINS__CONDITION__READ_BATTERY_STATE_NODE_HPP_
-#define PANTHER_MANAGER__PLUGINS__CONDITION__READ_BATTERY_STATE_NODE_HPP_
+#ifndef PANTHER_MANAGER__PLUGINS__CONDITION__READ_BATTERY_STATUS_NODE_HPP_
+#define PANTHER_MANAGER__PLUGINS__CONDITION__READ_BATTERY_STATUS_NODE_HPP_
 
 #include <behaviortree_ros2/bt_topic_sub_node.hpp>
 
@@ -25,10 +25,10 @@ namespace panther_manager
 {
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 
-class ReadBatteryState : public BT::RosTopicSubNode<BatteryStateMsg>
+class ReadBatteryStatus : public BT::RosTopicSubNode<BatteryStateMsg>
 {
 public:
-  ReadBatteryState(
+  ReadBatteryStatus(
     const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params);
 
   static BT::PortsList providedPorts();
@@ -52,4 +52,4 @@ private:
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER__PLUGINS__CONDITION__READ_BATTERY_STATE_NODE_HPP_
+#endif  // PANTHER_MANAGER__PLUGINS__CONDITION__READ_BATTERY_STATUS_NODE_HPP_

@@ -1,11 +1,11 @@
-#include "panther_manager/plugins/condition/read_battery_state_node.hpp"
+#include "panther_manager/plugins/condition/read_battery_status_node.hpp"
 
 #include "panther_manager/behavior_tree_utils.hpp"
 
 namespace panther_manager
 {
 
-ReadBatteryState::ReadBatteryState(
+ReadBatteryStatus::ReadBatteryStatus(
   const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
 : BT::RosTopicSubNode<BatteryStateMsg>(name, conf, params)
 {
@@ -15,7 +15,7 @@ ReadBatteryState::ReadBatteryState(
   battery_charging_anim_step_ = GetInputParam<double>(this, "battery_charging_anim_setp");
 }
 
-BT::PortsList ReadBatteryState::providedPorts()
+BT::PortsList ReadBatteryStatus::providedPorts()
 {
   return providedBasicPorts(
     {BT::OutputPort<BatteryStateMsg>("battery_status", "battery power supply status"),
@@ -24,14 +24,14 @@ BT::PortsList ReadBatteryState::providedPorts()
      BT::OutputPort<std::string>("battery_percent_round", "battery percentage rounded")});
 }
 
-BT::NodeStatus ReadBatteryState::onTick(const std::shared_ptr<BatteryStateMsg> & last_msg)
+BT::NodeStatus ReadBatteryStatus::onTick(const std::shared_ptr<BatteryStateMsg> & last_msg)
 {
   auto node = node_.lock();
 
   if (!last_msg) {
     RCLCPP_WARN_STREAM(
       node->get_logger(), GetLoggerPrefix(name())
-                            << "Couldn't read battery state! No message received on topic: "
+                            << "Couldn't read battery status! No message received on topic: "
                             << topic_name_);
 
     return BT::NodeStatus::FAILURE;
@@ -56,7 +56,7 @@ BT::NodeStatus ReadBatteryState::onTick(const std::shared_ptr<BatteryStateMsg> &
     setOutput("battery_percent", battery_percent_averaged);
     setOutput("battery_percent_round", battery_percent_round);
 
-    RCLCPP_INFO_STREAM(node->get_logger(), GetLoggerPrefix(name()) << "Updated battery state.");
+    RCLCPP_INFO_STREAM(node->get_logger(), GetLoggerPrefix(name()) << "Updated battery status.");
 
     return BT::NodeStatus::SUCCESS;
   }
@@ -65,4 +65,4 @@ BT::NodeStatus ReadBatteryState::onTick(const std::shared_ptr<BatteryStateMsg> &
 }  // namespace panther_manager
 
 #include "behaviortree_ros2/plugins.hpp"
-CreateRosNodePlugin(panther_manager::ReadBatteryState, "ReadBatteryState");
+CreateRosNodePlugin(panther_manager::ReadBatteryStatus, "ReadBatteryStatus");

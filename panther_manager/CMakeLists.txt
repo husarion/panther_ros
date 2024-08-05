@@ -61,9 +61,9 @@ add_library(check_bool_msg_bt_node SHARED
             plugins/condition/check_bool_msg_node.cpp)
 list(APPEND plugin_libs check_bool_msg_bt_node)
 
-add_library(read_battery_state_bt_node SHARED
-            plugins/condition/read_battery_state_node.cpp)
-list(APPEND plugin_libs read_battery_state_bt_node)
+add_library(read_battery_status_bt_node SHARED
+            plugins/condition/read_battery_status_node.cpp)
+list(APPEND plugin_libs read_battery_status_bt_node)
 
 # Decorator plugins
 add_library(tick_after_timeout_bt_node SHARED

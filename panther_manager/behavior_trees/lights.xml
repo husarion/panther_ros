@@ -99,7 +99,7 @@ current_anim_id = CHARGING_BATTERY_ANIM_ID" />
     <Condition ID="CheckBoolMsg" editable="true">
       <input_port name="topic_name">ROS topic name</input_port>
     </Condition>
-    <Condition ID="ReadBatteryState" editable="true">
+    <Condition ID="ReadBatteryStatus" editable="true">
       <output_port name="battery_status">battery status</output_port>
       <output_port name="battery_health">battery state</output_port>
       <output_port name="battery_percent">battery percentage</output_port>
