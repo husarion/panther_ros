@@ -57,7 +57,7 @@ Node responsible for managing safety features, and software shutdown of componen
 - `hardware/e_stop` [*std_msgs/Bool*]: State of emergency stop.
 - `hardware/io_state` [*panther_msgs/IOState*]: State of IO pins.
 - `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: State of motor controllers.
-- `system_status` [*panther_msgs/SystemStatus*]: State of the system, including Built-in Computer's CPU temperature and load.
+- `system_status` [*panther_msgs/SystemStatus*]: Built-in computer system status, includes the most important computation-related parameters.
 
 #### Service Clients (for Default Trees)
 
