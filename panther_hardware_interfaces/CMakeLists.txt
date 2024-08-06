@@ -11,17 +11,11 @@ else()
   project(panther_hardware_interfaces)
 endif()
 
-# Default to C++17
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Find dependencies
-set(PACKAGE_INCLUDE_DEPENDS
+set(PACKAGE_DEPENDENCIES
     ament_cmake
     controller_interface
     diagnostic_updater
@@ -41,9 +35,11 @@ set(PACKAGE_INCLUDE_DEPENDS
     tf2_geometry_msgs
     tf2_ros)
 
-foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
-  find_package(${Dependency} REQUIRED)
+foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
+  find_package(${PACKAGE} REQUIRED)
 endforeach()
+
+include_directories(include)
 
 generate_parameter_library(phidgets_spatial_parameters
                            config/phidgets_spatial_parameters.yaml)
@@ -68,11 +64,7 @@ add_library(
   src/roboteq_driver.cpp
   src/roboteq_error_filter.cpp
   src/utils.cpp)
-
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-
-ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_INCLUDE_DEPENDS})
-
+ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_DEPENDENCIES})
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
                       PkgConfig::LIBGPIOD phidgets_spatial_parameters)
 
@@ -81,8 +73,6 @@ target_compile_definitions(${PROJECT_NAME}
 
 pluginlib_export_plugin_description_file(hardware_interface
                                          panther_hardware_interfaces.xml)
-
-install(DIRECTORY include/ DESTINATION include)
 
 install(
   TARGETS ${PROJECT_NAME}
@@ -99,7 +89,8 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_panther_imu test/test_panther_imu.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_imu
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_imu hardware_interface
                             rclcpp panther_utils panther_msgs phidgets_api)
   target_link_libraries(${PROJECT_NAME}_test_panther_imu ${PROJECT_NAME}
@@ -108,11 +99,16 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
     test/test_roboteq_error_filter.cpp src/roboteq_error_filter.cpp)
-  target_include_directories(${PROJECT_NAME}_test_roboteq_error_filter
-                             PRIVATE include)
+  target_include_directories(
+    ${PROJECT_NAME}_test_roboteq_error_filter
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
 
   ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_utils PRIVATE include)
+  target_include_directories(
+    ${PROJECT_NAME}_test_utils
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
@@ -120,7 +116,8 @@ if(BUILD_TESTING)
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_data_converters
-    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
                             panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_data_converters
@@ -132,7 +129,8 @@ if(BUILD_TESTING)
     src/roboteq_driver.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_canopen_controller
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller rclcpp
                             panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_canopen_controller
@@ -144,7 +142,8 @@ if(BUILD_TESTING)
     src/roboteq_driver.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_driver
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver rclcpp
                             panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_driver
@@ -161,7 +160,8 @@ if(BUILD_TESTING)
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_motors_controller
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_motors_controller rclcpp
                             panther_msgs panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_motors_controller
@@ -197,7 +197,8 @@ if(BUILD_TESTING)
     src/gpio_driver.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
-    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system_ros_interface
     diagnostic_updater
@@ -216,7 +217,8 @@ if(BUILD_TESTING)
                                                                       120)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include> include)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
     panther_utils)
@@ -227,9 +229,7 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_include_directories(include)
-
 ament_export_libraries(${PROJECT_NAME})
-
-ament_export_dependencies(${PACKAGE_INCLUDE_DEPENDS})
+ament_export_dependencies(${PACKAGE_DEPENDENCIES})
 
 ament_package()
