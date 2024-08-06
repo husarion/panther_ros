@@ -15,14 +15,23 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+
+    gz_gui = LaunchConfiguration("gz_gui")
+    declare_gz_gui = DeclareLaunchArgument(
+        "gz_gui",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_gazebo"), "config", "teleop_with_estop.config"]
+        ),
+        description="Run simulation with specific GUI layout.",
+    )
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -30,6 +39,7 @@ def generate_launch_description():
                 [FindPackageShare("husarion_gz_worlds"), "launch", "gz_sim.launch.py"]
             )
         ),
+        launch_arguments={"gz_gui": gz_gui}.items(),
     )
 
     simulate_robots = IncludeLaunchDescription(
@@ -46,6 +56,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            declare_gz_gui,
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetUseSimTime(True),
             gz_sim,

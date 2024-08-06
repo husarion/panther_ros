@@ -31,7 +31,13 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+# Find Qt5
+find_package(Qt5 REQUIRED COMPONENTS Core Quick QuickControls2)
+
+# Include directories
 include_directories(include)
+include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Qml_INCLUDE_DIRS}
+                    ${Qt5Quick_INCLUDE_DIRS} ${Qt5QuickControls2_INCLUDE_DIRS})
 
 set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
 set(IGN_GAZEBO_VER ${ignition-gazebo6_VERSION_MAJOR})
@@ -39,6 +45,7 @@ set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
+# Add executables and libraries
 add_executable(gz_led_strip_manager src/main.cpp src/gz_led_strip_manager.cpp
                                     src/gz_led_strip.cpp)
 target_link_libraries(
@@ -64,11 +71,32 @@ target_link_libraries(panther_hardware_plugins
 
 install(
   TARGETS panther_hardware_plugins
-  ARCHIVE DESTINATION lib
+  EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin)
 
 install(DIRECTORY include/ DESTINATION include)
+
+# Add the Estop library
+set(CMAKE_AUTOMOC ON)
+qt5_add_resources(resources_rcc src/gui/Estop.qrc)
+
+add_library(Estop SHARED include/panther_gazebo/gui/Estop.hpp src/gui/Estop.cpp
+                         ${resources_rcc})
+
+target_link_libraries(Estop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
+                      ${Qt5Quick_LIBRARIES} ${Qt5QuickControls2_LIBRARIES})
+
+ament_target_dependencies(Estop ignition-common4 ignition-gazebo6
+                          ignition-plugin1 rclcpp std_srvs)
+
+install(
+  TARGETS Estop
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin)
 
 # Testing and linting
 if(BUILD_TESTING)
@@ -80,6 +108,9 @@ ament_export_include_directories(include)
 
 pluginlib_export_plugin_description_file(ign_ros2_control
                                          panther_hardware_plugins.xml)
+
+ament_environment_hooks(
+  "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in")
 
 # Setup the project
 ament_package()
