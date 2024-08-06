@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_diagnostics/system_status_node.hpp"
+#include "panther_diagnostics/system_monitor_node.hpp"
 
 #include <chrono>
 #include <exception>
@@ -20,39 +20,42 @@
 #include <fstream>
 
 #include "cppuprofile/uprofile.h"
-
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_msgs/msg/system_status.hpp"
+
 #include "panther_utils/common_utilities.hpp"
 #include "panther_utils/ros_utils.hpp"
 
 namespace panther_diagnostics
 {
 
-SystemStatusNode::SystemStatusNode(const std::string & node_name)
+SystemMonitorNode::SystemMonitorNode(const std::string & node_name)
 : rclcpp::Node(node_name), diagnostic_updater_(this)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
   param_listener_ =
-    std::make_shared<system_status::ParamListener>(this->get_node_parameters_interface());
+    std::make_shared<system_monitor::ParamListener>(this->get_node_parameters_interface());
   params_ = param_listener_->get_params();
 
   system_status_publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>(
     "system_status", 10);
+
+  auto timer_interval_ms = static_cast<long long>(1000.0 / params_.publish_frequency);
+
   timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(static_cast<long long>(params_.publish_rate * 1000)),
-    std::bind(&SystemStatusNode::TimerCallback, this));
+    std::chrono::milliseconds(timer_interval_ms),
+    std::bind(&SystemMonitorNode::TimerCallback, this));
 
   diagnostic_updater_.setHardwareID(params_.hardware_id);
-  diagnostic_updater_.add("OS status", this, &SystemStatusNode::DiagnoseSystem);
+  diagnostic_updater_.add("OS status", this, &SystemMonitorNode::DiagnoseSystem);
 
   RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
-void SystemStatusNode::TimerCallback()
+void SystemMonitorNode::TimerCallback()
 {
   const auto status = GetSystemStatus();
   auto message = SystemStatusToMessage(status);
@@ -60,9 +63,9 @@ void SystemStatusNode::TimerCallback()
   system_status_publisher_->publish(message);
 }
 
-SystemStatusNode::SystemStatus SystemStatusNode::GetSystemStatus() const
+SystemMonitorNode::SystemStatus SystemMonitorNode::GetSystemStatus() const
 {
-  SystemStatusNode::SystemStatus status;
+  SystemMonitorNode::SystemStatus status;
 
   status.core_usages = GetCoresUsages();
   status.cpu_mean_usage = GetCPUMeanUsage(status.core_usages);
@@ -73,19 +76,19 @@ SystemStatusNode::SystemStatus SystemStatusNode::GetSystemStatus() const
   return status;
 }
 
-std::vector<float> SystemStatusNode::GetCoresUsages() const
+std::vector<float> SystemMonitorNode::GetCoresUsages() const
 {
   std::vector<float> loads = uprofile::getInstantCpuUsage();
   return loads;
 }
 
-float SystemStatusNode::GetCPUMeanUsage(const std::vector<float> & usages) const
+float SystemMonitorNode::GetCPUMeanUsage(const std::vector<float> & usages) const
 {
   auto sum = std::accumulate(usages.begin(), usages.end(), 0.0);
   return sum / usages.size();
 }
 
-float SystemStatusNode::GetCPUTemperature(const std::string & filename) const
+float SystemMonitorNode::GetCPUTemperature(const std::string & filename) const
 {
   try {
     auto file = panther_utils::common_utilities::OpenFile(filename, std::ios_base::in);
@@ -100,14 +103,14 @@ float SystemStatusNode::GetCPUTemperature(const std::string & filename) const
   return std::numeric_limits<float>::quiet_NaN();
 }
 
-float SystemStatusNode::GetMemoryUsage() const
+float SystemMonitorNode::GetMemoryUsage() const
 {
   int total = 0, free = 0, available = 0;
   uprofile::getSystemMemory(total, free, available);
   return static_cast<float>(total - available) / total * 100.0;
 }
 
-float SystemStatusNode::GetDiskUsage() const
+float SystemMonitorNode::GetDiskUsage() const
 {
   const std::filesystem::directory_entry entry("/");
   const std::filesystem::space_info si = std::filesystem::space(entry.path());
@@ -115,8 +118,8 @@ float SystemStatusNode::GetDiskUsage() const
   return static_cast<float>(si.capacity - si.available) / si.capacity * 100.0;
 }
 
-panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
-  const SystemStatusNode::SystemStatus & status)
+panther_msgs::msg::SystemStatus SystemMonitorNode::SystemStatusToMessage(
+  const SystemMonitorNode::SystemStatus & status)
 {
   panther_msgs::msg::SystemStatus message;
 
@@ -132,7 +135,7 @@ panther_msgs::msg::SystemStatus SystemStatusNode::SystemStatusToMessage(
   return message;
 }
 
-void SystemStatusNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)
+void SystemMonitorNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   auto error_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string message = "System parameters are within acceptable limits.";

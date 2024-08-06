@@ -28,9 +28,9 @@ def generate_launch_description():
         description="Add namespace to all launched nodes",
     )
 
-    system_status_node = Node(
+    system_monitor_node = Node(
         package="panther_diagnostics",
-        executable="system_status_node",
+        executable="system_monitor_node",
         name="system_monitor",
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
@@ -39,7 +39,7 @@ def generate_launch_description():
 
     actions = [
         declare_namespace_arg,
-        system_status_node,
+        system_monitor_node,
     ]
 
     return LaunchDescription(actions)

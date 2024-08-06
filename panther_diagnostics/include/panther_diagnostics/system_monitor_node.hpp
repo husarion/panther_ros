@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS_SYSTEM_STATUS_NODE_HPP_
-#define PANTHER_DIAGNOSTICS_SYSTEM_STATUS_NODE_HPP_
+#ifndef PANTHER_DIAGNOSTICS__SYSTEM_MONITOR_NODE_HPP_
+#define PANTHER_DIAGNOSTICS__SYSTEM_MONITOR_NODE_HPP_
 
 #include <string>
 
@@ -22,17 +22,17 @@
 
 #include "panther_msgs/msg/system_status.hpp"
 
-#include "system_status_parameters.hpp"
+#include "system_monitor_parameters.hpp"
 
 using namespace std::chrono_literals;
 
 namespace panther_diagnostics
 {
 
-class SystemStatusNode : public rclcpp::Node
+class SystemMonitorNode : public rclcpp::Node
 {
 public:
-  SystemStatusNode(const std::string & node_name);
+  SystemMonitorNode(const std::string & node_name);
 
   struct SystemStatus
   {
@@ -61,10 +61,10 @@ private:
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;
   diagnostic_updater::Updater diagnostic_updater_;
 
-  system_status::Params params_;
-  std::shared_ptr<system_status::ParamListener> param_listener_;
+  system_monitor::Params params_;
+  std::shared_ptr<system_monitor::ParamListener> param_listener_;
 
   static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
 };
 }  // namespace panther_diagnostics
-#endif  // PANTHER_DIAGNOSTICS_SYSTEM_STATUS_NODE_HPP_
+#endif  // PANTHER_DIAGNOSTICS__SYSTEM_MONITOR_NODE_HPP_

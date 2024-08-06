@@ -1,4 +1,4 @@
-system_status:
+system_monitor:
   frame_id:
     type: string
     default_value: built_in_computer
@@ -7,12 +7,12 @@ system_status:
     type: string
     default_value: Built-in Computer
     description: Name of hardware used in diagnostics.
-  publish_rate:
+  publish_frequency:
     type: double
-    default_value: 0.25
-    description: System status publish rate in seconds.
+    default_value: 5.0
+    description: System status publishing frequency [Hz].
     validation: {
-      bounds<>: [0.0, 1000.0]
+      bounds<>: [0.1, 10.0]
     }
   disk_usage_warn_threshold:
     type: double

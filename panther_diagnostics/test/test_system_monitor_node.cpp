@@ -19,71 +19,71 @@
 
 #include "gtest/gtest.h"
 
-#include "panther_diagnostics/system_status_node.hpp"
+#include "panther_diagnostics/system_monitor_node.hpp"
 
-class SystemStatusNodeWrapper : public panther_diagnostics::SystemStatusNode
+class SystemMonitorNodeWrapper : public panther_diagnostics::SystemMonitorNode
 {
 public:
-  SystemStatusNodeWrapper() : panther_diagnostics::SystemStatusNode("test_system_statics") {}
+  SystemMonitorNodeWrapper() : panther_diagnostics::SystemMonitorNode("test_system_statics") {}
 
   std::vector<float> GetCoresUsages() const
   {
-    return panther_diagnostics::SystemStatusNode::GetCoresUsages();
+    return panther_diagnostics::SystemMonitorNode::GetCoresUsages();
   }
 
   float GetCPUMeanUsage(const std::vector<float> & usages) const
   {
-    return panther_diagnostics::SystemStatusNode::GetCPUMeanUsage(usages);
+    return panther_diagnostics::SystemMonitorNode::GetCPUMeanUsage(usages);
   }
 
   float GetCPUTemperature(const std::string & filename) const
   {
-    return panther_diagnostics::SystemStatusNode::GetCPUTemperature(filename);
+    return panther_diagnostics::SystemMonitorNode::GetCPUTemperature(filename);
   }
 
-  float GetMemoryUsage() const { return panther_diagnostics::SystemStatusNode::GetMemoryUsage(); }
+  float GetMemoryUsage() const { return panther_diagnostics::SystemMonitorNode::GetMemoryUsage(); }
 
-  float GetDiskUsage() const { return panther_diagnostics::SystemStatusNode::GetDiskUsage(); }
+  float GetDiskUsage() const { return panther_diagnostics::SystemMonitorNode::GetDiskUsage(); }
 
   panther_msgs::msg::SystemStatus SystemStatusToMessage(
-    const panther_diagnostics::SystemStatusNode::SystemStatus & status)
+    const panther_diagnostics::SystemMonitorNode::SystemStatus & status)
   {
-    return panther_diagnostics::SystemStatusNode::SystemStatusToMessage(status);
+    return panther_diagnostics::SystemMonitorNode::SystemStatusToMessage(status);
   }
 };
 
-class TestSystemStatusNode : public testing::Test
+class TestSystemMonitorNode : public testing::Test
 {
 public:
-  TestSystemStatusNode();
+  TestSystemMonitorNode();
 
 protected:
-  std::unique_ptr<SystemStatusNodeWrapper> system_status_;
+  std::unique_ptr<SystemMonitorNodeWrapper> system_monitor_;
 };
 
-TestSystemStatusNode::TestSystemStatusNode()
+TestSystemMonitorNode::TestSystemMonitorNode()
 {
-  system_status_ = std::make_unique<SystemStatusNodeWrapper>();
+  system_monitor_ = std::make_unique<SystemMonitorNodeWrapper>();
 }
 
-TEST_F(TestSystemStatusNode, CheckCoresUsages)
+TEST_F(TestSystemMonitorNode, CheckCoresUsages)
 {
-  const auto usages = system_status_->GetCoresUsages();
+  const auto usages = system_monitor_->GetCoresUsages();
 
   for (const auto & usage : usages) {
     EXPECT_TRUE((usage >= 0.0) && (usage <= 100.0));
   }
 }
 
-TEST_F(TestSystemStatusNode, CheckCPUMeanUsage)
+TEST_F(TestSystemMonitorNode, CheckCPUMeanUsage)
 {
   std::vector<float> usages = {45.0, 55.0, 45.0, 55.0};
 
-  const auto mean = system_status_->GetCPUMeanUsage(usages);
+  const auto mean = system_monitor_->GetCPUMeanUsage(usages);
   EXPECT_FLOAT_EQ(mean, 50.0);
 }
 
-TEST_F(TestSystemStatusNode, CheckTemperatureReadings)
+TEST_F(TestSystemMonitorNode, CheckTemperatureReadings)
 {
   const std::string temperature_file_name = testing::TempDir() + "panther_diagnostics_temperature";
 
@@ -94,36 +94,36 @@ TEST_F(TestSystemStatusNode, CheckTemperatureReadings)
   temperature_file << 36600 << std::endl;
   temperature_file.close();
 
-  const auto temperature = system_status_->GetCPUTemperature(temperature_file_name);
+  const auto temperature = system_monitor_->GetCPUTemperature(temperature_file_name);
   std::filesystem::remove(temperature_file_name);
 
   EXPECT_FLOAT_EQ(temperature, 36.6);
 }
 
-TEST_F(TestSystemStatusNode, CheckMemoryReadings)
+TEST_F(TestSystemMonitorNode, CheckMemoryReadings)
 {
-  const auto memory = system_status_->GetMemoryUsage();
+  const auto memory = system_monitor_->GetMemoryUsage();
 
   EXPECT_TRUE((memory >= 0.0) && (memory <= 100.0));
 }
 
-TEST_F(TestSystemStatusNode, CheckDiskReadings)
+TEST_F(TestSystemMonitorNode, CheckDiskReadings)
 {
-  const auto disk_usage = system_status_->GetDiskUsage();
+  const auto disk_usage = system_monitor_->GetDiskUsage();
 
   EXPECT_TRUE((disk_usage >= 0.0) && (disk_usage <= 100.0));
 }
 
-TEST_F(TestSystemStatusNode, CheckSystemStatusToMessage)
+TEST_F(TestSystemMonitorNode, CheckSystemStatusToMessage)
 {
-  panther_diagnostics::SystemStatusNode::SystemStatus status;
+  panther_diagnostics::SystemMonitorNode::SystemStatus status;
   status.core_usages = {50.0, 50.0, 50.0};
   status.cpu_mean_usage = 50.0;
   status.cpu_temperature = 36.6;
   status.disk_usage = 60.0;
   status.memory_usage = 30.0;
 
-  const auto message = system_status_->SystemStatusToMessage(status);
+  const auto message = system_monitor_->SystemStatusToMessage(status);
 
   EXPECT_EQ(message.cpu_percent, status.core_usages);
   EXPECT_FLOAT_EQ(message.avg_load_percent, status.cpu_mean_usage);
