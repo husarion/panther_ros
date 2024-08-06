@@ -23,6 +23,7 @@
 #include "gtest/gtest.h"
 
 #include "behaviortree_cpp/tree_node.h"
+#include "behaviortree_ros2/ros_node_params.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/behavior_tree_utils.hpp"
@@ -100,10 +101,12 @@ TEST_F(TestRegisterBT, RegisterBehaviorTreeROS)
   BT::BehaviorTreeFactory factory;
 
   rclcpp::init(0, nullptr);
-  auto node = std::make_shared<rclcpp::Node>("test_node");
+
+  BT::RosNodeParams params;
+  params.nh = std::make_shared<rclcpp::Node>("test_node");
 
   EXPECT_NO_THROW(panther_manager::behavior_tree_utils::RegisterBehaviorTree(
-    factory, bt_project_path_, {}, node,
+    factory, bt_project_path_, {}, params,
     {"call_trigger_service_bt_node", "call_set_bool_service_bt_node"}));
 
   // check if nodes were registered

@@ -12,6 +12,9 @@
           low: 30.0
           critical: 15.0
         charging_anim_step: 0.1
+      ros_communication_timeout:
+        availability: 1.0
+        response: 1.0
       plugin_libs:
         - tick_after_timeout_bt_node
       ros_plugin_libs:
