@@ -77,7 +77,7 @@ def generate_launch_description():
         "use_ekf",
         default_value="True",
         description="Enable or disable EKF.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     spawn_robot_launch = IncludeLaunchDescription(

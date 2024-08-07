@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "ament_index_cpp/get_package_share_directory.hpp"
+#include "behaviortree_ros2/ros_node_params.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_utils/moving_average.hpp"
@@ -89,6 +90,8 @@ void LightsManagerNode::DeclareParameters()
   this->declare_parameter<std::string>("bt_project_path", default_bt_project_path);
   this->declare_parameter<std::vector<std::string>>("plugin_libs", default_plugin_libs);
   this->declare_parameter<std::vector<std::string>>("ros_plugin_libs", default_plugin_libs);
+  this->declare_parameter<double>("ros_communication_timeout.availability", 1.0);
+  this->declare_parameter<double>("ros_communication_timeout.response", 1.0);
 
   this->declare_parameter<int>("battery.percent.window_len", 6);
   this->declare_parameter<float>("battery.percent.threshold.low", 0.4);
@@ -102,11 +105,24 @@ void LightsManagerNode::DeclareParameters()
 void LightsManagerNode::RegisterBehaviorTree()
 {
   const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
+
   const auto plugin_libs = this->get_parameter("plugin_libs").as_string_array();
   const auto ros_plugin_libs = this->get_parameter("ros_plugin_libs").as_string_array();
 
+  const auto service_availability_timeout =
+    this->get_parameter("ros_communication_timeout.availability").as_double();
+  const auto service_response_timeout =
+    this->get_parameter("ros_communication_timeout.response").as_double();
+
+  BT::RosNodeParams params;
+  params.nh = this->shared_from_this();
+  params.wait_for_server_timeout =
+    std::chrono::milliseconds(static_cast<int>(service_availability_timeout * 1000));
+  params.server_timeout =
+    std::chrono::milliseconds(static_cast<int>(service_response_timeout * 1000));
+
   behavior_tree_utils::RegisterBehaviorTree(
-    factory_, bt_project_path, plugin_libs, this->shared_from_this(), ros_plugin_libs);
+    factory_, bt_project_path, plugin_libs, params, ros_plugin_libs);
 
   RCLCPP_INFO(
     this->get_logger(), "BehaviorTree registered from path '%s'", bt_project_path.c_str());

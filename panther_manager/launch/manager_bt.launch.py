@@ -63,7 +63,7 @@ def generate_launch_description():
         "shutdown_hosts_config_path",
         default_value=PathJoinSubstitution(
             [
-                FindPackageShare("panther_bringup"),
+                FindPackageShare("panther_manager"),
                 "config",
                 "shutdown_hosts.yaml",
             ]

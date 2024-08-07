@@ -38,7 +38,7 @@ def generate_launch_description():
         "add_wheel_joints",
         default_value="True",
         description="Flag enabling joint_state_publisher to publish information about the wheel position. Should be false when there is a controller that sends this information.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     battery_config_path = LaunchConfiguration("battery_config_path")
@@ -78,7 +78,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " 'panther_controller/config/{wheel_type}_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
     )
@@ -95,7 +95,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     declare_wheel_config_path_arg = DeclareLaunchArgument(
@@ -109,7 +109,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "'panther_description/config/{wheel_type}.yaml'. You can also specify the path "
             "to your custom wheel configuration file here. "
         ),
     )

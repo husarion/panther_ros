@@ -5,17 +5,22 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-find_package(ament_cmake REQUIRED)
-find_package(diagnostic_updater REQUIRED)
-find_package(image_transport REQUIRED)
-find_package(panther_msgs REQUIRED)
-find_package(panther_utils REQUIRED)
-find_package(pluginlib REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(std_srvs REQUIRED)
-find_package(yaml-cpp REQUIRED)
+set(PACKAGE_DEPENDENCIES
+    ament_cmake
+    diagnostic_updater
+    image_transport
+    panther_msgs
+    panther_utils
+    pluginlib
+    rclcpp
+    rclcpp_components
+    sensor_msgs
+    std_srvs
+    yaml-cpp)
+
+foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
+  find_package(${PACKAGE} REQUIRED)
+endforeach()
 
 include_directories(include)
 
@@ -81,14 +86,8 @@ install(TARGETS panther_animation_plugins LIBRARY DESTINATION lib)
 
 install(DIRECTORY animations config launch DESTINATION share/${PROJECT_NAME})
 
-install(DIRECTORY include/ DESTINATION include)
-ament_export_include_directories(include)
-
-ament_export_libraries(panther_animation_plugins)
-
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  find_package(panther_utils REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_animation test/test_animation.cpp)
   target_include_directories(
@@ -207,5 +206,8 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_lights_driver_node
                         lights_driver_node_component)
 endif()
+
+ament_export_include_directories(include)
+ament_export_libraries(panther_animation_plugins)
 
 ament_package()

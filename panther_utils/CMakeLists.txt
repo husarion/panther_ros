@@ -5,22 +5,24 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(diagnostic_updater REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(realtime_tools REQUIRED)
-find_package(yaml-cpp REQUIRED)
+set(PACKAGE_DEPENDENCIES
+    ament_cmake
+    ament_cmake_python
+    diagnostic_updater
+    realtime_tools
+    rclcpp
+    std_msgs
+    yaml-cpp)
 
-include_directories(${GTEST_INCLUDE_DIRS})
+foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
+  find_package(${PACKAGE} REQUIRED)
+endforeach()
 
 install(DIRECTORY include/ DESTINATION include)
 
-ament_export_include_directories(include)
-
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+
   ament_add_gtest(${PROJECT_NAME}_test_common_utilities
                   test/test_common_utilities.cpp)
   target_include_directories(
@@ -28,7 +30,6 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
 
-  find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(${PROJECT_NAME}_test_diagnostics test/test_diagnostics.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_diagnostics
@@ -36,7 +37,6 @@ if(BUILD_TESTING)
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_diagnostics diagnostic_updater)
 
-  find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(${PROJECT_NAME}_test_moving_average
                   test/test_moving_average.cpp)
   target_include_directories(
@@ -73,8 +73,8 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_yaml_utils yaml-cpp)
 endif()
 
+ament_export_include_directories(include)
 ament_export_dependencies(realtime_tools)
-
-ament_python_install_package(panther_utils)
+ament_python_install_package(${PROJECT_NAME})
 
 ament_package()
