@@ -16,6 +16,9 @@
           window_len: 6
           fan_on: 50.0
           fan_off: 45.0
+      ros_communication_timeout:
+        availability: 1.0
+        response: 1.0
       plugin_libs:
         - tick_after_timeout_bt_node
         - shutdown_single_host_bt_node
