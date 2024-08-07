@@ -31,19 +31,19 @@ class Estop : public Plugin
 {
   Q_OBJECT
 
-  Q_PROPERTY(QString name READ Namespace WRITE SetNamespace NOTIFY NamespaceChanged)
+  Q_PROPERTY(QString ns READ getNamespace WRITE setNamespace NOTIFY changedNamespace)
 
 public:
   Estop();
   virtual ~Estop();
-  void LoadConfig(const tinyxml2::XMLElement * _pluginElem) override;
-  Q_INVOKABLE QString Namespace() const;
+  void LoadConfig(const tinyxml2::XMLElement * pluginElem) override;
+  Q_INVOKABLE QString getNamespace() const;
 
 public slots:
-  void SetNamespace(const QString & _name);
+  void setNamespace(const QString & ns);
 
 signals:
-  void NamespaceChanged();
+  void changedNamespace();
 
 protected slots:
   void buttonPressed(bool pressed);

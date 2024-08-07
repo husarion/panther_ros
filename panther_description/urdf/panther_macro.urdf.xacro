@@ -63,7 +63,7 @@
       <hardware>
         <xacro:if value="${use_sim}">
           <plugin>panther_gazebo/PantherSystem</plugin>
-          <param name="e_stop_publish_frequency">20</param>
+          <param name="e_stop_publish_frequency">100</param>
           <param name="e_stop_initial_state">true</param>
         </xacro:if>
 

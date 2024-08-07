@@ -26,7 +26,7 @@ Estop::Estop() : Plugin() { rclcpp::init(0, nullptr); }
 
 Estop::~Estop() { rclcpp::shutdown(); }
 
-void Estop::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
+void Estop::LoadConfig(const tinyxml2::XMLElement * pluginElem)
 {
   node_ = rclcpp::Node::make_shared("gz_estop_gui");
   e_stop_reset_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_reset_service_);
@@ -36,13 +36,11 @@ void Estop::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
     this->title = "Estop";
   }
 
-  if (_pluginElem) {
-    auto namespaceElem = _pluginElem->FirstChildElement("namespace");
+  if (pluginElem) {
+    auto namespaceElem = pluginElem->FirstChildElement("namespace");
     if (nullptr != namespaceElem && nullptr != namespaceElem->GetText())
-      this->SetNamespace(namespaceElem->GetText());
+      this->setNamespace(namespaceElem->GetText());
   }
-
-  this->connect(this, SIGNAL(AddMsg(QString)), this, SLOT(OnAddMsg(QString)), Qt::QueuedConnection);
 }
 
 void Estop::buttonPressed(bool pressed)
@@ -69,14 +67,14 @@ void Estop::buttonPressed(bool pressed)
   if (!result->success) {
     ignwarn << "Service call did not succeed: " << result->message << std::endl;
   }
-  ignlog << "Estop: " << result->message << std::endl;
+  ignmsg << "Estop: " << result->message << std::endl;
 }
 
-QString Estop::Namespace() const { return QString::fromStdString(this->namespace_); }
+QString Estop::getNamespace() const { return QString::fromStdString(this->namespace_); }
 
-void Estop::SetNamespace(const QString & _name)
+void Estop::setNamespace(const QString & ns)
 {
-  this->namespace_ = _name.toStdString();
+  this->namespace_ = ns.toStdString();
   this->e_stop_reset_service_ = this->namespace_ + "/hardware/e_stop_reset";
   this->e_stop_trigger_service_ = this->namespace_ + "/hardware/e_stop_trigger";
 
@@ -85,11 +83,8 @@ void Estop::SetNamespace(const QString & _name)
   this->e_stop_trigger_client_ =
     node_->create_client<std_srvs::srv::Trigger>(this->e_stop_trigger_service_);
 
-  ignmsg << "A new robot name has been entered, services updated: '"
-         << this->e_stop_trigger_service_ << "' and '" << this->e_stop_reset_service_ << "' "
-         << std::endl;
-
-  this->NamespaceChanged();
+  this->changedNamespace();
+  ignmsg << "Changed namespace to: " << this->namespace_ << std::endl;
 }
 
 }  // namespace gui
