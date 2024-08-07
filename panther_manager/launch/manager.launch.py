@@ -83,7 +83,7 @@ def generate_launch_description():
         executable="lights_manager_node",
         name="lights_manager",
         parameters=[
-            PathJoinSubstitution([panther_manager_dir, "config", "lights_manager_config.yaml"]),
+            PathJoinSubstitution([panther_manager_dir, "config", "lights_manager.yaml"]),
             {"bt_project_path": lights_bt_project_path},
         ],
         namespace=namespace,
@@ -95,7 +95,7 @@ def generate_launch_description():
         executable="safety_manager_node",
         name="safety_manager",
         parameters=[
-            PathJoinSubstitution([panther_manager_dir, "config", "safety_manager_config.yaml"]),
+            PathJoinSubstitution([panther_manager_dir, "config", "safety_manager.yaml"]),
             {
                 "bt_project_path": safety_bt_project_path,
                 "shutdown_hosts_path": shutdown_hosts_config_path,

@@ -108,7 +108,7 @@ def generate_launch_description():
     manager_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_manager"), "launch", "manager_bt.launch.py"]
+                [FindPackageShare("panther_manager"), "launch", "manager.launch.py"]
             )
         ),
         condition=UnlessCondition(disable_manager),
