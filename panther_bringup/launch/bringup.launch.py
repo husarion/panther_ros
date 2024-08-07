@@ -33,7 +33,7 @@ def generate_launch_description():
         "disable_manager",
         default_value="False",
         description="Enable or disable manager_bt_node.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -48,7 +48,7 @@ def generate_launch_description():
         "use_ekf",
         default_value="True",
         description="Enable or disable EKF.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")

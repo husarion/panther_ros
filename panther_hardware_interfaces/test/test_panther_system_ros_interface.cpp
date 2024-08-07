@@ -238,8 +238,8 @@ TEST_F(TestPantherSystemRosInterface, Errors)
   can_errors.front_driver_state_data_timed_out = false;
   can_errors.rear_driver_state_data_timed_out = true;
 
-  can_errors.front_can_net_err = false;
-  can_errors.rear_can_net_err = true;
+  can_errors.front_can_error = false;
+  can_errors.rear_can_error = true;
 
   panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 
@@ -260,8 +260,8 @@ TEST_F(TestPantherSystemRosInterface, Errors)
   EXPECT_FALSE(driver_state_msg_->front.driver_state_data_timed_out);
   EXPECT_TRUE(driver_state_msg_->rear.driver_state_data_timed_out);
 
-  EXPECT_FALSE(driver_state_msg_->front.can_net_err);
-  EXPECT_TRUE(driver_state_msg_->rear.can_net_err);
+  EXPECT_FALSE(driver_state_msg_->front.can_error);
+  EXPECT_TRUE(driver_state_msg_->rear.can_error);
 }
 
 int main(int argc, char ** argv)

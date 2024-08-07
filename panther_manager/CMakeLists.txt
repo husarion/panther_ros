@@ -5,7 +5,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(PACKAGE_INCLUDE_DEPENDS
+set(PACKAGE_DEPENDENCIES
     ament_cmake
     ament_index_cpp
     behaviortree_cpp
@@ -19,8 +19,8 @@ set(PACKAGE_INCLUDE_DEPENDS
     std_srvs
     yaml-cpp)
 
-foreach(Dependency IN ITEMS ${PACKAGE_INCLUDE_DEPENDS})
-  find_package(${Dependency} REQUIRED)
+foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
+  find_package(${PACKAGE} REQUIRED)
 endforeach()
 
 include_directories(include)
@@ -57,7 +57,7 @@ list(APPEND plugin_libs tick_after_timeout_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
-  ament_target_dependencies(${bt_plugin} ${PACKAGE_INCLUDE_DEPENDS})
+  ament_target_dependencies(${bt_plugin} ${PACKAGE_DEPENDENCIES})
 endforeach()
 
 add_executable(
@@ -99,9 +99,12 @@ if(BUILD_TESTING)
 
   add_library(${PROJECT_NAME}_test_plugin_utils
               test/plugins/src/plugin_test_utils.cpp)
-  target_include_directories(${PROJECT_NAME}_test_plugin_utils
-                             PUBLIC test/plugins/include)
-
+  target_include_directories(
+    ${PROJECT_NAME}_test_plugin_utils
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include> test/plugins/include)
+  ament_target_dependencies(${PROJECT_NAME}_test_plugin_utils
+                            ${PACKAGE_DEPENDENCIES})
   target_link_libraries(
     ${PROJECT_NAME}_test_plugin_utils
     call_set_bool_service_bt_node
@@ -111,9 +114,6 @@ if(BUILD_TESTING)
     shutdown_single_host_bt_node
     shutdown_hosts_from_file_bt_node
     tick_after_timeout_bt_node)
-
-  ament_target_dependencies(${PROJECT_NAME}_test_plugin_utils
-                            ${PACKAGE_INCLUDE_DEPENDS})
 
   ament_add_gtest(${PROJECT_NAME}_test_call_set_bool_service_node
                   test/plugins/test_call_set_bool_service_node.cpp)
@@ -154,7 +154,7 @@ if(BUILD_TESTING)
 
   foreach(bt_node_test ${plugin_tests})
     target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)
-    ament_target_dependencies(${bt_node_test} ${PACKAGE_INCLUDE_DEPENDS})
+    ament_target_dependencies(${bt_node_test} ${PACKAGE_DEPENDENCIES})
   endforeach()
 
   ament_add_gtest(${PROJECT_NAME}_test_behavior_tree_utils

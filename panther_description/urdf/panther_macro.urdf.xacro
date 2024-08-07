@@ -8,13 +8,14 @@
             controller_config_file
             battery_config_file
             use_sim:=false
-            imu_pos_x:=0.168
-            imu_pos_y:=0.028
-            imu_pos_z:=0.083
-            imu_rot_r:=3.14
-            imu_rot_p:=-1.57
-            imu_rot_y:=0.0
+            imu_xyz:='0.169 0.025 0.092'
+            imu_rpy:='0.0 0.0 -1.57'
             namespace:=''">
+
+    <xacro:if value="${use_sim}">
+      <xacro:property name="imu_xyz" value="-0.195 0.010 0.085" />
+      <xacro:property name="imu_rpy" value="0.000 -0.000 3.142" />
+    </xacro:if>
 
     <xacro:property name="ns" value='${namespace + "/" if namespace else ""}' />
 
@@ -29,12 +30,8 @@
     <!-- BODY DECLARATION -->
     <xacro:body.body
       wheel_radius="${wheel_config['wheel_radius']}"
-      imu_pos_x="${imu_pos_x}"
-      imu_pos_y="${imu_pos_y}"
-      imu_pos_z="${imu_pos_z}"
-      imu_rot_r="${imu_rot_r}"
-      imu_rot_p="${imu_rot_p}"
-      imu_rot_y="${imu_rot_y}" />
+      imu_xyz="${imu_xyz}"
+      imu_rpy="${imu_rpy}" />
 
     <!-- WHEEL DECLARATION -->
     <xacro:wheel.wheel
@@ -187,8 +184,8 @@
       </xacro:if>
       <xacro:gazebo.controller config_file="${controller_config_file}" namespace="${namespace}" />
       <xacro:gazebo.imu reference_frame="imu_link" namespace="${namespace}" />
-      <xacro:gazebo.light reference_frame="front_light_link" name="front_light" namespace="${namespace}" />
-      <xacro:gazebo.light reference_frame="rear_light_link" name="rear_light" namespace="${namespace}" />
+      <xacro:gazebo.light reference_frame="lights_channel_1_link" name="lights_channel_1" namespace="${namespace}" />
+      <xacro:gazebo.light reference_frame="lights_channel_2_link" name="lights_channel_2" namespace="${namespace}" />
     </xacro:if>
   </xacro:macro>
 

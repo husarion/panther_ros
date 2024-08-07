@@ -4,9 +4,7 @@
   <!-- body defining macro -->
   <xacro:macro
     name="body"
-    params="wheel_radius
-            imu_pos_x imu_pos_y imu_pos_z
-            imu_rot_r imu_rot_p imu_rot_y">
+    params="wheel_radius imu_xyz imu_rpy">
 
     <link name="base_link" />
 
@@ -41,8 +39,7 @@
     </link>
 
     <joint name="body_to_imu_joint" type="fixed">
-      <origin xyz="${imu_pos_x} ${imu_pos_y} ${imu_pos_z}"
-        rpy="${imu_rot_r} ${imu_rot_p} ${imu_rot_y}" />
+      <origin xyz="${imu_xyz}" rpy="${imu_rpy}" />
       <parent link="body_link" />
       <child link="imu_link" />
     </joint>
@@ -57,13 +54,13 @@
 
     <link name="front_bumper_link" />
 
-    <joint name="front_bumper_to_front_light_joint" type="fixed">
+    <joint name="front_bumper_to_lights_channel_1_joint" type="fixed">
       <origin xyz="0.0 0.0 0.0185" rpy="0.0 0.0 0.0" />
       <parent link="front_bumper_link" />
-      <child link="front_light_link" />
+      <child link="lights_channel_1_link" />
     </joint>
 
-    <link name="front_light_link" />
+    <link name="lights_channel_1_link" />
 
     <joint name="body_to_rear_bumper_joint" type="fixed">
       <origin xyz="-0.362 0.0 0.0" rpy="0.0 0.0 ${pi}" />
@@ -73,13 +70,13 @@
 
     <link name="rear_bumper_link" />
 
-    <joint name="rear_bumper_to_rear_light_joint" type="fixed">
+    <joint name="rear_bumper_to_lights_channel_2_joint" type="fixed">
       <origin xyz="0.0 0.0 0.0185" rpy="0.0 0.0 0.0" />
       <parent link="rear_bumper_link" />
-      <child link="rear_light_link" />
+      <child link="lights_channel_2_link" />
     </joint>
 
-    <link name="rear_light_link" />
+    <link name="lights_channel_2_link" />
 
     <joint name="body_to_cover_joint" type="fixed">
       <origin xyz="0.0 0.0 0.1715" rpy="0.0 0.0 0.0" />

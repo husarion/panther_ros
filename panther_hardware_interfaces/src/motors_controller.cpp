@@ -96,7 +96,16 @@ void MotorsController::Activate()
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-void MotorsController::UpdateMotorsStates()
+void MotorsController::UpdateCommunicationState()
+{
+  front_data_.SetCANError(canopen_controller_.GetFrontDriver()->IsCANError());
+  rear_data_.SetCANError(canopen_controller_.GetRearDriver()->IsCANError());
+
+  front_data_.SetHeartbeatTimeout(canopen_controller_.GetFrontDriver()->IsHeartbeatTimeout());
+  rear_data_.SetHeartbeatTimeout(canopen_controller_.GetRearDriver()->IsHeartbeatTimeout());
+}
+
+void MotorsController::UpdateMotorsState()
 {
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -106,11 +115,14 @@ void MotorsController::UpdateMotorsStates()
   SetMotorsStates(
     rear_data_, canopen_controller_.GetRearDriver()->ReadRoboteqMotorsStates(), current_time);
 
-  front_data_.SetCANNetErr(canopen_controller_.GetFrontDriver()->IsCANError());
-  rear_data_.SetCANNetErr(canopen_controller_.GetRearDriver()->IsCANError());
+  UpdateCommunicationState();
 
-  if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
-    throw std::runtime_error("CAN error detected when trying to read motors states.");
+  if (front_data_.IsCANError() || rear_data_.IsCANError()) {
+    throw std::runtime_error("CAN error.");
+  }
+
+  if (front_data_.IsHeartbeatTimeout() || rear_data_.IsHeartbeatTimeout()) {
+    throw std::runtime_error("Motor controller heartbeat timeout.");
   }
 }
 
@@ -124,11 +136,14 @@ void MotorsController::UpdateDriversState()
   SetDriverState(
     rear_data_, canopen_controller_.GetRearDriver()->ReadRoboteqDriverState(), current_time);
 
-  front_data_.SetCANNetErr(canopen_controller_.GetFrontDriver()->IsCANError());
-  rear_data_.SetCANNetErr(canopen_controller_.GetRearDriver()->IsCANError());
+  UpdateCommunicationState();
 
-  if (front_data_.IsCANNetErr() || rear_data_.IsCANNetErr()) {
-    throw std::runtime_error("CAN error detected when trying to read drivers states.");
+  if (front_data_.IsCANError() || rear_data_.IsCANError()) {
+    throw std::runtime_error("CAN error.");
+  }
+
+  if (front_data_.IsHeartbeatTimeout() || rear_data_.IsHeartbeatTimeout()) {
+    throw std::runtime_error("Motor controller heartbeat timeout.");
   }
 }
 

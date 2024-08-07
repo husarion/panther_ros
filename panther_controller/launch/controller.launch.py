@@ -73,7 +73,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " 'panther_controller/config/{wheel_type}_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
     )
@@ -93,7 +93,7 @@ def generate_launch_description():
             "Whether to launch the robot_state_publisher node."
             "When set to False, users should publish their own robot description."
         ),
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     wheel_config_path = LaunchConfiguration("wheel_config_path")
@@ -101,7 +101,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     declare_wheel_config_path_arg = DeclareLaunchArgument(
@@ -115,7 +115,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "'panther_description/config/{wheel_type}.yaml'. You can also specify the path "
             "to your custom wheel configuration file here. "
         ),
     )
@@ -155,18 +155,10 @@ def generate_launch_description():
             controller_config_path,
             " battery_config_file:=",
             battery_config_path,
-            " imu_pos_x:=",
-            os.environ.get("PANTHER_IMU_LOCALIZATION_X", "0.168"),
-            " imu_pos_y:=",
-            os.environ.get("PANTHER_IMU_LOCALIZATION_Y", "0.028"),
-            " imu_pos_z:=",
-            os.environ.get("PANTHER_IMU_LOCALIZATION_Z", "0.083"),
-            " imu_rot_r:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_R", "3.14"),
-            " imu_rot_p:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
-            " imu_rot_y:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
+            " imu_xyz:=",
+            f"\"{os.environ.get('PANTHER_IMU_LOCALIZATION_X', '0.168')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Y', '0.028')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Z', '0.083')}\"",
+            " imu_rpy:=",
+            f"\"{os.environ.get('PANTHER_IMU_ORIENTATION_R', '3.14')} {os.environ.get('PANTHER_IMU_ORIENTATION_P', '-1.57')} {os.environ.get('PANTHER_IMU_ORIENTATION_Y', '0.0')}\"",
             " namespace:=",
             namespace,
             " components_config_path:=",

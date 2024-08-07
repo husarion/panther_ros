@@ -437,7 +437,7 @@ void PantherImuSensor::SpatialDataCallback(
   }
 
   rclcpp::Time spatial_data_timestamp =
-    rclcpp::Time(timestamp * 1e6);  // timestamp comes in miliseconds
+    rclcpp::Time(timestamp * 1e6);  // timestamp comes in milliseconds
   auto dt = (spatial_data_timestamp - last_spatial_data_timestamp_).seconds();
   last_spatial_data_timestamp_ = spatial_data_timestamp;
 

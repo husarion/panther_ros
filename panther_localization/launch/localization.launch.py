@@ -33,7 +33,7 @@ def generate_launch_description():
         "fuse_gps",
         default_value="False",
         description="Include GPS for data fusion",
-        choices=["False", "True"],
+        choices=["True", "true", "False", "false"],
     )
 
     localization_mode = LaunchConfiguration("localization_mode")
@@ -60,7 +60,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     mode_prefix = PythonExpression(["'", localization_mode, "_'"])

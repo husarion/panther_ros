@@ -132,7 +132,7 @@ public:
   ~TestMotorsController() { motors_controller_->Deinitialize(); }
 };
 
-TEST_F(TestMotorsController, UpdateMotorsStates)
+TEST_F(TestMotorsController, UpdateMotorsState)
 {
   using panther_hardware_interfaces_test::DriverChannel;
 
@@ -170,7 +170,7 @@ TEST_F(TestMotorsController, UpdateMotorsStates)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  motors_controller_->UpdateMotorsStates();
+  motors_controller_->UpdateMotorsState();
 
   const auto & fl = motors_controller_->GetFrontData().GetLeftMotorState();
   const auto & fr = motors_controller_->GetFrontData().GetRightMotorState();
@@ -194,21 +194,21 @@ TEST_F(TestMotorsController, UpdateMotorsStates)
   EXPECT_FLOAT_EQ(rr.GetTorque(), rr_current * kRbtqCurrentFbToNewtonMeters);
 }
 
-TEST_F(TestMotorsController, UpdateMotorsStatesTimestamps)
+TEST_F(TestMotorsController, UpdateMotorsStateTimestamps)
 {
-  motors_controller_->UpdateMotorsStates();
+  motors_controller_->UpdateMotorsState();
 
   std::this_thread::sleep_for(
     panther_hardware_interfaces_test::kCANopenSettings.pdo_motor_states_timeout_ms +
     std::chrono::milliseconds(10));
 
-  motors_controller_->UpdateMotorsStates();
+  motors_controller_->UpdateMotorsState();
 
   EXPECT_FALSE(motors_controller_->GetFrontData().IsMotorStatesDataTimedOut());
   EXPECT_FALSE(motors_controller_->GetRearData().IsMotorStatesDataTimedOut());
 }
 
-TEST(TestMotorsControllerOthers, UpdateMotorsStatesTimeout)
+TEST(TestMotorsControllerOthers, UpdateMotorsStateTimeout)
 {
   std::shared_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
   std::unique_ptr<panther_hardware_interfaces::MotorsController> motors_controller_;
@@ -224,13 +224,13 @@ TEST(TestMotorsControllerOthers, UpdateMotorsStatesTimeout)
   motors_controller_->Initialize();
   motors_controller_->Activate();
 
-  motors_controller_->UpdateMotorsStates();
+  motors_controller_->UpdateMotorsState();
 
   std::this_thread::sleep_for(
     panther_hardware_interfaces_test::kCANopenSettings.pdo_motor_states_timeout_ms +
     std::chrono::milliseconds(10));
 
-  motors_controller_->UpdateMotorsStates();
+  motors_controller_->UpdateMotorsState();
 
   EXPECT_TRUE(motors_controller_->GetFrontData().IsMotorStatesDataTimedOut());
   EXPECT_TRUE(motors_controller_->GetRearData().IsMotorStatesDataTimedOut());
