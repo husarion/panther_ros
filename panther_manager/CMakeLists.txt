@@ -96,52 +96,51 @@ install(DIRECTORY behavior_trees config launch
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBSSH REQUIRED libssh)
+  find_package(yaml-cpp REQUIRED)
 
-  add_library(${PROJECT_NAME}_test_plugin_utils
-              test/plugins/src/plugin_test_utils.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_plugin_utils
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include> test/plugins/include)
-  ament_target_dependencies(${PROJECT_NAME}_test_plugin_utils
-                            ${PACKAGE_DEPENDENCIES})
-  target_link_libraries(
-    ${PROJECT_NAME}_test_plugin_utils
-    call_set_bool_service_bt_node
-    call_trigger_service_bt_node
-    call_set_led_animation_service_bt_node
-    signal_shutdown_bt_node
-    shutdown_single_host_bt_node
-    shutdown_hosts_from_file_bt_node
-    tick_after_timeout_bt_node)
-
-  ament_add_gtest(${PROJECT_NAME}_test_call_set_bool_service_node
-                  test/plugins/test_call_set_bool_service_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_call_set_bool_service_node
+    test/plugins/action/test_call_set_bool_service_node.cpp
+    plugins/action/call_set_bool_service_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_call_set_bool_service_node)
 
-  ament_add_gtest(${PROJECT_NAME}_test_call_trigger_service_node
-                  test/plugins/test_call_trigger_service_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_call_trigger_service_node
+    test/plugins/action/test_call_trigger_service_node.cpp
+    plugins/action/call_trigger_service_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_call_trigger_service_node)
 
-  ament_add_gtest(${PROJECT_NAME}_test_call_set_led_animation_service_node
-                  test/plugins/test_call_set_led_animation_service_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_call_set_led_animation_service_node
+    test/plugins/action/test_call_set_led_animation_service_node.cpp
+    plugins/action/call_set_led_animation_service_node.cpp)
   list(APPEND plugin_tests
        ${PROJECT_NAME}_test_call_set_led_animation_service_node)
 
-  ament_add_gtest(${PROJECT_NAME}_test_signal_shutdown_node
-                  test/plugins/test_signal_shutdown_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_signal_shutdown_node
+    test/plugins/action/test_signal_shutdown_node.cpp
+    plugins/action/signal_shutdown_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_signal_shutdown_node)
 
-  ament_add_gtest(${PROJECT_NAME}_test_shutdown_single_host_node
-                  test/plugins/test_shutdown_single_host_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_shutdown_single_host_node
+    test/plugins/action/test_shutdown_single_host_node.cpp
+    plugins/action/shutdown_single_host_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_single_host_node)
 
-  ament_add_gtest(${PROJECT_NAME}_test_shutdown_hosts_from_file_node
-                  test/plugins/test_shutdown_hosts_from_file_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_shutdown_hosts_from_file_node
+    test/plugins/action/test_shutdown_hosts_from_file_node.cpp
+    plugins/action/shutdown_hosts_from_file_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
 
-  ament_add_gtest(${PROJECT_NAME}_test_tick_after_timeout_node
-                  test/plugins/test_tick_after_timeout_node.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_tick_after_timeout_node
+    test/plugins/decorator/test_tick_after_timeout_node.cpp
+    plugins/decorator/tick_after_timeout_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_tick_after_timeout_node)
 
   ament_add_gtest(${PROJECT_NAME}_test_shutdown_host
@@ -153,8 +152,14 @@ if(BUILD_TESTING)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_node)
 
   foreach(bt_node_test ${plugin_tests})
-    target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)
+    target_include_directories(
+      ${bt_node_test}
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+             $<INSTALL_INTERFACE:include>
+      PRIVATE ${LIBSSH_INCLUDE_DIRS})
+
     ament_target_dependencies(${bt_node_test} ${PACKAGE_DEPENDENCIES})
+    target_link_libraries(${bt_node_test} ${LIBSSH_LIBRARIES} yaml-cpp)
   endforeach()
 
   ament_add_gtest(${PROJECT_NAME}_test_behavior_tree_utils

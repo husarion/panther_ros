@@ -21,7 +21,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/action/call_set_led_animation_service_node.hpp"
-#include "plugin_test_utils.hpp"
+#include "utils/plugin_test_utils.hpp"
 
 class TestCallSetLedAnimationService : public panther_manager::plugin_test_utils::PluginTestUtils
 {

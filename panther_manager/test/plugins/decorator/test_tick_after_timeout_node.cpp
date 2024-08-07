@@ -22,7 +22,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/decorator/tick_after_timeout_node.hpp"
-#include "plugin_test_utils.hpp"
+#include "utils/plugin_test_utils.hpp"
 
 class TestTickAfterTimeout : public panther_manager::plugin_test_utils::PluginTestUtils
 {

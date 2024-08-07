@@ -23,7 +23,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/action/shutdown_single_host_node.hpp"
-#include "plugin_test_utils.hpp"
+#include "utils/plugin_test_utils.hpp"
 
 typedef panther_manager::plugin_test_utils::PluginTestUtils TestShutdownSingleHost;
 

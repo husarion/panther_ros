@@ -22,7 +22,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_manager/plugins/action/signal_shutdown_node.hpp"
-#include "plugin_test_utils.hpp"
+#include "utils/plugin_test_utils.hpp"
 
 typedef panther_manager::plugin_test_utils::PluginTestUtils TestSignalShutdown;
 

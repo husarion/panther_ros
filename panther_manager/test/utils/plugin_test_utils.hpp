@@ -52,18 +52,52 @@ struct BehaviorTreePluginDescription
 class PluginTestUtils : public testing::Test
 {
 public:
-  PluginTestUtils();
-  ~PluginTestUtils();
+  PluginTestUtils()
+  {
+    rclcpp::init(0, nullptr);
+    bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
+  }
+  
+  ~PluginTestUtils()
+  {
+    bt_node_.reset();
+    rclcpp::shutdown();
+    if (executor_thread_) {
+      executor_.reset();
+      executor_thread_->join();
+    }
+  }
 
   virtual std::string BuildBehaviorTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports);
+    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports)
+  {
+    std::stringstream bt;
+
+    bt << tree_header_ << std::endl;
+
+    bt << "\t\t\t\t<" << plugin_name << " ";
+
+    for (auto const & [key, value] : bb_ports) {
+      bt << key << "=\"" << value << "\" ";
+    }
+
+    bt << " />" << std::endl;
+
+    bt << tree_footer_;
+
+    return bt.str();
+  }
 
   void CreateTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports);
+    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports)
+  {
+    auto xml_text = BuildBehaviorTree(plugin_name, bb_ports);
+    tree_ = factory_.createTreeFromText(xml_text);
+  }
 
-  BT::Tree & GetTree();
+  inline BT::Tree & GetTree() { return tree_; }
 
-  BT::BehaviorTreeFactory & GetFactory();
+  inline BT::BehaviorTreeFactory & GetFactory() { return factory_; }
 
   template <typename ServiceT>
   void CreateService(
@@ -105,7 +139,7 @@ protected:
   rclcpp::ServiceBase::SharedPtr service;
   std::unique_ptr<std::thread> executor_thread_;
 
-  void SpinExecutor();
+  inline void SpinExecutor() { executor_->spin(); }
 
   const std::string tree_header_ = R"(
       <root BTCPP_format="4">
