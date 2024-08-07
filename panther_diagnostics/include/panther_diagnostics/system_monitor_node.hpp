@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS__SYSTEM_MONITOR_NODE_HPP_
-#define PANTHER_DIAGNOSTICS__SYSTEM_MONITOR_NODE_HPP_
+#ifndef PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
+#define PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
 
 #include <string>
 
@@ -67,4 +67,4 @@ private:
   static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
 };
 }  // namespace panther_diagnostics
-#endif  // PANTHER_DIAGNOSTICS__SYSTEM_MONITOR_NODE_HPP_
+#endif  // PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
