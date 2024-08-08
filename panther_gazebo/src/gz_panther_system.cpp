@@ -163,7 +163,6 @@ public:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr e_stop_reset_service;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr e_stop_trigger_service;
   rclcpp::TimerBase::SharedPtr e_stop_timer_;
-  double e_stop_publish_frequency_;
 };
 
 namespace panther_gazebo
@@ -183,20 +182,6 @@ void PantherSystem::readParams(const hardware_interface::HardwareInfo & hardware
     RCLCPP_INFO(
       this->nh_->get_logger(), "Parameter 'e_stop_initial_state' not found, using default true");
   }
-  if (
-    hardware_info.hardware_parameters.find("e_stop_publish_frequency") !=
-    hardware_info.hardware_parameters.end()) {
-    this->dataPtr->e_stop_publish_frequency_ =
-      std::stod(hardware_info.hardware_parameters.at("e_stop_publish_frequency"));
-    RCLCPP_INFO(
-      this->nh_->get_logger(), "Parameter 'e_stop_publish_frequency' found, using: %f Hz",
-      this->dataPtr->e_stop_publish_frequency_);
-  } else {
-    this->dataPtr->e_stop_publish_frequency_ = 1.0;
-    RCLCPP_INFO(
-      this->nh_->get_logger(),
-      "Parameter 'e_stop_publish_frequency' not found, using default 1.0 Hz");
-  }
 }
 
 void PantherSystem::setupEStop()
@@ -214,9 +199,8 @@ void PantherSystem::setupEStop()
     std::bind(
       &PantherSystem::eStopTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-  auto period = std::chrono::duration<double>(1.0 / this->dataPtr->e_stop_publish_frequency_);
-  this->dataPtr->e_stop_timer_ = nh_->create_wall_timer(
-    period, std::bind(&PantherSystem::publishEStopStatus, this));
+  // Publish initial state
+  publishEStopStatus();
 }
 
 void PantherSystem::publishEStopStatus()
@@ -233,6 +217,7 @@ void PantherSystem::eStopResetCallback(
   this->dataPtr->e_stop_active = false;
   response->success = true;
   response->message = "E-stop reset";
+  publishEStopStatus();
 }
 
 void PantherSystem::eStopTriggerCallback(
@@ -242,6 +227,7 @@ void PantherSystem::eStopTriggerCallback(
   this->dataPtr->e_stop_active = true;
   response->success = true;
   response->message = "E-stop triggered";
+  publishEStopStatus();
 }
 
 bool PantherSystem::initSim(

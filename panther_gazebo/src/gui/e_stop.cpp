@@ -22,6 +22,7 @@ namespace panther_gazebo
 {
 namespace gui
 {
+
 Estop::Estop() : ignition::gui::Plugin() { rclcpp::init(0, nullptr); }
 
 Estop::~Estop() { rclcpp::shutdown(); }
@@ -38,8 +39,9 @@ void Estop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
 
   if (plugin_elem) {
     auto namespace_elem = plugin_elem->FirstChildElement("namespace");
-    if (nullptr != namespace_elem && nullptr != namespace_elem->GetText())
+    if (namespace_elem != nullptr && namespace_elem->GetText() != nullptr) {
       this->setNamespace(namespace_elem->GetText());
+    }
   }
 }
 

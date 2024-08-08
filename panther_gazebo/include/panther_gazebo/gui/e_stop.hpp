@@ -52,11 +52,11 @@ private:
   static constexpr char kDefaultEStopResetService[] = "/hardware/e_stop_reset";
   static constexpr char kDefaultEStopTriggerService[] = "/hardware/e_stop_trigger";
 
-  rclcpp::Node::SharedPtr node_;
   std::string namespace_ = "";
   std::string e_stop_reset_service_ = kDefaultEStopResetService;
   std::string e_stop_trigger_service_ = kDefaultEStopTriggerService;
 
+  rclcpp::Node::SharedPtr node_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_reset_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_trigger_client_;
 };
