@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO__GZ_PANTHER_SYSTEM
-#define PANTHER_GAZEBO__GZ_PANTHER_SYSTEM
+#ifndef PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
+#define PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
 
 #include <map>
 #include <memory>
@@ -110,4 +110,4 @@ private:
 
 }  // namespace panther_gazebo
 
-#endif  // PANTHER_GAZEBO__GZ_PANTHER_SYSTEM
+#endif  // PANTHER_GAZEBO_GZ_PANTHER_SYSTEM

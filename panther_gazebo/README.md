@@ -14,7 +14,7 @@ The package contains a launch file and source files used to run the robot simula
 - [`battery_plugin_config.yaml`](./config/battery_plugin_config.yaml): Simulated LinearBatteryPlugin configuration.
 - [`gz_bridge.yaml`](./config/gz_bridge.yaml): Specify data to exchange between ROS and Gazebo simulation.
 - [`led_strips.yaml`](./config/led_strips.yaml): Configure properties of led strips in simulation to animate lights.
-- [`teleop_with_estop.config`](./config/teleop_with_estop.config): Gazebo layout configuration file, which add E-Stop and Teleop widgets.
+- [`teleop_with_estop.config`](./config/teleop_with_estop.config): Gazebo layout configuration file, which adds E-Stop and Teleop widgets.
 
 ## ROS Nodes
 
@@ -30,6 +30,9 @@ The package contains a launch file and source files used to run the robot simula
 
 - `gz_ros2_control/e_stop_reset` [*std_srvs/Trigger*]: Resets E-stop.
 - `gz_ros2_control/e_stop_trigger` [*std_srvs/Trigger*]: Triggers E-stop.
+
+> [!NOTE]
+> Above topics and services should be remapped to match real robot
 
 ### PantherSystem
 

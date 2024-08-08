@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO__GUI__ESTOP_HPP_
-#define PANTHER_GAZEBO__GUI__ESTOP_HPP_
+#ifndef PANTHER_GAZEBO_GUI_ESTOP_HPP_
+#define PANTHER_GAZEBO_GUI_ESTOP_HPP_
 
 #include <ignition/gui/qt.h>
 #include <ignition/gui/Plugin.hh>
@@ -23,11 +23,11 @@
 
 #include <string>
 
-namespace ignition
+namespace panther_gazebo
 {
 namespace gui
 {
-class Estop : public Plugin
+class Estop : public ignition::gui::Plugin
 {
   Q_OBJECT
 
@@ -36,7 +36,7 @@ class Estop : public Plugin
 public:
   Estop();
   virtual ~Estop();
-  void LoadConfig(const tinyxml2::XMLElement * pluginElem) override;
+  void LoadConfig(const tinyxml2::XMLElement * plugin_elem) override;
   Q_INVOKABLE QString getNamespace() const;
 
 public slots:
@@ -49,15 +49,18 @@ protected slots:
   void buttonPressed(bool pressed);
 
 private:
+  static constexpr char kDefaultEStopResetService[] = "/hardware/e_stop_reset";
+  static constexpr char kDefaultEStopTriggerService[] = "/hardware/e_stop_trigger";
+
   rclcpp::Node::SharedPtr node_;
   std::string namespace_ = "";
-  std::string e_stop_reset_service_ = "/hardware/e_stop_reset";
-  std::string e_stop_trigger_service_ = "/hardware/e_stop_trigger";
+  std::string e_stop_reset_service_ = kDefaultEStopResetService;
+  std::string e_stop_trigger_service_ = kDefaultEStopTriggerService;
 
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_reset_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_trigger_client_;
 };
 }  // namespace gui
-}  // namespace ignition
+}  // namespace panther_gazebo
 
-#endif  // PANTHER_GAZEBO__GUI__ESTOP_HPP_
+#endif  // PANTHER_GAZEBO_GUI_ESTOP_HPP_

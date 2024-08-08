@@ -1,4 +1,4 @@
-<library path="panther_hardware_plugins">
+<library path="panther_simulation_plugins">
   <class
     name="panther_gazebo/PantherSystem"
     type="panther_gazebo::PantherSystem"

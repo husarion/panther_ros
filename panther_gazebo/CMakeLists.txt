@@ -37,22 +37,22 @@ target_link_libraries(
   gz_led_strip_manager ignition-transport11::core ignition-msgs8
   ignition-common4::ignition-common4 yaml-cpp)
 
-add_library(panther_hardware_plugins SHARED src/gz_panther_system.cpp)
+add_library(panther_simulation_plugins SHARED src/gz_panther_system.cpp)
 ament_target_dependencies(
-  panther_hardware_plugins
-  rclcpp_lifecycle
+  panther_simulation_plugins
   hardware_interface
+  ign_ros2_control
   rclcpp
+  rclcpp_lifecycle
   std_msgs
-  std_srvs
-  ign_ros2_control)
-target_link_libraries(panther_hardware_plugins ignition-gazebo6::core)
+  std_srvs)
+target_link_libraries(panther_simulation_plugins ignition-gazebo6::core)
 
 set(CMAKE_AUTOMOC ON)
 qt5_add_resources(resources_rcc src/gui/Estop.qrc)
 
-add_library(Estop SHARED include/panther_gazebo/gui/Estop.hpp src/gui/Estop.cpp
-                         ${resources_rcc})
+add_library(Estop SHARED include/panther_gazebo/gui/e_stop.hpp
+                         src/gui/e_stop.cpp ${resources_rcc})
 ament_target_dependencies(Estop ignition-common4 ignition-gazebo6
                           ignition-plugin1 rclcpp std_srvs)
 target_link_libraries(Estop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
@@ -61,7 +61,7 @@ target_link_libraries(Estop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
 install(TARGETS gz_led_strip_manager DESTINATION lib/${PROJECT_NAME})
 
 install(
-  TARGETS panther_hardware_plugins
+  TARGETS panther_simulation_plugins
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
@@ -82,7 +82,7 @@ endif()
 ament_export_include_directories(include)
 
 pluginlib_export_plugin_description_file(ign_ros2_control
-                                         panther_hardware_plugins.xml)
+                                         panther_simulation_plugins.xml)
 
 ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in")

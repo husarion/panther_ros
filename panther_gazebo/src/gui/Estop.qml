@@ -19,62 +19,66 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
 
-Rectangle
-{
+Rectangle {
   id: widgetRectangle
   color: "white"
   anchors.fill: parent
   focus: true
-  Layout.minimumWidth: 225
+  Layout.minimumWidth: 275
   Layout.minimumHeight: 225
 
-  Label {
-    id: namespaceLabel
-    text: "Namespace:"
-    Layout.fillWidth: true
-    Layout.margins: 10
+  RowLayout {
+    id: namespaceLayout
     anchors.top: widgetRectangle.top
     anchors.topMargin: 10
     anchors.left: widgetRectangle.left
     anchors.leftMargin: 10
-  }
+    spacing: 10
 
-  TextField {
-    id: namespaceField
-    width: 175
-    Layout.fillWidth: true
-    Layout.margins: 10
-    text: Estop.ns
-    placeholderText: qsTr("Robot namespace")
-    anchors.top: namespaceLabel.bottom
-    anchors.topMargin: 5
-    anchors.left: widgetRectangle.left
-    anchors.leftMargin: 10
-    onEditingFinished: {
-      Estop.setNamespace(text)
+    Label {
+      id: namespaceLabel
+      text: "Namespace:"
+      Layout.fillWidth: false
+      Layout.margins: 10
+      Layout.alignment: Qt.AlignLeft
+    }
+
+    TextField {
+      id: namespaceField
+      width: 175
+      Layout.fillWidth: true
+      text: Estop.ns
+      placeholderText: qsTr("Robot namespace")
+      Layout.alignment: Qt.AlignLeft
+      onEditingFinished: {
+        Estop.setNamespace(text)
+      }
     }
   }
 
   ToolButton {
     id: eStopButton
-    anchors.top: namespaceField.bottom
-    anchors.topMargin: 15
+    anchors.top: namespaceLayout.bottom
+    anchors.topMargin: 10
     anchors.horizontalCenter: widgetRectangle.horizontalCenter
     checkable: true
     checked: false
-    width: 72
-    height: 72
+    width: 100
+    height: 100
     contentItem: Rectangle {
       width: parent.width
       height: parent.height
-      radius: 20
-      color: eStopButton.checked ? "red" : "green"
+      radius: 50
+      color: eStopButton.checked ? "#d70000" : "#66b849"
+      border.width: 2
+      border.color: "#909090"
 
       Text {
         anchors.centerIn: parent
         text: eStopButton.checked ? "STOP" : "GO"
         font.bold: true
         color: "white"
+        font.pixelSize: 24
       }
     }
     onPressed: {

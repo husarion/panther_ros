@@ -12,34 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gazebo/gui/Estop.hpp"
+#include "panther_gazebo/gui/e_stop.hpp"
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
-namespace ignition
+namespace panther_gazebo
 {
 namespace gui
 {
-Estop::Estop() : Plugin() { rclcpp::init(0, nullptr); }
+Estop::Estop() : ignition::gui::Plugin() { rclcpp::init(0, nullptr); }
 
 Estop::~Estop() { rclcpp::shutdown(); }
 
-void Estop::LoadConfig(const tinyxml2::XMLElement * pluginElem)
+void Estop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
 {
   node_ = rclcpp::Node::make_shared("gz_estop_gui");
   e_stop_reset_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_reset_service_);
   e_stop_trigger_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_trigger_service_);
 
   if (this->title.empty()) {
-    this->title = "Estop";
+    this->title = "E-stop";
   }
 
-  if (pluginElem) {
-    auto namespaceElem = pluginElem->FirstChildElement("namespace");
-    if (nullptr != namespaceElem && nullptr != namespaceElem->GetText())
-      this->setNamespace(namespaceElem->GetText());
+  if (plugin_elem) {
+    auto namespace_elem = plugin_elem->FirstChildElement("namespace");
+    if (nullptr != namespace_elem && nullptr != namespace_elem->GetText())
+      this->setNamespace(namespace_elem->GetText());
   }
 }
 
@@ -57,13 +57,13 @@ void Estop::buttonPressed(bool pressed)
 
   auto result_future = client->async_send_request(request);
   if (
-    rclcpp::spin_until_future_complete(node_, result_future) != rclcpp::FutureReturnCode::SUCCESS) {
-    ignwarn << "Service call failed for: "
-            << (pressed ? this->e_stop_reset_service_ : this->e_stop_trigger_service_) << std::endl;
+    rclcpp::spin_until_future_complete(node_, result_future, std::chrono::seconds(1)) !=
+    rclcpp::FutureReturnCode::SUCCESS) {
+    ignwarn << "Service call failed for: " << client->get_service_name() << "'!" << std::endl;
     return;
   }
 
-  auto result = result_future.get();
+  const auto result = result_future.get();
   if (!result->success) {
     ignwarn << "Service call did not succeed: " << result->message << std::endl;
   }
@@ -75,8 +75,8 @@ QString Estop::getNamespace() const { return QString::fromStdString(this->namesp
 void Estop::setNamespace(const QString & ns)
 {
   this->namespace_ = ns.toStdString();
-  this->e_stop_reset_service_ = this->namespace_ + "/hardware/e_stop_reset";
-  this->e_stop_trigger_service_ = this->namespace_ + "/hardware/e_stop_trigger";
+  this->e_stop_reset_service_ = this->namespace_ + kDefaultEStopResetService;
+  this->e_stop_trigger_service_ = this->namespace_ + kDefaultEStopTriggerService;
 
   this->e_stop_reset_client_ =
     node_->create_client<std_srvs::srv::Trigger>(this->e_stop_reset_service_);
@@ -88,6 +88,6 @@ void Estop::setNamespace(const QString & ns)
 }
 
 }  // namespace gui
-}  // namespace ignition
+}  // namespace panther_gazebo
 
-IGNITION_ADD_PLUGIN(ignition::gui::Estop, ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(panther_gazebo::gui::Estop, ignition::gui::Plugin)
