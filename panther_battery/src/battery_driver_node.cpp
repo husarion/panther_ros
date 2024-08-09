@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_battery/battery_node.hpp"
+#include "panther_battery/battery_driver_node.hpp"
 
 #include <chrono>
 #include <functional>
@@ -35,7 +35,8 @@
 namespace panther_battery
 {
 
-BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOptions & options)
+BatteryDriverNode::BatteryDriverNode(
+  const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options), diagnostic_updater_(std::make_shared<diagnostic_updater::Updater>(this))
 {
   RCLCPP_INFO(this->get_logger(), "Constructing node.");
@@ -46,14 +47,14 @@ BatteryNode::BatteryNode(const std::string & node_name, const rclcpp::NodeOption
 
   // Running at 10 Hz
   battery_pub_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(100), std::bind(&BatteryNode::BatteryPubTimerCB, this));
+    std::chrono::milliseconds(100), std::bind(&BatteryDriverNode::BatteryPubTimerCB, this));
 
   diagnostic_updater_->setHardwareID("Battery");
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
-void BatteryNode::Initialize()
+void BatteryDriverNode::Initialize()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
@@ -74,7 +75,7 @@ void BatteryNode::Initialize()
   RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
-void BatteryNode::InitializeWithADCBattery()
+void BatteryDriverNode::InitializeWithADCBattery()
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing with ADC data.");
 
@@ -127,7 +128,7 @@ void BatteryNode::InitializeWithADCBattery()
   RCLCPP_INFO(this->get_logger(), "Initialized battery driver using ADC data.");
 }
 
-void BatteryNode::InitializeWithRoboteqBattery()
+void BatteryDriverNode::InitializeWithRoboteqBattery()
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing with Roboteq data.");
 
@@ -151,7 +152,7 @@ void BatteryNode::InitializeWithRoboteqBattery()
   RCLCPP_INFO(this->get_logger(), "Initialized battery driver using motor controllers data.");
 }
 
-void BatteryNode::BatteryPubTimerCB()
+void BatteryDriverNode::BatteryPubTimerCB()
 {
   if (!battery_publisher_) {
     Initialize();

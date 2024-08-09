@@ -17,7 +17,7 @@ include_directories(include ${panther_utils_INCLUDE_DIRS})
 add_executable(
   battery_node
   src/main.cpp
-  src/battery_node.cpp
+  src/battery_driver_node.cpp
   src/battery/adc_battery.cpp
   src/battery/roboteq_battery.cpp
   src/battery_publisher/battery_publisher.cpp
@@ -104,51 +104,51 @@ if(BUILD_TESTING)
                             ${PACKAGE_DEPENDENCIES})
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_battery_node_adc_dual
-    test/test_battery_node_adc_dual.cpp
+    ${PROJECT_NAME}_test_battery_driver_node_adc_dual
+    test/test_battery_driver_node_adc_dual.cpp
     src/battery/adc_battery.cpp
-    src/battery_node.cpp
+    src/battery_driver_node.cpp
     src/battery_publisher/battery_publisher.cpp
     src/battery_publisher/dual_battery_publisher.cpp
     src/battery_publisher/single_battery_publisher.cpp
     src/battery/roboteq_battery.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_battery_node_adc_dual
+    ${PROJECT_NAME}_test_battery_driver_node_adc_dual
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_battery_node_adc_dual
+  ament_target_dependencies(${PROJECT_NAME}_test_battery_driver_node_adc_dual
                             ${PACKAGE_DEPENDENCIES})
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_battery_node_adc_single
-    test/test_battery_node_adc_single.cpp
+    ${PROJECT_NAME}_test_battery_driver_node_adc_single
+    test/test_battery_driver_node_adc_single.cpp
     src/battery/adc_battery.cpp
-    src/battery_node.cpp
+    src/battery_driver_node.cpp
     src/battery_publisher/battery_publisher.cpp
     src/battery_publisher/dual_battery_publisher.cpp
     src/battery_publisher/single_battery_publisher.cpp
     src/battery/roboteq_battery.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_battery_node_adc_single
+    ${PROJECT_NAME}_test_battery_driver_node_adc_single
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_battery_node_adc_single
+  ament_target_dependencies(${PROJECT_NAME}_test_battery_driver_node_adc_single
                             ${PACKAGE_DEPENDENCIES})
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_battery_node_roboteq
-    test/test_battery_node_roboteq.cpp
+    ${PROJECT_NAME}_test_battery_driver_node_roboteq
+    test/test_battery_driver_node_roboteq.cpp
     src/battery/adc_battery.cpp
-    src/battery_node.cpp
+    src/battery_driver_node.cpp
     src/battery_publisher/battery_publisher.cpp
     src/battery_publisher/dual_battery_publisher.cpp
     src/battery_publisher/single_battery_publisher.cpp
     src/battery/roboteq_battery.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_battery_node_roboteq
+    ${PROJECT_NAME}_test_battery_driver_node_roboteq
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_battery_node_roboteq
+  ament_target_dependencies(${PROJECT_NAME}_test_battery_driver_node_roboteq
                             ${PACKAGE_DEPENDENCIES})
 
 endif()

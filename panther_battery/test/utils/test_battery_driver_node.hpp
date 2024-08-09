@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_UTILS_TEST_BATTERY_NODE_
-#define PANTHER_BATTERY_UTILS_TEST_BATTERY_NODE_
+#ifndef PANTHER_BATTERY_UTILS_TEST_BATTERY_DRIVER_NODE_HPP_
+#define PANTHER_BATTERY_UTILS_TEST_BATTERY_DRIVER_NODE_HPP_
 
 #include <filesystem>
 #include <fstream>
@@ -31,7 +31,7 @@
 #include "panther_msgs/msg/driver_state.hpp"
 #include "panther_msgs/msg/io_state.hpp"
 
-#include "panther_battery/battery_node.hpp"
+#include "panther_battery/battery_driver_node.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using DriverStateMsg = panther_msgs::msg::DriverState;
@@ -55,7 +55,7 @@ protected:
   BatteryStateMsg::SharedPtr battery_state_;
   BatteryStateMsg::SharedPtr battery_1_state_;
   BatteryStateMsg::SharedPtr battery_2_state_;
-  std::shared_ptr<panther_battery::BatteryNode> battery_node_;
+  std::shared_ptr<panther_battery::BatteryDriverNode> battery_driver_node_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_1_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_2_sub_;
@@ -104,21 +104,22 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
 
-  battery_node_ = std::make_shared<panther_battery::BatteryNode>("battery_driver", options);
+  battery_driver_node_ = std::make_shared<panther_battery::BatteryDriverNode>(
+    "battery_driver", options);
 
-  battery_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
+  battery_sub_ = battery_driver_node_->create_subscription<BatteryStateMsg>(
     "battery/battery_status", 10,
     [&](const BatteryStateMsg::SharedPtr msg) { battery_state_ = msg; });
-  battery_1_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
+  battery_1_sub_ = battery_driver_node_->create_subscription<BatteryStateMsg>(
     "_battery/battery_1_status_raw", 10,
     [&](const BatteryStateMsg::SharedPtr msg) { battery_1_state_ = msg; });
-  battery_2_sub_ = battery_node_->create_subscription<BatteryStateMsg>(
+  battery_2_sub_ = battery_driver_node_->create_subscription<BatteryStateMsg>(
     "_battery/battery_2_status_raw", 10,
     [&](const BatteryStateMsg::SharedPtr msg) { battery_2_state_ = msg; });
 
-  io_state_pub_ = battery_node_->create_publisher<IOStateMsg>(
+  io_state_pub_ = battery_driver_node_->create_publisher<IOStateMsg>(
     "hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  driver_state_pub_ = battery_node_->create_publisher<DriverStateMsg>(
+  driver_state_pub_ = battery_driver_node_->create_publisher<DriverStateMsg>(
     "hardware/motor_controllers_state", 10);
 }
 
@@ -145,4 +146,4 @@ void TestBatteryNode::WriteNumberToFile(const T number, const std::string & file
   }
 }
 
-#endif  // PANTHER_BATTERY_UTILS_TEST_BATTERY_NODE_
+#endif  // PANTHER_BATTERY_UTILS_TEST_BATTERY_DRIVER_NODE_HPP_

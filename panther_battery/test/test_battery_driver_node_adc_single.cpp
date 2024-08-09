@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "utils/test_battery_node.hpp"
+#include "utils/test_battery_driver_node.hpp"
 
 #include <chrono>
 
@@ -36,7 +36,7 @@ TEST_F(TestBatteryNodeADCSingle, BatteryValues)
   WriteNumberToFile<int>(100, std::filesystem::path(device0_path_ / "in_voltage2_raw"));
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // This is done to check if channels of ADC readers were assigned correctly, not to verify
   // calculations. If any test performing calculations fails this test will most likely fail too.
@@ -57,7 +57,7 @@ TEST_F(TestBatteryNodeADCSingle, BatteryValues)
 TEST_F(TestBatteryNodeADCSingle, BatteryTimeout)
 {
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state msg should have some values
   EXPECT_FALSE(std::isnan(battery_state_->voltage));
@@ -71,7 +71,7 @@ TEST_F(TestBatteryNodeADCSingle, BatteryTimeout)
   std::filesystem::remove(std::filesystem::path(device1_path_ / "in_voltage2_raw"));
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
@@ -87,14 +87,14 @@ TEST_F(TestBatteryNodeADCSingle, BatteryCharging)
 {
   // Wait for node to initialize
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Publish charger connected state
   IOStateMsg io_state;
   io_state.charger_connected = true;
   io_state_pub_->publish(io_state);
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   EXPECT_NE(battery_state_->power_supply_status, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING);
 }
@@ -106,18 +106,18 @@ TEST_F(TestBatteryNodeADCSingle, RoboteqInitOnADCFail)
 
   // Wait for node to initialize
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state status should be UNKNOWN
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
 
   // Publish driver state that should update the battery message
   DriverStateMsg driver_state;
-  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.header.stamp = battery_driver_node_->get_clock()->now();
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state status should be different than UNKNOWN
   EXPECT_NE(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);

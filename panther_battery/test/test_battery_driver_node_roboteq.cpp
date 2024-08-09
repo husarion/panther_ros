@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "utils/test_battery_node.hpp"
+#include "utils/test_battery_driver_node.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -34,7 +34,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
 {
   // Wait for node to initialize
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
@@ -45,7 +45,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 
   DriverStateMsg driver_state;
-  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.header.stamp = battery_driver_node_->get_clock()->now();
   driver_state.front.voltage = 35.0f;
   driver_state.rear.voltage = 35.0f;
   driver_state.front.current = 0.1f;
@@ -53,7 +53,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // This is done to check if values were read correctly, not to verify calculations.
   // If any test performing calculations fails this test will most likely fail too.
@@ -71,7 +71,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
 {
   // Wait for node to initialize
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(5000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));
@@ -83,7 +83,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
 
   // Publish some values
   DriverStateMsg driver_state;
-  driver_state.header.stamp = battery_node_->get_clock()->now();
+  driver_state.header.stamp = battery_driver_node_->get_clock()->now();
   driver_state.front.voltage = 35.0f;
   driver_state.rear.voltage = 35.0f;
   driver_state.front.current = 0.1f;
@@ -91,7 +91,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state msg should have some values
   EXPECT_FALSE(std::isnan(battery_state_->voltage));
@@ -102,7 +102,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   // Wait for timeout
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
-    battery_node_, battery_state_, std::chrono::milliseconds(1000)));
+    battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state msg values should be NaN
   EXPECT_TRUE(std::isnan(battery_state_->voltage));

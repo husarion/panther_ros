@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_BATTERY_NODE_HPP_
-#define PANTHER_BATTERY_BATTERY_NODE_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_DRIVER_NODE_HPP_
+#define PANTHER_BATTERY_BATTERY_DRIVER_NODE_HPP_
 
 #include <memory>
 #include <string>
@@ -32,10 +32,10 @@ namespace panther_battery
 
 using DriverStateMsg = panther_msgs::msg::DriverState;
 
-class BatteryNode : public rclcpp::Node
+class BatteryDriverNode : public rclcpp::Node
 {
 public:
-  BatteryNode(
+  BatteryDriverNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
@@ -62,4 +62,4 @@ private:
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_BATTERY_NODE_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_DRIVER_NODE_HPP_
