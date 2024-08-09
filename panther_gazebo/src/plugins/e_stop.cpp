@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gazebo/gui/e_stop.hpp"
-
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "panther_gazebo/plugins/e_stop.hpp"
+
 namespace panther_gazebo
-{
-namespace gui
 {
 
 Estop::Estop() : ignition::gui::Plugin() { rclcpp::init(0, nullptr); }
@@ -33,14 +31,14 @@ void Estop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
   e_stop_reset_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_reset_service_);
   e_stop_trigger_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_trigger_service_);
 
-  if (this->title.empty()) {
-    this->title = "E-stop";
+  if (title.empty()) {
+    title = "E-stop";
   }
 
   if (plugin_elem) {
     auto namespace_elem = plugin_elem->FirstChildElement("namespace");
     if (namespace_elem != nullptr && namespace_elem->GetText() != nullptr) {
-      this->setNamespace(namespace_elem->GetText());
+      SetNamespace(namespace_elem->GetText());
     }
   }
 }
@@ -49,11 +47,11 @@ void Estop::buttonPressed(bool pressed)
 {
   auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
 
-  auto client = pressed ? this->e_stop_trigger_client_ : this->e_stop_reset_client_;
+  auto client = pressed ? e_stop_trigger_client_ : e_stop_reset_client_;
 
   if (!client->service_is_ready()) {
     ignwarn << "Unavailable service: "
-            << (pressed ? this->e_stop_reset_service_ : this->e_stop_trigger_service_) << std::endl;
+            << (pressed ? e_stop_reset_service_ : e_stop_trigger_service_) << std::endl;
     return;
   }
 
@@ -72,24 +70,21 @@ void Estop::buttonPressed(bool pressed)
   ignmsg << "Estop: " << result->message << std::endl;
 }
 
-QString Estop::getNamespace() const { return QString::fromStdString(this->namespace_); }
+QString Estop::GetNamespace() const { return QString::fromStdString(namespace_); }
 
-void Estop::setNamespace(const QString & ns)
+void Estop::SetNamespace(const QString & ns)
 {
-  this->namespace_ = ns.toStdString();
-  this->e_stop_reset_service_ = this->namespace_ + kDefaultEStopResetService;
-  this->e_stop_trigger_service_ = this->namespace_ + kDefaultEStopTriggerService;
+  namespace_ = ns.toStdString();
+  e_stop_reset_service_ = namespace_ + kDefaultEStopResetService;
+  e_stop_trigger_service_ = namespace_ + kDefaultEStopTriggerService;
 
-  this->e_stop_reset_client_ =
-    node_->create_client<std_srvs::srv::Trigger>(this->e_stop_reset_service_);
-  this->e_stop_trigger_client_ =
-    node_->create_client<std_srvs::srv::Trigger>(this->e_stop_trigger_service_);
+  e_stop_reset_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_reset_service_);
+  e_stop_trigger_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_trigger_service_);
 
-  this->changedNamespace();
-  ignmsg << "Changed namespace to: " << this->namespace_ << std::endl;
+  ChangedNamespace();
+  ignmsg << "Changed namespace to: " << namespace_ << std::endl;
 }
 
-}  // namespace gui
 }  // namespace panther_gazebo
 
-IGNITION_ADD_PLUGIN(panther_gazebo::gui::Estop, ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(panther_gazebo::Estop, ignition::gui::Plugin)

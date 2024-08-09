@@ -25,25 +25,24 @@
 
 namespace panther_gazebo
 {
-namespace gui
-{
+
 class Estop : public ignition::gui::Plugin
 {
   Q_OBJECT
 
-  Q_PROPERTY(QString ns READ getNamespace WRITE setNamespace NOTIFY changedNamespace)
+  Q_PROPERTY(QString ns READ GetNamespace WRITE SetNamespace NOTIFY ChangedNamespace)
 
 public:
   Estop();
   virtual ~Estop();
   void LoadConfig(const tinyxml2::XMLElement * plugin_elem) override;
-  Q_INVOKABLE QString getNamespace() const;
+  Q_INVOKABLE QString GetNamespace() const;
 
 public slots:
-  void setNamespace(const QString & ns);
+  void SetNamespace(const QString & ns);
 
 signals:
-  void changedNamespace();
+  void ChangedNamespace();
 
 protected slots:
   void buttonPressed(bool pressed);
@@ -60,7 +59,6 @@ private:
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_reset_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_trigger_client_;
 };
-}  // namespace gui
 }  // namespace panther_gazebo
 
 #endif  // PANTHER_GAZEBO_GUI_ESTOP_HPP_

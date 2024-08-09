@@ -51,7 +51,7 @@ Rectangle {
       placeholderText: qsTr("Robot namespace")
       Layout.alignment: Qt.AlignLeft
       onEditingFinished: {
-        Estop.setNamespace(text)
+        Estop.SetNamespace(text)
       }
     }
   }
