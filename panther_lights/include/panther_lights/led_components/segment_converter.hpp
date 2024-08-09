@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_
-#define PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_
+#ifndef PANTHER_LIGHTS_LED_COMPONENTS_SEGMENT_CONVERTER_HPP_
+#define PANTHER_LIGHTS_LED_COMPONENTS_SEGMENT_CONVERTER_HPP_
 
 #include <memory>
 #include <unordered_map>
@@ -38,4 +38,4 @@ public:
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_SEGMENT_CONVERTER_HPP_
+#endif  // PANTHER_LIGHTS_LED_COMPONENTS_SEGMENT_CONVERTER_HPP_
