@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO_GUI_ESTOP_HPP_
-#define PANTHER_GAZEBO_GUI_ESTOP_HPP_
+#ifndef PANTHER_GAZEBO_PLUGINS_ESTOP_HPP_
+#define PANTHER_GAZEBO_PLUGINS_ESTOP_HPP_
 
 #include <ignition/gui/qt.h>
 #include <ignition/gui/Plugin.hh>
@@ -26,15 +26,15 @@
 namespace panther_gazebo
 {
 
-class Estop : public ignition::gui::Plugin
+class EStop : public ignition::gui::Plugin
 {
   Q_OBJECT
 
   Q_PROPERTY(QString ns READ GetNamespace WRITE SetNamespace NOTIFY ChangedNamespace)
 
 public:
-  Estop();
-  virtual ~Estop();
+  EStop();
+  virtual ~EStop();
   void LoadConfig(const tinyxml2::XMLElement * plugin_elem) override;
   Q_INVOKABLE QString GetNamespace() const;
 
@@ -61,4 +61,4 @@ private:
 };
 }  // namespace panther_gazebo
 
-#endif  // PANTHER_GAZEBO_GUI_ESTOP_HPP_
+#endif  // PANTHER_GAZEBO_PLUGINS_ESTOP_HPP_

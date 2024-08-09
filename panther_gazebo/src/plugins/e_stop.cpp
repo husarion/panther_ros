@@ -21,11 +21,11 @@
 namespace panther_gazebo
 {
 
-Estop::Estop() : ignition::gui::Plugin() { rclcpp::init(0, nullptr); }
+EStop::EStop() : ignition::gui::Plugin() { rclcpp::init(0, nullptr); }
 
-Estop::~Estop() { rclcpp::shutdown(); }
+EStop::~EStop() { rclcpp::shutdown(); }
 
-void Estop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
+void EStop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
 {
   node_ = rclcpp::Node::make_shared("gz_estop_gui");
   e_stop_reset_client_ = node_->create_client<std_srvs::srv::Trigger>(e_stop_reset_service_);
@@ -43,7 +43,7 @@ void Estop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
   }
 }
 
-void Estop::buttonPressed(bool pressed)
+void EStop::buttonPressed(bool pressed)
 {
   auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
 
@@ -67,12 +67,12 @@ void Estop::buttonPressed(bool pressed)
   if (!result->success) {
     ignwarn << "Service call did not succeed: " << result->message << std::endl;
   }
-  ignmsg << "Estop: " << result->message << std::endl;
+  ignmsg << "EStop: " << result->message << std::endl;
 }
 
-QString Estop::GetNamespace() const { return QString::fromStdString(namespace_); }
+QString EStop::GetNamespace() const { return QString::fromStdString(namespace_); }
 
-void Estop::SetNamespace(const QString & ns)
+void EStop::SetNamespace(const QString & ns)
 {
   namespace_ = ns.toStdString();
   e_stop_reset_service_ = namespace_ + kDefaultEStopResetService;
@@ -87,4 +87,4 @@ void Estop::SetNamespace(const QString & ns)
 
 }  // namespace panther_gazebo
 
-IGNITION_ADD_PLUGIN(panther_gazebo::Estop, ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(panther_gazebo::EStop, ignition::gui::Plugin)

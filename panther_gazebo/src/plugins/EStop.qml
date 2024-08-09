@@ -47,11 +47,11 @@ Rectangle {
       id: namespaceField
       width: 175
       Layout.fillWidth: true
-      text: Estop.ns
+      text: EStop.ns
       placeholderText: qsTr("Robot namespace")
       Layout.alignment: Qt.AlignLeft
       onEditingFinished: {
-        Estop.SetNamespace(text)
+        EStop.SetNamespace(text)
       }
     }
   }
@@ -82,7 +82,7 @@ Rectangle {
       }
     }
     onPressed: {
-      Estop.buttonPressed(eStopButton.checked);
+      EStop.buttonPressed(eStopButton.checked);
     }
   }
 }

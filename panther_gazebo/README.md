@@ -18,9 +18,9 @@ The package contains a launch file and source files used to run the robot simula
 
 ## ROS Nodes
 
-### Estop
+### EStop
 
-`Estop` is a Gazebo GUI plugin responsible for easy and convenient changing of the robot's E-stop state.
+`EStop` is a Gazebo GUI plugin responsible for easy and convenient changing of the robot's E-stop state.
 
 #### Service Clients
 
