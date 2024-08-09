@@ -17,7 +17,7 @@ This package contains:
 - [`shutdown.xml`](./behavior_trees/shutdown.xml): BehaviorTree for initiating shutdown procedures.
 - [`lights_manager.yaml`](./config/lights_manager.yaml): Contains parameters for the `lights_manager` node.
 - [`safety_manager.yaml`](./config/safety_manager.yaml): Contains parameters for the `safety_manager` node.
-- [`shutdown_hosts.yaml`](./config/shutdown_hosts.yaml): List with all hosts to request shutdown.
+- [`shutdown_hosts_config.yaml`](./config/shutdown_hosts_config.yaml): List with all hosts to request shutdown.
 
 ## ROS Nodes
 
