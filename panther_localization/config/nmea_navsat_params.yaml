@@ -1,0 +1,7 @@
+---
+/**/<device_namespace>:
+  ros__parameters:
+    ip: 10.15.20.2
+    port: 5000
+    buffer_size: 4096
+    timeout_sec: 2
