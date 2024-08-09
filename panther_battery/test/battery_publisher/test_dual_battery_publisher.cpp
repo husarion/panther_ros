@@ -24,9 +24,9 @@
 
 #include "panther_msgs/msg/charging_status.hpp"
 
-#include "panther_battery/adc_battery.hpp"
-#include "panther_battery/battery.hpp"
-#include "panther_battery/dual_battery_publisher.hpp"
+#include "panther_battery/battery/adc_battery.hpp"
+#include "panther_battery/battery/battery.hpp"
+#include "panther_battery/battery_publisher/dual_battery_publisher.hpp"
 #include "panther_utils/test/ros_test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_ROBOTEQ_BATTERY_HPP_
-#define PANTHER_BATTERY_ROBOTEQ_BATTERY_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_ROBOTEQ_BATTERY_HPP_
+#define PANTHER_BATTERY_BATTERY_ROBOTEQ_BATTERY_HPP_
 
 #include <cstdint>
 #include <functional>
@@ -23,7 +23,7 @@
 
 #include "panther_msgs/msg/driver_state.hpp"
 
-#include "panther_battery/battery.hpp"
+#include "panther_battery/battery/battery.hpp"
 #include "panther_utils/moving_average.hpp"
 
 namespace panther_battery
@@ -76,4 +76,4 @@ private:
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_ROBOTEQ_BATTERY_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_ROBOTEQ_BATTERY_HPP_

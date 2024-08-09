@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_BATTERY_HPP_
-#define PANTHER_BATTERY_BATTERY_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_BATTERY_HPP_
+#define PANTHER_BATTERY_BATTERY_BATTERY_HPP_
 
 #include <algorithm>
 #include <limits>
@@ -120,4 +120,4 @@ protected:
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_BATTERY_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_BATTERY_HPP_

@@ -12,29 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_DUAL_BATTERY_PUBLISHER_HPP_
-#define PANTHER_BATTERY_DUAL_BATTERY_PUBLISHER_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_PUBLISHER_SINGLE_BATTERY_PUBLISHER_HPP_
+#define PANTHER_BATTERY_BATTERY_PUBLISHER_SINGLE_BATTERY_PUBLISHER_HPP_
 
-#include <cstdint>
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_battery/battery.hpp"
-#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/battery/battery.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
 
 namespace panther_battery
 {
 
-class DualBatteryPublisher : public BatteryPublisher
+class SingleBatteryPublisher : public BatteryPublisher
 {
 public:
-  DualBatteryPublisher(
+  SingleBatteryPublisher(
     const rclcpp::Node::SharedPtr & node,
     const std::shared_ptr<diagnostic_updater::Updater> & diagnostic_updater,
-    const std::shared_ptr<Battery> & battery_1, const std::shared_ptr<Battery> & battery_2);
+    const std::shared_ptr<Battery> & battery);
 
-  ~DualBatteryPublisher() {}
+  ~SingleBatteryPublisher() {}
 
 protected:
   void Update() override;
@@ -45,27 +44,13 @@ protected:
   void DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status) override;
   void DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status) override;
 
-  BatteryStateMsg MergeBatteryMsgs(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2);
-  std::uint8_t MergeBatteryPowerSupplyStatus(
-    const BatteryStateMsg & battery_msg_1, const BatteryStateMsg & battery_msg_2) const;
-  void MergeBatteryPowerSupplyHealth(
-    BatteryStateMsg & battery_msg, const BatteryStateMsg & battery_msg_1,
-    const BatteryStateMsg & battery_msg_2);
-  ChargingStatusMsg MergeChargingStatusMsgs(
-    const ChargingStatusMsg & charging_status_msg_1,
-    const ChargingStatusMsg & charging_status_msg_2);
-
 private:
-  std::shared_ptr<Battery> battery_1_;
-  std::shared_ptr<Battery> battery_2_;
-
+  std::shared_ptr<Battery> battery_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_pub_;
   rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_1_pub_;
-  rclcpp::Publisher<BatteryStateMsg>::SharedPtr battery_2_pub_;
   rclcpp::Publisher<ChargingStatusMsg>::SharedPtr charging_status_pub_;
 };
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_DUAL_BATTERY_PUBLISHER_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_PUBLISHER_SINGLE_BATTERY_PUBLISHER_HPP_

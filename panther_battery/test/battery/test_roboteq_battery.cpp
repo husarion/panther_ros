@@ -26,7 +26,7 @@
 
 #include "panther_msgs/msg/driver_state.hpp"
 
-#include "panther_battery/roboteq_battery.hpp"
+#include "panther_battery/battery/roboteq_battery.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;

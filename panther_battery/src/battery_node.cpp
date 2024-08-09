@@ -24,13 +24,13 @@
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_battery/adc_battery.hpp"
 #include "panther_battery/adc_data_reader.hpp"
-#include "panther_battery/battery.hpp"
-#include "panther_battery/battery_publisher.hpp"
-#include "panther_battery/dual_battery_publisher.hpp"
-#include "panther_battery/roboteq_battery.hpp"
-#include "panther_battery/single_battery_publisher.hpp"
+#include "panther_battery/battery/adc_battery.hpp"
+#include "panther_battery/battery/battery.hpp"
+#include "panther_battery/battery/roboteq_battery.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
+#include "panther_battery/battery_publisher/dual_battery_publisher.hpp"
+#include "panther_battery/battery_publisher/single_battery_publisher.hpp"
 
 namespace panther_battery
 {

@@ -24,8 +24,8 @@
 #include "panther_msgs/msg/driver_state.hpp"
 
 #include "panther_battery/adc_data_reader.hpp"
-#include "panther_battery/battery.hpp"
-#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/battery/battery.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
 
 namespace panther_battery
 {

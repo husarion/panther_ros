@@ -24,7 +24,7 @@
 
 #include "panther_msgs/msg/io_state.hpp"
 
-#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using IOStateMsg = panther_msgs::msg::IOState;

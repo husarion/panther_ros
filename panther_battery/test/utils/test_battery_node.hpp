@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_TEST_BATTERY_NODE_
-#define PANTHER_BATTERY_TEST_BATTERY_NODE_
+#ifndef PANTHER_BATTERY_UTILS_TEST_BATTERY_NODE_
+#define PANTHER_BATTERY_UTILS_TEST_BATTERY_NODE_
 
 #include <filesystem>
 #include <fstream>
@@ -145,4 +145,4 @@ void TestBatteryNode::WriteNumberToFile(const T number, const std::string & file
   }
 }
 
-#endif  // PANTHER_BATTERY_TEST_BATTERY_NODE_
+#endif  // PANTHER_BATTERY_UTILS_TEST_BATTERY_NODE_

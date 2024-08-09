@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
 
 #include <cstdint>
 #include <memory>

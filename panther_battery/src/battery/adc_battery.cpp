@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_battery/adc_battery.hpp"
+#include "panther_battery/battery/adc_battery.hpp"
 
 #include <chrono>
 #include <cmath>

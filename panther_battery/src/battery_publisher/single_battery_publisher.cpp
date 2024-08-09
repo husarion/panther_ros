@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_battery/single_battery_publisher.hpp"
+#include "panther_battery/battery_publisher/single_battery_publisher.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -23,8 +23,8 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
-#include "panther_battery/battery.hpp"
-#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/battery/battery.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
 
 namespace panther_battery
 {

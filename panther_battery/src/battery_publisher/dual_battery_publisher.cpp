@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_battery/dual_battery_publisher.hpp"
+#include "panther_battery/battery_publisher/dual_battery_publisher.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -24,8 +24,8 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
-#include "panther_battery/battery.hpp"
-#include "panther_battery/battery_publisher.hpp"
+#include "panther_battery/battery/battery.hpp"
+#include "panther_battery/battery_publisher/battery_publisher.hpp"
 #include "panther_utils/ros_utils.hpp"
 
 namespace panther_battery

@@ -24,7 +24,7 @@
 
 #include "panther_msgs/msg/charging_status.hpp"
 
-#include "panther_battery/battery.hpp"
+#include "panther_battery/battery/battery.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;

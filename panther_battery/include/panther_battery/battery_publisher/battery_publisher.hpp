@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_BATTERY_BATTERY_PUBLISHER_HPP_
-#define PANTHER_BATTERY_BATTERY_PUBLISHER_HPP_
+#ifndef PANTHER_BATTERY_BATTERY_PUBLISHER_BATTERY_PUBLISHER_HPP_
+#define PANTHER_BATTERY_BATTERY_PUBLISHER_BATTERY_PUBLISHER_HPP_
 
 #include <memory>
 
@@ -73,4 +73,4 @@ private:
 
 }  // namespace panther_battery
 
-#endif  // PANTHER_BATTERY_BATTERY_PUBLISHER_HPP_
+#endif  // PANTHER_BATTERY_BATTERY_PUBLISHER_BATTERY_PUBLISHER_HPP_
