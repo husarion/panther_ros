@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/segment_converter.hpp"
+#include "panther_lights/led_components/segment_converter.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -20,8 +20,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "panther_lights/led_panel.hpp"
-#include "panther_lights/led_segment.hpp"
+#include "panther_lights/led_components/led_panel.hpp"
+#include "panther_lights/led_components/led_segment.hpp"
 
 namespace panther_lights
 {

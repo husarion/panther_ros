@@ -57,7 +57,7 @@ public:
     rclcpp::init(0, nullptr);
     bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
   }
-  
+
   ~PluginTestUtils()
   {
     bt_node_.reset();

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/led_panel.hpp"
+#include "panther_lights/led_components/led_panel.hpp"
 
 #include <algorithm>
 #include <cstdint>

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_lights/led_animations_queue.hpp"
+#include "panther_lights/led_components/led_animations_queue.hpp"
 
 #include <functional>
 #include <memory>

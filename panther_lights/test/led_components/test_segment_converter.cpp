@@ -22,9 +22,9 @@
 #include "gtest/gtest.h"
 #include "yaml-cpp/yaml.h"
 
-#include "panther_lights/led_panel.hpp"
-#include "panther_lights/led_segment.hpp"
-#include "panther_lights/segment_converter.hpp"
+#include "panther_lights/led_components/led_panel.hpp"
+#include "panther_lights/led_components/led_segment.hpp"
+#include "panther_lights/led_components/segment_converter.hpp"
 
 class TestSegmentConverter : public testing::Test
 {

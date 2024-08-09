@@ -22,8 +22,8 @@
 
 #include "rclcpp/time.hpp"
 
-#include "panther_lights/led_animations_queue.hpp"
-#include "panther_lights/led_segment.hpp"
+#include "panther_lights/led_components/led_animations_queue.hpp"
+#include "panther_lights/led_components/led_segment.hpp"
 
 class TestLEDAnimationsQueue : public testing::Test
 {
