@@ -23,7 +23,7 @@ Package that implements SystemInterface from ros2_control for Panther.
 [//]: # (ROS_API_NODE_DESCRIPTION_START)
 
 This package doesn't contain any standalone nodes - `PantherSystem` is a plugin loaded by the resource manager.
-To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](/panther_description)) and add a controller (example configuration provided in [panther_controller](/panther_controller) package).
+To use this hardware interface you have to add it to your URDF (you can check how to do it in [panther_description](../panther_description)) and add a controller (example configuration provided in [panther_controller](../panther_controller) package).
 That said apart from the usual interface provided by the ros2_control, this plugin also provides additional published topics and services specific for Panther.
 
 [//]: # (ROS_API_NODE_DESCRIPTION_END)
