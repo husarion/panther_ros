@@ -35,10 +35,10 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 // These class must inherit `ign_ros2_control::IgnitionSystemInterface` which implements a
 // simulated `ros2_control` `hardware_interface::SystemInterface`.
 
-/// \class PantherSystem
+/// \class GzPantherSystem
 /// \brief Main class for the Panther System which inherits from IgnitionSystemInterface. Based on:
 /// https://github.com/ros-controls/gz_ros2_control/blob/humble/ign_ros2_control/src/ign_system.cpp
-class PantherSystem : public ign_ros2_control::IgnitionSystem
+class GzPantherSystem : public ign_ros2_control::IgnitionSystem
 {
 public:
   CallbackReturn on_init(const hardware_interface::HardwareInfo & system_info) override;

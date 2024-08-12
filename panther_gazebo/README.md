@@ -27,7 +27,7 @@ The package contains a launch file and source files used to run the robot simula
 - `hardware/e_stop_reset` [*std_srvs/Trigger*]: Resets E-stop.
 - `hardware/e_stop_trigger` [*std_srvs/Trigger*]: Triggers E-stop.
 
-### PantherSystem
+### GzPantherSystem
 
 Plugin based on `ign_system` is responsible for handling sensor interfaces (only IMU for now) and sending requests for joints compatible with `ros2_control`. Plugin also adds E-Stop support.
 

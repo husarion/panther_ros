@@ -147,7 +147,7 @@ public:
 
 namespace panther_gazebo
 {
-void PantherSystem::SetupEStop()
+void GzPantherSystem::SetupEStop()
 {
   e_stop_publisher = nh_->create_publisher<std_msgs::msg::Bool>(
     "~/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
@@ -155,22 +155,22 @@ void PantherSystem::SetupEStop()
   e_stop_reset_service = nh_->create_service<std_srvs::srv::Trigger>(
     "~/e_stop_reset",
     std::bind(
-      &PantherSystem::EStopResetCallback, this, std::placeholders::_1, std::placeholders::_2));
+      &GzPantherSystem::EStopResetCallback, this, std::placeholders::_1, std::placeholders::_2));
 
   e_stop_trigger_service = nh_->create_service<std_srvs::srv::Trigger>(
     "~/e_stop_trigger",
     std::bind(
-      &PantherSystem::EStopTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
+      &GzPantherSystem::EStopTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void PantherSystem::PublishEStopStatus()
+void GzPantherSystem::PublishEStopStatus()
 {
   std_msgs::msg::Bool e_stop_msg;
   e_stop_msg.data = e_stop_active;
   e_stop_publisher->publish(e_stop_msg);
 }
 
-void PantherSystem::EStopResetCallback(
+void GzPantherSystem::EStopResetCallback(
   const std::shared_ptr<std_srvs::srv::Trigger::Request> /*request*/,
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
@@ -180,7 +180,7 @@ void PantherSystem::EStopResetCallback(
   PublishEStopStatus();
 }
 
-void PantherSystem::EStopTriggerCallback(
+void GzPantherSystem::EStopTriggerCallback(
   const std::shared_ptr<std_srvs::srv::Trigger::Request> /*request*/,
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
@@ -190,7 +190,7 @@ void PantherSystem::EStopTriggerCallback(
   PublishEStopStatus();
 }
 
-CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & system_info)
+CallbackReturn GzPantherSystem::on_init(const hardware_interface::HardwareInfo & system_info)
 {
   if (hardware_interface::SystemInterface::on_init(system_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -201,24 +201,24 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & s
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn GzPantherSystem::on_configure(const rclcpp_lifecycle::State & previous_state)
 {
   SetupEStop();
   return hardware_interface::SystemInterface::on_configure(previous_state);
 }
 
-CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn GzPantherSystem::on_activate(const rclcpp_lifecycle::State & previous_state)
 {
   PublishEStopStatus();
   return hardware_interface::SystemInterface::on_activate(previous_state);
 }
 
-CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn GzPantherSystem::on_deactivate(const rclcpp_lifecycle::State & previous_state)
 {
   return hardware_interface::SystemInterface::on_deactivate(previous_state);
 }
 
-hardware_interface::return_type PantherSystem::write(
+hardware_interface::return_type GzPantherSystem::write(
   const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   if (e_stop_active) {
@@ -230,4 +230,4 @@ hardware_interface::return_type PantherSystem::write(
 }  // namespace panther_gazebo
 
 #include "pluginlib/class_list_macros.hpp"  // NOLINT
-PLUGINLIB_EXPORT_CLASS(panther_gazebo::PantherSystem, ign_ros2_control::IgnitionSystemInterface)
+PLUGINLIB_EXPORT_CLASS(panther_gazebo::GzPantherSystem, ign_ros2_control::IgnitionSystemInterface)
