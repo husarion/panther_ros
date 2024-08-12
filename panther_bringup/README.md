@@ -12,8 +12,8 @@ The package contains the default configuration and launch files necessary to sta
 
 ## Default Nodes Launched
 
-- `battery_driver` [*[panther_battery/battery_node](https://github.com/husarion/panther_ros/panther_battery/src/main.cpp)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](https://github.com/husarion/panther_ros/panther_battery/README.md).
-- `ekf_filter` [*[robot_localization/ekf_node](https://github.com/cra-ros-pkg/robot_localization/blob/humble-devel/src/ekf_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](https://github.com/husarion/panther_ros/panther_gazebo/config/ekf_config.yaml).
+- `battery_driver` [*[panther_battery/battery_node](../panther_battery/src/main.cpp)*]: node responsible for monitoring and publishing the internal Battery state of the Husarion Panther robot. For more information, refer to [panther_battery](../panther_battery/README.md).
+- `ekf_filter` [*[robot_localization/ekf_node](https://github.com/cra-ros-pkg/robot_localization/blob/humble-devel/src/ekf_node.cpp)*]: Extended Kalman Filter node for more accurate odometry. For more information, refer to [robot_localization](https://github.com/cra-ros-pkg/robot_localization/tree/noetic-devel). The default configuration is stored in [ekf_config.yaml](../panther_gazebo/config/ekf_config.yaml).
 - `imu_container` [*[phidgets_spatial/phidgets::SpatialRosI](https://github.com/ros-drivers/phidgets_drivers/blob/humble/phidgets_spatial/src/spatial_ros_i.cpp)*, *[imu_filter_madgwick/ImuFilterMadgwickRos](https://github.com/CCNYRoboticsLab/imu_tools/blob/humble/imu_filter_madgwick/src/imu_filter_node.cpp)*]: container responsible for running Phidget Spatial IMU ROS driver, filtering and fusing the IMU data. It composes the `phidgets_spatial_node` and `imu_filter_node`.
 
 ## Bringup Launch Arguments

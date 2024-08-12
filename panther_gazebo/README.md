@@ -11,7 +11,7 @@ The package contains a launch file and source files used to run the robot simula
 
 ## Usage
 
-The recommended method for launching the simulation is by utilizing the [simulation.launch.py](https://github.com/husarion/panther_ros/panther_gazebo/launch/simulation.launch.py) file. Below, you will find launch arguments that enable simulation configuration. You can also launch more robots using `spawn.launch.py` ​​after the system has been started.
+The recommended method for launching the simulation is by utilizing the [simulation.launch.py](../panther_gazebo/launch/simulation.launch.py) file. Below, you will find launch arguments that enable simulation configuration. You can also launch more robots using `spawn.launch.py` ​​after the system has been started.
 
 ### Launch Arguments
 
@@ -35,7 +35,7 @@ The recommended method for launching the simulation is by utilizing the [simulat
 
 ### Changing Wheel Type
 
-It is possible to change Panther wheels model in simulation. All you need to do is to point to new wheel and controller configuration files using `wheel_config_path` and `controller_config_path` parameters. These files should be based on the default ones, i.e., [WH01_controller.yaml](https://github.com/husarion/panther_ros/panther_controller/config/WH01_controller.yaml) and [WH01.yaml](https://github.com/husarion/panther_ros/panther_description/config/WH01.yaml).
+It is possible to change Panther wheels model in simulation. All you need to do is to point to new wheel and controller configuration files using `wheel_config_path` and `controller_config_path` parameters. These files should be based on the default ones, i.e., [WH01_controller.yaml](../panther_controller/config/WH01_controller.yaml) and [WH01.yaml](../panther_description/config/WH01.yaml).
 
 ### Linear Battery Plugin
 
@@ -74,7 +74,7 @@ The NavSat sensors requires the spherical coordinates of the world origin to be 
 
 To obtain GPS data in Ignition, follow these steps:
 
-- Include the [ANT02](https://github.com/husarion/ros_components_description/blob/ros2/urdf/external_antenna.urdf.xacro) by adding the following lines to your [components.yaml](https://github.com/husarion/panther_ros/blob/ros2/panther_description/config/components.yaml) file inside the `components` list:
+- Include the [ANT02](https://github.com/husarion/ros_components_description/blob/ros2/urdf/external_antenna.urdf.xacro) by adding the following lines to your [components.yaml](../panther_description/config/components.yaml) file inside the `components` list:
 
 ```yaml
   - type: ANT02

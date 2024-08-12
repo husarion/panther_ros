@@ -160,15 +160,15 @@ Default animations can be found in the table below:
 
 |  ID   | NAME              | PRIORITY | ANIMATION                                                                                                           |
 | :---: | ----------------- | :------: | --------------------------------------------------------------------------------------------------------------------- |
-|   0   | E_STOP            |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/E_STOP.webp" width="400">            |
-|   1   | READY             |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/READY.webp" width="400">             |
-|   2   | ERROR             |    1     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/ERROR.webp" width="400">             |
-|   3   | MANUAL_ACTION     |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/MANUAL_ACTION.webp" width="400">     |
-|   4   | AUTONOMOUS_ACTION |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/AUTONOMOUS_ACTION.webp" width="400"> |
-|   5   | GOAL_ACHIEVED     |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/GOAL_ACHIEVED.webp" width="400">     |
-|   6   | LOW_BATTERY       |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/LOW_BATTERY.webp" width="400">       |
-|   7   | CRITICAL_BATTERY  |    2     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CRITICAL_BATTERY.webp" width="400">  |
-|   9   | CHARGING_BATTERY  |    3     | <img src="https://github.com/husarion/panther_ros/blob/ros2/panther_lights/.docs/CHARGING_BATTERY.webp" width="400">  |
+|   0   | E_STOP            |    3     | <img src="../panther_lights/.docs/E_STOP.webp" width="400">            |
+|   1   | READY             |    3     | <img src="../panther_lights/.docs/READY.webp" width="400">             |
+|   2   | ERROR             |    1     | <img src="../panther_lights/.docs/ERROR.webp" width="400">             |
+|   3   | MANUAL_ACTION     |    3     | <img src="../panther_lights/.docs/MANUAL_ACTION.webp" width="400">     |
+|   4   | AUTONOMOUS_ACTION |    3     | <img src="../panther_lights/.docs/AUTONOMOUS_ACTION.webp" width="400"> |
+|   5   | GOAL_ACHIEVED     |    2     | <img src="../panther_lights/.docs/GOAL_ACHIEVED.webp" width="400">     |
+|   6   | LOW_BATTERY       |    2     | <img src="../panther_lights/.docs/LOW_BATTERY.webp" width="400">       |
+|   7   | CRITICAL_BATTERY  |    2     | <img src="../panther_lights/.docs/CRITICAL_BATTERY.webp" width="400">  |
+|   9   | CHARGING_BATTERY  |    3     | <img src="../panther_lights/.docs/CHARGING_BATTERY.webp" width="400">  |
 
 ### Animation Types
 
