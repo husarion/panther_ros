@@ -20,7 +20,7 @@
         <geometry>
           <!-- TODO cheange when models ready -->
           <!-- <mesh filename="package://lynx_description/meshes/body.dae" /> -->
-          <box size="0.59 0.34 0.23" />
+          <box size="0.646 0.34 0.268" />
         </geometry>
       </visual>
 
@@ -29,13 +29,13 @@
         <geometry>
           <!-- TODO cheange when models ready -->
           <!-- <mesh filename="package://lynx_description/meshes/body_collision.stl" /> -->
-          <box size="0.59 0.34 0.23" />
+          <box size="0.646 0.34 0.268" />
         </geometry>
       </collision>
 
       <inertial>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-        <mass value="32.0" />
+        <mass value="30.0" />
         <!-- TODO calculate real interia -->
         <inertia ixx="2.630036" ixy="-0.023480" ixz="0.052320"
                                 iyy="2.463509"  iyz="0.009337"

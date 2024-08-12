@@ -1,9 +1,9 @@
-wheel_radius: 0.127
+wheel_radius: 0.1445
 wheel_width: 0.09
-wheel_separation: 0.44
+wheel_separation: 0.45
 # TODO change inertia and mass when ready
-mass: 3.0
-inertia: { ixx: 0.022510, iyy: 0.034850, izz: 0.022510 }
+mass: 2.5
+inertia: { ixx: 0.014738, iyy: 0.0261, izz: 0.014738 }
 inertia_y_offset: 0.0
 mesh_package: lynx_description
 folder_path: meshes/WH05
