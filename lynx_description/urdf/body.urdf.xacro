@@ -16,7 +16,7 @@
 
     <link name="body_link">
       <visual>
-        <origin xyz="0.0 0.0 0.085" rpy="0.0 0.0 0.0" />
+        <origin xyz="0.0 0.0 0.0745" rpy="0.0 0.0 0.0" />
         <geometry>
           <!-- TODO cheange when models ready -->
           <!-- <mesh filename="package://lynx_description/meshes/body.dae" /> -->
@@ -25,7 +25,7 @@
       </visual>
 
       <collision>
-        <origin xyz="0.0 0.0 0.085" rpy="0.0 0.0 0.0" />
+        <origin xyz="0.0 0.0 0.0745" rpy="0.0 0.0 0.0" />
         <geometry>
           <!-- TODO cheange when models ready -->
           <!-- <mesh filename="package://lynx_description/meshes/body_collision.stl" /> -->
@@ -37,9 +37,9 @@
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
         <mass value="30.0" />
         <!-- TODO calculate real interia -->
-        <inertia ixx="2.630036" ixy="-0.023480" ixz="0.052320"
-                                iyy="2.463509"  iyz="0.009337"
-                                                izz="4.611945" />
+        <inertia ixx="0.46856"  ixy="0.0"     ixz="0.0"
+                                iyy="1.22285" iyz="0.0"
+                                              izz="1.51185" />
       </inertial>
     </link>
 
@@ -53,7 +53,7 @@
 
     <joint name="body_to_cover_joint" type="fixed">
       <!-- TODO cheange to real value -->
-      <origin xyz="0.0 0.0 0.23" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.0 0.0 0.2085" rpy="0.0 0.0 0.0" />
       <parent link="body_link" />
       <child link="cover_link" />
     </joint>
