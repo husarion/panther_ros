@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include <panther_hardware_interfaces/canopen_controller.hpp>
-#include <panther_hardware_interfaces/roboteq_data_converters.hpp>
+#include <panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp>
+#include <panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces_test
 {
