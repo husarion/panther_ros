@@ -82,7 +82,7 @@ Rectangle {
       }
     }
     onPressed: {
-      EStop.buttonPressed(eStopButton.checked);
+      EStop.ButtonPressed(eStopButton.checked);
     }
   }
 }

@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "panther_gazebo/plugins/e_stop.hpp"
+
+#include <memory>
+
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
+#include <rclcpp/rclcpp.hpp>
 
-#include "panther_gazebo/plugins/e_stop.hpp"
+#include <std_srvs/srv/trigger.hpp>
 
 namespace panther_gazebo
 {
@@ -43,7 +48,7 @@ void EStop::LoadConfig(const tinyxml2::XMLElement * plugin_elem)
   }
 }
 
-void EStop::buttonPressed(bool pressed)
+void EStop::ButtonPressed(bool pressed)
 {
   auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
 
@@ -59,7 +64,7 @@ void EStop::buttonPressed(bool pressed)
   if (
     rclcpp::spin_until_future_complete(node_, result_future, std::chrono::seconds(1)) !=
     rclcpp::FutureReturnCode::SUCCESS) {
-    ignwarn << "Service call failed for: " << client->get_service_name() << "'!" << std::endl;
+    ignwarn << "Failed to call service '" << client->get_service_name() << "'!" << std::endl;
     return;
   }
 

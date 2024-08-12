@@ -15,13 +15,13 @@
 #ifndef PANTHER_GAZEBO_PLUGINS_ESTOP_HPP_
 #define PANTHER_GAZEBO_PLUGINS_ESTOP_HPP_
 
+#include <string>
+
 #include <ignition/gui/qt.h>
 #include <ignition/gui/Plugin.hh>
-
 #include <rclcpp/rclcpp.hpp>
-#include <std_srvs/srv/trigger.hpp>
 
-#include <string>
+#include <std_srvs/srv/trigger.hpp>
 
 namespace panther_gazebo
 {
@@ -45,7 +45,7 @@ signals:
   void ChangedNamespace();
 
 protected slots:
-  void buttonPressed(bool pressed);
+  void ButtonPressed(bool pressed);
 
 private:
   static constexpr char kDefaultEStopResetService[] = "/hardware/e_stop_reset";
