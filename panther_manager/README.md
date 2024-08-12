@@ -44,6 +44,8 @@ Node responsible for managing Bumper Lights animation scheduling.
 - `battery.percent.window_len` [*int*, default: **6**]: Moving average window length used to smooth out Battery percentage readings.
 - `bt_project_path` [*string*, default: **$(find panther_manager)/config/PantherBT.btproj**]: Path to a BehaviorTree project.
 - `plugin_libs` [*list*, default: **Empty list**]: List with names of plugins that are used in the BT project.
+- `ros_communication_timeout.availability` [*float*, default: **1.0**]: Timeout **[s]** to wait for a service/action while initializing BT node.
+- `ros_communication_timeout.response` [*float*, default: **1.0**]: Timeout **[s]** to receive a service/action response after call.
 - `ros_plugin_libs` [*list*, default: **Empty list**]: List with names of ROS plugins that are used in a BT project.
 - `timer_frequency` [*float*, default: **10.0**]: Frequency **[Hz]** at which lights tree will be ticked.
 
@@ -77,6 +79,8 @@ Node responsible for managing safety features, and software shutdown of componen
 - `driver.temp.window_len` [*int*, default: **6**]: Moving average window length used to smooth out the temperature readings of each driver.
 - `fan_turn_off_timeout` [*float*, default: **60.0**]: Minimal time in **[s]**, after which the fan may be turned off.
 - `plugin_libs` [*list*, default: **Empty list**]: List with names of plugins that are used in the BT project.
+- `ros_communication_timeout.availability` [*float*, default: **1.0**]: Timeout **[s]** to wait for a service/action while initializing BT node.
+- `ros_communication_timeout.response` [*float*, default: **1.0**]: Timeout **[s]** to receive a service/action response after call.
 - `ros_plugin_libs` [*list*, default: **Empty list**]: List with names of ROS plugins that are used in a BT project.
 - `shutdown_hosts_path` [*string*, default: **None**]: Path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: Command executed on shutdown of given device.
