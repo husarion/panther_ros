@@ -15,7 +15,7 @@ endforeach()
 include_directories(include ${panther_utils_INCLUDE_DIRS})
 
 add_executable(
-  battery_node
+  battery_driver_node
   src/main.cpp
   src/battery_driver_node.cpp
   src/battery/adc_battery.cpp
@@ -23,9 +23,9 @@ add_executable(
   src/battery_publisher/battery_publisher.cpp
   src/battery_publisher/dual_battery_publisher.cpp
   src/battery_publisher/single_battery_publisher.cpp)
-ament_target_dependencies(battery_node ${PACKAGE_DEPENDENCIES})
+ament_target_dependencies(battery_driver_node ${PACKAGE_DEPENDENCIES})
 
-install(TARGETS battery_node DESTINATION lib/${PROJECT_NAME})
+install(TARGETS battery_driver_node DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
