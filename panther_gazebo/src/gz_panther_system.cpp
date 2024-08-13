@@ -147,6 +147,7 @@ public:
 
 namespace panther_gazebo
 {
+
 void GzPantherSystem::SetupEStop()
 {
   e_stop_publisher = nh_->create_publisher<std_msgs::msg::Bool>(
