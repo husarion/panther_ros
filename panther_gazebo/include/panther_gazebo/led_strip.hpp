@@ -41,38 +41,28 @@ class LEDStrip : public gz::sim::System,
 {
 public:
   LEDStrip();
-
-public:
   ~LEDStrip() final;
-
-public:
   void Configure(
     const gz::sim::Entity & _id, const std::shared_ptr<const sdf::Element> & _sdf,
     gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr) final;
-
-public:
   void PreUpdate(
     const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm) override;
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
 
-  gz::sim::Entity entity;
-  gz::sim::Entity visualEntity{gz::sim::kNullEntity};
+  // Parameters
+  std::string lightName;
+  std::string ns = "";
+  double frequency = 10.0;
+  double markerWidth = 1.0;
+  double markerHeight = 1.0;
+
   gz::sim::Entity lightEntity{gz::sim::kNullEntity};
   std::chrono::steady_clock::time_point lastUpdateTime;
   gz::transport::Node transportNode;
   gz::transport::Node::Publisher markerPublisher;
   gz::msgs::Light lightMsg;
-  std::string imageTopic;
-  double markerWidth;
-  double markerHeight;
-  double frequency;
-  // Counter to keep track of the marker IDs 0 cannot be overwritten
-  unsigned int markerIdCounter = 1;
-
-  // Store a reference to the EntityComponentManager to be used by the callback
-  gz::sim::EntityComponentManager * ecm{nullptr};
 
   gz::msgs::Image lastImage;
   bool newImageAvailable{false};
@@ -82,9 +72,6 @@ private:
   void CreateMarker(
     int id, double x, double y, double z, const ignition::msgs::Color & color, double scaleX,
     double scaleY, double scaleZ);
-
-  std::string lightName;
-  std::string ns;
 };
 
 #endif

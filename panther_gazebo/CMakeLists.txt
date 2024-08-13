@@ -51,7 +51,7 @@ ament_target_dependencies(EStop ignition-common4 ignition-gazebo6
 target_link_libraries(EStop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
                       ${Qt5Quick_LIBRARIES} ${Qt5QuickControls2_LIBRARIES})
 
-add_library(LEDStrip SHARED src/led_strip.cc)
+add_library(LEDStrip SHARED src/led_strip.cpp)
 target_link_libraries(
   LEDStrip
   PRIVATE ignition-plugin1::ignition-plugin1

@@ -116,14 +116,13 @@
     </gazebo>
   </xacro:macro>
 
-
   <!-- Lights -->
   <xacro:macro name="light" params="reference_frame name topic namespace:=''">
     <gazebo>
       <plugin filename="LEDStrip" name="LEDStrip">
         <light_name>${name}</light_name>
         <topic>${topic}</topic>
-        <namespace>panther</namespace>
+        <namespace>${namespace}</namespace>
         <frequency>10</frequency>
         <width>0.5</width>
         <height>0.015</height>
