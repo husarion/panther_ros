@@ -18,22 +18,25 @@
 
 #include <memory>
 
-#include "ign_ros2_control/ign_system.hpp"
-#include "ign_ros2_control/ign_system_interface.hpp"
-#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
-#include "rclcpp_lifecycle/state.hpp"
-#include "std_msgs/msg/bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
+#include <ign_ros2_control/ign_system.hpp>
+#include <ign_ros2_control/ign_system_interface.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
+#include <rclcpp_lifecycle/state.hpp>
+
+#include <std_msgs/msg/bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
 namespace panther_gazebo
 {
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-
-// These class must inherit `ign_ros2_control::IgnitionSystemInterface` which implements a
-// simulated `ros2_control` `hardware_interface::SystemInterface`.
-
+using BoolMsg = std_msgs::msg::Bool;
+using TriggerSrv = std_srvs::srv::Trigger;
+std_srvs::srv::Trigger::Request::SharedPtr request;
 /// \class GzPantherSystem
-/// \brief Main class for the Panther System which inherits from IgnitionSystemInterface. Based on:
+/// \brief Main class for the Panther System which implements a
+// simulated `ros2_control` `hardware_interface::SystemInterface`. These class must
+/// inherit `ign_ros2_control::IgnitionSystemInterface`. Based on:
 /// https://github.com/ros-controls/gz_ros2_control/blob/humble/ign_ros2_control/src/ign_system.cpp
 class GzPantherSystem : public ign_ros2_control::IgnitionSystem
 {
@@ -50,22 +53,20 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  bool e_stop_active;
-  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr e_stop_publisher;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr e_stop_reset_service;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr e_stop_trigger_service;
+  bool e_stop_active_;
+  rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_publisher_;
+  rclcpp::Service<TriggerSrv>::SharedPtr e_stop_reset_service_;
+  rclcpp::Service<TriggerSrv>::SharedPtr e_stop_trigger_service_;
 
   void SetupEStop();
 
   void PublishEStopStatus();
 
   void EStopResetCallback(
-    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+    const TriggerSrv::Request::SharedPtr & request, TriggerSrv::Response::SharedPtr response);
 
   void EStopTriggerCallback(
-    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+    const TriggerSrv::Request::SharedPtr & request, TriggerSrv::Response::SharedPtr response);
 };
 
 }  // namespace panther_gazebo
