@@ -227,6 +227,7 @@ hardware_interface::return_type GzPantherSystem::write(
 
   return IgnitionSystem::write(time, period);
 }
+
 }  // namespace panther_gazebo
 
 #include "pluginlib/class_list_macros.hpp"  // NOLINT
