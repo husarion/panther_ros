@@ -16,10 +16,7 @@
 #ifndef PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
 #define PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
 
-#include <map>
 #include <memory>
-#include <string>
-#include <vector>
 
 #include "ign_ros2_control/ign_system.hpp"
 #include "ign_ros2_control/ign_system_interface.hpp"
