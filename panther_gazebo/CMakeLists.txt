@@ -30,13 +30,6 @@ find_package(Qt5 REQUIRED COMPONENTS Core Quick QuickControls2)
 include_directories(include ${Qt5Core_INCLUDE_DIRS} ${Qt5Qml_INCLUDE_DIRS}
                     ${Qt5Quick_INCLUDE_DIRS} ${Qt5QuickControls2_INCLUDE_DIRS})
 
-add_executable(gz_led_strip_manager src/main.cpp src/gz_led_strip_manager.cpp
-                                    src/gz_led_strip.cpp)
-ament_target_dependencies(gz_led_strip_manager panther_utils)
-target_link_libraries(
-  gz_led_strip_manager ignition-transport11::core ignition-msgs8
-  ignition-common4::ignition-common4 yaml-cpp)
-
 add_library(panther_simulation_plugins SHARED src/gz_panther_system.cpp)
 ament_target_dependencies(
   panther_simulation_plugins
@@ -58,7 +51,11 @@ ament_target_dependencies(EStop ignition-common4 ignition-gazebo6
 target_link_libraries(EStop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
                       ${Qt5Quick_LIBRARIES} ${Qt5QuickControls2_LIBRARIES})
 
-install(TARGETS gz_led_strip_manager DESTINATION lib/${PROJECT_NAME})
+add_library(LEDStrip SHARED src/led_strip.cc)
+target_link_libraries(
+  LEDStrip
+  PRIVATE ignition-plugin1::ignition-plugin1
+  PRIVATE ignition-gazebo6::ignition-gazebo6)
 
 install(
   TARGETS panther_simulation_plugins
@@ -68,6 +65,12 @@ install(
 
 install(
   TARGETS EStop
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
+
+install(
+  TARGETS LEDStrip
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
