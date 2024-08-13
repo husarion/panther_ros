@@ -32,7 +32,7 @@ namespace panther_gazebo
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 using BoolMsg = std_msgs::msg::Bool;
 using TriggerSrv = std_srvs::srv::Trigger;
-std_srvs::srv::Trigger::Request::SharedPtr request;
+
 /// \class GzPantherSystem
 /// \brief Main class for the Panther System which implements a
 // simulated `ros2_control` `hardware_interface::SystemInterface`. These class must
