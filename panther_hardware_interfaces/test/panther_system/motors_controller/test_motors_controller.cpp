@@ -25,8 +25,8 @@
 #include <panther_hardware_interfaces/panther_system/motors_controller/motors_controller.hpp>
 #include <panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp>
 
-#include <roboteqs_mock.hpp>
-#include <test_constants.hpp>
+#include "utils/roboteqs_mock.hpp"
+#include "utils/test_constants.hpp"
 
 class TestMotorsControllerInitialization : public ::testing::Test
 {

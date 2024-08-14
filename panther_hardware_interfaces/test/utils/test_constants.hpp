@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_TEST_CONSTANTS_HPP_
-#define PANTHER_HARDWARE_INTERFACES_TEST_CONSTANTS_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_TEST_UTILS_TEST_CONSTANTS_HPP_
+#define PANTHER_HARDWARE_INTERFACES_TEST_UTILS_TEST_CONSTANTS_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -96,4 +96,4 @@ const std::string kMotorControllersStateTopic = "/hardware_controller/motor_cont
 
 }  // namespace panther_hardware_interfaces_test
 
-#endif  // PANTHER_HARDWARE_INTERFACES_TEST_CONSTANTS_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_TEST_UTILS_TEST_CONSTANTS_HPP_

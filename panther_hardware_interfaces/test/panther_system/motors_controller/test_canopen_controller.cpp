@@ -22,8 +22,8 @@
 
 #include <panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp>
 
-#include <roboteqs_mock.hpp>
-#include <test_constants.hpp>
+#include "utils/roboteqs_mock.hpp"
+#include "utils/test_constants.hpp"
 
 class TestCANopenController : public ::testing::Test
 {

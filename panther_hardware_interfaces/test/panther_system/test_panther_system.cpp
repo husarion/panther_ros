@@ -32,8 +32,8 @@
 
 #include <panther_utils/test/ros_test_utils.hpp>
 
-#include <panther_system_test_utils.hpp>
-#include <roboteqs_mock.hpp>
+#include "utils/panther_system_test_utils.hpp"
+#include "utils/roboteqs_mock.hpp"
 
 class TestPantherSystem : public ::testing::Test
 {

@@ -19,9 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include <panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp>
-
-#include <test_constants.hpp>
+#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
+#include "utils/test_constants.hpp"
 
 void TestFaultFlagMsg(
   const panther_msgs::msg::FaultFlag & msg, const std::vector<bool> & expected_values)

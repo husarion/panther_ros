@@ -27,7 +27,7 @@
 
 #include <panther_hardware_interfaces/panther_system/panther_system_ros_interface.hpp>
 
-#include <test_constants.hpp>
+#include "utils/test_constants.hpp"
 
 class TestPantherSystemRosInterface : public ::testing::Test
 {

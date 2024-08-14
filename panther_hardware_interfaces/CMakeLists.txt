@@ -86,20 +86,12 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(panther_utils REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_utils
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
-
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
+
+  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
 
   ament_add_gtest(${PROJECT_NAME}_test_panther_imu_sensor
                   test/panther_imu_sensor/test_panther_imu_sensor.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_panther_imu_sensor
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_imu_sensor hardware_interface rclcpp
     panther_utils panther_msgs phidgets_api)
@@ -110,10 +102,6 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_roboteq_error_filter
     test/panther_system/motors_controller/test_roboteq_error_filter.cpp
     src/panther_system/motors_controller/roboteq_error_filter.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_roboteq_error_filter
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
@@ -122,7 +110,7 @@ if(BUILD_TESTING)
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_data_converters
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
                             panther_msgs panther_utils)
@@ -132,13 +120,12 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller
     test/panther_system/motors_controller/test_canopen_controller.cpp
-    test/src/roboteqs_mock.cpp
     src/panther_system/motors_controller/canopen_controller.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_canopen_controller
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller rclcpp
                             panther_msgs panther_utils)
@@ -148,13 +135,12 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver
     test/panther_system/motors_controller/test_roboteq_driver.cpp
-    test/src/roboteqs_mock.cpp
     src/panther_system/motors_controller/canopen_controller.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_driver
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver rclcpp
                             panther_msgs panther_utils)
@@ -164,7 +150,6 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_motors_controller
     test/panther_system/motors_controller/test_motors_controller.cpp
-    test/src/roboteqs_mock.cpp
     src/panther_system/motors_controller/canopen_controller.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/panther_system/motors_controller/roboteq_data_converters.cpp
@@ -172,7 +157,7 @@ if(BUILD_TESTING)
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_motors_controller
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_motors_controller rclcpp
                             panther_msgs panther_utils)
@@ -181,10 +166,6 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
                   test/panther_system/gpio/test_gpio_driver.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_gpiod_driver
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
                         PkgConfig::LIBGPIOD)
@@ -194,10 +175,6 @@ if(BUILD_TESTING)
     test/panther_system/gpio/test_gpio_controller.cpp
     src/panther_system/gpio/gpio_controller.cpp
     src/panther_system/gpio/gpio_driver.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_gpiod_controller
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
                         PkgConfig::LIBGPIOD)
@@ -212,7 +189,7 @@ if(BUILD_TESTING)
     src/panther_system/gpio/gpio_driver.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system_ros_interface
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system_ros_interface
@@ -225,15 +202,13 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
                         PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
-  ament_add_gtest(
-    ${PROJECT_NAME}_test_panther_system
-    test/panther_system/test_panther_system.cpp test/src/roboteqs_mock.cpp
-    test/src/panther_system_test_utils.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_panther_system
+                  test/panther_system/test_panther_system.cpp)
   set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
                                                                       120)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_system
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
