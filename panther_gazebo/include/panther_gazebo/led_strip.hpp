@@ -15,9 +15,12 @@
 #ifndef SYSTEM_PLUGIN_LEDStrip_HH_
 #define SYSTEM_PLUGIN_LEDStrip_HH_
 
+#include <chrono>
+#include <mutex>
+#include <vector>
+
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/marker.pb.h>
-#include <chrono>
 #include <gz/common/Timer.hh>
 #include <gz/math/Color.hh>
 #include <gz/sim/EntityComponentManager.hh>
@@ -31,9 +34,10 @@
 #include <gz/sim/components/Visual.hh>
 #include <gz/sim/rendering/Events.hh>
 #include <gz/transport/Node.hh>
-#include <mutex>
 #include <sdf/Pbr.hh>
-#include <vector>
+
+namespace panther_gazebo
+{
 
 class LEDStrip : public gz::sim::System,
                  public gz::sim::ISystemConfigure,
@@ -59,7 +63,7 @@ private:
   double markerHeight = 1.0;
 
   gz::sim::Entity lightEntity{gz::sim::kNullEntity};
-  std::chrono::steady_clock::time_point lastUpdateTime;
+  std::chrono::steady_clock::duration lastUpdateTime{0};
   gz::transport::Node transportNode;
   gz::transport::Node::Publisher markerPublisher;
   gz::msgs::Light lightMsg;
@@ -73,5 +77,7 @@ private:
     int id, double x, double y, double z, const ignition::msgs::Color & color, double scaleX,
     double scaleY, double scaleZ);
 };
+
+}  // namespace panther_gazebo
 
 #endif

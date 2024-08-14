@@ -14,12 +14,18 @@
 
 #include "panther_gazebo/led_strip.hpp"
 
-#include <gz/plugin/Register.hh>
+#include <string>
+
 #include "gz/math/Color.hh"
 #include "gz/msgs/light.pb.h"
 #include "gz/msgs/marker.pb.h"
+#include "gz/plugin/Register.hh"
+#include "gz/sim/Model.hh"
 #include "gz/sim/components/LightCmd.hh"
 #include "gz/sim/components/Pose.hh"
+
+namespace panther_gazebo
+{
 
 LEDStrip::LEDStrip() : gz::sim::System() {}
 
@@ -27,9 +33,17 @@ LEDStrip::~LEDStrip() = default;
 
 void LEDStrip::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
-  gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr)
+  gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager &)
 {
-  std::string imageTopic;
+  const auto model = ignition::gazebo::Model(_entity);
+  if (!model.Valid(_ecm)) {
+    throw std::runtime_error(
+      "Error: Failed to initialize because [" + model.Name(_ecm) +
+      "] (Entity=" + std::to_string(_entity) +
+      ") is not a model."
+      "Please make sure that Ignition ROS 2 Control is attached to a valid model.");
+    return;
+  }
 
   if (_sdf->HasElement("light_name")) {
     lightName = _sdf->Get<std::string>("light_name");
@@ -41,6 +55,7 @@ void LEDStrip::Configure(
     ns = _sdf->Get<std::string>("namespace");
   }
 
+  std::string imageTopic;
   if (_sdf->HasElement("topic")) {
     imageTopic = _sdf->Get<std::string>("topic");
   } else {
@@ -141,8 +156,6 @@ void LEDStrip::Configure(
     ignerr << "Error: Light entity not found." << std::endl;
     return;
   }
-
-  lastUpdateTime = std::chrono::steady_clock::now();
 }
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
@@ -154,10 +167,11 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 
 void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm)
 {
-  auto currentTime = std::chrono::steady_clock::now();
-  if (
-    currentTime - lastUpdateTime >= std::chrono::milliseconds(static_cast<int>(1000 / frequency))) {
-    lastUpdateTime = std::chrono::steady_clock::now();
+  auto currentTime = _info.simTime;
+
+  auto period = std::chrono::milliseconds(static_cast<int>(1000 / frequency));
+  if (currentTime - lastUpdateTime >= period) {
+    lastUpdateTime = currentTime;
 
     if (!newImageAvailable) {
       return;
@@ -291,5 +305,8 @@ void LEDStrip::CreateMarker(
   transportNode.Request("/marker", markerMsg);
 }
 
+}  // namespace panther_gazebo
+
 IGNITION_ADD_PLUGIN(
-  LEDStrip, gz::sim::System, LEDStrip::ISystemConfigure, LEDStrip::ISystemPreUpdate)
+  panther_gazebo::LEDStrip, gz::sim::System, panther_gazebo::LEDStrip::ISystemConfigure,
+  panther_gazebo::LEDStrip::ISystemPreUpdate)
