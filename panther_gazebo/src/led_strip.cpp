@@ -93,7 +93,6 @@ void LEDStrip::Configure(
           auto lightComp = _ecm.Component<gz::sim::components::Light>(lightEntity);
           if (lightComp) {
             sdf::Light sdfLight = lightComp->Data();
-            ignition::msgs::Light lightMsg;
 
             // Manually copy data from sdf::Light to ignition::msgs::Light
             lightMsg.set_name(sdfLight.Name());
@@ -142,9 +141,6 @@ void LEDStrip::Configure(
 
             _ecm.CreateComponent(lightEntity, gz::sim::components::LightCmd(lightMsg));
             ignmsg << "Created LightCmd component for entity: " << lightEntity << std::endl;
-
-            // Store the initial light message for updating later.
-            lightMsg = lightMsg;
           }
         }
         return true;  // Stop searching

@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SYSTEM_PLUGIN_LEDStrip_HH_
-#define SYSTEM_PLUGIN_LEDStrip_HH_
+#ifndef PANTHER_GAZEBO_LED_STRIP_HPP_
+#define PANTHER_GAZEBO_LED_STRIP_HPP_
+
+#include <chrono>
+#include <mutex>
+#include <vector>
 
 #include <chrono>
 #include <mutex>
@@ -80,4 +84,4 @@ private:
 
 }  // namespace panther_gazebo
 
-#endif
+#endif  // PANTHER_GAZEBO_LED_STRIP_HPP_
