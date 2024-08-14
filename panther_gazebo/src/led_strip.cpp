@@ -17,12 +17,13 @@
 #include <string>
 
 #include "gz/math/Color.hh"
+#include "gz/msgs/image.pb.h"
 #include "gz/msgs/light.pb.h"
 #include "gz/msgs/marker.pb.h"
 #include "gz/plugin/Register.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/components/LightCmd.hh"
-#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Name.hh"
 
 namespace panther_gazebo
 {
@@ -32,93 +33,93 @@ LEDStrip::LEDStrip() : gz::sim::System() {}
 LEDStrip::~LEDStrip() = default;
 
 void LEDStrip::Configure(
-  const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
-  gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager &)
+  const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & sdf,
+  gz::sim::EntityComponentManager & ecm, gz::sim::EventManager &)
 {
   const auto model = ignition::gazebo::Model(_entity);
-  if (!model.Valid(_ecm)) {
+  if (!model.Valid(ecm)) {
     throw std::runtime_error(
-      "Error: Failed to initialize because [" + model.Name(_ecm) +
+      "Error: Failed to initialize because [" + model.Name(ecm) +
       "] (Entity=" + std::to_string(_entity) +
       ") is not a model."
       "Please make sure that Ignition ROS 2 Control is attached to a valid model.");
     return;
   }
 
-  if (_sdf->HasElement("light_name")) {
-    lightName = _sdf->Get<std::string>("light_name");
+  if (sdf->HasElement("light_name")) {
+    light_name = sdf->Get<std::string>("light_name");
   } else {
     throw std::runtime_error("Error: The light_name parameter is missing.");
   }
 
-  if (_sdf->HasElement("namespace")) {
-    ns = _sdf->Get<std::string>("namespace");
+  if (sdf->HasElement("namespace")) {
+    ns = sdf->Get<std::string>("namespace");
   }
 
   std::string imageTopic;
-  if (_sdf->HasElement("topic")) {
-    imageTopic = _sdf->Get<std::string>("topic");
+  if (sdf->HasElement("topic")) {
+    imageTopic = sdf->Get<std::string>("topic");
   } else {
     throw std::runtime_error("Error: The topic parameter is missing.");
   }
 
-  if (_sdf->HasElement("frequency")) {
-    frequency = _sdf->Get<double>("frequency");
+  if (sdf->HasElement("frequency")) {
+    frequency = sdf->Get<double>("frequency");
   }
 
-  if (_sdf->HasElement("width")) {
-    markerWidth = _sdf->Get<double>("width");
+  if (sdf->HasElement("width")) {
+    marker_width = sdf->Get<double>("width");
   }
 
-  if (_sdf->HasElement("height")) {
-    markerHeight = _sdf->Get<double>("height");
+  if (sdf->HasElement("height")) {
+    marker_height = sdf->Get<double>("height");
   }
 
-  markerPublisher = transportNode.Advertise<gz::msgs::Marker>("/marker");
+  marker_publisher = node.Advertise<gz::msgs::Marker>("/marker");
 
   // Subscribe to the image topic
-  transportNode.Subscribe(ns + "/" + imageTopic, &LEDStrip::ImageCallback, this);
+  node.Subscribe(ns + "/" + imageTopic, &LEDStrip::ImageCallback, this);
 
   // Iterate through entities to find the light entity by name
-  _ecm.Each<gz::sim::components::Name, gz::sim::components::Light>(
+  ecm.Each<gz::sim::components::Name, gz::sim::components::Light>(
     [&](
       const gz::sim::Entity & _entity, const gz::sim::components::Name * _name,
       const gz::sim::components::Light *) -> bool {
-      if (_name->Data() == lightName) {
-        lightEntity = _entity;
-        ignmsg << "Light entity found: " << lightEntity << std::endl;
+      if (_name->Data() == light_name) {
+        light_entity = _entity;
+        ignmsg << "Light entity found: " << light_entity << std::endl;
 
         // Ensure the LightCmd component is created
-        if (!_ecm.Component<gz::sim::components::LightCmd>(lightEntity)) {
-          auto lightComp = _ecm.Component<gz::sim::components::Light>(lightEntity);
+        if (!ecm.Component<gz::sim::components::LightCmd>(light_entity)) {
+          auto lightComp = ecm.Component<gz::sim::components::Light>(light_entity);
           if (lightComp) {
             sdf::Light sdfLight = lightComp->Data();
 
             // Manually copy data from sdf::Light to ignition::msgs::Light
-            lightMsg.set_name(sdfLight.Name());
-            lightMsg.set_range(sdfLight.AttenuationRange());
-            lightMsg.set_cast_shadows(sdfLight.CastShadows());
-            lightMsg.set_spot_inner_angle(sdfLight.SpotInnerAngle().Radian());
-            lightMsg.set_spot_outer_angle(sdfLight.SpotOuterAngle().Radian());
-            lightMsg.set_spot_falloff(sdfLight.SpotFalloff());
-            lightMsg.set_attenuation_constant(sdfLight.ConstantAttenuationFactor());
-            lightMsg.set_attenuation_linear(sdfLight.LinearAttenuationFactor());
-            lightMsg.set_attenuation_quadratic(sdfLight.QuadraticAttenuationFactor());
-            lightMsg.set_intensity(sdfLight.Intensity());
+            light_msg.set_name(sdfLight.Name());
+            light_msg.set_range(sdfLight.AttenuationRange());
+            light_msg.set_cast_shadows(sdfLight.CastShadows());
+            light_msg.set_spot_inner_angle(sdfLight.SpotInnerAngle().Radian());
+            light_msg.set_spot_outer_angle(sdfLight.SpotOuterAngle().Radian());
+            light_msg.set_spot_falloff(sdfLight.SpotFalloff());
+            light_msg.set_attenuation_constant(sdfLight.ConstantAttenuationFactor());
+            light_msg.set_attenuation_linear(sdfLight.LinearAttenuationFactor());
+            light_msg.set_attenuation_quadratic(sdfLight.QuadraticAttenuationFactor());
+            light_msg.set_intensity(sdfLight.Intensity());
 
-            ignition::msgs::Color * diffuseColor = lightMsg.mutable_diffuse();
-            diffuseColor->set_r(sdfLight.Diffuse().R());
-            diffuseColor->set_g(sdfLight.Diffuse().G());
-            diffuseColor->set_b(sdfLight.Diffuse().B());
-            diffuseColor->set_a(sdfLight.Diffuse().A());
+            ignition::msgs::Color * diffuse_color = light_msg.mutable_diffuse();
+            diffuse_color->set_r(sdfLight.Diffuse().R());
+            diffuse_color->set_g(sdfLight.Diffuse().G());
+            diffuse_color->set_b(sdfLight.Diffuse().B());
+            diffuse_color->set_a(sdfLight.Diffuse().A());
 
-            ignition::msgs::Color * specularColor = lightMsg.mutable_specular();
-            specularColor->set_r(sdfLight.Specular().R());
-            specularColor->set_g(sdfLight.Specular().G());
-            specularColor->set_b(sdfLight.Specular().B());
-            specularColor->set_a(sdfLight.Specular().A());
+            ignition::msgs::Color * specular_color = light_msg.mutable_specular();
+            specular_color->set_r(sdfLight.Specular().R());
+            specular_color->set_g(sdfLight.Specular().G());
+            specular_color->set_b(sdfLight.Specular().B());
+            specular_color->set_a(sdfLight.Specular().A());
 
-            ignition::msgs::Vector3d * direction = lightMsg.mutable_direction();
+            ignition::msgs::Vector3d * direction = light_msg.mutable_direction();
             direction->set_x(sdfLight.Direction().X());
             direction->set_y(sdfLight.Direction().Y());
             direction->set_z(sdfLight.Direction().Z());
@@ -126,21 +127,21 @@ void LEDStrip::Configure(
             // Set the light type
             switch (sdfLight.Type()) {
               case sdf::LightType::POINT:
-                lightMsg.set_type(ignition::msgs::Light::POINT);
+                light_msg.set_type(ignition::msgs::Light::POINT);
                 break;
               case sdf::LightType::SPOT:
-                lightMsg.set_type(ignition::msgs::Light::SPOT);
+                light_msg.set_type(ignition::msgs::Light::SPOT);
                 break;
               case sdf::LightType::DIRECTIONAL:
-                lightMsg.set_type(ignition::msgs::Light::DIRECTIONAL);
+                light_msg.set_type(ignition::msgs::Light::DIRECTIONAL);
                 break;
               default:
-                lightMsg.set_type(ignition::msgs::Light::POINT);
+                light_msg.set_type(ignition::msgs::Light::POINT);
                 break;
             }
 
-            _ecm.CreateComponent(lightEntity, gz::sim::components::LightCmd(lightMsg));
-            ignmsg << "Created LightCmd component for entity: " << lightEntity << std::endl;
+            ecm.CreateComponent(light_entity, gz::sim::components::LightCmd(light_msg));
+            ignmsg << "Created LightCmd component for entity: " << light_entity << std::endl;
           }
         }
         return true;  // Stop searching
@@ -148,157 +149,162 @@ void LEDStrip::Configure(
       return true;
     });
 
-  if (lightEntity == gz::sim::kNullEntity) {
+  if (light_entity == gz::sim::kNullEntity) {
     ignerr << "Error: Light entity not found." << std::endl;
     return;
   }
 }
 
-void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
+void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm)
 {
-  std::lock_guard<std::mutex> lock(imageMutex);
-  lastImage = msg;
-  newImageAvailable = true;
-}
-
-void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm)
-{
-  auto currentTime = _info.simTime;
+  auto current_time = info.simTime;
 
   auto period = std::chrono::milliseconds(static_cast<int>(1000 / frequency));
-  if (currentTime - lastUpdateTime >= period) {
-    lastUpdateTime = currentTime;
+  if (current_time - last_update_time >= period) {
+    last_update_time = current_time;
 
-    if (!newImageAvailable) {
+    if (!new_image_available) {
       return;
     }
 
     gz::msgs::Image image;
     {
-      std::lock_guard<std::mutex> lock(imageMutex);
-      image = lastImage;
-      newImageAvailable = false;
+      std::lock_guard<std::mutex> lock(image_mutex);
+      image = last_image;
+      new_image_available = false;
     }
 
     // Calculate the mean color of the image
     ignition::msgs::Color meanColor = CalculateMeanColor(image);
 
     // Update the light message with the mean color
-    lightMsg.mutable_diffuse()->CopyFrom(meanColor);
-    lightMsg.mutable_specular()->CopyFrom(meanColor);
+    light_msg.mutable_diffuse()->CopyFrom(meanColor);
+    light_msg.mutable_specular()->CopyFrom(meanColor);
+
+    auto light_on = light_msg.mutable_header()->add_data();
+    light_on->set_key("isLightOn");
+    light_on->add_value()->assign("1");
+
+    auto visualize = light_msg.mutable_header()->add_data();
+    visualize->set_key("visualizeVisual");
+    visualize->add_value()->assign("0");  // Don't visualize light
 
     // Ensure the light type is maintained
-    lightMsg.set_type(ignition::msgs::Light::SPOT);
-
-    // Create and publish markers for each pixel
-    int width = image.width();
-    int height = image.height();
-    const std::string & data = image.data();
-
-    double stepWidth = markerWidth / width;
-    double stepHeight = markerHeight / height;
-
-    bool isRGBA = (image.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
-    int step = isRGBA ? 4 : 3;
+    light_msg.set_type(ignition::msgs::Light::SPOT);
 
     // Retrieve the light pose
-    auto * poseComp = _ecm.Component<gz::sim::components::Pose>(lightEntity);
-    if (!poseComp) {
+    auto * pose_comp = ecm.Component<gz::sim::components::Pose>(light_entity);
+    if (!pose_comp) {
       ignerr << "Error: Light pose component not found." << std::endl;
       return;
     }
+    auto light_pose = pose_comp->Data();
 
-    auto lightPose = poseComp->Data();
-
-    for (int y = 0; y < height; ++y) {
-      for (int x = 0; x < width; ++x) {
-        int idx = (y * width + x) * step;
-        ignition::msgs::Color pixelColor;
-        pixelColor.set_r(static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f);
-        pixelColor.set_g(static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f);
-        pixelColor.set_b(static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f);
-        pixelColor.set_a(
-          isRGBA ? static_cast<float>(static_cast<unsigned char>(data[idx + 3])) / 255.0f : 1.0f);
-
-        double posX = lightPose.Pos().X();
-        double posY = lightPose.Pos().Y() + x * stepWidth - markerWidth / 2.0 + stepWidth / 2.0;
-        double posZ = lightPose.Pos().Z() + y * stepHeight;
-
-        CreateMarker(idx, posX, posY, posZ, pixelColor, 0.001, stepWidth, stepHeight);
-      }
-    }
-
-    // Retrieve cmd component and update its data
-    auto lightCmdComp = _ecm.Component<gz::sim::components::LightCmd>(lightEntity);
-    if (!lightCmdComp) {
-      ignerr << "Error: Light command component not found on light entity: " << lightEntity
-             << std::endl;
-      return;
-    }
+    VisualizeMarkers(image, light_pose);
 
     // Update the light command component with the new light message
-    _ecm.SetComponentData<gz::sim::components::LightCmd>(lightEntity, lightMsg);
+    ecm.SetComponentData<gz::sim::components::LightCmd>(light_entity, light_msg);
 
-    _ecm.SetChanged(
-      lightEntity, gz::sim::components::LightCmd::typeId, gz::sim::ComponentState::PeriodicChange);
+    ecm.SetChanged(
+      light_entity, gz::sim::components::LightCmd::typeId, gz::sim::ComponentState::PeriodicChange);
   }
+}
+
+void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
+{
+  std::lock_guard<std::mutex> lock(image_mutex);
+  last_image = msg;
+  new_image_available = true;
 }
 
 ignition::msgs::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
 {
-  int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+  int sum_r = 0, sum_g = 0, sum_b = 0, sum_a = 0;
   int pixelCount = msg.width() * msg.height();
 
   const std::string & data = msg.data();
-  bool isRGBA = (msg.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
-  int step = isRGBA ? 4 : 3;
+  bool is_rgba = (msg.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
+  int step = is_rgba ? 4 : 3;
 
   for (int i = 0; i < pixelCount * step; i += step) {
-    sumR += static_cast<unsigned char>(data[i]);
-    sumG += static_cast<unsigned char>(data[i + 1]);
-    sumB += static_cast<unsigned char>(data[i + 2]);
-    if (isRGBA) {
-      sumA += static_cast<unsigned char>(data[i + 3]);
+    sum_r += static_cast<unsigned char>(data[i]);
+    sum_g += static_cast<unsigned char>(data[i + 1]);
+    sum_b += static_cast<unsigned char>(data[i + 2]);
+    if (is_rgba) {
+      sum_a += static_cast<unsigned char>(data[i + 3]);
     }
   }
 
-  int meanR = sumR / pixelCount;
-  int meanG = sumG / pixelCount;
-  int meanB = sumB / pixelCount;
-  int meanA = isRGBA ? sumA / pixelCount : 255;
+  int mean_r = sum_r / pixelCount;
+  int mean_g = sum_g / pixelCount;
+  int mean_b = sum_b / pixelCount;
+  int mean_a = is_rgba ? sum_a / pixelCount : 255;
 
-  ignition::msgs::Color meanColor;
-  meanColor.set_r(static_cast<float>(meanR) / 255.0f);
-  meanColor.set_g(static_cast<float>(meanG) / 255.0f);
-  meanColor.set_b(static_cast<float>(meanB) / 255.0f);
-  meanColor.set_a(static_cast<float>(meanA) / 255.0f);
+  ignition::msgs::Color mean_color;
+  mean_color.set_r(static_cast<float>(mean_r) / 255.0f);
+  mean_color.set_g(static_cast<float>(mean_g) / 255.0f);
+  mean_color.set_b(static_cast<float>(mean_b) / 255.0f);
+  mean_color.set_a(static_cast<float>(mean_a) / 255.0f);
 
-  return meanColor;
+  return mean_color;
+}
+
+void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & light_pose)
+{
+  int width = image.width();
+  int height = image.height();
+  const std::string & data = image.data();
+
+  double step_width = marker_width / width;
+  double step_height = marker_height / height;
+
+  bool is_rgba = (image.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
+  int step = is_rgba ? 4 : 3;
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      int idx = (y * width + x) * step;
+      ignition::msgs::Color pixel_color;
+      pixel_color.set_r(static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f);
+      pixel_color.set_g(static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f);
+      pixel_color.set_b(static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f);
+      pixel_color.set_a(
+        is_rgba ? static_cast<float>(static_cast<unsigned char>(data[idx + 3])) / 255.0f : 1.0f);
+
+      auto pose = gz::math::Pose3d(
+        light_pose.Pos().X(),
+        light_pose.Pos().Y() + x * step_width - marker_width / 2.0 + step_width / 2.0,
+        light_pose.Pos().Z() + y * step_height, light_pose.Rot().Roll(), light_pose.Rot().Pitch(),
+        light_pose.Rot().Yaw());
+      auto scale = gz::math::Vector3d(0.001, step_width, step_height);
+
+      CreateMarker(idx, pose, pixel_color, scale);
+    }
+  }
 }
 
 void LEDStrip::CreateMarker(
-  int id, double x, double y, double z, const ignition::msgs::Color & color, double scaleX,
-  double scaleY, double scaleZ)
+  int id, gz::math::Pose3d pose, const ignition::msgs::Color & color, gz::math::Vector3d scale)
 {
-  gz::msgs::Marker markerMsg;
-  markerMsg.set_action(gz::msgs::Marker::ADD_MODIFY);
-  markerMsg.set_ns(lightName);
-  markerMsg.set_id(id + 1);  // Markers with IDs 0 cannot be overwritten
+  gz::msgs::Marker marker_msg;
+  marker_msg.set_action(gz::msgs::Marker::ADD_MODIFY);
+  marker_msg.set_ns(light_name);
+  marker_msg.set_id(id + 1);  // Markers with IDs 0 cannot be overwritten
   if (ns.empty()) {
-    markerMsg.set_parent("panther");
+    marker_msg.set_parent("panther");
   } else {
-    markerMsg.set_parent(ns);
+    marker_msg.set_parent(ns);
   }
-  markerMsg.set_type(gz::msgs::Marker::BOX);
+  marker_msg.set_type(gz::msgs::Marker::BOX);
 
-  gz::msgs::Set(markerMsg.mutable_pose(), gz::math::Pose3d(x, y, z, 0, 0, 0));
-  gz::msgs::Set(markerMsg.mutable_scale(), gz::math::Vector3d(scaleX, scaleY, scaleZ));
+  gz::msgs::Set(marker_msg.mutable_pose(), pose);
+  gz::msgs::Set(marker_msg.mutable_scale(), scale);
 
-  markerMsg.mutable_material()->mutable_diffuse()->CopyFrom(color);
-  markerMsg.mutable_material()->mutable_ambient()->CopyFrom(color);
+  marker_msg.mutable_material()->mutable_diffuse()->CopyFrom(color);
+  marker_msg.mutable_material()->mutable_ambient()->CopyFrom(color);
 
   // Using Request to ensure markers are visible
-  transportNode.Request("/marker", markerMsg);
+  node.Request("/marker", marker_msg);
 }
 
 }  // namespace panther_gazebo

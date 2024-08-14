@@ -19,26 +19,14 @@
 #include <mutex>
 #include <vector>
 
-#include <chrono>
-#include <mutex>
-#include <vector>
-
-#include <gz/msgs/image.pb.h>
-#include <gz/msgs/marker.pb.h>
-#include <gz/common/Timer.hh>
 #include <gz/math/Color.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/EventManager.hh>
 #include <gz/sim/System.hh>
 #include <gz/sim/components/Light.hh>
-#include <gz/sim/components/LightCmd.hh>
-#include <gz/sim/components/Material.hh>
-#include <gz/sim/components/Name.hh>
-#include <gz/sim/components/Pose.hh>
-#include <gz/sim/components/Visual.hh>
-#include <gz/sim/rendering/Events.hh>
 #include <gz/transport/Node.hh>
-#include <sdf/Pbr.hh>
+#include <sdf/Element.hh>
+#include "gz/sim/components/Pose.hh"
 
 namespace panther_gazebo
 {
@@ -49,37 +37,35 @@ class LEDStrip : public gz::sim::System,
 {
 public:
   LEDStrip();
-  ~LEDStrip() final;
+  ~LEDStrip();
   void Configure(
-    const gz::sim::Entity & _id, const std::shared_ptr<const sdf::Element> & _sdf,
-    gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr) final;
-  void PreUpdate(
-    const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm) override;
+    const gz::sim::Entity & id, const std::shared_ptr<const sdf::Element> & sdf,
+    gz::sim::EntityComponentManager & ecm, gz::sim::EventManager & eventMgr);
+  void PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm);
 
 private:
   void ImageCallback(const gz::msgs::Image & msg);
+  ignition::msgs::Color CalculateMeanColor(const gz::msgs::Image & msg);
+  void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
+  void CreateMarker(
+    int id, gz::math::Pose3d pose, const ignition::msgs::Color & color, gz::math::Vector3d scale);
 
   // Parameters
-  std::string lightName;
+  std::string light_name;
   std::string ns = "";
   double frequency = 10.0;
-  double markerWidth = 1.0;
-  double markerHeight = 1.0;
+  double marker_width = 1.0;
+  double marker_height = 1.0;
 
-  gz::sim::Entity lightEntity{gz::sim::kNullEntity};
-  std::chrono::steady_clock::duration lastUpdateTime{0};
-  gz::transport::Node transportNode;
-  gz::transport::Node::Publisher markerPublisher;
-  gz::msgs::Light lightMsg;
+  gz::sim::Entity light_entity{gz::sim::kNullEntity};
+  std::chrono::steady_clock::duration last_update_time{0};
+  gz::transport::Node node;
+  gz::transport::Node::Publisher marker_publisher;
+  gz::msgs::Light light_msg;
 
-  gz::msgs::Image lastImage;
-  bool newImageAvailable{false};
-  std::mutex imageMutex;
-
-  ignition::msgs::Color CalculateMeanColor(const gz::msgs::Image & msg);
-  void CreateMarker(
-    int id, double x, double y, double z, const ignition::msgs::Color & color, double scaleX,
-    double scaleY, double scaleZ);
+  gz::msgs::Image last_image;
+  bool new_image_available{false};
+  std::mutex image_mutex;
 };
 
 }  // namespace panther_gazebo
