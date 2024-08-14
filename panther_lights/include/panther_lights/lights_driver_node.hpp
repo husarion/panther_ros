@@ -38,10 +38,10 @@ using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 /**
  * @brief Class for controlling APA102 LEDs based on a ROS Image topic.
  */
-class DriverNode : public rclcpp::Node
+class LightsDriverNode : public rclcpp::Node
 {
 public:
-  DriverNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+  LightsDriverNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
   int num_led_;

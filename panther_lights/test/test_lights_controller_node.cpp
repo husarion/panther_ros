@@ -29,30 +29,30 @@
 #include "panther_lights/lights_controller_node.hpp"
 #include "panther_utils/test/test_utils.hpp"
 
-class ControllerNodeWrapper : public panther_lights::ControllerNode
+class ControllerNodeWrapper : public panther_lights::LightsControllerNode
 {
 public:
-  ControllerNodeWrapper(const rclcpp::NodeOptions & options) : ControllerNode(options) {}
+  ControllerNodeWrapper(const rclcpp::NodeOptions & options) : LightsControllerNode(options) {}
 
   void InitializeLEDPanels(const YAML::Node & panels_description)
   {
-    return ControllerNode::InitializeLEDPanels(panels_description);
+    return LightsControllerNode::InitializeLEDPanels(panels_description);
   }
 
   void InitializeLEDSegments(const YAML::Node & segments_description, const float controller_freq)
   {
-    return ControllerNode::InitializeLEDSegments(segments_description, controller_freq);
+    return LightsControllerNode::InitializeLEDSegments(segments_description, controller_freq);
   }
 
   void LoadAnimation(const YAML::Node & animation_description)
   {
-    return ControllerNode::LoadAnimation(animation_description);
+    return LightsControllerNode::LoadAnimation(animation_description);
   }
 
   void AddAnimationToQueue(
     const std::size_t animation_id, const bool repeating, const std::string & param = "")
   {
-    return ControllerNode::AddAnimationToQueue(animation_id, repeating, param);
+    return LightsControllerNode::AddAnimationToQueue(animation_id, repeating, param);
   }
 
   std::shared_ptr<panther_lights::LEDAnimationsQueue> GetQueue() { return this->animations_queue_; }
@@ -80,7 +80,7 @@ protected:
   static constexpr char kTestSegmentLedRange[] = "0-9";
 
   std::filesystem::path led_config_file_;
-  std::shared_ptr<ControllerNodeWrapper> controller_node_;
+  std::shared_ptr<ControllerNodeWrapper> lights_controller_node_;
   rclcpp::Client<panther_msgs::srv::SetLEDAnimation>::SharedPtr set_led_anim_client_;
 };
 
@@ -96,10 +96,10 @@ TestControllerNode::TestControllerNode()
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
 
-  controller_node_ = std::make_shared<ControllerNodeWrapper>(options);
+  lights_controller_node_ = std::make_shared<ControllerNodeWrapper>(options);
 
-  set_led_anim_client_ =
-    controller_node_->create_client<panther_msgs::srv::SetLEDAnimation>("lights/set_animation");
+  set_led_anim_client_ = lights_controller_node_->create_client<panther_msgs::srv::SetLEDAnimation>(
+    "lights/set_animation");
 }
 
 TestControllerNode::~TestControllerNode() { std::filesystem::remove(led_config_file_); }
@@ -168,7 +168,7 @@ void TestControllerNode::CallSetLEDAnimationSrv(
   auto result = set_led_anim_client_->async_send_request(request);
 
   ASSERT_TRUE(
-    rclcpp::spin_until_future_complete(controller_node_, result) ==
+    rclcpp::spin_until_future_complete(lights_controller_node_, result) ==
     rclcpp::FutureReturnCode::SUCCESS);
   EXPECT_TRUE(result.get()->success);
 }
@@ -191,7 +191,7 @@ TEST_F(TestControllerNode, InitializeLEDPanelsThrowRepeatingChannel)
   panels_desc["panels"] = panels;
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { controller_node_->InitializeLEDPanels(panels_desc["panels"]); },
+    [&]() { lights_controller_node_->InitializeLEDPanels(panels_desc["panels"]); },
     "Multiple panels with channel nr"));
 }
 
@@ -215,7 +215,7 @@ TEST_F(TestControllerNode, InitializeLEDSegmentsThrowRepeatingName)
   segments_desc["segments"] = segments;
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { controller_node_->InitializeLEDSegments(segments_desc["segments"], 50.0); },
+    [&]() { lights_controller_node_->InitializeLEDSegments(segments_desc["segments"], 50.0); },
     "Multiple segments with given name found"));
 }
 
@@ -226,13 +226,13 @@ TEST_F(TestControllerNode, LoadAnimationInvalidPriority)
   led_animation_desc["priority"] = 0;
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { controller_node_->LoadAnimation(led_animation_desc); },
+    [&]() { lights_controller_node_->LoadAnimation(led_animation_desc); },
     "Invalid LED animation priority"));
 
   led_animation_desc["priority"] = 4;
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { controller_node_->LoadAnimation(led_animation_desc); },
+    [&]() { lights_controller_node_->LoadAnimation(led_animation_desc); },
     "Invalid LED animation priority"));
 }
 
@@ -242,24 +242,24 @@ TEST_F(TestControllerNode, LoadAnimationThrowRepeatingID)
   led_animation_desc["id"] = 11;
   led_animation_desc["animations"] = std::vector<YAML::Node>();
 
-  ASSERT_NO_THROW(controller_node_->LoadAnimation(led_animation_desc));
+  ASSERT_NO_THROW(lights_controller_node_->LoadAnimation(led_animation_desc));
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { controller_node_->LoadAnimation(led_animation_desc); },
+    [&]() { lights_controller_node_->LoadAnimation(led_animation_desc); },
     "Animation with given ID already exists"));
 }
 
 TEST_F(TestControllerNode, AddAnimationToQueueThrowBadAnimationID)
 {
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
-    [&]() { controller_node_->AddAnimationToQueue(99, false); }, "No animation with ID:"));
+    [&]() { lights_controller_node_->AddAnimationToQueue(99, false); }, "No animation with ID:"));
 }
 
 TEST_F(TestControllerNode, AddAnimationToQueue)
 {
-  auto queue = controller_node_->GetQueue();
+  auto queue = lights_controller_node_->GetQueue();
   EXPECT_TRUE(queue->Empty());
-  EXPECT_NO_THROW(controller_node_->AddAnimationToQueue(0, false));
+  EXPECT_NO_THROW(lights_controller_node_->AddAnimationToQueue(0, false));
   EXPECT_FALSE(queue->Empty());
 }
 
@@ -268,17 +268,17 @@ TEST_F(TestControllerNode, CallSelLEDAnimationService)
   this->CallSetLEDAnimationSrv(0, false);
 
   // spin to invoke timer
-  auto anim = controller_node_->GetCurrentAnimation();
+  auto anim = lights_controller_node_->GetCurrentAnimation();
   while (!anim) {
-    rclcpp::spin_some(controller_node_->get_node_base_interface());
+    rclcpp::spin_some(lights_controller_node_->get_node_base_interface());
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    anim = controller_node_->GetCurrentAnimation();
+    anim = lights_controller_node_->GetCurrentAnimation();
   }
 
   EXPECT_STREQ("ANIMATION_0", anim->GetName().c_str());
 
   // add another animation to queue
-  auto queue = controller_node_->GetQueue();
+  auto queue = lights_controller_node_->GetQueue();
   EXPECT_TRUE(queue->Empty());
 
   this->CallSetLEDAnimationSrv(0, false);
@@ -291,22 +291,22 @@ TEST_F(TestControllerNode, CallSelLEDAnimationServicePriorityInterrupt)
   this->CallSetLEDAnimationSrv(0, false);
 
   // spin to invoke timer
-  auto anim = controller_node_->GetCurrentAnimation();
+  auto anim = lights_controller_node_->GetCurrentAnimation();
   while (!anim) {
-    rclcpp::spin_some(controller_node_->get_node_base_interface());
+    rclcpp::spin_some(lights_controller_node_->get_node_base_interface());
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    anim = controller_node_->GetCurrentAnimation();
+    anim = lights_controller_node_->GetCurrentAnimation();
   }
 
   // add animation with higher priority spin to give time for controller to overwrite current
   // animation then check if animation has changed
   this->CallSetLEDAnimationSrv(1, false);
   for (int i = 0; i < 10; i++) {
-    rclcpp::spin_some(controller_node_->get_node_base_interface());
+    rclcpp::spin_some(lights_controller_node_->get_node_base_interface());
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  anim = controller_node_->GetCurrentAnimation();
+  anim = lights_controller_node_->GetCurrentAnimation();
   EXPECT_STREQ("ANIMATION_1", anim->GetName().c_str());
 }
 
