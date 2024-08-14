@@ -43,7 +43,7 @@ SystemMonitorNode::SystemMonitorNode(const std::string & node_name)
   system_status_publisher_ = this->create_publisher<panther_msgs::msg::SystemStatus>(
     "system_status", 10);
 
-  auto timer_interval_ms = static_cast<long long>(1000.0 / params_.publish_frequency);
+  const auto timer_interval_ms = static_cast<long long>(1000.0 / params_.publish_frequency);
 
   timer_ = this->create_wall_timer(
     std::chrono::milliseconds(timer_interval_ms),
