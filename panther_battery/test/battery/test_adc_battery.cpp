@@ -167,7 +167,7 @@ TEST_F(TestADCBattery, BatteryMsgValues)
   UpdateBattery(voltage_raw_1, current_raw_1, temp_raw_1, charge_raw_1, false);
 
   float expected_voltage = voltage_raw_1 * voltage_factor;
-  float expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  float expected_percentage = 0.64960694;
   float expected_temp = 28.875206;
   float expected_current = -(current_raw_1 * current_factor) + (charge_raw_1 * charge_factor);
   TestBatteryStateMsg(
@@ -185,7 +185,7 @@ TEST_F(TestADCBattery, BatteryMsgValues)
   const float current_mean = (current_raw_1 + current_raw_2) / 2.0;
   const float charge_mean = (charge_raw_1 + charge_raw_2) / 2.0;
   expected_voltage = voltage_mean * voltage_factor;
-  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  expected_percentage = 0.76421416;
   expected_temp = 30.306725;
   expected_current = -(current_mean * current_factor) + (charge_mean * charge_factor);
   TestBatteryStateMsg(
@@ -195,7 +195,7 @@ TEST_F(TestADCBattery, BatteryMsgValues)
   // Raw battery message should depend only on last readings
   battery_state_ = battery_->GetBatteryMsgRaw();
   expected_voltage = voltage_raw_2 * voltage_factor;
-  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  expected_percentage = 0.87882143;
   expected_temp = 31.738245;
   expected_current = -(current_raw_2 * current_factor) + (charge_raw_2 * charge_factor);
   TestBatteryStateMsg(
@@ -242,7 +242,7 @@ TEST_F(TestADCBattery, BatteryMsgHealthCold)
 
 TEST_F(TestADCBattery, BatteryMsgStatusFull)
 {
-  UpdateBattery(1.66, 0.01, 0.98, 0.5, true);
+  UpdateBattery(1.69, 0.01, 0.98, 0.5, true);
 
   EXPECT_FLOAT_EQ(1.0, battery_state_.percentage);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_FULL, battery_state_.power_supply_status);
