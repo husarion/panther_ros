@@ -73,7 +73,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " 'panther_controller/config/{wheel_type}_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
     )
@@ -93,7 +93,7 @@ def generate_launch_description():
             "Whether to launch the robot_state_publisher node."
             "When set to False, users should publish their own robot description."
         ),
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     wheel_config_path = LaunchConfiguration("wheel_config_path")
@@ -101,7 +101,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     declare_wheel_config_path_arg = DeclareLaunchArgument(
@@ -115,7 +115,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "'panther_description/config/{wheel_type}.yaml'. You can also specify the path "
             "to your custom wheel configuration file here. "
         ),
     )
@@ -155,18 +155,10 @@ def generate_launch_description():
             controller_config_path,
             " battery_config_file:=",
             battery_config_path,
-            " imu_pos_x:=",
-            os.environ.get("PANTHER_IMU_LOCALIZATION_X", "0.168"),
-            " imu_pos_y:=",
-            os.environ.get("PANTHER_IMU_LOCALIZATION_Y", "0.028"),
-            " imu_pos_z:=",
-            os.environ.get("PANTHER_IMU_LOCALIZATION_Z", "0.083"),
-            " imu_rot_r:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_R", "3.14"),
-            " imu_rot_p:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_P", "-1.57"),
-            " imu_rot_y:=",
-            os.environ.get("PANTHER_IMU_ORIENTATION_Y", "0.0"),
+            " imu_xyz:=",
+            f"\"{os.environ.get('PANTHER_IMU_LOCALIZATION_X', '0.168')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Y', '0.028')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Z', '0.083')}\"",
+            " imu_rpy:=",
+            f"\"{os.environ.get('PANTHER_IMU_ORIENTATION_R', '3.14')} {os.environ.get('PANTHER_IMU_ORIENTATION_P', '-1.57')} {os.environ.get('PANTHER_IMU_ORIENTATION_Y', '0.0')}\"",
             " namespace:=",
             namespace,
             " components_config_path:=",
@@ -182,21 +174,26 @@ def generate_launch_description():
         namespace=namespace,
         remappings=[
             ("/diagnostics", "diagnostics"),
+            ("drive_controller/cmd_vel_unstamped", "cmd_vel"),
+            ("drive_controller/odom", "odometry/wheels"),
+            ("drive_controller/transition_event", "_drive_controller/transition_event"),
+            ("hardware_controller/aux_power_enable", "hardware/aux_power_enable"),
+            ("hardware_controller/charger_enable", "hardware/charger_enable"),
+            ("hardware_controller/digital_power_enable", "hardware/digital_power_enable"),
+            ("hardware_controller/e_stop_reset", "hardware/e_stop_reset"),
+            ("hardware_controller/e_stop_trigger", "hardware/e_stop_trigger"),
+            ("hardware_controller/e_stop", "hardware/e_stop"),
+            ("hardware_controller/fan_enable", "hardware/fan_enable"),
+            ("hardware_controller/io_state", "hardware/io_state"),
+            ("hardware_controller/led_control_enable", "hardware/led_control_enable"),
+            ("hardware_controller/motor_controllers_state", "hardware/motor_controllers_state"),
+            ("hardware_controller/motor_power_enable", "hardware/motor_power_enable"),
+            ("imu_broadcaster/imu", "imu/data"),
+            ("imu_broadcaster/transition_event", "_imu_broadcaster/transition_event"),
             (
-                "panther_system_node/driver/motor_controllers_state",
-                "driver/motor_controllers_state",
+                "joint_state_broadcaster/transition_event",
+                "_joint_state_broadcaster/transition_event",
             ),
-            ("panther_base_controller/cmd_vel_unstamped", "cmd_vel"),
-            ("panther_base_controller/odom", "odom/wheels"),
-            ("panther_system_node/io_state", "hardware/io_state"),
-            ("panther_system_node/e_stop", "hardware/e_stop"),
-            ("panther_system_node/e_stop_trigger", "hardware/e_stop_trigger"),
-            ("panther_system_node/e_stop_reset", "hardware/e_stop_reset"),
-            ("panther_system_node/fan_enable", "hardware/fan_enable"),
-            ("panther_system_node/aux_power_enable", "hardware/aux_power_enable"),
-            ("panther_system_node/charger_enable", "hardware/charger_enable"),
-            ("panther_system_node/digital_power_enable", "hardware/digital_power_enable"),
-            ("panther_system_node/motor_power_enable", "hardware/motor_power_enable"),
         ],
         condition=UnlessCondition(use_sim),
         emulate_tty=True,
@@ -213,11 +210,11 @@ def generate_launch_description():
         condition=IfCondition(publish_robot_state),
     )
 
-    robot_controller_spawner = Node(
+    drive_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "panther_base_controller",
+            "drive_controller",
             "--controller-manager",
             "controller_manager",
             "--controller-manager-timeout",
@@ -246,10 +243,10 @@ def generate_launch_description():
     )
 
     # Delay start of robot_controller after joint_state_broadcaster
-    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    delay_drive_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[robot_controller_spawner],
+            on_exit=[drive_controller_spawner],
         )
     )
 
@@ -271,9 +268,9 @@ def generate_launch_description():
 
     # Delay start of imu_broadcaster after robot_controller
     # when spawning without delay ros2_control_node sometimes crashed
-    delay_imu_broadcaster_spawner_after_robot_controller_spawner = RegisterEventHandler(
+    delay_imu_broadcaster_spawner_after_drive_controller_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=robot_controller_spawner,
+            target_action=drive_controller_spawner,
             on_exit=[imu_broadcaster_spawner],
         ),
     )
@@ -291,8 +288,8 @@ def generate_launch_description():
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_imu_broadcaster_spawner_after_robot_controller_spawner,
+        delay_drive_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_imu_broadcaster_spawner_after_drive_controller_spawner,
     ]
 
     return LaunchDescription(actions)

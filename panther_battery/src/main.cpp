@@ -18,21 +18,21 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_battery/battery_node.hpp"
+#include "panther_battery/battery_driver_node.hpp"
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto battery_node = std::make_shared<panther_battery::BatteryNode>("battery_node");
+  auto battery_driver_node = std::make_shared<panther_battery::BatteryDriverNode>("battery_driver");
 
   try {
-    rclcpp::spin(battery_node);
+    rclcpp::spin(battery_driver_node);
   } catch (const std::runtime_error & e) {
-    std::cerr << "[battery_node] Caught exception: " << e.what() << std::endl;
+    std::cerr << "[battery_driver] Caught exception: " << e.what() << std::endl;
   }
 
-  std::cout << "[battery_node] Shutting down" << std::endl;
+  std::cout << "[battery_driver] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

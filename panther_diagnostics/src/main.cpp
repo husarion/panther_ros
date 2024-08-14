@@ -19,24 +19,24 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "panther_diagnostics/filesystem.hpp"
-#include "panther_diagnostics/system_status_node.hpp"
+#include "panther_diagnostics/system_monitor_node.hpp"
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
   auto filesystem = std::make_shared<panther_diagnostics::Filesystem>();
-  auto system_status_node = std::make_shared<panther_diagnostics::SystemStatusNode>(
-    "system_status_node", filesystem);
+  auto system_monitor_node = std::make_shared<panther_diagnostics::SystemMonitorNode>(
+    "system_monitor", filesystem);
 
   try {
-    rclcpp::spin(system_status_node);
+    rclcpp::spin(system_monitor_node);
   } catch (const std::runtime_error & e) {
-    std::cerr << "[" << system_status_node->get_name() << "] Caught exception: " << e.what()
+    std::cerr << "[" << system_monitor_node->get_name() << "] Caught exception: " << e.what()
               << std::endl;
   }
 
-  std::cout << "[" << system_status_node->get_name() << "] Shutting down" << std::endl;
+  std::cout << "[" << system_monitor_node->get_name() << "] Shutting down" << std::endl;
   rclcpp::shutdown();
   return 0;
 }

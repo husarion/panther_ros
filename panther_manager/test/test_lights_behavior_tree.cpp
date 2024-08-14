@@ -31,8 +31,8 @@
 #include "panther_msgs/msg/led_animation.hpp"
 #include "panther_msgs/srv/set_led_animation.hpp"
 
-#include <include/behavior_tree_test_utils.hpp>
 #include <panther_manager/lights_manager_node.hpp>
+#include <utils/behavior_tree_test_utils.hpp>
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
@@ -93,15 +93,14 @@ TestLightsBehaviorTree::TestLightsBehaviorTree()
   rclcpp::NodeOptions options;
   options.parameter_overrides(CreateTestParameters());
 
-  lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>(
-    "test_lights_manager_node", options);
+  lights_manager_node_ = std::make_shared<LightsManagerNodeWrapper>("test_lights_manager", options);
 
   e_stop_pub_ = lights_manager_node_->create_publisher<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  battery_state_pub_ = lights_manager_node_->create_publisher<BatteryStateMsg>("battery", 3);
+  battery_state_pub_ = lights_manager_node_->create_publisher<BatteryStateMsg>(
+    "battery/battery_status", 3);
   set_led_animation_server_ = lights_manager_node_->create_service<SetLEDAnimationSrv>(
-    "lights/controller/set/animation",
-    std::bind(&TestLightsBehaviorTree::SetLEDAnimationCB, this, _1, _2));
+    "lights/set_animation", std::bind(&TestLightsBehaviorTree::SetLEDAnimationCB, this, _1, _2));
 
   lights_manager_node_->Initialize();
 }

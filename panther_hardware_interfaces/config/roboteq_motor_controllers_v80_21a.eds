@@ -588,7 +588,7 @@ DataType=0x0006
 LowLimit=
 HighLimit=
 AccessType=rw
-DefaultValue=0
+DefaultValue=100
 PDOMapping=0
 ObjFlags=0x0
 

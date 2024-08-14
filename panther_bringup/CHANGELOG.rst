@@ -2,6 +2,26 @@
 Changelog for package panther_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Update panther_bringup/README.md
+* Enhance ROS API names in the stack
+* Contributors: Dawid Kmak, Paweł Irzyk, pawelirh
+
+2.0.4 (2024-06-28)
+------------------
+* Add EKF GPS configuration (`#351 <https://github.com/husarion/panther_ros/issues/351>`_)
+* Suggestions and pre-commit update
+* Add manager
+* Merge branch 'ros2-devel' into ros2-gz-lights
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
+* Merge branch 'ros2' into ros2-build-in-animation
+* Merge branch 'ros2' into ros2-gz-lights
+* Steering lights from channel topics
+* Working light changing from ros
+* Contributors: pawelirh, rafal-gorecki
+
 2.0.3 (2024-06-06)
 ------------------
 

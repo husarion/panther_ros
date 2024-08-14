@@ -2,6 +2,44 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Merge pull request `#375 <https://github.com/husarion/panther_ros/issues/375>`_ from husarion/hotfix-handle-can-timeout
+* Decrease throttle interval on update
+* Rename CAN communication errors
+* Add heartbeat on CAN
+* Ros2 system status tf namespace (`#372 <https://github.com/husarion/panther_ros/issues/372>`_)
+* configure heartbeat
+* Merge pull request `#371 <https://github.com/husarion/panther_ros/issues/371>`_ from husarion/bugfix-imu-orientation
+* FIx timestamp calculation and implement some minor changes
+* Merge pull request `#362 <https://github.com/husarion/panther_ros/issues/362>`_ from husarion/ros2-api-reorganization
+* Minor readme updates
+* Enhance ROS API names in the stack
+* Add devices symlink (`#347 <https://github.com/husarion/panther_ros/issues/347>`_)
+* Contributors: Dawid, Dawid Kmak, Jakub Delicat, pawelirh
+
+2.0.4 (2024-06-28)
+------------------
+* Merge pull request `#337 <https://github.com/husarion/panther_ros/issues/337>`_ from husarion/ros2-gz-lights
+* ROS 2 e-stop fixes (`#348 <https://github.com/husarion/panther_ros/issues/348>`_)
+* Merge pull request `#343 <https://github.com/husarion/panther_ros/issues/343>`_ from husarion/ros2-gpio-controller-revision
+* Add publishing led_control io state
+* Minor changes based on PR review
+* Suggestions and pre-commit update
+* Add img encoding check
+* Update panther_hardware_interfaces/CODE_STRUCTURE.md
+* Merge branch 'ros2-devel' into ros2-gz-lights
+* Update GPIO controller tests
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
+* Merge branch 'ros2' into ros2-build-in-animation
+* Update documentation panther_lights and panther_hardware_interfaces
+* Add LED service in panther_system
+* Fix test compiling
+* Replace namespace
+* Move gpio_driver to panther_hardware_interfaces
+* Merge branch 'ros2' into ros2-gz-lights
+* Contributors: Dawid Kmak, Paweł Irzyk, pawelirh, rafal-gorecki
+
 2.0.3 (2024-06-06)
 ------------------
 * Merge pull request `#320 <https://github.com/husarion/panther_ros/issues/320>`_ from husarion/ros2-clear-logs

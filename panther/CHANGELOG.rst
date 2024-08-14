@@ -2,6 +2,27 @@
 Changelog for package panther
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2024-08-02)
+------------------
+* Merge pull request `#375 <https://github.com/husarion/panther_ros/issues/375>`_ from husarion/hotfix-handle-can-timeout
+* Update panther_msgs version
+* Update repos version
+* Ubdate-vcs (`#368 <https://github.com/husarion/panther_ros/issues/368>`_)
+* Contributors: Dawid Kmak, pawelirh, rafal-gorecki
+
+2.0.4 (2024-06-28)
+------------------
+* hotfix-allow-unshallow-copy
+* Ros2 battery charger topic (`#353 <https://github.com/husarion/panther_ros/issues/353>`_)
+* Update vcs (`#354 <https://github.com/husarion/panther_ros/issues/354>`_)
+* Merge pull request `#352 <https://github.com/husarion/panther_ros/issues/352>`_ from husarion/ros2_update_msgs
+* Updated msgs
+* Merge branch 'ros2-devel' into ros2-gz-lights
+* Merge remote-tracking branch 'origin/ros2-devel' into ros2-gpio-controller-revision
+* Merge branch 'ros2' into ros2-build-in-animation
+* Merge branch 'ros2' into ros2-gz-lights
+* Contributors: Dawid Kmak, Jakub Delicat, Paweł Irzyk, pawelirh, rafal-gorecki
+
 2.0.3 (2024-06-06)
 ------------------
 

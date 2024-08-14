@@ -17,12 +17,14 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown
+from launch.conditions import UnlessCondition
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-from launch_ros.actions import Node
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -43,6 +45,13 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used",
+    )
+
     user_led_animations_file = LaunchConfiguration("user_led_animations_file")
     declare_user_led_animations_file_arg = DeclareLaunchArgument(
         "user_led_animations_file",
@@ -50,25 +59,37 @@ def generate_launch_description():
         description="Path to a YAML file with a description of the user defined animations.",
     )
 
-    lights_driver_node = Node(
-        package="panther_lights",
-        executable="driver_node",
-        name="lights_driver_node",
+    lights_container = ComposableNodeContainer(
+        package="rclcpp_components",
+        name="lights_container",
         namespace=namespace,
-        remappings=[("/diagnostics", "diagnostics")],
-        emulate_tty=True,
-        on_exit=Shutdown(),
-    )
-
-    lights_controller_node = Node(
-        package="panther_lights",
-        executable="controller_node",
-        name="lights_controller_node",
-        parameters=[
-            {"led_config_file": led_config_file},
-            {"user_led_animations_file": user_led_animations_file},
+        executable="component_container",
+        composable_node_descriptions=[
+            ComposableNode(
+                package="panther_lights",
+                plugin="panther_lights::LightsDriverNode",
+                name="lights_driver",
+                namespace=namespace,
+                remappings=[("/diagnostics", "diagnostics")],
+                extra_arguments=[
+                    {"use_intra_process_comms": True},
+                ],
+                condition=UnlessCondition(use_sim),
+            ),
+            ComposableNode(
+                package="panther_lights",
+                plugin="panther_lights::LightsControllerNode",
+                name="lights_controller",
+                namespace=namespace,
+                parameters=[
+                    {"led_config_file": led_config_file},
+                    {"user_led_animations_file": user_led_animations_file},
+                ],
+                extra_arguments=[
+                    {"use_intra_process_comms": True},
+                ],
+            ),
         ],
-        namespace=namespace,
         emulate_tty=True,
         on_exit=Shutdown(),
     )
@@ -76,9 +97,9 @@ def generate_launch_description():
     actions = [
         declare_led_config_file_arg,
         declare_namespace_arg,
+        declare_use_sim_arg,
         declare_user_led_animations_file_arg,
-        lights_driver_node,
-        lights_controller_node,
+        lights_container,
     ]
 
     return LaunchDescription(actions)

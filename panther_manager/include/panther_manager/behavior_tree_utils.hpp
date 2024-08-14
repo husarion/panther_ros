@@ -57,18 +57,16 @@ inline void RegisterBehaviorTree(
  * @param bt_project_path The path to the BehaviorTree project file.
  * @param plugin_libs A vector containing the names of the nodes that will be registered from
  * plugins.
- * @param node The ROS node used with ROS plugins.
+ * @param params The ROS-related parameters to register nodes.
  * @param ros_plugin_libs A vector containing the names of the ROS nodes that will be registered
  * from plugins.
  */
 inline void RegisterBehaviorTree(
   BT::BehaviorTreeFactory & factory, const std::string & bt_project_path,
-  const std::vector<std::string> plugin_libs, const rclcpp::Node::SharedPtr & node,
+  const std::vector<std::string> plugin_libs, const BT::RosNodeParams & params,
   const std::vector<std::string> ros_plugin_libs)
 {
   for (const auto & plugin : ros_plugin_libs) {
-    BT::RosNodeParams params;
-    params.nh = node;
     RegisterRosNode(factory, BT::SharedLibrary::getOSName(plugin), params);
   }
 
