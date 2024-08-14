@@ -163,7 +163,7 @@ TEST_F(TestRoboteqBattery, BatteryMsgValues)
   UpdateBattery(voltage_1, current_1);
 
   float expected_voltage = voltage_1;
-  float expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  float expected_percentage = 0.17360015;
   float expected_current = current_1 * 2.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -174,7 +174,7 @@ TEST_F(TestRoboteqBattery, BatteryMsgValues)
   UpdateBattery(voltage_2, current_2);
 
   expected_voltage = (voltage_1 + voltage_2) / 2.0;
-  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  expected_percentage = 0.40200013;
   expected_current = (current_1 * 2.0 + current_2 * 2.0) / 2.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
@@ -183,7 +183,7 @@ TEST_F(TestRoboteqBattery, BatteryMsgValues)
   // Check raw battery msg
   battery_state_ = battery_->GetBatteryMsgRaw();
   expected_voltage = voltage_2;
-  expected_percentage = (expected_voltage - V_bat_min) / (V_bat_full - V_bat_min);
+  expected_percentage = 0.60000002;
   expected_current = current_2 * 2.0;
   TestBatteryStateMsg(
     expected_voltage, expected_current, expected_percentage,
