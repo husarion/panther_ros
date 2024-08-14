@@ -96,6 +96,8 @@ install(DIRECTORY behavior_trees config launch
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBSSH REQUIRED libssh)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_call_set_bool_service_node
