@@ -16,8 +16,6 @@
 
 #include <chrono>
 #include <exception>
-#include <filesystem>
-#include <fstream>
 
 #include <cppuprofile/uprofile.h>
 
@@ -74,8 +72,8 @@ SystemStatus SystemMonitorNode::GetSystemStatus() const
 
   status.core_usages = GetCoresUsages();
   status.cpu_mean_usage = GetCPUMeanUsage(status.core_usages);
-  status.cpu_temperature = GetCPUTemperature(kTemperatureInfoFilename);
-  status.memory_usage = GetMemoryUsage();
+  status.cpu_temperature = GetCPUTemperature();
+  status.memory_usage = GetRAMUsage();
   status.disk_usage = GetDiskUsage();
 
   return status;
@@ -84,44 +82,66 @@ SystemStatus SystemMonitorNode::GetSystemStatus() const
 std::vector<float> SystemMonitorNode::GetCoresUsages() const
 {
   std::vector<float> loads = uprofile::getInstantCpuUsage();
+
   return loads;
 }
 
 float SystemMonitorNode::GetCPUMeanUsage(const std::vector<float> & usages) const
 {
+  if (usages.empty()) {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  std::for_each(usages.begin(), usages.end(), [](const float & usage) {
+    if (usage < 0.0 || usage > 100.0) {
+      throw std::invalid_argument{
+        "At least one CPU core exceeds the valid usage range [0.0, 100.0]."};
+    };
+  });
+
   auto sum = std::accumulate(usages.begin(), usages.end(), 0.0);
-  return sum / usages.size();
+  auto mean_usage = sum / usages.size();
+
+  return mean_usage;
 }
 
-float SystemMonitorNode::GetCPUTemperature(const std::string & filename) const
+float SystemMonitorNode::GetCPUTemperature() const
 {
+  float temperature = std::numeric_limits<float>::quiet_NaN();
+
   try {
-    auto file = panther_utils::common_utilities::OpenFile(filename, std::ios_base::in);
-    float temperature;
-    file >> temperature;
-    file.close();
-    return temperature / 1000.0;
-  } catch (const std::runtime_error & e) {
+    const auto temperature_str = filesystem_->ReadFile(kTemperatureInfoFilename);
+    temperature = std::stof(temperature_str) / 1000.0;
+  } catch (const std::exception & e) {
     RCLCPP_ERROR_STREAM(
       this->get_logger(), "An exception occurred while reading CPU temperature: " << e.what());
   }
-  return std::numeric_limits<float>::quiet_NaN();
+
+  return temperature;
 }
 
-float SystemMonitorNode::GetMemoryUsage() const
+float SystemMonitorNode::GetRAMUsage() const
 {
   int total = 0, free = 0, available = 0;
   uprofile::getSystemMemory(total, free, available);
-  return static_cast<float>(total - available) / total * 100.0;
+
+  const auto ram_usage = static_cast<float>(total - available) / total * 100.0;
+
+  return ram_usage;
 }
 
 float SystemMonitorNode::GetDiskUsage() const
 {
-  const std::filesystem::directory_entry entry("/");
-  const auto space_info = filesystem_->GetSpaceInfo(entry.path());
+  float disk_usage = std::numeric_limits<float>::quiet_NaN();
 
-  const auto disk_usage = static_cast<float>(space_info.capacity - space_info.available) /
-                          space_info.capacity * 100.0;
+  try {
+    const auto capacity = filesystem_->GetSpaceCapacity(kRootDirectory);
+    const auto free = filesystem_->GetSpaceFree(kRootDirectory);
+    disk_usage = static_cast<float>(capacity - free) / capacity * 100.0;
+  } catch (const std::exception & e) {
+    RCLCPP_ERROR_STREAM(
+      this->get_logger(), "An exception occurred while reading disk usage: " << e.what());
+  }
 
   return disk_usage;
 }
@@ -134,6 +154,7 @@ panther_msgs::msg::SystemStatus SystemMonitorNode::SystemStatusToMessage(
   message.header.stamp = this->get_clock()->now();
   message.header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
     params_.frame_id, std::string(this->get_namespace()));
+
   message.cpu_percent = status.core_usages;
   message.avg_load_percent = status.cpu_mean_usage;
   message.cpu_temp = status.cpu_temperature;

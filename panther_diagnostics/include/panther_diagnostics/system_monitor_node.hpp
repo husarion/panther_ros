@@ -38,14 +38,29 @@ public:
   SystemMonitorNode(const std::string & node_name, FilesystemInterface::SharedPtr filesystem);
 
 protected:
+  /**
+   * @brief Retrieves the system parameters and generate system status object describing the current
+   * system state.
+   *
+   * @return The system status.
+   */
   SystemStatus GetSystemStatus() const;
 
   std::vector<float> GetCoresUsages() const;
   float GetCPUMeanUsage(const std::vector<float> & usages) const;
-  float GetCPUTemperature(const std::string & filename) const;
-  float GetMemoryUsage() const;
+  float GetCPUTemperature() const;
+  float GetRAMUsage() const;
   float GetDiskUsage() const;
 
+  /**
+   * @brief Converts a SystemStatus object to a SystemStatus message.
+   *
+   * This function takes a SystemStatus object and converts it into a SystemStatus message.
+   * The resulting message can be used to publish the system status over a ROS topic.
+   *
+   * @param status The SystemStatus object to be converted.
+   * @return The converted SystemStatus message.
+   */
   panther_msgs::msg::SystemStatus SystemStatusToMessage(const SystemStatus & status);
 
 private:
@@ -62,6 +77,7 @@ private:
   std::shared_ptr<system_monitor::ParamListener> param_listener_;
 
   static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
+  static constexpr char kRootDirectory[] = "/";
 };
 }  // namespace panther_diagnostics
 #endif  // PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_

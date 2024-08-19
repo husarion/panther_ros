@@ -27,8 +27,11 @@ class MockFilesystem : public panther_diagnostics::FilesystemInterface
 {
 public:
   MOCK_METHOD(
-    std::filesystem::space_info, GetSpaceInfo, (const std::filesystem::path & path),
-    (const, override));
+    uintmax_t, GetSpaceCapacity, (const std::string & filesystem_path), (const, override));
+
+  MOCK_METHOD(uintmax_t, GetSpaceFree, (const std::string & filesystem_path), (const, override));
+
+  MOCK_METHOD(std::string, ReadFile, (const std::string & file_path), (const, override));
 };
 
 class SystemMonitorNodeWrapper : public panther_diagnostics::SystemMonitorNode
@@ -49,12 +52,12 @@ public:
     return panther_diagnostics::SystemMonitorNode::GetCPUMeanUsage(usages);
   }
 
-  float GetCPUTemperature(const std::string & filename) const
+  float GetCPUTemperature() const
   {
-    return panther_diagnostics::SystemMonitorNode::GetCPUTemperature(filename);
+    return panther_diagnostics::SystemMonitorNode::GetCPUTemperature();
   }
 
-  float GetMemoryUsage() const { return panther_diagnostics::SystemMonitorNode::GetMemoryUsage(); }
+  float GetRAMUsage() const { return panther_diagnostics::SystemMonitorNode::GetRAMUsage(); }
 
   float GetDiskUsage() const { return panther_diagnostics::SystemMonitorNode::GetDiskUsage(); }
 
@@ -82,86 +85,104 @@ TestSystemMonitorNode::TestSystemMonitorNode()
   system_monitor_ = std::make_unique<SystemMonitorNodeWrapper>(filesystem_);
 }
 
-TEST_F(TestSystemMonitorNode, CheckCoresUsages)
+TEST_F(TestSystemMonitorNode, GetCPUMeanUsageCorrectInput)
 {
-  const auto usages = system_monitor_->GetCoresUsages();
+  const std::vector<float> test_usages = {100.0, 0.0, 45.0, 55.0};
+  const auto expected_mean_usage = 50.0;
 
-  for (const auto & usage : usages) {
-    EXPECT_TRUE((usage >= 0.0) && (usage <= 100.0));
-  }
+  const auto mean_usage = system_monitor_->GetCPUMeanUsage(test_usages);
+  EXPECT_FLOAT_EQ(expected_mean_usage, mean_usage);
 }
 
-TEST_F(TestSystemMonitorNode, CheckCPUMeanUsage)
+TEST_F(TestSystemMonitorNode, GetCPUMeanUsageEmptyInput)
 {
-  std::vector<float> usages = {45.0, 55.0, 45.0, 55.0};
+  const std::vector<float> test_usages = {};
 
-  const auto mean = system_monitor_->GetCPUMeanUsage(usages);
-  EXPECT_FLOAT_EQ(mean, 50.0);
+  const auto mean_usage = system_monitor_->GetCPUMeanUsage(test_usages);
+  EXPECT_TRUE(std::isnan(mean_usage));
 }
 
-TEST_F(TestSystemMonitorNode, CheckTemperatureReadings)
+TEST_F(TestSystemMonitorNode, GetCPUMeanUsageOverloaded)
 {
-  const std::string temperature_file_name = testing::TempDir() + "panther_diagnostics_temperature";
+  const std::vector<float> test_usages = {150.0, 50.0, 50.0, 50.0};
 
-  // Make sure that there is no random file with random value.
-  std::filesystem::remove(temperature_file_name);
-
-  std::ofstream temperature_file(temperature_file_name, std::ofstream::out);
-  temperature_file << 36600 << std::endl;
-  temperature_file.close();
-
-  const auto temperature = system_monitor_->GetCPUTemperature(temperature_file_name);
-  std::filesystem::remove(temperature_file_name);
-
-  EXPECT_FLOAT_EQ(temperature, 36.6);
+  EXPECT_THROW(system_monitor_->GetCPUMeanUsage(test_usages), std::invalid_argument);
 }
 
-TEST_F(TestSystemMonitorNode, CheckMemoryReadings)
+TEST_F(TestSystemMonitorNode, GetCPUMeanUsageUnderloaded)
 {
-  const auto memory = system_monitor_->GetMemoryUsage();
+  const std::vector<float> test_usages = {-50.0, 50.0, 50.0, 50.0};
 
-  EXPECT_TRUE((memory >= 0.0) && (memory <= 100.0));
+  EXPECT_THROW(system_monitor_->GetCPUMeanUsage(test_usages), std::invalid_argument);
 }
 
-// TEST_F(TestSystemMonitorNode, CheckDiskReadings)
-// {
-//   const auto disk_usage = system_monitor_->GetDiskUsage();
-
-//   EXPECT_TRUE((disk_usage >= 0.0) && (disk_usage <= 100.0));
-// }
-
-TEST(TestDiskUsage, RegularConsumption)
+TEST(TestGetCPUTemperature, ValidFile)
 {
   auto filesystem_mock = std::make_shared<MockFilesystem>();
   auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
 
-  std::filesystem::space_info space_info{1000, 500, 500};
-  std::filesystem::path path = "/";
+  ON_CALL(*filesystem_mock, ReadFile(testing::_)).WillByDefault(testing::Return("25000.0"));
+  const auto temperature = system_monitor->GetCPUTemperature();
 
-  EXPECT_CALL(*filesystem_mock, GetSpaceInfo(path)).WillOnce(::testing::Return(space_info));
+  EXPECT_EQ(25.0, temperature);
+}
 
-  auto usage = system_monitor->GetDiskUsage();
+TEST(TestGetCPUTemperature, MissingFile)
+{
+  auto filesystem_mock = std::make_shared<MockFilesystem>();
+  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
 
-  EXPECT_EQ(usage, 50.0);
+  ON_CALL(*filesystem_mock, ReadFile(testing::_))
+    .WillByDefault(testing::Throw(std::invalid_argument("File not found")));
+  const auto temperature = system_monitor->GetCPUTemperature();
+
+  EXPECT_TRUE(std::isnan(temperature));
+}
+
+TEST(TestGetDiskUsage, ValidFilesystem)
+{
+  auto filesystem_mock = std::make_shared<MockFilesystem>();
+  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
+
+  ON_CALL(*filesystem_mock, GetSpaceCapacity(testing::_)).WillByDefault(testing::Return(100000));
+  ON_CALL(*filesystem_mock, GetSpaceFree(testing::_)).WillByDefault(testing::Return(50000));
+
+  auto disk_usage = system_monitor->GetDiskUsage();
+
+  EXPECT_EQ(50.0, disk_usage);
+}
+
+TEST(TestGetDiskUsage, InvalidFilesystem)
+{
+  auto filesystem_mock = std::make_shared<MockFilesystem>();
+  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
+
+  ON_CALL(*filesystem_mock, GetSpaceCapacity(testing::_)).WillByDefault(testing::Return(100000));
+  ON_CALL(*filesystem_mock, GetSpaceFree(testing::_))
+    .WillByDefault(testing::Throw(std::invalid_argument{"Filesystem not found"}));
+
+  const auto disk_usage = system_monitor->GetDiskUsage();
+
+  EXPECT_TRUE(std::isnan(disk_usage));
 }
 
 TEST_F(TestSystemMonitorNode, CheckSystemStatusToMessage)
 {
-  panther_diagnostics::SystemStatus status;
+  panther_diagnostics::SystemStatus test_status;
 
-  status.core_usages = {50.0, 50.0, 50.0};
-  status.cpu_mean_usage = 50.0;
-  status.cpu_temperature = 36.6;
-  status.disk_usage = 60.0;
-  status.memory_usage = 30.0;
+  test_status.core_usages = {50.0, 50.0, 50.0};
+  test_status.cpu_mean_usage = 50.0;
+  test_status.cpu_temperature = 36.6;
+  test_status.disk_usage = 60.0;
+  test_status.memory_usage = 30.0;
 
-  const auto message = system_monitor_->SystemStatusToMessage(status);
+  const auto message = system_monitor_->SystemStatusToMessage(test_status);
 
-  EXPECT_EQ(message.cpu_percent, status.core_usages);
-  EXPECT_FLOAT_EQ(message.avg_load_percent, status.cpu_mean_usage);
-  EXPECT_FLOAT_EQ(message.cpu_temp, status.cpu_temperature);
-  EXPECT_FLOAT_EQ(message.disc_usage_percent, status.disk_usage);
-  EXPECT_FLOAT_EQ(message.ram_usage_percent, status.memory_usage);
+  EXPECT_EQ(test_status.core_usages, message.cpu_percent);
+  EXPECT_FLOAT_EQ(test_status.cpu_mean_usage, message.avg_load_percent);
+  EXPECT_FLOAT_EQ(test_status.cpu_temperature, message.cpu_temp);
+  EXPECT_FLOAT_EQ(test_status.disk_usage, message.disc_usage_percent);
+  EXPECT_FLOAT_EQ(test_status.memory_usage, message.ram_usage_percent);
 }
 
 int main(int argc, char ** argv)

@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS__FILESYSTEM_HPP_
-#define PANTHER_DIAGNOSTICS__FILESYSTEM_HPP_
+#ifndef PANTHER_DIAGNOSTICS_FILESYSTEM_HPP_
+#define PANTHER_DIAGNOSTICS_FILESYSTEM_HPP_
 
 #include <filesystem>
+#include <fstream>
 
 namespace panther_diagnostics
 {
 
 /**
- * @brief Interface for interacting with the filesystem.
- *
- * This interface provides a way to interact with the filesystem, allowing users to retrieve space
- * information for a given path.
+ * @brief Abstract interface for the filesystem methods.
  */
 class FilesystemInterface
 {
@@ -34,45 +32,85 @@ public:
    */
   virtual ~FilesystemInterface() = default;
 
-  /**
-   * @brief Retrieves space information for a given path.
-   *
-   * @param path The path for which to retrieve space information.
-   * @return std::filesystem::space_info The space information for the given path.
-   */
-  virtual std::filesystem::space_info GetSpaceInfo(const std::filesystem::path & path) const = 0;
+  virtual uintmax_t GetSpaceCapacity(const std::string & filesystem_path) const = 0;
+
+  virtual uintmax_t GetSpaceFree(const std::string & filesystem_path) const = 0;
+
+  virtual std::string ReadFile(const std::string & file_path) const = 0;
 
   /**
    * @brief Alias for a shared pointer to a FilesystemInterface object.
-   *
    */
   using SharedPtr = std::shared_ptr<FilesystemInterface>;
 };
 
 /**
- * @brief The Filesystem class provides functionality related to filesystem operations.
+ * @brief A class that provides functionality for interacting with the filesystem.
  *
- * This class inherits from the FilesystemInterface and provides an implementation for
- * getting space information for a given path.
+ * This class inherits from the `FilesystemInterface` and implements its methods.
+ * It provides a simplified, facade-type way to interact with the `std::filesystem` library.
  */
 class Filesystem : public FilesystemInterface
 {
 public:
   /**
-   * @brief Get the space information for a given path.
+   * @brief Returns the space capacity in bytes of the filesystem at the specified path.
    *
-   * This function returns the space information (capacity, free space, and available space)
-   * for the specified path.
-   *
-   * @param path The path for which to retrieve the space information.
-   * @return The space information for the specified path.
+   * @param filesystem_path The path to the filesystem.
+   * @return The space capacity in bytes.
    */
-  inline std::filesystem::space_info GetSpaceInfo(const std::filesystem::path & path) const override
+  inline uintmax_t GetSpaceCapacity(const std::string & filesystem_path) const override
   {
-    return std::filesystem::space(path);
+    const auto path = std::filesystem::path(filesystem_path);
+    const auto space_info = std::filesystem::space(path);
+
+    return space_info.capacity;
+  }
+
+  /**
+   * @brief Returns the free space in bytes of the filesystem at the specified path.
+   *
+   * @param filesystem_path The path to the filesystem.
+   * @return The free space in bytes.
+   */
+  inline uintmax_t GetSpaceFree(const std::string & filesystem_path) const override
+  {
+    const auto path = std::filesystem::path(filesystem_path);
+    const auto space_info = std::filesystem::space(path);
+
+    return space_info.free;
+  }
+
+  /**
+   * @brief Reads the contents of the file specified by the given file path.
+
+   *
+   * @param file_path The path to the file to be read.
+   * @return The contents of the file as a string.
+   * @throws `std::invalid_argument` If the file doesn't exist.
+   * @throws `std::runtime_error` If the file fails to open.
+   */
+  std::string ReadFile(const std::string & file_path) const override
+  {
+    const auto path = std::filesystem::path(file_path);
+
+    if (!std::filesystem::exists(path)) {
+      throw std::invalid_argument("File doesn't exist, given path " + path.string());
+    }
+
+    std::ifstream file(path);
+    if (!file.is_open()) {
+      throw std::runtime_error("Failed to open, given path " + path.string());
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+
+    file.close();
+    return buffer.str();
   }
 };
 
 }  // namespace panther_diagnostics
 
-#endif  // PANTHER_DIAGNOSTICS__FILESYSTEM_HPP_
+#endif  // PANTHER_DIAGNOSTICS_FILESYSTEM_HPP_
