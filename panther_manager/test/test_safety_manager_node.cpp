@@ -194,9 +194,11 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
 {
   const float expected_temp = 21.0;
 
+  panther_msgs::msg::MotorController motor_controller;
+  motor_controller.state.temperature = expected_temp;
+
   auto driver_state_msg = panther_msgs::msg::DriverState();
-  driver_state_msg.front.temperature = expected_temp;
-  driver_state_msg.rear.temperature = expected_temp;
+  driver_state_msg.motor_controllers.push_back(motor_controller);
 
   panther_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "hardware/motor_controllers_state", driver_state_msg);

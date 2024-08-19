@@ -157,8 +157,6 @@ TEST_F(TestADCBattery, BatteryMsgValues)
   const auto voltage_factor = 25.04255;
   const auto current_factor = 20.0;
   const auto charge_factor = 2.5;
-  const auto V_bat_full = 41.4;
-  const auto V_bat_min = 32.0;
 
   const float voltage_raw_1 = 1.5;
   const float current_raw_1 = 0.01;

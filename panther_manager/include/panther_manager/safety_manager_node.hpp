@@ -15,6 +15,7 @@
 #ifndef PANTHER_MANAGER_SAFETY_MANAGER_NODE_HPP_
 #define PANTHER_MANAGER_SAFETY_MANAGER_NODE_HPP_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -85,6 +86,7 @@ private:
   static constexpr float kCriticalBatteryTemp = 55.0;
   static constexpr float kFatalBatteryTemp = 62.0;
 
+  int driver_temp_window_len_;
   float update_charging_anim_step_;
 
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
@@ -96,8 +98,8 @@ private:
 
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> cpu_temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> front_driver_temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> rear_driver_temp_ma_;
+
+  std::map<std::string, std::unique_ptr<panther_utils::MovingAverage<double>>> driver_temp_ma_;
 };
 
 }  // namespace panther_manager

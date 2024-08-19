@@ -46,8 +46,17 @@ void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool /* cha
   driver_state_ = GetDriverState();
   ValidateDriverStateMsg(header_stamp);
 
-  voltage_raw_ = (driver_state_->front.voltage + driver_state_->rear.voltage) / 2.0f;
-  current_raw_ = driver_state_->front.current + driver_state_->rear.current;
+  float voltage = 0.0f;
+  float current = 0.0f;
+  std::for_each(
+    driver_state_->motor_controllers.begin(), driver_state_->motor_controllers.end(),
+    [&voltage, &current](const panther_msgs::msg::MotorController & driver) {
+      voltage += driver.state.voltage;
+      current += driver.state.current;
+    });
+
+  voltage_raw_ = voltage / driver_state_->motor_controllers.size();
+  current_raw_ = current;
   voltage_ma_->Roll(voltage_raw_);
   current_ma_->Roll(current_raw_);
 
@@ -74,7 +83,7 @@ void RoboteqBattery::ValidateDriverStateMsg(const rclcpp::Time & header_stamp)
     throw std::runtime_error("Driver state message timeout.");
   }
 
-  if (driver_state_->front.heartbeat_timeout || driver_state_->rear.heartbeat_timeout) {
+  if (MotorControllerHeartbeatTimeout()) {
     throw std::runtime_error("Motor controller heartbeat timeout error.");
   }
 }
@@ -139,6 +148,15 @@ std::uint8_t RoboteqBattery::GetBatteryHealth(const float voltage)
     SetErrorMsg("");
     return BatteryStateMsg::POWER_SUPPLY_HEALTH_GOOD;
   }
+}
+
+bool RoboteqBattery::MotorControllerHeartbeatTimeout()
+{
+  return std::any_of(
+    driver_state_->motor_controllers.begin(), driver_state_->motor_controllers.end(),
+    [](const panther_msgs::msg::MotorController & driver) {
+      return driver.state.heartbeat_timeout;
+    });
 }
 
 }  // namespace panther_battery

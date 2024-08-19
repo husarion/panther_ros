@@ -62,6 +62,7 @@ private:
   void UpdateBatteryStateRaw();
   void UpdateChargingStatus(const rclcpp::Time & header_stamp);
   std::uint8_t GetBatteryHealth(const float voltage);
+  bool MotorControllerHeartbeatTimeout();
 
   std::function<DriverStateMsg::SharedPtr()> GetDriverState;
 

@@ -451,20 +451,28 @@ TEST_F(TestPantherSystem, ReadOtherRoboteqParamsPantherSystem)
 
   ASSERT_TRUE(state_msg);
 
-  ASSERT_EQ(static_cast<std::int16_t>(state_msg->front.temperature), f_temp);
-  ASSERT_EQ(static_cast<std::int16_t>(state_msg->rear.temperature), r_temp);
-
-  ASSERT_EQ(static_cast<std::int16_t>(state_msg->front.heatsink_temperature), f_heatsink_temp);
-  ASSERT_EQ(static_cast<std::int16_t>(state_msg->rear.heatsink_temperature), r_heatsink_temp);
-
-  ASSERT_EQ(static_cast<std::uint16_t>(state_msg->front.voltage * 10.0), f_volt);
-  ASSERT_EQ(static_cast<std::uint16_t>(state_msg->rear.voltage * 10.0), r_volt);
+  ASSERT_EQ(
+    static_cast<std::int16_t>(state_msg->motor_controllers.at(0).state.temperature), f_temp);
+  ASSERT_EQ(
+    static_cast<std::int16_t>(state_msg->motor_controllers.at(1).state.temperature), r_temp);
 
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->front.current * 10.0),
+    static_cast<std::int16_t>(state_msg->motor_controllers.at(0).state.heatsink_temperature),
+    f_heatsink_temp);
+  ASSERT_EQ(
+    static_cast<std::int16_t>(state_msg->motor_controllers.at(1).state.heatsink_temperature),
+    r_heatsink_temp);
+
+  ASSERT_EQ(
+    static_cast<std::uint16_t>(state_msg->motor_controllers.at(0).state.voltage * 10.0), f_volt);
+  ASSERT_EQ(
+    static_cast<std::uint16_t>(state_msg->motor_controllers.at(1).state.voltage * 10.0), r_volt);
+
+  ASSERT_EQ(
+    static_cast<std::int16_t>(state_msg->motor_controllers.at(0).state.current * 10.0),
     (f_battery_current_1 + f_battery_current_2));
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->rear.current * 10.0),
+    static_cast<std::int16_t>(state_msg->motor_controllers.at(1).state.current * 10.0),
     (r_battery_current_1 + r_battery_current_2));
 
   pth_test_.ShutdownPantherSystem();
@@ -497,7 +505,7 @@ TEST_F(TestPantherSystem, EncoderDisconnectedPantherSystem)
   pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
-  ASSERT_TRUE(state_msg->front.script_flag.encoder_disconnected);
+  ASSERT_TRUE(state_msg->motor_controllers.at(0).state.script_flag.encoder_disconnected);
 
   // writing should be blocked - error
 

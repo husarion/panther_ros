@@ -32,6 +32,7 @@
 
 #include "panther_msgs/msg/driver_state.hpp"
 #include "panther_msgs/msg/io_state.hpp"
+#include "panther_msgs/msg/motor_controller.hpp"
 
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_controller.hpp"
 #include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
@@ -44,6 +45,7 @@ namespace panther_hardware_interfaces
 using BoolMsg = std_msgs::msg::Bool;
 using DriverStateMsg = panther_msgs::msg::DriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
+using MotorControllerMsg = panther_msgs::msg::MotorController;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using TriggerSrv = std_srvs::srv::Trigger;
 
@@ -268,6 +270,11 @@ private:
    */
   rclcpp::CallbackGroup::SharedPtr GetOrCreateNodeCallbackGroup(
     const unsigned group_id, rclcpp::CallbackGroupType callback_group_type);
+
+  void InitializeDriverStateMsg();
+
+  MotorControllerMsg & GetMotorControllerByName(
+    DriverStateMsg & driver_state, const std::string & name);
 
   rclcpp::Node::SharedPtr node_;
   std::unordered_map<unsigned, rclcpp::CallbackGroup::SharedPtr> callback_groups_;
