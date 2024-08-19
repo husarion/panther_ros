@@ -33,11 +33,11 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 using BoolMsg = std_msgs::msg::Bool;
 using TriggerSrv = std_srvs::srv::Trigger;
 
-/// \class GzPantherSystem
-/// \brief Main class for the Panther System which implements a
-// simulated `ros2_control` `hardware_interface::SystemInterface`. These class must
-/// inherit `ign_ros2_control::IgnitionSystemInterface`. Based on:
-/// https://github.com/ros-controls/gz_ros2_control/blob/humble/ign_ros2_control/src/ign_system.cpp
+/**
+ * @brief Main class for the Panther System which implements a simulated `ros2_control`
+ * `hardware_interface::SystemInterface`. This class inherits `ign_ros2_control::IgnitionSystem`
+ * and implements additional functionalities like E-stop handling.
+ */
 class GzPantherSystem : public ign_ros2_control::IgnitionSystem
 {
 public:
