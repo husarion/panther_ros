@@ -6,7 +6,7 @@ A package containing nodes responsible for high-level control of Husarion Panthe
 
 This package contains:
 
-- `manager_bt.launch.py`: Responsible for launching behavior trees responsible for safety and LED animations scheduling.
+- `manager.launch.py`: Responsible for launching behavior trees responsible for safety and LED animations scheduling.
 
 ## Configuration Files
 
@@ -15,9 +15,9 @@ This package contains:
 - [`PantherSafetyBT.btproj`](./behavior_trees/PantherSafetyBT.btproj): BehaviorTree project for managing Panther safety protocols.
 - [`safety.xml`](./behavior_trees/safety.xml): BehaviorTree for monitoring and managing dangerous situations.
 - [`shutdown.xml`](./behavior_trees/shutdown.xml): BehaviorTree for initiating shutdown procedures.
-- [`lights_manager_config.yaml`](./config/lights_manager_config.yaml): Contains parameters for the `lights_manager` node.
-- [`safety_manager_config.yaml`](./config/safety_manager_config.yaml): Contains parameters for the `safety_manager` node.
-- [`shutdown_hosts.yaml`](./config/shutdown_hosts.yaml): List with all hosts to request shutdown.
+- [`lights_manager.yaml`](./config/lights_manager.yaml): Contains parameters for the `lights_manager` node.
+- [`safety_manager.yaml`](./config/safety_manager.yaml): Contains parameters for the `safety_manager` node.
+- [`shutdown_hosts_config.yaml`](./config/shutdown_hosts_config.yaml): List with all hosts to request shutdown.
 
 ## ROS Nodes
 
@@ -59,7 +59,7 @@ Node responsible for managing safety features, and software shutdown of componen
 - `hardware/e_stop` [*std_msgs/Bool*]: State of emergency stop.
 - `hardware/io_state` [*panther_msgs/IOState*]: State of IO pins.
 - `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: State of motor controllers.
-- `system_status` [*panther_msgs/SystemStatus*]: State of the system, including Built-in Computer's CPU temperature and load.
+- `system_status` [*panther_msgs/SystemStatus*]: Built-in computer system status, includes the most important computation-related parameters.
 
 #### Service Clients (for Default Trees)
 

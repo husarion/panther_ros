@@ -5,7 +5,7 @@
 For more information regarding shutdown behavior, refer to `ShutdownSingleHost` BT node in the [Actions](#actions) section. An example of a shutdown hosts YAML file can be found below.
 
 ``` yaml
-# My shutdown_hosts.yaml
+# My shutdown_hosts_config.yaml
 hosts:
   # Intel NUC, user computer
   - ip: 10.15.20.3
@@ -39,7 +39,7 @@ ssh-copy-id username@10.15.20.XX
 
 ## Faults Handle
 
-After receiving a message on the `battery/battery_status` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply state, please refer to the [adc_node](/panther_battery/README.md#battery-statuses) documentation.
+After receiving a message on the `battery/battery_status` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply status, please refer to the [BatteryState](https://docs.ros2.org/latest/api/sensor_msgs/msg/BatteryState.html) message definition and [adc_battery.cpp](../panther_battery/src/battery/adc_battery.cpp) implementation.
 
 | Power Supply Health | Procedure                                                                                                                                                                                                                     |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
