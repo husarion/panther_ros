@@ -43,9 +43,9 @@ def generate_launch_description():
         description="Path to the parameter file for the nmea_socket_driver node.",
     )
 
-    robot_namespace = LaunchConfiguration("robot_namespace")
+    namespace = LaunchConfiguration("namespace")
     declare_robot_namespace_arg = DeclareLaunchArgument(
-        "robot_namespace",
+        "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Namespace to all launched nodes and use namespace as tf_prefix. This aids in differentiating between multiple robots with the same devices.",
     )
@@ -55,23 +55,23 @@ def generate_launch_description():
         replacements={"<device_namespace>": device_namespace, "//": "/"},
     )
 
-    nmea_driver = Node(
+    nmea_driver_node = Node(
         package="nmea_navsat_driver",
         executable="nmea_socket_driver",
         name=device_namespace,
-        namespace=robot_namespace,
+        namespace=namespace,
         parameters=[
             {
                 "frame_id": device_namespace,
-                "tf_prefix": robot_namespace,
+                "tf_prefix": namespace,
             },
             rename_params_file,
         ],
         remappings=[
             ("fix", "~/fix"),
-            ("heading", "~/heading"),
             ("time_reference", "~/time_reference"),
             ("vel", "~/vel"),
+            ("heading", ["_", device_namespace, "/heading"]),
         ],
     )
 
@@ -80,6 +80,6 @@ def generate_launch_description():
             declare_params_file_arg,
             declare_robot_namespace_arg,
             declare_device_namespace_arg,
-            nmea_driver,
+            nmea_driver_node,
         ]
     )
