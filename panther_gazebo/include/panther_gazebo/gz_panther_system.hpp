@@ -53,11 +53,6 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  bool e_stop_active_;
-  rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_publisher_;
-  rclcpp::Service<TriggerSrv>::SharedPtr e_stop_reset_service_;
-  rclcpp::Service<TriggerSrv>::SharedPtr e_stop_trigger_service_;
-
   void SetupEStop();
 
   void PublishEStopStatus();
@@ -67,6 +62,11 @@ private:
 
   void EStopTriggerCallback(
     const TriggerSrv::Request::SharedPtr & request, TriggerSrv::Response::SharedPtr response);
+
+  bool e_stop_active_;
+  rclcpp::Publisher<BoolMsg>::SharedPtr e_stop_publisher_;
+  rclcpp::Service<TriggerSrv>::SharedPtr e_stop_reset_service_;
+  rclcpp::Service<TriggerSrv>::SharedPtr e_stop_trigger_service_;
 };
 
 }  // namespace panther_gazebo
