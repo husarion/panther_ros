@@ -79,7 +79,8 @@ void PantherChargingDock::configure(const rclcpp_lifecycle::LifecycleNode::WeakP
   node_->get_parameter(name + ".external_detection_rotation_yaw", yaw);
   node_->get_parameter(name + ".external_detection_rotation_pitch", pitch);
   node_->get_parameter(name + ".external_detection_rotation_roll", roll);
-  external_detection_rotation_.setEuler(yaw, pitch, roll);
+
+  external_detection_rotation_.setRPY(roll, pitch, yaw);
   node_->get_parameter(name + ".docking_distance_threshold", docking_distance_threshold_);
   node_->get_parameter(name + ".docking_yaw_threshold", docking_yaw_threshold_);
   node_->get_parameter(name + ".staging_x_offset", staging_x_offset_);
@@ -169,11 +170,20 @@ geometry_msgs::msg::PoseStamped PantherChargingDock::getStagingPose(const geomet
 
   return staging_pose_;
 }
+
 bool PantherChargingDock::getRefinedPose(geometry_msgs::msg::PoseStamped& pose)
 {
-  updateDockPoseAndPublish();
-  updateStagingPoseAndPublish(base_frame_name_);
-  pose = dock_pose_;
+  try
+  {
+    updateDockPoseAndPublish();
+    updateStagingPoseAndPublish(base_frame_name_);
+    pose = dock_pose_;
+  }
+  catch (const opennav_docking_core::DockingException &e)
+  {
+    RCLCPP_ERROR_STREAM(logger_, "An occurred error while getting refined pose: " << e.what());
+    return false;
+  }
 
   return true;
 }
@@ -297,33 +307,6 @@ void PantherChargingDock::setChargerState(bool state)
   }
 }
 
-geometry_msgs::msg::PoseStamped PantherChargingDock::getPoseFromTransform(const std::string& frame_id,
-                                                                          const std::string& child_frame_id)
-{
-  geometry_msgs::msg::TransformStamped transform;
-  try
-  {
-    auto timeout = tf2::durationFromSec(external_detection_timeout_);
-
-    transform = tf2_buffer_->lookupTransform(frame_id, child_frame_id, node_->get_clock()->now(), timeout);
-  }
-  catch (tf2::TransformException& ex)
-  {
-    throw std::runtime_error("An exception occurred while getting pose from transform: " + std::string(ex.what()));
-  }
-
-  geometry_msgs::msg::PoseStamped pose;
-  pose.header.frame_id = transform.header.frame_id;
-  pose.header.stamp = transform.header.stamp;
-  pose.pose.position.x = transform.transform.translation.x;
-  pose.pose.position.y = transform.transform.translation.y;
-  pose.pose.position.z = transform.transform.translation.z;
-  pose.pose.orientation.x = transform.transform.rotation.x;
-  pose.pose.orientation.y = transform.transform.rotation.y;
-  pose.pose.orientation.z = transform.transform.rotation.z;
-  return pose;
-}
-
 geometry_msgs::msg::PoseStamped PantherChargingDock::transformPose(const geometry_msgs::msg::PoseStamped& pose,
                                                                    const std::string& target_frame)
 {
@@ -399,27 +382,32 @@ PantherChargingDock::offsetDetectedDockPose(const geometry_msgs::msg::PoseStampe
 
 geometry_msgs::msg::PoseStamped PantherChargingDock::getDockPose(const std::string& frame)
 {
-  geometry_msgs::msg::PoseStamped offset_detected_dock_pose;
+  geometry_msgs::msg::PoseStamped filtered_offset_detected_dock_pose;
   try
   {
-    offset_detected_dock_pose = offsetDetectedDockPose(getPoseFromTransform(frame, frame));
-    auto filtered_offset_detected_dock_pose = filter_->update(offset_detected_dock_pose);
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header.frame_id = frame;
+    pose.header.stamp = node_->get_clock()->now();
+    auto offset_detected_dock_pose = offsetDetectedDockPose(pose);
+
+    filtered_offset_detected_dock_pose = filter_->update(offset_detected_dock_pose);
+    filtered_offset_detected_dock_pose = transformPose(filtered_offset_detected_dock_pose, base_frame_name_);
+
+    filtered_offset_detected_dock_pose.pose.position.z = 0.0;
   }
   catch (const std::runtime_error& e)
   {
     throw std::runtime_error("An exception occurred while getting dock pose: " + std::string(e.what()));
   }
 
-  return offset_detected_dock_pose;
+  return filtered_offset_detected_dock_pose;
 }
 
 void PantherChargingDock::updateDockPoseAndPublish()
 {
   try
   {
-    auto new_dock_pose = getDockPose(dock_frame_);
-    dock_pose_ = transformPose(new_dock_pose, base_frame_name_);
-    dock_pose_.pose.position.z = 0.0;
+    dock_pose_ = getDockPose(dock_frame_);
     dock_pose_pub_->publish(dock_pose_);
   }
   catch (const std::runtime_error& e)

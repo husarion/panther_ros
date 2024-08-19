@@ -139,17 +139,6 @@ protected:
   void setChargerState(bool state);
 
   /**
-   * @brief Get the pose from a transform between two frames.
-   *
-   * This method retrieves the pose by transforming a pose from the child frame to the parent frame using a transform.
-   *
-   * @param frame_id The ID of the parent frame.
-   * @param child_frame_id The ID of the child frame.
-   * @return The pose in the parent frame.
-   */
-  geometry_msgs::msg::PoseStamped getPoseFromTransform(const std::string& frame_id, const std::string& child_frame_id);
-
-  /**
    * @brief Transform a pose to a target frame.
    *
    * @param pose The pose to transform.
