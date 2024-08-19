@@ -9,4 +9,4 @@ The package contains URDF files responsible for creating a representation of the
 ## Configuration Files
 
 - [`components.yaml`](./config/components.yaml): Allows you to quickly add visualization of sensors, TF connections and simulate their behavior in the simulator.
-- [`WH05.yaml`](./config/WH04.yaml): Description of physical and visual parameters for the wheel WH05.
+- [`WH05.yaml`](./config/WH05.yaml): Description of physical and visual parameters for the wheel WH05.
