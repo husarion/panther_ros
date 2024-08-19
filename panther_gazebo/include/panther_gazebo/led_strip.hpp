@@ -17,16 +17,19 @@
 
 #include <chrono>
 #include <mutex>
-#include <vector>
+#include <string>
 
+#include <gz/msgs/color.pb.h>
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/light.pb.h>
 #include <gz/math/Color.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/EventManager.hh>
 #include <gz/sim/System.hh>
 #include <gz/sim/components/Light.hh>
+#include <gz/sim/components/Pose.hh>
 #include <gz/transport/Node.hh>
 #include <sdf/Element.hh>
-#include "gz/sim/components/Pose.hh"
 
 namespace panther_gazebo
 {

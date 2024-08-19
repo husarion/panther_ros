@@ -14,16 +14,11 @@
 
 #include "panther_gazebo/led_strip.hpp"
 
-#include <string>
-
-#include "gz/math/Color.hh"
-#include "gz/msgs/image.pb.h"
-#include "gz/msgs/light.pb.h"
-#include "gz/msgs/marker.pb.h"
-#include "gz/plugin/Register.hh"
-#include "gz/sim/Model.hh"
-#include "gz/sim/components/LightCmd.hh"
-#include "gz/sim/components/Name.hh"
+#include <gz/msgs/marker.pb.h>
+#include <gz/plugin/Register.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/components/LightCmd.hh>
+#include <gz/sim/components/Name.hh>
 
 namespace panther_gazebo
 {
@@ -79,6 +74,7 @@ void LEDStrip::Configure(
 
   // Subscribe to the image topic
   node.Subscribe(ns + "/" + imageTopic, &LEDStrip::ImageCallback, this);
+  std::cout << "Subscribed to image topic: " << ns + "/" + imageTopic << std::endl;
 
   // Iterate through entities to find the light entity by name
   ecm.Each<gz::sim::components::Name, gz::sim::components::Light>(
@@ -87,7 +83,7 @@ void LEDStrip::Configure(
       const gz::sim::components::Light *) -> bool {
       if (_name->Data() == light_name) {
         light_entity = _entity;
-        ignmsg << "Light entity found: " << light_entity << std::endl;
+        igndbg << "Light entity found: " << light_entity << std::endl;
 
         // Ensure the LightCmd component is created
         if (!ecm.Component<gz::sim::components::LightCmd>(light_entity)) {
@@ -141,7 +137,7 @@ void LEDStrip::Configure(
             }
 
             ecm.CreateComponent(light_entity, gz::sim::components::LightCmd(light_msg));
-            ignmsg << "Created LightCmd component for entity: " << light_entity << std::endl;
+            igndbg << "Created LightCmd component for entity: " << light_entity << std::endl;
           }
         }
         return true;  // Stop searching
