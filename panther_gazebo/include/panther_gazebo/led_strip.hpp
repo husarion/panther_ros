@@ -47,27 +47,31 @@ public:
   void PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm);
 
 private:
+  void ParseParameters(const std::shared_ptr<const sdf::Element> & sdf);
+  void ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ecm);
   void ImageCallback(const gz::msgs::Image & msg);
+  void MsgValidation(const gz::msgs::Image & msg);
   ignition::msgs::Color CalculateMeanColor(const gz::msgs::Image & msg);
+  void VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image);
   void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
   void CreateMarker(
     int id, gz::math::Pose3d pose, const ignition::msgs::Color & color, gz::math::Vector3d scale);
 
   // Parameters
   std::string light_name;
+  std::string imageTopic;
   std::string ns = "";
   double frequency = 10.0;
   double marker_width = 1.0;
   double marker_height = 1.0;
 
+  bool new_image_available{false};
+  gz::msgs::Light light_cmd;
+  gz::msgs::Image last_image;
   gz::sim::Entity light_entity{gz::sim::kNullEntity};
-  std::chrono::steady_clock::duration last_update_time{0};
   gz::transport::Node node;
   gz::transport::Node::Publisher marker_publisher;
-  gz::msgs::Light light_msg;
-
-  gz::msgs::Image last_image;
-  bool new_image_available{false};
+  std::chrono::steady_clock::duration last_update_time{0};
   std::mutex image_mutex;
 };
 
