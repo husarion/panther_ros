@@ -101,8 +101,6 @@ void CANopenController::Deinitialize()
 
   canopen_communication_started_.store(false);
 
-  rear_driver_.reset();
-  front_driver_.reset();
   master_.reset();
   chan_.reset();
   ctrl_.reset();
@@ -141,10 +139,7 @@ void CANopenController::InitializeCANCommunication()
   master_ = std::make_shared<lely::canopen::AsyncMaster>(
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
-  front_driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.front_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
-  rear_driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
+  InitializeDrivers();
 
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
@@ -159,32 +154,32 @@ void CANopenController::NotifyCANCommunicationStarted(const bool result)
   canopen_communication_started_cond_.notify_all();
 }
 
-void CANopenController::BootDrivers()
-{
-  try {
-    auto front_driver_future = front_driver_->Boot();
-    auto rear_driver_future = rear_driver_->Boot();
+// void CANopenController::BootDrivers()
+// {
+//   try {
+//     auto front_driver_future = front_driver_->Boot();
+//     auto rear_driver_future = rear_driver_->Boot();
 
-    auto front_driver_status = front_driver_future.wait_for(std::chrono::seconds(5));
-    auto rear_driver_status = rear_driver_future.wait_for(std::chrono::seconds(5));
+//     auto front_driver_status = front_driver_future.wait_for(std::chrono::seconds(5));
+//     auto rear_driver_status = rear_driver_future.wait_for(std::chrono::seconds(5));
 
-    if (
-      front_driver_status == std::future_status::ready &&
-      rear_driver_status == std::future_status::ready) {
-      try {
-        front_driver_future.get();
-        rear_driver_future.get();
-      } catch (const std::exception & e) {
-        throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
-      }
-    } else {
-      throw std::runtime_error("Boot timed out or failed.");
-    }
+//     if (
+//       front_driver_status == std::future_status::ready &&
+//       rear_driver_status == std::future_status::ready) {
+//       try {
+//         front_driver_future.get();
+//         rear_driver_future.get();
+//       } catch (const std::exception & e) {
+//         throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
+//       }
+//     } else {
+//       throw std::runtime_error("Boot timed out or failed.");
+//     }
 
-  } catch (const std::system_error & e) {
-    throw std::runtime_error(
-      "An exception occurred while trying to Boot driver " + std::string(e.what()));
-  }
-}
+//   } catch (const std::system_error & e) {
+//     throw std::runtime_error(
+//       "An exception occurred while trying to Boot driver " + std::string(e.what()));
+//   }
+// }
 
 }  // namespace panther_hardware_interfaces
