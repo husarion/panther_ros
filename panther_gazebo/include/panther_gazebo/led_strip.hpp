@@ -51,11 +51,11 @@ private:
   void ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ecm);
   void ImageCallback(const gz::msgs::Image & msg);
   void MsgValidation(const gz::msgs::Image & msg);
-  ignition::math::Color CalculateMeanColor(const gz::msgs::Image & msg);
+  gz::math::Color CalculateMeanColor(const gz::msgs::Image & msg);
   void VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image);
   void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
   void CreateMarker(
-    int id, gz::math::Pose3d pose, const ignition::math::Color & color, gz::math::Vector3d scale);
+    const uint id, const gz::math::Pose3d pose, const gz::math::Color & color, const gz::math::Vector3d size);
 
   // Parameters
   std::string light_name;

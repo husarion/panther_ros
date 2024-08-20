@@ -32,7 +32,7 @@ void LEDStrip::Configure(
   const gz::sim::Entity & entity, const std::shared_ptr<const sdf::Element> & sdf,
   gz::sim::EntityComponentManager & ecm, gz::sim::EventManager &)
 {
-  const auto model = ignition::gazebo::Model(entity);
+  const auto model = gz::gazebo::Model(entity);
   if (!model.Valid(ecm)) {
     throw std::runtime_error(
       "Error: Failed to initialize because [" + model.Name(ecm) +
@@ -126,7 +126,7 @@ void LEDStrip::ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ec
         if (!ecm.Component<gz::sim::components::LightCmd>(light_entity)) {
           sdf::Light light_sdf = light_component->Data();
 
-          // Manually copy data from sdf::Light to ignition::msgs::Light
+          // Manually copy data from sdf::Light to gz::msgs::Light
           light_cmd.set_name(light_sdf.Name());
           light_cmd.set_range(light_sdf.AttenuationRange());
           light_cmd.set_cast_shadows(light_sdf.CastShadows());
@@ -145,16 +145,16 @@ void LEDStrip::ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ec
           // Set the light type
           switch (light_sdf.Type()) {
             case sdf::LightType::POINT:
-              light_cmd.set_type(ignition::msgs::Light::POINT);
+              light_cmd.set_type(gz::msgs::Light::POINT);
               break;
             case sdf::LightType::SPOT:
-              light_cmd.set_type(ignition::msgs::Light::SPOT);
+              light_cmd.set_type(gz::msgs::Light::SPOT);
               break;
             case sdf::LightType::DIRECTIONAL:
-              light_cmd.set_type(ignition::msgs::Light::DIRECTIONAL);
+              light_cmd.set_type(gz::msgs::Light::DIRECTIONAL);
               break;
             default:
-              light_cmd.set_type(ignition::msgs::Light::POINT);
+              light_cmd.set_type(gz::msgs::Light::POINT);
               break;
           }
 
@@ -181,7 +181,7 @@ void LEDStrip::MsgValidation(const gz::msgs::Image & msg)
   }
 }
 
-ignition::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
+gz::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
 {
   int sum_r = 0, sum_g = 0, sum_b = 0, sum_a = 0;
   int pixel_count = msg.width() * msg.height();
@@ -204,7 +204,7 @@ ignition::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
   int mean_b = sum_b / pixel_count;
   int mean_a = is_rgba ? sum_a / pixel_count : 255;
 
-  auto mean_color = ignition::math::Color(
+  auto mean_color = gz::math::Color(
     static_cast<float>(mean_r) / 255.0f, static_cast<float>(mean_g) / 255.0f,
     static_cast<float>(mean_b) / 255.0f, static_cast<float>(mean_a) / 255.0f);
 
@@ -213,7 +213,7 @@ ignition::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
 
 void LEDStrip::VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image)
 {
-  ignition::math::Color mean_color = CalculateMeanColor(image);
+  gz::math::Color mean_color = CalculateMeanColor(image);
 
   gz::msgs::Set(light_cmd.mutable_diffuse(), mean_color);
   gz::msgs::Set(light_cmd.mutable_specular(), mean_color);
@@ -235,24 +235,24 @@ void LEDStrip::VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::
 
 void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & light_pose)
 {
-  int width = image.width();
-  int height = image.height();
   const std::string & data = image.data();
 
-  double step_width = marker_width / width;
-  double step_height = marker_height / height;
+  double step_width = marker_width / image.width();
+  double step_height = marker_height / image.height();
 
   bool is_rgba = (image.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
   int step = is_rgba ? 4 : 3;
 
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      int idx = (y * width + x) * step;
-      ignition::math::Color pixel_color;
-      pixel_color.R(static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f);
-      pixel_color.G(static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f);
-      pixel_color.B(static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f);
-      pixel_color.A(
+  const auto pixel_size = gz::math::Vector3d(0.001, step_width, step_height);
+
+  for (uint y = 0; y < image.height(); ++y) {
+    for (uint x = 0; x < image.width(); ++x) {
+      uint idx = (y * image.width() + x) * step;
+
+      auto pixel_color = gz::math::Color(
+        static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f,
+        static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f,
+        static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f,
         is_rgba ? static_cast<float>(static_cast<unsigned char>(data[idx + 3])) / 255.0f : 1.0f);
 
       auto pose = gz::math::Pose3d(
@@ -260,15 +260,14 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
         light_pose.Pos().Y() + x * step_width - marker_width / 2.0 + step_width / 2.0,
         light_pose.Pos().Z() + y * step_height, light_pose.Rot().Roll(), light_pose.Rot().Pitch(),
         light_pose.Rot().Yaw());
-      auto scale = gz::math::Vector3d(0.001, step_width, step_height);
 
-      CreateMarker(idx, pose, pixel_color, scale);
+      CreateMarker(idx, pose, pixel_color, pixel_size);
     }
   }
 }
 
 void LEDStrip::CreateMarker(
-  int id, gz::math::Pose3d pose, const ignition::math::Color & color, gz::math::Vector3d scale)
+  const uint id, const gz::math::Pose3d pose, const gz::math::Color & color, const gz::math::Vector3d size)
 {
   gz::msgs::Marker marker_msg;
   marker_msg.set_action(gz::msgs::Marker::ADD_MODIFY);
@@ -282,7 +281,7 @@ void LEDStrip::CreateMarker(
   marker_msg.set_type(gz::msgs::Marker::BOX);
 
   gz::msgs::Set(marker_msg.mutable_pose(), pose);
-  gz::msgs::Set(marker_msg.mutable_scale(), scale);
+  gz::msgs::Set(marker_msg.mutable_scale(), size);
 
   gz::msgs::Set(marker_msg.mutable_material()->mutable_ambient(), color);
   gz::msgs::Set(marker_msg.mutable_material()->mutable_diffuse(), color);
