@@ -13,8 +13,8 @@
     dock_prestaging_tolerance: 0.5
 
 
-    dock_plugins: ["panther_docking_dock"]
-    panther_docking_dock:
+    dock_plugins: ["panther_docking_panther_charging_dock"]
+    panther_docking_panther_charging_dock:
       plugin: panther_docking::PantherChargingDock
       base_frame: "<robot_namespace>/base_link"
       docking_distance_threshold: 0.15
@@ -28,16 +28,16 @@
       external_detection_translation_x: 0.0
       external_detection_translation_y: -0.175 # Distance between the detection and ground
       external_detection_translation_z: 0.8 # Distance between the detection and the front of the robot
-      external_detection_rotation_roll: -1.57
-      external_detection_rotation_pitch: 0.0
-      external_detection_rotation_yaw:  1.57
+      external_detection_rotation_roll: 0.0
+      external_detection_rotation_pitch: 1.57
+      external_detection_rotation_yaw:  0.0
       filter_coef: 0.1
 
       enable_charger_service_call_timeout: 1.0
 
     docks: ["main_dock"]
     main_dock:
-      type: "panther_docking_dock"
+      type: panther_docking_panther_charging_dock
       frame: <robot_namespace>/main_dock
       pose: [0.0, 0.0, 0.0] # position of the dock device (not the staging position), the front (X+) of the dock should point away from the robot
 

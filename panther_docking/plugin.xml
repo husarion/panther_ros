@@ -1,6 +1,6 @@
 <class_libraries>
-    <library path="panther_docking_battery_state_dock">
-        <class type="panther_docking::PantherChargingDock"
+    <library path="panther_docking_panther_charging_dock">
+        <class name="panther_docking::PantherChargingDock" type="panther_docking::PantherChargingDock"
             base_class_type="opennav_docking_core::ChargingDock">
             <description>A dock plugin interface for Panther robot</description>
         </class>

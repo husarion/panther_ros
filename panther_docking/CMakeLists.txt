@@ -25,15 +25,16 @@ endforeach()
 
 include_directories(include)
 
-set(library_name ${PROJECT_NAME}_battery_state_dock)
+set(library_name ${PROJECT_NAME}_panther_charging_dock)
 
 add_library(${library_name} SHARED src/panther_charging_dock.cpp)
 
 # TODO @delihus how to link the library what is not a name of a package
 target_link_libraries(${library_name} /opt/ros/humble/lib/libpose_filter.so)
 
-target_include_directories(${library_name}
-                           PUBLIC ${CMAKE_INSTALL_PREFIX}/include)
+target_include_directories(
+  ${library_name} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                         $<INSTALL_INTERFACE:include>)
 
 pluginlib_export_plugin_description_file(opennav_docking_core plugin.xml)
 
@@ -50,8 +51,16 @@ endif()
 
 install(DIRECTORY include/ DESTINATION include/)
 install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
+install(
+  TARGETS ${library_name}
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
 
-ament_export_include_directories(include)
-ament_export_libraries(panther_charging_dock ${library_name})
 ament_target_dependencies(${library_name} ${PACKAGE_DEPENDENCIES})
+ament_export_include_directories(include)
+ament_export_libraries(${library_name})
+ament_export_targets(export_${PROJECT_NAME})
+
 ament_package()

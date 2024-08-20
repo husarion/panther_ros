@@ -38,10 +38,10 @@ The package contains a `PantherChargingDock` plugin for the [opennav_docking](ht
 - `~<dock_name>.external_detection_timeout` [*double*, default: **0.2**]: A timeout in seconds for looking up a transformation from an april tag of a dock to a base frame id.
 - `~<dock_name>.external_detection_translation_x` [*double*, default: **0.0**]: A translation over an X axis between a detected frame and a dock pose.
 - `~<dock_name>.external_detection_translation_y` [*double*, default: **0.0**]: A translation over an Y axis between a detected frame and a dock pose.
-- `~<dock_name>.external_detection_translation_x` [*double*, default: **0.0**]: A translation over an Z axis between a detected frame and a dock pose.
+- `~<dock_name>.external_detection_translation_x` [*double*, default: **0.0**]: A translation over a Z axis between a detected frame and a dock pose.
 - `~<dock_name>.external_detection_rotation_roll` [*double*, default: **0.0**]: A rotation over an X axis between a detected frame and a dock pose.
 - `~<dock_name>.external_detection_rotation_pitch` [*double*, default: **0.0**]: A rotation over an Y axis between a detected frame and a dock pose.
-- `~<dock_name>.external_detection_rotation_yaw` [*double*, default: **0.0**]: A rotation over an Z axis between a detected frame and a dock pose.
+- `~<dock_name>.external_detection_rotation_yaw` [*double*, default: **0.0**]: A rotation over a Z axis between a detected frame and a dock pose.
 - `~<dock_name>.filter_coef` [*double*, default: **0.1**]: # TODO: @delihus
 - `~<dock_name>.docking_distance_threshold` [*double*, default: **0.05**]: A threshold of a distance between a robot pose and a dock pose to declare if docking succeed.
 - `~<dock_name>.docking_yaw_threshold` [*double*, default: **0.3**]: A threshold of a difference of yaw angles between a robot pose and a dock pose to declare if docking succeed.
