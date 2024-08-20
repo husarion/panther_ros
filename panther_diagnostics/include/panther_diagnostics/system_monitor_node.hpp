@@ -17,8 +17,8 @@
 
 #include <string>
 
-#include "diagnostic_updater/diagnostic_updater.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include "panther_msgs/msg/system_status.hpp"
 
@@ -68,10 +68,10 @@ private:
   void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
 
   FilesystemInterface::SharedPtr filesystem_;
+  diagnostic_updater::Updater diagnostic_updater_;
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;
-  diagnostic_updater::Updater diagnostic_updater_;
 
   system_monitor::Params params_;
   std::shared_ptr<system_monitor::ParamListener> param_listener_;

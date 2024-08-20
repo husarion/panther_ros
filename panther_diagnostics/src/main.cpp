@@ -16,7 +16,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
 
 #include "panther_diagnostics/filesystem.hpp"
 #include "panther_diagnostics/system_monitor_node.hpp"

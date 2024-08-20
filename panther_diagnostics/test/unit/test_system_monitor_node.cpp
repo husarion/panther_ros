@@ -17,8 +17,8 @@
 #include <memory>
 #include <string>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "panther_diagnostics/filesystem.hpp"
 #include "panther_diagnostics/system_monitor_node.hpp"
@@ -29,7 +29,8 @@ public:
   MOCK_METHOD(
     uintmax_t, GetSpaceCapacity, (const std::string & filesystem_path), (const, override));
 
-  MOCK_METHOD(uintmax_t, GetSpaceFree, (const std::string & filesystem_path), (const, override));
+  MOCK_METHOD(
+    uintmax_t, GetSpaceAvailable, (const std::string & filesystem_path), (const, override));
 
   MOCK_METHOD(std::string, ReadFile, (const std::string & file_path), (const, override));
 };
@@ -37,7 +38,7 @@ public:
 class SystemMonitorNodeWrapper : public panther_diagnostics::SystemMonitorNode
 {
 public:
-  SystemMonitorNodeWrapper(MockFilesystem::SharedPtr filesystem)
+  SystemMonitorNodeWrapper(std::shared_ptr<MockFilesystem> filesystem)
   : panther_diagnostics::SystemMonitorNode("test_system_statics", filesystem)
   {
   }
@@ -75,13 +76,13 @@ public:
   TestSystemMonitorNode();
 
 protected:
-  MockFilesystem::SharedPtr filesystem_;
+  std::shared_ptr<MockFilesystem> filesystem_;
   std::unique_ptr<SystemMonitorNodeWrapper> system_monitor_;
 };
 
 TestSystemMonitorNode::TestSystemMonitorNode()
 {
-  filesystem_ = std::make_shared<MockFilesystem>();
+  filesystem_ = std::make_unique<MockFilesystem>();
   system_monitor_ = std::make_unique<SystemMonitorNodeWrapper>(filesystem_);
 }
 
@@ -116,80 +117,71 @@ TEST_F(TestSystemMonitorNode, GetCPUMeanUsageUnderloaded)
   EXPECT_THROW(system_monitor_->GetCPUMeanUsage(test_usages), std::invalid_argument);
 }
 
-TEST(TestGetCPUTemperature, ValidFile)
+TEST_F(TestSystemMonitorNode, GetCPUTemperatureValidFile)
 {
-  auto filesystem_mock = std::make_shared<MockFilesystem>();
-  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
+  ON_CALL(*filesystem_, ReadFile(testing::_)).WillByDefault(testing::Return("25000"));
 
-  ON_CALL(*filesystem_mock, ReadFile(testing::_)).WillByDefault(testing::Return("25000.0"));
-  const auto temperature = system_monitor->GetCPUTemperature();
+  const auto temperature = system_monitor_->GetCPUTemperature();
 
   EXPECT_EQ(25.0, temperature);
 }
 
-TEST(TestGetCPUTemperature, MissingFile)
+TEST_F(TestSystemMonitorNode, GetCPUTemperatureMissingFile)
 {
-  auto filesystem_mock = std::make_shared<MockFilesystem>();
-  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
-
-  ON_CALL(*filesystem_mock, ReadFile(testing::_))
+  ON_CALL(*filesystem_, ReadFile(testing::_))
     .WillByDefault(testing::Throw(std::invalid_argument("File not found")));
-  const auto temperature = system_monitor->GetCPUTemperature();
+
+  const auto temperature = system_monitor_->GetCPUTemperature();
 
   EXPECT_TRUE(std::isnan(temperature));
 }
 
-TEST(TestGetDiskUsage, ValidFilesystem)
+TEST_F(TestSystemMonitorNode, GetDiskUsageValidFilesystem)
 {
-  auto filesystem_mock = std::make_shared<MockFilesystem>();
-  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
+  ON_CALL(*filesystem_, GetSpaceCapacity(testing::_)).WillByDefault(testing::Return(100000));
+  ON_CALL(*filesystem_, GetSpaceAvailable(testing::_)).WillByDefault(testing::Return(50000));
 
-  ON_CALL(*filesystem_mock, GetSpaceCapacity(testing::_)).WillByDefault(testing::Return(100000));
-  ON_CALL(*filesystem_mock, GetSpaceFree(testing::_)).WillByDefault(testing::Return(50000));
-
-  auto disk_usage = system_monitor->GetDiskUsage();
+  const auto disk_usage = system_monitor_->GetDiskUsage();
 
   EXPECT_EQ(50.0, disk_usage);
 }
 
-TEST(TestGetDiskUsage, InvalidFilesystem)
+TEST_F(TestSystemMonitorNode, GetDiskUsageInvalidFilesystem)
 {
-  auto filesystem_mock = std::make_shared<MockFilesystem>();
-  auto system_monitor = std::make_unique<SystemMonitorNodeWrapper>(filesystem_mock);
-
-  ON_CALL(*filesystem_mock, GetSpaceCapacity(testing::_)).WillByDefault(testing::Return(100000));
-  ON_CALL(*filesystem_mock, GetSpaceFree(testing::_))
+  ON_CALL(*filesystem_, GetSpaceCapacity(testing::_)).WillByDefault(testing::Return(100000));
+  ON_CALL(*filesystem_, GetSpaceAvailable(testing::_))
     .WillByDefault(testing::Throw(std::invalid_argument{"Filesystem not found"}));
 
-  const auto disk_usage = system_monitor->GetDiskUsage();
+  const auto disk_usage = system_monitor_->GetDiskUsage();
 
   EXPECT_TRUE(std::isnan(disk_usage));
 }
 
-TEST_F(TestSystemMonitorNode, CheckSystemStatusToMessage)
+TEST_F(TestSystemMonitorNode, SystemStatusToMessage)
 {
   panther_diagnostics::SystemStatus test_status;
-
   test_status.core_usages = {50.0, 50.0, 50.0};
   test_status.cpu_mean_usage = 50.0;
   test_status.cpu_temperature = 36.6;
+  test_status.ram_usage = 30.0;
   test_status.disk_usage = 60.0;
-  test_status.memory_usage = 30.0;
 
   const auto message = system_monitor_->SystemStatusToMessage(test_status);
 
   EXPECT_EQ(test_status.core_usages, message.cpu_percent);
   EXPECT_FLOAT_EQ(test_status.cpu_mean_usage, message.avg_load_percent);
   EXPECT_FLOAT_EQ(test_status.cpu_temperature, message.cpu_temp);
+  EXPECT_FLOAT_EQ(test_status.ram_usage, message.ram_usage_percent);
   EXPECT_FLOAT_EQ(test_status.disk_usage, message.disc_usage_percent);
-  EXPECT_FLOAT_EQ(test_status.memory_usage, message.ram_usage_percent);
 }
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   rclcpp::init(0, nullptr);
+
   auto result = RUN_ALL_TESTS();
+
   rclcpp::shutdown();
   return result;
 }

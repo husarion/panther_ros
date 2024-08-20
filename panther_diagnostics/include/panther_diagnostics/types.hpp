@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS__TYPES_HPP_
-#define PANTHER_DIAGNOSTICS__TYPES_HPP_
+#ifndef PANTHER_DIAGNOSTICS_TYPES_HPP_
+#define PANTHER_DIAGNOSTICS_TYPES_HPP_
 
 #include <vector>
 
@@ -31,10 +31,10 @@ struct SystemStatus
   std::vector<float> core_usages;
   float cpu_mean_usage;
   float cpu_temperature;
-  float memory_usage;
+  float ram_usage;
   float disk_usage;
 };
 
 }  // namespace panther_diagnostics
 
-#endif  // PANTHER_DIAGNOSTICS__TYPES_HPP_
+#endif  // PANTHER_DIAGNOSTICS_TYPES_HPP_

@@ -34,7 +34,7 @@ public:
 
   virtual uintmax_t GetSpaceCapacity(const std::string & filesystem_path) const = 0;
 
-  virtual uintmax_t GetSpaceFree(const std::string & filesystem_path) const = 0;
+  virtual uintmax_t GetSpaceAvailable(const std::string & filesystem_path) const = 0;
 
   virtual std::string ReadFile(const std::string & file_path) const = 0;
 
@@ -68,17 +68,17 @@ public:
   }
 
   /**
-   * @brief Returns the free space in bytes of the filesystem at the specified path.
+   * @brief Returns the available space in bytes of the filesystem at the specified path.
    *
    * @param filesystem_path The path to the filesystem.
-   * @return The free space in bytes.
+   * @return The available space in bytes.
    */
-  inline uintmax_t GetSpaceFree(const std::string & filesystem_path) const override
+  inline uintmax_t GetSpaceAvailable(const std::string & filesystem_path) const override
   {
     const auto path = std::filesystem::path(filesystem_path);
     const auto space_info = std::filesystem::space(path);
 
-    return space_info.free;
+    return space_info.available;
   }
 
   /**

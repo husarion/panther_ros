@@ -35,7 +35,7 @@ namespace panther_diagnostics
 
 SystemMonitorNode::SystemMonitorNode(
   const std::string & node_name, FilesystemInterface::SharedPtr filesystem)
-: rclcpp::Node(node_name), diagnostic_updater_(this), filesystem_(filesystem)
+: rclcpp::Node(node_name), filesystem_(filesystem), diagnostic_updater_(this)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
@@ -52,7 +52,7 @@ SystemMonitorNode::SystemMonitorNode(
     std::chrono::milliseconds(timer_interval_ms),
     std::bind(&SystemMonitorNode::TimerCallback, this));
 
-  diagnostic_updater_.setHardwareID(params_.hardware_id);
+  diagnostic_updater_.setHardwareID("Built In Computer");
   diagnostic_updater_.add("OS status", this, &SystemMonitorNode::DiagnoseSystem);
 
   RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
@@ -73,7 +73,7 @@ SystemStatus SystemMonitorNode::GetSystemStatus() const
   status.core_usages = GetCoresUsages();
   status.cpu_mean_usage = GetCPUMeanUsage(status.core_usages);
   status.cpu_temperature = GetCPUTemperature();
-  status.memory_usage = GetRAMUsage();
+  status.ram_usage = GetRAMUsage();
   status.disk_usage = GetDiskUsage();
 
   return status;
@@ -100,7 +100,7 @@ float SystemMonitorNode::GetCPUMeanUsage(const std::vector<float> & usages) cons
   });
 
   auto sum = std::accumulate(usages.begin(), usages.end(), 0.0);
-  auto mean_usage = sum / usages.size();
+  auto mean_usage = panther_utils::common_utilities::SetPrecision(sum / usages.size(), 2);
 
   return mean_usage;
 }
@@ -123,10 +123,9 @@ float SystemMonitorNode::GetCPUTemperature() const
 float SystemMonitorNode::GetRAMUsage() const
 {
   int total = 0, free = 0, available = 0;
-  uprofile::getSystemMemory(total, free, available);
+  uprofile::getSystemMemory(total, available, free);
 
-  const auto ram_usage = static_cast<float>(total - available) / total * 100.0;
-
+  const auto ram_usage = panther_utils::common_utilities::CountPercentage(total - available, total);
   return ram_usage;
 }
 
@@ -136,8 +135,8 @@ float SystemMonitorNode::GetDiskUsage() const
 
   try {
     const auto capacity = filesystem_->GetSpaceCapacity(kRootDirectory);
-    const auto free = filesystem_->GetSpaceFree(kRootDirectory);
-    disk_usage = static_cast<float>(capacity - free) / capacity * 100.0;
+    const auto available = filesystem_->GetSpaceAvailable(kRootDirectory);
+    disk_usage = panther_utils::common_utilities::CountPercentage(capacity - available, capacity);
   } catch (const std::exception & e) {
     RCLCPP_ERROR_STREAM(
       this->get_logger(), "An exception occurred while reading disk usage: " << e.what());
@@ -152,13 +151,10 @@ panther_msgs::msg::SystemStatus SystemMonitorNode::SystemStatusToMessage(
   panther_msgs::msg::SystemStatus message;
 
   message.header.stamp = this->get_clock()->now();
-  message.header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
-    params_.frame_id, std::string(this->get_namespace()));
-
   message.cpu_percent = status.core_usages;
   message.avg_load_percent = status.cpu_mean_usage;
   message.cpu_temp = status.cpu_temperature;
-  message.ram_usage_percent = status.memory_usage;
+  message.ram_usage_percent = status.ram_usage;
   message.disc_usage_percent = status.disk_usage;
 
   return message;
@@ -172,16 +168,16 @@ void SystemMonitorNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapp
   params_ = param_listener_->get_params();
   auto system_status = GetSystemStatus();
 
-  status.add("CPU usage", system_status.cpu_mean_usage);
-  status.add("CPU temperature", system_status.cpu_temperature);
-  status.add("Disk memory usage", system_status.disk_usage);
-  status.add("RAM memory usage", system_status.memory_usage);
+  status.add("CPU usage (%)", system_status.cpu_mean_usage);
+  status.add("CPU temperature (°C)", system_status.cpu_temperature);
+  status.add("RAM memory usage (%)", system_status.ram_usage);
+  status.add("Disk memory usage (%)", system_status.disk_usage);
 
   std::unordered_map<double, diagnostic_msgs::msg::KeyValue> limits = {
     {params_.cpu_usage_warn_threshold, status.values[0]},
     {params_.cpu_temperature_warn_threshold, status.values[1]},
-    {params_.disk_usage_warn_threshold, status.values[2]},
-    {params_.memory_usage_warn_threshold, status.values[3]},
+    {params_.ram_usage_warn_threshold, status.values[2]},
+    {params_.disk_usage_warn_threshold, status.values[3]},
   };
 
   for (const auto & [limit, key_value] : limits) {
