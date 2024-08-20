@@ -202,7 +202,7 @@ protected:
   std::string name_;
   std::string base_frame_name_;
   std::string dock_frame_;
-  float panther_version_;
+  double panther_version_;
 
   rclcpp::Logger logger_{rclcpp::get_logger("PantherChargingDock")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};

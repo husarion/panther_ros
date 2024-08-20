@@ -222,7 +222,7 @@ bool PantherChargingDock::isCharging()
       "An exception occurred while enabling charging: " + std::string(e.what()));
   }
 
-  // CAUTION: The  conteroller frequency can be higher than the message frequency
+  // CAUTION: The  controller frequency can be higher than the message frequency
   charging_status_box_.get(charging_status_msg);
 
   if (!charging_status_msg) {

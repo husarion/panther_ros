@@ -1,6 +1,6 @@
 # panther_docking
 
-Package contains a `PantherChargingDock` plugin for [opennav_docking](https://github.com/open-navigation/opennav_docking) project. Thanks to this package Panther can dock to a charging station.
+The package contains a `PantherChargingDock` plugin for the [opennav_docking](https://github.com/open-navigation/opennav_docking) project. Thanks to this package, Panther can dock to a charging station.
 
 ## Launch Files
 
@@ -44,7 +44,7 @@ Package contains a `PantherChargingDock` plugin for [opennav_docking](https://gi
 - `~<dock_name>.external_detection_rotation_yaw` [*double*, default: **0.0**]: A rotation over an Z axis between a detected frame and a dock pose.
 - `~<dock_name>.filter_coef` [*double*, default: **0.1**]: # TODO: @delihus
 - `~<dock_name>.docking_distance_threshold` [*double*, default: **0.05**]: A threshold of a distance between a robot pose and a dock pose to declare if docking succeed.
-- `~<dock_name>.docking_yaw_threshold` [*double*, default: **0.3**]: A threshold of a difference of an yaw angles between a robot pose and a dock pose to declare if docking succeed.
+- `~<dock_name>.docking_yaw_threshold` [*double*, default: **0.3**]: A threshold of a difference of yaw angles between a robot pose and a dock pose to declare if docking succeed.
 - `~<dock_name>.staging_x_offset` [*double*, default: **-0.7**]: A staging pose is defined by offsetting a dock pose in axis X.
 - `~<dock_name>.staging_yaw_offset` [*double*, default: **0.0**]: A staging pose is defined by offsetting a yaw angle.
 - `~<dock_name>.enable_charger_service_call_timeout` [*double*, default: **0.2**]: A timeout for calling enable charging service. A robot is unable to dock if excised.
