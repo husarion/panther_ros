@@ -100,6 +100,7 @@ TEST_F(TestSystemMonitorNode, GetCPUMeanUsageEmptyInput)
   const std::vector<float> test_usages = {};
 
   const auto mean_usage = system_monitor_->GetCPUMeanUsage(test_usages);
+
   EXPECT_TRUE(std::isnan(mean_usage));
 }
 
