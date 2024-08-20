@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" project_name="PantherSafetyBT">
+    <include path="dock.xml" />
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="DockRobotAction" editable="true">
+            <input_port name="action_name">name of an action</input_port>
+            <input_port name="use_dock_id">bool value indicating whether to use dock ID</input_port>
+            <input_port name="dock_id">dock ID</input_port>
+            <input_port name="dock_pose">pose of the dock</input_port>
+            <input_port name="dock_type">type of the dock</input_port>
+            <input_port name="max_staging_time">maximum staging time</input_port>
+            <input_port name="navigate_to_staging_pose">bool value indicating whether to navigate to
+                staging pose</input_port>
+            <output_port name="success">bool value indicating success</output_port>
+            <output_port name="error_code">error code</output_port>
+            <output_port name="num_retries">number of retries</output_port>
+        </Action>
+        <Action ID="UndockRobotAction" editable="true">
+            <input_port name="dock_type">type of the dock</input_port>
+            <input_port name="max_undocking_time">maximum time to get back to the staging pose</input_port>
+            <output_port name="success">bool value indicating success</output_port>
+            <output_port name="error_code">error code</output_port>
+        </Action>
+
+        <Decorator ID="TickAfterTimeout" editable="true">
+            <input_port name="timeout">time in s to wait before ticking child again</input_port>
+        </Decorator>
+    </TreeNodesModel>
+</root>

@@ -19,7 +19,7 @@
       base_frame: "<robot_namespace>/base_link"
       docking_distance_threshold: 0.15
       docking_yaw_threshold: 0.15
-      staging_x_offset: -0.5
+      staging_x_offset: -0.8
       staging_yaw_offset: 0.0
 
       # TODO: @delihus Try to remove this parameters by using docking station description in the ros_components_description
@@ -27,7 +27,7 @@
       external_detection_timeout: 0.3
       external_detection_translation_x: 0.0
       external_detection_translation_y: -0.175 # Distance between the detection and ground
-      external_detection_translation_z: 0.8 # Distance between the detection and the front of the robot
+      external_detection_translation_z: 0.35 # Distance between the detection and the front of the robot
       external_detection_rotation_roll: 0.0
       external_detection_rotation_pitch: 1.57
       external_detection_rotation_yaw:  0.0
