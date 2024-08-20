@@ -267,7 +267,8 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
 }
 
 void LEDStrip::CreateMarker(
-  const uint id, const gz::math::Pose3d pose, const gz::math::Color & color, const gz::math::Vector3d size)
+  const uint id, const gz::math::Pose3d pose, const gz::math::Color & color,
+  const gz::math::Vector3d size)
 {
   gz::msgs::Marker marker_msg;
   marker_msg.set_action(gz::msgs::Marker::ADD_MODIFY);

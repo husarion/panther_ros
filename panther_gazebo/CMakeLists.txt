@@ -43,13 +43,14 @@ qt5_add_resources(resources_rcc src/gui/EStop.qrc)
 
 add_library(EStop SHARED include/panther_gazebo/gui/e_stop.hpp
                          src/gui/e_stop.cpp ${resources_rcc})
-ament_target_dependencies(EStop ignition-gazebo6
-                          ignition-plugin1 rclcpp std_srvs)
+ament_target_dependencies(EStop ignition-gazebo6 ignition-plugin1 rclcpp
+                          std_srvs)
 target_link_libraries(EStop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
                       ${Qt5Quick_LIBRARIES} ${Qt5QuickControls2_LIBRARIES})
 
 add_library(LEDStrip SHARED src/led_strip.cpp)
-target_link_libraries(LEDStrip ignition-gazebo6 ignition-msgs8 ignition-plugin1 ignition-transport11)
+target_link_libraries(LEDStrip ignition-gazebo6 ignition-msgs8 ignition-plugin1
+                      ignition-transport11)
 
 install(
   TARGETS panther_simulation_plugins

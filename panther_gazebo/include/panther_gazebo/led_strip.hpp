@@ -55,7 +55,8 @@ private:
   void VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image);
   void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
   void CreateMarker(
-    const uint id, const gz::math::Pose3d pose, const gz::math::Color & color, const gz::math::Vector3d size);
+    const uint id, const gz::math::Pose3d pose, const gz::math::Color & color,
+    const gz::math::Vector3d size);
 
   // Parameters
   std::string light_name;
