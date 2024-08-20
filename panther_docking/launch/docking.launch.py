@@ -56,36 +56,40 @@ def generate_launch_description():
         replacements={"<robot_namespace>": namespace, "//": "/"},
     )
 
+    docking_server = Node(
+        package="opennav_docking",
+        executable="opennav_docking",
+        parameters=[
+            {"panther_version": panther_version},
+            namespaced_docking_server_config,
+            {"use_sim_time": True},
+        ],
+        namespace=namespace,
+        emulate_tty=True,
+    )
+
+    docking_server_activate = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="nav2_docking_lifecycle_manager",
+        parameters=[
+            {
+                "autostart": True,
+                "node_names": [
+                    "docking_server",
+                ],
+                "use_sim_time": use_sim,
+            },
+        ],
+        namespace=namespace,
+    )
+
     return LaunchDescription(
         [
             declare_use_sim_arg,
             declare_namespace_arg,
             declare_docking_server_path_arg,
-            Node(
-                package="opennav_docking",
-                executable="opennav_docking",
-                parameters=[
-                    {"panther_version": panther_version},
-                    namespaced_docking_server_config,
-                    {"use_sim_time": True},
-                ],
-                namespace=namespace,
-                emulate_tty=True,
-            ),
-            Node(
-                package="nav2_lifecycle_manager",
-                executable="lifecycle_manager",
-                name="nav2_docking_lifecycle_manager",
-                parameters=[
-                    {
-                        "autostart": True,
-                        "node_names": [
-                            "docking_server",
-                        ],
-                        "use_sim_time": use_sim,
-                    },
-                ],
-                namespace=namespace,
-            ),
+            docking_server,
+            docking_server_activate,
         ]
     )

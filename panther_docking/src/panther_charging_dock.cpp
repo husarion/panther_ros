@@ -43,7 +43,7 @@ void PantherChargingDock::configure(const rclcpp_lifecycle::LifecycleNode::WeakP
 
   nav2_util::declare_parameter_if_not_declared(node_, name + ".base_frame", rclcpp::ParameterValue("base_link"));
   nav2_util::declare_parameter_if_not_declared(node_, name + ".external_detection_timeout",
-                                               rclcpp::ParameterValue(0.0));
+                                               rclcpp::ParameterValue(0.2));
   nav2_util::declare_parameter_if_not_declared(node_, name + ".external_detection_translation_x",
                                                rclcpp::ParameterValue(0.0));
   nav2_util::declare_parameter_if_not_declared(node_, name + ".external_detection_translation_y",
@@ -75,6 +75,7 @@ void PantherChargingDock::configure(const rclcpp_lifecycle::LifecycleNode::WeakP
   node_->get_parameter(name + ".external_detection_translation_x", external_detection_translation_x_);
   node_->get_parameter(name + ".external_detection_translation_y", external_detection_translation_y_);
   node_->get_parameter(name + ".external_detection_translation_z", external_detection_translation_z_);
+
   double yaw, pitch, roll;
   node_->get_parameter(name + ".external_detection_rotation_yaw", yaw);
   node_->get_parameter(name + ".external_detection_rotation_pitch", pitch);
