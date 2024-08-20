@@ -50,27 +50,22 @@ def generate_launch_description():
         description="Namespace to all launched nodes and use namespace as tf_prefix. This aids in differentiating between multiple robots with the same devices.",
     )
 
-    rename_params_file = ReplaceString(
-        source_file=params_file,
-        replacements={"<device_namespace>": device_namespace, "//": "/"},
-    )
-
     nmea_driver_node = Node(
         package="nmea_navsat_driver",
         executable="nmea_socket_driver",
-        name=device_namespace,
+        name="nmea_navsat_driver",
         namespace=namespace,
         parameters=[
             {
                 "frame_id": device_namespace,
                 "tf_prefix": namespace,
             },
-            rename_params_file,
+            params_file,
         ],
         remappings=[
-            ("fix", "~/fix"),
-            ("time_reference", "~/time_reference"),
-            ("vel", "~/vel"),
+            ("fix", [device_namespace, "/fix"]),
+            ("time_reference", [device_namespace, "/time_reference"]),
+            ("vel", [device_namespace, "/vel"]),
             ("heading", ["_", device_namespace, "/heading"]),
         ],
     )
