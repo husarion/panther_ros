@@ -15,11 +15,43 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <string>
 
 #include "gtest/gtest.h"
 
 #include "panther_utils/common_utilities.hpp"
+
+TEST(SetPrecisionTest, TwoDigitPrecision)
+{
+  float value = 3.14159;
+  float expected_result = 3.14;
+
+  float result = panther_utils::common_utilities::SetPrecision(value, 2);
+
+  EXPECT_FLOAT_EQ(expected_result, result);
+}
+
+TEST(SetPrecisionTest, ZeroDigitPrecision)
+{
+  float value = 3.54159;
+  float expected_result = 4.0;
+
+  float result = panther_utils::common_utilities::SetPrecision(value, 0);
+
+  EXPECT_FLOAT_EQ(expected_result, result);
+}
+
+TEST(CountPercentageTest, CountPercentage)
+{
+  int value = 25;
+  int total = 100;
+  float expected_result = 25.00;
+
+  float result = panther_utils::common_utilities::CountPercentage(value, total);
+
+  EXPECT_FLOAT_EQ(expected_result, result);
+}
 
 TEST(TestPrefixMapKeys, CorrectlyPrefixesKeys)
 {

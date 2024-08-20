@@ -17,10 +17,47 @@
 
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <string>
 
 namespace panther_utils::common_utilities
 {
+
+/**
+ * @brief Sets the precision of a floating point value.
+ *
+ * @tparam T The type of the value - must be floating point type.
+ * @param value The value to set the precision of.
+ * @param precision The precision to set.
+ * @return The value with the set precision.
+ */
+template <typename T>
+T SetPrecision(T value, int precision)
+{
+  static_assert(
+    std::is_floating_point<T>::value,
+    "SetPrecision method can only be used with floating point types.");
+
+  std::ostringstream out;
+  out << std::fixed << std::setprecision(precision) << value;
+
+  return std::stof(out.str());
+}
+
+/**
+ * @brief Counts the percentage of a value in relation to a total. Result is returned as two digit
+ * precision float.
+ *
+ * @param value The share value.
+ * @param total The total value.
+ * @return The percentage value.
+ */
+template <typename T>
+float CountPercentage(const T & value, const T & total)
+{
+  auto percentage = static_cast<float>(value) / static_cast<float>(total) * 100.0;
+  return SetPrecision(percentage, 2);
+}
 
 /**
  * @brief Prefixes the keys of a given map with a specified prefix.
