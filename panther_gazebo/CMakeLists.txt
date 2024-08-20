@@ -42,10 +42,10 @@ ament_target_dependencies(
 target_link_libraries(panther_simulation_plugins ignition-gazebo6::core)
 
 set(CMAKE_AUTOMOC ON)
-qt5_add_resources(resources_rcc src/e_stop/EStop.qrc)
+qt5_add_resources(resources_rcc src/gui/EStop.qrc)
 
-add_library(EStop SHARED include/panther_gazebo/e_stop.hpp
-                         src/e_stop/e_stop.cpp ${resources_rcc})
+add_library(EStop SHARED include/panther_gazebo/gui/e_stop.hpp
+                         src/gui/e_stop.cpp ${resources_rcc})
 ament_target_dependencies(EStop ignition-common4 ignition-gazebo6
                           ignition-plugin1 rclcpp std_srvs)
 target_link_libraries(EStop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
