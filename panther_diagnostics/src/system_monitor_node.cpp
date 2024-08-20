@@ -111,7 +111,8 @@ float SystemMonitorNode::GetCPUTemperature() const
 
   try {
     const auto temperature_str = filesystem_->ReadFile(kTemperatureInfoFilename);
-    temperature = std::stof(temperature_str) / 1000.0;
+    temperature = panther_utils::common_utilities::SetPrecision(
+      std::stof(temperature_str) / 1000.0, 2);
   } catch (const std::exception & e) {
     RCLCPP_ERROR_STREAM(
       this->get_logger(), "An exception occurred while reading CPU temperature: " << e.what());
