@@ -14,6 +14,7 @@
 
 #include "panther_gazebo/led_strip.hpp"
 
+#include <gz/msgs/color.pb.h>
 #include <gz/msgs/marker.pb.h>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Model.hh>
@@ -43,8 +44,7 @@ void LEDStrip::Configure(
   ParseParameters(sdf);
   ConfigureLightEntityProperty(ecm);
 
-  marker_publisher = node.Advertise<gz::msgs::Marker>("/marker");
-  node.Subscribe(ns + "/" + imageTopic, &LEDStrip::ImageCallback, this);
+  node.Subscribe(ns + "/" + image_topic, &LEDStrip::ImageCallback, this);
 }
 
 void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm)
@@ -71,10 +71,14 @@ void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityCompon
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
-  std::lock_guard<std::mutex> lock(image_mutex);
-  MsgValidation(msg);
-  last_image = msg;
-  new_image_available = true;
+  try {
+    MsgValidation(msg);
+    std::lock_guard<std::mutex> lock(image_mutex);
+    last_image = msg;
+    new_image_available = true;
+  } catch (const std::exception & e) {
+    ignerr << "Error: " << e.what() << std::endl;
+  }
 }
 
 void LEDStrip::ParseParameters(const std::shared_ptr<const sdf::Element> & sdf)
@@ -90,7 +94,7 @@ void LEDStrip::ParseParameters(const std::shared_ptr<const sdf::Element> & sdf)
   }
 
   if (sdf->HasElement("topic")) {
-    imageTopic = sdf->Get<std::string>("topic");
+    image_topic = sdf->Get<std::string>("topic");
   } else {
     throw std::runtime_error("Error: The topic parameter is missing.");
   }
@@ -134,22 +138,9 @@ void LEDStrip::ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ec
           light_cmd.set_attenuation_quadratic(light_sdf.QuadraticAttenuationFactor());
           light_cmd.set_intensity(light_sdf.Intensity());
 
-          ignition::msgs::Color * diffuse_color = light_cmd.mutable_diffuse();
-          diffuse_color->set_r(light_sdf.Diffuse().R());
-          diffuse_color->set_g(light_sdf.Diffuse().G());
-          diffuse_color->set_b(light_sdf.Diffuse().B());
-          diffuse_color->set_a(light_sdf.Diffuse().A());
-
-          ignition::msgs::Color * specular_color = light_cmd.mutable_specular();
-          specular_color->set_r(light_sdf.Specular().R());
-          specular_color->set_g(light_sdf.Specular().G());
-          specular_color->set_b(light_sdf.Specular().B());
-          specular_color->set_a(light_sdf.Specular().A());
-
-          ignition::msgs::Vector3d * direction = light_cmd.mutable_direction();
-          direction->set_x(light_sdf.Direction().X());
-          direction->set_y(light_sdf.Direction().Y());
-          direction->set_z(light_sdf.Direction().Z());
+          gz::msgs::Set(light_cmd.mutable_diffuse(), light_sdf.Diffuse());
+          gz::msgs::Set(light_cmd.mutable_specular(), light_sdf.Specular());
+          gz::msgs::Set(light_cmd.mutable_direction(), light_sdf.Direction());
 
           // Set the light type
           switch (light_sdf.Type()) {
@@ -186,11 +177,11 @@ void LEDStrip::MsgValidation(const gz::msgs::Image & msg)
   if (
     msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8 &&
     msg.pixel_format_type() != gz::msgs::PixelFormatType::RGB_INT8) {
-    ignerr << "Error: Incorrect image encoding." << std::endl;
+    throw std::runtime_error("Incorrect image encoding.");
   }
 }
 
-ignition::msgs::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
+ignition::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
 {
   int sum_r = 0, sum_g = 0, sum_b = 0, sum_a = 0;
   int pixel_count = msg.width() * msg.height();
@@ -213,21 +204,19 @@ ignition::msgs::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
   int mean_b = sum_b / pixel_count;
   int mean_a = is_rgba ? sum_a / pixel_count : 255;
 
-  ignition::msgs::Color mean_color;
-  mean_color.set_r(static_cast<float>(mean_r) / 255.0f);
-  mean_color.set_g(static_cast<float>(mean_g) / 255.0f);
-  mean_color.set_b(static_cast<float>(mean_b) / 255.0f);
-  mean_color.set_a(static_cast<float>(mean_a) / 255.0f);
+  auto mean_color = ignition::math::Color(
+    static_cast<float>(mean_r) / 255.0f, static_cast<float>(mean_g) / 255.0f,
+    static_cast<float>(mean_b) / 255.0f, static_cast<float>(mean_a) / 255.0f);
 
   return mean_color;
 }
 
 void LEDStrip::VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image)
 {
-  ignition::msgs::Color mean_color = CalculateMeanColor(image);
+  ignition::math::Color mean_color = CalculateMeanColor(image);
 
-  light_cmd.mutable_diffuse()->CopyFrom(mean_color);
-  light_cmd.mutable_specular()->CopyFrom(mean_color);
+  gz::msgs::Set(light_cmd.mutable_diffuse(), mean_color);
+  gz::msgs::Set(light_cmd.mutable_specular(), mean_color);
 
   auto light_on = light_cmd.mutable_header()->add_data();
   light_on->set_key("isLightOn");
@@ -259,11 +248,11 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
       int idx = (y * width + x) * step;
-      ignition::msgs::Color pixel_color;
-      pixel_color.set_r(static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f);
-      pixel_color.set_g(static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f);
-      pixel_color.set_b(static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f);
-      pixel_color.set_a(
+      ignition::math::Color pixel_color;
+      pixel_color.R(static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f);
+      pixel_color.G(static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f);
+      pixel_color.B(static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f);
+      pixel_color.A(
         is_rgba ? static_cast<float>(static_cast<unsigned char>(data[idx + 3])) / 255.0f : 1.0f);
 
       auto pose = gz::math::Pose3d(
@@ -279,7 +268,7 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
 }
 
 void LEDStrip::CreateMarker(
-  int id, gz::math::Pose3d pose, const ignition::msgs::Color & color, gz::math::Vector3d scale)
+  int id, gz::math::Pose3d pose, const ignition::math::Color & color, gz::math::Vector3d scale)
 {
   gz::msgs::Marker marker_msg;
   marker_msg.set_action(gz::msgs::Marker::ADD_MODIFY);
@@ -295,8 +284,8 @@ void LEDStrip::CreateMarker(
   gz::msgs::Set(marker_msg.mutable_pose(), pose);
   gz::msgs::Set(marker_msg.mutable_scale(), scale);
 
-  marker_msg.mutable_material()->mutable_diffuse()->CopyFrom(color);
-  marker_msg.mutable_material()->mutable_ambient()->CopyFrom(color);
+  gz::msgs::Set(marker_msg.mutable_material()->mutable_ambient(), color);
+  gz::msgs::Set(marker_msg.mutable_material()->mutable_diffuse(), color);
 
   // Using Request to ensure markers are visible
   node.Request("/marker", marker_msg);

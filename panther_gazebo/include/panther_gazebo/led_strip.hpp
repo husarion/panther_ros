@@ -19,10 +19,10 @@
 #include <mutex>
 #include <string>
 
-#include <gz/msgs/color.pb.h>
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/EventManager.hh>
 #include <gz/sim/System.hh>
@@ -51,15 +51,15 @@ private:
   void ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ecm);
   void ImageCallback(const gz::msgs::Image & msg);
   void MsgValidation(const gz::msgs::Image & msg);
-  ignition::msgs::Color CalculateMeanColor(const gz::msgs::Image & msg);
+  ignition::math::Color CalculateMeanColor(const gz::msgs::Image & msg);
   void VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image);
   void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
   void CreateMarker(
-    int id, gz::math::Pose3d pose, const ignition::msgs::Color & color, gz::math::Vector3d scale);
+    int id, gz::math::Pose3d pose, const ignition::math::Color & color, gz::math::Vector3d scale);
 
   // Parameters
   std::string light_name;
-  std::string imageTopic;
+  std::string image_topic;
   std::string ns = "";
   double frequency = 10.0;
   double marker_width = 1.0;
@@ -70,7 +70,6 @@ private:
   gz::msgs::Image last_image;
   gz::sim::Entity light_entity{gz::sim::kNullEntity};
   gz::transport::Node node;
-  gz::transport::Node::Publisher marker_publisher;
   std::chrono::steady_clock::duration last_update_time{0};
   std::mutex image_mutex;
 };
