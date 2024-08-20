@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Dock">
+    <Sequence>
+      <CallSetLedAnimationService name="SerErrorAnimation"
+        id="4"
+        param=""
+        repeating="true"
+        service_name="/panther/lights/set_animation" />
+
+      <DockRobotAction action_name="/panther/dock_robot" use_dock_id="True" dock_id="main_dock"
+        dock_type="panther_docking_panther_charging_dock"
+        navigate_to_staging_pose="False" />
+
+        
+      <CallSetLedAnimationService name="SerErrorAnimation"
+        id="5"
+        param=""
+        repeating="false"
+        service_name="/panther/lights/set_animation" />
+
+      <CallSetLedAnimationService name="SerErrorAnimation"
+        id="4"
+        param=""
+        repeating="true"
+        service_name="/panther/lights/set_animation" />
+      <UndockRobotAction action_name="/panther/undock_robot"
+        dock_type="panther_docking_panther_charging_dock" />
+      <CallSetLedAnimationService name="SerErrorAnimation"
+        id="5"
+        param=""
+        repeating="false"
+        service_name="/panther/lights/set_animation" />
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+
+
+    <Action ID="DockRobotAction" editable="true">
+      <input_port name="action_name">name of an action</input_port>
+      <input_port name="use_dock_id">bool value indicating whether to use dock ID</input_port>
+      <input_port name="dock_id">dock ID</input_port>
+      <input_port name="dock_pose">pose of the dock</input_port>
+      <input_port name="dock_type">type of the dock</input_port>
+      <input_port name="max_staging_time">maximum staging time</input_port>
+      <input_port name="navigate_to_staging_pose">bool value indicating whether to navigate to
+        staging pose</input_port>
+      <output_port name="success">bool value indicating success</output_port>
+      <output_port name="error_code">error code</output_port>
+      <output_port name="num_retries">number of retries</output_port>
+    </Action>
+
+
+    <Action ID="UndockRobotAction" editable="true">
+      <input_port name="dock_type">type of the dock</input_port>
+      <input_port name="max_undocking_time">maximum time to get back to the staging pose</input_port>
+      <output_port name="success">bool value indicating success</output_port>
+      <output_port name="error_code">error code</output_port>
+    </Action>
+    <Action ID="CallSetLedAnimationService"
+      editable="true">
+      <input_port name="id">animation ID</input_port>
+      <input_port name="param">optional parameter</input_port>
+      <input_port name="repeating"
+        default="false">indicates if animation should repeat</input_port>
+      <input_port name="service_name">ROS service name</input_port>
+    </Action>
+    <Decorator ID="TickAfterTimeout" editable="true">
+      <input_port name="timeout">time in s to wait before ticking child again</input_port>
+    </Decorator>
+  </TreeNodesModel>
+
+</root>
