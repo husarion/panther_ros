@@ -64,9 +64,86 @@ struct RoboteqDriverState
 };
 
 /**
- * @brief Implementation of LoopDriver for Roboteq drivers
+ * @brief Abstract class for Roboteq driver
  */
-class RoboteqDriver : public lely::canopen::LoopDriver
+class RoboteqDriverInterface
+{
+public:
+  /**
+   * @brief Triggers boot operations
+   *
+   * @exception std::runtime_error if triggering boot fails
+   */
+  virtual std::future<void> Boot() = 0;
+
+  /**
+   * @brief Returns true if CAN error was detected.
+   */
+  virtual bool IsCANError() const = 0;
+
+  /**
+   * @brief Returns true if heartbeat timeout encountered.
+   */
+  virtual bool IsHeartbeatTimeout() const = 0;
+
+  /**
+   * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
+   * last timestamps
+   */
+  virtual RoboteqMotorsStates ReadRoboteqMotorsStates() = 0;
+
+  /**
+   * @brief Reads driver state data returned from Roboteq (PDO 3 and 4): error flags, battery
+   * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
+   * temperatures. Also saves the last timestamps
+   */
+  virtual RoboteqDriverState ReadRoboteqDriverState() = 0;
+
+  /**
+   * @brief Sends commands to the motors
+   *
+   * @param cmd command value in the range [-1000, 1000]
+   *
+   * @exception std::runtime_error if operation fails
+   */
+  virtual void SendRoboteqCmd(
+    const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2) = 0;
+
+  /**
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void ResetRoboteqScript() = 0;
+
+  /**
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOnEStop() = 0;
+
+  /**
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOffEStop() = 0;
+
+  /**
+   * @brief Sends a safety stop command to the motor connected to channel 1
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOnSafetyStopChannel1() = 0;
+
+  /**
+   * @brief Sends a safety stop command to the motor connected to channel 2
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOnSafetyStopChannel2() = 0;
+};
+
+/**
+ * @brief Hardware implementation of RoboteqDriverInterface with lely LoopDriver for Roboteq drivers
+ * control
+ */
+class RoboteqDriver : public RoboteqDriverInterface, public lely::canopen::LoopDriver
 {
 public:
   RoboteqDriver(
@@ -78,30 +155,30 @@ public:
    *
    * @exception std::runtime_error if triggering boot fails
    */
-  std::future<void> Boot();
+  std::future<void> Boot() override;
 
   /**
    * @brief Returns true if CAN error was detected.
    */
-  bool IsCANError() const { return can_error_.load(); }
+  bool IsCANError() const override { return can_error_.load(); };
 
   /**
    * @brief Returns true if heartbeat timeout encountered.
    */
-  bool IsHeartbeatTimeout() const { return heartbeat_timeout_.load(); }
+  bool IsHeartbeatTimeout() const override { return heartbeat_timeout_.load(); };
 
   /**
    * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
    * last timestamps
    */
-  RoboteqMotorsStates ReadRoboteqMotorsStates();
+  RoboteqMotorsStates ReadRoboteqMotorsStates() override;
 
   /**
    * @brief Reads driver state data returned from Roboteq (PDO 3 and 4): error flags, battery
    * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
    * temperatures. Also saves the last timestamps
    */
-  RoboteqDriverState ReadRoboteqDriverState();
+  RoboteqDriverState ReadRoboteqDriverState() override;
 
   /**
    * @brief Sends commands to the motors
@@ -110,36 +187,36 @@ public:
    *
    * @exception std::runtime_error if operation fails
    */
-  void SendRoboteqCmd(const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2);
+  void SendRoboteqCmd(const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2) override;
 
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void ResetRoboteqScript();
+  void ResetRoboteqScript() override;
 
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnEStop();
+  void TurnOnEStop() override;
 
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOffEStop();
+  void TurnOffEStop() override;
 
   /**
    * @brief Sends a safety stop command to the motor connected to channel 1
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnSafetyStopChannel1();
+  void TurnOnSafetyStopChannel1() override;
 
   /**
    * @brief Sends a safety stop command to the motor connected to channel 2
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnSafetyStopChannel2();
+  void TurnOnSafetyStopChannel2() override;
 
 private:
   /**
