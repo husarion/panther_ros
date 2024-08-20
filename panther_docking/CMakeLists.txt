@@ -37,13 +37,15 @@ target_include_directories(${library_name}
 
 pluginlib_export_plugin_description_file(opennav_docking_core plugin.xml)
 
-
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_charging_dock test/test_panther_charging_dock.cpp)
-  target_link_libraries(${PROJECT_NAME}_test_panther_charging_dock ${library_name} )
-  ament_target_dependencies(${PROJECT_NAME}_test_panther_charging_dock   ${PACKAGE_DEPENDENCIES})
+  ament_add_gtest(${PROJECT_NAME}_test_panther_charging_dock
+                  test/test_panther_charging_dock.cpp)
+  target_link_libraries(${PROJECT_NAME}_test_panther_charging_dock
+                        ${library_name})
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_charging_dock
+                            ${PACKAGE_DEPENDENCIES})
 endif()
 
 install(DIRECTORY include/ DESTINATION include/)

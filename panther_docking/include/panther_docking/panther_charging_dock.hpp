@@ -45,17 +45,16 @@ class PantherChargingDock : public opennav_docking_core::ChargingDock
 public:
   using Ptr = std::shared_ptr<PantherChargingDock>;
 
-  PantherChargingDock()
-  {
-  }
+  PantherChargingDock() {}
 
   /**
    * @param  parent pointer to user's node
    * @param  name The name of this planner
    * @param  tf A pointer to a TF buffer
    */
-  virtual void configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr& parent, const std::string& name,
-                         std::shared_ptr<tf2_ros::Buffer> tf) override final;
+  virtual void configure(
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent, const std::string & name,
+    std::shared_ptr<tf2_ros::Buffer> tf) override final;
 
   /**
    * @brief Method to cleanup resources used on shutdown.
@@ -80,14 +79,14 @@ public:
    * @param frame Dock's frame of pose
    * @return PoseStamped of staging pose in the specified frame
    */
-  virtual geometry_msgs::msg::PoseStamped getStagingPose(const geometry_msgs::msg::Pose& pose,
-                                                         const std::string& frame) override final;
+  virtual geometry_msgs::msg::PoseStamped getStagingPose(
+    const geometry_msgs::msg::Pose & pose, const std::string & frame) override final;
 
   /**
    * @brief Method to obtain the refined pose of the dock, usually based on sensors
    * @param pose The initial estimate of the dock pose.
    */
-  virtual bool getRefinedPose(geometry_msgs::msg::PoseStamped& pose) override final;
+  virtual bool getRefinedPose(geometry_msgs::msg::PoseStamped & pose) override final;
 
   /**
    * @brief Have we made contact with dock? This can be implemented in a variety
@@ -146,8 +145,8 @@ protected:
    *
    * @return The transformed pose.
    */
-  geometry_msgs::msg::PoseStamped transformPose(const geometry_msgs::msg::PoseStamped& pose,
-                                                const std::string& target_frame);
+  geometry_msgs::msg::PoseStamped transformPose(
+    const geometry_msgs::msg::PoseStamped & pose, const std::string & target_frame);
 
   /**
    * @brief Offset the staging pose.
@@ -158,7 +157,8 @@ protected:
    *
    * @return The offset staging pose.
    */
-  geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(const geometry_msgs::msg::PoseStamped& dock_pose);
+  geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(
+    const geometry_msgs::msg::PoseStamped & dock_pose);
 
   /**
    * @brief Offset the detected dock pose.
@@ -169,7 +169,8 @@ protected:
    *
    * @return The offset detected dock pose.
    */
-  geometry_msgs::msg::PoseStamped offsetDetectedDockPose(const geometry_msgs::msg::PoseStamped& detected_dock_pose);
+  geometry_msgs::msg::PoseStamped offsetDetectedDockPose(
+    const geometry_msgs::msg::PoseStamped & detected_dock_pose);
 
   /**
    * @brief Get the dock pose in a detection dock frame.
@@ -179,7 +180,7 @@ protected:
    * @param frame The detection frame to get the dock pose in.
    * @return The dock pose in the detection frame.
    */
-  geometry_msgs::msg::PoseStamped getDockPose(const std::string& frame);
+  geometry_msgs::msg::PoseStamped getDockPose(const std::string & frame);
 
   /**
    * @brief Method to update the dock pose and publish it.
@@ -196,15 +197,15 @@ protected:
    *
    * @param frame The frame to publish the staging pose in.
    */
-  void updateStagingPoseAndPublish(const std::string& frame);
+  void updateStagingPoseAndPublish(const std::string & frame);
 
   std::string name_;
   std::string base_frame_name_;
   std::string dock_frame_;
   float panther_version_;
 
-  rclcpp::Logger logger_{ rclcpp::get_logger("PantherChargingDock") };
-  rclcpp::Clock steady_clock_{ RCL_STEADY_TIME };
+  rclcpp::Logger logger_{rclcpp::get_logger("PantherChargingDock")};
+  rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf2_buffer_;
   rclcpp::Subscription<panther_msgs::msg::ChargingStatus>::SharedPtr charging_status_sub_;
@@ -213,8 +214,9 @@ protected:
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr dock_pose_pub_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr charger_enable_client_;
 
-  realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::ChargingStatus>> charging_status_box_{ nullptr };
-  realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::IOState>> io_state_box_{ nullptr };
+  realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::ChargingStatus>>
+    charging_status_box_{nullptr};
+  realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::IOState>> io_state_box_{nullptr};
 
   geometry_msgs::msg::PoseStamped dock_pose_;
   geometry_msgs::msg::PoseStamped staging_pose_;

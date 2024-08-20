@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "ament_index_cpp/get_package_share_directory.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "gtest/gtest.h"
 #include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-#include "ament_index_cpp/get_package_share_directory.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2/utils.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 
@@ -30,31 +30,28 @@ class PantherChargingDockWrapper : public panther_docking::PantherChargingDock
 {
 public:
   using SharedPtr = std::shared_ptr<PantherChargingDockWrapper>;
-  PantherChargingDockWrapper() : panther_docking::PantherChargingDock()
-  {
-  }
+  PantherChargingDockWrapper() : panther_docking::PantherChargingDock() {}
 
-  void setChargerState(bool state)
-  {
-    panther_docking::PantherChargingDock::setChargerState(state);
-  }
+  void setChargerState(bool state) { panther_docking::PantherChargingDock::setChargerState(state); }
 
-  geometry_msgs::msg::PoseStamped transformPose(const geometry_msgs::msg::PoseStamped& pose,
-                                                const std::string& target_frame)
+  geometry_msgs::msg::PoseStamped transformPose(
+    const geometry_msgs::msg::PoseStamped & pose, const std::string & target_frame)
   {
     return panther_docking::PantherChargingDock::transformPose(pose, target_frame);
   }
-  geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(const geometry_msgs::msg::PoseStamped& dock_pose)
+  geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(
+    const geometry_msgs::msg::PoseStamped & dock_pose)
   {
     return panther_docking::PantherChargingDock::offsetStagingPoseToDockPose(dock_pose);
   }
 
-  geometry_msgs::msg::PoseStamped offsetDetectedDockPose(const geometry_msgs::msg::PoseStamped& detected_dock_pose)
+  geometry_msgs::msg::PoseStamped offsetDetectedDockPose(
+    const geometry_msgs::msg::PoseStamped & detected_dock_pose)
   {
     return panther_docking::PantherChargingDock::offsetDetectedDockPose(detected_dock_pose);
   }
 
-  geometry_msgs::msg::PoseStamped getDockPose(const std::string& frame)
+  geometry_msgs::msg::PoseStamped getDockPose(const std::string & frame)
   {
     return panther_docking::PantherChargingDock::getDockPose(frame);
   }
@@ -63,7 +60,7 @@ public:
     panther_docking::PantherChargingDock::updateDockPoseAndPublish();
   }
 
-  void updateStagingPoseAndPublish(const std::string& frame)
+  void updateStagingPoseAndPublish(const std::string & frame)
   {
     panther_docking::PantherChargingDock::updateStagingPoseAndPublish(frame);
   }
@@ -81,7 +78,8 @@ protected:
   void CreateChargerStatusPublisher();
   void PublishChargerStatus(bool charging);
   void SetBaseLinkToOdomTransform();
-  void SetDockToBaseLinkTransform(double x = 1.0, double y = 2.0, double z = 3.0, double yaw = 1.57);
+  void SetDockToBaseLinkTransform(
+    double x = 1.0, double y = 2.0, double z = 3.0, double yaw = 1.57);
   void SetDetectionOffsets();
   void SetStagingOffsets();
 
@@ -116,14 +114,12 @@ TestPantherChargingDock::TestPantherChargingDock()
 
 TestPantherChargingDock::~TestPantherChargingDock()
 {
-  if (charging_dock_)
-  {
+  if (charging_dock_) {
     charging_dock_->deactivate();
     charging_dock_->cleanup();
   }
 
-  if (executor_)
-  {
+  if (executor_) {
     executor_->cancel();
   }
 
@@ -137,10 +133,12 @@ void TestPantherChargingDock::ConfigureAndActivateDock(double panther_version)
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
 
   dock_pose_sub_ = node_->create_subscription<geometry_msgs::msg::PoseStamped>(
-      "docking/dock_pose", 10, [&](const geometry_msgs::msg::PoseStamped::SharedPtr msg) { dock_pose_ = msg; });
+    "docking/dock_pose", 10,
+    [&](const geometry_msgs::msg::PoseStamped::SharedPtr msg) { dock_pose_ = msg; });
 
   staging_pose_sub_ = node_->create_subscription<geometry_msgs::msg::PoseStamped>(
-      "docking/staging_pose", 10, [&](const geometry_msgs::msg::PoseStamped::SharedPtr msg) { staging_pose_ = msg; });
+    "docking/staging_pose", 10,
+    [&](const geometry_msgs::msg::PoseStamped::SharedPtr msg) { staging_pose_ = msg; });
 
   // Silence error about dedicated thread's being necessary
   tf2_buffer_->setUsingDedicatedThread(true);
@@ -154,29 +152,26 @@ void TestPantherChargingDock::ConfigureAndActivateDock(double panther_version)
 void TestPantherChargingDock::CreateChargerEnableService(bool success)
 {
   charger_enable_service_ = node_->create_service<std_srvs::srv::SetBool>(
-      "hardware/charger_enable", [success, this](const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-                                                 std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
-        response->success = success;
-        if (success)
-        {
-          this->charging_status_ = request->data;
-        }
-        else
-        {
-          this->charging_status_ = false;
-        }
+    "hardware/charger_enable", [success, this](
+                                 const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+                                 std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
+      response->success = success;
+      if (success) {
+        this->charging_status_ = request->data;
+      } else {
+        this->charging_status_ = false;
+      }
 
-        if (this->charger_state_pub_)
-        {
-          PublishChargerStatus(this->charging_status_);
-        }
-      });
+      if (this->charger_state_pub_) {
+        PublishChargerStatus(this->charging_status_);
+      }
+    });
 }
 
 void TestPantherChargingDock::CreateChargerStatusPublisher()
 {
-  charger_state_pub_ =
-      node_->create_publisher<panther_msgs::msg::ChargingStatus>("battery/charging_status", rclcpp::QoS(1));
+  charger_state_pub_ = node_->create_publisher<panther_msgs::msg::ChargingStatus>(
+    "battery/charging_status", rclcpp::QoS(1));
 }
 
 void TestPantherChargingDock::PublishChargerStatus(bool charging)
@@ -222,24 +217,29 @@ void TestPantherChargingDock::SetDockToBaseLinkTransform(double x, double y, dou
 
 void TestPantherChargingDock::SetDetectionOffsets()
 {
-  node_->declare_parameter("test_dock.external_detection_translation_x",
-                           rclcpp::ParameterValue(external_detection_translation_x_));
-  node_->declare_parameter("test_dock.external_detection_translation_y",
-                           rclcpp::ParameterValue(external_detection_translation_y_));
-  node_->declare_parameter("test_dock.external_detection_translation_z",
-                           rclcpp::ParameterValue(external_detection_translation_z_));
-  node_->declare_parameter("test_dock.external_detection_rotation_roll",
-                           rclcpp::ParameterValue(external_detection_roll_));
-  node_->declare_parameter("test_dock.external_detection_rotation_pitch",
-                           rclcpp::ParameterValue(external_detection_pitch_));
-  node_->declare_parameter("test_dock.external_detection_rotation_yaw",
-                           rclcpp::ParameterValue(external_detection_yaw_));
+  node_->declare_parameter(
+    "test_dock.external_detection_translation_x",
+    rclcpp::ParameterValue(external_detection_translation_x_));
+  node_->declare_parameter(
+    "test_dock.external_detection_translation_y",
+    rclcpp::ParameterValue(external_detection_translation_y_));
+  node_->declare_parameter(
+    "test_dock.external_detection_translation_z",
+    rclcpp::ParameterValue(external_detection_translation_z_));
+  node_->declare_parameter(
+    "test_dock.external_detection_rotation_roll", rclcpp::ParameterValue(external_detection_roll_));
+  node_->declare_parameter(
+    "test_dock.external_detection_rotation_pitch",
+    rclcpp::ParameterValue(external_detection_pitch_));
+  node_->declare_parameter(
+    "test_dock.external_detection_rotation_yaw", rclcpp::ParameterValue(external_detection_yaw_));
 }
 
 void TestPantherChargingDock::SetStagingOffsets()
 {
   node_->declare_parameter("test_dock.staging_x_offset", rclcpp::ParameterValue(staging_x_offset_));
-  node_->declare_parameter("test_dock.staging_yaw_offset", rclcpp::ParameterValue(staging_yaw_offset_));
+  node_->declare_parameter(
+    "test_dock.staging_yaw_offset", rclcpp::ParameterValue(staging_yaw_offset_));
 }
 
 TEST_F(TestPantherChargingDock, SetChargerStateOlderFailure)
@@ -320,7 +320,8 @@ TEST_F(TestPantherChargingDock, offsetDetectedDockPose)
 
   tf2::Quaternion external_detection_rotation;
 
-  external_detection_rotation.setRPY(external_detection_roll_, external_detection_pitch_, external_detection_yaw_);
+  external_detection_rotation.setRPY(
+    external_detection_roll_, external_detection_pitch_, external_detection_yaw_);
 
   tf2::Quaternion offset_rotation;
   tf2::fromMsg(new_pose.pose.orientation, offset_rotation);
@@ -345,8 +346,8 @@ TEST_F(TestPantherChargingDock, GetDockPose)
   tf2::Quaternion external_detection_rotation_;
 
   // 1.57 is from transformation from base_link to test_dock
-  external_detection_rotation_.setRPY(external_detection_roll_, external_detection_pitch_,
-                                      external_detection_yaw_ + 1.57);
+  external_detection_rotation_.setRPY(
+    external_detection_roll_, external_detection_pitch_, external_detection_yaw_ + 1.57);
 
   EXPECT_NEAR(pose.pose.position.x, 1.0 - external_detection_translation_y_, 0.01);
   EXPECT_NEAR(pose.pose.position.y, 2.0 + external_detection_translation_x_, 0.01);
@@ -370,22 +371,27 @@ TEST_F(TestPantherChargingDock, UpdateDockPoseAndStagingPosePublish)
     charging_dock_->updateStagingPoseAndPublish("base_link");
   });
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, staging_pose_, std::chrono::milliseconds(100)));
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, dock_pose_, std::chrono::milliseconds(100)));
+  ASSERT_TRUE(
+    panther_utils::test_utils::WaitForMsg(node_, staging_pose_, std::chrono::milliseconds(100)));
+  ASSERT_TRUE(
+    panther_utils::test_utils::WaitForMsg(node_, dock_pose_, std::chrono::milliseconds(100)));
 
   tf2::Quaternion external_detection_rotation_;
 
   // 1.57 is from transformation from base_link to test_dock
-  external_detection_rotation_.setRPY(external_detection_roll_, external_detection_pitch_,
-                                      external_detection_yaw_ + 1.57);
+  external_detection_rotation_.setRPY(
+    external_detection_roll_, external_detection_pitch_, external_detection_yaw_ + 1.57);
 
   EXPECT_NEAR(dock_pose_->pose.position.x, 1.0 - external_detection_translation_y_, 0.01);
   EXPECT_NEAR(dock_pose_->pose.position.y, 2.0 + external_detection_translation_x_, 0.01);
   EXPECT_NEAR(dock_pose_->pose.position.z, 0.0, 0.01);
   EXPECT_EQ(dock_pose_->header.frame_id, "base_link");
-  EXPECT_NEAR(tf2::getYaw(dock_pose_->pose.orientation), tf2::getYaw(external_detection_rotation_), 0.01);
+  EXPECT_NEAR(
+    tf2::getYaw(dock_pose_->pose.orientation), tf2::getYaw(external_detection_rotation_), 0.01);
 
-  EXPECT_NEAR(staging_pose_->pose.position.x, 1.0 - external_detection_translation_y_ - staging_x_offset_, 0.01);
+  EXPECT_NEAR(
+    staging_pose_->pose.position.x, 1.0 - external_detection_translation_y_ - staging_x_offset_,
+    0.01);
   EXPECT_NEAR(staging_pose_->pose.position.y, 2.0 + external_detection_translation_x_, 0.01);
   EXPECT_NEAR(staging_pose_->pose.position.z, 0.0, 0.01);
   EXPECT_EQ(staging_pose_->header.frame_id, "base_link");
@@ -394,9 +400,12 @@ TEST_F(TestPantherChargingDock, UpdateDockPoseAndStagingPosePublish)
   EXPECT_NEAR(tf2::getYaw(staging_pose_->pose.orientation), -1.57, 0.01);
 
   ASSERT_NO_THROW({ charging_dock_->updateStagingPoseAndPublish("odom"); });
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node_, staging_pose_, std::chrono::milliseconds(100)));
+  ASSERT_TRUE(
+    panther_utils::test_utils::WaitForMsg(node_, staging_pose_, std::chrono::milliseconds(100)));
 
-  EXPECT_NEAR(staging_pose_->pose.position.x, 1.0 - external_detection_translation_y_ - staging_x_offset_ + 0.3, 0.01);
+  EXPECT_NEAR(
+    staging_pose_->pose.position.x,
+    1.0 - external_detection_translation_y_ - staging_x_offset_ + 0.3, 0.01);
   EXPECT_NEAR(staging_pose_->pose.position.y, 2.0 + external_detection_translation_x_ + 0.2, 0.01);
   EXPECT_NEAR(staging_pose_->pose.position.z, 0.1, 0.01);
   EXPECT_EQ(staging_pose_->header.frame_id, "odom");
@@ -408,11 +417,13 @@ TEST_F(TestPantherChargingDock, GetStagingPose)
   ConfigureAndActivateDock(1.21);
 
   geometry_msgs::msg::PoseStamped pose;
-  ASSERT_THROW({ charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), "test_dock"); },
-               opennav_docking_core::FailedToDetectDock);
+  ASSERT_THROW(
+    { charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), "test_dock"); },
+    opennav_docking_core::FailedToDetectDock);
 
   SetDockToBaseLinkTransform();
-  ASSERT_NO_THROW({ pose = charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), "test_dock"); });
+  ASSERT_NO_THROW(
+    { pose = charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), "test_dock"); });
   EXPECT_NEAR(pose.pose.position.x, 1.0, 0.01);
   EXPECT_NEAR(pose.pose.position.y, 2.0 + staging_x_offset_, 0.01);
   EXPECT_NEAR(pose.pose.position.z, 0.0, 0.01);
@@ -436,8 +447,8 @@ TEST_F(TestPantherChargingDock, GetRefinedPose)
 
   tf2::Quaternion external_detection_rotation_;
   // 1.57 is from transformation from base_link to test_dock
-  external_detection_rotation_.setRPY(external_detection_roll_, external_detection_pitch_,
-                                      external_detection_yaw_ + 1.57);
+  external_detection_rotation_.setRPY(
+    external_detection_roll_, external_detection_pitch_, external_detection_yaw_ + 1.57);
 
   EXPECT_NEAR(pose.pose.position.x, 1.0 - external_detection_translation_y_, 0.01);
   EXPECT_NEAR(pose.pose.position.y, 2.0 + external_detection_translation_x_, 0.01);
@@ -458,7 +469,9 @@ TEST_F(TestPantherChargingDock, IsDocked)
   ASSERT_FALSE(charging_dock_->isDocked());
 
   SetBaseLinkToOdomTransform();
-  SetDockToBaseLinkTransform(-external_detection_translation_y_, external_detection_translation_x_, external_detection_translation_z_, -external_detection_yaw_);
+  SetDockToBaseLinkTransform(
+    -external_detection_translation_y_, external_detection_translation_x_,
+    external_detection_translation_z_, -external_detection_yaw_);
   charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), "test_dock");
 
   EXPECT_TRUE(charging_dock_->isDocked());
