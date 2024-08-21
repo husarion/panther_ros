@@ -119,7 +119,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_controller
-    test/panther_system/motors_controller/test_canopen_controller.cpp
+    test/unit/panther_system/motors_controller/test_canopen_controller.cpp
     src/panther_system/motors_controller/canopen_controller.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/utils.cpp)
@@ -134,7 +134,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver
-    test/panther_system/motors_controller/test_roboteq_driver.cpp
+    test/unit/panther_system/motors_controller/test_roboteq_driver.cpp
     src/panther_system/motors_controller/canopen_controller.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/utils.cpp)
