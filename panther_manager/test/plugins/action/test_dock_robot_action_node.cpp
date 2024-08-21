@@ -24,7 +24,7 @@
 
 #include <gtest/gtest.h>
 #include "panther_manager/plugins/action/dock_robot_action_node.hpp"
-#include "plugin_test_utils.hpp"
+#include "utils/plugin_test_utils.hpp"
 
 class TestDockRobotAction : public panther_manager::plugin_test_utils::PluginTestUtils
 {

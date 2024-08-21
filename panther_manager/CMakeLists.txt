@@ -56,11 +56,12 @@ add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)
 
-add_library(dock_robot_bt_node SHARED plugins/action/dock_robot_action_node.cpp)
+add_library(dock_robot_bt_node SHARED
+            src/plugins/action/dock_robot_action_node.cpp)
 list(APPEND plugin_libs dock_robot_bt_node)
 
 add_library(undock_robot_bt_node SHARED
-            plugins/action/undock_robot_action_node.cpp)
+            src/plugins/action/undock_robot_action_node.cpp)
 list(APPEND plugin_libs undock_robot_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
@@ -145,6 +146,19 @@ if(BUILD_TESTING)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
 
   ament_add_gtest(
+    ${PROJECT_NAME}_test_dock_robot_action_node
+    test/plugins/action/test_dock_robot_action_node.cpp
+    src/plugins/action/dock_robot_action_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_action_node)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_undock_robot_action_node
+    test/plugins/action/test_undock_robot_action_node.cpp
+    src/plugins/action/undock_robot_action_node.cpp)
+
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_action_node)
+
+  ament_add_gtest(
     ${PROJECT_NAME}_test_tick_after_timeout_node
     test/plugins/decorator/test_tick_after_timeout_node.cpp
     src/plugins/decorator/tick_after_timeout_node.cpp)
@@ -157,14 +171,6 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_shutdown_hosts_node
                   test/plugins/test_shutdown_hosts_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_node)
-
-  ament_add_gtest(${PROJECT_NAME}_test_dock_robot_action_node
-                  test/plugins/test_dock_robot_action_node.cpp)
-  list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_action_node)
-
-  ament_add_gtest(${PROJECT_NAME}_test_undock_robot_action_node
-                  test/plugins/test_undock_robot_action_node.cpp)
-  list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_action_node)
 
   foreach(bt_node_test ${plugin_tests})
     target_include_directories(
