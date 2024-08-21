@@ -21,7 +21,7 @@ namespace panther_manager
 
 bool UndockRobotAction::setGoal(Goal& goal)
 {
-  if (!this->getInput<std::string>("dock_type", goal.dock_type))
+  if (!this->getInput<std::string>("dock_type", goal.dock_type) || goal.dock_type.empty())
   {
     RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_type]");
     return false;

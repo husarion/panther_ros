@@ -136,7 +136,9 @@ if(BUILD_TESTING)
     signal_shutdown_bt_node
     shutdown_single_host_bt_node
     shutdown_hosts_from_file_bt_node
-    tick_after_timeout_bt_node)
+    tick_after_timeout_bt_node
+    dock_robot_bt_node
+    undock_robot_bt_node)
 
   ament_add_gtest(${PROJECT_NAME}_test_call_set_bool_service_node
                   test/plugins/test_call_set_bool_service_node.cpp)
@@ -174,6 +176,14 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_shutdown_hosts_node
                   test/plugins/test_shutdown_hosts_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_node)
+
+  ament_add_gtest(${PROJECT_NAME}_test_dock_robot_action_node
+  test/plugins/test_dock_robot_action_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_action_node)
+
+  ament_add_gtest(${PROJECT_NAME}_test_undock_robot_action_node
+  test/plugins/test_undock_robot_action_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_action_node)
 
   foreach(bt_node_test ${plugin_tests})
     target_link_libraries(${bt_node_test} ${PROJECT_NAME}_test_plugin_utils)
