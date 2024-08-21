@@ -96,22 +96,9 @@ ament_target_dependencies(
   std_msgs)
 target_link_libraries(lights_manager_node ${plugin_libs})
 
-add_executable(
-  dock_manager_node src/dock_manager_node_main.cpp
-                      src/dock_manager_node.cpp src/behavior_tree_manager.cpp)
-ament_target_dependencies(
-  dock_manager_node
-  behaviortree_ros2
-  panther_msgs
-  panther_utils
-  rclcpp
-  sensor_msgs
-  std_msgs)
-target_link_libraries(dock_manager_node ${plugin_libs})
-
 install(TARGETS ${plugin_libs} DESTINATION lib)
 
-install(TARGETS safety_manager_node lights_manager_node dock_manager_node
+install(TARGETS safety_manager_node lights_manager_node
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY behavior_trees config launch
