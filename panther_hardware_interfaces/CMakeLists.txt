@@ -83,7 +83,6 @@ install(
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(panther_utils REQUIRED)
 
@@ -118,7 +117,7 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_data_converters
                         PkgConfig::LIBLELY_COAPP)
 
-  ament_add_gmock(
+  ament_add_test(
     ${PROJECT_NAME}_test_canopen_controller
     test/panther_system/motors_controller/test_canopen_controller.cpp
     src/panther_system/motors_controller/canopen_controller.cpp

@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
-#include <cstdint>
-#include <future>
 #include <memory>
 #include <stdexcept>
 #include <string>
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
@@ -27,68 +23,19 @@
 
 #include "utils/test_constants.hpp"
 
-class MockRoboteqDriver : public panther_hardware_interfaces::RoboteqDriverInterface
+class FakeCANSocket
 {
 public:
-  MOCK_METHOD(std::future<void>, Boot, (), (override));
-
-  MOCK_METHOD(bool, IsCANError, (), (const, override));
-  MOCK_METHOD(bool, IsHeartbeatTimeout, (), (const, override));
-
-  MOCK_METHOD(
-    panther_hardware_interfaces::RoboteqMotorsStates, ReadRoboteqMotorsStates, (), (override));
-  MOCK_METHOD(
-    panther_hardware_interfaces::RoboteqDriverState, ReadRoboteqDriverState, (), (override));
-
-  MOCK_METHOD(
-    void, SendRoboteqCmd, (const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2),
-    (override));
-  MOCK_METHOD(void, ResetRoboteqScript, (), (override));
-  MOCK_METHOD(void, TurnOnEStop, (), (override));
-  MOCK_METHOD(void, TurnOffEStop, (), (override));
-  MOCK_METHOD(void, TurnOnSafetyStopChannel1, (), (override));
-  MOCK_METHOD(void, TurnOnSafetyStopChannel2, (), (override));
-};
-
-class MockCANopenController : public panther_hardware_interfaces::CANopenController
-{
-public:
-  MockCANopenController(const panther_hardware_interfaces::CANopenSettings & canopen_settings)
-  : CANopenController(canopen_settings)
+  FakeCANSocket(const std::string & can_interface_name)
+  : can_interface_name_(can_interface_name), can_device_created_(false)
   {
   }
 
-  MOCK_METHOD(void, BootDrivers, (), (override));
-  MOCK_METHOD(void, InitializeDrivers, (), (override));
-  MOCK_METHOD(
-    std::shared_ptr<panther_hardware_interfaces::RoboteqDriverInterface>, GetDriver,
-    (const std::string & name), (override));
-};
+  ~FakeCANSocket() { Deinitialize(); }
 
-class TestCANopenController : public ::testing::Test
-{
-public:
-  TestCANopenController()
-  : can_interface_name_(panther_hardware_interfaces_test::kCANopenSettings.can_interface_name)
+  void Initialize()
   {
-    InitializeCANSocket();
-
-    canopen_controller_ =
-      std::make_unique<MockCANopenController>(panther_hardware_interfaces_test::kCANopenSettings);
-
-    ON_CALL(*canopen_controller_, BootDrivers()).WillByDefault(testing::Return());
-    ON_CALL(*canopen_controller_, InitializeDrivers()).WillByDefault(testing::Return());
-    ON_CALL(*canopen_controller_, GetDriver(testing::_))
-      .WillByDefault(testing::Return(std::make_shared<MockRoboteqDriver>()));
-  }
-
-  ~TestCANopenController() { DeinitializeCANSocket(); }
-
-protected:
-  std::unique_ptr<MockCANopenController> canopen_controller_;
-
-  void InitializeCANSocket()
-  {
+    std::cout << "Initializing vcan device" << std::endl;
     if (system("sudo modprobe vcan") != 0) {
       throw std::runtime_error("Failed to load vcan module");
     }
@@ -102,68 +49,76 @@ protected:
       }
     }
 
+    can_device_created_ = true;
+
     const auto command = "sudo ip link set up " + can_interface_name_;
     if (system(command.c_str()) != 0) {
       throw std::runtime_error("Failed to set up vcan device");
     }
   }
 
-  void DeinitializeCANSocket()
+  void Deinitialize()
   {
-    std::string command = "sudo ip link set down " + can_interface_name_;
+    if (!can_device_created_) {
+      return;
+    }
+
+    std::string command = "sudo ip link delete " + can_interface_name_;
     if (system(command.c_str()) != 0) {
       throw std::runtime_error("Failed to delete vcan device");
     }
+
+    can_device_created_ = false;
   }
 
+private:
   const std::string can_interface_name_;
+  bool can_device_created_;
 };
+
+class TestCANopenController : public ::testing::Test
+{
+public:
+  TestCANopenController();
+
+  ~TestCANopenController() {}
+
+protected:
+  std::unique_ptr<FakeCANSocket> can_socket_;
+  std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
+};
+
+TestCANopenController::TestCANopenController()
+{
+  can_socket_ = std::make_unique<FakeCANSocket>(
+    panther_hardware_interfaces_test::kCANopenSettings.can_interface_name);
+
+  canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
+    panther_hardware_interfaces_test::kCANopenSettings);
+}
 
 TEST_F(TestCANopenController, InitializeAndDeinitialize)
 {
-  EXPECT_CALL(*canopen_controller_, InitializeDrivers()).Times(1);
-  EXPECT_CALL(*canopen_controller_, BootDrivers()).Times(1);
+  can_socket_->Initialize();
+
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 
   // Check if deinitialization worked correctly - initialize once again
-  EXPECT_CALL(*canopen_controller_, InitializeDrivers()).Times(1);
-  EXPECT_CALL(*canopen_controller_, BootDrivers()).Times(1);
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
 
 TEST_F(TestCANopenController, InitializeWithError)
 {
-  ON_CALL(*canopen_controller_, BootDrivers())
-    .WillByDefault(testing::Throw(std::runtime_error("")));
-  EXPECT_CALL(*canopen_controller_, InitializeDrivers()).Times(1);
-  EXPECT_CALL(*canopen_controller_, BootDrivers()).Times(0);
+  // CAN socket not initialized, should throw
   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 
-  ON_CALL(*canopen_controller_, BootDrivers()).WillByDefault(testing::Return());
-  EXPECT_CALL(*canopen_controller_, InitializeDrivers()).Times(1);
-  EXPECT_CALL(*canopen_controller_, BootDrivers()).Times(1);
+  can_socket_->Initialize();
   ASSERT_NO_THROW(canopen_controller_->Initialize());
   ASSERT_NO_THROW(canopen_controller_->Deinitialize());
 }
-
-// // TODO Tests for concrete implementations of CANopenController
-// TEST(TestCANopenControllerOthers, BootTimeout)
-// {
-//   std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
-
-//   canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
-//     panther_hardware_interfaces_test::kCANopenSettings);
-
-//   // No roboteq mock, so it won't be possible to boot - here is checked if after some time it
-//   will
-//   // finish with exception
-//   ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
-
-//   canopen_controller_->Deinitialize();
-// }
 
 int main(int argc, char ** argv)
 {

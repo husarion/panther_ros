@@ -137,6 +137,11 @@ public:
    * @exception std::runtime_error if any operation returns error
    */
   virtual void TurnOnSafetyStopChannel2() = 0;
+
+    /**
+   * @brief Alias for a shared pointer to a RoboteqDriverInterface object.
+   */
+  using SharedPtr = std::shared_ptr<RoboteqDriverInterface>;
 };
 
 /**

@@ -33,8 +33,6 @@
 #include "lely/io2/sys/sigset.hpp"
 #include "lely/io2/sys/timer.hpp"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
-
 namespace panther_hardware_interfaces
 {
 
@@ -74,7 +72,7 @@ public:
    */
   void Deinitialize();
 
-  virtual std::shared_ptr<RoboteqDriverInterface> GetDriver(const std::string & name) = 0;
+  std::shared_ptr<lely::canopen::AsyncMaster> GetMaster() { return master_; }
 
 private:
   void InitializeCANCommunication();
@@ -86,18 +84,6 @@ private:
    * @param result status of CAN communication started
    */
   void NotifyCANCommunicationStarted(const bool result);
-
-  /**
-   * @brief Triggers boot on all defined Roboteq drivers and waits for finish
-   *
-   * @exception std::runtime_error if boot fails
-   */
-  virtual void BootDrivers() = 0;
-
-  /**
-   * @brief Initializes all defined Roboteq drivers
-   */
-  virtual void InitializeDrivers() = 0;
 
   // Priority set to be higher than the priority of the main ros2 control node (50)
   static constexpr unsigned kCANopenThreadSchedPriority = 60;
@@ -121,23 +107,6 @@ private:
 
   const CANopenSettings canopen_settings_;
 };
-
-// class PantherCANopenController : public CANopenController
-// {
-// public:
-//   PantherCANopenController(const CANopenSettings & canopen_settings);
-
-//   std::shared_ptr<RoboteqDriverInterface> GetDriver(const std::string & name) override;
-
-// private:
-//   void BootDrivers() override;
-//   void InitializeDrivers() override;
-
-//   std::shared_ptr<RoboteqDriver> front_driver_;
-//   std::shared_ptr<RoboteqDriver> rear_driver_;
-
-//   void ResetDrivers();
-// };
 
 }  // namespace panther_hardware_interfaces
 
