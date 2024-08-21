@@ -50,7 +50,6 @@ public:
     return providedBasicPorts({
         BT::InputPort<bool>("use_dock_id", true, "Whether to use the dock's ID or dock pose fields"),
         BT::InputPort<std::string>("dock_id", "Dock ID or name to use"),
-        BT::InputPort<geometry_msgs::msg::PoseStamped>("dock_pose", "The dock pose, if not using dock id"),
         BT::InputPort<std::string>("dock_type", "The dock plugin type, if using dock pose"),
         BT::InputPort<float>("max_staging_time", 1000.0, "Maximum time to navigate to the staging pose"),
         BT::InputPort<bool>("navigate_to_staging_pose", true, "Whether to autonomously navigate to staging pose"),

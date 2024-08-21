@@ -21,7 +21,7 @@ namespace panther_manager
 
 bool DockRobotAction::setGoal(Goal& goal)
 {
-  if (!this->getInput<std::string>("dock_type", goal.dock_type))
+  if (!this->getInput<std::string>("dock_type", goal.dock_type) || goal.dock_type.empty())
   {
     RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_type]");
     return false;
@@ -34,15 +34,10 @@ bool DockRobotAction::setGoal(Goal& goal)
                                            << "use_dock_id not set, using default value: " << goal.use_dock_id);
   }
 
-  if (!this->getInput<std::string>("dock_id", goal.dock_id) && goal.use_dock_id)
+  if ((!this->getInput<std::string>("dock_id", goal.dock_id) || goal.dock_id.empty()) && goal.use_dock_id)
   {
     RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_id]");
     return false;
-  }
-
-  if (!this->getInput<geometry_msgs::msg::PoseStamped>("dock_pose", goal.dock_pose))
-  {
-    RCLCPP_WARN_STREAM(this->logger(), GetLoggerPrefix(name()) << "dock_pose not set, using default value");
   }
 
   if (!this->getInput<bool>("navigate_to_staging_pose", goal.navigate_to_staging_pose))
