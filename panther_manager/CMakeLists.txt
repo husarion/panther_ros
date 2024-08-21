@@ -55,6 +55,10 @@ add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)
 
+add_library(joy_condition_bt_node SHARED
+            src/plugins/condition/joy_condition_node.cpp)
+list(APPEND plugin_libs joy_condition_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
   ament_target_dependencies(${bt_plugin} ${PACKAGE_DEPENDENCIES})
