@@ -19,32 +19,31 @@
 namespace panther_manager
 {
 
-bool UndockRobotAction::setGoal(Goal& goal)
+bool UndockRobotAction::setGoal(Goal & goal)
 {
-  if (!this->getInput<std::string>("dock_type", goal.dock_type) || goal.dock_type.empty())
-  {
-    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_type]");
+  if (!this->getInput<std::string>("dock_type", goal.dock_type) || goal.dock_type.empty()) {
+    RCLCPP_ERROR_STREAM(
+      this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_type]");
     return false;
   }
 
-  if (!this->getInput<float>("max_undocking_time", goal.max_undocking_time))
-  {
-    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [max_undocking_time]");
+  if (!this->getInput<float>("max_undocking_time", goal.max_undocking_time)) {
+    RCLCPP_ERROR_STREAM(
+      this->logger(), GetLoggerPrefix(name()) << "Failed to get input [max_undocking_time]");
     return false;
   }
 
   return true;
 }
 
-BT::NodeStatus UndockRobotAction::onResultReceived(const WrappedResult& wr)
+BT::NodeStatus UndockRobotAction::onResultReceived(const WrappedResult & wr)
 {
-  const auto& result = wr.result;
+  const auto & result = wr.result;
 
   this->setOutput("success", result->success);
   this->setOutput("error_code", result->error_code);
 
-  if (result->success)
-  {
+  if (result->success) {
     return BT::NodeStatus::SUCCESS;
   }
 
@@ -53,7 +52,8 @@ BT::NodeStatus UndockRobotAction::onResultReceived(const WrappedResult& wr)
 
 BT::NodeStatus UndockRobotAction::onFailure(BT::ActionNodeErrorCode error)
 {
-  RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << ": onFailure with error: " << toStr(error));
+  RCLCPP_ERROR_STREAM(
+    this->logger(), GetLoggerPrefix(name()) << ": onFailure with error: " << toStr(error));
   return BT::NodeStatus::FAILURE;
 }
 

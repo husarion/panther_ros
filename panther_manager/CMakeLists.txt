@@ -56,14 +56,12 @@ add_library(tick_after_timeout_bt_node SHARED
             plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)
 
-add_library(dock_robot_bt_node SHARED
-            plugins/action/dock_robot_action_node.cpp)
+add_library(dock_robot_bt_node SHARED plugins/action/dock_robot_action_node.cpp)
 list(APPEND plugin_libs dock_robot_bt_node)
 
 add_library(undock_robot_bt_node SHARED
             plugins/action/undock_robot_action_node.cpp)
 list(APPEND plugin_libs undock_robot_bt_node)
-
 
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
@@ -165,11 +163,11 @@ if(BUILD_TESTING)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_node)
 
   ament_add_gtest(${PROJECT_NAME}_test_dock_robot_action_node
-  test/plugins/test_dock_robot_action_node.cpp)
+                  test/plugins/test_dock_robot_action_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_action_node)
 
   ament_add_gtest(${PROJECT_NAME}_test_undock_robot_action_node
-  test/plugins/test_undock_robot_action_node.cpp)
+                  test/plugins/test_undock_robot_action_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_action_node)
 
   foreach(bt_node_test ${plugin_tests})

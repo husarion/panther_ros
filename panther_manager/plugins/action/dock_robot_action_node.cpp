@@ -19,54 +19,56 @@
 namespace panther_manager
 {
 
-bool DockRobotAction::setGoal(Goal& goal)
+bool DockRobotAction::setGoal(Goal & goal)
 {
-  if (!this->getInput<std::string>("dock_type", goal.dock_type) || goal.dock_type.empty())
-  {
-    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_type]");
+  if (!this->getInput<std::string>("dock_type", goal.dock_type) || goal.dock_type.empty()) {
+    RCLCPP_ERROR_STREAM(
+      this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_type]");
     return false;
   }
 
-  if (!this->getInput<bool>("use_dock_id", goal.use_dock_id))
-  {
+  if (!this->getInput<bool>("use_dock_id", goal.use_dock_id)) {
     goal.use_dock_id = false;
-    RCLCPP_WARN_STREAM(this->logger(), GetLoggerPrefix(name())
-                                           << "use_dock_id not set, using default value: " << goal.use_dock_id);
+    RCLCPP_WARN_STREAM(
+      this->logger(), GetLoggerPrefix(name())
+                        << "use_dock_id not set, using default value: " << goal.use_dock_id);
   }
 
-  if ((!this->getInput<std::string>("dock_id", goal.dock_id) || goal.dock_id.empty()) && goal.use_dock_id)
-  {
+  if (
+    (!this->getInput<std::string>("dock_id", goal.dock_id) || goal.dock_id.empty()) &&
+    goal.use_dock_id) {
     RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [dock_id]");
     return false;
   }
 
-  if (!this->getInput<bool>("navigate_to_staging_pose", goal.navigate_to_staging_pose))
-  {
+  if (!this->getInput<bool>("navigate_to_staging_pose", goal.navigate_to_staging_pose)) {
     goal.navigate_to_staging_pose = false;
-    RCLCPP_WARN_STREAM(this->logger(), GetLoggerPrefix(name()) << "navigate_to_staging_pose not set, using default "
-                                                                  "value: "
-                                                               << goal.navigate_to_staging_pose);
+    RCLCPP_WARN_STREAM(
+      this->logger(), GetLoggerPrefix(name()) << "navigate_to_staging_pose not set, using default "
+                                                 "value: "
+                                              << goal.navigate_to_staging_pose);
   }
 
-  if (!this->getInput<float>("max_staging_time", goal.max_staging_time) && goal.navigate_to_staging_pose)
-  {
-    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "Failed to get input [max_staging_time]");
+  if (
+    !this->getInput<float>("max_staging_time", goal.max_staging_time) &&
+    goal.navigate_to_staging_pose) {
+    RCLCPP_ERROR_STREAM(
+      this->logger(), GetLoggerPrefix(name()) << "Failed to get input [max_staging_time]");
     return false;
   }
 
   return true;
 }
 
-BT::NodeStatus DockRobotAction::onResultReceived(const WrappedResult& wr)
+BT::NodeStatus DockRobotAction::onResultReceived(const WrappedResult & wr)
 {
-  const auto& result = wr.result;
+  const auto & result = wr.result;
 
   this->setOutput("success", result->success);
   this->setOutput("error_code", result->error_code);
   this->setOutput("num_retries", result->num_retries);
 
-  if (result->success)
-  {
+  if (result->success) {
     return BT::NodeStatus::SUCCESS;
   }
 
@@ -75,7 +77,8 @@ BT::NodeStatus DockRobotAction::onResultReceived(const WrappedResult& wr)
 
 BT::NodeStatus DockRobotAction::onFailure(BT::ActionNodeErrorCode error)
 {
-  RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << ": onFailure with error: " << toStr(error));
+  RCLCPP_ERROR_STREAM(
+    this->logger(), GetLoggerPrefix(name()) << ": onFailure with error: " << toStr(error));
   return BT::NodeStatus::FAILURE;
 }
 

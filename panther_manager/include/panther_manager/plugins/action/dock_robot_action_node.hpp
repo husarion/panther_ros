@@ -15,13 +15,13 @@
 #ifndef PANTHER_MANAGER_DOCK_ROBOT_ACTION_NODE_HPP_
 #define PANTHER_MANAGER_DOCK_ROBOT_ACTION_NODE_HPP_
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include "opennav_docking_msgs/action/dock_robot.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "behaviortree_ros2/bt_action_node.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "opennav_docking_msgs/action/dock_robot.hpp"
 
 namespace panther_manager
 {
@@ -32,31 +32,34 @@ class DockRobotAction : public BT::RosActionNode<opennav_docking_msgs::action::D
   using ActionResult = Action::Result;
 
 public:
-  DockRobotAction(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)
-    : RosActionNode<Action>(name, conf, params)
+  DockRobotAction(
+    const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
+  : RosActionNode<Action>(name, conf, params)
   {
   }
 
-  bool setGoal(Goal& goal) override;
+  bool setGoal(Goal & goal) override;
 
   void onHalt() override;
 
-  BT::NodeStatus onResultReceived(const WrappedResult& wr) override;
+  BT::NodeStatus onResultReceived(const WrappedResult & wr) override;
 
   virtual BT::NodeStatus onFailure(BT::ActionNodeErrorCode error) override;
 
   static BT::PortsList providedPorts()
   {
     return providedBasicPorts({
-        BT::InputPort<bool>("use_dock_id", true, "Whether to use the dock's ID or dock pose fields"),
-        BT::InputPort<std::string>("dock_id", "Dock ID or name to use"),
-        BT::InputPort<std::string>("dock_type", "The dock plugin type, if using dock pose"),
-        BT::InputPort<float>("max_staging_time", 1000.0, "Maximum time to navigate to the staging pose"),
-        BT::InputPort<bool>("navigate_to_staging_pose", true, "Whether to autonomously navigate to staging pose"),
+      BT::InputPort<bool>("use_dock_id", true, "Whether to use the dock's ID or dock pose fields"),
+      BT::InputPort<std::string>("dock_id", "Dock ID or name to use"),
+      BT::InputPort<std::string>("dock_type", "The dock plugin type, if using dock pose"),
+      BT::InputPort<float>(
+        "max_staging_time", 1000.0, "Maximum time to navigate to the staging pose"),
+      BT::InputPort<bool>(
+        "navigate_to_staging_pose", true, "Whether to autonomously navigate to staging pose"),
 
-        BT::OutputPort<ActionResult::_success_type>("success", "If the action was successful"),
-        BT::OutputPort<ActionResult::_error_code_type>("error_code", "Contextual error code, if any"),
-        BT::OutputPort<ActionResult::_num_retries_type>("num_retries", "Number of retries attempted"),
+      BT::OutputPort<ActionResult::_success_type>("success", "If the action was successful"),
+      BT::OutputPort<ActionResult::_error_code_type>("error_code", "Contextual error code, if any"),
+      BT::OutputPort<ActionResult::_num_retries_type>("num_retries", "Number of retries attempted"),
     });
   }
 };
