@@ -23,13 +23,13 @@
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
-#include <lely/coapp/slave.hpp>
-#include <lely/ev/loop.hpp>
-#include <lely/io2/linux/can.hpp>
-#include <lely/io2/posix/poll.hpp>
-#include <lely/io2/sys/io.hpp>
-#include <lely/io2/sys/sigset.hpp>
-#include <lely/io2/sys/timer.hpp>
+#include "lely/coapp/slave.hpp"
+#include "lely/ev/loop.hpp"
+#include "lely/io2/linux/can.hpp"
+#include "lely/io2/posix/poll.hpp"
+#include "lely/io2/sys/io.hpp"
+#include "lely/io2/sys/sigset.hpp"
+#include "lely/io2/sys/timer.hpp"
 
 namespace panther_hardware_interfaces_test
 {
@@ -307,21 +307,12 @@ public:
         lely::io::CanChannel chan1(poll, exec);
         chan1.open(ctrl);
         lely::io::Timer timer1(poll, exec, CLOCK_MONOTONIC);
-        front_driver_ = std::make_shared<RoboteqSlave>(
+        driver_ = std::make_shared<RoboteqSlave>(
           timer1, chan1, slave_eds_path, slave1_eds_bin_path, 1);
 
-        lely::io::CanChannel chan2(poll, exec);
-        chan2.open(ctrl);
-        lely::io::Timer timer2(poll, exec, CLOCK_MONOTONIC);
-        rear_driver_ = std::make_shared<RoboteqSlave>(
-          timer2, chan2, slave_eds_path, slave2_eds_bin_path, 2);
-
-        front_driver_->Reset();
-        rear_driver_->Reset();
-        front_driver_->InitializeValues();
-        rear_driver_->InitializeValues();
-        front_driver_->StartPublishing(motors_states_period, driver_state_period);
-        rear_driver_->StartPublishing(motors_states_period, driver_state_period);
+        driver_->Reset();
+        driver_->InitializeValues();
+        driver_->StartPublishing(motors_states_period, driver_state_period);
 
         {
           std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);
@@ -331,8 +322,7 @@ public:
 
         loop.run();
 
-        front_driver_->StopPublishing();
-        rear_driver_->StopPublishing();
+        driver_->StopPublishing();
       });
 
     if (!canopen_communication_started_.load()) {
@@ -355,14 +345,12 @@ public:
       canopen_communication_thread_.join();
     }
 
-    front_driver_.reset();
-    rear_driver_.reset();
+    driver_.reset();
 
     canopen_communication_started_.store(false);
   }
 
-  std::shared_ptr<RoboteqSlave> GetFrontDriver() { return front_driver_; }
-  std::shared_ptr<RoboteqSlave> GetRearDriver() { return rear_driver_; }
+  std::shared_ptr<RoboteqSlave> GetDriver() { return driver_; }
 
 private:
   std::shared_ptr<lely::io::Context> ctx_;
@@ -373,8 +361,7 @@ private:
   std::condition_variable canopen_communication_started_cond_;
   std::mutex canopen_communication_started_mtx_;
 
-  std::shared_ptr<RoboteqSlave> front_driver_;
-  std::shared_ptr<RoboteqSlave> rear_driver_;
+  std::shared_ptr<RoboteqSlave> driver_;
 };
 
 }  // namespace panther_hardware_interfaces_test
