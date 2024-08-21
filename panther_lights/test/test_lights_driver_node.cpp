@@ -30,12 +30,12 @@ using ImageMsg = sensor_msgs::msg::Image;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
-class DriverNodeWrapper : public panther_lights::DriverNode
+class DriverNodeWrapper : public panther_lights::LightsDriverNode
 {
 public:
   DriverNodeWrapper(
     const rclcpp::NodeOptions & options = rclcpp::NodeOptions().use_intra_process_comms(true))
-  : DriverNode(options)
+  : LightsDriverNode(options)
   {
   }
 
@@ -62,11 +62,11 @@ public:
 
       rmw_qos_profile_services_default, server_callback_group_);
 
-    driver_node_ = std::make_shared<DriverNodeWrapper>();
-    channel_1_pub_ = driver_node_->create_publisher<ImageMsg>("lights/channel_1_frame", 5);
-    channel_2_pub_ = driver_node_->create_publisher<ImageMsg>("lights/channel_2_frame", 5);
+    lights_driver_node_ = std::make_shared<DriverNodeWrapper>();
+    channel_1_pub_ = lights_driver_node_->create_publisher<ImageMsg>("lights/channel_1_frame", 5);
+    channel_2_pub_ = lights_driver_node_->create_publisher<ImageMsg>("lights/channel_2_frame", 5);
     set_brightness_client_ =
-      driver_node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
+      lights_driver_node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
   }
 
   ~TestDriverNode() {}
@@ -77,10 +77,10 @@ protected:
     ImageMsg::UniquePtr msg(new ImageMsg);
 
     // Filling msg with dummy data
-    msg->header.stamp = driver_node_->now();
+    msg->header.stamp = lights_driver_node_->now();
     msg->header.frame_id = "image_frame";
     msg->height = 1;
-    msg->width = driver_node_->getNumLeds();
+    msg->width = lights_driver_node_->getNumLeds();
     msg->encoding = sensor_msgs::image_encodings::RGBA8;
     msg->is_bigendian = false;
     msg->step = msg->width * 4;
@@ -89,7 +89,7 @@ protected:
     return msg;
   }
 
-  std::shared_ptr<DriverNodeWrapper> driver_node_;
+  std::shared_ptr<DriverNodeWrapper> lights_driver_node_;
   rclcpp::Node::SharedPtr service_node_;
   rclcpp::Publisher<ImageMsg>::SharedPtr channel_1_pub_;
   rclcpp::Publisher<ImageMsg>::SharedPtr channel_2_pub_;
@@ -106,7 +106,7 @@ TEST_F(TestDriverNode, ServiceTestSuccess)
   request->data = 0.5;
   auto future = set_brightness_client_->async_send_request(request);
   ASSERT_TRUE(
-    panther_utils::test_utils::WaitForFuture(driver_node_, future, std::chrono::seconds(1)));
+    panther_utils::test_utils::WaitForFuture(lights_driver_node_, future, std::chrono::seconds(1)));
   auto response = future.get();
   EXPECT_TRUE(response->success);
 }
@@ -118,7 +118,7 @@ TEST_F(TestDriverNode, ServiceTestFail)
   request->data = 2;
   auto future = set_brightness_client_->async_send_request(request);
   ASSERT_TRUE(
-    panther_utils::test_utils::WaitForFuture(driver_node_, future, std::chrono::seconds(1)));
+    panther_utils::test_utils::WaitForFuture(lights_driver_node_, future, std::chrono::seconds(1)));
   auto response = future.get();
   EXPECT_FALSE(response->success);
 }
@@ -131,23 +131,23 @@ TEST_F(TestDriverNode, ServiceTestFail)
 TEST_F(TestDriverNode, PublishTimeoutFail)
 {
   auto msg = CreateImageMsg();
-  msg->header.stamp.sec = driver_node_->get_clock()->now().seconds() - driver_node_->getTimeout() -
-                          1;
+  msg->header.stamp.sec = lights_driver_node_->get_clock()->now().seconds() -
+                          lights_driver_node_->getTimeout() - 1;
   channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(driver_node_);
+  rclcpp::spin_some(lights_driver_node_);
   rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(driver_node_->isInitialised());
+  EXPECT_FALSE(lights_driver_node_->isInitialised());
 }
 
 TEST_F(TestDriverNode, PublishOldMsgFail)
 {
   auto msg = CreateImageMsg();
-  driver_node_->setChanel1TS(msg->header.stamp);
+  lights_driver_node_->setChanel1TS(msg->header.stamp);
   msg->header.stamp.nanosec--;
   channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(driver_node_);
+  rclcpp::spin_some(lights_driver_node_);
   rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(driver_node_->isInitialised());
+  EXPECT_FALSE(lights_driver_node_->isInitialised());
 }
 
 TEST_F(TestDriverNode, PublishEncodingFail)
@@ -155,9 +155,9 @@ TEST_F(TestDriverNode, PublishEncodingFail)
   auto msg = CreateImageMsg();
   msg->encoding = sensor_msgs::image_encodings::RGB8;
   channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(driver_node_);
+  rclcpp::spin_some(lights_driver_node_);
   rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(driver_node_->isInitialised());
+  EXPECT_FALSE(lights_driver_node_->isInitialised());
 }
 
 TEST_F(TestDriverNode, PublishHeightFail)
@@ -165,19 +165,19 @@ TEST_F(TestDriverNode, PublishHeightFail)
   auto msg = CreateImageMsg();
   msg->height = 2;
   channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(driver_node_);
+  rclcpp::spin_some(lights_driver_node_);
   rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(driver_node_->isInitialised());
+  EXPECT_FALSE(lights_driver_node_->isInitialised());
 }
 
 TEST_F(TestDriverNode, PublishWidthFail)
 {
   auto msg = CreateImageMsg();
-  msg->width = driver_node_->getNumLeds() + 1;
+  msg->width = lights_driver_node_->getNumLeds() + 1;
   channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(driver_node_);
+  rclcpp::spin_some(lights_driver_node_);
   rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(driver_node_->isInitialised());
+  EXPECT_FALSE(lights_driver_node_->isInitialised());
 }
 
 // // TODO: For some reason this function breaks other test that's why PublishSuccess is last one.
@@ -190,14 +190,14 @@ TEST_F(TestDriverNode, PublishWidthFail)
 
 //   channel_1_pub_->publish(std::move(msg_1));
 //   channel_2_pub_->publish(std::move(msg_2));
-//   rclcpp::spin_some(driver_node_);
+//   rclcpp::spin_some(lights_driver_node_);
 //   rclcpp::spin_some(service_node_);
 //   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   rclcpp::spin_some(driver_node_);
+//   rclcpp::spin_some(lights_driver_node_);
 //   rclcpp::spin_some(service_node_);
 //   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-//   EXPECT_TRUE(driver_node_->isInitialised());
+//   EXPECT_TRUE(lights_driver_node_->isInitialised());
 // }
 
 int main(int argc, char ** argv)

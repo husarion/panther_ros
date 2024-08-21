@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_SHUTDOWN_HOSTS_NODE_HPP_
-#define PANTHER_MANAGER_SHUTDOWN_HOSTS_NODE_HPP_
+#ifndef PANTHER_MANAGER_PLUGINS_SHUTDOWN_HOSTS_NODE_HPP_
+#define PANTHER_MANAGER_PLUGINS_SHUTDOWN_HOSTS_NODE_HPP_
 
 #include <algorithm>
 #include <memory>
@@ -179,4 +179,4 @@ protected:
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_SHUTDOWN_HOSTS_NODE_HPP_
+#endif  // PANTHER_MANAGER_PLUGINS_SHUTDOWN_HOSTS_NODE_HPP_

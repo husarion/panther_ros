@@ -31,8 +31,8 @@
 #include "panther_msgs/msg/led_animation.hpp"
 #include "panther_msgs/srv/set_led_animation.hpp"
 
-#include <include/behavior_tree_test_utils.hpp>
 #include <panther_manager/lights_manager_node.hpp>
+#include <utils/behavior_tree_test_utils.hpp>
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;

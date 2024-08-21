@@ -62,7 +62,8 @@
     <ros2_control name="${ns}panther_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <plugin>ign_ros2_control/IgnitionSystem</plugin>
+          <plugin>panther_gazebo/GzPantherSystem</plugin>
+          <param name="e_stop_initial_state">true</param>
         </xacro:if>
 
         <xacro:unless value="$(arg use_sim)">

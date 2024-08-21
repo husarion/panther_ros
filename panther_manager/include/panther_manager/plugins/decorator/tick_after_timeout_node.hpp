@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_
-#define PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_
+#ifndef PANTHER_MANAGER_PLUGINS_DECORATOR_TICK_AFTER_TIMEOUT_NODE_HPP_
+#define PANTHER_MANAGER_PLUGINS_DECORATOR_TICK_AFTER_TIMEOUT_NODE_HPP_
 
 #include <chrono>
 #include <string>
@@ -42,4 +42,4 @@ private:
 };
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_TICK_AFTER_TIMEOUT_NODE_HPP_
+#endif  // PANTHER_MANAGER_PLUGINS_DECORATOR_TICK_AFTER_TIMEOUT_NODE_HPP_

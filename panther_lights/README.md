@@ -14,7 +14,7 @@ This package contains:
 
 ## ROS Nodes
 
-### ControllerNode
+### LightsControllerNode
 
 This node is of type rclcpp_components is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
 
@@ -33,7 +33,7 @@ This node is of type rclcpp_components is responsible for processing animations 
 - `~led_config_file` [*string*, default: **$(find panther_lights)/panther_lights/config/led_config.yaml**]: Path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
 - `~user_led_animations_file` [*string*, default: **None**]: Path to a YAML file with a description of the user defined animations.
 
-### DriverNode
+### LightsDriverNode
 
 This node is of type rclcpp_components is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
 

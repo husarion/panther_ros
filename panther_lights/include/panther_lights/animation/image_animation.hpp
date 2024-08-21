@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_LIGHTS_IMAGE_ANIMATION_HPP_
-#define PANTHER_LIGHTS_IMAGE_ANIMATION_HPP_
+#ifndef PANTHER_LIGHTS_ANIMATION_IMAGE_ANIMATION_HPP_
+#define PANTHER_LIGHTS_ANIMATION_IMAGE_ANIMATION_HPP_
 
 #include <cstdint>
 #include <filesystem>
@@ -79,4 +79,4 @@ private:
 
 }  // namespace panther_lights
 
-#endif  // PANTHER_LIGHTS_IMAGE_ANIMATION_HPP_
+#endif  // PANTHER_LIGHTS_ANIMATION_IMAGE_ANIMATION_HPP_
