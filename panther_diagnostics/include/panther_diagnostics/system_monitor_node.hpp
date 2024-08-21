@@ -17,12 +17,15 @@
 
 #include <string>
 
-#include "diagnostic_updater/diagnostic_updater.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include "panther_msgs/msg/system_status.hpp"
 
 #include "system_monitor_parameters.hpp"
+
+#include "panther_diagnostics/filesystem.hpp"
+#include "panther_diagnostics/types.hpp"
 
 using namespace std::chrono_literals;
 
@@ -32,39 +35,51 @@ namespace panther_diagnostics
 class SystemMonitorNode : public rclcpp::Node
 {
 public:
-  SystemMonitorNode(const std::string & node_name);
-
-  struct SystemStatus
-  {
-    std::vector<float> core_usages;
-    float cpu_mean_usage;
-    float cpu_temperature;
-    float memory_usage;
-    float disk_usage;
-  };
+  SystemMonitorNode(
+    const std::string & node_name, FilesystemInterface::SharedPtr filesystem,
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
+  /**
+   * @brief Retrieves the system parameters and generate system status object describing the current
+   * system state.
+   *
+   * @return The system status.
+   */
   SystemStatus GetSystemStatus() const;
+
   std::vector<float> GetCoresUsages() const;
   float GetCPUMeanUsage(const std::vector<float> & usages) const;
-  float GetCPUTemperature(const std::string & filename) const;
-  float GetMemoryUsage() const;
+  float GetCPUTemperature() const;
+  float GetRAMUsage() const;
   float GetDiskUsage() const;
 
+  /**
+   * @brief Converts a SystemStatus object to a SystemStatus message.
+   *
+   * This function takes a SystemStatus object and converts it into a SystemStatus message.
+   * The resulting message can be used to publish the system status over a ROS topic.
+   *
+   * @param status The SystemStatus object to be converted.
+   * @return The converted SystemStatus message.
+   */
   panther_msgs::msg::SystemStatus SystemStatusToMessage(const SystemStatus & status);
 
 private:
   void TimerCallback();
   void DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapper & status);
 
+  FilesystemInterface::SharedPtr filesystem_;
+  diagnostic_updater::Updater diagnostic_updater_;
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<panther_msgs::msg::SystemStatus>::SharedPtr system_status_publisher_;
-  diagnostic_updater::Updater diagnostic_updater_;
 
   system_monitor::Params params_;
   std::shared_ptr<system_monitor::ParamListener> param_listener_;
 
   static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
+  static constexpr char kRootDirectory[] = "/";
 };
 }  // namespace panther_diagnostics
 #endif  // PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_

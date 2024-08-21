@@ -1,44 +1,26 @@
 system_monitor:
-  frame_id:
-    type: string
-    default_value: built_in_computer
-    description: Frame where computer is located.
-  hardware_id:
-    type: string
-    default_value: Built-in Computer
-    description: Name of hardware used in diagnostics.
-  publish_frequency:
-    type: double
-    default_value: 5.0
-    description: System status publishing frequency [Hz].
-    validation: {
-      bounds<>: [0.1, 10.0]
-    }
-  disk_usage_warn_threshold:
-    type: double
-    default_value: 95.0
-    description: Threshold for disk usage warning in percentage.
-    validation: {
-      bounds<>: [0.0, 100.0]
-    }
-  memory_usage_warn_threshold:
-    type: double
-    default_value: 95.0
-    description: Threshold for memory usage warning in percentage.
-    validation: {
-      bounds<>: [0.0, 100.0]
-    }
   cpu_usage_warn_threshold:
     type: double
     default_value: 95.0
     description: Threshold for CPU usage warning in percentage.
-    validation: {
-      bounds<>: [0.0, 100.0]
-    }
+    validation: { bounds<>: [0.0, 100.0] }
   cpu_temperature_warn_threshold:
     type: double
     default_value: 80.0
     description: Threshold for CPU temperature warning in degrees Celsius.
-    validation: {
-      bounds<>: [0.0, 1000.0]
-    }
+    validation: { bounds<>: [0.0, 1000.0] }
+  ram_usage_warn_threshold:
+    type: double
+    default_value: 95.0
+    description: Threshold for memory usage warning in percentage.
+    validation: { bounds<>: [0.0, 100.0] }
+  disk_usage_warn_threshold:
+    type: double
+    default_value: 95.0
+    description: Threshold for disk usage warning in percentage.
+    validation: { bounds<>: [0.0, 100.0] }
+  publish_frequency:
+    type: double
+    default_value: 5.0
+    description: System status publishing frequency [Hz].
+    validation: { bounds<>: [0.1, 10.0] }
