@@ -34,8 +34,9 @@ namespace panther_diagnostics
 {
 
 SystemMonitorNode::SystemMonitorNode(
-  const std::string & node_name, FilesystemInterface::SharedPtr filesystem)
-: rclcpp::Node(node_name), filesystem_(filesystem), diagnostic_updater_(this)
+  const std::string & node_name, FilesystemInterface::SharedPtr filesystem,
+  const rclcpp::NodeOptions & options)
+: rclcpp::Node(node_name, options), filesystem_(filesystem), diagnostic_updater_(this)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 

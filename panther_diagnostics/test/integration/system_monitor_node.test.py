@@ -34,18 +34,17 @@ def generate_test_description():
         executable="system_monitor_node",
     )
 
+    # Start test after 1s
+    delay_timer = launch.actions.TimerAction(
+        period=1.0, actions=[launch_testing.actions.ReadyToTest()]
+    )
+
+    actions = [system_monitor_node, delay_timer]
+
     context = {}
 
     return (
-        LaunchDescription(
-            [
-                system_monitor_node,
-                # Start test after 1s
-                launch.actions.TimerAction(
-                    period=1.0, actions=[launch_testing.actions.ReadyToTest()]
-                ),
-            ]
-        ),
+        LaunchDescription(actions),
         context,
     )
 

@@ -32,7 +32,7 @@ namespace panther_utils::common_utilities
  * @return The value with the set precision.
  */
 template <typename T>
-T SetPrecision(T value, int precision)
+T SetPrecision(T value, unsigned int precision)
 {
   static_assert(
     std::is_floating_point<T>::value,
@@ -55,6 +55,10 @@ T SetPrecision(T value, int precision)
 template <typename T>
 float CountPercentage(const T & value, const T & total)
 {
+  if (total == 0) {
+    throw std::invalid_argument("Total must not be zero.");
+  }
+
   auto percentage = static_cast<float>(value) / static_cast<float>(total) * 100.0;
   return SetPrecision(percentage, 2);
 }

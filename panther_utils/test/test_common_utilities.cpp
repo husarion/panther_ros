@@ -22,7 +22,7 @@
 
 #include "panther_utils/common_utilities.hpp"
 
-TEST(SetPrecisionTest, TwoDigitPrecision)
+TEST(TestSetPrecision, TwoDigitPrecision)
 {
   float value = 3.14159;
   float expected_result = 3.14;
@@ -32,7 +32,7 @@ TEST(SetPrecisionTest, TwoDigitPrecision)
   EXPECT_FLOAT_EQ(expected_result, result);
 }
 
-TEST(SetPrecisionTest, ZeroDigitPrecision)
+TEST(TestSetPrecision, ZeroDigitPrecision)
 {
   float value = 3.54159;
   float expected_result = 4.0;
@@ -42,11 +42,47 @@ TEST(SetPrecisionTest, ZeroDigitPrecision)
   EXPECT_FLOAT_EQ(expected_result, result);
 }
 
-TEST(CountPercentageTest, CountPercentage)
+TEST(TestSetPrecision, NegativeValue)
+{
+  float value = -3.14159;
+  float expected_result = -3.14;
+  float result = panther_utils::common_utilities::SetPrecision(value, 2);
+  EXPECT_FLOAT_EQ(expected_result, result);
+}
+
+TEST(TestSetPrecision, LargeValue)
+{
+  float value = 123456.789;
+  float expected_result = 123456.79;
+  float result = panther_utils::common_utilities::SetPrecision(value, 2);
+  EXPECT_FLOAT_EQ(expected_result, result);
+}
+
+TEST(TestCountPercentage, ValidValues)
 {
   int value = 25;
   int total = 100;
   float expected_result = 25.00;
+
+  float result = panther_utils::common_utilities::CountPercentage(value, total);
+
+  EXPECT_FLOAT_EQ(expected_result, result);
+}
+
+TEST(TestCountPercentage, ZeroTotal)
+{
+  int value = 25;
+  int total = 0;
+
+  EXPECT_THROW(
+    panther_utils::common_utilities::CountPercentage(value, total), std::invalid_argument);
+}
+
+TEST(TestCountPercentage, ZeroValue)
+{
+  int value = 0;
+  int total = 100;
+  float expected_result = 0.00;
 
   float result = panther_utils::common_utilities::CountPercentage(value, total);
 
@@ -75,7 +111,7 @@ TEST(TestPrefixMapKeys, HandlesEmptyPrefix)
   EXPECT_EQ(result_map, expected_map);
 }
 
-TEST(PrefixMapKeysTest, HandlesEmptyMap)
+TEST(TestPrefixMapKeys, HandlesEmptyMap)
 {
   std::map<std::string, int> input_map;
   std::string prefix = "prefix_";
@@ -86,7 +122,7 @@ TEST(PrefixMapKeysTest, HandlesEmptyMap)
   EXPECT_EQ(result_map, expected_map);
 }
 
-TEST(PrefixMapKeysTest, HandlesNonAlphanumericPrefix)
+TEST(TestPrefixMapKeys, HandlesNonAlphanumericPrefix)
 {
   std::map<std::string, int> input_map = {{"key1", 1}, {"key2", 2}};
   std::string prefix = "prefix_@#";
@@ -97,7 +133,7 @@ TEST(PrefixMapKeysTest, HandlesNonAlphanumericPrefix)
   EXPECT_EQ(result_map, expected_map);
 }
 
-TEST(OpenFileTest, HandleOpenFile)
+TEST(TestOpenFile, HandleOpenFile)
 {
   std::string path = testing::TempDir() + "test_panther_utils_open_file";
 
@@ -111,7 +147,7 @@ TEST(OpenFileTest, HandleOpenFile)
   std::filesystem::remove(path);
 }
 
-TEST(OpenFileTest, HandleOpenFileThrow)
+TEST(TestOpenFile, HandleOpenFileThrow)
 {
   std::string path = testing::TempDir() + "test_panther_utils_open_file";
 

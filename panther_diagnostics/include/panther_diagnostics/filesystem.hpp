@@ -83,7 +83,6 @@ public:
 
   /**
    * @brief Reads the contents of the file specified by the given file path.
-
    *
    * @param file_path The path to the file to be read.
    * @return The contents of the file as a string.

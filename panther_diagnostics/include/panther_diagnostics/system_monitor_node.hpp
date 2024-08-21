@@ -35,7 +35,9 @@ namespace panther_diagnostics
 class SystemMonitorNode : public rclcpp::Node
 {
 public:
-  SystemMonitorNode(const std::string & node_name, FilesystemInterface::SharedPtr filesystem);
+  SystemMonitorNode(
+    const std::string & node_name, FilesystemInterface::SharedPtr filesystem,
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
   /**
