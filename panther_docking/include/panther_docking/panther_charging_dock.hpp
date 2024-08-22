@@ -12,64 +12,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_CHARGING_DOCK_HPP_
-#define PANTHER_CHARGING_DOCK_HPP_
+#ifndef PANTHER_DOCKING_PANTHER_CHARGING_DOCK_HPP_
+#define PANTHER_DOCKING_PANTHER_CHARGING_DOCK_HPP_
 
 #include <memory>
 #include <string>
 #include <thread>
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "opennav_docking/pose_filter.hpp"
-#include "opennav_docking_core/charging_dock.hpp"
-#include "opennav_docking_core/docking_exceptions.hpp"
+#include <realtime_tools/realtime_box.h>
+#include <tf2/utils.h>
+#include <tf2_ros/buffer.h>
+#include <opennav_docking/pose_filter.hpp>
+#include <opennav_docking_core/charging_dock.hpp>
+#include <opennav_docking_core/docking_exceptions.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <std_srvs/srv/set_bool.hpp>
+
 #include "panther_msgs/msg/charging_status.hpp"
 #include "panther_msgs/msg/io_state.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "realtime_tools/realtime_box.h"
-#include "sensor_msgs/msg/battery_state.hpp"
-#include "std_srvs/srv/set_bool.hpp"
-#include "tf2/utils.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "tf2_ros/buffer.h"
 
 namespace panther_docking
 {
 
 /**
  * @class PantherChargingDock
- * @brief Abstract interface for a charging dock for the docking framework
+ * @brief A class to represent a Panther charging dock.
  */
 class PantherChargingDock : public opennav_docking_core::ChargingDock
 {
 public:
-  using Ptr = std::shared_ptr<PantherChargingDock>;
-
-  PantherChargingDock() {}
+  using SharedPtr = std::shared_ptr<PantherChargingDock>;
+  using PoseStampedMsg = geometry_msgs::msg::PoseStamped;
 
   /**
-   * @param  parent pointer to user's node
+   * @brief Configure the dock with the necessary information.
+   *
+   * @param  parent Pointer to parent node
    * @param  name The name of this planner
    * @param  tf A pointer to a TF buffer
    */
-  virtual void configure(
+  void configure(
     const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent, const std::string & name,
     std::shared_ptr<tf2_ros::Buffer> tf) override final;
 
   /**
    * @brief Method to cleanup resources used on shutdown.
    */
-  virtual void cleanup() override final;
+  void cleanup() override final;
 
   /**
    * @brief Method to active Behavior and any threads involved in execution.
    */
-  virtual void activate() override final;
+  void activate() override final;
 
   /**
    * @brief Method to deactivate Behavior and any threads involved in execution.
    */
-  virtual void deactivate() override final;
+  void deactivate() override final;
 
   /**
    * @brief Method to obtain the dock's staging pose. This method should likely
@@ -79,14 +82,14 @@ public:
    * @param frame Dock's frame of pose
    * @return PoseStamped of staging pose in the specified frame
    */
-  virtual geometry_msgs::msg::PoseStamped getStagingPose(
+  PoseStampedMsg getStagingPose(
     const geometry_msgs::msg::Pose & pose, const std::string & frame) override final;
 
   /**
    * @brief Method to obtain the refined pose of the dock, usually based on sensors
    * @param pose The initial estimate of the dock pose.
    */
-  virtual bool getRefinedPose(geometry_msgs::msg::PoseStamped & pose) override final;
+  bool getRefinedPose(PoseStampedMsg & pose) override final;
 
   /**
    * @brief Have we made contact with dock? This can be implemented in a variety
@@ -96,7 +99,7 @@ public:
    * NOTE: this function is expected to return QUICKLY. Blocking here will block
    * the docking controller loop.
    */
-  virtual bool isDocked() override final;
+  bool isDocked() override final;
 
   /**
    * @brief Are we charging? If a charge dock requires any sort of negotiation
@@ -106,7 +109,7 @@ public:
    * NOTE: this function is expected to return QUICKLY. Blocking here will block
    * the docking controller loop.
    */
-  virtual bool isCharging() override final;
+  bool isCharging() override final;
 
   /**
    * @brief Undocking while current is still flowing can damage a charge dock
@@ -117,19 +120,24 @@ public:
    * NOTE: this function is expected to return QUICKLY. Blocking here will block
    * the docking controller loop.
    */
-  virtual bool disableCharging() override final;
+  bool disableCharging() override final;
 
   /**
    * @brief Similar to isCharging() but called when undocking.
    */
-  virtual bool hasStoppedCharging() override final;
-
-  /**
-   * @brief Get the name of the dock
-   */
-  std::string getName();
+  bool hasStoppedCharging() override final;
 
 protected:
+  /**
+   * @brief Method to declare parameters.
+   */
+  void declareParameters();
+
+  /**
+   * @brief Method to get parameters.
+   */
+  void getParameters();
+
   /**
    * @brief Method calls enable/disable service of the charger
    *
@@ -145,8 +153,7 @@ protected:
    *
    * @return The transformed pose.
    */
-  geometry_msgs::msg::PoseStamped transformPose(
-    const geometry_msgs::msg::PoseStamped & pose, const std::string & target_frame);
+  PoseStampedMsg transformPose(const PoseStampedMsg & pose, const std::string & target_frame);
 
   /**
    * @brief Offset the staging pose.
@@ -157,8 +164,7 @@ protected:
    *
    * @return The offset staging pose.
    */
-  geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(
-    const geometry_msgs::msg::PoseStamped & dock_pose);
+  PoseStampedMsg offsetStagingPoseToDockPose(const PoseStampedMsg & dock_pose);
 
   /**
    * @brief Offset the detected dock pose.
@@ -169,8 +175,7 @@ protected:
    *
    * @return The offset detected dock pose.
    */
-  geometry_msgs::msg::PoseStamped offsetDetectedDockPose(
-    const geometry_msgs::msg::PoseStamped & detected_dock_pose);
+  PoseStampedMsg offsetDetectedDockPose(const PoseStampedMsg & detected_dock_pose);
 
   /**
    * @brief Get the dock pose in a detection dock frame.
@@ -180,7 +185,7 @@ protected:
    * @param frame The detection frame to get the dock pose in.
    * @return The dock pose in the detection frame.
    */
-  geometry_msgs::msg::PoseStamped getDockPose(const std::string & frame);
+  PoseStampedMsg getDockPose(const std::string & frame);
 
   /**
    * @brief Method to update the dock pose and publish it.
@@ -206,20 +211,24 @@ protected:
 
   rclcpp::Logger logger_{rclcpp::get_logger("PantherChargingDock")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
+
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf2_buffer_;
+
   rclcpp::Subscription<panther_msgs::msg::ChargingStatus>::SharedPtr charging_status_sub_;
   rclcpp::Subscription<panther_msgs::msg::IOState>::SharedPtr io_state_sub_;
-  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr staging_pose_pub_;
-  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr dock_pose_pub_;
+
+  rclcpp::Publisher<PoseStampedMsg>::SharedPtr staging_pose_pub_;
+  rclcpp::Publisher<PoseStampedMsg>::SharedPtr dock_pose_pub_;
+
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr charger_enable_client_;
 
   realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::ChargingStatus>>
     charging_status_box_{nullptr};
   realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::IOState>> io_state_box_{nullptr};
 
-  geometry_msgs::msg::PoseStamped dock_pose_;
-  geometry_msgs::msg::PoseStamped staging_pose_;
+  PoseStampedMsg dock_pose_;
+  PoseStampedMsg staging_pose_;
 
   double external_detection_timeout_;
   tf2::Quaternion external_detection_rotation_;
@@ -227,7 +236,7 @@ protected:
   double external_detection_translation_y_;
   double external_detection_translation_z_;
 
-  std::shared_ptr<opennav_docking::PoseFilter> filter_;
+  std::shared_ptr<opennav_docking::PoseFilter> pose_filter_;
 
   double docking_distance_threshold_;
   double docking_yaw_threshold_;
@@ -236,8 +245,10 @@ protected:
   double staging_yaw_offset_;
 
   double enable_charger_service_call_timeout_;
+
+  double pose_filter_coef_;
 };
 
 }  // namespace panther_docking
 
-#endif  // PANTHER_CHARGING_DOCK_HPP_
+#endif  // PANTHER_DOCKING_PANTHER_CHARGING_DOCK_HPP_

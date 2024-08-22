@@ -72,7 +72,7 @@ std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmo
  * @param version The version to be compared with.
  * @return bool True if the Panther version is at least the specified version, false otherwise.
  */
-bool IsPantherVersionAtLeast(const float panther_version_, const float version)
+bool MeetsVersionRequirement(const float panther_version_, const float version)
 {
   return panther_version_ >= version - std::numeric_limits<float>::epsilon();
 }

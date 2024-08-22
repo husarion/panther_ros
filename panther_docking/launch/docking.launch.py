@@ -42,9 +42,9 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    docking_server_path = LaunchConfiguration("docking_server_path")
-    declare_docking_server_path_arg = DeclareLaunchArgument(
-        "docking_server_path",
+    docking_server_config_path = LaunchConfiguration("docking_server_config_path")
+    declare_docking_server_config_path_arg = DeclareLaunchArgument(
+        "docking_server_config_path",
         default_value=PathJoinSubstitution(
             [FindPackageShare("panther_docking"), "config", "panther_docking_server.yaml"]
         ),
@@ -52,11 +52,11 @@ def generate_launch_description():
     )
 
     namespaced_docking_server_config = ReplaceString(
-        source_file=docking_server_path,
+        source_file=docking_server_config_path,
         replacements={"<robot_namespace>": namespace, "//": "/"},
     )
 
-    docking_server = Node(
+    docking_server_node = Node(
         package="opennav_docking",
         executable="opennav_docking",
         parameters=[
@@ -68,7 +68,7 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    docking_server_activate = Node(
+    docking_server_activate_node = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",
         name="nav2_docking_lifecycle_manager",
@@ -88,8 +88,8 @@ def generate_launch_description():
         [
             declare_use_sim_arg,
             declare_namespace_arg,
-            declare_docking_server_path_arg,
-            docking_server,
-            docking_server_activate,
+            declare_docking_server_config_path_arg,
+            docking_server_node,
+            docking_server_activate_node,
         ]
     )

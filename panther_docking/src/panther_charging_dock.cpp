@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "panther_docking/panther_charging_dock.hpp"
+
 #include <stdexcept>
 
-#include "nav2_util/node_utils.hpp"
-#include "panther_docking/panther_charging_dock.hpp"
+#include <nav2_util/node_utils.hpp>
+
 #include "panther_utils/common_utilities.hpp"
 
 namespace panther_docking
@@ -38,69 +40,11 @@ void PantherChargingDock::configure(
     throw std::runtime_error("Failed to lock node");
   }
 
-  nav2_util::declare_parameter_if_not_declared(
-    node_, "panther_version", rclcpp::ParameterValue(1.0));
+  declareParameters();
+  getParameters();
 
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".base_frame", rclcpp::ParameterValue("base_link"));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_timeout", rclcpp::ParameterValue(0.2));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_translation_x", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_translation_y", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_translation_z", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_rotation_yaw", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_rotation_pitch", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".external_detection_rotation_roll", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".filter_coef", rclcpp::ParameterValue(0.1));
-
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".docking_distance_threshold", rclcpp::ParameterValue(0.05));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".docking_yaw_threshold", rclcpp::ParameterValue(0.3));
-
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".staging_x_offset", rclcpp::ParameterValue(-0.7));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".staging_yaw_offset", rclcpp::ParameterValue(0.0));
-
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name + ".enable_charger_service_call_timeout", rclcpp::ParameterValue(0.2));
-
-  node_->get_parameter("panther_version", panther_version_);
-
-  node_->get_parameter(name + ".base_frame", base_frame_name_);
-  node_->get_parameter(name + ".external_detection_timeout", external_detection_timeout_);
-  node_->get_parameter(
-    name + ".external_detection_translation_x", external_detection_translation_x_);
-  node_->get_parameter(
-    name + ".external_detection_translation_y", external_detection_translation_y_);
-  node_->get_parameter(
-    name + ".external_detection_translation_z", external_detection_translation_z_);
-
-  double yaw, pitch, roll;
-  node_->get_parameter(name + ".external_detection_rotation_yaw", yaw);
-  node_->get_parameter(name + ".external_detection_rotation_pitch", pitch);
-  node_->get_parameter(name + ".external_detection_rotation_roll", roll);
-
-  external_detection_rotation_.setRPY(roll, pitch, yaw);
-  node_->get_parameter(name + ".docking_distance_threshold", docking_distance_threshold_);
-  node_->get_parameter(name + ".docking_yaw_threshold", docking_yaw_threshold_);
-  node_->get_parameter(name + ".staging_x_offset", staging_x_offset_);
-  node_->get_parameter(name + ".staging_yaw_offset", staging_yaw_offset_);
-
-  node_->get_parameter(
-    name + ".enable_charger_service_call_timeout", enable_charger_service_call_timeout_);
-
-  double filter_coef;
-  node_->get_parameter(name + ".filter_coef", filter_coef);
-  filter_ = std::make_unique<opennav_docking::PoseFilter>(filter_coef, external_detection_timeout_);
+  pose_filter_ = std::make_unique<opennav_docking::PoseFilter>(
+    pose_filter_coef_, external_detection_timeout_);
 }
 
 void PantherChargingDock::cleanup()
@@ -108,7 +52,7 @@ void PantherChargingDock::cleanup()
   dock_pose_pub_.reset();
   staging_pose_pub_.reset();
 
-  if (panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     charging_status_sub_.reset();
     io_state_sub_.reset();
     charger_enable_client_.reset();
@@ -116,13 +60,11 @@ void PantherChargingDock::cleanup()
 }
 
 void PantherChargingDock::activate()
-
 {
-  dock_pose_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("docking/dock_pose", 1);
-  staging_pose_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>(
-    "docking/staging_pose", 1);
+  dock_pose_pub_ = node_->create_publisher<PoseStampedMsg>("docking/dock_pose", 1);
+  staging_pose_pub_ = node_->create_publisher<PoseStampedMsg>("docking/staging_pose", 1);
 
-  if (panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     charging_status_sub_ = node_->create_subscription<panther_msgs::msg::ChargingStatus>(
       "battery/charging_status", rclcpp::SystemDefaultsQoS(),
       [this](const std::shared_ptr<panther_msgs::msg::ChargingStatus> msg) -> void {
@@ -152,14 +94,82 @@ void PantherChargingDock::deactivate()
   dock_pose_pub_.reset();
   staging_pose_pub_.reset();
 
-  if (panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     charging_status_sub_.reset();
     io_state_sub_.reset();
     charger_enable_client_.reset();
   }
 }
 
-geometry_msgs::msg::PoseStamped PantherChargingDock::getStagingPose(
+void PantherChargingDock::declareParameters()
+{
+  nav2_util::declare_parameter_if_not_declared(
+    node_, "panther_version", rclcpp::ParameterValue(1.0));
+
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".base_frame", rclcpp::ParameterValue("base_link"));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_timeout", rclcpp::ParameterValue(0.2));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_translation_x", rclcpp::ParameterValue(0.0));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_translation_y", rclcpp::ParameterValue(0.0));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_translation_z", rclcpp::ParameterValue(0.0));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_rotation_yaw", rclcpp::ParameterValue(0.0));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_rotation_pitch", rclcpp::ParameterValue(0.0));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".external_detection_rotation_roll", rclcpp::ParameterValue(0.0));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".filter_coef", rclcpp::ParameterValue(0.1));
+
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".docking_distance_threshold", rclcpp::ParameterValue(0.05));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".docking_yaw_threshold", rclcpp::ParameterValue(0.3));
+
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".staging_x_offset", rclcpp::ParameterValue(-0.7));
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".staging_yaw_offset", rclcpp::ParameterValue(0.0));
+
+  nav2_util::declare_parameter_if_not_declared(
+    node_, name_ + ".enable_charger_service_call_timeout", rclcpp::ParameterValue(0.2));
+}
+
+void PantherChargingDock::getParameters()
+{
+  node_->get_parameter("panther_version", panther_version_);
+
+  node_->get_parameter(name_ + ".base_frame", base_frame_name_);
+  node_->get_parameter(name_ + ".external_detection_timeout", external_detection_timeout_);
+  node_->get_parameter(
+    name_ + ".external_detection_translation_x", external_detection_translation_x_);
+  node_->get_parameter(
+    name_ + ".external_detection_translation_y", external_detection_translation_y_);
+  node_->get_parameter(
+    name_ + ".external_detection_translation_z", external_detection_translation_z_);
+
+  double yaw, pitch, roll;
+  node_->get_parameter(name_ + ".external_detection_rotation_yaw", yaw);
+  node_->get_parameter(name_ + ".external_detection_rotation_pitch", pitch);
+  node_->get_parameter(name_ + ".external_detection_rotation_roll", roll);
+
+  external_detection_rotation_.setRPY(roll, pitch, yaw);
+  node_->get_parameter(name_ + ".docking_distance_threshold", docking_distance_threshold_);
+  node_->get_parameter(name_ + ".docking_yaw_threshold", docking_yaw_threshold_);
+  node_->get_parameter(name_ + ".staging_x_offset", staging_x_offset_);
+  node_->get_parameter(name_ + ".staging_yaw_offset", staging_yaw_offset_);
+
+  node_->get_parameter(
+    name_ + ".enable_charger_service_call_timeout", enable_charger_service_call_timeout_);
+
+  node_->get_parameter(name_ + ".filter_coef", pose_filter_coef_);
+}
+
+PantherChargingDock::PoseStampedMsg PantherChargingDock::getStagingPose(
   const geometry_msgs::msg::Pose & pose, const std::string & frame)
 {
   // When the pose if default the robot is docking so the frame is the dock frame
@@ -178,7 +188,7 @@ geometry_msgs::msg::PoseStamped PantherChargingDock::getStagingPose(
   return staging_pose_;
 }
 
-bool PantherChargingDock::getRefinedPose(geometry_msgs::msg::PoseStamped & pose)
+bool PantherChargingDock::getRefinedPose(PoseStampedMsg & pose)
 {
   try {
     updateDockPoseAndPublish();
@@ -205,7 +215,7 @@ bool PantherChargingDock::isCharging()
 {
   std::shared_ptr<panther_msgs::msg::ChargingStatus> charging_status_msg;
 
-  if (!panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     try {
       return isDocked();
     } catch (const opennav_docking_core::FailedToDetectDock & e) {
@@ -234,7 +244,7 @@ bool PantherChargingDock::isCharging()
 
 bool PantherChargingDock::disableCharging()
 {
-  if (!panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     return true;
   }
 
@@ -250,7 +260,7 @@ bool PantherChargingDock::disableCharging()
 
 bool PantherChargingDock::hasStoppedCharging()
 {
-  if (!panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     return !isCharging();
   }
 
@@ -267,11 +277,9 @@ bool PantherChargingDock::hasStoppedCharging()
   return true;
 }
 
-std::string PantherChargingDock::getName() { return name_; }
-
 void PantherChargingDock::setChargerState(bool state)
 {
-  if (!panther_utils::common_utilities::IsPantherVersionAtLeast(panther_version_, 1.2f)) {
+  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
     throw std::runtime_error("This version of Panther does not support charger control");
   }
 
@@ -293,10 +301,10 @@ void PantherChargingDock::setChargerState(bool state)
   }
 }
 
-geometry_msgs::msg::PoseStamped PantherChargingDock::transformPose(
-  const geometry_msgs::msg::PoseStamped & pose, const std::string & target_frame)
+PantherChargingDock::PoseStampedMsg PantherChargingDock::transformPose(
+  const PoseStampedMsg & pose, const std::string & target_frame)
 {
-  geometry_msgs::msg::PoseStamped transformed_pose;
+  PoseStampedMsg transformed_pose;
 
   if (pose.header.frame_id.empty() || target_frame.empty()) {
     throw std::runtime_error(
@@ -317,8 +325,8 @@ geometry_msgs::msg::PoseStamped PantherChargingDock::transformPose(
   return transformed_pose;
 }
 
-geometry_msgs::msg::PoseStamped PantherChargingDock::offsetStagingPoseToDockPose(
-  const geometry_msgs::msg::PoseStamped & dock_pose)
+PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetStagingPoseToDockPose(
+  const PoseStampedMsg & dock_pose)
 {
   tf2::Transform dock_pose_transform;
   tf2::fromMsg(dock_pose.pose, dock_pose_transform);
@@ -343,10 +351,10 @@ geometry_msgs::msg::PoseStamped PantherChargingDock::offsetStagingPoseToDockPose
   return staging_pose;
 }
 
-geometry_msgs::msg::PoseStamped PantherChargingDock::offsetDetectedDockPose(
-  const geometry_msgs::msg::PoseStamped & detected_dock_pose)
+PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetDetectedDockPose(
+  const PoseStampedMsg & detected_dock_pose)
 {
-  geometry_msgs::msg::PoseStamped just_orientation;
+  PoseStampedMsg just_orientation;
   just_orientation.pose.orientation = tf2::toMsg(external_detection_rotation_);
   geometry_msgs::msg::TransformStamped transform;
   transform.transform.rotation = detected_dock_pose.pose.orientation;
@@ -357,7 +365,7 @@ geometry_msgs::msg::PoseStamped PantherChargingDock::offsetDetectedDockPose(
     just_orientation.pose.orientation.x, just_orientation.pose.orientation.y,
     just_orientation.pose.orientation.z, just_orientation.pose.orientation.w);
 
-  geometry_msgs::msg::PoseStamped offset_detected_dock_pose = detected_dock_pose;
+  PoseStampedMsg offset_detected_dock_pose = detected_dock_pose;
   offset_detected_dock_pose.pose.orientation = tf2::toMsg(orientation);
   offset_detected_dock_pose.header = detected_dock_pose.header;
   offset_detected_dock_pose.pose.position = detected_dock_pose.pose.position;
@@ -368,16 +376,16 @@ geometry_msgs::msg::PoseStamped PantherChargingDock::offsetDetectedDockPose(
   return offset_detected_dock_pose;
 }
 
-geometry_msgs::msg::PoseStamped PantherChargingDock::getDockPose(const std::string & frame)
+PantherChargingDock::PoseStampedMsg PantherChargingDock::getDockPose(const std::string & frame)
 {
-  geometry_msgs::msg::PoseStamped filtered_offset_detected_dock_pose;
+  PoseStampedMsg filtered_offset_detected_dock_pose;
   try {
-    geometry_msgs::msg::PoseStamped pose;
+    PoseStampedMsg pose;
     pose.header.frame_id = frame;
     pose.header.stamp = node_->get_clock()->now();
     auto offset_detected_dock_pose = offsetDetectedDockPose(pose);
 
-    filtered_offset_detected_dock_pose = filter_->update(offset_detected_dock_pose);
+    filtered_offset_detected_dock_pose = pose_filter_->update(offset_detected_dock_pose);
     filtered_offset_detected_dock_pose = transformPose(
       filtered_offset_detected_dock_pose, base_frame_name_);
 

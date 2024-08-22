@@ -14,6 +14,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <string>
 
@@ -88,6 +89,17 @@ TEST(OpenFileTest, HandleOpenFileThrow)
 
   EXPECT_THROW(
     { panther_utils::common_utilities::OpenFile(path, std::ios_base::in); }, std::runtime_error);
+}
+
+TEST(MeetsVersionRequirement, CorrectlyComparesVersions)
+{
+  float panther_version = 1.06;
+  EXPECT_TRUE(panther_utils::common_utilities::MeetsVersionRequirement(panther_version, 0.0));
+  EXPECT_TRUE(panther_utils::common_utilities::MeetsVersionRequirement(panther_version, 1.0));
+  EXPECT_TRUE(panther_utils::common_utilities::MeetsVersionRequirement(panther_version, 1.06));
+  EXPECT_FALSE(panther_utils::common_utilities::MeetsVersionRequirement(
+    panther_version, std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_FALSE(panther_utils::common_utilities::MeetsVersionRequirement(panther_version, 1.2));
 }
 
 int main(int argc, char ** argv)

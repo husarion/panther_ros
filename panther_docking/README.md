@@ -12,7 +12,6 @@ The package contains a `PantherChargingDock` plugin for the [opennav_docking](ht
 
 ## ROS Nodes
 
-- [`docking_server`](https://github.com/open-navigation/opennav_docking): An action server which implements charger docking node for AMRs.
 - `PantherChargingDock`:  A plugin for a Panther robot what is responsible for a charger service.
 
 ### PantherChargingDock
