@@ -19,7 +19,7 @@
 #include <nav2_util/node_utils.hpp>
 
 #include "panther_utils/common_utilities.hpp"
-#include "panther_utils/ros_utils.hpp"
+#include "panther_utils/tf2_utils.hpp"
 
 namespace panther_docking
 {
@@ -231,7 +231,7 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::getDockPose(const std::
     auto offset_detected_dock_pose = offsetDetectedDockPose(pose);
 
     filtered_offset_detected_dock_pose = pose_filter_->update(offset_detected_dock_pose);
-    filtered_offset_detected_dock_pose = panther_utils::ros::TransformPose(
+    filtered_offset_detected_dock_pose = panther_utils::tf2::TransformPose(
       tf2_buffer_, filtered_offset_detected_dock_pose, base_frame_name_,
       external_detection_timeout_);
 
@@ -259,7 +259,7 @@ void PantherChargingDock::updateStagingPoseAndPublish(const std::string & frame)
 {
   try {
     auto new_staging_pose = offsetStagingPoseToDockPose(dock_pose_);
-    staging_pose_ = panther_utils::ros::TransformPose(
+    staging_pose_ = panther_utils::tf2::TransformPose(
       tf2_buffer_, new_staging_pose, frame, external_detection_timeout_);
     dock_pose_.pose.position.z = 0.0;
     staging_pose_pub_->publish(staging_pose_);
