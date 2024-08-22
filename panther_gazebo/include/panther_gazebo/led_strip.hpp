@@ -34,6 +34,9 @@
 namespace panther_gazebo
 {
 
+/**
+ * @brief Class to manage an LED strip in a Gazebo simulation based on received image
+ */
 class LEDStrip : public gz::sim::System,
                  public gz::sim::ISystemConfigure,
                  public gz::sim::ISystemPreUpdate
@@ -48,12 +51,33 @@ public:
 
 private:
   void ParseParameters(const std::shared_ptr<const sdf::Element> & sdf);
+
+  /**
+   * @brief fill up gz::msgs::Light command component with specified in URDF file Light properties
+   */
   void ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ecm);
   void ImageCallback(const gz::msgs::Image & msg);
   void MsgValidation(const gz::msgs::Image & msg);
   gz::math::Color CalculateMeanColor(const gz::msgs::Image & msg);
+
+  /**
+   * @brief Manage color of robot simulated lights based on the image message
+   */
   void VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image);
+
+  /**
+   * @brief Manage color of robot LED strip based on the image message
+   */
   void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
+
+  /**
+   * @brief Create a marker element (single LED from LED Strip)
+   *
+   * @param id The unique ID of the marker (if not unique, the marker will replace the existing one)
+   * @param pose The pose of the marker
+   * @param color The color of the marker
+   * @param size The size of the marker
+   */
   void CreateMarker(
     const uint id, const gz::math::Pose3d pose, const gz::math::Color & color,
     const gz::math::Vector3d size);
