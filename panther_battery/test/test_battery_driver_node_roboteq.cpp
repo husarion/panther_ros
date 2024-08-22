@@ -50,8 +50,8 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
 
   RobotDriverStateMsg driver_state;
   driver_state.header.stamp = battery_driver_node_->get_clock()->now();
-  driver_state.drivers_states.push_back(motor_controller);
-  driver_state.drivers_states.push_back(motor_controller);
+  driver_state.driver_states.push_back(motor_controller);
+  driver_state.driver_states.push_back(motor_controller);
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
@@ -90,8 +90,8 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
 
   RobotDriverStateMsg driver_state;
   driver_state.header.stamp = battery_driver_node_->get_clock()->now();
-  driver_state.drivers_states.push_back(motor_controller);
-  driver_state.drivers_states.push_back(motor_controller);
+  driver_state.driver_states.push_back(motor_controller);
+  driver_state.driver_states.push_back(motor_controller);
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(

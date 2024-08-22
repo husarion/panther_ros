@@ -213,12 +213,12 @@ void SafetyManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)
 
 void SafetyManagerNode::RobotDriverStateCB(const RobotDriverStateMsg::SharedPtr driver_state)
 {
-  if (driver_state->drivers_states.empty()) {
+  if (driver_state->driver_states.empty()) {
     RCLCPP_WARN(this->get_logger(), "Received empty driver state message.");
     return;
   }
 
-  for (auto & driver : driver_state->drivers_states) {
+  for (auto & driver : driver_state->driver_states) {
     if (driver_temp_ma_.find(driver.name) == driver_temp_ma_.end()) {
       RCLCPP_DEBUG(
         this->get_logger(), "Creating moving average for driver '%s'", driver.name.c_str());

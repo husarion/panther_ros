@@ -198,7 +198,7 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
   motor_controller.state.temperature = expected_temp;
 
   auto driver_state_msg = panther_msgs::msg::RobotDriverState();
-  driver_state_msg.drivers_states.push_back(motor_controller);
+  driver_state_msg.driver_states.push_back(motor_controller);
 
   panther_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "hardware/robot_driver_state", driver_state_msg);

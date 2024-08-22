@@ -139,13 +139,13 @@ void PantherSystemRosInterface::UpdateMsgErrorFlags(
 
   front_driver_state.state.fault_flag = front.GetFaultFlag().GetMessage();
   front_driver_state.state.script_flag = front.GetScriptFlag().GetMessage();
-  front_driver_state.state.left_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
-  front_driver_state.state.right_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
+  front_driver_state.state.channel_2_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
+  front_driver_state.state.channel_1_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
 
   rear_driver_state.state.fault_flag = rear.GetFaultFlag().GetMessage();
   rear_driver_state.state.script_flag = rear.GetScriptFlag().GetMessage();
-  rear_driver_state.state.left_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
-  rear_driver_state.state.right_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
+  rear_driver_state.state.channel_2_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
+  rear_driver_state.state.channel_1_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
 }
 
 void PantherSystemRosInterface::UpdateMsgDriversStates(
@@ -309,20 +309,20 @@ void PantherSystemRosInterface::InitializeRobotDriverStateMsg()
   rear_driver_state.name = DriverStateNamedMsg::NAME_REAR;
 
   auto & driver_state = realtime_driver_state_publisher_->msg_;
-  driver_state.drivers_states.push_back(front_driver_state);
-  driver_state.drivers_states.push_back(rear_driver_state);
+  driver_state.driver_states.push_back(front_driver_state);
+  driver_state.driver_states.push_back(rear_driver_state);
 }
 
 DriverStateNamedMsg & PantherSystemRosInterface::GetDriverStateByName(
   RobotDriverStateMsg & robot_driver_state, const std::string & name)
 {
-  auto & drivers_states = robot_driver_state.drivers_states;
+  auto & driver_states = robot_driver_state.driver_states;
 
   auto it = std::find_if(
-    drivers_states.begin(), drivers_states.end(),
+    driver_states.begin(), driver_states.end(),
     [&name](const DriverStateNamedMsg & msg) { return msg.name == name; });
 
-  if (it == drivers_states.end()) {
+  if (it == driver_states.end()) {
     throw std::runtime_error("Driver with name '" + name + "' not found.");
   }
 

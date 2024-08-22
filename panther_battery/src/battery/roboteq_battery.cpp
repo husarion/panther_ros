@@ -49,13 +49,13 @@ void RoboteqBattery::Update(const rclcpp::Time & header_stamp, const bool /* cha
   float voltage = 0.0f;
   float current = 0.0f;
   std::for_each(
-    driver_state_->drivers_states.begin(), driver_state_->drivers_states.end(),
+    driver_state_->driver_states.begin(), driver_state_->driver_states.end(),
     [&voltage, &current](const DriverStateNamedMsg & driver) {
       voltage += driver.state.voltage;
       current += driver.state.current;
     });
 
-  voltage_raw_ = voltage / driver_state_->drivers_states.size();
+  voltage_raw_ = voltage / driver_state_->driver_states.size();
   current_raw_ = current;
   voltage_ma_->Roll(voltage_raw_);
   current_ma_->Roll(current_raw_);
@@ -153,7 +153,7 @@ std::uint8_t RoboteqBattery::GetBatteryHealth(const float voltage)
 bool RoboteqBattery::DriverStateHeartbeatTimeout()
 {
   return std::any_of(
-    driver_state_->drivers_states.begin(), driver_state_->drivers_states.end(),
+    driver_state_->driver_states.begin(), driver_state_->driver_states.end(),
     [](const DriverStateNamedMsg & driver) { return driver.state.heartbeat_timeout; });
 }
 

@@ -729,11 +729,11 @@ void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper &
   const auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
   const auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
 
-  auto drivers_states_with_names = {
+  auto driver_states_with_names = {
     std::make_pair(std::string("Front"), front_driver_state),
     std::make_pair(std::string("Rear"), rear_driver_state)};
 
-  for (const auto & [driver_name, driver_state] : drivers_states_with_names) {
+  for (const auto & [driver_name, driver_state] : driver_states_with_names) {
     status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
     status.add(driver_name + " driver current (A)", driver_state.GetCurrent());
     status.add(driver_name + " driver temperature (\u00B0C)", driver_state.GetTemperature());

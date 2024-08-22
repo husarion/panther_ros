@@ -81,17 +81,17 @@ void TestRoboteqBattery::UpdateBattery(const float voltage, const float current)
 {
   if (!driver_state_) {
     driver_state_ = std::make_shared<RobotDriverStateMsg>();
-    driver_state_->drivers_states.push_back(panther_msgs::msg::DriverStateNamed());
-    driver_state_->drivers_states.push_back(panther_msgs::msg::DriverStateNamed());
+    driver_state_->driver_states.push_back(panther_msgs::msg::DriverStateNamed());
+    driver_state_->driver_states.push_back(panther_msgs::msg::DriverStateNamed());
   }
 
   auto stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
 
   driver_state_->header.stamp = stamp;
-  driver_state_->drivers_states.at(0).state.voltage = voltage;
-  driver_state_->drivers_states.at(1).state.voltage = voltage;
-  driver_state_->drivers_states.at(0).state.current = current;
-  driver_state_->drivers_states.at(1).state.current = current;
+  driver_state_->driver_states.at(0).state.voltage = voltage;
+  driver_state_->driver_states.at(1).state.voltage = voltage;
+  driver_state_->driver_states.at(0).state.current = current;
+  driver_state_->driver_states.at(1).state.current = current;
 
   battery_->Update(stamp, false);
   battery_state_ = battery_->GetBatteryMsg();
@@ -243,10 +243,10 @@ TEST_F(TestRoboteqBattery, ValidateRobotDriverStateMsg)
   EXPECT_NO_THROW(battery_->ValidateRobotDriverStateMsg(stamp));
 
   // Check heartbeat timeout error throw
-  driver_state_->drivers_states.at(0).state.heartbeat_timeout = true;
+  driver_state_->driver_states.at(0).state.heartbeat_timeout = true;
   EXPECT_THROW(battery_->ValidateRobotDriverStateMsg(stamp), std::runtime_error);
-  driver_state_->drivers_states.at(0).state.heartbeat_timeout = false;
-  driver_state_->drivers_states.at(1).state.heartbeat_timeout = true;
+  driver_state_->driver_states.at(0).state.heartbeat_timeout = false;
+  driver_state_->driver_states.at(1).state.heartbeat_timeout = true;
   EXPECT_THROW(battery_->ValidateRobotDriverStateMsg(stamp), std::runtime_error);
 }
 

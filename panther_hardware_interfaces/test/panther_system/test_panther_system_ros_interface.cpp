@@ -157,18 +157,18 @@ TEST_F(TestPantherSystemRosInterface, ErrorFlags)
   ASSERT_TRUE(
     panther_utils::test_utils::WaitForMsg(test_node_, driver_state_msg_, std::chrono::seconds(5)));
 
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(0).state.fault_flag.overheat);
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(0).state.script_flag.encoder_disconnected);
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(0).state.left_motor_runtime_error.loop_error);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.fault_flag.overheat);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.script_flag.encoder_disconnected);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.channel_2_motor_runtime_error.loop_error);
   EXPECT_TRUE(
-    driver_state_msg_->drivers_states.at(0).state.right_motor_runtime_error.safety_stop_active);
+    driver_state_msg_->driver_states.at(0).state.channel_1_motor_runtime_error.safety_stop_active);
 
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(1).state.fault_flag.overvoltage);
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(1).state.script_flag.loop_error);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(1).state.fault_flag.overvoltage);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(1).state.script_flag.loop_error);
   EXPECT_TRUE(
-    driver_state_msg_->drivers_states.at(1).state.left_motor_runtime_error.forward_limit_triggered);
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(1)
-                .state.right_motor_runtime_error.reverse_limit_triggered);
+    driver_state_msg_->driver_states.at(1).state.channel_2_motor_runtime_error.forward_limit_triggered);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(1)
+                .state.channel_1_motor_runtime_error.reverse_limit_triggered);
 }
 
 TEST_F(TestPantherSystemRosInterface, DriversStates)
@@ -206,29 +206,29 @@ TEST_F(TestPantherSystemRosInterface, DriversStates)
     panther_utils::test_utils::WaitForMsg(test_node_, driver_state_msg_, std::chrono::seconds(5)));
 
   EXPECT_FLOAT_EQ(
-    static_cast<std::int16_t>(driver_state_msg_->drivers_states.at(0).state.temperature), f_temp);
+    static_cast<std::int16_t>(driver_state_msg_->driver_states.at(0).state.temperature), f_temp);
   EXPECT_FLOAT_EQ(
-    static_cast<std::int16_t>(driver_state_msg_->drivers_states.at(1).state.temperature), r_temp);
+    static_cast<std::int16_t>(driver_state_msg_->driver_states.at(1).state.temperature), r_temp);
 
   EXPECT_FLOAT_EQ(
-    static_cast<std::int16_t>(driver_state_msg_->drivers_states.at(0).state.heatsink_temperature),
+    static_cast<std::int16_t>(driver_state_msg_->driver_states.at(0).state.heatsink_temperature),
     f_heatsink_temp);
   EXPECT_FLOAT_EQ(
-    static_cast<std::int16_t>(driver_state_msg_->drivers_states.at(1).state.heatsink_temperature),
+    static_cast<std::int16_t>(driver_state_msg_->driver_states.at(1).state.heatsink_temperature),
     r_heatsink_temp);
 
   EXPECT_FLOAT_EQ(
-    static_cast<std::uint16_t>(driver_state_msg_->drivers_states.at(0).state.voltage * 10.0),
+    static_cast<std::uint16_t>(driver_state_msg_->driver_states.at(0).state.voltage * 10.0),
     f_volt);
   EXPECT_FLOAT_EQ(
-    static_cast<std::uint16_t>(driver_state_msg_->drivers_states.at(1).state.voltage * 10.0),
+    static_cast<std::uint16_t>(driver_state_msg_->driver_states.at(1).state.voltage * 10.0),
     r_volt);
 
   EXPECT_FLOAT_EQ(
-    static_cast<std::int16_t>(driver_state_msg_->drivers_states.at(0).state.current * 10.0),
+    static_cast<std::int16_t>(driver_state_msg_->driver_states.at(0).state.current * 10.0),
     (f_battery_current_1 + f_battery_current_2));
   EXPECT_FLOAT_EQ(
-    static_cast<std::int16_t>(driver_state_msg_->drivers_states.at(1).state.current * 10.0),
+    static_cast<std::int16_t>(driver_state_msg_->driver_states.at(1).state.current * 10.0),
     (r_battery_current_1 + r_battery_current_2));
 }
 
@@ -263,14 +263,14 @@ TEST_F(TestPantherSystemRosInterface, Errors)
   EXPECT_FALSE(driver_state_msg_->read_pdo_motor_states_error);
   EXPECT_FALSE(driver_state_msg_->read_pdo_driver_state_error);
 
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(0).state.motor_states_data_timed_out);
-  EXPECT_FALSE(driver_state_msg_->drivers_states.at(1).state.motor_states_data_timed_out);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.motor_states_data_timed_out);
+  EXPECT_FALSE(driver_state_msg_->driver_states.at(1).state.motor_states_data_timed_out);
 
-  EXPECT_FALSE(driver_state_msg_->drivers_states.at(0).state.driver_state_data_timed_out);
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(1).state.driver_state_data_timed_out);
+  EXPECT_FALSE(driver_state_msg_->driver_states.at(0).state.driver_state_data_timed_out);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(1).state.driver_state_data_timed_out);
 
-  EXPECT_FALSE(driver_state_msg_->drivers_states.at(0).state.can_error);
-  EXPECT_TRUE(driver_state_msg_->drivers_states.at(1).state.can_error);
+  EXPECT_FALSE(driver_state_msg_->driver_states.at(0).state.can_error);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(1).state.can_error);
 }
 
 int main(int argc, char ** argv)
