@@ -19,7 +19,6 @@
 #include <string>
 #include <thread>
 
-#include <realtime_tools/realtime_box.h>
 #include <tf2/utils.h>
 #include <tf2_ros/buffer.h>
 #include <opennav_docking/pose_filter.hpp>
@@ -31,9 +30,6 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 #include <std_srvs/srv/set_bool.hpp>
-
-#include "panther_msgs/msg/charging_status.hpp"
-#include "panther_msgs/msg/io_state.hpp"
 
 namespace panther_docking
 {
@@ -139,13 +135,6 @@ protected:
   void getParameters();
 
   /**
-   * @brief Method calls enable/disable service of the charger
-   *
-   * @param state The state to set the charger to
-   */
-  void setChargerState(bool state);
-
-  /**
    *  @brief Offset a pose by a given transform.
    *
    * This method offsets a pose by a given transform.
@@ -205,10 +194,8 @@ protected:
    */
   void updateStagingPoseAndPublish(const std::string & frame);
 
-  std::string name_;
   std::string base_frame_name_;
   std::string dock_frame_;
-  double panther_version_;
 
   rclcpp::Logger logger_{rclcpp::get_logger("PantherChargingDock")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
@@ -216,17 +203,8 @@ protected:
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   tf2_ros::Buffer::SharedPtr tf2_buffer_;
 
-  rclcpp::Subscription<panther_msgs::msg::ChargingStatus>::SharedPtr charging_status_sub_;
-  rclcpp::Subscription<panther_msgs::msg::IOState>::SharedPtr io_state_sub_;
-
   rclcpp::Publisher<PoseStampedMsg>::SharedPtr staging_pose_pub_;
   rclcpp::Publisher<PoseStampedMsg>::SharedPtr dock_pose_pub_;
-
-  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr charger_enable_client_;
-
-  realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::ChargingStatus>>
-    charging_status_box_{nullptr};
-  realtime_tools::RealtimeBox<std::shared_ptr<panther_msgs::msg::IOState>> io_state_box_{nullptr};
 
   PoseStampedMsg dock_pose_;
   PoseStampedMsg staging_pose_;
@@ -244,8 +222,6 @@ protected:
 
   double staging_x_offset_;
   double staging_yaw_offset_;
-
-  double enable_charger_service_call_timeout_;
 
   double pose_filter_coef_;
 };

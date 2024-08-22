@@ -52,54 +52,18 @@ void PantherChargingDock::cleanup()
 {
   dock_pose_pub_.reset();
   staging_pose_pub_.reset();
-
-  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    charging_status_sub_.reset();
-    io_state_sub_.reset();
-    charger_enable_client_.reset();
-  }
 }
 
 void PantherChargingDock::activate()
 {
   dock_pose_pub_ = node_->create_publisher<PoseStampedMsg>("docking/dock_pose", 1);
   staging_pose_pub_ = node_->create_publisher<PoseStampedMsg>("docking/staging_pose", 1);
-
-  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    charging_status_sub_ = node_->create_subscription<panther_msgs::msg::ChargingStatus>(
-      "battery/charging_status", rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<panther_msgs::msg::ChargingStatus> msg) -> void {
-        charging_status_box_.set(std::move(msg));
-      });
-    io_state_sub_ = node_->create_subscription<panther_msgs::msg::IOState>(
-      "hardware/io_state", rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<panther_msgs::msg::IOState> msg) -> void {
-        io_state_box_.set(std::move(msg));
-      });
-
-    charger_enable_client_ =
-      node_->create_client<std_srvs::srv::SetBool>("hardware/charger_enable");
-
-    using namespace std::chrono_literals;
-    if (!charger_enable_client_->wait_for_service(1s)) {
-      RCLCPP_WARN_STREAM(
-        logger_,
-        "Service \"hardware/charger_enable\" not available. Make sure if Panther ROS 2 Stack is "
-        "running.");
-    }
-  }
 }
 
 void PantherChargingDock::deactivate()
 {
   dock_pose_pub_.reset();
   staging_pose_pub_.reset();
-
-  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    charging_status_sub_.reset();
-    io_state_sub_.reset();
-    charger_enable_client_.reset();
-  }
 }
 
 void PantherChargingDock::declareParameters()
@@ -123,8 +87,6 @@ void PantherChargingDock::declareParameters()
     node_, name_ + ".external_detection_rotation_pitch", rclcpp::ParameterValue(0.0));
   nav2_util::declare_parameter_if_not_declared(
     node_, name_ + ".external_detection_rotation_roll", rclcpp::ParameterValue(0.0));
-  nav2_util::declare_parameter_if_not_declared(
-    node_, name_ + ".filter_coef", rclcpp::ParameterValue(0.1));
 
   nav2_util::declare_parameter_if_not_declared(
     node_, name_ + ".docking_distance_threshold", rclcpp::ParameterValue(0.05));
@@ -137,13 +99,11 @@ void PantherChargingDock::declareParameters()
     node_, name_ + ".staging_yaw_offset", rclcpp::ParameterValue(0.0));
 
   nav2_util::declare_parameter_if_not_declared(
-    node_, name_ + ".enable_charger_service_call_timeout", rclcpp::ParameterValue(0.2));
+    node_, name_ + ".filter_coef", rclcpp::ParameterValue(0.1));
 }
 
 void PantherChargingDock::getParameters()
 {
-  node_->get_parameter("panther_version", panther_version_);
-
   node_->get_parameter(name_ + ".base_frame", base_frame_name_);
   node_->get_parameter(name_ + ".external_detection_timeout", external_detection_timeout_);
   node_->get_parameter(
@@ -164,28 +124,25 @@ void PantherChargingDock::getParameters()
   node_->get_parameter(name_ + ".staging_x_offset", staging_x_offset_);
   node_->get_parameter(name_ + ".staging_yaw_offset", staging_yaw_offset_);
 
-  node_->get_parameter(
-    name_ + ".enable_charger_service_call_timeout", enable_charger_service_call_timeout_);
-
   node_->get_parameter(name_ + ".filter_coef", pose_filter_coef_);
 }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::getStagingPose(
   const geometry_msgs::msg::Pose & pose, const std::string & frame)
 {
+  std::string stage_frame = frame;
   // When the pose if default the robot is docking so the frame is the dock frame
   if (pose == geometry_msgs::msg::Pose()) {
     dock_frame_ = frame;
-    updateDockPoseAndPublish();
-    updateStagingPoseAndPublish(base_frame_name_);
-  } else {
-    if (dock_frame_.empty()) {
-      throw opennav_docking_core::FailedToControl("Cannot undock before docking!");
-    }
-    updateDockPoseAndPublish();
-    updateStagingPoseAndPublish(frame);
+    stage_frame = base_frame_name_;
   }
 
+  if (dock_frame_.empty()) {
+    throw opennav_docking_core::FailedToControl("Cannot undock before docking!");
+  }
+
+  updateDockPoseAndPublish();
+  updateStagingPoseAndPublish(stage_frame);
   return staging_pose_;
 }
 
@@ -214,93 +171,16 @@ bool PantherChargingDock::isDocked()
 
 bool PantherChargingDock::isCharging()
 {
-  std::shared_ptr<panther_msgs::msg::ChargingStatus> charging_status_msg;
-
-  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    try {
-      return isDocked();
-    } catch (const opennav_docking_core::FailedToDetectDock & e) {
-      return false;
-    }
-  }
-
-  // TODO: This might be used when a robot is undocking but we do not want to enable charging when
-  // the robot is undocking
   try {
-    setChargerState(true);
-  } catch (const std::runtime_error & e) {
-    throw opennav_docking_core::FailedToCharge(
-      "An exception occurred while enabling charging: " + std::string(e.what()));
-  }
-
-  // CAUTION: The  controller frequency can be higher than the message frequency
-  charging_status_box_.get(charging_status_msg);
-
-  if (!charging_status_msg) {
-    throw opennav_docking_core::FailedToCharge("Did not receive charging_status_msg message");
-  }
-
-  return charging_status_msg->charging;
-}
-
-bool PantherChargingDock::disableCharging()
-{
-  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    return true;
-  }
-
-  try {
-    setChargerState(false);
-  } catch (const std::runtime_error & e) {
-    RCLCPP_ERROR_STREAM(logger_, "An exception occurred while disabling charging: " << e.what());
+    return isDocked();
+  } catch (const opennav_docking_core::FailedToDetectDock & e) {
     return false;
   }
-
-  return true;
 }
 
-bool PantherChargingDock::hasStoppedCharging()
-{
-  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    return !isCharging();
-  }
+bool PantherChargingDock::disableCharging() { return true; }
 
-  std::shared_ptr<panther_msgs::msg::ChargingStatus> charging_status_msg;
-  charging_status_box_.get(charging_status_msg);
-  if (!charging_status_msg) {
-    throw opennav_docking_core::FailedToCharge("Did not receive charging_status_msg message");
-  }
-
-  if (charging_status_msg->charging) {
-    throw opennav_docking_core::FailedToCharge("Charging status is still true");
-  }
-
-  return true;
-}
-
-void PantherChargingDock::setChargerState(bool state)
-{
-  if (!panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2f)) {
-    throw std::runtime_error("This version of Panther does not support charger control");
-  }
-
-  auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
-  request->data = state;
-
-  auto result = charger_enable_client_->async_send_request(request);
-
-  const auto timeout = std::chrono::duration<double>(enable_charger_service_call_timeout_);
-  // This doubles spinning the node because the node is spinning in docking_server
-  if (
-    rclcpp::spin_until_future_complete(node_, result, timeout) !=
-    rclcpp::FutureReturnCode::SUCCESS) {
-    throw std::runtime_error("Failed to call charger enable service");
-  }
-
-  if (!result.get()->success) {
-    throw std::runtime_error("Failed to enable charger");
-  }
-}
+bool PantherChargingDock::hasStoppedCharging() { return !isCharging(); }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetPose(
   const geometry_msgs::msg::PoseStamped & pose, const tf2::Transform & offset)

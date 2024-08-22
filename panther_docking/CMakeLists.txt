@@ -10,7 +10,6 @@ set(PACKAGE_DEPENDENCIES
     geometry_msgs
     opennav_docking_core
     opennav_docking
-    panther_msgs
     panther_utils
     pluginlib
     rclcpp

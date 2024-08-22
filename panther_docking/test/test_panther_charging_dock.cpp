@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ament_index_cpp/get_package_share_directory.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/battery_state.hpp"
-#include "sensor_msgs/msg/joint_state.hpp"
-#include "tf2/utils.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "tf2_ros/buffer.h"
-#include "tf2_ros/static_transform_broadcaster.h"
+#include <gtest/gtest.h>
+#include <tf2/utils.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
 
 #include "panther_docking/panther_charging_dock.hpp"
 #include "panther_utils/test/ros_test_utils.hpp"
@@ -31,8 +31,6 @@ class PantherChargingDockWrapper : public panther_docking::PantherChargingDock
 public:
   using SharedPtr = std::shared_ptr<PantherChargingDockWrapper>;
   PantherChargingDockWrapper() : panther_docking::PantherChargingDock() {}
-
-  void setChargerState(bool state) { panther_docking::PantherChargingDock::setChargerState(state); }
 
   geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(
     const geometry_msgs::msg::PoseStamped & dock_pose)
@@ -68,10 +66,7 @@ public:
   ~TestPantherChargingDock();
 
 protected:
-  void ConfigureAndActivateDock(double panther_version);
-  void CreateChargerEnableService(bool success);
-  void CreateChargerStatusPublisher();
-  void PublishChargerStatus(bool charging);
+  void ConfigureAndActivateDock();
   void SetBaseLinkToOdomTransform();
   void SetDockToBaseLinkTransform(
     double x = 1.0, double y = 2.0, double z = 3.0, double yaw = 1.57);
@@ -82,8 +77,6 @@ protected:
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   tf2_ros::Buffer::SharedPtr tf2_buffer_;
   PantherChargingDockWrapper::SharedPtr charging_dock_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr charger_enable_service_;
-  rclcpp::Publisher<panther_msgs::msg::ChargingStatus>::SharedPtr charger_state_pub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr dock_pose_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr staging_pose_sub_;
   geometry_msgs::msg::PoseStamped::SharedPtr dock_pose_;
@@ -121,10 +114,8 @@ TestPantherChargingDock::~TestPantherChargingDock()
   rclcpp::shutdown();
 }
 
-void TestPantherChargingDock::ConfigureAndActivateDock(double panther_version)
+void TestPantherChargingDock::ConfigureAndActivateDock()
 {
-  node_->declare_parameter("panther_version", rclcpp::ParameterValue(panther_version));
-
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
 
   dock_pose_sub_ = node_->create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -142,38 +133,6 @@ void TestPantherChargingDock::ConfigureAndActivateDock(double panther_version)
 
   charging_dock_->configure(node_, "test_dock", tf2_buffer_);
   charging_dock_->activate();
-}
-
-void TestPantherChargingDock::CreateChargerEnableService(bool success)
-{
-  charger_enable_service_ = node_->create_service<std_srvs::srv::SetBool>(
-    "hardware/charger_enable", [success, this](
-                                 const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-                                 std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
-      response->success = success;
-      if (success) {
-        this->charging_status_ = request->data;
-      } else {
-        this->charging_status_ = false;
-      }
-
-      if (this->charger_state_pub_) {
-        PublishChargerStatus(this->charging_status_);
-      }
-    });
-}
-
-void TestPantherChargingDock::CreateChargerStatusPublisher()
-{
-  charger_state_pub_ = node_->create_publisher<panther_msgs::msg::ChargingStatus>(
-    "battery/charging_status", rclcpp::QoS(1));
-}
-
-void TestPantherChargingDock::PublishChargerStatus(bool charging)
-{
-  panther_msgs::msg::ChargingStatus msg;
-  msg.charging = charging;
-  charger_state_pub_->publish(msg);
 }
 
 void TestPantherChargingDock::SetBaseLinkToOdomTransform()
@@ -237,36 +196,10 @@ void TestPantherChargingDock::SetStagingOffsets()
     "test_dock.staging_yaw_offset", rclcpp::ParameterValue(staging_yaw_offset_));
 }
 
-TEST_F(TestPantherChargingDock, SetChargerStateOlderFailure)
-{
-  ConfigureAndActivateDock(1.06);
-  EXPECT_THROW({ charging_dock_->setChargerState(true); }, std::runtime_error);
-  EXPECT_THROW({ charging_dock_->setChargerState(false); }, std::runtime_error);
-}
-
-TEST_F(TestPantherChargingDock, SetChargerStateFailure)
-{
-  ConfigureAndActivateDock(1.21);
-  CreateChargerEnableService(false);
-  EXPECT_THROW({ charging_dock_->setChargerState(true); }, std::runtime_error);
-}
-
-TEST_F(TestPantherChargingDock, SetChargerStateSuccess)
-{
-  ConfigureAndActivateDock(1.21);
-  CreateChargerEnableService(true);
-  CreateChargerStatusPublisher();
-
-  EXPECT_NO_THROW({ charging_dock_->setChargerState(true); });
-  EXPECT_TRUE(charging_status_);
-  EXPECT_NO_THROW({ charging_dock_->setChargerState(false); });
-  EXPECT_FALSE(charging_status_);
-}
-
 TEST_F(TestPantherChargingDock, offsetStagingPoseToDockPose)
 {
   SetStagingOffsets();
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
 
   geometry_msgs::msg::PoseStamped pose;
   pose = charging_dock_->offsetStagingPoseToDockPose(pose);
@@ -278,7 +211,7 @@ TEST_F(TestPantherChargingDock, offsetStagingPoseToDockPose)
 TEST_F(TestPantherChargingDock, offsetDetectedDockPose)
 {
   SetDetectionOffsets();
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
   geometry_msgs::msg::PoseStamped pose;
 
   auto new_pose = charging_dock_->offsetDetectedDockPose(pose);
@@ -300,7 +233,7 @@ TEST_F(TestPantherChargingDock, GetDockPose)
 {
   SetDetectionOffsets();
 
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
 
   EXPECT_THROW({ charging_dock_->getDockPose("wrong_dock_pose"); }, std::runtime_error);
 
@@ -326,7 +259,7 @@ TEST_F(TestPantherChargingDock, UpdateDockPoseAndStagingPosePublish)
   SetDetectionOffsets();
   SetStagingOffsets();
 
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
   SetDockToBaseLinkTransform();
   SetBaseLinkToOdomTransform();
 
@@ -379,7 +312,7 @@ TEST_F(TestPantherChargingDock, UpdateDockPoseAndStagingPosePublish)
 TEST_F(TestPantherChargingDock, GetStagingPose)
 {
   SetStagingOffsets();
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
 
   geometry_msgs::msg::PoseStamped pose;
   ASSERT_THROW(
@@ -399,7 +332,7 @@ TEST_F(TestPantherChargingDock, GetStagingPose)
 TEST_F(TestPantherChargingDock, GetRefinedPose)
 {
   SetDetectionOffsets();
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
 
   geometry_msgs::msg::PoseStamped pose;
   ASSERT_FALSE(charging_dock_->getRefinedPose(pose));
@@ -425,7 +358,7 @@ TEST_F(TestPantherChargingDock, GetRefinedPose)
 TEST_F(TestPantherChargingDock, IsDocked)
 {
   SetDetectionOffsets();
-  ConfigureAndActivateDock(1.21);
+  ConfigureAndActivateDock();
 
   geometry_msgs::msg::PoseStamped pose;
   SetDockToBaseLinkTransform();
@@ -440,42 +373,4 @@ TEST_F(TestPantherChargingDock, IsDocked)
   charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), "test_dock");
 
   EXPECT_TRUE(charging_dock_->isDocked());
-}
-
-TEST_F(TestPantherChargingDock, Charging106)
-{
-  ConfigureAndActivateDock(1.06);
-  EXPECT_FALSE(charging_dock_->isCharging());
-  EXPECT_TRUE(charging_dock_->disableCharging());
-  EXPECT_TRUE(charging_dock_->hasStoppedCharging());
-}
-
-TEST_F(TestPantherChargingDock, ChargingStateNoServiceFailure)
-{
-  ConfigureAndActivateDock(1.21);
-  EXPECT_THROW({ charging_dock_->isCharging(); }, opennav_docking_core::FailedToCharge);
-  EXPECT_FALSE(charging_dock_->disableCharging());
-  EXPECT_THROW({ charging_dock_->hasStoppedCharging(); }, opennav_docking_core::FailedToCharge);
-}
-
-TEST_F(TestPantherChargingDock, ChargingStateFailRespondFailure)
-{
-  ConfigureAndActivateDock(1.21);
-  CreateChargerStatusPublisher();
-  CreateChargerEnableService(false);
-
-  EXPECT_THROW({ charging_dock_->isCharging(); }, opennav_docking_core::FailedToCharge);
-  EXPECT_FALSE(charging_dock_->disableCharging());
-  EXPECT_TRUE(charging_dock_->hasStoppedCharging());
-}
-
-TEST_F(TestPantherChargingDock, ChargingStateSuccess)
-{
-  ConfigureAndActivateDock(1.21);
-  CreateChargerStatusPublisher();
-  CreateChargerEnableService(true);
-
-  EXPECT_TRUE(charging_dock_->isCharging());
-  EXPECT_TRUE(charging_dock_->disableCharging());
-  EXPECT_TRUE(charging_dock_->hasStoppedCharging());
 }
