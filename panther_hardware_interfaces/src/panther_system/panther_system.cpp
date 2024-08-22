@@ -251,7 +251,7 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   if (time >= next_driver_state_update_time_) {
     UpdateDriverState();
     UpdateDriverStateMsg();
-    panther_system_ros_interface_->PublishDriverState();
+    panther_system_ros_interface_->PublishRobotDriverState();
     next_driver_state_update_time_ = time + driver_states_update_period_;
   }
 

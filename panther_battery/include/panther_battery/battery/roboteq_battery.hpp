@@ -21,7 +21,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_msgs/msg/driver_state.hpp"
+#include "panther_msgs/msg/driver_state_named.hpp"
+#include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "panther_battery/battery/battery.hpp"
 #include "panther_utils/moving_average.hpp"
@@ -29,7 +30,8 @@
 namespace panther_battery
 {
 
-using DriverStateMsg = panther_msgs::msg::DriverState;
+using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
+using DriverStateNamedMsg = panther_msgs::msg::DriverStateNamed;
 
 struct RoboteqBatteryParams
 {
@@ -42,7 +44,7 @@ class RoboteqBattery : public Battery
 {
 public:
   RoboteqBattery(
-    const std::function<DriverStateMsg::SharedPtr()> & get_driver_state,
+    const std::function<RobotDriverStateMsg::SharedPtr()> & get_driver_state,
     const RoboteqBatteryParams & params);
 
   ~RoboteqBattery() {}
@@ -54,7 +56,7 @@ public:
   float GetLoadCurrent() override { return std::numeric_limits<float>::quiet_NaN(); }
 
 protected:
-  void ValidateDriverStateMsg(const rclcpp::Time & header_stamp);
+  void ValidateRobotDriverStateMsg(const rclcpp::Time & header_stamp);
 
 private:
   void UpdateBatteryMsgs(const rclcpp::Time & header_stamp);
@@ -62,14 +64,14 @@ private:
   void UpdateBatteryStateRaw();
   void UpdateChargingStatus(const rclcpp::Time & header_stamp);
   std::uint8_t GetBatteryHealth(const float voltage);
-  bool MotorControllerHeartbeatTimeout();
+  bool DriverStateHeartbeatTimeout();
 
-  std::function<DriverStateMsg::SharedPtr()> GetDriverState;
+  std::function<RobotDriverStateMsg::SharedPtr()> GetRobotDriverState;
 
   const float driver_state_timeout_;
   float voltage_raw_;
   float current_raw_;
-  DriverStateMsg::SharedPtr driver_state_;
+  RobotDriverStateMsg::SharedPtr driver_state_;
 
   std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
   std::unique_ptr<panther_utils::MovingAverage<float>> current_ma_;

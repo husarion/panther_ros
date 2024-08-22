@@ -28,12 +28,14 @@
 
 #include <lifecycle_msgs/msg/state.hpp>
 
-#include <panther_msgs/msg/driver_state.hpp>
+#include <panther_msgs/msg/robot_driver_state.hpp>
 
 #include <panther_utils/test/ros_test_utils.hpp>
 
 #include "utils/panther_system_test_utils.hpp"
 #include "utils/roboteqs_mock.hpp"
+
+using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
 
 class TestPantherSystem : public ::testing::Test
 {
@@ -427,11 +429,11 @@ TEST_F(TestPantherSystem, ReadOtherRoboteqParamsPantherSystem)
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  panther_msgs::msg::DriverState::SharedPtr state_msg;
+  RobotDriverStateMsg::SharedPtr state_msg;
   unsigned state_msg_count = 0;
-  auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
-    [&](const panther_msgs::msg::DriverState::SharedPtr msg) {
+  auto sub = node->create_subscription<RobotDriverStateMsg>(
+    panther_hardware_interfaces_test::kRobotDriverStateTopic, rclcpp::SensorDataQoS(),
+    [&](const RobotDriverStateMsg::SharedPtr msg) {
       state_msg = msg;
       ++state_msg_count;
     });
@@ -451,28 +453,26 @@ TEST_F(TestPantherSystem, ReadOtherRoboteqParamsPantherSystem)
 
   ASSERT_TRUE(state_msg);
 
-  ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->motor_controllers.at(0).state.temperature), f_temp);
-  ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->motor_controllers.at(1).state.temperature), r_temp);
+  ASSERT_EQ(static_cast<std::int16_t>(state_msg->drivers_states.at(0).state.temperature), f_temp);
+  ASSERT_EQ(static_cast<std::int16_t>(state_msg->drivers_states.at(1).state.temperature), r_temp);
 
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->motor_controllers.at(0).state.heatsink_temperature),
+    static_cast<std::int16_t>(state_msg->drivers_states.at(0).state.heatsink_temperature),
     f_heatsink_temp);
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->motor_controllers.at(1).state.heatsink_temperature),
+    static_cast<std::int16_t>(state_msg->drivers_states.at(1).state.heatsink_temperature),
     r_heatsink_temp);
 
   ASSERT_EQ(
-    static_cast<std::uint16_t>(state_msg->motor_controllers.at(0).state.voltage * 10.0), f_volt);
+    static_cast<std::uint16_t>(state_msg->drivers_states.at(0).state.voltage * 10.0), f_volt);
   ASSERT_EQ(
-    static_cast<std::uint16_t>(state_msg->motor_controllers.at(1).state.voltage * 10.0), r_volt);
+    static_cast<std::uint16_t>(state_msg->drivers_states.at(1).state.voltage * 10.0), r_volt);
 
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->motor_controllers.at(0).state.current * 10.0),
+    static_cast<std::int16_t>(state_msg->drivers_states.at(0).state.current * 10.0),
     (f_battery_current_1 + f_battery_current_2));
   ASSERT_EQ(
-    static_cast<std::int16_t>(state_msg->motor_controllers.at(1).state.current * 10.0),
+    static_cast<std::int16_t>(state_msg->drivers_states.at(1).state.current * 10.0),
     (r_battery_current_1 + r_battery_current_2));
 
   pth_test_.ShutdownPantherSystem();
@@ -492,10 +492,10 @@ TEST_F(TestPantherSystem, EncoderDisconnectedPantherSystem)
 
   pth_test_.ConfigureActivatePantherSystem();
 
-  panther_msgs::msg::DriverState::SharedPtr state_msg;
-  auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-    panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
-    [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+  RobotDriverStateMsg::SharedPtr state_msg;
+  auto sub = node->create_subscription<RobotDriverStateMsg>(
+    panther_hardware_interfaces_test::kRobotDriverStateTopic, rclcpp::SensorDataQoS(),
+    [&](const RobotDriverStateMsg::SharedPtr msg) { state_msg = msg; });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -505,7 +505,7 @@ TEST_F(TestPantherSystem, EncoderDisconnectedPantherSystem)
   pth_test_.GetResourceManager()->read(TIME, PERIOD);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(node, state_msg, std::chrono::seconds(5)));
-  ASSERT_TRUE(state_msg->motor_controllers.at(0).state.script_flag.encoder_disconnected);
+  ASSERT_TRUE(state_msg->drivers_states.at(0).state.script_flag.encoder_disconnected);
 
   // writing should be blocked - error
 
@@ -718,10 +718,10 @@ TEST(TestPantherSystemOthers, WrongOrderURDF)
 //   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("hardware_interface_test_node");
 //   pth_test_.ConfigureActivatePantherSystem();
 
-//   panther_msgs::msg::DriverState::SharedPtr state_msg;
-//   auto sub = node->create_subscription<panther_msgs::msg::DriverState>(
-//     panther_hardware_interfaces_test::kMotorControllersStateTopic, rclcpp::SensorDataQoS(),
-//     [&](const panther_msgs::msg::DriverState::SharedPtr msg) { state_msg = msg; });
+//   RobotDriverStateMsg::SharedPtr state_msg;
+//   auto sub = node->create_subscription<RobotDriverStateMsg>(
+//     panther_hardware_interfaces_test::kRobotDriverStateTopic, rclcpp::SensorDataQoS(),
+//     [&](const RobotDriverStateMsg::SharedPtr msg) { state_msg = msg; });
 
 //   std::this_thread::sleep_for(std::chrono::seconds(2));
 

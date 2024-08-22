@@ -81,8 +81,9 @@ void SafetyManagerNode::Initialize()
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
     "battery/battery_status", 10, std::bind(&SafetyManagerNode::BatteryCB, this, _1));
-  driver_state_sub_ = this->create_subscription<DriverStateMsg>(
-    "hardware/motor_controllers_state", 10, std::bind(&SafetyManagerNode::DriverStateCB, this, _1));
+  driver_state_sub_ = this->create_subscription<RobotDriverStateMsg>(
+    "hardware/robot_driver_state", 10,
+    std::bind(&SafetyManagerNode::RobotDriverStateCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&SafetyManagerNode::EStopCB, this, _1));
@@ -210,14 +211,14 @@ void SafetyManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)
   safety_tree_manager_->GetBlackboard()->set<double>("bat_temp", battery_temp_ma_->GetAverage());
 }
 
-void SafetyManagerNode::DriverStateCB(const DriverStateMsg::SharedPtr driver_state)
+void SafetyManagerNode::RobotDriverStateCB(const RobotDriverStateMsg::SharedPtr driver_state)
 {
-  if (driver_state->motor_controllers.empty()) {
+  if (driver_state->drivers_states.empty()) {
     RCLCPP_WARN(this->get_logger(), "Received empty driver state message.");
     return;
   }
 
-  for (auto & driver : driver_state->motor_controllers) {
+  for (auto & driver : driver_state->drivers_states) {
     if (driver_temp_ma_.find(driver.name) == driver_temp_ma_.end()) {
       RCLCPP_DEBUG(
         this->get_logger(), "Creating moving average for driver '%s'", driver.name.c_str());

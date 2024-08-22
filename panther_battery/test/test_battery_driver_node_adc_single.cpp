@@ -112,7 +112,7 @@ TEST_F(TestBatteryNodeADCSingle, RoboteqInitOnADCFail)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
 
   // Publish driver state that should update the battery message
-  DriverStateMsg driver_state;
+  RobotDriverStateMsg driver_state;
   driver_state.header.stamp = battery_driver_node_->get_clock()->now();
   driver_state_pub_->publish(driver_state);
 

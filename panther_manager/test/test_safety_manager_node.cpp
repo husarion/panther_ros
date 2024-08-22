@@ -194,14 +194,14 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
 {
   const float expected_temp = 21.0;
 
-  panther_msgs::msg::MotorController motor_controller;
+  panther_msgs::msg::DriverStateNamed motor_controller;
   motor_controller.state.temperature = expected_temp;
 
-  auto driver_state_msg = panther_msgs::msg::DriverState();
-  driver_state_msg.motor_controllers.push_back(motor_controller);
+  auto driver_state_msg = panther_msgs::msg::RobotDriverState();
+  driver_state_msg.drivers_states.push_back(motor_controller);
 
   panther_utils::test_utils::PublishAndSpin(
-    safety_manager_node_, "hardware/motor_controllers_state", driver_state_msg);
+    safety_manager_node_, "hardware/robot_driver_state", driver_state_msg);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
   EXPECT_FLOAT_EQ(blackboard->get<float>("driver_temp"), expected_temp);

@@ -92,7 +92,7 @@ const std::map<std::string, std::string> kDefaultParamMap = {
 const std::vector<std::string> kDefaultJoints = {
   "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"};
 
-const std::string kMotorControllersStateTopic = "/hardware_controller/motor_controllers_state";
+const std::string kRobotDriverStateTopic = "/hardware_controller/robot_driver_state";
 
 }  // namespace panther_hardware_interfaces_test
 

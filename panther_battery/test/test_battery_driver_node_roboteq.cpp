@@ -44,14 +44,14 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_STATUS_UNKNOWN, battery_state_->power_supply_status);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 
-  panther_msgs::msg::MotorController motor_controller;
+  panther_msgs::msg::DriverStateNamed motor_controller;
   motor_controller.state.voltage = 35.0f;
   motor_controller.state.current = 0.1f;
 
-  DriverStateMsg driver_state;
+  RobotDriverStateMsg driver_state;
   driver_state.header.stamp = battery_driver_node_->get_clock()->now();
-  driver_state.motor_controllers.push_back(motor_controller);
-  driver_state.motor_controllers.push_back(motor_controller);
+  driver_state.drivers_states.push_back(motor_controller);
+  driver_state.drivers_states.push_back(motor_controller);
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
@@ -84,14 +84,14 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_HEALTH_UNKNOWN, battery_state_->power_supply_health);
 
   // Publish some values
-  panther_msgs::msg::MotorController motor_controller;
+  panther_msgs::msg::DriverStateNamed motor_controller;
   motor_controller.state.voltage = 35.0f;
   motor_controller.state.current = 0.1f;
 
-  DriverStateMsg driver_state;
+  RobotDriverStateMsg driver_state;
   driver_state.header.stamp = battery_driver_node_->get_clock()->now();
-  driver_state.motor_controllers.push_back(motor_controller);
-  driver_state.motor_controllers.push_back(motor_controller);
+  driver_state.drivers_states.push_back(motor_controller);
+  driver_state.drivers_states.push_back(motor_controller);
   driver_state_pub_->publish(driver_state);
 
   ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
