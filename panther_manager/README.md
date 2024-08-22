@@ -58,7 +58,7 @@ Node responsible for managing safety features, and software shutdown of componen
 - `battery/battery_status` [*sensor_msgs/BatteryState*]: State of the internal Battery.
 - `hardware/e_stop` [*std_msgs/Bool*]: State of emergency stop.
 - `hardware/io_state` [*panther_msgs/IOState*]: State of IO pins.
-- `hardware/robot_driver_state` [*panther_msgs/DriverState*]: State of motor controllers.
+- `hardware/robot_driver_state` [*panther_msgs/RobotDriverState*]: State of motor controllers.
 - `system_status` [*panther_msgs/SystemStatus*]: Built-in computer system status, includes the most important computation-related parameters.
 
 #### Service Clients (for Default Trees)
