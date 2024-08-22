@@ -1,0 +1,15 @@
+/**:
+  dock_manager:
+    ros__parameters:
+      timer_frequency: 1.0
+      ros_communication_timeout:
+        availability: 1.0
+        response: 10.0
+      plugin_libs:
+        - tick_after_timeout_bt_node
+
+      ros_plugin_libs:
+        - joy_condition_bt_node
+        - dock_robot_bt_node
+        - undock_robot_bt_node
+        - call_set_led_animation_service_bt_node

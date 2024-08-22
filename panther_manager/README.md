@@ -90,3 +90,15 @@ Node responsible for managing safety features, and software shutdown of componen
   - `timeout` [*string*, default: **5.0**]: Time in **[s]** to wait for the host to shutdown. The Built-in Computer will turn off after all computers are shutdown or reached timeout. Keep in mind that hardware will cut power off after a given time after pressing the power button. Refer to the hardware manual for more information.
   - `username` [*string*, default: **None**]: Username used to log in to over SSH.
 - `timer_frequency` [*float*, default: **10.0**]: Frequency **[Hz]** at which safety tree will be ticked.
+
+
+add_library(joy_condition_bt_node SHARED
+            src/plugins/condition/joy_condition_node.cpp)
+list(APPEND plugin_libs joy_condition_bt_node)
+
+add_library(dock_robot_bt_node SHARED src/plugins/action/dock_robot_action_node.cpp)
+list(APPEND plugin_libs dock_robot_bt_node)
+
+add_library(undock_robot_bt_node SHARED
+            src/plugins/action/undock_robot_action_node.cpp)
+list(APPEND plugin_libs undock_robot_bt_node)

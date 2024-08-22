@@ -26,6 +26,7 @@
 
 #include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_action/rclcpp_action.hpp"
 
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
@@ -52,52 +53,18 @@ struct BehaviorTreePluginDescription
 class PluginTestUtils : public testing::Test
 {
 public:
-  PluginTestUtils()
-  {
-    rclcpp::init(0, nullptr);
-    bt_node_ = std::make_shared<rclcpp::Node>("test_panther_manager_node");
-  }
-
-  ~PluginTestUtils()
-  {
-    bt_node_.reset();
-    rclcpp::shutdown();
-    if (executor_thread_) {
-      executor_.reset();
-      executor_thread_->join();
-    }
-  }
+  PluginTestUtils();
+  ~PluginTestUtils();
 
   virtual std::string BuildBehaviorTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports)
-  {
-    std::stringstream bt;
-
-    bt << tree_header_ << std::endl;
-
-    bt << "\t\t\t\t<" << plugin_name << " ";
-
-    for (auto const & [key, value] : bb_ports) {
-      bt << key << "=\"" << value << "\" ";
-    }
-
-    bt << " />" << std::endl;
-
-    bt << tree_footer_;
-
-    return bt.str();
-  }
+    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports);
 
   void CreateTree(
-    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports)
-  {
-    auto xml_text = BuildBehaviorTree(plugin_name, bb_ports);
-    tree_ = factory_.createTreeFromText(xml_text);
-  }
+    const std::string & plugin_name, const std::map<std::string, std::string> & bb_ports);
 
-  inline BT::Tree & GetTree() { return tree_; }
+  BT::Tree & GetTree();
 
-  inline BT::BehaviorTreeFactory & GetFactory() { return factory_; }
+  BT::BehaviorTreeFactory & GetFactory();
 
   template <typename ServiceT>
   void CreateService(
@@ -106,10 +73,30 @@ public:
       void(const typename ServiceT::Request::SharedPtr, typename ServiceT::Response::SharedPtr)>
       service_callback)
   {
-    service_server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + service_name);
-    service = service_server_node_->create_service<ServiceT>(service_name, service_callback);
+    server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + service_name);
+    service = server_node_->create_service<ServiceT>(service_name, service_callback);
     executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
-    executor_->add_node(service_server_node_);
+    executor_->add_node(server_node_);
+    executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
+  }
+
+  template <typename ActionT>
+  void CreateAction(
+    const std::string & action_name,
+    std::function<rclcpp_action::GoalResponse(
+      const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const typename ActionT::Goal> goal)>
+      handle_goal,
+    std::function<rclcpp_action::CancelResponse(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<ActionT>> goal_handle)>
+      handle_cancel,
+    std::function<void(const std::shared_ptr<rclcpp_action::ServerGoalHandle<ActionT>> goal_handle)>
+      handle_accepted)
+  {
+    server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + action_name);
+    server_ = rclcpp_action::create_server<ActionT>(
+      server_node_, action_name, handle_goal, handle_cancel, handle_accepted);
+    executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+    executor_->add_node(server_node_);
     executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
   }
 
@@ -133,13 +120,14 @@ protected:
   BT::BehaviorTreeFactory factory_;
   BT::Tree tree_;
 
-  rclcpp::Node::SharedPtr service_server_node_;
+  rclcpp::Node::SharedPtr server_node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
 
   rclcpp::ServiceBase::SharedPtr service;
+  rclcpp_action::ServerBase::SharedPtr server_;
   std::unique_ptr<std::thread> executor_thread_;
 
-  inline void SpinExecutor() { executor_->spin(); }
+  void SpinExecutor();
 
   const std::string tree_header_ = R"(
       <root BTCPP_format="4">
