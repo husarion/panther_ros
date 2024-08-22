@@ -13,8 +13,8 @@
     dock_prestaging_tolerance: 0.5
 
 
-    dock_plugins: ["panther_docking_panther_charging_dock"]
-    panther_docking_panther_charging_dock:
+    dock_plugins: ["panther_charging_dock"]
+    panther_charging_dock:
       plugin: panther_docking::PantherChargingDock
       base_frame: "<robot_namespace>/base_link"
       docking_distance_threshold: 0.15
@@ -37,7 +37,7 @@
 
     docks: ["main_dock"]
     main_dock:
-      type: panther_docking_panther_charging_dock
+      type: panther_charging_dock
       frame: <robot_namespace>/main_dock
       pose: [0.0, 0.0, 0.0] # position of the dock device (not the staging position), the front (X+) of the dock should point away from the robot
 
