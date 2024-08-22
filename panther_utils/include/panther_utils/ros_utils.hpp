@@ -17,7 +17,10 @@
 
 #include <chrono>
 
-#include "std_msgs/msg/header.hpp"
+#include <tf2_ros/buffer.h>
+
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <std_msgs/msg/header.hpp>
 
 namespace panther_utils::ros
 {
@@ -90,6 +93,16 @@ std_msgs::msg::Header MergeHeaders(
   return merged_header;
 }
 
+/**
+ * @brief Adds a namespace to a frame ID.
+ *
+ * This function adds a namespace to a frame ID. The namespace is added as a prefix to the frame ID.
+ *
+ * @param frame_id The frame ID to which the namespace should be added.
+ * @param node_namespace The namespace to be added to the frame ID.
+ *
+ * @return The frame ID with the namespace added as a prefix.
+ */
 std::string AddNamespaceToFrameID(const std::string & frame_id, const std::string & node_namespace)
 {
   std::string tf_prefix = node_namespace;
@@ -103,6 +116,31 @@ std::string AddNamespaceToFrameID(const std::string & frame_id, const std::strin
   }
 
   return tf_prefix + frame_id;
+}
+
+geometry_msgs::msg::PoseStamped TransformPose(
+  const tf2_ros::Buffer::SharedPtr & tf2_buffer, const geometry_msgs::msg::PoseStamped & pose,
+  const std::string & target_frame, double timeout_s = 0.0)
+{
+  geometry_msgs::msg::PoseStamped transformed_pose;
+
+  if (pose.header.frame_id.empty() || target_frame.empty()) {
+    throw std::runtime_error(
+      "Pose or target frame is empty, pose frame: \"" + pose.header.frame_id +
+      "\", target frame: \"" + target_frame + "\"");
+  }
+
+  if (!tf2_buffer->canTransform(
+        pose.header.frame_id, target_frame, pose.header.stamp,
+        rclcpp::Duration::from_seconds(timeout_s))) {
+    throw std::runtime_error(
+      "Cannot transform " + pose.header.frame_id + " to " + target_frame + " at time " +
+      std::to_string(pose.header.stamp.sec) + "." + std::to_string(pose.header.stamp.nanosec));
+  }
+
+  tf2_buffer->transform(pose, transformed_pose, target_frame);
+
+  return transformed_pose;
 }
 
 }  // namespace panther_utils::ros

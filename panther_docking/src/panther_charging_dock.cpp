@@ -19,6 +19,7 @@
 #include <nav2_util/node_utils.hpp>
 
 #include "panther_utils/common_utilities.hpp"
+#include "panther_utils/ros_utils.hpp"
 
 namespace panther_docking
 {
@@ -301,26 +302,16 @@ void PantherChargingDock::setChargerState(bool state)
   }
 }
 
-PantherChargingDock::PoseStampedMsg PantherChargingDock::transformPose(
-  const PoseStampedMsg & pose, const std::string & target_frame)
+PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetPose(
+  const geometry_msgs::msg::PoseStamped & pose, const tf2::Transform & offset)
 {
-  PoseStampedMsg transformed_pose;
+  tf2::Transform pose_transform;
+  tf2::fromMsg(pose.pose, pose_transform);
 
-  if (pose.header.frame_id.empty() || target_frame.empty()) {
-    throw std::runtime_error(
-      "Pose or target frame is empty, pose frame: \"" + pose.header.frame_id +
-      "\", target frame: \"" + target_frame + "\"");
-  }
-
-  if (!tf2_buffer_->canTransform(
-        pose.header.frame_id, target_frame, pose.header.stamp,
-        rclcpp::Duration::from_seconds(external_detection_timeout_))) {
-    throw std::runtime_error(
-      "Cannot transform " + pose.header.frame_id + " to " + target_frame + " at time " +
-      std::to_string(pose.header.stamp.sec) + "." + std::to_string(pose.header.stamp.nanosec));
-  }
-
-  tf2_buffer_->transform(pose, transformed_pose, target_frame);
+  tf2::Transform offset_pose_transform = pose_transform * offset;
+  PantherChargingDock::PoseStampedMsg transformed_pose;
+  transformed_pose.header = pose.header;
+  tf2::toMsg(offset_pose_transform, transformed_pose.pose);
 
   return transformed_pose;
 }
@@ -328,9 +319,6 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::transformPose(
 PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetStagingPoseToDockPose(
   const PoseStampedMsg & dock_pose)
 {
-  tf2::Transform dock_pose_transform;
-  tf2::fromMsg(dock_pose.pose, dock_pose_transform);
-
   tf2::Transform staging_offset_transform;
   staging_offset_transform.setOrigin(tf2::Vector3(staging_x_offset_, 0.0, 0.0));
 
@@ -338,42 +326,19 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetStagingPoseToDock
   staging_yaw_rotation.setRPY(0, 0, staging_yaw_offset_);
   staging_offset_transform.setRotation(staging_yaw_rotation);
 
-  tf2::Transform staging_pose_transform = dock_pose_transform * staging_offset_transform;
-
-  auto staging_pose = dock_pose;
-  staging_pose.header = dock_pose.header;
-  staging_pose.pose.position.x = staging_pose_transform.getOrigin().getX();
-  staging_pose.pose.position.y = staging_pose_transform.getOrigin().getY();
-  staging_pose.pose.position.z = staging_pose_transform.getOrigin().getZ();
-
-  staging_pose.pose.orientation = tf2::toMsg(staging_pose_transform.getRotation());
-
-  return staging_pose;
+  return offsetPose(dock_pose, staging_offset_transform);
 }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetDetectedDockPose(
   const PoseStampedMsg & detected_dock_pose)
 {
-  PoseStampedMsg just_orientation;
-  just_orientation.pose.orientation = tf2::toMsg(external_detection_rotation_);
-  geometry_msgs::msg::TransformStamped transform;
-  transform.transform.rotation = detected_dock_pose.pose.orientation;
+  tf2::Transform offset;
+  offset.setOrigin(tf2::Vector3(
+    external_detection_translation_x_, external_detection_translation_y_,
+    external_detection_translation_z_));
+  offset.setRotation(external_detection_rotation_);
 
-  tf2::doTransform(just_orientation, just_orientation, transform);
-
-  tf2::Quaternion orientation(
-    just_orientation.pose.orientation.x, just_orientation.pose.orientation.y,
-    just_orientation.pose.orientation.z, just_orientation.pose.orientation.w);
-
-  PoseStampedMsg offset_detected_dock_pose = detected_dock_pose;
-  offset_detected_dock_pose.pose.orientation = tf2::toMsg(orientation);
-  offset_detected_dock_pose.header = detected_dock_pose.header;
-  offset_detected_dock_pose.pose.position = detected_dock_pose.pose.position;
-  offset_detected_dock_pose.pose.position.x += external_detection_translation_x_;
-  offset_detected_dock_pose.pose.position.y += external_detection_translation_y_;
-  offset_detected_dock_pose.pose.position.z += external_detection_translation_z_;
-
-  return offset_detected_dock_pose;
+  return offsetPose(detected_dock_pose, offset);
 }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::getDockPose(const std::string & frame)
@@ -386,8 +351,9 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::getDockPose(const std::
     auto offset_detected_dock_pose = offsetDetectedDockPose(pose);
 
     filtered_offset_detected_dock_pose = pose_filter_->update(offset_detected_dock_pose);
-    filtered_offset_detected_dock_pose = transformPose(
-      filtered_offset_detected_dock_pose, base_frame_name_);
+    filtered_offset_detected_dock_pose = panther_utils::ros::TransformPose(
+      tf2_buffer_, filtered_offset_detected_dock_pose, base_frame_name_,
+      external_detection_timeout_);
 
     filtered_offset_detected_dock_pose.pose.position.z = 0.0;
   } catch (const std::runtime_error & e) {
@@ -413,7 +379,8 @@ void PantherChargingDock::updateStagingPoseAndPublish(const std::string & frame)
 {
   try {
     auto new_staging_pose = offsetStagingPoseToDockPose(dock_pose_);
-    staging_pose_ = transformPose(new_staging_pose, frame);
+    staging_pose_ = panther_utils::ros::TransformPose(
+      tf2_buffer_, new_staging_pose, frame, external_detection_timeout_);
     dock_pose_.pose.position.z = 0.0;
     staging_pose_pub_->publish(staging_pose_);
   } catch (const std::runtime_error & e) {

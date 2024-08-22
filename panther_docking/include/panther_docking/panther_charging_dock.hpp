@@ -146,14 +146,15 @@ protected:
   void setChargerState(bool state);
 
   /**
-   * @brief Transform a pose to a target frame.
+   *  @brief Offset a pose by a given transform.
    *
-   * @param pose The pose to transform.
-   * @param target_frame The target frame to transform the pose to.
-   *
-   * @return The transformed pose.
+   * This method offsets a pose by a given transform.
+   * @param pose The pose to offset.
+   * @param offset The offset to apply to the pose.
+   * @return The offset pose.
    */
-  PoseStampedMsg transformPose(const PoseStampedMsg & pose, const std::string & target_frame);
+  PoseStampedMsg offsetPose(
+    const geometry_msgs::msg::PoseStamped & pose, const tf2::Transform & offset);
 
   /**
    * @brief Offset the staging pose.
@@ -213,7 +214,7 @@ protected:
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
-  std::shared_ptr<tf2_ros::Buffer> tf2_buffer_;
+  tf2_ros::Buffer::SharedPtr tf2_buffer_;
 
   rclcpp::Subscription<panther_msgs::msg::ChargingStatus>::SharedPtr charging_status_sub_;
   rclcpp::Subscription<panther_msgs::msg::IOState>::SharedPtr io_state_sub_;

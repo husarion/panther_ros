@@ -17,6 +17,7 @@ set(PACKAGE_DEPENDENCIES
     realtime_tools
     sensor_msgs
     std_srvs
+    tf2_geometry_msgs
     tf2_ros)
 
 foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})

@@ -34,11 +34,6 @@ public:
 
   void setChargerState(bool state) { panther_docking::PantherChargingDock::setChargerState(state); }
 
-  geometry_msgs::msg::PoseStamped transformPose(
-    const geometry_msgs::msg::PoseStamped & pose, const std::string & target_frame)
-  {
-    return panther_docking::PantherChargingDock::transformPose(pose, target_frame);
-  }
   geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(
     const geometry_msgs::msg::PoseStamped & dock_pose)
   {
@@ -266,36 +261,6 @@ TEST_F(TestPantherChargingDock, SetChargerStateSuccess)
   EXPECT_TRUE(charging_status_);
   EXPECT_NO_THROW({ charging_dock_->setChargerState(false); });
   EXPECT_FALSE(charging_status_);
-}
-
-TEST_F(TestPantherChargingDock, TransformPose)
-{
-  ConfigureAndActivateDock(1.21);
-  geometry_msgs::msg::PoseStamped pose;
-  EXPECT_THROW({ charging_dock_->transformPose(pose, ""); }, std::runtime_error);
-  EXPECT_THROW({ charging_dock_->transformPose(pose, "base_link"); }, std::runtime_error);
-
-  pose.header.frame_id = "odom";
-  EXPECT_THROW({ charging_dock_->transformPose(pose, "base_link"); }, std::runtime_error);
-
-  SetBaseLinkToOdomTransform();
-
-  pose.header.frame_id = "odom";
-  pose.pose.position.x = 0.1;
-
-  ASSERT_NO_THROW({ pose = charging_dock_->transformPose(pose, "odom"); };);
-  EXPECT_NEAR(pose.pose.position.x, 0.1, 0.01);
-  EXPECT_NEAR(pose.pose.position.y, 0.0, 0.01);
-  EXPECT_NEAR(pose.pose.position.z, 0.0, 0.01);
-  EXPECT_EQ(pose.header.frame_id, "odom");
-  EXPECT_NEAR(tf2::getYaw(pose.pose.orientation), 0.0, 0.01);
-
-  ASSERT_NO_THROW({ pose = charging_dock_->transformPose(pose, "base_link"); };);
-  EXPECT_NEAR(pose.pose.position.x, -0.2, 0.01);
-  EXPECT_NEAR(pose.pose.position.y, -0.2, 0.01);
-  EXPECT_NEAR(pose.pose.position.z, -0.1, 0.01);
-  EXPECT_EQ(pose.header.frame_id, "base_link");
-  EXPECT_NEAR(tf2::getYaw(pose.pose.orientation), 0.0, 0.01);
 }
 
 TEST_F(TestPantherChargingDock, offsetStagingPoseToDockPose)
