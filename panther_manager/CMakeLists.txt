@@ -52,17 +52,16 @@ add_library(shutdown_hosts_from_file_bt_node SHARED
 target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
 
-add_library(tick_after_timeout_bt_node SHARED
-            src/plugins/decorator/tick_after_timeout_node.cpp)
-list(APPEND plugin_libs tick_after_timeout_bt_node)
-
-add_library(dock_robot_bt_node SHARED
-            src/plugins/action/dock_robot_action_node.cpp)
+add_library(dock_robot_bt_node SHARED src/plugins/action/dock_robot_node.cpp)
 list(APPEND plugin_libs dock_robot_bt_node)
 
 add_library(undock_robot_bt_node SHARED
-            src/plugins/action/undock_robot_action_node.cpp)
+            src/plugins/action/undock_robot_node.cpp)
 list(APPEND plugin_libs undock_robot_bt_node)
+
+add_library(tick_after_timeout_bt_node SHARED
+            src/plugins/decorator/tick_after_timeout_node.cpp)
+list(APPEND plugin_libs tick_after_timeout_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
@@ -146,17 +145,17 @@ if(BUILD_TESTING)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_dock_robot_action_node
-    test/plugins/action/test_dock_robot_action_node.cpp
-    src/plugins/action/dock_robot_action_node.cpp)
-  list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_action_node)
+    ${PROJECT_NAME}_test_dock_robot_node
+    test/plugins/action/test_dock_robot_node.cpp
+    src/plugins/action/dock_robot_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_node)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_undock_robot_action_node
-    test/plugins/action/test_undock_robot_action_node.cpp
-    src/plugins/action/undock_robot_action_node.cpp)
+    ${PROJECT_NAME}_test_undock_robot_node
+    test/plugins/action/test_undock_robot_node.cpp
+    src/plugins/action/undock_robot_node.cpp)
 
-  list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_action_node)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_node)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_tick_after_timeout_node

@@ -108,7 +108,7 @@ public:
       service_callback)
   {
     server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + service_name);
-    service = server_node_->create_service<ServiceT>(service_name, service_callback);
+    service_server_ = server_node_->create_service<ServiceT>(service_name, service_callback);
     executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
     executor_->add_node(server_node_);
     executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
@@ -127,7 +127,7 @@ public:
       handle_accepted)
   {
     server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + action_name);
-    server_ = rclcpp_action::create_server<ActionT>(
+    action_server_ = rclcpp_action::create_server<ActionT>(
       server_node_, action_name, handle_goal, handle_cancel, handle_accepted);
     executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
     executor_->add_node(server_node_);
@@ -157,8 +157,8 @@ protected:
   rclcpp::Node::SharedPtr server_node_;
   rclcpp::executors::SingleThreadedExecutor::UniquePtr executor_;
 
-  rclcpp::ServiceBase::SharedPtr service;
-  rclcpp_action::ServerBase::SharedPtr server_;
+  rclcpp::ServiceBase::SharedPtr service_server_;
+  rclcpp_action::ServerBase::SharedPtr action_server_;
   std::unique_ptr<std::thread> executor_thread_;
 
   inline void SpinExecutor() { executor_->spin(); }

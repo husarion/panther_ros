@@ -16,17 +16,16 @@
 #include <map>
 #include <string>
 
-#include "gtest/gtest.h"
-
-#include "behaviortree_cpp/bt_factory.h"
-#include "opennav_docking_msgs/action/undock_robot.hpp"
-#include "rclcpp/rclcpp.hpp"
-
+#include <behaviortree_cpp/bt_factory.h>
 #include <gtest/gtest.h>
-#include "panther_manager/plugins/action/undock_robot_action_node.hpp"
+#include <rclcpp/rclcpp.hpp>
+
+#include <opennav_docking_msgs/action/undock_robot.hpp>
+
+#include "panther_manager/plugins/action/undock_robot_node.hpp"
 #include "utils/plugin_test_utils.hpp"
 
-class TestUndockRobotAction : public panther_manager::plugin_test_utils::PluginTestUtils
+class TestUndockRobot : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
   using Action = opennav_docking_msgs::action::UndockRobot;
@@ -64,7 +63,7 @@ public:
   }
 };
 
-TEST_F(TestUndockRobotAction, GoodLoadingUndockRobotActionPlugin)
+TEST_F(TestUndockRobot, GoodLoadingUndockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
     {"action_name", "test_undock_action"},
@@ -72,12 +71,12 @@ TEST_F(TestUndockRobotAction, GoodLoadingUndockRobotActionPlugin)
     {"max_undocking_time", "5.0"},
   };
 
-  RegisterNodeWithParams<panther_manager::UndockRobotAction>("UndockRobotAction");
+  RegisterNodeWithParams<panther_manager::UndockRobot>("UndockRobot");
 
-  ASSERT_NO_THROW({ CreateTree("UndockRobotAction", params); });
+  ASSERT_NO_THROW({ CreateTree("UndockRobot", params); });
 }
 
-TEST_F(TestUndockRobotAction, WrongLoadingUndockRobotActionPlugin)
+TEST_F(TestUndockRobot, WrongLoadingUndockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
     {"action_name", ""},
@@ -85,12 +84,12 @@ TEST_F(TestUndockRobotAction, WrongLoadingUndockRobotActionPlugin)
     {"max_undocking_time", "5.0"},
   };
 
-  RegisterNodeWithParams<panther_manager::UndockRobotAction>("UndockRobotAction");
+  RegisterNodeWithParams<panther_manager::UndockRobot>("UndockRobot");
 
-  EXPECT_THROW({ CreateTree("WrongUndockRobotAction", params); }, BT::RuntimeError);
+  EXPECT_THROW({ CreateTree("WrongUndockRobot", params); }, BT::RuntimeError);
 }
 
-TEST_F(TestUndockRobotAction, WrongCallUndockRobotActionServerNotInitialized)
+TEST_F(TestUndockRobot, WrongCallUndockRobotServerNotInitialized)
 {
   std::map<std::string, std::string> params = {
     {"action_name", "test_undock_action"},
@@ -98,9 +97,9 @@ TEST_F(TestUndockRobotAction, WrongCallUndockRobotActionServerNotInitialized)
     {"max_undocking_time", "5.0"},
   };
 
-  RegisterNodeWithParams<panther_manager::UndockRobotAction>("UndockRobotAction");
+  RegisterNodeWithParams<panther_manager::UndockRobot>("UndockRobot");
 
-  CreateTree("UndockRobotAction", params);
+  CreateTree("UndockRobot", params);
 
   auto & tree = GetTree();
 
@@ -108,7 +107,7 @@ TEST_F(TestUndockRobotAction, WrongCallUndockRobotActionServerNotInitialized)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestUndockRobotAction, WrongCallUndockRobotActionServerWithNoDockType)
+TEST_F(TestUndockRobot, WrongCallUndockRobotServerWithNoDockType)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -119,15 +118,15 @@ TEST_F(TestUndockRobotAction, WrongCallUndockRobotActionServerWithNoDockType)
     {"max_undocking_time", "5.0"},
   };
 
-  RegisterNodeWithParams<panther_manager::UndockRobotAction>("UndockRobotAction");
-  CreateTree("UndockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::UndockRobot>("UndockRobot");
+  CreateTree("UndockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestUndockRobotAction, CallUndockRobotActionServerFailure)
+TEST_F(TestUndockRobot, CallUndockRobotServerFailure)
 {
   CreateActionServer(GoalResponse::REJECT, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
@@ -137,15 +136,15 @@ TEST_F(TestUndockRobotAction, CallUndockRobotActionServerFailure)
     {"max_undocking_time", "5.0"},
   };
 
-  RegisterNodeWithParams<panther_manager::UndockRobotAction>("UndockRobotAction");
-  CreateTree("UndockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::UndockRobot>("UndockRobot");
+  CreateTree("UndockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestUndockRobotAction, CallUndockRobotActionServerSuccess)
+TEST_F(TestUndockRobot, CallUndockRobotServerSuccess)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -156,8 +155,8 @@ TEST_F(TestUndockRobotAction, CallUndockRobotActionServerSuccess)
     {"max_undocking_time", "5.0"},
   };
 
-  RegisterNodeWithParams<panther_manager::UndockRobotAction>("UndockRobotAction");
-  CreateTree("UndockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::UndockRobot>("UndockRobot");
+  CreateTree("UndockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
@@ -168,5 +167,7 @@ int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
-  return RUN_ALL_TESTS();
+  auto result = RUN_ALL_TESTS();
+
+  return result;
 }

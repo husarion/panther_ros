@@ -16,22 +16,21 @@
 #include <map>
 #include <string>
 
-#include "gtest/gtest.h"
-
-#include "behaviortree_cpp/bt_factory.h"
-#include "opennav_docking_msgs/action/dock_robot.hpp"
-#include "rclcpp/rclcpp.hpp"
-
+#include <behaviortree_cpp/bt_factory.h>
 #include <gtest/gtest.h>
-#include "panther_manager/plugins/action/dock_robot_action_node.hpp"
+#include <rclcpp/rclcpp.hpp>
+
+#include <opennav_docking_msgs/action/dock_robot.hpp>
+
+#include "panther_manager/plugins/action/dock_robot_node.hpp"
 #include "utils/plugin_test_utils.hpp"
 
-class TestDockRobotAction : public panther_manager::plugin_test_utils::PluginTestUtils
+class TestDockRobot : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
   using Action = opennav_docking_msgs::action::DockRobot;
   using ActionResult = opennav_docking_msgs::action::DockRobot::Result;
-  using GoalHandleAction = rclcpp_action::ServerGoalHandle<Action>;
+  using GoalHandle = rclcpp_action::ServerGoalHandle<Action>;
   using GoalResponse = rclcpp_action::GoalResponse;
   using CancelResponse = rclcpp_action::CancelResponse;
 
@@ -46,14 +45,11 @@ public:
       return goal_response;
     };
 
-    auto handle_cancel =
-      [&, cancel_response](
-        const std::shared_ptr<GoalHandleAction> /*goal_handle*/) -> rclcpp_action::CancelResponse {
-      return cancel_response;
-    };
+    auto handle_cancel = [&, cancel_response](const std::shared_ptr<GoalHandle> /*goal_handle*/)
+      -> rclcpp_action::CancelResponse { return cancel_response; };
 
-    auto handle_accepted =
-      [&, success, error_code](const std::shared_ptr<GoalHandleAction> goal_handle) -> void {
+    auto handle_accepted = [&, success,
+                            error_code](const std::shared_ptr<GoalHandle> goal_handle) -> void {
       ActionResult::SharedPtr result = std::make_shared<ActionResult>();
       result->success = success;
       result->error_code = error_code;
@@ -65,7 +61,7 @@ public:
   }
 };
 
-TEST_F(TestDockRobotAction, GoodLoadingDockRobotActionPlugin)
+TEST_F(TestDockRobot, GoodLoadingDockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
     {"action_name", "test_dock_action"},
@@ -76,12 +72,12 @@ TEST_F(TestDockRobotAction, GoodLoadingDockRobotActionPlugin)
     {"navigate_to_staging_pose", "false"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
 
-  ASSERT_NO_THROW({ CreateTree("DockRobotAction", params); });
+  ASSERT_NO_THROW({ CreateTree("DockRobot", params); });
 }
 
-TEST_F(TestDockRobotAction, WrongLoadingDockRobotActionPlugin)
+TEST_F(TestDockRobot, WrongLoadingDockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
     {"action_name", ""},         {"use_dock_id", "true"},
@@ -89,12 +85,12 @@ TEST_F(TestDockRobotAction, WrongLoadingDockRobotActionPlugin)
     {"max_staging_time", "5.0"}, {"navigate_to_staging_pose", "false"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
 
-  EXPECT_THROW({ CreateTree("WrongDockRobotAction", params); }, BT::RuntimeError);
+  EXPECT_THROW({ CreateTree("WrongDockRobot", params); }, BT::RuntimeError);
 }
 
-TEST_F(TestDockRobotAction, WrongCallDockRobotActionServerNotInitialized)
+TEST_F(TestDockRobot, WrongCallDockRobotServerNotInitialized)
 {
   std::map<std::string, std::string> params = {
     {"action_name", "test_dock_action"},
@@ -104,9 +100,9 @@ TEST_F(TestDockRobotAction, WrongCallDockRobotActionServerNotInitialized)
     {"max_staging_time", "5.0"},
     {"navigate_to_staging_pose", "false"},
   };
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
 
-  CreateTree("DockRobotAction", params);
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
 
@@ -114,7 +110,7 @@ TEST_F(TestDockRobotAction, WrongCallDockRobotActionServerNotInitialized)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestDockRobotAction, WrongCallDockRobotActionServerWithNoDockID)
+TEST_F(TestDockRobot, WrongCallDockRobotServerWithNoDockID)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -125,15 +121,15 @@ TEST_F(TestDockRobotAction, WrongCallDockRobotActionServerWithNoDockID)
     {"navigate_to_staging_pose", "false"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
-  CreateTree("DockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestDockRobotAction, CallDockRobotActionServerWithoutDockID)
+TEST_F(TestDockRobot, CallDockRobotServerWithoutDockID)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -144,15 +140,15 @@ TEST_F(TestDockRobotAction, CallDockRobotActionServerWithoutDockID)
     {"navigate_to_staging_pose", "false"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
-  CreateTree("DockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST_F(TestDockRobotAction, CallDockRobotActionServerWithEmptyDockID)
+TEST_F(TestDockRobot, CallDockRobotServerWithEmptyDockID)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -166,15 +162,15 @@ TEST_F(TestDockRobotAction, CallDockRobotActionServerWithEmptyDockID)
     {"navigate_to_staging_pose", "true"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
-  CreateTree("DockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestDockRobotAction, CallDockRobotActionServerWithEmptyDockType)
+TEST_F(TestDockRobot, CallDockRobotServerWithEmptyDockType)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -188,15 +184,15 @@ TEST_F(TestDockRobotAction, CallDockRobotActionServerWithEmptyDockType)
     {"navigate_to_staging_pose", "true"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
-  CreateTree("DockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestDockRobotAction, CallDockRobotActionServerWithNavigateToStagingPoseFailure)
+TEST_F(TestDockRobot, CallDockRobotServerWithNavigateToStagingPoseFailure)
 {
   CreateActionServer(GoalResponse::REJECT, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
@@ -209,15 +205,15 @@ TEST_F(TestDockRobotAction, CallDockRobotActionServerWithNavigateToStagingPoseFa
     {"navigate_to_staging_pose", "true"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
-  CreateTree("DockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestDockRobotAction, CallDockRobotActionServerWithNavigateToStagingPoseSuccess)
+TEST_F(TestDockRobot, CallDockRobotServerWithNavigateToStagingPoseSuccess)
 {
   CreateActionServer(
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
@@ -231,8 +227,8 @@ TEST_F(TestDockRobotAction, CallDockRobotActionServerWithNavigateToStagingPoseSu
     {"navigate_to_staging_pose", "true"},
   };
 
-  RegisterNodeWithParams<panther_manager::DockRobotAction>("DockRobotAction");
-  CreateTree("DockRobotAction", params);
+  RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
+  CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
@@ -243,5 +239,7 @@ int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
-  return RUN_ALL_TESTS();
+  auto result = RUN_ALL_TESTS();
+
+  return result;
 }
