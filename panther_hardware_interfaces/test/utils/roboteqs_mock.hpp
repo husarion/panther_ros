@@ -267,7 +267,7 @@ public:
   ~RoboteqsMock() {}
 
   /**
-   * @brief Starts CAN communication and creates two simulated Roboteqs, that publish PDOs with set
+   * @brief Starts CAN communication and creates a simulated Roboteq, that publish PDOs with set
    * frequencies
    *
    * @param motors_states_period period of motors states publishing thread
