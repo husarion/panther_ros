@@ -10,7 +10,7 @@ repositories:
   panther_msgs:
     type: git
     url: https://github.com/husarion/panther_msgs.git
-    version: fcee4d9f249a62adc113eb80be4885b08024ee9c
+    version: ros2-lynx-devel
   ros_components_description:
     type: git
     url: https://github.com/husarion/ros_components_description.git
@@ -22,4 +22,4 @@ repositories:
   husarion_gz_worlds:
     type: git
     url: https://github.com/husarion/husarion_gz_worlds.git
-    version: bba5074af5eabf404850245a70a1d60192912a3b
+    version: 9d514a09c74bca2afbfba76cf2c87134918bbf97

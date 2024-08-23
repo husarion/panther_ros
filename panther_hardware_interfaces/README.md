@@ -15,7 +15,7 @@ Plugin responsible for communicating with engine controllers via the CAN bus, pr
 - `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Panther system diagnostic messages.
 - `hardware/e_stop` [*std_msgs/Bool*]: Current E-stop state.
 - `hardware/io_state` [*panther_msgs/IOState*]: Current IO state.
-- `hardware/motor_controllers_state` [*panther_msgs/DriverState*]: Current motor controllers' state and error flags.
+- `hardware/robot_driver_state` [*panther_msgs/RobotDriverState*]: Current motor controllers' state and error flags.
 
 #### Service Servers
 

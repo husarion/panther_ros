@@ -23,9 +23,8 @@ Publishes the built-in computer system status , monitoring parameters as such as
 
 #### Parameters
 
-- `~frame_id` [*string*, default: **built_in_computer**]: Frame where computer is located.
-- `~publish_frequency` [*double*, default: **5.0**]: System status publishing frequency [Hz].
-- `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.
-- `~memory_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for memory usage warning in percentage.
 - `~cpu_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for CPU usage warning in percentage.
 - `~cpu_temperature_warn_threshold` [*float*, default: **80.0**]: Threshold for CPU temperature warning in degrees Celsius.
+- `~ram_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for memory usage warning in percentage.
+- `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.
+- `~publish_frequency` [*double*, default: **5.0**]: System status publishing frequency [Hz].

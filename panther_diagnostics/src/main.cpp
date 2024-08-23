@@ -16,16 +16,18 @@
 #include <memory>
 #include <stdexcept>
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
 
+#include "panther_diagnostics/filesystem.hpp"
 #include "panther_diagnostics/system_monitor_node.hpp"
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto system_monitor_node =
-    std::make_shared<panther_diagnostics::SystemMonitorNode>("system_monitor");
+  auto filesystem = std::make_shared<panther_diagnostics::Filesystem>();
+  auto system_monitor_node = std::make_shared<panther_diagnostics::SystemMonitorNode>(
+    "system_monitor", filesystem);
 
   try {
     rclcpp::spin(system_monitor_node);
