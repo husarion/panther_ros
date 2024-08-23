@@ -41,7 +41,7 @@ The package contains a `PantherChargingDock` plugin for the [opennav_docking](ht
 - `~<dock_name>.external_detection_rotation_roll` [*double*, default: **0.0**]: A rotation over an X axis between a detected frame and a dock pose.
 - `~<dock_name>.external_detection_rotation_pitch` [*double*, default: **0.0**]: A rotation over an Y axis between a detected frame and a dock pose.
 - `~<dock_name>.external_detection_rotation_yaw` [*double*, default: **0.0**]: A rotation over a Z axis between a detected frame and a dock pose.
-- `~<dock_name>.filter_coef` [*double*, default: **0.1**]: # TODO: @delihus
+- `~<dock_name>.filter_coef` [*double*, default: **0.1**]: A key parameter that influences the trade-off between the filter's responsiveness and its smoothness, balancing how quickly it reacts to new pose data pose how much it smooths out fluctuations.
 - `~<dock_name>.docking_distance_threshold` [*double*, default: **0.05**]: A threshold of a distance between a robot pose and a dock pose to declare if docking succeed.
 - `~<dock_name>.docking_yaw_threshold` [*double*, default: **0.3**]: A threshold of a difference of yaw angles between a robot pose and a dock pose to declare if docking succeed.
 - `~<dock_name>.staging_x_offset` [*double*, default: **-0.7**]: A staging pose is defined by offsetting a dock pose in axis X.
