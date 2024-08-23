@@ -30,42 +30,15 @@
 class TestRoboteqDriver : public ::testing::Test
 {
 public:
-  TestRoboteqDriver()
-  {
-    can_socket_ = std::make_unique<panther_hardware_interfaces_test::FakeCANSocket>(
-      panther_hardware_interfaces_test::kCANopenSettings.can_interface_name);
-    can_socket_->Initialize();
+  TestRoboteqDriver();
 
-    canopen_manager_ = std::make_unique<panther_hardware_interfaces::CANopenManager>(
-      panther_hardware_interfaces_test::kCANopenSettings);
+  ~TestRoboteqDriver();
 
-    roboteqs_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqsMock>();
-    roboteqs_mock_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
-    canopen_manager_->Initialize();
-
-    roboteq_driver_ = std::make_shared<panther_hardware_interfaces::RoboteqDriver>(
-      canopen_manager_->GetMaster(), 1, std::chrono::milliseconds(100));
-
-    auto motor_1 = std::make_shared<panther_hardware_interfaces::RoboteqMotorDriver>(
-      roboteq_driver_, panther_hardware_interfaces::RoboteqDriver::kChannel1);
-    auto motor_2 = std::make_shared<panther_hardware_interfaces::RoboteqMotorDriver>(
-      roboteq_driver_, panther_hardware_interfaces::RoboteqDriver::kChannel2);
-
-    roboteq_driver_->AddMotorDriver(kMotor1Name, motor_1);
-    roboteq_driver_->AddMotorDriver(kMotor2Name, motor_2);
-    roboteq_driver_->Boot();
-  }
-
-  ~TestRoboteqDriver()
-  {
-    roboteq_driver_.reset();
-    canopen_manager_->Deinitialize();
-    roboteqs_mock_->Stop();
-    roboteqs_mock_.reset();
-    can_socket_->Deinitialize();
-  }
+  void BootRoboteqDriver();
 
 protected:
+  bool TestBoot();
+
   static constexpr char kMotor1Name[] = "motor_1";
   static constexpr char kMotor2Name[] = "motor_2";
 
@@ -74,6 +47,82 @@ protected:
   std::unique_ptr<panther_hardware_interfaces::CANopenManager> canopen_manager_;
   std::shared_ptr<panther_hardware_interfaces::RoboteqDriver> roboteq_driver_;
 };
+
+TestRoboteqDriver::TestRoboteqDriver()
+{
+  can_socket_ = std::make_unique<panther_hardware_interfaces_test::FakeCANSocket>(
+    panther_hardware_interfaces_test::kCANopenSettings.can_interface_name);
+  can_socket_->Initialize();
+
+  canopen_manager_ = std::make_unique<panther_hardware_interfaces::CANopenManager>(
+    panther_hardware_interfaces_test::kCANopenSettings);
+
+  roboteqs_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqsMock>();
+  roboteqs_mock_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
+  canopen_manager_->Initialize();
+
+  roboteq_driver_ = std::make_shared<panther_hardware_interfaces::RoboteqDriver>(
+    canopen_manager_->GetMaster(), 1, std::chrono::milliseconds(100));
+}
+
+TestRoboteqDriver::~TestRoboteqDriver()
+{
+  roboteq_driver_.reset();
+  canopen_manager_->Deinitialize();
+  roboteqs_mock_->Stop();
+  roboteqs_mock_.reset();
+  can_socket_->Deinitialize();
+}
+
+void TestRoboteqDriver::BootRoboteqDriver()
+{
+  auto motor_1 = std::make_shared<panther_hardware_interfaces::RoboteqMotorDriver>(
+    roboteq_driver_, panther_hardware_interfaces::RoboteqDriver::kChannel1);
+  auto motor_2 = std::make_shared<panther_hardware_interfaces::RoboteqMotorDriver>(
+    roboteq_driver_, panther_hardware_interfaces::RoboteqDriver::kChannel2);
+
+  roboteq_driver_->AddMotorDriver(kMotor1Name, motor_1);
+  roboteq_driver_->AddMotorDriver(kMotor2Name, motor_2);
+  roboteq_driver_->Boot();
+}
+
+bool TestRoboteqDriver::TestBoot()
+{
+  auto future = roboteq_driver_->Boot();
+  const auto future_status = future.wait_for(std::chrono::milliseconds(500));
+
+  if (future_status != std::future_status::ready) {
+    return false;
+  }
+
+  try {
+    future.get();
+  } catch (const std::exception & e) {
+    return false;
+  }
+
+  return true;
+}
+
+TEST_F(TestRoboteqDriver, BootRoboteqDriver) { ASSERT_TRUE(TestBoot()); }
+
+TEST_F(TestRoboteqDriver, BootErrorDeviceType)
+{
+  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
+  ASSERT_FALSE(TestBoot());
+
+  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 0);
+  ASSERT_TRUE(TestBoot());
+}
+
+TEST_F(TestRoboteqDriver, BootErrorVendorId)
+{
+  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
+  ASSERT_FALSE(TestBoot());
+
+  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 0);
+  ASSERT_TRUE(TestBoot());
+}
 
 TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
 {
@@ -85,6 +134,8 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
   const std::int32_t motor_2_pos = 201;
   const std::int32_t motor_2_vel = 202;
   const std::int32_t motor_2_current = 203;
+
+  BootRoboteqDriver();
 
   roboteqs_mock_->GetDriver()->SetPosition(DriverChannel::CHANNEL1, motor_1_pos);
   roboteqs_mock_->GetDriver()->SetPosition(DriverChannel::CHANNEL2, motor_2_pos);
@@ -113,6 +164,7 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
 
 TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
 {
+  BootRoboteqDriver();
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
   panther_hardware_interfaces::MotorDriverState fb_motor_1 =
@@ -230,6 +282,8 @@ TEST_F(TestRoboteqDriver, SendRoboteqCmd)
   const std::int32_t motor_1_v = 10;
   const std::int32_t motor_2_v = 20;
 
+  BootRoboteqDriver();
+
   roboteq_driver_->GetMotorDriver(kMotor1Name)->SendCmdVel(motor_1_v);
   roboteq_driver_->GetMotorDriver(kMotor2Name)->SendCmdVel(motor_2_v);
 
@@ -268,6 +322,7 @@ TEST_F(TestRoboteqDriver, TurnOffEStop)
 
 TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel1)
 {
+  BootRoboteqDriver();
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
   roboteqs_mock_->GetDriver()->SetTurnOnSafetyStop(67);
   roboteq_driver_->GetMotorDriver(kMotor1Name)->TurnOnSafetyStop();
@@ -277,6 +332,7 @@ TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel1)
 
 TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel2)
 {
+  BootRoboteqDriver();
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
   roboteqs_mock_->GetDriver()->SetTurnOnSafetyStop(65);
   roboteq_driver_->GetMotorDriver(kMotor2Name)->TurnOnSafetyStop();

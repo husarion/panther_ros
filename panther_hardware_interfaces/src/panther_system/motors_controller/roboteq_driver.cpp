@@ -108,6 +108,7 @@ RoboteqDriver::RoboteqDriver(
 std::future<void> RoboteqDriver::Boot()
 {
   std::lock_guard<std::mutex> lck(boot_mtx_);
+  boot_promise_ = std::promise<void>();
   std::future<void> future = boot_promise_.get_future();
 
   if (!LoopDriver::Boot()) {
