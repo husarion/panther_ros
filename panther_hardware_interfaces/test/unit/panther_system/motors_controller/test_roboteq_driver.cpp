@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp"
+#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
 #include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
 
 #include "utils/fake_can_socket.hpp"
@@ -38,15 +38,15 @@ public:
       panther_hardware_interfaces_test::kCANopenSettings.can_interface_name);
     can_socket_->Initialize();
 
-    canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
+    canopen_manager_ = std::make_unique<panther_hardware_interfaces::CANopenManager>(
       panther_hardware_interfaces_test::kCANopenSettings);
 
     roboteqs_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqsMock>();
     roboteqs_mock_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
-    canopen_controller_->Initialize();
+    canopen_manager_->Initialize();
 
     roboteq_driver_ = std::make_shared<panther_hardware_interfaces::RoboteqDriver>(
-      canopen_controller_->GetMaster(), 1, std::chrono::milliseconds(100));
+      canopen_manager_->GetMaster(), 1, std::chrono::milliseconds(100));
 
     auto motor_1 = std::make_shared<panther_hardware_interfaces::RoboteqMotorDriver>(
       roboteq_driver_, panther_hardware_interfaces::RoboteqDriver::kChannel1);
@@ -61,7 +61,7 @@ public:
   ~TestRoboteqDriver()
   {
     roboteq_driver_.reset();
-    canopen_controller_->Deinitialize();
+    canopen_manager_->Deinitialize();
     roboteqs_mock_->Stop();
     roboteqs_mock_.reset();
     can_socket_->Deinitialize();
@@ -73,7 +73,7 @@ protected:
 
   std::unique_ptr<panther_hardware_interfaces_test::FakeCANSocket> can_socket_;
   std::unique_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
-  std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
+  std::unique_ptr<panther_hardware_interfaces::CANopenManager> canopen_manager_;
   std::shared_ptr<panther_hardware_interfaces::RoboteqDriver> roboteq_driver_;
 };
 

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_CONTROLLER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
 
 #include <atomic>
 #include <chrono>
@@ -50,15 +50,15 @@ struct CANopenSettings
 };
 
 /**
- * @brief CANopenController takes care of CANopen communication - creates master controller
+ * @brief CANopenManager takes care of CANopen communication - creates master controller
  * and two Roboteq drivers (front and rear)
  */
-class CANopenController
+class CANopenManager
 {
 public:
-  CANopenController(const CANopenSettings & canopen_settings);
+  CANopenManager(const CANopenSettings & canopen_settings);
 
-  ~CANopenController() { Deinitialize(); }
+  ~CANopenManager() { Deinitialize(); }
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
@@ -110,4 +110,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_CONTROLLER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_

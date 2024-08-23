@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp"
+#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
 
 #include <condition_variable>
 #include <filesystem>
@@ -29,12 +29,12 @@
 namespace panther_hardware_interfaces
 {
 
-CANopenController::CANopenController(const CANopenSettings & canopen_settings)
+CANopenManager::CANopenManager(const CANopenSettings & canopen_settings)
 : canopen_settings_(canopen_settings)
 {
 }
 
-void CANopenController::Initialize()
+void CANopenManager::Initialize()
 {
   if (initialized_) {
     return;
@@ -83,7 +83,7 @@ void CANopenController::Initialize()
   initialized_ = true;
 }
 
-void CANopenController::Deinitialize()
+void CANopenManager::Deinitialize()
 {
   // Deinitialization should be done regardless of the initialized_ state - in case some operation
   // during initialization fails, it is still necessary to do the cleanup
@@ -110,7 +110,7 @@ void CANopenController::Deinitialize()
   initialized_ = false;
 }
 
-void CANopenController::InitializeCANCommunication()
+void CANopenManager::InitializeCANCommunication()
 {
   lely::io::IoGuard io_guard;
 
@@ -140,7 +140,7 @@ void CANopenController::InitializeCANCommunication()
   master_->Reset();
 }
 
-void CANopenController::NotifyCANCommunicationStarted(const bool result)
+void CANopenManager::NotifyCANCommunicationStarted(const bool result)
 {
   {
     std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);

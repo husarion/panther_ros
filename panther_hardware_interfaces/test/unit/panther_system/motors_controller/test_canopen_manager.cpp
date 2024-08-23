@@ -19,53 +19,53 @@
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-#include <panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp>
+#include <panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp>
 
 #include "utils/fake_can_socket.hpp"
 #include "utils/test_constants.hpp"
 
-class TestCANopenController : public ::testing::Test
+class TestCANopenManager : public ::testing::Test
 {
 public:
-  TestCANopenController();
+  TestCANopenManager();
 
-  ~TestCANopenController() {}
+  ~TestCANopenManager() {}
 
 protected:
   std::unique_ptr<panther_hardware_interfaces_test::FakeCANSocket> can_socket_;
-  std::unique_ptr<panther_hardware_interfaces::CANopenController> canopen_controller_;
+  std::unique_ptr<panther_hardware_interfaces::CANopenManager> canopen_manager_;
 };
 
-TestCANopenController::TestCANopenController()
+TestCANopenManager::TestCANopenManager()
 {
   can_socket_ = std::make_unique<panther_hardware_interfaces_test::FakeCANSocket>(
     panther_hardware_interfaces_test::kCANopenSettings.can_interface_name);
 
-  canopen_controller_ = std::make_unique<panther_hardware_interfaces::CANopenController>(
+  canopen_manager_ = std::make_unique<panther_hardware_interfaces::CANopenManager>(
     panther_hardware_interfaces_test::kCANopenSettings);
 }
 
-TEST_F(TestCANopenController, InitializeAndDeinitialize)
+TEST_F(TestCANopenManager, InitializeAndDeinitialize)
 {
   can_socket_->Initialize();
 
-  ASSERT_NO_THROW(canopen_controller_->Initialize());
-  ASSERT_NO_THROW(canopen_controller_->Deinitialize());
+  ASSERT_NO_THROW(canopen_manager_->Initialize());
+  ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 
   // Check if deinitialization worked correctly - initialize once again
-  ASSERT_NO_THROW(canopen_controller_->Initialize());
-  ASSERT_NO_THROW(canopen_controller_->Deinitialize());
+  ASSERT_NO_THROW(canopen_manager_->Initialize());
+  ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 }
 
-TEST_F(TestCANopenController, InitializeWithError)
+TEST_F(TestCANopenManager, InitializeWithError)
 {
   // CAN socket not initialized, should throw
-  ASSERT_THROW(canopen_controller_->Initialize(), std::runtime_error);
-  ASSERT_NO_THROW(canopen_controller_->Deinitialize());
+  ASSERT_THROW(canopen_manager_->Initialize(), std::runtime_error);
+  ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 
   can_socket_->Initialize();
-  ASSERT_NO_THROW(canopen_controller_->Initialize());
-  ASSERT_NO_THROW(canopen_controller_->Deinitialize());
+  ASSERT_NO_THROW(canopen_manager_->Initialize());
+  ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 }
 
 int main(int argc, char ** argv)
