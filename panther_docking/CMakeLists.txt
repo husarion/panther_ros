@@ -13,7 +13,6 @@ set(PACKAGE_DEPENDENCIES
     panther_utils
     pluginlib
     rclcpp
-    realtime_tools
     sensor_msgs
     std_srvs
     tf2_geometry_msgs
