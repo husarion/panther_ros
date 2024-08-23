@@ -135,17 +135,6 @@ protected:
   void getParameters();
 
   /**
-   *  @brief Offset a pose by a given transform.
-   *
-   * This method offsets a pose by a given transform.
-   * @param pose The pose to offset.
-   * @param offset The offset to apply to the pose.
-   * @return The offset pose.
-   */
-  PoseStampedMsg offsetPose(
-    const geometry_msgs::msg::PoseStamped & pose, const tf2::Transform & offset);
-
-  /**
    * @brief Offset the staging pose.
    *
    * This method offsets the staging dock pose by values described in a configuration.

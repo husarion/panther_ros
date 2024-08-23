@@ -15,11 +15,13 @@
 #ifndef PANTHER_UTILS_TF2_UTILS_HPP
 #define PANTHER_UTILS_TF2_UTILS_HPP
 
+#include <tf2/utils.h>
 #include <tf2_ros/buffer.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 
-namespace panther_utils::tf2
+namespace panther_utils::tf2_utils
 {
 
 /**
@@ -58,6 +60,29 @@ geometry_msgs::msg::PoseStamped TransformPose(
   return transformed_pose;
 }
 
-}  // namespace panther_utils::tf2
+/**
+ * @brief Offsets a pose by a given transform.
+ * This function offsets a pose by a given transform in the same frame.
+ *
+ * @param pose The pose to be offset.
+ * @param offset The offset transform.
+ *
+ * @return The offset pose.
+ */
+geometry_msgs::msg::PoseStamped OffsetPose(
+  const geometry_msgs::msg::PoseStamped & pose, const tf2::Transform & offset)
+{
+  tf2::Transform pose_transform;
+  tf2::fromMsg(pose.pose, pose_transform);
+
+  tf2::Transform offset_pose_transform = pose_transform * offset;
+  geometry_msgs::msg::PoseStamped transformed_pose;
+  transformed_pose.header = pose.header;
+  tf2::toMsg(offset_pose_transform, transformed_pose.pose);
+
+  return transformed_pose;
+}
+
+}  // namespace panther_utils::tf2_utils
 
 #endif  // PANTHER_UTILS_TF2_UTILS_HPP

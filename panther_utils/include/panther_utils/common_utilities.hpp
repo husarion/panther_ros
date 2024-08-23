@@ -64,17 +64,14 @@ std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmo
 }
 
 /**
- * @brief Checks if the Panther version is at least the specified version.
+ * @brief Checks if the Panther version meets the required version.
  *
- * This function checks if the Panther version is at least the specified version.
- *
- * @param panther_version_ The Panther version to be checked.
- * @param version The version to be compared with.
- * @return bool True if the Panther version is at least the specified version, false otherwise.
+ * @param panther_version The Panther version.
+ * @param version The required version.
  */
-bool MeetsVersionRequirement(const float panther_version_, const float version)
+bool MeetsVersionRequirement(const float panther_version, const float version)
 {
-  return panther_version_ >= version - std::numeric_limits<float>::epsilon();
+  return panther_version >= version - std::numeric_limits<float>::epsilon();
 }
 
 }  // namespace panther_utils::common_utilities

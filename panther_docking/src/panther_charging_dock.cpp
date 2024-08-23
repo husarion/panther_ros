@@ -182,20 +182,6 @@ bool PantherChargingDock::disableCharging() { return true; }
 
 bool PantherChargingDock::hasStoppedCharging() { return !isCharging(); }
 
-PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetPose(
-  const geometry_msgs::msg::PoseStamped & pose, const tf2::Transform & offset)
-{
-  tf2::Transform pose_transform;
-  tf2::fromMsg(pose.pose, pose_transform);
-
-  tf2::Transform offset_pose_transform = pose_transform * offset;
-  PantherChargingDock::PoseStampedMsg transformed_pose;
-  transformed_pose.header = pose.header;
-  tf2::toMsg(offset_pose_transform, transformed_pose.pose);
-
-  return transformed_pose;
-}
-
 PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetStagingPoseToDockPose(
   const PoseStampedMsg & dock_pose)
 {
@@ -206,7 +192,7 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetStagingPoseToDock
   staging_yaw_rotation.setRPY(0, 0, staging_yaw_offset_);
   staging_offset_transform.setRotation(staging_yaw_rotation);
 
-  return offsetPose(dock_pose, staging_offset_transform);
+  return panther_utils::tf2_utils::OffsetPose(dock_pose, staging_offset_transform);
 }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetDetectedDockPose(
@@ -218,7 +204,7 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::offsetDetectedDockPose(
     external_detection_translation_z_));
   offset.setRotation(external_detection_rotation_);
 
-  return offsetPose(detected_dock_pose, offset);
+  return panther_utils::tf2_utils::OffsetPose(detected_dock_pose, offset);
 }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::getDockPose(const std::string & frame)
@@ -231,7 +217,7 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::getDockPose(const std::
     auto offset_detected_dock_pose = offsetDetectedDockPose(pose);
 
     filtered_offset_detected_dock_pose = pose_filter_->update(offset_detected_dock_pose);
-    filtered_offset_detected_dock_pose = panther_utils::tf2::TransformPose(
+    filtered_offset_detected_dock_pose = panther_utils::tf2_utils::TransformPose(
       tf2_buffer_, filtered_offset_detected_dock_pose, base_frame_name_,
       external_detection_timeout_);
 
@@ -259,7 +245,7 @@ void PantherChargingDock::updateStagingPoseAndPublish(const std::string & frame)
 {
   try {
     auto new_staging_pose = offsetStagingPoseToDockPose(dock_pose_);
-    staging_pose_ = panther_utils::tf2::TransformPose(
+    staging_pose_ = panther_utils::tf2_utils::TransformPose(
       tf2_buffer_, new_staging_pose, frame, external_detection_timeout_);
     dock_pose_.pose.position.z = 0.0;
     staging_pose_pub_->publish(staging_pose_);
