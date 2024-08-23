@@ -46,15 +46,10 @@ SafetyManagerNode::SafetyManagerNode(
 
   const auto battery_temp_window_len = this->get_parameter("battery.temp.window_len").as_int();
   const auto cpu_temp_window_len = this->get_parameter("cpu.temp.window_len").as_int();
-  const auto driver_temp_window_len = this->get_parameter("driver.temp.window_len").as_int();
 
   battery_temp_ma_ =
     std::make_unique<panther_utils::MovingAverage<double>>(battery_temp_window_len);
   cpu_temp_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(cpu_temp_window_len);
-  front_driver_temp_ma_ =
-    std::make_unique<panther_utils::MovingAverage<double>>(driver_temp_window_len);
-  rear_driver_temp_ma_ =
-    std::make_unique<panther_utils::MovingAverage<double>>(driver_temp_window_len);
 
   const auto safety_initial_blackboard = CreateSafetyInitialBlackboard();
   safety_tree_manager_ = std::make_unique<BehaviorTreeManager>(
@@ -86,8 +81,9 @@ void SafetyManagerNode::Initialize()
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
     "battery/battery_status", 10, std::bind(&SafetyManagerNode::BatteryCB, this, _1));
-  driver_state_sub_ = this->create_subscription<DriverStateMsg>(
-    "hardware/motor_controllers_state", 10, std::bind(&SafetyManagerNode::DriverStateCB, this, _1));
+  driver_state_sub_ = this->create_subscription<RobotDriverStateMsg>(
+    "hardware/robot_driver_state", 10,
+    std::bind(&SafetyManagerNode::RobotDriverStateCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&SafetyManagerNode::EStopCB, this, _1));
@@ -215,15 +211,32 @@ void SafetyManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery)
   safety_tree_manager_->GetBlackboard()->set<double>("bat_temp", battery_temp_ma_->GetAverage());
 }
 
-void SafetyManagerNode::DriverStateCB(const DriverStateMsg::SharedPtr driver_state)
+void SafetyManagerNode::RobotDriverStateCB(const RobotDriverStateMsg::SharedPtr driver_state)
 {
-  front_driver_temp_ma_->Roll(driver_state->front.temperature);
-  rear_driver_temp_ma_->Roll(driver_state->rear.temperature);
+  if (driver_state->driver_states.empty()) {
+    RCLCPP_WARN(this->get_logger(), "Received empty driver state message.");
+    return;
+  }
+
+  for (auto & driver : driver_state->driver_states) {
+    if (driver_temp_ma_.find(driver.name) == driver_temp_ma_.end()) {
+      RCLCPP_DEBUG(
+        this->get_logger(), "Creating moving average for driver '%s'", driver.name.c_str());
+      const auto driver_temp_window_len = this->get_parameter("driver.temp.window_len").as_int();
+      driver_temp_ma_[driver.name] =
+        std::make_unique<panther_utils::MovingAverage<double>>(driver_temp_window_len);
+    }
+
+    driver_temp_ma_[driver.name]->Roll(driver.state.temperature);
+  }
 
   // to simplify conditions pass only higher temp of motor drivers
+  const auto max_element = std::max_element(
+    driver_temp_ma_.begin(), driver_temp_ma_.end(),
+    [](const auto & a, const auto & b) { return a.second->GetAverage() < b.second->GetAverage(); });
+
   safety_tree_manager_->GetBlackboard()->set<double>(
-    "driver_temp",
-    std::max({front_driver_temp_ma_->GetAverage(), rear_driver_temp_ma_->GetAverage()}));
+    "driver_temp", max_element->second->GetAverage());
 }
 
 void SafetyManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)

@@ -21,7 +21,7 @@
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_msgs/msg/driver_state.hpp"
+#include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "panther_battery/adc_data_reader.hpp"
 #include "panther_battery/battery/battery.hpp"
@@ -30,7 +30,7 @@
 namespace panther_battery
 {
 
-using DriverStateMsg = panther_msgs::msg::DriverState;
+using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
 
 class BatteryDriverNode : public rclcpp::Node
 {
@@ -46,7 +46,7 @@ private:
 
   static constexpr int kADCCurrentOffset = 625;
 
-  DriverStateMsg::SharedPtr driver_state_;
+  RobotDriverStateMsg::SharedPtr driver_state_;
 
   std::shared_ptr<ADCDataReader> adc0_reader_;
   std::shared_ptr<ADCDataReader> adc1_reader_;
@@ -54,7 +54,7 @@ private:
   std::shared_ptr<Battery> battery_2_;
   std::shared_ptr<BatteryPublisher> battery_publisher_;
 
-  rclcpp::Subscription<DriverStateMsg>::SharedPtr driver_state_sub_;
+  rclcpp::Subscription<RobotDriverStateMsg>::SharedPtr driver_state_sub_;
   rclcpp::TimerBase::SharedPtr battery_pub_timer_;
 
   std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;

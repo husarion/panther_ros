@@ -15,6 +15,7 @@
 #ifndef PANTHER_MANAGER_SAFETY_MANAGER_NODE_HPP_
 #define PANTHER_MANAGER_SAFETY_MANAGER_NODE_HPP_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -24,8 +25,8 @@
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-#include "panther_msgs/msg/driver_state.hpp"
 #include "panther_msgs/msg/io_state.hpp"
+#include "panther_msgs/msg/robot_driver_state.hpp"
 #include "panther_msgs/msg/system_status.hpp"
 
 #include "panther_utils/moving_average.hpp"
@@ -37,7 +38,7 @@ namespace panther_manager
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using BoolMsg = std_msgs::msg::Bool;
-using DriverStateMsg = panther_msgs::msg::DriverState;
+using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
 using SystemStatusMsg = panther_msgs::msg::SystemStatus;
 
@@ -74,7 +75,7 @@ protected:
 
 private:
   void BatteryCB(const BatteryStateMsg::SharedPtr battery);
-  void DriverStateCB(const DriverStateMsg::SharedPtr driver_state);
+  void RobotDriverStateCB(const RobotDriverStateMsg::SharedPtr driver_state);
   void EStopCB(const BoolMsg::SharedPtr e_stop);
   void IOStateCB(const IOStateMsg::SharedPtr io_state);
   void SystemStatusCB(const SystemStatusMsg::SharedPtr system_status);
@@ -85,10 +86,11 @@ private:
   static constexpr float kCriticalBatteryTemp = 55.0;
   static constexpr float kFatalBatteryTemp = 62.0;
 
+  int driver_temp_window_len_;
   float update_charging_anim_step_;
 
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_sub_;
-  rclcpp::Subscription<DriverStateMsg>::SharedPtr driver_state_sub_;
+  rclcpp::Subscription<RobotDriverStateMsg>::SharedPtr driver_state_sub_;
   rclcpp::Subscription<BoolMsg>::SharedPtr e_stop_sub_;
   rclcpp::Subscription<IOStateMsg>::SharedPtr io_state_sub_;
   rclcpp::Subscription<SystemStatusMsg>::SharedPtr system_status_sub_;
@@ -96,8 +98,8 @@ private:
 
   std::unique_ptr<panther_utils::MovingAverage<double>> battery_temp_ma_;
   std::unique_ptr<panther_utils::MovingAverage<double>> cpu_temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> front_driver_temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> rear_driver_temp_ma_;
+
+  std::map<std::string, std::unique_ptr<panther_utils::MovingAverage<double>>> driver_temp_ma_;
 };
 
 }  // namespace panther_manager

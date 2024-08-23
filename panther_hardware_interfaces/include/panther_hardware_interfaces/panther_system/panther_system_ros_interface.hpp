@@ -30,8 +30,9 @@
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
 
-#include "panther_msgs/msg/driver_state.hpp"
+#include "panther_msgs/msg/driver_state_named.hpp"
 #include "panther_msgs/msg/io_state.hpp"
+#include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_controller.hpp"
 #include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
@@ -42,8 +43,9 @@ namespace panther_hardware_interfaces
 {
 
 using BoolMsg = std_msgs::msg::Bool;
-using DriverStateMsg = panther_msgs::msg::DriverState;
+using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
+using DriverStateNamedMsg = panther_msgs::msg::DriverStateNamed;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using TriggerSrv = std_srvs::srv::Trigger;
 
@@ -236,7 +238,7 @@ public:
 
   void PublishEStopStateMsg(const bool e_stop);
   void PublishEStopStateIfChanged(const bool e_stop);
-  void PublishDriverState();
+  void PublishRobotDriverState();
   void InitializeAndPublishIOStateMsg(const std::unordered_map<GPIOPin, bool> & io_state);
   void PublishIOState(const GPIOInfo & gpio_info);
 
@@ -269,13 +271,18 @@ private:
   rclcpp::CallbackGroup::SharedPtr GetOrCreateNodeCallbackGroup(
     const unsigned group_id, rclcpp::CallbackGroupType callback_group_type);
 
+  void InitializeRobotDriverStateMsg();
+
+  DriverStateNamedMsg & GetDriverStateByName(
+    RobotDriverStateMsg & robot_driver_state, const std::string & name);
+
   rclcpp::Node::SharedPtr node_;
   std::unordered_map<unsigned, rclcpp::CallbackGroup::SharedPtr> callback_groups_;
   rclcpp::executors::MultiThreadedExecutor::UniquePtr executor_;
   std::thread executor_thread_;
 
-  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_publisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<DriverStateMsg>>
+  rclcpp::Publisher<RobotDriverStateMsg>::SharedPtr driver_state_publisher_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<RobotDriverStateMsg>>
     realtime_driver_state_publisher_;
 
   rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_publisher_;

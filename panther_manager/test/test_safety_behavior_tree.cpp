@@ -30,7 +30,6 @@
 #include "std_srvs/srv/set_bool.hpp"
 #include "std_srvs/srv/trigger.hpp"
 
-#include "panther_msgs/msg/driver_state.hpp"
 #include "panther_msgs/msg/io_state.hpp"
 #include "panther_msgs/msg/system_status.hpp"
 
@@ -40,7 +39,6 @@
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using IOStateMsg = panther_msgs::msg::IOState;
-using DriverStateMsg = panther_msgs::msg::DriverState;
 using SystemStatusMsg = panther_msgs::msg::SystemStatus;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using TriggerSrv = std_srvs::srv::Trigger;

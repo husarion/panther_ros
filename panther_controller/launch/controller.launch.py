@@ -186,7 +186,7 @@ def generate_launch_description():
             ("hardware_controller/fan_enable", "hardware/fan_enable"),
             ("hardware_controller/io_state", "hardware/io_state"),
             ("hardware_controller/led_control_enable", "hardware/led_control_enable"),
-            ("hardware_controller/motor_controllers_state", "hardware/motor_controllers_state"),
+            ("hardware_controller/robot_driver_state", "hardware/robot_driver_state"),
             ("hardware_controller/motor_power_enable", "hardware/motor_power_enable"),
             ("imu_broadcaster/imu", "imu/data"),
             ("imu_broadcaster/transition_event", "_imu_broadcaster/transition_event"),

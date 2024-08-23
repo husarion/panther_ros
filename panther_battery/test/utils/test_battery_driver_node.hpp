@@ -28,13 +28,13 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 
-#include "panther_msgs/msg/driver_state.hpp"
 #include "panther_msgs/msg/io_state.hpp"
+#include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "panther_battery/battery_driver_node.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
-using DriverStateMsg = panther_msgs::msg::DriverState;
+using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
 using IOStateMsg = panther_msgs::msg::IOState;
 
 class TestBatteryNode : public testing::Test
@@ -60,7 +60,7 @@ protected:
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_1_sub_;
   rclcpp::Subscription<BatteryStateMsg>::SharedPtr battery_2_sub_;
   rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_pub_;
-  rclcpp::Publisher<DriverStateMsg>::SharedPtr driver_state_pub_;
+  rclcpp::Publisher<RobotDriverStateMsg>::SharedPtr driver_state_pub_;
 };
 
 TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_battery)
@@ -119,8 +119,8 @@ TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_ba
 
   io_state_pub_ = battery_driver_node_->create_publisher<IOStateMsg>(
     "hardware/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  driver_state_pub_ = battery_driver_node_->create_publisher<DriverStateMsg>(
-    "hardware/motor_controllers_state", 10);
+  driver_state_pub_ = battery_driver_node_->create_publisher<RobotDriverStateMsg>(
+    "hardware/robot_driver_state", 10);
 }
 
 TestBatteryNode::~TestBatteryNode()

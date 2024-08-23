@@ -140,9 +140,9 @@ void BatteryDriverNode::InitializeWithRoboteqBattery()
     static_cast<std::size_t>(this->get_parameter("ma_window_len/current").as_int()),
   };
 
-  driver_state_sub_ = this->create_subscription<DriverStateMsg>(
-    "hardware/motor_controllers_state", 5,
-    [&](const DriverStateMsg::SharedPtr msg) { driver_state_ = msg; });
+  driver_state_sub_ = this->create_subscription<RobotDriverStateMsg>(
+    "hardware/robot_driver_state", 5,
+    [&](const RobotDriverStateMsg::SharedPtr msg) { driver_state_ = msg; });
 
   battery_1_ = std::make_shared<RoboteqBattery>([&]() { return driver_state_; }, battery_params);
 
