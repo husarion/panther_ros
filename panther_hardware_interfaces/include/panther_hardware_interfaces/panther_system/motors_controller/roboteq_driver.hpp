@@ -25,130 +25,19 @@
 
 #include "lely/coapp/loop_driver.hpp"
 
+#include "panther_hardware_interfaces/panther_system/motors_controller/driver.hpp"
+
 namespace panther_hardware_interfaces
 {
 
-struct RoboteqMotorState
-{
-  std::int32_t pos;
-  std::int16_t vel;
-  std::int16_t current;
-};
-
-struct RoboteqMotorsStates
-{
-  RoboteqMotorState motor_1;
-  RoboteqMotorState motor_2;
-
-  timespec pos_timestamp;
-  timespec vel_current_timestamp;
-};
-
-struct RoboteqDriverState
-{
-  std::uint8_t fault_flags;
-  std::uint8_t script_flags;
-  std::uint8_t runtime_stat_flag_motor_1;
-  std::uint8_t runtime_stat_flag_motor_2;
-
-  std::int16_t battery_current_1;
-  std::int16_t battery_current_2;
-
-  std::uint16_t battery_voltage;
-
-  std::int16_t mcu_temp;
-  std::int16_t heatsink_temp;
-
-  timespec flags_current_timestamp;
-  timespec voltages_temps_timestamp;
-};
+// Forward declaration
+class RoboteqMotorDriver;
 
 /**
- * @brief Abstract class for Roboteq driver
- */
-class RoboteqDriverInterface
-{
-public:
-  /**
-   * @brief Triggers boot operations
-   *
-   * @exception std::runtime_error if triggering boot fails
-   */
-  virtual std::future<void> Boot() = 0;
-
-  /**
-   * @brief Returns true if CAN error was detected.
-   */
-  virtual bool IsCANError() const = 0;
-
-  /**
-   * @brief Returns true if heartbeat timeout encountered.
-   */
-  virtual bool IsHeartbeatTimeout() const = 0;
-
-  /**
-   * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
-   * last timestamps
-   */
-  virtual RoboteqMotorsStates ReadRoboteqMotorsStates() = 0;
-
-  /**
-   * @brief Reads driver state data returned from Roboteq (PDO 3 and 4): error flags, battery
-   * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
-   * temperatures. Also saves the last timestamps
-   */
-  virtual RoboteqDriverState ReadRoboteqDriverState() = 0;
-
-  /**
-   * @brief Sends commands to the motors
-   *
-   * @param cmd command value in the range [-1000, 1000]
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  virtual void SendRoboteqCmd(
-    const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2) = 0;
-
-  /**
-   * @exception std::runtime_error if any operation returns error
-   */
-  virtual void ResetRoboteqScript() = 0;
-
-  /**
-   * @exception std::runtime_error if any operation returns error
-   */
-  virtual void TurnOnEStop() = 0;
-
-  /**
-   * @exception std::runtime_error if any operation returns error
-   */
-  virtual void TurnOffEStop() = 0;
-
-  /**
-   * @brief Sends a safety stop command to the motor connected to channel 1
-   *
-   * @exception std::runtime_error if any operation returns error
-   */
-  virtual void TurnOnSafetyStopChannel1() = 0;
-
-  /**
-   * @brief Sends a safety stop command to the motor connected to channel 2
-   *
-   * @exception std::runtime_error if any operation returns error
-   */
-  virtual void TurnOnSafetyStopChannel2() = 0;
-
-    /**
-   * @brief Alias for a shared pointer to a RoboteqDriverInterface object.
-   */
-  using SharedPtr = std::shared_ptr<RoboteqDriverInterface>;
-};
-
-/**
- * @brief Hardware implementation of RoboteqDriverInterface with lely LoopDriver for Roboteq drivers
+ * @brief Hardware implementation of Driver with lely LoopDriver for Roboteq drivers
  * control
  */
-class RoboteqDriver : public RoboteqDriverInterface, public lely::canopen::LoopDriver
+class RoboteqDriver : public Driver, public lely::canopen::LoopDriver
 {
 public:
   RoboteqDriver(
@@ -173,31 +62,16 @@ public:
   bool IsHeartbeatTimeout() const override { return heartbeat_timeout_.load(); };
 
   /**
-   * @brief Reads motors' state data returned from Roboteq (PDO 1 and 2) and saves
-   * last timestamps
-   */
-  RoboteqMotorsStates ReadRoboteqMotorsStates() override;
-
-  /**
    * @brief Reads driver state data returned from Roboteq (PDO 3 and 4): error flags, battery
    * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
    * temperatures. Also saves the last timestamps
    */
-  RoboteqDriverState ReadRoboteqDriverState() override;
-
-  /**
-   * @brief Sends commands to the motors
-   *
-   * @param cmd command value in the range [-1000, 1000]
-   *
-   * @exception std::runtime_error if operation fails
-   */
-  void SendRoboteqCmd(const std::int32_t cmd_channel_1, const std::int32_t cmd_channel_2) override;
+  DriverState ReadDriverState() override;
 
   /**
    * @exception std::runtime_error if any operation returns error
    */
-  void ResetRoboteqScript() override;
+  void ResetScript() override;
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -210,20 +84,17 @@ public:
   void TurnOffEStop() override;
 
   /**
-   * @brief Sends a safety stop command to the motor connected to channel 1
-   *
-   * @exception std::runtime_error if any operation returns error
+   * @brief Adds a motor driver to the driver
    */
-  void TurnOnSafetyStopChannel1() override;
+  void AddMotorDriver(const std::string name, std::shared_ptr<MotorDriver> motor_driver) override;
 
   /**
-   * @brief Sends a safety stop command to the motor connected to channel 2
+   * @brief Returns a motor driver by name
    *
-   * @exception std::runtime_error if any operation returns error
+   * @exception std::runtime_error if motor driver with the given name does not exist
    */
-  void TurnOnSafetyStopChannel2() override;
+  std::shared_ptr<MotorDriver> GetMotorDriver(const std::string & name) override;
 
-private:
   /**
    * @brief Blocking SDO write operation
    *
@@ -232,6 +103,28 @@ private:
   template <typename T>
   void SyncSDOWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
+  static constexpr std::uint8_t kChannel1 = 1;
+  static constexpr std::uint8_t kChannel2 = 2;
+
+  /**
+   * @brief Returns the last timestamp of the position data for the given channel
+   */
+  timespec GetPositionTimestamp(const std::uint8_t channel)
+  {
+    std::lock_guard<std::mutex> lck(position_timestamp_mtx_);
+    return last_position_timestamps_.at(channel);
+  }
+
+  /**
+   * @brief Returns the last timestamp of the speed and current data for the given channel
+   */
+  timespec GetSpeedCurrentTimestamp(const std::uint8_t channel)
+  {
+    std::lock_guard<std::mutex> lck(speed_current_timestamp_mtx_);
+    return last_speed_current_timestamps_.at(channel);
+  }
+
+private:
   void OnBoot(
     const lely::canopen::NmtState st, const char es, const std::string & what) noexcept override;
   void OnRpdoWrite(const std::uint16_t idx, const std::uint8_t subidx) noexcept override;
@@ -249,10 +142,11 @@ private:
   std::atomic_bool heartbeat_timeout_;
 
   std::mutex position_timestamp_mtx_;
-  timespec last_position_timestamp_;
+  std::map<std::uint8_t, timespec> last_position_timestamps_ = {{kChannel1, {}}, {kChannel2, {}}};
 
   std::mutex speed_current_timestamp_mtx_;
-  timespec last_speed_current_timestamp_;
+  std::map<std::uint8_t, timespec> last_speed_current_timestamps_ = {
+    {kChannel1, {}}, {kChannel2, {}}};
 
   std::mutex flags_current_timestamp_mtx_;
   timespec flags_current_timestamp_;
@@ -261,6 +155,43 @@ private:
   timespec last_voltages_temps_timestamp_;
 
   const std::chrono::milliseconds sdo_operation_timeout_ms_;
+
+  std::map<std::string, std::shared_ptr<MotorDriver>> motor_drivers_;
+};
+
+class RoboteqMotorDriver : public MotorDriver
+{
+public:
+  RoboteqMotorDriver(std::shared_ptr<RoboteqDriver> driver, const std::uint8_t channel)
+  : driver_(driver), channel_(channel)
+  {
+  }
+
+  /**
+   * @brief Reads motor state data and saves last timestamps
+   */
+  MotorDriverState ReadMotorDriverState() override;
+
+  /**
+   * @brief Sends commands to the motors
+   *
+   * @param cmd command value in the range [-1000, 1000]
+   *
+   * @exception std::runtime_error if operation fails
+   */
+  void SendCmdVel(const std::int32_t cmd) override;
+
+  /**
+   * @brief Sends a safety stop command to the motor connected to channel 1
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  void TurnOnSafetyStop() override;
+
+private:
+  std::weak_ptr<RoboteqDriver> driver_;
+
+  const std::uint8_t channel_;
 };
 
 }  // namespace panther_hardware_interfaces

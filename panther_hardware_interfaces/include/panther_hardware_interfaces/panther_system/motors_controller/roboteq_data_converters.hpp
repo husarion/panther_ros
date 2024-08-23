@@ -71,7 +71,7 @@ class MotorState
 public:
   MotorState(const DrivetrainSettings & drivetrain_settings);
 
-  void SetData(const RoboteqMotorState & motor_state) { motor_state_ = motor_state; };
+  void SetData(const MotorDriverState & motor_state) { motor_state_ = motor_state; };
 
   float GetPosition() const { return motor_state_.pos * roboteq_pos_feedback_to_radians_; }
   float GetVelocity() const
@@ -88,7 +88,7 @@ private:
   float roboteq_vel_feedback_to_radians_per_second_;
   float roboteq_current_feedback_to_newton_meters_;
 
-  RoboteqMotorState motor_state_ = {0, 0, 0};
+  MotorDriverState motor_state_ = {0, 0, 0, {0, 0}, {0, 0}};
 };
 
 /**
@@ -148,10 +148,10 @@ public:
  * @brief Class for storing and converting the current state of the Roboteq drivers (temperature,
  * voltage and battery current)
  */
-class DriverState
+class RoboteqDriverState
 {
 public:
-  DriverState() {}
+  RoboteqDriverState() {}
 
   void SetTemperature(const std::int16_t temp) { temp_ = temp; };
   void SetHeatsinkTemperature(const std::int16_t heatsink_temp) { heatsink_temp_ = heatsink_temp; };
@@ -190,9 +190,9 @@ public:
   }
 
   void SetMotorsStates(
-    const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
+    const MotorDriverState & left_state, const MotorDriverState & right_state,
     const bool data_timed_out);
-  void SetDriverState(const RoboteqDriverState & state, const bool data_timed_out);
+  void SetDriverState(const DriverState & state, const bool data_timed_out);
   void SetCANError(const bool can_error) { can_error_ = can_error; }
   void SetHeartbeatTimeout(const bool heartbeat_timeout) { heartbeat_timeout_ = heartbeat_timeout; }
 
@@ -210,7 +210,7 @@ public:
 
   const MotorState & GetLeftMotorState() const { return left_motor_state_; }
   const MotorState & GetRightMotorState() const { return right_motor_state_; }
-  const DriverState & GetDriverState() const { return driver_state_; }
+  const RoboteqDriverState & GetDriverState() const { return driver_state_; }
 
   bool IsMotorStatesDataTimedOut() const { return motor_states_data_timed_out_; }
   bool IsDriverStateDataTimedOut() const { return driver_state_data_timed_out_; }
@@ -231,7 +231,7 @@ private:
   MotorState left_motor_state_;
   MotorState right_motor_state_;
 
-  DriverState driver_state_;
+  RoboteqDriverState driver_state_;
 
   FaultFlag fault_flags_;
   ScriptFlag script_flags_;

@@ -203,7 +203,7 @@ std::map<std::string, bool> RuntimeError::GetErrorMap() const
 }
 
 void RoboteqData::SetMotorsStates(
-  const RoboteqMotorState & left_state, const RoboteqMotorState & right_state,
+  const MotorDriverState & left_state, const MotorDriverState & right_state,
   const bool data_timed_out)
 {
   left_motor_state_.SetData(left_state);
@@ -211,7 +211,7 @@ void RoboteqData::SetMotorsStates(
   motor_states_data_timed_out_ = data_timed_out;
 }
 
-void RoboteqData::SetDriverState(const RoboteqDriverState & state, const bool data_timed_out)
+void RoboteqData::SetDriverState(const DriverState & state, const bool data_timed_out)
 {
   driver_state_.SetTemperature(state.mcu_temp);
   driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
