@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-#include <panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp>
+#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
 
 #include "utils/fake_can_socket.hpp"
 #include "utils/test_constants.hpp"

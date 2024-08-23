@@ -103,9 +103,6 @@ public:
   template <typename T>
   void SyncSDOWrite(const std::uint16_t index, const std::uint8_t subindex, const T data);
 
-  static constexpr std::uint8_t kChannel1 = 1;
-  static constexpr std::uint8_t kChannel2 = 2;
-
   /**
    * @brief Returns the last timestamp of the position data for the given channel
    */
@@ -123,6 +120,9 @@ public:
     std::lock_guard<std::mutex> lck(speed_current_timestamp_mtx_);
     return last_speed_current_timestamps_.at(channel);
   }
+
+  static constexpr std::uint8_t kChannel1 = 1;
+  static constexpr std::uint8_t kChannel2 = 2;
 
 private:
   void OnBoot(

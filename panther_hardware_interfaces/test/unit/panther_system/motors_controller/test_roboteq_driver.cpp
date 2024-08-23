@@ -27,8 +27,6 @@
 #include "utils/roboteqs_mock.hpp"
 #include "utils/test_constants.hpp"
 
-#include <iostream>
-
 class TestRoboteqDriver : public ::testing::Test
 {
 public:
