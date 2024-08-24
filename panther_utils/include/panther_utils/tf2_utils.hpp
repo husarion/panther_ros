@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_TF2_UTILS_HPP
-#define PANTHER_UTILS_TF2_UTILS_HPP
+#ifndef PANTHER_UTILS_TF2_UTILS_HPP_
+#define PANTHER_UTILS_TF2_UTILS_HPP_
 
 #include <tf2/utils.h>
 #include <tf2_ros/buffer.h>
@@ -139,4 +139,4 @@ bool ArePosesNear(
 }
 }  // namespace panther_utils::tf2_utils
 
-#endif  // PANTHER_UTILS_TF2_UTILS_HPP
+#endif  // PANTHER_UTILS_TF2_UTILS_HPP_
