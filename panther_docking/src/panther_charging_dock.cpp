@@ -163,10 +163,11 @@ bool PantherChargingDock::getRefinedPose(PoseStampedMsg & pose)
 bool PantherChargingDock::isDocked()
 {
   updateDockPoseAndPublish();
-  const double d = std::hypot(dock_pose_.pose.position.x, dock_pose_.pose.position.y);
-  const double yaw_diff = std::abs(tf2::getYaw(dock_pose_.pose.orientation));
 
-  return d < docking_distance_threshold_ && yaw_diff < docking_yaw_threshold_;
+  geometry_msgs::msg::PoseStamped origin;
+  origin.header.frame_id = dock_pose_.header.frame_id;
+  return panther_utils::tf2_utils::ArePosesNear(
+    origin, dock_pose_, docking_distance_threshold_, docking_yaw_threshold_);
 }
 
 bool PantherChargingDock::isCharging()

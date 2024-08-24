@@ -42,6 +42,7 @@ class PantherChargingDock : public opennav_docking_core::ChargingDock
 {
 public:
   using SharedPtr = std::shared_ptr<PantherChargingDock>;
+  using UniquePtr = std::unique_ptr<PantherChargingDock>;
   using PoseStampedMsg = geometry_msgs::msg::PoseStamped;
 
   /**

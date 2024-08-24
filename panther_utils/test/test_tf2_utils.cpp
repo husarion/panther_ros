@@ -12,104 +12,114 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
 #include <chrono>
+#include <cmath>
 
+#include <gtest/gtest.h>
 #include <tf2/utils.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/static_transform_broadcaster.h>
+#include <rclcpp/rclcpp.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+
 #include "panther_utils/tf2_utils.hpp"
+
+static constexpr char kBaseFrame[] = "base_link";
+static constexpr char kOdomFrame[] = "odom";
 
 class TestTransformPose : public ::testing::Test
 {
 public:
   TestTransformPose();
-  ~TestTransformPose();
 
   void SetBaseLinkToOdomTransform(const builtin_interfaces::msg::Time & stamp);
 
 protected:
   rclcpp::Clock::SharedPtr clock_;
   tf2_ros::Buffer::SharedPtr tf2_buffer_;
+
+  geometry_msgs::msg::TransformStamped transform_;
 };
-
-void TestTransformPose::SetBaseLinkToOdomTransform(const builtin_interfaces::msg::Time & stamp)
-{
-  geometry_msgs::msg::TransformStamped transform;
-  transform.header.stamp = stamp;
-  transform.header.frame_id = "odom";
-  transform.child_frame_id = "base_link";
-  transform.transform.translation.x = 0.3;
-  transform.transform.translation.y = 0.2;
-  transform.transform.translation.z = 0.1;
-  transform.transform.rotation.x = 0.0;
-  transform.transform.rotation.y = 0.0;
-  transform.transform.rotation.z = 0.0;
-  transform.transform.rotation.w = 1.0;
-
-  tf2_buffer_->setTransform(transform, "unittest", false);
-}
 
 TestTransformPose::TestTransformPose()
 {
-  rclcpp::init(0, nullptr);
-
   clock_ = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME);
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(clock_);
 
   // Silence error about dedicated thread's being necessary
   tf2_buffer_->setUsingDedicatedThread(true);
+
+  transform_.header.frame_id = kOdomFrame;
+  transform_.child_frame_id = kBaseFrame;
+  transform_.transform.translation.x = 0.3;
+  transform_.transform.translation.y = 0.2;
+  transform_.transform.translation.z = 0.1;
+  transform_.transform.rotation.x = 0.0;
+  transform_.transform.rotation.y = 0.0;
+  transform_.transform.rotation.z = 0.0;
+  transform_.transform.rotation.w = 1.0;
 }
 
-TestTransformPose::~TestTransformPose() { rclcpp::shutdown(); }
+void TestTransformPose::SetBaseLinkToOdomTransform(const builtin_interfaces::msg::Time & stamp)
+{
+  transform_.header.stamp = stamp;
+  tf2_buffer_->setTransform(transform_, "unittest", false);
+}
 
-TEST_F(TestTransformPose, NoTf)
+TEST_F(TestTransformPose, EmptyFrame)
 {
   geometry_msgs::msg::PoseStamped pose;
   EXPECT_THROW(
     { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, ""); }, std::runtime_error);
+}
+
+TEST_F(TestTransformPose, TransformMissing)
+{
+  geometry_msgs::msg::PoseStamped pose;
+
   EXPECT_THROW(
-    { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, "base_link"); },
+    { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, kBaseFrame); },
     std::runtime_error);
-  pose.header.frame_id = "odom";
+  pose.header.frame_id = kOdomFrame;
   EXPECT_THROW(
-    { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, "base_link"); },
+    { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, kBaseFrame); },
     std::runtime_error);
 }
 
-TEST_F(TestTransformPose, FrameToFrameTransform)
+TEST_F(TestTransformPose, TransformWithinSameFrame)
 {
   geometry_msgs::msg::PoseStamped pose;
-  pose.header.frame_id = "odom";
+  pose.header.frame_id = kOdomFrame;
   pose.pose.position.x = 0.1;
   pose.header.stamp = clock_->now();
 
   ASSERT_NO_THROW(
-    { pose = panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, "odom", 10.0); };);
+    { pose = panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, kOdomFrame, 10.0); };);
   EXPECT_NEAR(pose.pose.position.x, 0.1, 0.01);
   EXPECT_NEAR(pose.pose.position.y, 0.0, 0.01);
   EXPECT_NEAR(pose.pose.position.z, 0.0, 0.01);
-  EXPECT_EQ(pose.header.frame_id, "odom");
+  EXPECT_EQ(pose.header.frame_id, kOdomFrame);
   EXPECT_NEAR(tf2::getYaw(pose.pose.orientation), 0.0, 0.01);
 }
 
-TEST_F(TestTransformPose, FrameToOtherFrameTransform)
+TEST_F(TestTransformPose, TransformToDifferentFrame)
 {
   geometry_msgs::msg::PoseStamped pose;
   const auto stamp = clock_->now();
-  pose.header.frame_id = "odom";
+  pose.header.frame_id = kOdomFrame;
   pose.pose.position.x = 0.1;
   pose.header.stamp = stamp;
   SetBaseLinkToOdomTransform(stamp);
 
   ASSERT_NO_THROW(
-    { pose = panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, "base_link", 10.0); };);
+    { pose = panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, kBaseFrame, 10.0); };);
   EXPECT_NEAR(pose.pose.position.x, -0.2, 0.01);
   EXPECT_NEAR(pose.pose.position.y, -0.2, 0.01);
   EXPECT_NEAR(pose.pose.position.z, -0.1, 0.01);
-  EXPECT_EQ(pose.header.frame_id, "base_link");
+  EXPECT_EQ(pose.header.frame_id, kBaseFrame);
   EXPECT_NEAR(tf2::getYaw(pose.pose.orientation), 0.0, 0.01);
 }
 
@@ -118,12 +128,12 @@ TEST_F(TestTransformPose, TestTimeout)
   const auto stamp = clock_->now();
   SetBaseLinkToOdomTransform(stamp);
   geometry_msgs::msg::PoseStamped pose;
-  pose.header.frame_id = "odom";
+  pose.header.frame_id = kOdomFrame;
   pose.header.stamp = stamp;
   pose.header.stamp.sec += 5;
 
   EXPECT_THROW(
-    { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, "base_link", 1.0); },
+    { panther_utils::tf2_utils::TransformPose(tf2_buffer_, pose, kBaseFrame, 1.0); },
     std::runtime_error);
 }
 
@@ -186,4 +196,92 @@ TEST(OffsetPose, CheckDefinedPose)
   EXPECT_NEAR(roll, 0.0, 0.01);
   EXPECT_NEAR(pitch, 0.0, 0.01);
   EXPECT_NEAR(yaw, 0.0, 0.01);
+}
+
+TEST(TestArePosesNear, EmptyFrame)
+{
+  geometry_msgs::msg::PoseStamped pose_1;
+  geometry_msgs::msg::PoseStamped pose_2;
+
+  EXPECT_THROW(
+    { panther_utils::tf2_utils::ArePosesNear(pose_1, pose_2, 0.1, 0.1); }, std::runtime_error);
+}
+
+TEST(TestArePosesNear, DifferentFrames)
+{
+  geometry_msgs::msg::PoseStamped pose_1;
+  pose_1.header.frame_id = kBaseFrame;
+  geometry_msgs::msg::PoseStamped pose_2;
+  pose_2.header.frame_id = kOdomFrame;
+
+  EXPECT_THROW(
+    { panther_utils::tf2_utils::ArePosesNear(pose_1, pose_2, 0.1, 0.1); }, std::runtime_error);
+}
+
+TEST(TestArePosesNear, TooFarDistance)
+{
+  geometry_msgs::msg::PoseStamped pose_1;
+  pose_1.header.frame_id = kBaseFrame;
+  pose_1.pose.position.x = 0.1;
+  pose_1.pose.position.y = 0.1;
+  pose_1.pose.position.z = 0.0;
+
+  geometry_msgs::msg::PoseStamped pose_2;
+  pose_2.header.frame_id = kBaseFrame;
+  pose_2.pose.position.x = 0.2;
+  pose_2.pose.position.y = 0.2;
+  pose_2.pose.position.z = 0.0;
+
+  EXPECT_FALSE(panther_utils::tf2_utils::ArePosesNear(pose_1, pose_2, 0.05, 0.05));
+}
+
+TEST(TestArePosesNear, TooFarAngle)
+{
+  geometry_msgs::msg::PoseStamped pose_1;
+  pose_1.header.frame_id = kBaseFrame;
+  tf2::Quaternion pose_1_rotation;
+  pose_1_rotation.setRPY(0.0, 0.0, 0.1);
+  pose_1.pose.orientation = tf2::toMsg(pose_1_rotation);
+
+  geometry_msgs::msg::PoseStamped pose_2;
+  pose_2.header.frame_id = kBaseFrame;
+  tf2::Quaternion pose_2_rotation;
+  pose_2_rotation.setRPY(0.0, 0.0, 0.2);
+  pose_2.pose.orientation = tf2::toMsg(pose_2_rotation);
+
+  EXPECT_FALSE(panther_utils::tf2_utils::ArePosesNear(pose_1, pose_2, 0.1, 0.05));
+}
+
+TEST(TestArePosesNear, NearAngleAndDistance)
+{
+  geometry_msgs::msg::PoseStamped pose_1;
+  pose_1.header.frame_id = kBaseFrame;
+  pose_1.pose.position.x = 0.1;
+  pose_1.pose.position.y = 0.1;
+  pose_1.pose.position.z = 0.0;
+  tf2::Quaternion pose_1_rotation;
+  pose_1_rotation.setRPY(0.0, 0.0, 0.1);
+  pose_1.pose.orientation = tf2::toMsg(pose_1_rotation);
+
+  geometry_msgs::msg::PoseStamped pose_2;
+  pose_2.header.frame_id = kBaseFrame;
+  pose_2.pose.position.x = 0.2;
+  pose_2.pose.position.y = 0.2;
+  pose_2.pose.position.z = 0.0;
+  tf2::Quaternion pose_2_rotation;
+  pose_2_rotation.setRPY(0.0, 0.0, 0.1);
+  pose_2.pose.orientation = tf2::toMsg(pose_2_rotation);
+
+  EXPECT_TRUE(panther_utils::tf2_utils::ArePosesNear(pose_1, pose_2, 0.2, 0.2));
+}
+
+int main(int argc, char ** argv)
+{
+  rclcpp::init(argc, argv);
+  testing::InitGoogleTest(&argc, argv);
+
+  auto run_tests = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  return run_tests;
 }

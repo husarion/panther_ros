@@ -17,9 +17,11 @@
 
 #include <tf2/utils.h>
 #include <tf2_ros/buffer.h>
+#include <rclcpp/rclcpp.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
 
 namespace panther_utils::tf2_utils
 {
@@ -83,6 +85,58 @@ geometry_msgs::msg::PoseStamped OffsetPose(
   return transformed_pose;
 }
 
+/**
+ * @brief Gets the roll, pitch, and yaw from a quaternion.
+ * This function gets the roll, pitch, and yaw from a quaternion.
+ * Roll is rotation around the X axis. Pitch is rotation around the Y axis. Yaw is rotation around
+ * the Z axis.
+ *
+ * @param orientation The orientation quaternion.
+ * @return geometry_msgs::msg::Vector3 The roll, pitch, and yaw.
+ */
+geometry_msgs::msg::Vector3 GetRPY(const geometry_msgs::msg::Quaternion & orientation)
+{
+  geometry_msgs::msg::Vector3 v;
+  tf2::Quaternion q;
+  tf2::fromMsg(orientation, q);
+  tf2::Matrix3x3(q).getRPY(v.x, v.y, v.z);
+  return v;
+}
+
+/**
+ * @brief Checks if two poses are near each other on the XY plane.
+ * This function checks if two poses are near each other on the XY plane within a given distance and
+ * angle tolerance.
+ *
+ * @param pose_1 The first pose.
+ * @param pose_2 The second pose.
+ * @param distance_tolerance The distance tolerance.
+ * @param angle_tolerance The angle tolerance.
+ *
+ * @return True if the poses are near each other on the XY plane, false otherwise.
+ */
+bool ArePosesNear(
+  const geometry_msgs::msg::PoseStamped & pose_1, const geometry_msgs::msg::PoseStamped & pose_2,
+  double distance_tolerance, double angle_tolerance)
+{
+  if (pose_1.header.frame_id.empty() || pose_2.header.frame_id.empty()) {
+    throw std::runtime_error("Provided frame IDs are empty, can't compare poses.");
+  }
+
+  if (pose_1.header.frame_id != pose_2.header.frame_id) {
+    throw std::runtime_error("Provided frame IDs are different, can't compare poses.");
+  }
+
+  auto pose_1_rpy = GetRPY(pose_1.pose.orientation);
+  auto pose_2_rpy = GetRPY(pose_2.pose.orientation);
+
+  const double d = std::hypot(
+    pose_1.pose.position.x - pose_2.pose.position.x,
+    pose_1.pose.position.y - pose_2.pose.position.y);
+  return d < distance_tolerance && std::abs(pose_1_rpy.x - pose_2_rpy.x) < angle_tolerance &&
+         std::abs(pose_1_rpy.y - pose_2_rpy.y) < angle_tolerance &&
+         std::abs(pose_1_rpy.z - pose_2_rpy.z) < angle_tolerance;
+}
 }  // namespace panther_utils::tf2_utils
 
 #endif  // PANTHER_UTILS_TF2_UTILS_HPP
