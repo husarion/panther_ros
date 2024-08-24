@@ -90,4 +90,29 @@ inline std::string GetLoggerPrefix(const std::string & bt_node_name)
 }
 }  // namespace panther_manager
 
+namespace BT
+{
+/**
+ * @brief Converts a string to a vector of integers.
+ *
+ * @param str The string to convert.
+ * @return std::vector<int> The vector of integers.
+ */
+template <>
+inline std::vector<int> convertFromString<std::vector<int>>(StringView str)
+{
+  auto parts = BT::splitString(str, ';');
+  if (!parts.size()) {
+    throw BT::RuntimeError("invalid input)");
+  } else {
+    std::vector<int> result;
+    for (auto & part : parts) {
+      result.push_back(convertFromString<int>(part));
+    }
+
+    return result;
+  }
+}
+}  // namespace BT
+
 #endif  // PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_

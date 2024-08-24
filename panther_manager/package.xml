@@ -26,6 +26,7 @@
   <depend>panther_utils</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
   <depend>yaml-cpp</depend>
 

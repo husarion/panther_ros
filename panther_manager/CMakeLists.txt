@@ -51,6 +51,10 @@ add_library(shutdown_hosts_from_file_bt_node SHARED
 target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
 
+add_library(joy_subscription_bt_node SHARED
+            src/plugins/action/joy_subscription_node.cpp)
+list(APPEND plugin_libs joy_subscription_bt_node)
+
 add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)
@@ -135,6 +139,12 @@ if(BUILD_TESTING)
     test/plugins/action/test_shutdown_hosts_from_file_node.cpp
     src/plugins/action/shutdown_hosts_from_file_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_joy_subscription_node
+    test/plugins/action/test_joy_subscription_node.cpp
+    src/plugins/action/joy_subscription_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_joy_subscription_node)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_tick_after_timeout_node

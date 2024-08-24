@@ -121,6 +121,35 @@ TEST_F(TestRegisterBT, RegisterBehaviorTreeROS)
   rclcpp::shutdown();
 }
 
+TEST(TestConvertFromString, GoodVectorInt)
+{
+  std::string str = "1;2;3";
+  auto result = BT::convertFromString<std::vector<int>>(str);
+
+  EXPECT_EQ(result.size(), 3);
+  EXPECT_EQ(result[0], 1);
+  EXPECT_EQ(result[1], 2);
+  EXPECT_EQ(result[2], 3);
+}
+
+TEST(TestConvertFromString, EmptyVectorInt)
+{
+  std::string str = "";
+  EXPECT_THROW(BT::convertFromString<std::vector<int>>(str), BT::RuntimeError);
+}
+
+TEST(TestConvertFromString, InvalidVectorIntWithFloat)
+{
+  std::string str = "1.0;2;3;4";
+  EXPECT_THROW(BT::convertFromString<std::vector<int>>(str), BT::RuntimeError);
+}
+
+TEST(TestConvertFromString, InvalidVectorIntWithLetter)
+{
+  std::string str = "a;2;3;4";
+  EXPECT_THROW(BT::convertFromString<std::vector<int>>(str), BT::RuntimeError);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
