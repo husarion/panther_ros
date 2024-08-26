@@ -19,8 +19,6 @@
 #include <mutex>
 #include <string>
 
-#include <gz/msgs/image.pb.h>
-#include <gz/msgs/light.pb.h>
 #include <gz/math/Color.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/sim/EntityComponentManager.hh>
@@ -30,6 +28,9 @@
 #include <gz/sim/components/Pose.hh>
 #include <gz/transport/Node.hh>
 #include <sdf/Element.hh>
+
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/light.pb.h>
 
 namespace panther_gazebo
 {
@@ -42,8 +43,6 @@ class LEDStrip : public gz::sim::System,
                  public gz::sim::ISystemPreUpdate
 {
 public:
-  LEDStrip();
-  ~LEDStrip();
   void Configure(
     const gz::sim::Entity & id, const std::shared_ptr<const sdf::Element> & sdf,
     gz::sim::EntityComponentManager & ecm, gz::sim::EventManager & eventMgr);
@@ -83,20 +82,20 @@ private:
     const gz::math::Vector3d size);
 
   // Parameters
-  std::string light_name;
-  std::string image_topic;
-  std::string ns = "";
-  double frequency = 10.0;
-  double marker_width = 1.0;
-  double marker_height = 1.0;
+  std::string light_name_;
+  std::string image_topic_;
+  std::string ns_ = "";
+  double frequency_ = 10.0;
+  double marker_width_ = 1.0;
+  double marker_height_ = 1.0;
 
-  bool new_image_available{false};
-  gz::msgs::Light light_cmd;
-  gz::msgs::Image last_image;
-  gz::sim::Entity light_entity{gz::sim::kNullEntity};
-  gz::transport::Node node;
-  std::chrono::steady_clock::duration last_update_time{0};
-  std::mutex image_mutex;
+  bool new_image_available_ = false;
+  gz::msgs::Light light_cmd_;
+  gz::msgs::Image last_image_;
+  gz::sim::Entity light_entity_{gz::sim::kNullEntity};
+  gz::transport::Node node_;
+  std::chrono::steady_clock::duration last_update_time_{0};
+  std::mutex image_mutex_;
 };
 
 }  // namespace panther_gazebo
