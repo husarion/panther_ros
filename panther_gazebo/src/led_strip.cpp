@@ -35,11 +35,10 @@ void LEDStrip::Configure(
       "Error: Failed to initialize because [" + model.Name(ecm) +
       "] (Entity=" + std::to_string(entity) +
       ") is not a model. Please make sure that LEDStrip is attached to a valid model.");
-    return;
   }
 
   ParseParameters(sdf);
-  ConfigureLightEntityProperty(ecm);
+  light_cmd_ = SetupLightCmd(ecm);
 
   node_.Subscribe(ns_ + "/" + image_topic_, &LEDStrip::ImageCallback, this);
 }
@@ -47,8 +46,8 @@ void LEDStrip::Configure(
 void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm)
 {
   auto current_time = info.simTime;
-
   auto period = std::chrono::milliseconds(static_cast<int>(1000 / frequency_));
+
   if (new_image_available_ && current_time - last_update_time_ >= period) {
     gz::msgs::Image image;
     {
@@ -66,6 +65,85 @@ void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityCompon
   }
 }
 
+void LEDStrip::ParseParameters(const std::shared_ptr<const sdf::Element> & sdf)
+{
+  if (!sdf->HasElement("light_name")) {
+    ignerr << "Error: The light_name parameter is missing." << std::endl;
+  }
+  light_name_ = sdf->Get<std::string>("light_name");
+
+  if (!sdf->HasElement("topic")) {
+    ignerr << "Error: The topic parameter is missing." << std::endl;
+  }
+  image_topic_ = sdf->Get<std::string>("topic");
+
+  ns_ = sdf->HasElement("namespace") ? sdf->Get<std::string>("namespace") : ns_;
+  frequency_ = sdf->HasElement("frequency") ? sdf->Get<double>("frequency") : frequency_;
+  marker_width_ = sdf->HasElement("width") ? sdf->Get<double>("width") : marker_width_;
+  marker_height_ = sdf->HasElement("height") ? sdf->Get<double>("height") : marker_height_;
+}
+
+gz::msgs::Light LEDStrip::SetupLightCmd(gz::sim::EntityComponentManager & ecm)
+{
+  gz::msgs::Light light_cmd;
+
+  ecm.Each<gz::sim::components::Name, gz::sim::components::Light>(
+    [&](
+      const gz::sim::Entity & entity, const gz::sim::components::Name * name,
+      const gz::sim::components::Light * light_component) -> bool {
+      if (name->Data() == light_name_) {
+        light_entity_ = entity;
+        igndbg << "Light entity found: " << light_entity_ << std::endl;
+        light_cmd = ConvertLight(light_component->Data());
+        return false;  // Stop searching
+      }
+      return true;  // Continue searching
+    });
+
+  if (light_entity_ == gz::sim::kNullEntity) {
+    ignerr << "Error: Light entity not found. Return default light command msg." << std::endl;
+  }
+  return light_cmd;
+}
+
+gz::msgs::Light LEDStrip::ConvertLight(const sdf::Light & light_sdf)
+{
+  gz::msgs::Light light_cmd;
+
+  light_cmd.set_name(light_sdf.Name());
+  light_cmd.set_range(light_sdf.AttenuationRange());
+  light_cmd.set_cast_shadows(light_sdf.CastShadows());
+  light_cmd.set_spot_inner_angle(light_sdf.SpotInnerAngle().Radian());
+  light_cmd.set_spot_outer_angle(light_sdf.SpotOuterAngle().Radian());
+  light_cmd.set_spot_falloff(light_sdf.SpotFalloff());
+  light_cmd.set_attenuation_constant(light_sdf.ConstantAttenuationFactor());
+  light_cmd.set_attenuation_linear(light_sdf.LinearAttenuationFactor());
+  light_cmd.set_attenuation_quadratic(light_sdf.QuadraticAttenuationFactor());
+  light_cmd.set_intensity(light_sdf.Intensity());
+
+  gz::msgs::Set(light_cmd.mutable_diffuse(), light_sdf.Diffuse());
+  gz::msgs::Set(light_cmd.mutable_specular(), light_sdf.Specular());
+  gz::msgs::Set(light_cmd.mutable_direction(), light_sdf.Direction());
+
+  // Set the light type
+  switch (light_sdf.Type()) {
+    case sdf::LightType::POINT:
+      light_cmd.set_type(gz::msgs::Light::POINT);
+      break;
+    case sdf::LightType::SPOT:
+      light_cmd.set_type(gz::msgs::Light::SPOT);
+      break;
+    case sdf::LightType::DIRECTIONAL:
+      light_cmd.set_type(gz::msgs::Light::DIRECTIONAL);
+      break;
+    default:
+      light_cmd.set_type(gz::msgs::Light::POINT);
+      break;
+  }
+
+  return light_cmd;
+}
+
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
   try {
@@ -75,97 +153,6 @@ void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
     new_image_available_ = true;
   } catch (const std::exception & e) {
     ignerr << "Error: " << e.what() << std::endl;
-  }
-}
-
-void LEDStrip::ParseParameters(const std::shared_ptr<const sdf::Element> & sdf)
-{
-  if (sdf->HasElement("light_name")) {
-    light_name_ = sdf->Get<std::string>("light_name");
-  } else {
-    throw std::runtime_error("Error: The light_name parameter is missing.");
-  }
-
-  if (sdf->HasElement("namespace")) {
-    ns_ = sdf->Get<std::string>("namespace");
-  }
-
-  if (sdf->HasElement("topic")) {
-    image_topic_ = sdf->Get<std::string>("topic");
-  } else {
-    throw std::runtime_error("Error: The topic parameter is missing.");
-  }
-
-  if (sdf->HasElement("frequency")) {
-    frequency_ = sdf->Get<double>("frequency");
-  }
-
-  if (sdf->HasElement("width")) {
-    marker_width_ = sdf->Get<double>("width");
-  }
-
-  if (sdf->HasElement("height")) {
-    marker_height_ = sdf->Get<double>("height");
-  }
-}
-
-void LEDStrip::ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ecm)
-{
-  ecm.Each<gz::sim::components::Name, gz::sim::components::Light>(
-    [&](
-      const gz::sim::Entity & entity, const gz::sim::components::Name * name,
-      const gz::sim::components::Light * light_component) -> bool {
-      if (name->Data() == light_name_) {
-        light_entity_ = entity;
-        igndbg << "Light entity found: " << light_entity_ << std::endl;
-
-        // Ensure the LightCmd component is created
-        if (!ecm.Component<gz::sim::components::LightCmd>(light_entity_)) {
-          sdf::Light light_sdf = light_component->Data();
-
-          // Manually copy data from sdf::Light to gz::msgs::Light
-          light_cmd_.set_name(light_sdf.Name());
-          light_cmd_.set_range(light_sdf.AttenuationRange());
-          light_cmd_.set_cast_shadows(light_sdf.CastShadows());
-          light_cmd_.set_spot_inner_angle(light_sdf.SpotInnerAngle().Radian());
-          light_cmd_.set_spot_outer_angle(light_sdf.SpotOuterAngle().Radian());
-          light_cmd_.set_spot_falloff(light_sdf.SpotFalloff());
-          light_cmd_.set_attenuation_constant(light_sdf.ConstantAttenuationFactor());
-          light_cmd_.set_attenuation_linear(light_sdf.LinearAttenuationFactor());
-          light_cmd_.set_attenuation_quadratic(light_sdf.QuadraticAttenuationFactor());
-          light_cmd_.set_intensity(light_sdf.Intensity());
-
-          gz::msgs::Set(light_cmd_.mutable_diffuse(), light_sdf.Diffuse());
-          gz::msgs::Set(light_cmd_.mutable_specular(), light_sdf.Specular());
-          gz::msgs::Set(light_cmd_.mutable_direction(), light_sdf.Direction());
-
-          // Set the light type
-          switch (light_sdf.Type()) {
-            case sdf::LightType::POINT:
-              light_cmd_.set_type(gz::msgs::Light::POINT);
-              break;
-            case sdf::LightType::SPOT:
-              light_cmd_.set_type(gz::msgs::Light::SPOT);
-              break;
-            case sdf::LightType::DIRECTIONAL:
-              light_cmd_.set_type(gz::msgs::Light::DIRECTIONAL);
-              break;
-            default:
-              light_cmd_.set_type(gz::msgs::Light::POINT);
-              break;
-          }
-
-          ecm.CreateComponent(light_entity_, gz::sim::components::LightCmd(light_cmd_));
-          igndbg << "Created LightCmd component for entity: " << light_entity_ << std::endl;
-        }
-        return true;  // Stop searching
-      }
-      return true;
-    });
-
-  if (light_entity_ == gz::sim::kNullEntity) {
-    ignerr << "Error: Light entity not found." << std::endl;
-    return;
   }
 }
 
@@ -202,8 +189,7 @@ gz::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
   int mean_a = is_rgba ? sum_a / pixel_count : 255;
 
   auto mean_color = gz::math::Color(
-    static_cast<float>(mean_r) / 255.0f, static_cast<float>(mean_g) / 255.0f,
-    static_cast<float>(mean_b) / 255.0f, static_cast<float>(mean_a) / 255.0f);
+    mean_r / 255.0f, mean_g / 255.0f, mean_b / 255.0f, mean_a / 255.0f);
 
   return mean_color;
 }
@@ -223,7 +209,6 @@ void LEDStrip::VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::
   visualize->set_key("visualizeVisual");
   visualize->add_value()->assign("0");
 
-  // Update the light command component with the new light message
   ecm.SetComponentData<gz::sim::components::LightCmd>(light_entity_, light_cmd_);
 
   ecm.SetChanged(
@@ -247,10 +232,9 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
       size_t idx = (y * image.width() + x) * step;
 
       auto pixel_color = gz::math::Color(
-        static_cast<float>(static_cast<unsigned char>(data[idx])) / 255.0f,
-        static_cast<float>(static_cast<unsigned char>(data[idx + 1])) / 255.0f,
-        static_cast<float>(static_cast<unsigned char>(data[idx + 2])) / 255.0f,
-        is_rgba ? static_cast<float>(static_cast<unsigned char>(data[idx + 3])) / 255.0f : 1.0f);
+        static_cast<uint8_t>(data[idx]) / 255.0f, static_cast<uint8_t>(data[idx + 1]) / 255.0f,
+        static_cast<uint8_t>(data[idx + 2]) / 255.0f,
+        is_rgba ? static_cast<uint8_t>(data[idx + 3]) / 255.0f : 1.0f);
 
       auto pose = gz::math::Pose3d(
         light_pose.Pos().X(),

@@ -36,25 +36,37 @@ namespace panther_gazebo
 {
 
 /**
- * @brief Class to manage an LED strip in a Gazebo simulation based on received image
+ * @brief Class to manage an LED strip in a Gazebo simulation based on received image.
  */
 class LEDStrip : public gz::sim::System,
                  public gz::sim::ISystemConfigure,
                  public gz::sim::ISystemPreUpdate
 {
 public:
+  /**
+   * @brief Configures the LED strip. This function fill up parameters and light_cmd_ based on URDF.
+   */
   void Configure(
     const gz::sim::Entity & id, const std::shared_ptr<const sdf::Element> & sdf,
     gz::sim::EntityComponentManager & ecm, gz::sim::EventManager & eventMgr);
+  /**
+   * @brief Displays lights and markers, with specified by URDF frequency.
+   */
   void PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm);
 
 private:
   void ParseParameters(const std::shared_ptr<const sdf::Element> & sdf);
 
   /**
-   * @brief fill up gz::msgs::Light command component with specified in URDF file Light properties
+   * @brief Return Light command based on light configuration specified in URDF file Light
+   * properties
    */
-  void ConfigureLightEntityProperty(gz::sim::EntityComponentManager & ecm);
+  gz::msgs::Light SetupLightCmd(gz::sim::EntityComponentManager & ecm);
+
+  /**
+   * @brief Convert sdf::Light (configuration from URDF) to gz::msgs::Light (command msg)
+   */
+  gz::msgs::Light ConvertLight(const sdf::Light & light_sdf);
   void ImageCallback(const gz::msgs::Image & msg);
   void MsgValidation(const gz::msgs::Image & msg);
   gz::math::Color CalculateMeanColor(const gz::msgs::Image & msg);
