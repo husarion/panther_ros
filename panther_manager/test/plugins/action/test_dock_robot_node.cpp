@@ -125,7 +125,7 @@ TEST_F(TestDockRobot, WrongCallDockRobotServerWithNoDockID)
   CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
@@ -144,7 +144,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithoutDockID)
   CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
@@ -166,7 +166,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithEmptyDockID)
   CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
@@ -188,7 +188,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithEmptyDockType)
   CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
@@ -209,7 +209,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithNavigateToStagingPoseFailure)
   CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
@@ -231,7 +231,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithNavigateToStagingPoseSuccess)
   CreateTree("DockRobot", params);
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(1000));
+  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 

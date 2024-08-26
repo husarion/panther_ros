@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_PLUGINS_DOCK_ROBOT_ACTION_NODE_HPP_
-#define PANTHER_MANAGER_PLUGINS_DOCK_ROBOT_ACTION_NODE_HPP_
+#ifndef PANTHER_MANAGER_PLUGINS_ACTION_DOCK_ROBOT_NODE_HPP_
+#define PANTHER_MANAGER_PLUGINS_ACTION_DOCK_ROBOT_NODE_HPP_
 
 #include <memory>
 #include <string>
@@ -29,12 +29,12 @@ namespace panther_manager
 
 class DockRobot : public BT::RosActionNode<opennav_docking_msgs::action::DockRobot>
 {
-  using Action = opennav_docking_msgs::action::DockRobot;
-  using ActionResult = Action::Result;
+  using DockRobotAction = opennav_docking_msgs::action::DockRobot;
+  using DockRobotActionResult = DockRobotAction::Result;
 
 public:
   DockRobot(const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
-  : RosActionNode<Action>(name, conf, params)
+  : RosActionNode<DockRobotAction>(name, conf, params)
   {
   }
 
@@ -57,13 +57,16 @@ public:
       BT::InputPort<bool>(
         "navigate_to_staging_pose", true, "Whether to autonomously navigate to staging pose"),
 
-      BT::OutputPort<ActionResult::_success_type>("success", "If the action was successful"),
-      BT::OutputPort<ActionResult::_error_code_type>("error_code", "Contextual error code, if any"),
-      BT::OutputPort<ActionResult::_num_retries_type>("num_retries", "Number of retries attempted"),
+      BT::OutputPort<DockRobotActionResult::_success_type>(
+        "success", "If the action was successful"),
+      BT::OutputPort<DockRobotActionResult::_error_code_type>(
+        "error_code", "Contextual error code, if any"),
+      BT::OutputPort<DockRobotActionResult::_num_retries_type>(
+        "num_retries", "Number of retries attempted"),
     });
   }
 };
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_PLUGINS_DOCK_ROBOT_ACTION_NODE_HPP_
+#endif  // PANTHER_MANAGER_PLUGINS_ACTION_DOCK_ROBOT_NODE_HPP_
