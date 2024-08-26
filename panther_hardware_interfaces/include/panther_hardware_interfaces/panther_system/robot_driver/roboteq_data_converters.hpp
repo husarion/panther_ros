@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DATA_CONVERTERS_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DATA_CONVERTERS_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DATA_CONVERTERS_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DATA_CONVERTERS_HPP_
 
 #include <algorithm>
 #include <bitset>
@@ -25,7 +25,7 @@
 #include "panther_msgs/msg/runtime_error.hpp"
 #include "panther_msgs/msg/script_flag.hpp"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 #include "panther_hardware_interfaces/utils.hpp"
 
 namespace panther_hardware_interfaces
@@ -246,4 +246,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DATA_CONVERTERS_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DATA_CONVERTERS_HPP_

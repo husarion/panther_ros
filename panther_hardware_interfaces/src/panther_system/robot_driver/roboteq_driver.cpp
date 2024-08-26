@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 
 #include <chrono>
 #include <cmath>

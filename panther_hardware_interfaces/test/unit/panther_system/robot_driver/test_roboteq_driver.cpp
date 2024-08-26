@@ -20,8 +20,8 @@
 
 #include <gtest/gtest.h>
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 
 #include "utils/fake_can_socket.hpp"
 #include "utils/roboteqs_mock.hpp"

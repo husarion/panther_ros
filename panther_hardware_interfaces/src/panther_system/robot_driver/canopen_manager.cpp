@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
 
 #include <condition_variable>
 #include <filesystem>

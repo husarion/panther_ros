@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DRIVER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DRIVER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DRIVER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DRIVER_HPP_
 
 #include <atomic>
 #include <chrono>
@@ -25,7 +25,7 @@
 
 #include "lely/coapp/loop_driver.hpp"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/driver.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -196,4 +196,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DRIVER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DRIVER_HPP_

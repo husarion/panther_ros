@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_error_filter.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_error_filter.hpp"
 
 #include <algorithm>
 #include <atomic>

@@ -12,44 +12,146 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_MOTORS_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_MOTORS_CONTROLLER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOT_DRIVER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOT_DRIVER_HPP_
 
 #include <chrono>
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp"
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 
 namespace panther_hardware_interfaces
 {
 
 /**
+ * @brief Abstract class for managing robot drivers.
+ */
+class RobotDriver
+{
+public:
+  RobotDriver() = default;
+
+  ~RobotDriver() { Deinitialize(); }
+
+  /**
+   * @brief Initialize robot driver
+   *
+   * @exception std::runtime_error if boot fails
+   */
+  virtual void Initialize() = 0;
+
+  /**
+   * @brief Deinitialize robot driver
+   */
+  virtual void Deinitialize() = 0;
+
+  /**
+   * @brief Activate procedure for the driver
+   *
+   * @exception std::runtime_error if any procedure step fails
+   */
+  virtual void Activate() = 0;
+
+  /**
+   * @brief Updates current communication state with the drivers
+   *
+   * @exception std::runtime_error if error was detected
+   */
+  virtual void UpdateCommunicationState() = 0;
+
+  /**
+   * @brief Updates current motors' state (position, velocity, current).
+   *
+   * @exception std::runtime_error if error was detected
+   */
+  virtual void UpdateMotorsState() = 0;
+
+  /**
+   * @brief Updates current driver state (flags, temperatures, voltage, battery current)
+   *
+   * @exception std::runtime_error if error was detected
+   */
+  virtual void UpdateDriversState() = 0;
+
+  /**
+   * @brief Get data feedback from the driver
+   *
+   * @param name name of the data to get
+   *
+   * @return data feedback
+   * @exception std::runtime_error if data with the given name does not exist
+   */
+  virtual const RoboteqData & GetData(const std::string & name) = 0;
+
+  /**
+   * @brief Write speed commands to motors
+   *
+   * @param speed_fl front left motor speed in rad/s
+   * @param speed_fr front right motor speed in rad/s
+   * @param speed_rl rear left motor speed in rad/s
+   * @param speed_rr rear right motor speed in rad/s
+   *
+   * @exception std::runtime_error if send command fails
+   */
+  virtual void SendSpeedCommands(
+    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr) = 0;
+
+  /**
+   * @brief Turns on E-stop
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOnEStop() = 0;
+
+  /**
+   * @brief Turns off E-stop
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOffEStop() = 0;
+
+  /**
+   * @brief Turns on safety stop. To turn it off, it is necessary to send
+   * 0 commands to motors.
+   *
+   * @exception std::runtime_error if any operation returns error
+   */
+  virtual void TurnOnSafetyStop() = 0;
+
+  /**
+   * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If driver
+   * faults still exist, the error flag will remain active.
+   */
+  inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
+};
+
+/**
  * @brief This class abstracts the usage of two Roboteq controllers.
- * It uses canopen_controller for communication with Roboteq controllers,
+ * It uses canopen_manager for communication with Roboteq controllers,
  * implements the activation procedure for controllers (resets script and sends initial 0 command),
  * and provides methods to get data feedback and send commands.
  * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
  */
-class MotorsController
+class PantherRobotDriver : public RobotDriver
 {
 public:
-  MotorsController(
+  PantherRobotDriver(
     const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
 
-  ~MotorsController() { Deinitialize(); }
+  ~PantherRobotDriver() = default;
 
   /**
    * @brief Starts CAN communication and waits for boot to finish
    *
    * @exception std::runtime_error if boot fails
    */
-  void Initialize();
+  void Initialize() override;
 
   /**
    * @brief Deinitialize can communication
    */
-  void Deinitialize();
+  void Deinitialize() override;
 
   /**
    * @brief Activate procedure for Roboteq drivers - reset scripts and send 0 commands on both
@@ -57,31 +159,30 @@ public:
    *
    * @exception std::runtime_error if any procedure step fails
    */
-  void Activate();
+  void Activate() override;
 
   /**
    * @brief Updates current communication state with Roboteq drivers
    *
    * @exception std::runtime_error if CAN error was detected
    */
-  void UpdateCommunicationState();
+  void UpdateCommunicationState() override;
 
   /**
    * @brief Updates current motors' state (position, velocity, current).
    *
    * @exception std::runtime_error if CAN error was detected
    */
-  void UpdateMotorsState();
+  void UpdateMotorsState() override;
 
   /**
    * @brief Updates current Roboteq driver state (flags, temperatures, voltage, battery current)
    *
    * @exception std::runtime_error if CAN error was detected
    */
-  void UpdateDriversState();
+  void UpdateDriversState() override;
 
-  const RoboteqData & GetFrontData() { return front_data_; }
-  const RoboteqData & GetRearData() { return rear_data_; }
+  const RoboteqData & GetData(const std::string & name) override;
 
   /**
    * @brief Write speed commands to motors
@@ -132,7 +233,7 @@ private:
 
   bool initialized_ = false;
 
-  CANopenController canopen_controller_;
+  CANopenManager canopen_manager_;
 
   RoboteqData front_data_;
   RoboteqData rear_data_;
@@ -145,4 +246,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_MOTORS_CONTROLLER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOT_DRIVER_HPP_
