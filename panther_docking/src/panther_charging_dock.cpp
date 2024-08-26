@@ -131,7 +131,11 @@ PantherChargingDock::PoseStampedMsg PantherChargingDock::getStagingPose(
   const geometry_msgs::msg::Pose & pose, const std::string & frame)
 {
   std::string stage_frame = frame;
-  // When the pose if default the robot is docking so the frame is the dock frame
+  // The pose in the argument is a pose defined in yaml file or passed in docking action.
+  // In our approach to docking we use local "base_link" frame as a reference frame.
+  // The pose is empty when the docking action is called from the action server.
+  // When a robot is undocking it passes odometry frame as a reference frame.
+  // It needed to be split to two cases to handle both situations.
   if (pose == geometry_msgs::msg::Pose()) {
     dock_frame_ = frame;
     stage_frame = base_frame_name_;
