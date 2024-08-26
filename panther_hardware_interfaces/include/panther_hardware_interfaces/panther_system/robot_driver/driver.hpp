@@ -42,8 +42,8 @@ struct DriverState
 {
   std::uint8_t fault_flags;
   std::uint8_t script_flags;
-  std::uint8_t runtime_stat_flag_motor_1;
-  std::uint8_t runtime_stat_flag_motor_2;
+  std::uint8_t runtime_stat_flag_channel_1;
+  std::uint8_t runtime_stat_flag_channel_2;
 
   std::int16_t battery_current_1;
   std::int16_t battery_current_2;

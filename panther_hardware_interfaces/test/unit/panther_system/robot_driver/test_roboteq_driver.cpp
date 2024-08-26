@@ -241,8 +241,8 @@ TEST_F(TestRoboteqDriver, ReadDriverState)
 
   EXPECT_EQ(fb.fault_flags, 0b00000001);
   EXPECT_EQ(fb.script_flags, 0b00000010);
-  EXPECT_EQ(fb.runtime_stat_flag_motor_1, 0b00000100);
-  EXPECT_EQ(fb.runtime_stat_flag_motor_2, 0b00001000);
+  EXPECT_EQ(fb.runtime_stat_flag_channel_1, 0b00000100);
+  EXPECT_EQ(fb.runtime_stat_flag_channel_2, 0b00001000);
 }
 
 TEST_F(TestRoboteqDriver, ReadDriverStateTimestamp)

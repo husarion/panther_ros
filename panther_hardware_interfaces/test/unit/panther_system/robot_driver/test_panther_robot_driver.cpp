@@ -188,6 +188,7 @@ TEST_F(TestPantherRobotDriver, UpdateCommunicationStateHeartbeatTimeout)
 
 TEST_F(TestPantherRobotDriver, UpdateMotorsState)
 {
+  using panther_hardware_interfaces::PantherMotorChannel;
   using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
   using panther_hardware_interfaces_test::kRbtqPosFbToRad;
   using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
@@ -220,10 +221,14 @@ TEST_F(TestPantherRobotDriver, UpdateMotorsState)
 
   robot_driver_->UpdateMotorsState();
 
-  const auto & fl = robot_driver_->GetData(kFrontDriverName).GetLeftMotorState();
-  const auto & fr = robot_driver_->GetData(kFrontDriverName).GetRightMotorState();
-  const auto & rl = robot_driver_->GetData(kRearDriverName).GetLeftMotorState();
-  const auto & rr = robot_driver_->GetData(kRearDriverName).GetRightMotorState();
+  const auto & fl =
+    robot_driver_->GetData(kFrontDriverName).GetMotorState(PantherMotorChannel::LEFT);
+  const auto & fr =
+    robot_driver_->GetData(kFrontDriverName).GetMotorState(PantherMotorChannel::RIGHT);
+  const auto & rl =
+    robot_driver_->GetData(kRearDriverName).GetMotorState(PantherMotorChannel::LEFT);
+  const auto & rr =
+    robot_driver_->GetData(kRearDriverName).GetMotorState(PantherMotorChannel::RIGHT);
 
   EXPECT_FLOAT_EQ(fl.GetPosition(), fl_pos * kRbtqPosFbToRad);
   EXPECT_FLOAT_EQ(fl.GetVelocity(), fl_vel * kRbtqVelFbToRadPerSec);
@@ -300,6 +305,8 @@ TEST_F(TestPantherRobotDriver, UpdateMotorsStateTimeout)
 
 TEST_F(TestPantherRobotDriver, UpdateDriverState)
 {
+  using panther_hardware_interfaces::PantherMotorChannel;
+
   const std::int16_t f_temp = 30;
   const std::int16_t r_temp = 32;
   const std::int16_t f_heatsink_temp = 31;
@@ -371,13 +378,14 @@ TEST_F(TestPantherRobotDriver, UpdateDriverState)
 
   EXPECT_TRUE(front.GetFaultFlag().GetMessage().overheat);
   EXPECT_TRUE(front.GetScriptFlag().GetMessage().encoder_disconnected);
-  EXPECT_TRUE(front.GetRightRuntimeError().GetMessage().loop_error);
-  EXPECT_TRUE(front.GetLeftRuntimeError().GetMessage().safety_stop_active);
+  EXPECT_TRUE(front.GetRuntimeError(PantherMotorChannel::RIGHT).GetMessage().loop_error);
+  EXPECT_TRUE(front.GetRuntimeError(PantherMotorChannel::LEFT).GetMessage().safety_stop_active);
 
   EXPECT_TRUE(rear.GetFaultFlag().GetMessage().overvoltage);
   EXPECT_TRUE(rear.GetScriptFlag().GetMessage().amp_limiter);
-  EXPECT_TRUE(rear.GetRightRuntimeError().GetMessage().forward_limit_triggered);
-  EXPECT_TRUE(rear.GetLeftRuntimeError().GetMessage().reverse_limit_triggered);
+  EXPECT_TRUE(
+    rear.GetRuntimeError(PantherMotorChannel::RIGHT).GetMessage().forward_limit_triggered);
+  EXPECT_TRUE(rear.GetRuntimeError(PantherMotorChannel::LEFT).GetMessage().reverse_limit_triggered);
 }
 
 TEST_F(TestPantherRobotDriver, UpdateDriverStateTimestamps)

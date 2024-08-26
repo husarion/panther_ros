@@ -36,10 +36,10 @@ struct PantherDriverNames
   static constexpr char REAR[] = "rear";
 };
 
-struct PantherMotorChannels
+struct PantherMotorChannel
 {
-  static constexpr std::uint8_t LEFT = 2;
-  static constexpr std::uint8_t RIGHT = 1;
+  static constexpr std::uint8_t LEFT = RoboteqDriver::kChannel2;
+  static constexpr std::uint8_t RIGHT = RoboteqDriver::kChannel1;
 };
 
 /**
@@ -256,7 +256,7 @@ public:
 
 private:
   void SetMotorsStates(
-    RoboteqData & data, const MotorDriverState & front_state, const MotorDriverState & rear_state,
+    RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
     const timespec & current_time);
   void SetDriverState(RoboteqData & data, const DriverState & state, const timespec & current_time);
 

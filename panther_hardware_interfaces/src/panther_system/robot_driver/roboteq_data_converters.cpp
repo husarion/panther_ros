@@ -203,11 +203,11 @@ std::map<std::string, bool> RuntimeError::GetErrorMap() const
 }
 
 void RoboteqData::SetMotorsStates(
-  const MotorDriverState & left_state, const MotorDriverState & right_state,
+  const MotorDriverState & channel_1_state, const MotorDriverState & channel_2_state,
   const bool data_timed_out)
 {
-  left_motor_state_.SetData(left_state);
-  right_motor_state_.SetData(right_state);
+  channel_1_motor_state_.SetData(channel_1_state);
+  channel_2_motor_state_.SetData(channel_2_state);
   motor_states_data_timed_out_ = data_timed_out;
 }
 
@@ -221,8 +221,8 @@ void RoboteqData::SetDriverState(const DriverState & state, const bool data_time
 
   fault_flags_.SetData(state.fault_flags);
   script_flags_.SetData(state.script_flags);
-  left_runtime_error_.SetData(state.runtime_stat_flag_motor_2);
-  right_runtime_error_.SetData(state.runtime_stat_flag_motor_1);
+  channel_1_runtime_error_.SetData(state.runtime_stat_flag_channel_1);
+  channel_2_runtime_error_.SetData(state.runtime_stat_flag_channel_2);
 
   driver_state_data_timed_out_ = data_timed_out;
 }
@@ -231,8 +231,8 @@ std::string RoboteqData::GetFlagErrorLog() const
 {
   return "Fault flags: " + fault_flags_.GetErrorLog() +
          "Script flags: " + script_flags_.GetErrorLog() +
-         "Left motor runtime flags: " + left_runtime_error_.GetErrorLog() +
-         "Right motor runtime flags: " + right_runtime_error_.GetErrorLog();
+         "Channel 1 motor runtime flags: " + channel_1_runtime_error_.GetErrorLog() +
+         "Channel 2 motor runtime flags: " + channel_2_runtime_error_.GetErrorLog();
 }
 
 std::map<std::string, bool> RoboteqData::GetFlagErrorMap() const
@@ -242,14 +242,14 @@ std::map<std::string, bool> RoboteqData::GetFlagErrorMap() const
   flag_error_map.merge(fault_flags_.GetErrorMap());
   flag_error_map.merge(script_flags_.GetErrorMap());
 
-  auto left_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
-    left_runtime_error_.GetErrorMap(), "left_motor.");
+  auto channel_1_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
+    channel_1_runtime_error_.GetErrorMap(), "channel_1_motor.");
 
-  auto right_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
-    right_runtime_error_.GetErrorMap(), "right_motor.");
+  auto channel_2_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
+    channel_2_runtime_error_.GetErrorMap(), "channel_2_motor.");
 
-  flag_error_map.merge(std::move(left_runtime_error_map));
-  flag_error_map.merge(std::move(right_runtime_error_map));
+  flag_error_map.merge(std::move(channel_1_runtime_error_map));
+  flag_error_map.merge(std::move(channel_2_runtime_error_map));
 
   return flag_error_map;
 }
