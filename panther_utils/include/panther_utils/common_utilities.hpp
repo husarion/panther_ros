@@ -64,7 +64,7 @@ std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmo
 }
 
 /**
- * @brief Checks if the Panther version meets the required version.
+ * @brief Checks if a version meets the required version.
  *
  * @param panther_version The Panther version.
  * @param version The required version.

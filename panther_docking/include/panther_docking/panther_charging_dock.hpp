@@ -127,13 +127,17 @@ public:
 protected:
   /**
    * @brief Method to declare parameters.
+   *
+   * @param node The node to declare parameters in.
    */
-  void declareParameters();
+  void declareParameters(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node);
 
   /**
    * @brief Method to get parameters.
+   *
+   * @param node The node to declare parameters in.
    */
-  void getParameters();
+  void getParameters(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node);
 
   /**
    * @brief Offset the staging pose.
@@ -190,7 +194,7 @@ protected:
   rclcpp::Logger logger_{rclcpp::get_logger("PantherChargingDock")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
-  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   tf2_ros::Buffer::SharedPtr tf2_buffer_;
 
   rclcpp::Publisher<PoseStampedMsg>::SharedPtr staging_pose_pub_;

@@ -114,7 +114,6 @@ protected:
 
 TestPantherChargingDock::TestPantherChargingDock()
 {
-  rclcpp::init(0, nullptr);
   node_ = std::make_shared<rclcpp_lifecycle::LifecycleNode>("panther_charging_dock_test");
 
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
@@ -164,8 +163,6 @@ TestPantherChargingDock::~TestPantherChargingDock()
   if (executor_) {
     executor_->cancel();
   }
-
-  rclcpp::shutdown();
 }
 
 void TestPantherChargingDock::ConfigureAndActivateDock()
@@ -401,4 +398,21 @@ TEST_F(TestPantherChargingDock, IsDocked)
   charging_dock_->getStagingPose(geometry_msgs::msg::Pose(), kDockFrame);
 
   EXPECT_TRUE(charging_dock_->isDocked());
+}
+
+TEST_F(TestPantherChargingDock, FailedConfigureCannotLockNode)
+{
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node;
+  ASSERT_THROW({ charging_dock_->configure(node, kDockFrame, tf2_buffer_); }, std::runtime_error);
+}
+
+int main(int argc, char ** argv)
+{
+  rclcpp::init(argc, argv);
+  testing::InitGoogleTest(&argc, argv);
+
+  auto run_tests = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  return run_tests;
 }
