@@ -16,8 +16,11 @@
 
 #include <chrono>
 #include <ctime>
+#include <memory>
 #include <stdexcept>
+#include <string>
 #include <thread>
+#include <utility>
 
 #include "lely/util/chrono.hpp"
 
@@ -28,18 +31,23 @@
 namespace panther_hardware_interfaces
 {
 
-MotorsController::MotorsController(
-  const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings)
+PantherRobotDriver::PantherRobotDriver(
+  const std::shared_ptr<Driver> front_driver, const std::shared_ptr<Driver> rear_driver,
+  const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
+  const std::chrono::milliseconds activate_wait_time)
 : canopen_manager_(canopen_settings),
+  front_driver_(std::move(front_driver)),
+  rear_driver_(std::move(rear_driver)),
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_vel_cmd_converter_(drivetrain_settings),
   pdo_motor_states_timeout_ms_(canopen_settings.pdo_motor_states_timeout_ms),
-  pdo_driver_state_timeout_ms_(canopen_settings.pdo_driver_state_timeout_ms)
+  pdo_driver_state_timeout_ms_(canopen_settings.pdo_driver_state_timeout_ms),
+  activate_wait_time_(activate_wait_time)
 {
 }
 
-void MotorsController::Initialize()
+void PantherRobotDriver::Initialize()
 {
   if (initialized_) {
     return;
@@ -47,6 +55,8 @@ void MotorsController::Initialize()
 
   try {
     canopen_manager_.Initialize();
+    front_driver_->Boot();
+    rear_driver_->Boot();
   } catch (const std::runtime_error & e) {
     throw e;
   }
@@ -54,66 +64,75 @@ void MotorsController::Initialize()
   initialized_ = true;
 }
 
-void MotorsController::Deinitialize()
+void PantherRobotDriver::Deinitialize()
 {
   canopen_manager_.Deinitialize();
   initialized_ = false;
 }
 
-void MotorsController::Activate()
+void PantherRobotDriver::Activate()
 {
   // Activation procedure - it is necessary to first reset scripts, wait for a bit (1 second)
   // and then send 0 commands for some time (also 1 second)
 
   try {
-    canopen_manager_.GetFrontDriver()->ResetRoboteqScript();
+    front_driver_->ResetScript();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Front driver reset Roboteq script exception: " + std::string(e.what()));
   }
 
   try {
-    canopen_manager_.GetRearDriver()->ResetRoboteqScript();
+    rear_driver_->ResetScript();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Rear driver reset Roboteq script exception: " + std::string(e.what()));
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(activate_wait_time_);
 
   try {
-    canopen_manager_.GetFrontDriver()->SendRoboteqCmd(0, 0);
+    front_driver_->GetMotorDriver(PantherMotorNames::LEFT)->SendCmdVel(0);
+    front_driver_->GetMotorDriver(PantherMotorNames::RIGHT)->SendCmdVel(0);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver send 0 command exception: " + std::string(e.what()));
   }
 
   try {
-    canopen_manager_.GetRearDriver()->SendRoboteqCmd(0, 0);
+    rear_driver_->GetMotorDriver(PantherMotorNames::LEFT)->SendCmdVel(0);
+    rear_driver_->GetMotorDriver(PantherMotorNames::RIGHT)->SendCmdVel(0);
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver send 0 command exception: " + std::string(e.what()));
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(activate_wait_time_);
 }
 
-void MotorsController::UpdateCommunicationState()
+void PantherRobotDriver::UpdateCommunicationState()
 {
-  front_data_.SetCANError(canopen_manager_.GetFrontDriver()->IsCANError());
-  rear_data_.SetCANError(canopen_manager_.GetRearDriver()->IsCANError());
+  front_data_.SetCANError(front_driver_->IsCANError());
+  rear_data_.SetCANError(rear_driver_->IsCANError());
 
-  front_data_.SetHeartbeatTimeout(canopen_manager_.GetFrontDriver()->IsHeartbeatTimeout());
-  rear_data_.SetHeartbeatTimeout(canopen_manager_.GetRearDriver()->IsHeartbeatTimeout());
+  front_data_.SetHeartbeatTimeout(front_driver_->IsHeartbeatTimeout());
+  rear_data_.SetHeartbeatTimeout(rear_driver_->IsHeartbeatTimeout());
 }
 
-void MotorsController::UpdateMotorsState()
+void PantherRobotDriver::UpdateMotorsState()
 {
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  SetMotorsStates(
-    front_data_, canopen_manager_.GetFrontDriver()->ReadRoboteqMotorsStates(), current_time);
-  SetMotorsStates(
-    rear_data_, canopen_manager_.GetRearDriver()->ReadRoboteqMotorsStates(), current_time);
+  const auto fl_state =
+    front_driver_->GetMotorDriver(PantherMotorNames::LEFT)->ReadMotorDriverState();
+  const auto fr_state =
+    front_driver_->GetMotorDriver(PantherMotorNames::RIGHT)->ReadMotorDriverState();
+  const auto rl_state =
+    rear_driver_->GetMotorDriver(PantherMotorNames::LEFT)->ReadMotorDriverState();
+  const auto rr_state =
+    rear_driver_->GetMotorDriver(PantherMotorNames::RIGHT)->ReadMotorDriverState();
+
+  SetMotorsStates(front_data_, fl_state, fr_state, current_time);
+  SetMotorsStates(rear_data_, rl_state, rr_state, current_time);
 
   UpdateCommunicationState();
 
@@ -126,15 +145,13 @@ void MotorsController::UpdateMotorsState()
   }
 }
 
-void MotorsController::UpdateDriversState()
+void PantherRobotDriver::UpdateDriversState()
 {
   timespec current_time;
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-  SetDriverState(
-    front_data_, canopen_manager_.GetFrontDriver()->ReadRoboteqDriverState(), current_time);
-  SetDriverState(
-    rear_data_, canopen_manager_.GetRearDriver()->ReadRoboteqDriverState(), current_time);
+  SetDriverState(front_data_, front_driver_->ReadDriverState(), current_time);
+  SetDriverState(rear_data_, rear_driver_->ReadDriverState(), current_time);
 
   UpdateCommunicationState();
 
@@ -147,99 +164,116 @@ void MotorsController::UpdateDriversState()
   }
 }
 
-void MotorsController::SendSpeedCommands(
+const RoboteqData & PantherRobotDriver::GetData(const std::string & name)
+{
+  if (name == PantherDriverNames::FRONT) {
+    return front_data_;
+  } else if (name == PantherDriverNames::REAR) {
+    return rear_data_;
+  } else {
+    throw std::runtime_error("Data with name '" + name + "' does not exist.");
+  }
+}
+
+void PantherRobotDriver::SendSpeedCommands(
   const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr)
 {
   // Channel 1 - right motor, Channel 2 - left motor
   try {
-    canopen_manager_.GetFrontDriver()->SendRoboteqCmd(
-      roboteq_vel_cmd_converter_.Convert(speed_fr), roboteq_vel_cmd_converter_.Convert(speed_fl));
+    front_driver_->GetMotorDriver(PantherMotorNames::LEFT)
+      ->SendCmdVel(roboteq_vel_cmd_converter_.Convert(speed_fl));
+    front_driver_->GetMotorDriver(PantherMotorNames::RIGHT)
+      ->SendCmdVel(roboteq_vel_cmd_converter_.Convert(speed_fr));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Front driver send Roboteq cmd failed: " + std::string(e.what()));
   }
   try {
-    canopen_manager_.GetRearDriver()->SendRoboteqCmd(
-      roboteq_vel_cmd_converter_.Convert(speed_rr), roboteq_vel_cmd_converter_.Convert(speed_rl));
+    rear_driver_->GetMotorDriver(PantherMotorNames::LEFT)
+      ->SendCmdVel(roboteq_vel_cmd_converter_.Convert(speed_rl));
+    rear_driver_->GetMotorDriver(PantherMotorNames::RIGHT)
+      ->SendCmdVel(roboteq_vel_cmd_converter_.Convert(speed_rr));
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Rear driver send Roboteq cmd failed: " + std::string(e.what()));
   }
 
-  if (canopen_manager_.GetFrontDriver()->IsCANError()) {
+  if (front_driver_->IsCANError()) {
     throw std::runtime_error(
       "CAN error detected on the front driver when trying to write speed commands.");
   }
-  if (canopen_manager_.GetRearDriver()->IsCANError()) {
+  if (rear_driver_->IsCANError()) {
     throw std::runtime_error(
       "CAN error detected on the rear driver when trying to write speed commands.");
   }
 }
 
-void MotorsController::TurnOnEStop()
+void PantherRobotDriver::TurnOnEStop()
 {
   try {
-    canopen_manager_.GetFrontDriver()->TurnOnEStop();
+    front_driver_->TurnOnEStop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Failed to turn on E-stop on the front driver: " + std::string(e.what()));
   }
   try {
-    canopen_manager_.GetRearDriver()->TurnOnEStop();
+    rear_driver_->TurnOnEStop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Failed to turn on E-stop on the rear driver: " + std::string(e.what()));
   }
 }
 
-void MotorsController::TurnOffEStop()
+void PantherRobotDriver::TurnOffEStop()
 {
   try {
-    canopen_manager_.GetFrontDriver()->TurnOffEStop();
+    front_driver_->TurnOffEStop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Failed to turn off E-stop on the front driver: " + std::string(e.what()));
   }
   try {
-    canopen_manager_.GetRearDriver()->TurnOffEStop();
+    rear_driver_->TurnOffEStop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Failed to turn off E-stop on the rear driver: " + std::string(e.what()));
   }
 }
 
-void MotorsController::TurnOnSafetyStop()
+void PantherRobotDriver::TurnOnSafetyStop()
 {
   try {
-    canopen_manager_.GetFrontDriver()->TurnOnSafetyStopChannel1();
-    canopen_manager_.GetFrontDriver()->TurnOnSafetyStopChannel2();
+    front_driver_->GetMotorDriver(PantherMotorNames::LEFT)->TurnOnSafetyStop();
+    front_driver_->GetMotorDriver(PantherMotorNames::RIGHT)->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Failed to turn on safety stop on the front driver: " + std::string(e.what()));
   }
   try {
-    canopen_manager_.GetRearDriver()->TurnOnSafetyStopChannel1();
-    canopen_manager_.GetRearDriver()->TurnOnSafetyStopChannel2();
+    rear_driver_->GetMotorDriver(PantherMotorNames::LEFT)->TurnOnSafetyStop();
+    rear_driver_->GetMotorDriver(PantherMotorNames::RIGHT)->TurnOnSafetyStop();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error(
       "Failed to turn on safety stop on the rear driver: " + std::string(e.what()));
   }
 }
 
-void MotorsController::SetMotorsStates(
-  RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time)
+void PantherRobotDriver::SetMotorsStates(
+  RoboteqData & data, const MotorDriverState & front_state, const MotorDriverState & rear_state,
+  const timespec & current_time)
 {
-  bool data_timed_out =
-    (lely::util::from_timespec(current_time) - lely::util::from_timespec(states.pos_timestamp) >
-     pdo_motor_states_timeout_ms_) ||
-    (lely::util::from_timespec(current_time) -
-       lely::util::from_timespec(states.vel_current_timestamp) >
-     pdo_motor_states_timeout_ms_);
+  // TODO figure out both motors timestamps
+  bool data_timed_out = (lely::util::from_timespec(current_time) -
+                           lely::util::from_timespec(front_state.pos_timestamp) >
+                         pdo_motor_states_timeout_ms_) ||
+                        (lely::util::from_timespec(current_time) -
+                           lely::util::from_timespec(front_state.vel_current_timestamp) >
+                         pdo_motor_states_timeout_ms_);
 
   // Channel 1 - right, Channel 2 - left
-  data.SetMotorsStates(states.motor_2, states.motor_1, data_timed_out);
+  data.SetMotorsStates(front_state, rear_state, data_timed_out);
 }
 
-void MotorsController::SetDriverState(
-  RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time)
+void PantherRobotDriver::SetDriverState(
+  RoboteqData & data, const DriverState & state, const timespec & current_time)
 {
   bool data_timed_out = (lely::util::from_timespec(current_time) -
                            lely::util::from_timespec(state.flags_current_timestamp) >

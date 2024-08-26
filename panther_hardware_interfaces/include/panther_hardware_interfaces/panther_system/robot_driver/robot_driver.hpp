@@ -24,16 +24,30 @@
 namespace panther_hardware_interfaces
 {
 
+struct PantherMotorNames
+{
+  static constexpr char LEFT[] = "left";
+  static constexpr char RIGHT[] = "right";
+};
+
+struct PantherDriverNames
+{
+  static constexpr char FRONT[] = "front";
+  static constexpr char REAR[] = "rear";
+};
+
+struct PantherMotorChannels
+{
+  static constexpr std::uint8_t LEFT = 2;
+  static constexpr std::uint8_t RIGHT = 1;
+};
+
 /**
  * @brief Abstract class for managing robot drivers.
  */
 class RobotDriver
 {
 public:
-  RobotDriver() = default;
-
-  ~RobotDriver() { Deinitialize(); }
-
   /**
    * @brief Initialize robot driver
    *
@@ -137,9 +151,16 @@ class PantherRobotDriver : public RobotDriver
 {
 public:
   PantherRobotDriver(
-    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings);
+    const std::shared_ptr<Driver> front_driver, const std::shared_ptr<Driver> rear_driver,
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
+    const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000));
 
-  ~PantherRobotDriver() = default;
+  ~PantherRobotDriver()
+  {
+    front_driver_.reset();
+    rear_driver_.reset();
+    Deinitialize();
+  };
 
   /**
    * @brief Starts CAN communication and waits for boot to finish
@@ -182,6 +203,14 @@ public:
    */
   void UpdateDriversState() override;
 
+  /**
+   * @brief Get data feedback from the driver
+   *
+   * @param name name of the data to get
+   *
+   * @return data feedback
+   * @exception std::runtime_error if data with the given name does not exist
+   */
   const RoboteqData & GetData(const std::string & name) override;
 
   /**
@@ -227,13 +256,16 @@ public:
 
 private:
   void SetMotorsStates(
-    RoboteqData & data, const RoboteqMotorsStates & states, const timespec & current_time);
-  void SetDriverState(
-    RoboteqData & data, const RoboteqDriverState & state, const timespec & current_time);
+    RoboteqData & data, const MotorDriverState & front_state, const MotorDriverState & rear_state,
+    const timespec & current_time);
+  void SetDriverState(RoboteqData & data, const DriverState & state, const timespec & current_time);
 
   bool initialized_ = false;
 
   CANopenManager canopen_manager_;
+
+  std::shared_ptr<Driver> front_driver_;
+  std::shared_ptr<Driver> rear_driver_;
 
   RoboteqData front_data_;
   RoboteqData rear_data_;
@@ -242,6 +274,7 @@ private:
 
   const std::chrono::milliseconds pdo_motor_states_timeout_ms_;
   const std::chrono::milliseconds pdo_driver_state_timeout_ms_;
+  const std::chrono::milliseconds activate_wait_time_;
 };
 
 }  // namespace panther_hardware_interfaces

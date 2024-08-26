@@ -42,7 +42,7 @@ const panther_hardware_interfaces::DrivetrainSettings kDrivetrainSettings{
 
 constexpr float kRadPerSecToRbtqCmd = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
 constexpr float kRbtqPosFbToRad = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
-constexpr float kRbtqVelFbToRadPerSec = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
+constexpr float kRbtqVelFbToRadPerSec = (3600. / 1000.) * (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
 constexpr float kRbtqCurrentFbToNewtonMeters = (1. / 10.) * 0.11 * 30.08 * 0.75;
 
 const std::string kPantherSystemName = "wheels";
