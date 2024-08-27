@@ -113,15 +113,12 @@ protected:
 
 TEST_F(TestPantherRobotDriverInitialization, Initialize)
 {
-  std::cout << "TestPantherRobotDriverInitialization Initialize" << std::endl;
   EXPECT_CALL(*front_driver_mock_, Boot()).Times(1);
   EXPECT_CALL(*rear_driver_mock_, Boot()).Times(1);
 
-  std::cout << "TestPantherRobotDriverInitialization Initialize" << std::endl;
   ASSERT_NO_THROW(robot_driver_->Initialize());
   ASSERT_NO_THROW(robot_driver_->Deinitialize());
 
-  std::cout << "TestPantherRobotDriverInitialization Initialize" << std::endl;
   EXPECT_CALL(*front_driver_mock_, Boot()).Times(1);
   EXPECT_CALL(*rear_driver_mock_, Boot()).Times(1);
   // Check if deinitialization worked correctly - initialize once again
