@@ -258,13 +258,13 @@ private:
 };
 
 /**
- * @brief Class that simulates two Roboteqs
+ * @brief Class that simulates Roboteq controller
  */
-class RoboteqsMock
+class RoboteqMock
 {
 public:
-  RoboteqsMock() {}
-  ~RoboteqsMock() {}
+  RoboteqMock() {}
+  ~RoboteqMock() {}
 
   /**
    * @brief Starts CAN communication and creates a simulated Roboteq, that publish PDOs with set
@@ -290,11 +290,6 @@ public:
           std::filesystem::path(
             ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
           "test" / "config" / "slave_1.bin";
-
-        std::string slave2_eds_bin_path =
-          std::filesystem::path(
-            ament_index_cpp::get_package_share_directory("panther_hardware_interfaces")) /
-          "test" / "config" / "slave_2.bin";
 
         lely::io::IoGuard io_guard;
         lely::io::Poll poll(*ctx_);
@@ -336,7 +331,7 @@ public:
   }
 
   /**
-   * @brief Stops CAN communication and removes simulated Roboteqs
+   * @brief Stops CAN communication and removes simulated Roboteq
    */
   void Stop()
   {
