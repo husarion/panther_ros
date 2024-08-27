@@ -19,6 +19,8 @@
 #include <mutex>
 #include <string>
 
+#include <realtime_tools/realtime_box.h>
+
 #include <gz/math/Color.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/sim/EntityComponentManager.hh>
@@ -45,14 +47,29 @@ class LEDStrip : public gz::sim::System,
 public:
   /**
    * @brief Configures the LED strip. This function fill up parameters and light_cmd_ based on URDF.
+   * Inherit from gz::sim::ISystemConfigure. More information can be found in the [Gazebo
+   * documentation](https://gazebosim.org/api/gazebo/6/createsystemplugins.html).
+   *
+   * @param id The entity ID of the model.
+   * @param sdf The SDF element of the model.
+   * @param ecm The entity component manager.
+   * @param eventMgr The event manager.
+   *
+   * @exception std::runtime_error if the entity is not a model.
    */
   void Configure(
     const gz::sim::Entity & id, const std::shared_ptr<const sdf::Element> & sdf,
-    gz::sim::EntityComponentManager & ecm, gz::sim::EventManager & eventMgr);
+    gz::sim::EntityComponentManager & ecm, gz::sim::EventManager & eventMgr) override;
+
   /**
-   * @brief Displays lights and markers, with specified by URDF frequency.
+   * @brief Displays lights and markers, with specified by URDF frequency. Inherit from
+   * gz::sim::ISystemPreUpdate. More information can be found in the [Gazebo
+   * documentation](https://gazebosim.org/api/gazebo/6/createsystemplugins.html).
+   *
+   * @param info The update information.
+   * @param ecm The entity component manager.
    */
-  void PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm);
+  void PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm) override;
 
 private:
   void ParseParameters(const std::shared_ptr<const sdf::Element> & sdf);
@@ -60,15 +77,22 @@ private:
   /**
    * @brief Return Light command based on light configuration specified in URDF file Light
    * properties
+   *
+   * @param ecm Entity Component Manager
+   * @return Light command message
+   * @exception std::runtime_error if the light entity is not found.
    */
   gz::msgs::Light SetupLightCmd(gz::sim::EntityComponentManager & ecm);
 
   /**
    * @brief Convert sdf::Light (configuration from URDF) to gz::msgs::Light (command msg)
+   *
+   * @param light_sdf Light SDF configuration
+   * @return Light command message
    */
-  gz::msgs::Light ConvertLight(const sdf::Light & light_sdf);
+  gz::msgs::Light CreateLightMsgFromSdf(const sdf::Light & light_sdf);
   void ImageCallback(const gz::msgs::Image & msg);
-  void MsgValidation(const gz::msgs::Image & msg);
+  bool IsEncodingValid(const gz::msgs::Image & msg);
   gz::math::Color CalculateMeanColor(const gz::msgs::Image & msg);
 
   /**
@@ -103,12 +127,11 @@ private:
 
   bool new_image_available_ = false;
   gz::msgs::Light light_cmd_;
-  gz::msgs::Image last_image_;
+  realtime_tools::RealtimeBox<gz::msgs::Image> last_image_;
   gz::sim::Entity light_entity_{gz::sim::kNullEntity};
   gz::transport::Node node_;
   std::chrono::steady_clock::duration last_update_time_{std::chrono::seconds(
     1)};  // Avoid initialization errors when the robot is not yet spawned on the scene.
-  std::mutex image_mutex_;
 };
 
 }  // namespace panther_gazebo

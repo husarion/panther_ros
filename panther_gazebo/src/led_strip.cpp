@@ -15,6 +15,7 @@
 #include "panther_gazebo/led_strip.hpp"
 
 #include <stddef.h>
+#include <limits>
 
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Model.hh>
@@ -23,6 +24,7 @@
 
 #include <gz/msgs/color.pb.h>
 #include <gz/msgs/marker.pb.h>
+
 namespace panther_gazebo
 {
 void LEDStrip::Configure(
@@ -51,8 +53,7 @@ void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityCompon
   if (new_image_available_ && current_time - last_update_time_ >= period) {
     gz::msgs::Image image;
     {
-      std::lock_guard<std::mutex> lock(image_mutex_);
-      image = last_image_;
+      last_image_.get(image);
       new_image_available_ = false;
     }
 
@@ -67,15 +68,17 @@ void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityCompon
 
 void LEDStrip::ParseParameters(const std::shared_ptr<const sdf::Element> & sdf)
 {
-  if (!sdf->HasElement("light_name")) {
+  if (sdf->HasElement("light_name")) {
+    light_name_ = sdf->Get<std::string>("light_name");
+  } else {
     ignerr << "Error: The light_name parameter is missing." << std::endl;
   }
-  light_name_ = sdf->Get<std::string>("light_name");
 
-  if (!sdf->HasElement("topic")) {
+  if (sdf->HasElement("topic")) {
+    image_topic_ = sdf->Get<std::string>("topic");
+  } else {
     ignerr << "Error: The topic parameter is missing." << std::endl;
   }
-  image_topic_ = sdf->Get<std::string>("topic");
 
   ns_ = sdf->HasElement("namespace") ? sdf->Get<std::string>("namespace") : ns_;
   frequency_ = sdf->HasElement("frequency") ? sdf->Get<double>("frequency") : frequency_;
@@ -91,22 +94,22 @@ gz::msgs::Light LEDStrip::SetupLightCmd(gz::sim::EntityComponentManager & ecm)
     [&](
       const gz::sim::Entity & entity, const gz::sim::components::Name * name,
       const gz::sim::components::Light * light_component) -> bool {
-      if (name->Data() == light_name_) {
-        light_entity_ = entity;
-        igndbg << "Light entity found: " << light_entity_ << std::endl;
-        light_cmd = ConvertLight(light_component->Data());
-        return false;  // Stop searching
+      if (name->Data() != light_name_) {
+        return true;  // Continue searching
       }
-      return true;  // Continue searching
+      light_entity_ = entity;
+      igndbg << "Light entity found: " << light_entity_ << std::endl;
+      light_cmd = CreateLightMsgFromSdf(light_component->Data());
+      return false;  // Stop searching
     });
 
   if (light_entity_ == gz::sim::kNullEntity) {
-    ignerr << "Error: Light entity not found. Return default light command msg." << std::endl;
+    throw std::runtime_error("Error: Light entity not found.");
   }
   return light_cmd;
 }
 
-gz::msgs::Light LEDStrip::ConvertLight(const sdf::Light & light_sdf)
+gz::msgs::Light LEDStrip::CreateLightMsgFromSdf(const sdf::Light & light_sdf)
 {
   gz::msgs::Light light_cmd;
 
@@ -146,28 +149,24 @@ gz::msgs::Light LEDStrip::ConvertLight(const sdf::Light & light_sdf)
 
 void LEDStrip::ImageCallback(const gz::msgs::Image & msg)
 {
-  try {
-    MsgValidation(msg);
-    std::lock_guard<std::mutex> lock(image_mutex_);
-    last_image_ = msg;
-    new_image_available_ = true;
-  } catch (const std::exception & e) {
-    ignerr << "Error: " << e.what() << std::endl;
+  if (!IsEncodingValid(msg)) {
+    ignerr << "Error: Incorrect image encoding." << std::endl;
+    return;
   }
+
+  last_image_.set(msg);
+  new_image_available_ = true;
 }
 
-void LEDStrip::MsgValidation(const gz::msgs::Image & msg)
+bool LEDStrip::IsEncodingValid(const gz::msgs::Image & msg)
 {
-  if (
-    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGBA_INT8 &&
-    msg.pixel_format_type() != gz::msgs::PixelFormatType::RGB_INT8) {
-    throw std::runtime_error("Incorrect image encoding.");
-  }
+  return msg.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8 ||
+         msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8;
 }
 
 gz::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
 {
-  int sum_r = 0, sum_g = 0, sum_b = 0, sum_a = 0;
+  size_t sum_r = 0, sum_g = 0, sum_b = 0, sum_a = 0;
   size_t pixel_count = msg.width() * msg.height();
 
   const std::string & data = msg.data();
@@ -183,13 +182,15 @@ gz::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
     }
   }
 
-  int mean_r = sum_r / pixel_count;
-  int mean_g = sum_g / pixel_count;
-  int mean_b = sum_b / pixel_count;
-  int mean_a = is_rgba ? sum_a / pixel_count : 255;
+  float max_value = std::numeric_limits<uint8_t>::max();
+  float norm_factor = max_value * pixel_count;
 
-  auto mean_color = gz::math::Color(
-    mean_r / 255.0f, mean_g / 255.0f, mean_b / 255.0f, mean_a / 255.0f);
+  float norm_mean_r = sum_r / norm_factor;
+  float norm_mean_g = sum_g / norm_factor;
+  float norm_mean_b = sum_b / norm_factor;
+  float norm_mean_a = is_rgba ? sum_a / norm_factor : 1.0f;
+
+  auto mean_color = gz::math::Color(norm_mean_r, norm_mean_g, norm_mean_b, norm_mean_a);
 
   return mean_color;
 }
@@ -222,6 +223,7 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
   double step_width = marker_width_ / image.width();
   double step_height = marker_height_ / image.height();
 
+  float max_value = std::numeric_limits<uint8_t>::max();
   bool is_rgba = (image.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
   int step = is_rgba ? 4 : 3;
 
@@ -231,16 +233,19 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
     for (size_t x = 0; x < image.width(); ++x) {
       size_t idx = (y * image.width() + x) * step;
 
-      auto pixel_color = gz::math::Color(
-        static_cast<uint8_t>(data[idx]) / 255.0f, static_cast<uint8_t>(data[idx + 1]) / 255.0f,
-        static_cast<uint8_t>(data[idx + 2]) / 255.0f,
-        is_rgba ? static_cast<uint8_t>(data[idx + 3]) / 255.0f : 1.0f);
+      float r = static_cast<uint8_t>(data[idx]) / max_value;
+      float g = static_cast<uint8_t>(data[idx + 1]) / max_value;
+      float b = static_cast<uint8_t>(data[idx + 2]) / max_value;
+      float a = is_rgba ? static_cast<uint8_t>(data[idx + 3]) / max_value : 1.0f;
+      auto pixel_color = gz::math::Color(r, g, b, a);
 
-      auto pose = gz::math::Pose3d(
-        light_pose.Pos().X(),
-        light_pose.Pos().Y() + x * step_width - marker_width_ / 2.0 + step_width / 2.0,
-        light_pose.Pos().Z() + y * step_height, light_pose.Rot().Roll(), light_pose.Rot().Pitch(),
-        light_pose.Rot().Yaw());
+      double x_pos = light_pose.Pos().X();
+      double y_pos = light_pose.Pos().Y() + x * step_width - marker_width_ / 2.0 + step_width / 2.0;
+      double z_pos = light_pose.Pos().Z() + y * step_height;
+      double roll = light_pose.Rot().Roll();
+      double pitch = light_pose.Rot().Pitch();
+      double yaw = light_pose.Rot().Yaw();
+      auto pose = gz::math::Pose3d(x_pos, y_pos, z_pos, roll, pitch, yaw);
 
       CreateMarker(idx, pose, pixel_color, pixel_size);
     }

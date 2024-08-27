@@ -15,6 +15,7 @@ set(PACKAGE_DEPENDENCIES
     ign_ros2_control
     pluginlib
     rclcpp
+    realtime_tools
     std_msgs
     std_srvs)
 
@@ -43,12 +44,18 @@ qt5_add_resources(resources_rcc src/gui/EStop.qrc)
 
 add_library(EStop SHARED include/panther_gazebo/gui/e_stop.hpp
                          src/gui/e_stop.cpp ${resources_rcc})
-ament_target_dependencies(EStop ignition-gazebo6 ignition-plugin1 rclcpp
-                          std_srvs)
-target_link_libraries(EStop ${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES}
-                      ${Qt5Quick_LIBRARIES} ${Qt5QuickControls2_LIBRARIES})
+ament_target_dependencies(EStop rclcpp std_srvs)
+target_link_libraries(
+  EStop
+  ignition-gazebo6
+  ignition-plugin1
+  ${Qt5Core_LIBRARIES}
+  ${Qt5Qml_LIBRARIES}
+  ${Qt5Quick_LIBRARIES}
+  ${Qt5QuickControls2_LIBRARIES})
 
 add_library(LEDStrip SHARED src/led_strip.cpp)
+ament_target_dependencies(LEDStrip realtime_tools)
 target_link_libraries(LEDStrip ignition-gazebo6 ignition-msgs8 ignition-plugin1
                       ignition-transport11)
 
