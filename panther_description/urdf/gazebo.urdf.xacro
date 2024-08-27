@@ -135,12 +135,18 @@
         <diffuse>1.0 1.0 1.0</diffuse>
         <specular>1.0 1.0 1.0</specular>
         <direction>1 0 0</direction>
-        <intensity>1.0</intensity>
+        <intensity>0.5</intensity>
         <spot>
           <inner_angle>1.0</inner_angle>
           <outer_angle>2.0</outer_angle>
           <falloff>0.4</falloff>
         </spot>
+        <attenuation>
+          <range>20.0</range>
+          <constant>1.0</constant>
+          <linear>1.0</linear>
+          <quadratic>1.0</quadratic>
+        </attenuation>
       </light>
     </gazebo>
   </xacro:macro>
