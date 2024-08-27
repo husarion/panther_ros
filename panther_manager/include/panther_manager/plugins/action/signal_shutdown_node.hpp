@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_SIGNAL_SHUTDOWN_NODE_HPP_
-#define PANTHER_MANAGER_SIGNAL_SHUTDOWN_NODE_HPP_
+#ifndef PANTHER_MANAGER_PLUGINS_ACTION_SIGNAL_SHUTDOWN_NODE_HPP_
+#define PANTHER_MANAGER_PLUGINS_ACTION_SIGNAL_SHUTDOWN_NODE_HPP_
 
 #include <string>
 
@@ -44,4 +44,4 @@ public:
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_SIGNAL_SHUTDOWN_NODE_HPP_
+#endif  // PANTHER_MANAGER_PLUGINS_ACTION_SIGNAL_SHUTDOWN_NODE_HPP_

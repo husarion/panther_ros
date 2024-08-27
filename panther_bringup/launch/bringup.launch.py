@@ -64,13 +64,13 @@ def generate_launch_description():
         launch_arguments={"namespace": namespace}.items(),
     )
 
-    system_status_launch = IncludeLaunchDescription(
+    system_monitor_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
                     FindPackageShare("panther_diagnostics"),
                     "launch",
-                    "system_status.launch.py",
+                    "system_monitor.launch.py",
                 ]
             ),
         ),
@@ -108,7 +108,7 @@ def generate_launch_description():
     manager_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_manager"), "launch", "manager_bt.launch.py"]
+                [FindPackageShare("panther_manager"), "launch", "manager.launch.py"]
             )
         ),
         condition=UnlessCondition(disable_manager),
@@ -131,7 +131,7 @@ def generate_launch_description():
         declare_use_ekf_arg,
         welcome_msg,
         controller_launch,
-        system_status_launch,
+        system_monitor_launch,
         delayed_action,
     ]
 

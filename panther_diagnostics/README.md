@@ -4,28 +4,27 @@ Package containing nodes monitoring and publishing the Built-in Computer status 
 
 ## Launch Files
 
-- `system_status.launch.py`: Launch a node that analyzes the state of the most important components in the robot
+- `system_monitor.launch.py`: Launch a node that analyzes the state of the most important components in the robot
 
 ## Configuration Files
 
-- [`system_status_parameters.yaml`](./config/system_status_parameters.yaml): Defines parameters for `system_status_node`.
+- [`system_monitor.yaml`](./config/system_monitor.yaml): Defines parameters for `system_monitor_node`.
 
 ## ROS Nodes
 
-- [`system_status_node`](#system_status_node):  Publishes system state of the Built-in Computer such as CPU usage, RAM usage, disk usage and  CPU temperature.
+### system_monitor_node
 
-### system_status_node
+Publishes the built-in computer system status , monitoring parameters as such as CPU usage, RAM usage, disk usage, and  CPU temperature.
 
 #### Publishes
 
-- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: System status diagnostic messages.
-- `system_status` [*panther_msgs/SystemStatus*]: State of the system, including Built-in Computer's CPU temperature and load.
+- `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: System monitor diagnostic messages.
+- `system_status` [*panther_msgs/SystemStatus*]: Built-in computer system status, includes the most important computation-related parameters.
 
 #### Parameters
 
-- `~frame_id` [*string*, default: **built_in_computer**]: Frame where computer is located.
-- `~publish_rate` [*double*, default: **0.25**]: System status publish rate in seconds.
-- `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.
-- `~memory_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for memory usage warning in percentage.
 - `~cpu_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for CPU usage warning in percentage.
 - `~cpu_temperature_warn_threshold` [*float*, default: **80.0**]: Threshold for CPU temperature warning in degrees Celsius.
+- `~ram_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for memory usage warning in percentage.
+- `~disk_usage_warn_threshold` [*float*, default: **95.0**]: Threshold for disk usage warning in percentage.
+- `~publish_frequency` [*double*, default: **5.0**]: System status publishing frequency [Hz].

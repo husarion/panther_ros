@@ -4,7 +4,7 @@ Package that implements SystemInterface from ros2_control for Panther.
 
 ## ROS Nodes
 
-This package doesn't contain any standalone nodes, only plugins that are loaded by the resource manager. To use this hardware interface, add it to your URDF (you can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/)).
+This package doesn't contain any standalone nodes, only plugins that are loaded by the resource manager. To use this hardware interface, add it to your URDF. You can check how to do it in [panther_description](https://github.com/husarion/panther_ros/tree/ros2/panther_description/).
 
 ### PantherSystem
 

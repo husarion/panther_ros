@@ -10,7 +10,7 @@ This package contains:
 
 ## ROS Nodes
 
-### battery_node
+### battery_driver_node
 
 Publishes battery state read from ADC unit for Panther version 1.2 and above, or based on Roboteq motor controllers' data for earlier.versions of the robot.
 

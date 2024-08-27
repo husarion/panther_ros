@@ -31,17 +31,17 @@
 
 #include "panther_msgs/srv/set_led_animation.hpp"
 
-#include "panther_lights/led_animations_queue.hpp"
-#include "panther_lights/led_panel.hpp"
-#include "panther_lights/led_segment.hpp"
-#include "panther_lights/segment_converter.hpp"
+#include "panther_lights/led_components/led_animations_queue.hpp"
+#include "panther_lights/led_components/led_panel.hpp"
+#include "panther_lights/led_components/led_segment.hpp"
+#include "panther_lights/led_components/segment_converter.hpp"
 #include "panther_utils/ros_utils.hpp"
 #include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
 {
 
-ControllerNode::ControllerNode(const rclcpp::NodeOptions & options)
+LightsControllerNode::LightsControllerNode(const rclcpp::NodeOptions & options)
 : Node("lights_controller", options)
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
@@ -72,16 +72,16 @@ ControllerNode::ControllerNode(const rclcpp::NodeOptions & options)
   animations_queue_ = std::make_shared<LEDAnimationsQueue>(10);
 
   set_led_animation_server_ = this->create_service<SetLEDAnimationSrv>(
-    "lights/set_animation", std::bind(&ControllerNode::SetLEDAnimationCB, this, _1, _2));
+    "lights/set_animation", std::bind(&LightsControllerNode::SetLEDAnimationCB, this, _1, _2));
 
   controller_timer_ = this->create_wall_timer(
     std::chrono::microseconds(static_cast<std::uint64_t>(1e6 / controller_freq)),
-    std::bind(&ControllerNode::ControllerTimerCB, this));
+    std::bind(&LightsControllerNode::ControllerTimerCB, this));
 
   RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
-void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
+void LightsControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing LED panels.");
 
@@ -109,7 +109,7 @@ void ControllerNode::InitializeLEDPanels(const YAML::Node & panels_description)
   }
 }
 
-void ControllerNode::InitializeLEDSegments(
+void LightsControllerNode::InitializeLEDSegments(
   const YAML::Node & segments_description, const float controller_freq)
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing LED segments.");
@@ -135,7 +135,7 @@ void ControllerNode::InitializeLEDSegments(
   }
 }
 
-void ControllerNode::InitializeLEDSegmentsMap(const YAML::Node & segments_map_description)
+void LightsControllerNode::InitializeLEDSegmentsMap(const YAML::Node & segments_map_description)
 {
   RCLCPP_DEBUG(this->get_logger(), "Initializing LED segments map.");
 
@@ -148,7 +148,7 @@ void ControllerNode::InitializeLEDSegmentsMap(const YAML::Node & segments_map_de
   RCLCPP_DEBUG(this->get_logger(), "Initialized LED segments map.");
 }
 
-void ControllerNode::LoadDefaultAnimations(const YAML::Node & animations_description)
+void LightsControllerNode::LoadDefaultAnimations(const YAML::Node & animations_description)
 {
   RCLCPP_DEBUG(this->get_logger(), "Loading default animations.");
 
@@ -159,7 +159,7 @@ void ControllerNode::LoadDefaultAnimations(const YAML::Node & animations_descrip
   RCLCPP_INFO(this->get_logger(), "Loaded default animations.");
 }
 
-void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_file)
+void LightsControllerNode::LoadUserAnimations(const std::string & user_led_animations_file)
 {
   RCLCPP_DEBUG(this->get_logger(), "Loading user's animations.");
 
@@ -194,7 +194,7 @@ void ControllerNode::LoadUserAnimations(const std::string & user_led_animations_
   RCLCPP_INFO(this->get_logger(), "Loaded user's animations.");
 }
 
-void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
+void LightsControllerNode::LoadAnimation(const YAML::Node & animation_description)
 {
   LEDAnimationDescription led_animation_desc;
 
@@ -239,7 +239,7 @@ void ControllerNode::LoadAnimation(const YAML::Node & animation_description)
   }
 }
 
-void ControllerNode::SetLEDAnimationCB(
+void LightsControllerNode::SetLEDAnimationCB(
   const SetLEDAnimationSrv::Request::SharedPtr & request,
   SetLEDAnimationSrv::Response::SharedPtr response)
 {
@@ -252,7 +252,7 @@ void ControllerNode::SetLEDAnimationCB(
   }
 }
 
-void ControllerNode::PublishPanelFrame(const std::size_t channel)
+void LightsControllerNode::PublishPanelFrame(const std::size_t channel)
 {
   auto panel = led_panels_.at(channel);
   const auto number_of_leds = panel->GetNumberOfLeds();
@@ -270,7 +270,7 @@ void ControllerNode::PublishPanelFrame(const std::size_t channel)
   panel_publishers_.at(channel)->publish(std::move(image));
 }
 
-void ControllerNode::ControllerTimerCB()
+void LightsControllerNode::ControllerTimerCB()
 {
   if (animation_finished_) {
     animations_queue_->Validate(this->get_clock()->now());
@@ -303,7 +303,7 @@ void ControllerNode::ControllerTimerCB()
   animation_finished_ = current_animation_->IsFinished();
 }
 
-void ControllerNode::UpdateAndPublishAnimation()
+void LightsControllerNode::UpdateAndPublishAnimation()
 {
   std::vector<std::shared_ptr<LEDSegment>> segments_vec;
 
@@ -331,7 +331,7 @@ void ControllerNode::UpdateAndPublishAnimation()
   }
 }
 
-void ControllerNode::AddAnimationToQueue(
+void LightsControllerNode::AddAnimationToQueue(
   const std::size_t animation_id, const bool repeating, const std::string & param)
 {
   if (animations_descriptions_.find(animation_id) == animations_descriptions_.end()) {
@@ -346,7 +346,7 @@ void ControllerNode::AddAnimationToQueue(
   animations_queue_->Put(animation, this->get_clock()->now());
 }
 
-void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation)
+void LightsControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_animation)
 {
   const auto animations = led_animation->GetAnimations();
   for (auto & animation : animations) {
@@ -373,4 +373,4 @@ void ControllerNode::SetLEDAnimation(const std::shared_ptr<LEDAnimation> & led_a
 }  // namespace panther_lights
 
 #include <rclcpp_components/register_node_macro.hpp>
-RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::ControllerNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::LightsControllerNode)

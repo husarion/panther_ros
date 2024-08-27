@@ -46,8 +46,9 @@ ament_target_dependencies(
 
 add_library(
   lights_controller_node_component SHARED
-  src/lights_controller_node.cpp src/led_segment.cpp src/led_panel.cpp
-  src/segment_converter.cpp src/led_animations_queue.cpp)
+  src/lights_controller_node.cpp src/led_components/led_segment.cpp
+  src/led_components/led_panel.cpp src/led_components/segment_converter.cpp
+  src/led_components/led_animations_queue.cpp)
 ament_target_dependencies(
   lights_controller_node_component
   panther_msgs
@@ -59,12 +60,12 @@ ament_target_dependencies(
 target_link_libraries(lights_controller_node_component yaml-cpp)
 
 rclcpp_components_register_node(
-  lights_driver_node_component PLUGIN "panther_lights::DriverNode" EXECUTABLE
-  lights_driver_node)
+  lights_driver_node_component PLUGIN "panther_lights::LightsDriverNode"
+  EXECUTABLE lights_driver_node)
 
 rclcpp_components_register_node(
-  lights_controller_node_component PLUGIN "panther_lights::ControllerNode"
-  EXECUTABLE lights_controller_node)
+  lights_controller_node_component PLUGIN
+  "panther_lights::LightsControllerNode" EXECUTABLE lights_controller_node)
 
 ament_export_targets(export_lights_driver_node_component)
 install(
@@ -89,7 +90,8 @@ install(DIRECTORY animations config launch DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_animation test/test_animation.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_animation
+                  test/animation/test_animation.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_animation
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -98,18 +100,8 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_animation yaml-cpp)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_image_animation test/test_image_animation.cpp
-    src/animation/image_animation.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_image_animation
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_image_animation
-                            ament_index_cpp panther_utils pluginlib)
-  target_link_libraries(${PROJECT_NAME}_test_image_animation png yaml-cpp)
-
-  ament_add_gtest(
-    ${PROJECT_NAME}_test_charging_animation test/test_charging_animation.cpp
+    ${PROJECT_NAME}_test_charging_animation
+    test/animation/test_charging_animation.cpp
     src/animation/charging_animation.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_charging_animation
@@ -119,15 +111,28 @@ if(BUILD_TESTING)
                             ament_index_cpp panther_utils pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_charging_animation yaml-cpp)
 
-  ament_add_gtest(${PROJECT_NAME}_test_led_panel test/test_led_panel.cpp
-                  src/led_panel.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_image_animation
+    test/animation/test_image_animation.cpp src/animation/image_animation.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_image_animation
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_image_animation
+                            ament_index_cpp panther_utils pluginlib)
+  target_link_libraries(${PROJECT_NAME}_test_image_animation png yaml-cpp)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_led_panel test/led_components/test_led_panel.cpp
+    src/led_components/led_panel.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_led_panel
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
 
-  ament_add_gtest(${PROJECT_NAME}_test_led_segment test/test_led_segment.cpp
-                  src/led_segment.cpp)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_led_segment test/led_components/test_led_segment.cpp
+    src/led_components/led_segment.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_led_segment
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -137,8 +142,11 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_led_segment yaml-cpp)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_segment_converter test/test_segment_converter.cpp
-    src/segment_converter.cpp src/led_panel.cpp src/led_segment.cpp)
+    ${PROJECT_NAME}_test_segment_converter
+    test/led_components/test_segment_converter.cpp
+    src/led_components/segment_converter.cpp
+    src/led_components/led_panel.cpp
+    src/led_components/led_segment.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_segment_converter
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -148,8 +156,11 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_segment_converter yaml-cpp)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_led_animation test/test_led_animation.cpp
-    src/led_panel.cpp src/led_segment.cpp src/led_animations_queue.cpp)
+    ${PROJECT_NAME}_test_led_animation
+    test/led_components/test_led_animation.cpp
+    src/led_components/led_panel.cpp
+    src/led_components/led_segment.cpp
+    src/led_components/led_animations_queue.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_led_animation
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -160,8 +171,10 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_led_animations_queue
-    test/test_led_animations_queue.cpp src/led_panel.cpp src/led_segment.cpp
-    src/led_animations_queue.cpp)
+    test/led_components/test_led_animations_queue.cpp
+    src/led_components/led_panel.cpp
+    src/led_components/led_segment.cpp
+    src/led_components/led_animations_queue.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_led_animations_queue
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -174,10 +187,10 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_lights_controller_node
     test/test_lights_controller_node.cpp
     src/lights_controller_node.cpp
-    src/led_segment.cpp
-    src/led_panel.cpp
-    src/segment_converter.cpp
-    src/led_animations_queue.cpp)
+    src/led_components/led_segment.cpp
+    src/led_components/led_panel.cpp
+    src/led_components/segment_converter.cpp
+    src/led_components/led_animations_queue.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_lights_controller_node
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
