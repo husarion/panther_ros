@@ -24,6 +24,7 @@
 
 #include <panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp>
 #include <panther_hardware_interfaces/panther_system/robot_driver/driver.hpp>
+#include <panther_hardware_interfaces/panther_system/robot_driver/panther_robot_driver.hpp>
 #include <panther_hardware_interfaces/panther_system/robot_driver/robot_driver.hpp>
 
 #include "utils/fake_can_socket.hpp"

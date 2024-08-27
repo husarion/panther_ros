@@ -25,6 +25,7 @@
 #include "lely/util/chrono.hpp"
 
 #include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/panther_robot_driver.hpp"
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 

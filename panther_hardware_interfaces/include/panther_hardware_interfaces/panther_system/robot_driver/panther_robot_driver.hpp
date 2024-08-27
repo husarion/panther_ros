@@ -12,55 +12,57 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_LYNX_ROBOT_DRIVER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_LYNX_ROBOT_DRIVER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_PANTHER_ROBOT_DRIVER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_PANTHER_ROBOT_DRIVER_HPP_
 
 #include <chrono>
 #include <string>
 
-#include <panther_hardware_interfaces/panther_system/robot_driver/robot_driver.hpp>
 #include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/robot_driver.hpp"
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 
 namespace panther_hardware_interfaces
 {
 
-struct LynxMotorNames
+struct PantherMotorNames
 {
   static constexpr char LEFT[] = "left";
   static constexpr char RIGHT[] = "right";
 };
 
-struct LynxDriverNames
+struct PantherDriverNames
 {
-  static constexpr char DEFAULT[] = "default";
+  static constexpr char FRONT[] = "front";
+  static constexpr char REAR[] = "rear";
 };
 
-struct LynxMotorChannel
+struct PantherMotorChannel
 {
   static constexpr std::uint8_t LEFT = RoboteqDriver::kChannel2;
   static constexpr std::uint8_t RIGHT = RoboteqDriver::kChannel1;
 };
 
 /**
- * @brief This class abstracts the usage of one Roboteq controller.
- * It uses canopen_manager for communication with Roboteq controller,
- * implements the activation procedure for controller (resets script and sends initial 0 command),
+ * @brief This class abstracts the usage of two Roboteq controllers.
+ * It uses canopen_manager for communication with Roboteq controllers,
+ * implements the activation procedure for controllers (resets script and sends initial 0 command),
  * and provides methods to get data feedback and send commands.
  * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
  */
-class LynxRobotDriver : public RobotDriver
+class PantherRobotDriver : public RobotDriver
 {
 public:
-  LynxRobotDriver(
-    const std::shared_ptr<Driver> driver, const CANopenSettings & canopen_settings,
-    const DrivetrainSettings & drivetrain_settings,
+  PantherRobotDriver(
+    const std::shared_ptr<Driver> front_driver, const std::shared_ptr<Driver> rear_driver,
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
     const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000));
 
-  ~LynxRobotDriver()
+  ~PantherRobotDriver()
   {
-    driver_.reset();
+    front_driver_.reset();
+    rear_driver_.reset();
     Deinitialize();
   };
 
@@ -126,22 +128,21 @@ public:
    * @exception std::runtime_error if send command fails or CAN error was detected
    */
   void SendSpeedCommands(
-    const float speed_left, const float speed_right, const float /*speed_rl*/,
-    const float /*speed_rr*/) override;
+    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr);
 
   /**
    * @brief Turns on Roboteq E-stop
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnEStop() override;
+  void TurnOnEStop();
 
   /**
    * @brief Turns off Roboteq E-stop
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOffEStop() override;
+  void TurnOffEStop();
 
   /**
    * @brief Turns on Roboteq safety stop. To turn it off, it is necessary to send
@@ -149,7 +150,7 @@ public:
    *
    * @exception std::runtime_error if any operation returns error
    */
-  void TurnOnSafetyStop() override;
+  void TurnOnSafetyStop();
 
   /**
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
@@ -167,9 +168,11 @@ private:
 
   CANopenManager canopen_manager_;
 
-  std::shared_ptr<Driver> driver_;
+  std::shared_ptr<Driver> front_driver_;
+  std::shared_ptr<Driver> rear_driver_;
 
-  RoboteqData data_;
+  RoboteqData front_data_;
+  RoboteqData rear_data_;
 
   RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
 
@@ -180,4 +183,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_LYNX_ROBOT_DRIVER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_PANTHER_ROBOT_DRIVER_HPP_

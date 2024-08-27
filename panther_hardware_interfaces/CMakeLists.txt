@@ -152,7 +152,7 @@ if(BUILD_TESTING)
     src/panther_system/robot_driver/canopen_manager.cpp
     src/panther_system/robot_driver/roboteq_driver.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/robot_driver.cpp
+    src/panther_system/robot_driver/panther_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_robot_driver
@@ -169,7 +169,6 @@ if(BUILD_TESTING)
     src/panther_system/robot_driver/canopen_manager.cpp
     src/panther_system/robot_driver/roboteq_driver.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/robot_driver.cpp
     src/panther_system/robot_driver/lynx_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
