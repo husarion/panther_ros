@@ -24,7 +24,7 @@
 #include <string>
 #include <system_error>
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
 #include "panther_hardware_interfaces/utils.hpp"
 
 namespace panther_hardware_interfaces
