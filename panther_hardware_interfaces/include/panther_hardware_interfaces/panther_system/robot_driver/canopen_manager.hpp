@@ -36,6 +36,12 @@
 namespace panther_hardware_interfaces
 {
 
+struct CANopenObject
+{
+  const std::uint16_t id;
+  const std::uint8_t subid;
+};
+
 struct CANopenSettings
 {
   std::string can_interface_name;

@@ -24,7 +24,7 @@
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 
 #include "utils/fake_can_socket.hpp"
-#include "utils/roboteqs_mock.hpp"
+#include "utils/mock_roboteq.hpp"
 #include "utils/test_constants.hpp"
 
 #include "panther_utils/test/test_utils.hpp"
@@ -45,7 +45,7 @@ protected:
   static constexpr char kMotor2Name[] = "motor_2";
 
   std::unique_ptr<panther_hardware_interfaces_test::FakeCANSocket> can_socket_;
-  std::unique_ptr<panther_hardware_interfaces_test::RoboteqsMock> roboteqs_mock_;
+  std::unique_ptr<panther_hardware_interfaces_test::MockRoboteq> mock_roboteq_;
   std::unique_ptr<panther_hardware_interfaces::CANopenManager> canopen_manager_;
   std::shared_ptr<panther_hardware_interfaces::RoboteqDriver> roboteq_driver_;
 };
@@ -59,8 +59,8 @@ TestRoboteqDriver::TestRoboteqDriver()
   canopen_manager_ = std::make_unique<panther_hardware_interfaces::CANopenManager>(
     panther_hardware_interfaces_test::kCANopenSettings);
 
-  roboteqs_mock_ = std::make_unique<panther_hardware_interfaces_test::RoboteqsMock>();
-  roboteqs_mock_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
+  mock_roboteq_ = std::make_unique<panther_hardware_interfaces_test::MockRoboteq>();
+  mock_roboteq_->Start(std::chrono::milliseconds(10), std::chrono::milliseconds(50));
   canopen_manager_->Initialize();
 
   roboteq_driver_ = std::make_shared<panther_hardware_interfaces::RoboteqDriver>(
@@ -71,8 +71,8 @@ TestRoboteqDriver::~TestRoboteqDriver()
 {
   roboteq_driver_.reset();
   canopen_manager_->Deinitialize();
-  roboteqs_mock_->Stop();
-  roboteqs_mock_.reset();
+  mock_roboteq_->Stop();
+  mock_roboteq_.reset();
   can_socket_->Deinitialize();
 }
 
@@ -111,22 +111,19 @@ TEST_F(TestRoboteqDriver, BootRoboteqDriver) { ASSERT_TRUE(TestBoot()); }
 
 TEST_F(TestRoboteqDriver, BootErrorDeviceType)
 {
-  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 100000);
-  ASSERT_FALSE(TestBoot());
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1000, 0, 0);
-  ASSERT_TRUE(TestBoot());
+  const auto device_type_id = 0x1000;
+  const auto device_type_subid = 0;
+  mock_roboteq_->GetDriver()->SetOnReadWait<std::uint32_t>(
+    device_type_id, device_type_subid, 100000);
+  EXPECT_FALSE(TestBoot());
 }
 
 TEST_F(TestRoboteqDriver, BootErrorVendorId)
 {
-  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 100000);
-  ASSERT_FALSE(TestBoot());
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  roboteqs_mock_->GetDriver()->SetOnReadWait<std::uint32_t>(0x1018, 1, 0);
-  ASSERT_TRUE(TestBoot());
+  const auto vendor_id_id = 0x1018;
+  const auto vendor_id_subid = 1;
+  mock_roboteq_->GetDriver()->SetOnReadWait<std::uint32_t>(vendor_id_id, vendor_id_subid, 100000);
+  EXPECT_FALSE(TestBoot());
 }
 
 TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
@@ -142,16 +139,16 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
 
   BootRoboteqDriver();
 
-  roboteqs_mock_->GetDriver()->SetPosition(DriverChannel::CHANNEL1, motor_1_pos);
-  roboteqs_mock_->GetDriver()->SetPosition(DriverChannel::CHANNEL2, motor_2_pos);
+  mock_roboteq_->GetDriver()->SetPosition(DriverChannel::CHANNEL1, motor_1_pos);
+  mock_roboteq_->GetDriver()->SetPosition(DriverChannel::CHANNEL2, motor_2_pos);
 
-  roboteqs_mock_->GetDriver()->SetVelocity(DriverChannel::CHANNEL1, motor_1_vel);
-  roboteqs_mock_->GetDriver()->SetVelocity(DriverChannel::CHANNEL2, motor_2_vel);
+  mock_roboteq_->GetDriver()->SetVelocity(DriverChannel::CHANNEL1, motor_1_vel);
+  mock_roboteq_->GetDriver()->SetVelocity(DriverChannel::CHANNEL2, motor_2_vel);
 
-  roboteqs_mock_->GetDriver()->SetCurrent(DriverChannel::CHANNEL1, motor_1_current);
-  roboteqs_mock_->GetDriver()->SetCurrent(DriverChannel::CHANNEL2, motor_2_current);
+  mock_roboteq_->GetDriver()->SetCurrent(DriverChannel::CHANNEL1, motor_1_current);
+  mock_roboteq_->GetDriver()->SetCurrent(DriverChannel::CHANNEL2, motor_2_current);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   panther_hardware_interfaces::MotorDriverState fb_motor_1 =
     roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadMotorDriverState();
@@ -174,7 +171,7 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
   panther_hardware_interfaces::MotorDriverState fb_motor_1 =
     roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadMotorDriverState();
 
-  // based on publishing frequency in the Roboteq mock (10)
+  // based on publishing frequency in the Roboteq mock (100Hz)
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   panther_hardware_interfaces::MotorDriverState fb_motor_2 =
@@ -216,17 +213,17 @@ TEST_F(TestRoboteqDriver, ReadDriverState)
   const std::int16_t battery_current_1 = 10;
   const std::int16_t battery_current_2 = 30;
 
-  roboteqs_mock_->GetDriver()->SetTemperature(temp);
-  roboteqs_mock_->GetDriver()->SetHeatsinkTemperature(heatsink_temp);
-  roboteqs_mock_->GetDriver()->SetVoltage(volt);
-  roboteqs_mock_->GetDriver()->SetBatteryCurrent1(battery_current_1);
-  roboteqs_mock_->GetDriver()->SetBatteryCurrent2(battery_current_2);
+  mock_roboteq_->GetDriver()->SetTemperature(temp);
+  mock_roboteq_->GetDriver()->SetHeatsinkTemperature(heatsink_temp);
+  mock_roboteq_->GetDriver()->SetVoltage(volt);
+  mock_roboteq_->GetDriver()->SetBatteryCurrent1(battery_current_1);
+  mock_roboteq_->GetDriver()->SetBatteryCurrent2(battery_current_2);
 
-  roboteqs_mock_->GetDriver()->SetDriverFaultFlag(DriverFaultFlags::OVERHEAT);
-  roboteqs_mock_->GetDriver()->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
-  roboteqs_mock_->GetDriver()->SetDriverRuntimeError(
+  mock_roboteq_->GetDriver()->SetDriverFaultFlag(DriverFaultFlags::OVERHEAT);
+  mock_roboteq_->GetDriver()->SetDriverScriptFlag(DriverScriptFlags::ENCODER_DISCONNECTED);
+  mock_roboteq_->GetDriver()->SetDriverRuntimeError(
     DriverChannel::CHANNEL1, DriverRuntimeErrors::LOOP_ERROR);
-  roboteqs_mock_->GetDriver()->SetDriverRuntimeError(
+  mock_roboteq_->GetDriver()->SetDriverRuntimeError(
     DriverChannel::CHANNEL2, DriverRuntimeErrors::SAFETY_STOP_ACTIVE);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -251,7 +248,7 @@ TEST_F(TestRoboteqDriver, ReadDriverStateTimestamp)
 
   panther_hardware_interfaces::DriverState fb1 = roboteq_driver_->ReadDriverState();
 
-  // based on publishing frequency in the Roboteq mock (50)
+  // based on publishing frequency in the Roboteq mock (20Hz)
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
   panther_hardware_interfaces::DriverState fb2 = roboteq_driver_->ReadDriverState();
@@ -293,44 +290,44 @@ TEST_F(TestRoboteqDriver, SendRoboteqCmd)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), motor_1_v);
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2), motor_2_v);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetRoboteqCmd(DriverChannel::CHANNEL1), motor_1_v);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetRoboteqCmd(DriverChannel::CHANNEL2), motor_2_v);
 }
 
 TEST_F(TestRoboteqDriver, ResetRoboteqScript)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetResetRoboteqScript(65);
+  mock_roboteq_->GetDriver()->SetResetRoboteqScript(65);
   roboteq_driver_->ResetScript();
 
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetResetRoboteqScript(), 2);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetResetRoboteqScript(), 2);
 }
 
 TEST_F(TestRoboteqDriver, ResetRoboteqScriptSDOTimeoutReset)
 {
   BootRoboteqDriver();
 
-  roboteqs_mock_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 100000);
+  mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 100000);
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->ResetScript(); }, "SDO protocol timed out"));
 
-  roboteqs_mock_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 0);
-  ASSERT_NO_THROW(roboteq_driver_->ResetScript());
+  mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 0);
+  EXPECT_NO_THROW(roboteq_driver_->ResetScript());
 }
 
-TEST_F(TestRoboteqDriver, ReadRoboteqTurnOnEStop)
+TEST_F(TestRoboteqDriver, RoboteqTurnOnEStop)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetTurnOnEStop(65);
+  mock_roboteq_->GetDriver()->SetTurnOnEStop(65);
   roboteq_driver_->TurnOnEStop();
 
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetTurnOnEStop(), 1);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetTurnOnEStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, TurnOnEStopTimeout)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x200C, 0, 100000);
+  mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x200C, 0, 100000);
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->TurnOnEStop(); }, "SDO protocol timed out"));
 }
@@ -338,16 +335,16 @@ TEST_F(TestRoboteqDriver, TurnOnEStopTimeout)
 TEST_F(TestRoboteqDriver, TurnOffEStop)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetTurnOffEStop(65);
+  mock_roboteq_->GetDriver()->SetTurnOffEStop(65);
   roboteq_driver_->TurnOffEStop();
 
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetTurnOffEStop(), 1);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetTurnOffEStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, TurnOffEStopTimeout)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x200D, 0, 100000);
+  mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x200D, 0, 100000);
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->TurnOffEStop(); }, "SDO protocol timed out"));
 }
@@ -355,25 +352,25 @@ TEST_F(TestRoboteqDriver, TurnOffEStopTimeout)
 TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel1)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetTurnOnSafetyStop(67);
+  mock_roboteq_->GetDriver()->SetTurnOnSafetyStop(67);
   roboteq_driver_->GetMotorDriver(kMotor1Name)->TurnOnSafetyStop();
 
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetTurnOnSafetyStop(), 1);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetTurnOnSafetyStop(), 1);
 }
 
 TEST_F(TestRoboteqDriver, TurnOnSafetyStopChannel2)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetTurnOnSafetyStop(65);
+  mock_roboteq_->GetDriver()->SetTurnOnSafetyStop(65);
   roboteq_driver_->GetMotorDriver(kMotor2Name)->TurnOnSafetyStop();
 
-  EXPECT_EQ(roboteqs_mock_->GetDriver()->GetTurnOnSafetyStop(), 2);
+  EXPECT_EQ(mock_roboteq_->GetDriver()->GetTurnOnSafetyStop(), 2);
 }
 
 TEST_F(TestRoboteqDriver, WriteTimeout)
 {
   BootRoboteqDriver();
-  roboteqs_mock_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x202C, 0, 200000);
+  mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x202C, 0, 200000);
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->GetMotorDriver(kMotor1Name)->TurnOnSafetyStop(); },
     "SDO protocol timed out"));
@@ -385,5 +382,7 @@ TEST_F(TestRoboteqDriver, WriteTimeout)
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  auto result = RUN_ALL_TESTS();
+  return result;
 }
