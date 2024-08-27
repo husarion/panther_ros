@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_TEST_UTILS_ROBOTEQ_MOCK_HPP_
-#define PANTHER_HARDWARE_INTERFACES_TEST_UTILS_ROBOTEQ_MOCK_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_TEST_UTILS_MOCK_ROBOTEQ_HPP_
+#define PANTHER_HARDWARE_INTERFACES_TEST_UTILS_MOCK_ROBOTEQ_HPP_
 
 #include <atomic>
 #include <condition_variable>
@@ -260,11 +260,11 @@ private:
 /**
  * @brief Class that simulates Roboteq controller
  */
-class RoboteqMock
+class MockRoboteq
 {
 public:
-  RoboteqMock() {}
-  ~RoboteqMock() {}
+  MockRoboteq() {}
+  ~MockRoboteq() {}
 
   /**
    * @brief Starts CAN communication and creates a simulated Roboteq, that publish PDOs with set
@@ -361,4 +361,4 @@ private:
 
 }  // namespace panther_hardware_interfaces_test
 
-#endif  // PANTHER_HARDWARE_INTERFACES_TEST_UTILS_ROBOTEQ_MOCK_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_TEST_UTILS_MOCK_ROBOTEQ_HPP_
