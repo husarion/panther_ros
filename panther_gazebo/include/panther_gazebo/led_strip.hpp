@@ -106,7 +106,8 @@ private:
   gz::msgs::Image last_image_;
   gz::sim::Entity light_entity_{gz::sim::kNullEntity};
   gz::transport::Node node_;
-  std::chrono::steady_clock::duration last_update_time_{0};
+  std::chrono::steady_clock::duration last_update_time_{std::chrono::seconds(
+    1)};  // Avoid initialization errors when the robot is not yet spawned on the scene.
   std::mutex image_mutex_;
 };
 
