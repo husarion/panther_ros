@@ -215,18 +215,8 @@ public:
    * @return motor state data
    * @throws std::runtime_error if invalid channel number
    */
-  const MotorState & GetMotorState(const std::uint8_t channel) const
-  {
-    if (channel == RoboteqDriver::kChannel1) {
-      return channel_1_motor_state_;
-    } else if (channel == RoboteqDriver::kChannel2) {
-      return channel_2_motor_state_;
-    }
+  const MotorState & GetMotorState(const std::uint8_t channel) const;
 
-    throw std::runtime_error("Invalid channel number");
-  }
-
-  const MotorState & GetRightMotorState() const { return channel_2_motor_state_; }
   const RoboteqDriverState & GetDriverState() const { return driver_state_; }
 
   bool IsMotorStatesDataTimedOut() const { return motor_states_data_timed_out_; }
@@ -244,16 +234,7 @@ public:
    * @return runtime error flags
    * @throws std::runtime_error if invalid channel number
    */
-  const RuntimeError & GetRuntimeError(const std::uint8_t channel) const
-  {
-    if (channel == RoboteqDriver::kChannel1) {
-      return channel_1_runtime_error_;
-    } else if (channel == RoboteqDriver::kChannel2) {
-      return channel_2_runtime_error_;
-    }
-
-    throw std::runtime_error("Invalid channel number");
-  }
+  const RuntimeError & GetRuntimeError(const std::uint8_t channel) const;
 
   std::string GetFlagErrorLog() const;
 

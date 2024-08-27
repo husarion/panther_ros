@@ -84,6 +84,7 @@ install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_gmock REQUIRED)
   find_package(panther_utils REQUIRED)
 
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
@@ -100,12 +101,12 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
-    test/panther_system/robot_driver/test_roboteq_error_filter.cpp
+    test/unit/panther_system/robot_driver/test_roboteq_error_filter.cpp
     src/panther_system/robot_driver/roboteq_error_filter.cpp)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
-    test/panther_system/robot_driver/test_roboteq_data_converters.cpp
+    test/unit/panther_system/robot_driver/test_roboteq_data_converters.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_data_converters
@@ -119,9 +120,7 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_manager
     test/unit/panther_system/robot_driver/test_canopen_manager.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/utils.cpp)
+    src/panther_system/robot_driver/canopen_manager.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_canopen_manager
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
@@ -146,9 +145,9 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_driver
                         PkgConfig::LIBLELY_COAPP)
 
-  ament_add_gtest(
+  ament_add_gmock(
     ${PROJECT_NAME}_test_robot_driver
-    test/panther_system/robot_driver/test_robot_driver.cpp
+    test/unit/panther_system/robot_driver/test_panther_robot_driver.cpp
     src/panther_system/robot_driver/canopen_manager.cpp
     src/panther_system/robot_driver/roboteq_driver.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp

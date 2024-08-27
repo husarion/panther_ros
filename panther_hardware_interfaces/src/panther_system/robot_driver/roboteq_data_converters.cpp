@@ -227,6 +227,28 @@ void RoboteqData::SetDriverState(const DriverState & state, const bool data_time
   driver_state_data_timed_out_ = data_timed_out;
 }
 
+const MotorState & RoboteqData::GetMotorState(const std::uint8_t channel) const
+{
+  if (channel == RoboteqDriver::kChannel1) {
+    return channel_1_motor_state_;
+  } else if (channel == RoboteqDriver::kChannel2) {
+    return channel_2_motor_state_;
+  }
+
+  throw std::runtime_error("Invalid channel number");
+}
+
+const RuntimeError & RoboteqData::GetRuntimeError(const std::uint8_t channel) const
+{
+  if (channel == RoboteqDriver::kChannel1) {
+    return channel_1_runtime_error_;
+  } else if (channel == RoboteqDriver::kChannel2) {
+    return channel_2_runtime_error_;
+  }
+
+  throw std::runtime_error("Invalid channel number");
+}
+
 std::string RoboteqData::GetFlagErrorLog() const
 {
   return "Fault flags: " + fault_flags_.GetErrorLog() +
