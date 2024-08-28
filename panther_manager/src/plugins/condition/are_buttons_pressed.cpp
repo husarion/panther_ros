@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_manager/plugins/action/joy_subscription_node.hpp"
+#include "panther_manager/plugins/condition/are_buttons_pressed.hpp"
 
 #include "panther_manager/behavior_tree_utils.hpp"
 
 namespace panther_manager
 {
 
-BT::NodeStatus JoySubscription::onTick(const std::shared_ptr<sensor_msgs::msg::Joy> & last_msg)
+BT::NodeStatus AreButtonsPressed::onTick(const std::shared_ptr<sensor_msgs::msg::Joy> & last_msg)
 {
   getInput<std::vector<int>>("buttons", buttons_);
 
   if (!last_msg) {
-    RCLCPP_ERROR_STREAM(this->logger(), GetLoggerPrefix(name()) << "There is no joy messages!");
+    RCLCPP_WARN_STREAM(this->logger(), GetLoggerPrefix(name()) << "There is no joy messages!");
     return BT::NodeStatus::FAILURE;
   }
 
   if (last_msg->buttons.size() < buttons_.size()) {
     RCLCPP_ERROR_STREAM(
-      this->logger(), GetLoggerPrefix(name()) << "Joy message has less buttons than expected");
+      this->logger(), GetLoggerPrefix(name()) << "Joy message has " << last_msg->buttons.size()
+                                              << " buttons, expected at least " << buttons_.size());
     return BT::NodeStatus::FAILURE;
   }
 
@@ -44,4 +45,4 @@ BT::NodeStatus JoySubscription::onTick(const std::shared_ptr<sensor_msgs::msg::J
 }  // namespace panther_manager
 
 #include "behaviortree_ros2/plugins.hpp"
-CreateRosNodePlugin(panther_manager::JoySubscription, "JoySubscription");
+CreateRosNodePlugin(panther_manager::AreButtonsPressed, "AreButtonsPressed");

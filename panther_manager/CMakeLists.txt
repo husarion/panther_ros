@@ -51,9 +51,9 @@ add_library(shutdown_hosts_from_file_bt_node SHARED
 target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
 
-add_library(joy_subscription_bt_node SHARED
-            src/plugins/action/joy_subscription_node.cpp)
-list(APPEND plugin_libs joy_subscription_bt_node)
+add_library(are_buttons_pressed_bt_node SHARED
+            src/plugins/condition/are_buttons_pressed.cpp)
+list(APPEND plugin_libs are_buttons_pressed_bt_node)
 
 add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
@@ -141,10 +141,10 @@ if(BUILD_TESTING)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_joy_subscription_node
-    test/plugins/action/test_joy_subscription_node.cpp
-    src/plugins/action/joy_subscription_node.cpp)
-  list(APPEND plugin_tests ${PROJECT_NAME}_test_joy_subscription_node)
+    ${PROJECT_NAME}_test_are_buttons_pressed
+    test/plugins/condition/test_are_buttons_pressed.cpp
+    src/plugins/condition/are_buttons_pressed.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_are_buttons_pressed)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_tick_after_timeout_node

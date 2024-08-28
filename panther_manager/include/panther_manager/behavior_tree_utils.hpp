@@ -97,13 +97,15 @@ namespace BT
  *
  * @param str The string to convert.
  * @return std::vector<int> The vector of integers.
+ *
+ * @throw BT::RuntimeError Throws when there is no input or cannot parse int.
  */
 template <>
 inline std::vector<int> convertFromString<std::vector<int>>(StringView str)
 {
   auto parts = BT::splitString(str, ';');
   if (!parts.size()) {
-    throw BT::RuntimeError("invalid input)");
+    throw BT::RuntimeError("invalid input");
   } else {
     std::vector<int> result;
     for (auto & part : parts) {

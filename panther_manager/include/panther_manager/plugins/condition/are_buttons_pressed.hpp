@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_PLUGINS_JOY_CONDITION_NODE_HPP_
-#define PANTHER_MANAGER_PLUGINS_JOY_CONDITION_NODE_HPP_
+#ifndef PANTHER_MANAGER_PLUGINS_CONDITION_ARE_BUTTONS_PRESSED_HPP_
+#define PANTHER_MANAGER_PLUGINS_CONDITION_ARE_BUTTONS_PRESSED_HPP_
 
 #include <memory>
 #include <mutex>
@@ -29,10 +29,10 @@
 namespace panther_manager
 {
 
-class JoySubscription : public BT::RosTopicSubNode<sensor_msgs::msg::Joy>
+class AreButtonsPressed : public BT::RosTopicSubNode<sensor_msgs::msg::Joy>
 {
 public:
-  JoySubscription(
+  AreButtonsPressed(
     const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
   : BT::RosTopicSubNode<sensor_msgs::msg::Joy>(name, conf, params)
   {
@@ -52,4 +52,4 @@ private:
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_PLUGINS_JOY_CONDITION_NODE_HPP_
+#endif  // PANTHER_MANAGER_PLUGINS_CONDITION_ARE_BUTTONS_PRESSED_HPP_
