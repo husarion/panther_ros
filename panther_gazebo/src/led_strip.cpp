@@ -14,7 +14,7 @@
 
 #include "panther_gazebo/led_strip.hpp"
 
-#include <stddef.h>
+#include <cstddef>
 #include <limits>
 
 #include <gz/plugin/Register.hh>
@@ -182,8 +182,8 @@ gz::math::Color LEDStrip::CalculateMeanColor(const gz::msgs::Image & msg)
     }
   }
 
-  float max_value = std::numeric_limits<uint8_t>::max();
-  float norm_factor = max_value * pixel_count;
+  const float max_value = std::numeric_limits<uint8_t>::max();
+  const float norm_factor = max_value * pixel_count;
 
   float norm_mean_r = sum_r / norm_factor;
   float norm_mean_g = sum_g / norm_factor;
@@ -223,7 +223,7 @@ void LEDStrip::VisualizeMarkers(const gz::msgs::Image & image, const gz::math::P
   double step_width = marker_width_ / image.width();
   double step_height = marker_height_ / image.height();
 
-  float max_value = std::numeric_limits<uint8_t>::max();
+  const float max_value = std::numeric_limits<uint8_t>::max();
   bool is_rgba = (image.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8);
   int step = is_rgba ? 4 : 3;
 

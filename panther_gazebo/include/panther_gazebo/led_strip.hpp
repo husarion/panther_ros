@@ -16,7 +16,6 @@
 #define PANTHER_GAZEBO_LED_STRIP_HPP_
 
 #include <chrono>
-#include <mutex>
 #include <string>
 
 #include <realtime_tools/realtime_box.h>
@@ -78,7 +77,7 @@ private:
    * @brief Return Light command based on light configuration specified in URDF file Light
    * properties
    *
-   * @param ecm Entity Component Manager
+   * @param ecm The entity component manager.
    * @return Light command message
    * @exception std::runtime_error if the light entity is not found.
    */
@@ -97,13 +96,19 @@ private:
 
   /**
    * @brief Manage color of robot simulated lights based on the image message
+   *
+   * @param ecm The entity component manager.
+   * @param image The image message
    */
   void VisualizeLights(gz::sim::EntityComponentManager & ecm, const gz::msgs::Image & image);
 
   /**
    * @brief Manage color of robot LED strip based on the image message
+   *
+   * @param image The image message
+   * @param light_pose The pose of the light
    */
-  void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & lightPose);
+  void VisualizeMarkers(const gz::msgs::Image & image, const gz::math::Pose3d & light_pose);
 
   /**
    * @brief Create a marker element (single LED from LED Strip)
@@ -117,7 +122,6 @@ private:
     const uint id, const gz::math::Pose3d pose, const gz::math::Color & color,
     const gz::math::Vector3d size);
 
-  // Parameters
   std::string light_name_;
   std::string image_topic_;
   std::string ns_ = "";
