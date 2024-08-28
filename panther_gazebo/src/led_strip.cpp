@@ -68,17 +68,15 @@ void LEDStrip::PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityCompon
 
 void LEDStrip::ParseParameters(const std::shared_ptr<const sdf::Element> & sdf)
 {
-  if (sdf->HasElement("light_name")) {
-    light_name_ = sdf->Get<std::string>("light_name");
-  } else {
-    ignerr << "Error: The light_name parameter is missing." << std::endl;
+  if (!sdf->HasElement("light_name")) {
+    throw std::runtime_error("Error: The light_name parameter is missing.");
   }
+  light_name_ = sdf->Get<std::string>("light_name");
 
-  if (sdf->HasElement("topic")) {
-    image_topic_ = sdf->Get<std::string>("topic");
-  } else {
-    ignerr << "Error: The topic parameter is missing." << std::endl;
+  if (!sdf->HasElement("topic")) {
+    throw std::runtime_error("Error: The topic parameter is missing.");
   }
+  image_topic_ = sdf->Get<std::string>("topic");
 
   ns_ = sdf->HasElement("namespace") ? sdf->Get<std::string>("namespace") : ns_;
   frequency_ = sdf->HasElement("frequency") ? sdf->Get<double>("frequency") : frequency_;

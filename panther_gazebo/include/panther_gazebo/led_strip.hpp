@@ -71,6 +71,12 @@ public:
   void PreUpdate(const gz::sim::UpdateInfo & info, gz::sim::EntityComponentManager & ecm) override;
 
 private:
+  /**
+   * @brief Parse parameters from the URDF file
+   *
+   * @param sdf The SDF element of the model.
+   * @exception std::runtime_error if the light_name or topic parameter is missing.
+   */
   void ParseParameters(const std::shared_ptr<const sdf::Element> & sdf);
 
   /**
