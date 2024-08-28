@@ -17,12 +17,7 @@
       <xacro:property name="imu_rpy" value="0.000 -0.000 3.142" />
     </xacro:if>
 
-    <xacro:if value="${namespace == ''}">
-      <xacro:property name="ns" value="" />
-    </xacro:if>
-    <xacro:unless value="${namespace == ''}">
-        <xacro:property name="ns" value="${namespace}/" />
-    </xacro:unless>
+    <xacro:property name="ns" value='${namespace + "/" if namespace else ""}' />
 
     <xacro:property name="wheel_config" value="${xacro.load_yaml(wheel_config_file)}" />
     <xacro:property name="wheel_separation_x" value="0.44" />
@@ -62,7 +57,8 @@
     <ros2_control name="${ns}panther_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <plugin>ign_ros2_control/IgnitionSystem</plugin>
+          <plugin>panther_gazebo/GzPantherSystem</plugin>
+          <param name="e_stop_initial_state">true</param>
         </xacro:if>
 
         <xacro:unless value="$(arg use_sim)">

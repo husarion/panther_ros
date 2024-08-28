@@ -34,8 +34,8 @@
 #include "panther_msgs/msg/io_state.hpp"
 #include "panther_msgs/msg/system_status.hpp"
 
-#include <include/behavior_tree_test_utils.hpp>
 #include <panther_manager/safety_manager_node.hpp>
+#include <utils/behavior_tree_test_utils.hpp>
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;

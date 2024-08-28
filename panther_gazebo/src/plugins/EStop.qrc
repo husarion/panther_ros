@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource prefix="EStop/">
+    <file>EStop.qml</file>
+  </qresource>
+</RCC>

@@ -22,6 +22,12 @@
 namespace panther_lights::apa102
 {
 
+/**
+ * @brief Class representing an APA102 LED panel.
+ *
+ * This class provides methods to control the APA102 LED panel, including setting the global
+ * brightness, setting the LED panel based on a given frame.
+ */
 class APA102
 {
 public:
