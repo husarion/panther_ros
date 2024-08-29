@@ -28,6 +28,7 @@
 #include "rclcpp/logging.hpp"
 
 #include "panther_hardware_interfaces/utils.hpp"
+#include "panther_utils/common_utilities.hpp"
 #include "panther_utils/diagnostics.hpp"
 
 namespace panther_hardware_interfaces
@@ -429,12 +430,7 @@ void PantherSystem::ReadDriverStatesUpdateFrequency()
 
 void PantherSystem::ConfigureGPIOController()
 {
-  if (IsPantherVersionAtLeast(1.2)) {
-    gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
-  } else {
-    gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
-  }
-
+  gpio_controller_ = GPIOControllerFactory::CreateGPIOController(panther_version_);
   gpio_controller_->Start();
 
   RCLCPP_INFO(logger_, "Successfully configured GPIO controller.");
@@ -463,7 +459,7 @@ void PantherSystem::ConfigureEStop()
     throw std::runtime_error("Failed to configure E-Stop, make sure to setup entities first.");
   }
 
-  if (IsPantherVersionAtLeast(1.2f)) {
+  if (panther_utils::common_utilities::MeetsVersionRequirement(panther_version_, 1.2)) {
     e_stop_ = std::make_shared<EStopPTH12X>(
       gpio_controller_, roboteq_error_filter_, motors_controller_, motor_controller_write_mtx_,
       std::bind(&PantherSystem::AreVelocityCommandsNearZero, this));
@@ -658,11 +654,6 @@ bool PantherSystem::AreVelocityCommandsNearZero()
     }
   }
   return true;
-}
-
-bool PantherSystem::IsPantherVersionAtLeast(const float version)
-{
-  return panther_version_ >= version - std::numeric_limits<float>::epsilon();
 }
 
 void PantherSystem::MotorsPowerEnable(const bool enable)

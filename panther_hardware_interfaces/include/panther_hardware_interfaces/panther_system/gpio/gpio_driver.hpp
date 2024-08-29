@@ -29,51 +29,30 @@
 
 #include "gpiod.hpp"
 
+#include "panther_hardware_interfaces/panther_system/gpio/types.hpp"
+
 namespace panther_hardware_interfaces
 {
 
-/**
- * @brief Enumeration representing available GPIO pins in the Panther system.
- */
-enum class GPIOPin {
-  AUX_PW_EN,
-  CHRG_DISABLE,
-  CHRG_SENSE,
-  DRIVER_EN,
-  E_STOP_RESET,
-  FAN_SW,
-  GPOUT1,
-  GPOUT2,
-  GPIN1,
-  GPIN2,
-  LED_SBC_SEL,
-  SHDN_INIT,
-  STAGE2_INPUT,
-  VDIG_OFF,
-  VMOT_ON,
-  MOTOR_ON,
-  WATCHDOG
-};
-
-/**
- * @brief Structure containing information related to GPIO pins such as pin configuration,
- * direction, value, etc. This information is required during the initialization process.
- */
-struct GPIOInfo
+class GPIODriverInterface
 {
-  GPIOPin pin;
-  gpiod::line::direction direction;
-  bool active_low = false;
-  gpiod::line::value init_value = gpiod::line::value::INACTIVE;
-  gpiod::line::value value = gpiod::line::value::INACTIVE;
-  gpiod::line::offset offset = -1;
+public:
+  virtual ~GPIODriverInterface() = default;
+  virtual void GPIOMonitorEnable(
+    const bool use_rt = false, const unsigned gpio_monit_thread_sched_priority = 60) = 0;
+  virtual void ConfigureEdgeEventCallback(
+    const std::function<void(const GPIOInfo &)> & callback) = 0;
+  virtual void ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction) = 0;
+  virtual bool IsPinAvailable(const GPIOPin pin) const = 0;
+  virtual bool IsPinActive(const GPIOPin pin) = 0;
+  virtual bool SetPinValue(const GPIOPin pin, const bool value) = 0;
 };
 
 /**
  * @brief Class responsible for managing GPIO pins on Panther robots, handling tasks such as
  * setting pin values, changing pin directions, monitoring pin events, and more.
  */
-class GPIODriver
+class GPIODriver : public GPIODriverInterface
 {
 public:
   /**
@@ -127,7 +106,7 @@ public:
    *       lack of functionality to read pin values.
    */
   void GPIOMonitorEnable(
-    const bool use_rt = false, const unsigned gpio_monit_thread_sched_priority = 60);
+    const bool use_rt = false, const unsigned gpio_monit_thread_sched_priority = 60) override;
 
   /**
    * @brief This method sets the provided callback function to be executed upon GPIO edge events.
@@ -154,7 +133,7 @@ public:
    *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
    */
-  void ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback);
+  void ConfigureEdgeEventCallback(const std::function<void(const GPIOInfo &)> & callback) override;
 
   /**
    * @brief Changes the direction of a specific GPIO pin.
@@ -162,7 +141,7 @@ public:
    * @param pin GPIOPin to change the direction for.
    * @param direction New direction for the pin.
    */
-  void ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction);
+  void ChangePinDirection(const GPIOPin pin, const gpiod::line::direction direction) override;
 
   /**
    * @brief Returns true if a specific pin is configured and stored in GPIO info storage
@@ -170,7 +149,7 @@ public:
    * @param pin The GPIO pin to check availability for
    * @return true if the pin is available, false otherwise
    */
-  bool IsPinAvailable(const GPIOPin pin) const;
+  bool IsPinAvailable(const GPIOPin pin) const override;
 
   /**
    * @brief Checks if a specific GPIO pin is active. This method returns the value stored in the
@@ -182,7 +161,7 @@ public:
    *
    * @return True if the pin is active, false otherwise.
    */
-  bool IsPinActive(const GPIOPin pin);
+  bool IsPinActive(const GPIOPin pin) override;
 
   /**
    * @brief Sets the value for a specific GPIO pin.
@@ -195,7 +174,7 @@ public:
    *
    * @return true if the pin value is successfully set, false otherwise.
    */
-  bool SetPinValue(const GPIOPin pin, const bool value);
+  bool SetPinValue(const GPIOPin pin, const bool value) override;
 
 private:
   std::unique_ptr<gpiod::line_request> CreateLineRequest(gpiod::chip & chip);
@@ -227,29 +206,6 @@ private:
    * place.
    */
   std::function<void(const GPIOInfo & gpio_info)> GPIOEdgeEventCallback;
-
-  /**
-   * @brief Mapping of GPIO pins to their respective names.
-   */
-  const std::map<GPIOPin, std::string> pin_names_{
-    {GPIOPin::WATCHDOG, "WATCHDOG"},
-    {GPIOPin::AUX_PW_EN, "AUX_PW_EN"},
-    {GPIOPin::CHRG_DISABLE, "CHRG_DISABLE"},
-    {GPIOPin::CHRG_SENSE, "CHRG_SENSE"},
-    {GPIOPin::DRIVER_EN, "DRIVER_EN"},
-    {GPIOPin::E_STOP_RESET, "E_STOP_RESET"},
-    {GPIOPin::FAN_SW, "FAN_SW"},
-    {GPIOPin::GPOUT1, "GPOUT1"},
-    {GPIOPin::GPOUT2, "GPOUT2"},
-    {GPIOPin::GPIN1, "GPIN1"},
-    {GPIOPin::GPIN2, "GPIN2"},
-    {GPIOPin::LED_SBC_SEL, "LED_SBC_SEL"},
-    {GPIOPin::SHDN_INIT, "SHDN_INIT"},
-    {GPIOPin::STAGE2_INPUT, "STAGE2_INPUT"},
-    {GPIOPin::VDIG_OFF, "VDIG_OFF"},
-    {GPIOPin::VMOT_ON, "VMOT_ON"},
-    {GPIOPin::MOTOR_ON, "MOTOR_ON"},
-  };
 
   /**
    * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.

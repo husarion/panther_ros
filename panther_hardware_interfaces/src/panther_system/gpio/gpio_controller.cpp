@@ -24,10 +24,14 @@
 
 #include "gpiod.hpp"
 
+#include "panther_hardware_interfaces/panther_system/gpio/gpio_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/gpio/types.hpp"
+
 namespace panther_hardware_interfaces
 {
 
-Watchdog::Watchdog(std::shared_ptr<GPIODriver> gpio_driver) : gpio_driver_(std::move(gpio_driver))
+Watchdog::Watchdog(std::shared_ptr<GPIODriverInterface> gpio_driver)
+: gpio_driver_(std::move(gpio_driver))
 {
   if (!gpio_driver_->IsPinAvailable(watchdog_pin_)) {
     throw std::runtime_error("Watchdog pin is not configured.");
@@ -98,9 +102,17 @@ bool GPIOControllerInterface::IsPinAvailable(const GPIOPin pin) const
   return gpio_driver_->IsPinAvailable(pin);
 }
 
+GPIOControllerPTH12X::GPIOControllerPTH12X(std::shared_ptr<GPIODriverInterface> gpio_driver)
+{
+  gpio_driver_ = gpio_driver;
+
+  if (!gpio_driver_) {
+    throw std::runtime_error("GPIO driver is not initialized.");
+  }
+}
+
 void GPIOControllerPTH12X::Start()
 {
-  gpio_driver_ = std::make_shared<GPIODriver>(gpio_config_info_storage_);
   gpio_driver_->GPIOMonitorEnable(true, 60);
 
   gpio_driver_->SetPinValue(GPIOPin::VMOT_ON, true);
@@ -197,6 +209,29 @@ std::unordered_map<GPIOPin, bool> GPIOControllerPTH12X::QueryControlInterfaceIOS
   return io_state;
 }
 
+const std::vector<GPIOInfo> GPIOControllerPTH12X::gpio_config_info_storage_ = {
+  GPIOInfo{GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::GPIN1, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::GPIN2, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
+  GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
+};
+
+const std::vector<GPIOInfo> & GPIOControllerPTH12X::GetGPIOConfigInfoStorage()
+{
+  return gpio_config_info_storage_;
+}
+
 void GPIOControllerPTH12X::InterruptEStopReset()
 {
   std::lock_guard<std::mutex> lck(e_stop_cv_mtx_);
@@ -215,9 +250,17 @@ bool GPIOControllerPTH12X::WaitFor(std::chrono::milliseconds timeout)
   return !interrupted;
 }
 
+GPIOControllerPTH10X::GPIOControllerPTH10X(std::shared_ptr<GPIODriverInterface> gpio_driver)
+{
+  gpio_driver_ = gpio_driver;
+
+  if (!gpio_driver_) {
+    throw std::runtime_error("GPIO driver is not initialized.");
+  }
+}
+
 void GPIOControllerPTH10X::Start()
 {
-  gpio_driver_ = std::make_shared<GPIODriver>(gpio_config_info_storage_);
   gpio_driver_->GPIOMonitorEnable(true, 60);
 
   gpio_driver_->SetPinValue(GPIOPin::MOTOR_ON, true);
@@ -286,6 +329,17 @@ std::unordered_map<GPIOPin, bool> GPIOControllerPTH10X::QueryControlInterfaceIOS
   io_state.emplace(GPIOPin::MOTOR_ON, gpio_driver_->IsPinActive(GPIOPin::MOTOR_ON));
 
   return io_state;
+}
+
+const std::vector<GPIOInfo> GPIOControllerPTH10X::gpio_config_info_storage_ = {
+  GPIOInfo{GPIOPin::STAGE2_INPUT, gpiod::line::direction::INPUT},
+  GPIOInfo{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT},
+  GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
+};
+
+const std::vector<GPIOInfo> & GPIOControllerPTH10X::GetGPIOConfigInfoStorage()
+{
+  return gpio_config_info_storage_;
 }
 
 }  // namespace panther_hardware_interfaces
