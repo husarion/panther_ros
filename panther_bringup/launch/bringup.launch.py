@@ -52,8 +52,8 @@ def generate_launch_description():
     )
 
     serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
-    welcome_msg = welcomeMsg(serial_no, panther_version)
+    robot_version = EnvironmentVariable(name="LYNX_ROBOT_VERSION", default_value="0.2")
+    welcome_msg = welcomeMsg(serial_no, robot_version)
 
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -74,14 +74,19 @@ def generate_launch_description():
                 ]
             ),
         ),
-        launch_arguments={"namespace": namespace}.items(),
+        launch_arguments={
+            "namespace": namespace,
+            "led_config_file": PathJoinSubstitution(
+                [FindPackageShare("panther_lights"), "config", "lynx_led_config.yaml"]
+            ),
+            "channel_1_num_led": "20",
+            "channel_2_num_led": "28",
+        }.items(),
     )
 
     lights_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
-            )
+            PathJoinSubstitution([FindPackageShare("panther_lights"), "launch", "lights.launch.py"])
         ),
         launch_arguments={"namespace": namespace}.items(),
     )

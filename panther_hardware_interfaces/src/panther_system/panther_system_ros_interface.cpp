@@ -128,68 +128,44 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   node_.reset();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrorFlags(
-  const RoboteqData & front, const RoboteqData & rear)
+void PantherSystemRosInterface::UpdateMsgErrorFlags(const RoboteqData & data)
 {
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-  auto & front_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_FRONT);
-  auto & rear_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_REAR);
+  auto & robot_driver_state = realtime_driver_state_publisher_->msg_;
+  auto & driver_state = GetDriverStateByName(robot_driver_state, DriverStateNamedMsg::NAME_DEFAULT);
 
-  driver_state.header.stamp = node_->get_clock()->now();
+  robot_driver_state.header.stamp = node_->get_clock()->now();
 
-  front_driver_state.state.fault_flag = front.GetFaultFlag().GetMessage();
-  front_driver_state.state.script_flag = front.GetScriptFlag().GetMessage();
-  front_driver_state.state.channel_2_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
-  front_driver_state.state.channel_1_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
-
-  rear_driver_state.state.fault_flag = rear.GetFaultFlag().GetMessage();
-  rear_driver_state.state.script_flag = rear.GetScriptFlag().GetMessage();
-  rear_driver_state.state.channel_2_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
-  rear_driver_state.state.channel_1_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
+  driver_state.state.fault_flag = data.GetFaultFlag().GetMessage();
+  driver_state.state.script_flag = data.GetScriptFlag().GetMessage();
+  driver_state.state.channel_2_motor_runtime_error = data.GetLeftRuntimeError().GetMessage();
+  driver_state.state.channel_1_motor_runtime_error = data.GetRightRuntimeError().GetMessage();
 }
 
-void PantherSystemRosInterface::UpdateMsgDriversStates(
-  const DriverState & front, const DriverState & rear)
+void PantherSystemRosInterface::UpdateMsgDriversStates(const DriverState & data)
 {
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-  auto & front_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_FRONT);
-  auto & rear_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_REAR);
+  auto & robot_driver_state = realtime_driver_state_publisher_->msg_;
+  auto & driver_state = GetDriverStateByName(robot_driver_state, DriverStateNamedMsg::NAME_DEFAULT);
 
-  front_driver_state.state.voltage = front.GetVoltage();
-  front_driver_state.state.current = front.GetCurrent();
-  front_driver_state.state.temperature = front.GetTemperature();
-  front_driver_state.state.heatsink_temperature = front.GetHeatsinkTemperature();
-
-  rear_driver_state.state.voltage = rear.GetVoltage();
-  rear_driver_state.state.current = rear.GetCurrent();
-  rear_driver_state.state.temperature = rear.GetTemperature();
-  rear_driver_state.state.heatsink_temperature = rear.GetHeatsinkTemperature();
+  driver_state.state.voltage = data.GetVoltage();
+  driver_state.state.current = data.GetCurrent();
+  driver_state.state.temperature = data.GetTemperature();
+  driver_state.state.heatsink_temperature = data.GetHeatsinkTemperature();
 }
 
 void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
 {
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-  auto & front_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_FRONT);
-  auto & rear_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_REAR);
+  auto & robot_driver_state = realtime_driver_state_publisher_->msg_;
+  auto & driver_state = GetDriverStateByName(robot_driver_state, DriverStateNamedMsg::NAME_DEFAULT);
 
-  driver_state.error = can_errors.error;
-  driver_state.write_pdo_cmds_error = can_errors.write_pdo_cmds_error;
-  driver_state.read_pdo_motor_states_error = can_errors.read_pdo_motor_states_error;
-  driver_state.read_pdo_driver_state_error = can_errors.read_pdo_driver_state_error;
+  robot_driver_state.error = can_errors.error;
+  robot_driver_state.write_pdo_cmds_error = can_errors.write_pdo_cmds_error;
+  robot_driver_state.read_pdo_motor_states_error = can_errors.read_pdo_motor_states_error;
+  robot_driver_state.read_pdo_driver_state_error = can_errors.read_pdo_driver_state_error;
 
-  front_driver_state.state.motor_states_data_timed_out =
-    can_errors.front_motor_states_data_timed_out;
-  rear_driver_state.state.motor_states_data_timed_out = can_errors.rear_motor_states_data_timed_out;
-
-  front_driver_state.state.driver_state_data_timed_out =
-    can_errors.front_driver_state_data_timed_out;
-  rear_driver_state.state.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
-
-  front_driver_state.state.can_error = can_errors.front_can_error;
-  rear_driver_state.state.can_error = can_errors.rear_can_error;
-
-  front_driver_state.state.heartbeat_timeout = can_errors.front_heartbeat_timeout;
-  rear_driver_state.state.heartbeat_timeout = can_errors.rear_heartbeat_timeout;
+  driver_state.state.motor_states_data_timed_out = can_errors.motor_states_data_timed_out;
+  driver_state.state.driver_state_data_timed_out = can_errors.driver_state_data_timed_out;
+  driver_state.state.can_error = can_errors.can_error;
+  driver_state.state.heartbeat_timeout = can_errors.heartbeat_timeout;
 }
 
 void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)
@@ -303,14 +279,11 @@ rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallb
 
 void PantherSystemRosInterface::InitializeRobotDriverStateMsg()
 {
-  DriverStateNamedMsg front_driver_state;
-  DriverStateNamedMsg rear_driver_state;
-  front_driver_state.name = DriverStateNamedMsg::NAME_FRONT;
-  rear_driver_state.name = DriverStateNamedMsg::NAME_REAR;
+  DriverStateNamedMsg driver_state;
+  driver_state.name = DriverStateNamedMsg::NAME_DEFAULT;
 
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-  driver_state.driver_states.push_back(front_driver_state);
-  driver_state.driver_states.push_back(rear_driver_state);
+  auto & robot_driver_state = realtime_driver_state_publisher_->msg_;
+  robot_driver_state.driver_states.push_back(driver_state);
 }
 
 DriverStateNamedMsg & PantherSystemRosInterface::GetDriverStateByName(

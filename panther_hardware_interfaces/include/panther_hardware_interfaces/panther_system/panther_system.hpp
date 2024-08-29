@@ -47,10 +47,10 @@ using CommandInterface = hardware_interface::CommandInterface;
 /**
  * @brief Class that implements SystemInterface from ros2_control for Panther
  */
-class PantherSystem : public hardware_interface::SystemInterface
+class LynxSystem : public hardware_interface::SystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(PantherSystem)
+  RCLCPP_SHARED_PTR_DEFINITIONS(LynxSystem)
 
   CallbackReturn on_init(const hardware_interface::HardwareInfo & hardware_info) override;
   CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
@@ -140,7 +140,7 @@ protected:
   unsigned max_roboteq_initialization_attempts_;
   unsigned max_roboteq_activation_attempts_;
 
-  rclcpp::Logger logger_{rclcpp::get_logger("PantherSystem")};
+  rclcpp::Logger logger_{rclcpp::get_logger("LynxSystem")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;

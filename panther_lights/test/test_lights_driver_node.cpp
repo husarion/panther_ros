@@ -39,7 +39,8 @@ public:
   {
   }
 
-  int getNumLeds() const { return num_led_; }
+  int getChannel1NumLeds() const { return channel_1_num_led_; }
+  int getChannel2NumLeds() const { return channel_2_num_led_; }
   double getTimeout() const { return frame_timeout_; }
   bool isInitialised() const { return led_control_granted_; }
   rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
@@ -80,7 +81,7 @@ protected:
     msg->header.stamp = lights_driver_node_->now();
     msg->header.frame_id = "image_frame";
     msg->height = 1;
-    msg->width = lights_driver_node_->getNumLeds();
+    msg->width = lights_driver_node_->getChannel1NumLeds();
     msg->encoding = sensor_msgs::image_encodings::RGBA8;
     msg->is_bigendian = false;
     msg->step = msg->width * 4;
@@ -173,7 +174,7 @@ TEST_F(TestDriverNode, PublishHeightFail)
 TEST_F(TestDriverNode, PublishWidthFail)
 {
   auto msg = CreateImageMsg();
-  msg->width = lights_driver_node_->getNumLeds() + 1;
+  msg->width = lights_driver_node_->getChannel1NumLeds() + 1;
   channel_1_pub_->publish(std::move(msg));
   rclcpp::spin_some(lights_driver_node_);
   rclcpp::spin_some(service_node_);

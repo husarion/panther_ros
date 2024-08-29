@@ -80,21 +80,17 @@ public:
    */
   void UpdateDriversState();
 
-  const RoboteqData & GetFrontData() { return front_data_; }
-  const RoboteqData & GetRearData() { return rear_data_; }
+  const RoboteqData & GetData() { return data_; }
 
   /**
    * @brief Write speed commands to motors
    *
-   * @param speed_fl front left motor speed in rad/s
-   * @param speed_fr front right motor speed in rad/s
-   * @param speed_rl rear left motor speed in rad/s
-   * @param speed_rr rear right motor speed in rad/s
+   * @param speed_left front left motor speed in rad/s
+   * @param speed_right front right motor speed in rad/s
    *
    * @exception std::runtime_error if send command fails or CAN error was detected
    */
-  void SendSpeedCommands(
-    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr);
+  void SendSpeedCommands(const float speed_left, const float speed_right);
 
   /**
    * @brief Turns on Roboteq E-stop
@@ -122,7 +118,7 @@ public:
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
    * driver faults still exist, the error flag will remain active.
    */
-  inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
+  inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0); };
 
 private:
   void SetMotorsStates(
@@ -134,8 +130,7 @@ private:
 
   CANopenController canopen_controller_;
 
-  RoboteqData front_data_;
-  RoboteqData rear_data_;
+  RoboteqData data_;
 
   RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
 

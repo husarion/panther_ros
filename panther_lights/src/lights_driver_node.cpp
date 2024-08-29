@@ -54,10 +54,12 @@ LightsDriverNode::LightsDriverNode(const rclcpp::NodeOptions & options)
 
   this->declare_parameter<double>("global_brightness", 1.0);
   this->declare_parameter<double>("frame_timeout", 0.1);
-  this->declare_parameter<int>("num_led", 46);
+  this->declare_parameter<int>("channel_1_num_led", 46);
+  this->declare_parameter<int>("channel_2_num_led", 46);
 
   frame_timeout_ = this->get_parameter("frame_timeout").as_double();
-  num_led_ = this->get_parameter("num_led").as_int();
+  channel_1_num_led_ = this->get_parameter("channel_1_num_led").as_int();
+  channel_2_num_led_ = this->get_parameter("channel_2_num_led").as_int();
 
   const float global_brightness = this->get_parameter("global_brightness").as_double();
   chanel_1_.SetGlobalBrightness(global_brightness);
@@ -133,8 +135,8 @@ void LightsDriverNode::InitializationTimerCB()
 
 void LightsDriverNode::ClearLEDs()
 {
-  chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
-  chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
+  chanel_1_.SetPanel(std::vector<std::uint8_t>(channel_1_num_led_ * 4, 0));
+  chanel_2_.SetPanel(std::vector<std::uint8_t>(channel_2_num_led_ * 4, 0));
 }
 
 void LightsDriverNode::ToggleLEDControl(const bool enable)
@@ -211,7 +213,9 @@ void LightsDriverNode::FrameCB(
     message = "Incorrect image encoding ('" + msg->encoding + "')";
   } else if (msg->height != 1) {
     message = "Incorrect image height " + std::to_string(msg->height);
-  } else if (msg->width != (std::uint32_t)num_led_) {
+  } else if (
+    msg->width !=
+    (std::uint32_t)(panel_name == "channel_1" ? channel_1_num_led_ : channel_2_num_led_)) {
     message = "Incorrect image width " + std::to_string(msg->width);
   }
 

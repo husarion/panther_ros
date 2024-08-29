@@ -41,11 +41,12 @@ def welcomeMsg(
     pkg_version = Command(command="ros2 pkg xml -t version panther")
 
     PANTHER_TEXT = """
-     ____             _   _
-    |  _ \ __ _ _ __ | |_| |__   ___ _ __
-    | |_) / _` | '_ \| __| '_ \ / _ \ '__|
-    |  __/ (_| | | | | |_| | | |  __/ |
-    |_|   \__,_|_| |_|\__|_| |_|\___|_|
+     _                     
+    | |   _   _ _ __ __  __
+    | |  | | | | '_ \\\ \/ /
+    | |__| |_| | | | |>  < 
+    |_____\__, |_| |_/_/\_\\
+          |___/              
 
     """  # noqa: W605
     pth_txt = textwrap.dedent(PANTHER_TEXT)

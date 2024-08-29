@@ -59,6 +59,20 @@ def generate_launch_description():
         description="Path to a YAML file with a description of the user defined animations.",
     )
 
+    channel_1_num_led = LaunchConfiguration("channel_1_num_led")
+    declare_channel_1_num_led_arg = DeclareLaunchArgument(
+        "channel_1_num_led",
+        default_value="46",
+        description="Number of LEDs on channel 1.",
+    )
+
+    channel_2_num_led = LaunchConfiguration("channel_2_num_led")
+    declare_channel_2_num_led_arg = DeclareLaunchArgument(
+        "channel_2_num_led",
+        default_value="46",
+        description="Number of LEDs on channel 2.",
+    )
+
     lights_container = ComposableNodeContainer(
         package="rclcpp_components",
         name="lights_container",
@@ -71,6 +85,10 @@ def generate_launch_description():
                 name="lights_driver",
                 namespace=namespace,
                 remappings=[("/diagnostics", "diagnostics")],
+                parameters=[
+                    {"channel_1_num_led": channel_1_num_led},
+                    {"channel_2_num_led": channel_2_num_led},
+                ],
                 extra_arguments=[
                     {"use_intra_process_comms": True},
                 ],
@@ -99,6 +117,8 @@ def generate_launch_description():
         declare_namespace_arg,
         declare_use_sim_arg,
         declare_user_led_animations_file_arg,
+        declare_channel_1_num_led_arg,
+        declare_channel_2_num_led_arg,
         lights_container,
     ]
 

@@ -33,7 +33,7 @@
 namespace panther_hardware_interfaces
 {
 
-CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
+CallbackReturn LynxSystem::on_init(const hardware_interface::HardwareInfo & hardware_info)
 {
   if (hardware_interface::SystemInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -50,7 +50,6 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   }
 
   try {
-    ReadPantherVersion();
     ReadDrivetrainSettings();
     ReadCANopenSettings();
     ReadInitializationActivationAttempts();
@@ -65,10 +64,9 @@ CallbackReturn PantherSystem::on_init(const hardware_interface::HardwareInfo & h
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn LynxSystem::on_configure(const rclcpp_lifecycle::State &)
 {
-  RCLCPP_DEBUG_STREAM(
-    logger_, "Creating system entities for the Panther version: " << panther_version_);
+  RCLCPP_DEBUG_STREAM(logger_, "Creating system entities for Lynx");
 
   try {
     ConfigureGPIOController();
@@ -83,7 +81,7 @@ CallbackReturn PantherSystem::on_configure(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn LynxSystem::on_cleanup(const rclcpp_lifecycle::State &)
 {
   motors_controller_->Deinitialize();
   motors_controller_.reset();
@@ -94,7 +92,7 @@ CallbackReturn PantherSystem::on_cleanup(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn LynxSystem::on_activate(const rclcpp_lifecycle::State &)
 {
   hw_commands_velocities_.fill(0.0);
   hw_states_positions_.fill(0.0);
@@ -130,8 +128,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     "~/led_control_enable",
     std::bind(&GPIOControllerInterface::LEDControlEnable, gpio_controller_, std::placeholders::_1));
   panther_system_ros_interface_->AddService<SetBoolSrv, std::function<void(bool)>>(
-    "~/motor_power_enable",
-    std::bind(&PantherSystem::MotorsPowerEnable, this, std::placeholders::_1));
+    "~/motor_power_enable", std::bind(&LynxSystem::MotorsPowerEnable, this, std::placeholders::_1));
 
   panther_system_ros_interface_->AddService<TriggerSrv, std::function<void()>>(
     "~/e_stop_trigger", std::bind(&EStopInterface::TriggerEStop, e_stop_), 1,
@@ -144,10 +141,10 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
     rclcpp::CallbackGroupType::MutuallyExclusive, e_stop_reset_qos);
 
   panther_system_ros_interface_->AddDiagnosticTask(
-    std::string("system errors"), this, &PantherSystem::DiagnoseErrors);
+    std::string("system errors"), this, &LynxSystem::DiagnoseErrors);
 
   panther_system_ros_interface_->AddDiagnosticTask(
-    std::string("system status"), this, &PantherSystem::DiagnoseStatus);
+    std::string("system status"), this, &LynxSystem::DiagnoseStatus);
 
   gpio_controller_->RegisterGPIOEventCallback(
     [this](const auto & state) { panther_system_ros_interface_->PublishIOState(state); });
@@ -160,7 +157,7 @@ CallbackReturn PantherSystem::on_activate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn LynxSystem::on_deactivate(const rclcpp_lifecycle::State &)
 {
   try {
     e_stop_->TriggerEStop();
@@ -174,7 +171,7 @@ CallbackReturn PantherSystem::on_deactivate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
+CallbackReturn LynxSystem::on_shutdown(const rclcpp_lifecycle::State &)
 {
   try {
     e_stop_->TriggerEStop();
@@ -194,7 +191,7 @@ CallbackReturn PantherSystem::on_shutdown(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
+CallbackReturn LynxSystem::on_error(const rclcpp_lifecycle::State &)
 {
   try {
     e_stop_->TriggerEStop();
@@ -218,7 +215,7 @@ CallbackReturn PantherSystem::on_error(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<StateInterface> PantherSystem::export_state_interfaces()
+std::vector<StateInterface> LynxSystem::export_state_interfaces()
 {
   std::vector<StateInterface> state_interfaces;
   for (std::size_t i = 0; i < kJointsSize; i++) {
@@ -233,7 +230,7 @@ std::vector<StateInterface> PantherSystem::export_state_interfaces()
   return state_interfaces;
 }
 
-std::vector<CommandInterface> PantherSystem::export_command_interfaces()
+std::vector<CommandInterface> LynxSystem::export_command_interfaces()
 {
   std::vector<CommandInterface> command_interfaces;
   for (std::size_t i = 0; i < kJointsSize; i++) {
@@ -244,7 +241,7 @@ std::vector<CommandInterface> PantherSystem::export_command_interfaces()
   return command_interfaces;
 }
 
-return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
+return_type LynxSystem::read(const rclcpp::Time & time, const rclcpp::Duration & /* period */)
 {
   UpdateMotorsState();
 
@@ -260,23 +257,21 @@ return_type PantherSystem::read(const rclcpp::Time & time, const rclcpp::Duratio
   return return_type::OK;
 }
 
-return_type PantherSystem::write(
+return_type LynxSystem::write(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
   const bool e_stop = e_stop_->ReadEStopState();
 
   if (!e_stop) {
     HandlePDOWriteOperation([this] {
-      motors_controller_->SendSpeedCommands(
-        hw_commands_velocities_[0], hw_commands_velocities_[1], hw_commands_velocities_[2],
-        hw_commands_velocities_[3]);
+      motors_controller_->SendSpeedCommands(hw_commands_velocities_[0], hw_commands_velocities_[1]);
     });
   }
 
   return return_type::OK;
 }
 
-void PantherSystem::CheckJointSize() const
+void LynxSystem::CheckJointSize() const
 {
   if (info_.joints.size() != kJointsSize) {
     throw std::runtime_error(
@@ -285,7 +280,7 @@ void PantherSystem::CheckJointSize() const
   }
 }
 
-void PantherSystem::SortAndCheckJointNames()
+void LynxSystem::SortAndCheckJointNames()
 {
   // Sort joints names - later hw_states and hw_commands are accessed by static indexes, so it
   // is necessary to make sure that joints are in specific order and order of definitions in URDF
@@ -308,7 +303,7 @@ void PantherSystem::SortAndCheckJointNames()
   }
 }
 
-void PantherSystem::SetInitialValues()
+void LynxSystem::SetInitialValues()
 {
   // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it
   // shouldn't). In case of velocity, I think that setting the initial value to 0.0 is the best
@@ -320,7 +315,7 @@ void PantherSystem::SetInitialValues()
   hw_states_efforts_.fill(std::numeric_limits<double>::quiet_NaN());
 }
 
-void PantherSystem::CheckInterfaces() const
+void LynxSystem::CheckInterfaces() const
 {
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
     // Commands
@@ -364,12 +359,12 @@ void PantherSystem::CheckInterfaces() const
   }
 }
 
-void PantherSystem::ReadPantherVersion()
+void LynxSystem::ReadPantherVersion()
 {
   panther_version_ = std::stof(info_.hardware_parameters["panther_version"]);
 }
 
-void PantherSystem::ReadDrivetrainSettings()
+void LynxSystem::ReadDrivetrainSettings()
 {
   drivetrain_settings_.motor_torque_constant =
     std::stof(info_.hardware_parameters["motor_torque_constant"]);
@@ -382,13 +377,11 @@ void PantherSystem::ReadDrivetrainSettings()
     std::stof(info_.hardware_parameters["max_rpm_motor_speed"]);
 }
 
-void PantherSystem::ReadCANopenSettings()
+void LynxSystem::ReadCANopenSettings()
 {
   canopen_settings_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   canopen_settings_.master_can_id = std::stoi(info_.hardware_parameters["master_can_id"]);
-  canopen_settings_.front_driver_can_id =
-    std::stoi(info_.hardware_parameters["front_driver_can_id"]);
-  canopen_settings_.rear_driver_can_id = std::stoi(info_.hardware_parameters["rear_driver_can_id"]);
+  canopen_settings_.driver_can_id = std::stoi(info_.hardware_parameters["driver_can_id"]);
   canopen_settings_.pdo_motor_states_timeout_ms =
     std::chrono::milliseconds(std::stoi(info_.hardware_parameters["pdo_motor_states_timeout_ms"]));
   canopen_settings_.pdo_driver_state_timeout_ms =
@@ -397,7 +390,7 @@ void PantherSystem::ReadCANopenSettings()
     std::chrono::milliseconds(std::stoi(info_.hardware_parameters["sdo_operation_timeout_ms"]));
 }
 
-void PantherSystem::ReadInitializationActivationAttempts()
+void LynxSystem::ReadInitializationActivationAttempts()
 {
   max_roboteq_initialization_attempts_ =
     std::stoi(info_.hardware_parameters["max_roboteq_initialization_attempts"]);
@@ -405,7 +398,7 @@ void PantherSystem::ReadInitializationActivationAttempts()
     std::stoi(info_.hardware_parameters["max_roboteq_activation_attempts"]);
 }
 
-void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()
+void LynxSystem::ReadParametersAndCreateRoboteqErrorFilter()
 {
   const unsigned max_write_pdo_cmds_errors_count =
     std::stoi(info_.hardware_parameters["max_write_pdo_cmds_errors_count"]);
@@ -419,7 +412,7 @@ void PantherSystem::ReadParametersAndCreateRoboteqErrorFilter()
     max_read_pdo_driver_state_errors_count, 1);
 }
 
-void PantherSystem::ReadDriverStatesUpdateFrequency()
+void LynxSystem::ReadDriverStatesUpdateFrequency()
 {
   const float driver_states_update_frequency =
     std::stof(info_.hardware_parameters["driver_states_update_frequency"]);
@@ -427,20 +420,16 @@ void PantherSystem::ReadDriverStatesUpdateFrequency()
     rclcpp::Duration::from_seconds(1.0f / driver_states_update_frequency);
 }
 
-void PantherSystem::ConfigureGPIOController()
+void LynxSystem::ConfigureGPIOController()
 {
-  if (IsPantherVersionAtLeast(1.2)) {
-    gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
-  } else {
-    gpio_controller_ = std::make_shared<GPIOControllerPTH10X>();
-  }
+  gpio_controller_ = std::make_shared<GPIOControllerPTH12X>();
 
   gpio_controller_->Start();
 
   RCLCPP_INFO(logger_, "Successfully configured GPIO controller.");
 }
 
-void PantherSystem::ConfigureMotorsController()
+void LynxSystem::ConfigureMotorsController()
 {
   motor_controller_write_mtx_ = std::make_shared<std::mutex>();
   motors_controller_ = std::make_shared<MotorsController>(canopen_settings_, drivetrain_settings_);
@@ -455,7 +444,7 @@ void PantherSystem::ConfigureMotorsController()
   RCLCPP_INFO(logger_, "Successfully configured motors controller");
 }
 
-void PantherSystem::ConfigureEStop()
+void LynxSystem::ConfigureEStop()
 {
   if (
     !gpio_controller_ || !roboteq_error_filter_ || !motors_controller_ ||
@@ -463,20 +452,14 @@ void PantherSystem::ConfigureEStop()
     throw std::runtime_error("Failed to configure E-Stop, make sure to setup entities first.");
   }
 
-  if (IsPantherVersionAtLeast(1.2f)) {
-    e_stop_ = std::make_shared<EStopPTH12X>(
-      gpio_controller_, roboteq_error_filter_, motors_controller_, motor_controller_write_mtx_,
-      std::bind(&PantherSystem::AreVelocityCommandsNearZero, this));
-  } else {
-    e_stop_ = std::make_shared<EStopPTH10X>(
-      gpio_controller_, roboteq_error_filter_, motors_controller_, motor_controller_write_mtx_,
-      std::bind(&PantherSystem::AreVelocityCommandsNearZero, this));
-  }
+  e_stop_ = std::make_shared<EStopPTH12X>(
+    gpio_controller_, roboteq_error_filter_, motors_controller_, motor_controller_write_mtx_,
+    std::bind(&LynxSystem::AreVelocityCommandsNearZero, this));
 
   RCLCPP_INFO(logger_, "Successfully configured E-Stop");
 }
 
-void PantherSystem::UpdateMotorsState()
+void LynxSystem::UpdateMotorsState()
 {
   try {
     motors_controller_->UpdateMotorsState();
@@ -491,7 +474,7 @@ void PantherSystem::UpdateMotorsState()
   }
 }
 
-void PantherSystem::UpdateDriverState()
+void LynxSystem::UpdateDriverState()
 {
   try {
     motors_controller_->UpdateDriversState();
@@ -506,11 +489,9 @@ void PantherSystem::UpdateDriverState()
   }
 }
 
-void PantherSystem::UpdateEStopState()
+void LynxSystem::UpdateEStopState()
 {
-  if (
-    motors_controller_->GetFrontData().IsHeartbeatTimeout() ||
-    motors_controller_->GetRearData().IsHeartbeatTimeout()) {
+  if (motors_controller_->GetData().IsHeartbeatTimeout()) {
     e_stop_->TriggerEStop();
   }
 
@@ -518,56 +499,45 @@ void PantherSystem::UpdateEStopState()
   panther_system_ros_interface_->PublishEStopStateIfChanged(e_stop);
 }
 
-void PantherSystem::UpdateHwStates()
+void LynxSystem::UpdateHwStates()
 {
-  const auto front = motors_controller_->GetFrontData();
-  const auto rear = motors_controller_->GetRearData();
+  const auto data = motors_controller_->GetData();
 
-  const auto fl = front.GetLeftMotorState();
-  const auto fr = front.GetRightMotorState();
-  const auto rl = rear.GetLeftMotorState();
-  const auto rr = rear.GetRightMotorState();
+  const auto left = data.GetLeftMotorState();
+  const auto right = data.GetRightMotorState();
 
-  hw_states_positions_[0] = fl.GetPosition();
-  hw_states_positions_[1] = fr.GetPosition();
-  hw_states_positions_[2] = rl.GetPosition();
-  hw_states_positions_[3] = rr.GetPosition();
+  hw_states_positions_[0] = left.GetPosition();
+  hw_states_positions_[1] = right.GetPosition();
+  hw_states_positions_[2] = left.GetPosition();
+  hw_states_positions_[3] = right.GetPosition();
 
-  hw_states_velocities_[0] = fl.GetVelocity();
-  hw_states_velocities_[1] = fr.GetVelocity();
-  hw_states_velocities_[2] = rl.GetVelocity();
-  hw_states_velocities_[3] = rr.GetVelocity();
+  hw_states_velocities_[0] = left.GetVelocity();
+  hw_states_velocities_[1] = right.GetVelocity();
+  hw_states_velocities_[2] = left.GetVelocity();
+  hw_states_velocities_[3] = right.GetVelocity();
 
-  hw_states_efforts_[0] = fl.GetTorque();
-  hw_states_efforts_[1] = fr.GetTorque();
-  hw_states_efforts_[2] = rl.GetTorque();
-  hw_states_efforts_[3] = rr.GetTorque();
+  hw_states_efforts_[0] = left.GetTorque();
+  hw_states_efforts_[1] = right.GetTorque();
+  hw_states_efforts_[2] = left.GetTorque();
+  hw_states_efforts_[3] = right.GetTorque();
 }
 
-void PantherSystem::UpdateMotorsStateDataTimedOut()
+void LynxSystem::UpdateMotorsStateDataTimedOut()
 {
-  if (
-    motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ||
-    motors_controller_->GetRearData().IsMotorStatesDataTimedOut()) {
-    RCLCPP_WARN_STREAM_THROTTLE(
-      logger_, steady_clock_, 1000,
-      (motors_controller_->GetFrontData().IsMotorStatesDataTimedOut() ? "Front " : "")
-        << (motors_controller_->GetRearData().IsMotorStatesDataTimedOut() ? "Rear " : "")
-        << "PDO motor state data timeout.");
+  if (motors_controller_->GetData().IsMotorStatesDataTimedOut()) {
+    RCLCPP_WARN_STREAM_THROTTLE(logger_, steady_clock_, 1000, "PDO motor state data timeout.");
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, true);
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_MOTOR_STATES, false);
   }
 }
 
-void PantherSystem::UpdateDriverStateMsg()
+void LynxSystem::UpdateDriverStateMsg()
 {
   panther_system_ros_interface_->UpdateMsgDriversStates(
-    motors_controller_->GetFrontData().GetDriverState(),
-    motors_controller_->GetRearData().GetDriverState());
+    motors_controller_->GetData().GetDriverState());
 
-  panther_system_ros_interface_->UpdateMsgErrorFlags(
-    motors_controller_->GetFrontData(), motors_controller_->GetRearData());
+  panther_system_ros_interface_->UpdateMsgErrorFlags(motors_controller_->GetData());
 
   CANErrors can_errors;
   can_errors.error = roboteq_error_filter_->IsError();
@@ -577,35 +547,23 @@ void PantherSystem::UpdateDriverStateMsg()
   can_errors.read_pdo_driver_state_error =
     roboteq_error_filter_->IsError(ErrorsFilterIds::READ_PDO_DRIVER_STATE);
 
-  can_errors.front_motor_states_data_timed_out =
-    motors_controller_->GetFrontData().IsMotorStatesDataTimedOut();
-  can_errors.rear_motor_states_data_timed_out =
-    motors_controller_->GetRearData().IsMotorStatesDataTimedOut();
-
-  can_errors.front_driver_state_data_timed_out =
-    motors_controller_->GetFrontData().IsDriverStateDataTimedOut();
-  can_errors.rear_driver_state_data_timed_out =
-    motors_controller_->GetRearData().IsDriverStateDataTimedOut();
-
-  can_errors.front_can_error = motors_controller_->GetFrontData().IsCANError();
-  can_errors.rear_can_error = motors_controller_->GetRearData().IsCANError();
-
-  can_errors.front_heartbeat_timeout = motors_controller_->GetFrontData().IsHeartbeatTimeout();
-  can_errors.rear_heartbeat_timeout = motors_controller_->GetRearData().IsHeartbeatTimeout();
+  can_errors.motor_states_data_timed_out =
+    motors_controller_->GetData().IsMotorStatesDataTimedOut();
+  can_errors.driver_state_data_timed_out =
+    motors_controller_->GetData().IsDriverStateDataTimedOut();
+  can_errors.can_error = motors_controller_->GetData().IsCANError();
+  can_errors.heartbeat_timeout = motors_controller_->GetData().IsHeartbeatTimeout();
 
   panther_system_ros_interface_->UpdateMsgErrors(can_errors);
 }
 
-void PantherSystem::UpdateFlagErrors()
+void LynxSystem::UpdateFlagErrors()
 {
-  if (
-    motors_controller_->GetFrontData().IsFlagError() ||
-    motors_controller_->GetRearData().IsFlagError()) {
+  if (motors_controller_->GetData().IsFlagError()) {
     RCLCPP_WARN_STREAM_THROTTLE(
       logger_, steady_clock_, 1000,
-      "Error state on one of the drivers:\n"
-        << "\tFront: " << motors_controller_->GetFrontData().GetFlagErrorLog()
-        << "\tRear: " << motors_controller_->GetRearData().GetFlagErrorLog());
+      "Error state on the driver:\n"
+        << motors_controller_->GetData().GetFlagErrorLog());
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::ROBOTEQ_DRIVER, true);
 
     HandlePDOWriteOperation([this] { motors_controller_->AttemptErrorFlagResetWithZeroSpeed(); });
@@ -614,23 +572,17 @@ void PantherSystem::UpdateFlagErrors()
   }
 }
 
-void PantherSystem::UpdateDriverStateDataTimedOut()
+void LynxSystem::UpdateDriverStateDataTimedOut()
 {
-  if (
-    motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ||
-    motors_controller_->GetRearData().IsDriverStateDataTimedOut()) {
-    RCLCPP_WARN_STREAM_THROTTLE(
-      logger_, steady_clock_, 1000,
-      (motors_controller_->GetFrontData().IsDriverStateDataTimedOut() ? "Front " : "")
-        << (motors_controller_->GetRearData().IsDriverStateDataTimedOut() ? "Rear " : "")
-        << "PDO driver state timeout.");
+  if (motors_controller_->GetData().IsDriverStateDataTimedOut()) {
+    RCLCPP_WARN_STREAM_THROTTLE(logger_, steady_clock_, 1000, "PDO driver state timeout.");
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, true);
   } else {
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::READ_PDO_DRIVER_STATE, false);
   }
 }
 
-void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_operation)
+void LynxSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_operation)
 {
   try {
     {
@@ -650,7 +602,7 @@ void PantherSystem::HandlePDOWriteOperation(std::function<void()> pdo_write_oper
   }
 }
 
-bool PantherSystem::AreVelocityCommandsNearZero()
+bool LynxSystem::AreVelocityCommandsNearZero()
 {
   for (const auto & cmd : hw_commands_velocities_) {
     if (std::abs(cmd) > std::numeric_limits<double>::epsilon()) {
@@ -660,12 +612,12 @@ bool PantherSystem::AreVelocityCommandsNearZero()
   return true;
 }
 
-bool PantherSystem::IsPantherVersionAtLeast(const float version)
+bool LynxSystem::IsPantherVersionAtLeast(const float version)
 {
   return panther_version_ >= version - std::numeric_limits<float>::epsilon();
 }
 
-void PantherSystem::MotorsPowerEnable(const bool enable)
+void LynxSystem::MotorsPowerEnable(const bool enable)
 {
   try {
     {
@@ -687,27 +639,18 @@ void PantherSystem::MotorsPowerEnable(const bool enable)
   }
 }
 
-void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
+void LynxSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"No error detected."};
 
-  const auto front_driver_data = motors_controller_->GetFrontData();
-  if (front_driver_data.IsError()) {
+  const auto driver_data = motors_controller_->GetData();
+  if (driver_data.IsError()) {
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
     panther_utils::diagnostics::AddKeyValueIfTrue(
-      status, front_driver_data.GetErrorMap(), "Front driver error: ");
-  }
-
-  const auto rear_driver_data = motors_controller_->GetRearData();
-  if (rear_driver_data.IsError()) {
-    level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
-    message = "Error detected.";
-
-    panther_utils::diagnostics::AddKeyValueIfTrue(
-      status, rear_driver_data.GetErrorMap(), "Rear driver error: ");
+      status, driver_data.GetErrorMap(), "Default driver error: ");
   }
 
   if (roboteq_error_filter_->IsError()) {
@@ -721,17 +664,14 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
   status.summary(level, message);
 }
 
-void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
+void LynxSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char level{diagnostic_updater::DiagnosticStatusWrapper::OK};
   std::string message{"Panther system status monitoring."};
 
-  const auto front_driver_state = motors_controller_->GetFrontData().GetDriverState();
-  const auto rear_driver_state = motors_controller_->GetRearData().GetDriverState();
+  const auto driver_state = motors_controller_->GetData().GetDriverState();
 
-  auto driver_states_with_names = {
-    std::make_pair(std::string("Front"), front_driver_state),
-    std::make_pair(std::string("Rear"), rear_driver_state)};
+  auto driver_states_with_names = {std::make_pair(std::string("Default"), driver_state)};
 
   for (const auto & [driver_name, driver_state] : driver_states_with_names) {
     status.add(driver_name + " driver voltage (V)", driver_state.GetVoltage());
@@ -748,5 +688,4 @@ void PantherSystem::DiagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper &
 }  // namespace panther_hardware_interfaces
 
 #include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(
-  panther_hardware_interfaces::PantherSystem, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(panther_hardware_interfaces::LynxSystem, hardware_interface::SystemInterface)

@@ -48,7 +48,7 @@ def generate_launch_description():
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_description"), "config", "components.yaml"]
+            [FindPackageShare("lynx_description"), "config", "components.yaml"]
         ),
         description=(
             "Additional components configuration file. Components described in this file "
@@ -108,14 +108,14 @@ def generate_launch_description():
         "wheel_config_path",
         default_value=PathJoinSubstitution(
             [
-                FindPackageShare("panther_description"),
+                FindPackageShare("lynx_description"),
                 "config",
                 PythonExpression(["'", wheel_type, ".yaml'"]),
             ]
         ),
         description=(
             "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/{wheel_type}.yaml'. You can also specify the path "
+            "'lynx_description/config/{wheel_type}.yaml'. You can also specify the path "
             "to your custom wheel configuration file here. "
         ),
     )
@@ -123,14 +123,14 @@ def generate_launch_description():
     use_sim = LaunchConfiguration("use_sim")
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
-        default_value="WH01",
+        default_value="WH05",
         description=(
-            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
-            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
-            " parameters. For custom wheels, please define these parameters to point to files that"
-            " accurately describe the custom wheels."
+            "Type of wheel. If you choose a value from the preset options ('WH05'), you can ignore"
+            " the 'wheel_config_path' and 'controller_config_path' parameters. For custom wheels,"
+            " please define these parameters to point to files that accurately describe the"
+            " custom wheels."
         ),
-        choices=["WH01", "WH02", "WH04", "custom"],
+        choices=["WH05", "custom"],
     )
 
     # Get URDF via xacro
@@ -140,9 +140,9 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("panther_description"),
+                    FindPackageShare("lynx_description"),
                     "urdf",
-                    "panther.urdf.xacro",
+                    "lynx.urdf.xacro",
                 ]
             ),
             " panther_version:=",
@@ -219,8 +219,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,
@@ -235,8 +233,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,
@@ -259,8 +255,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,

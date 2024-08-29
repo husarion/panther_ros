@@ -1,6 +1,6 @@
 <library path="panther_hardware_interfaces">
-  <class name="panther_hardware_interfaces/PantherSystem"
-    type="panther_hardware_interfaces::PantherSystem"
+  <class name="panther_hardware_interfaces/LynxSystem"
+    type="panther_hardware_interfaces::LynxSystem"
     base_class_type="hardware_interface::SystemInterface">
     <description>
       Hardware system controller for Panther's Roboteq motor controller

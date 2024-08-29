@@ -44,7 +44,8 @@ public:
   LightsDriverNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
-  int num_led_;
+  int channel_1_num_led_;
+  int channel_2_num_led_;
   double frame_timeout_;
   bool led_control_granted_;
   bool led_control_pending_;

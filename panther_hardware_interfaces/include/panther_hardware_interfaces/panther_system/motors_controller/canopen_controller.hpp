@@ -43,8 +43,7 @@ struct CANopenSettings
   std::string can_interface_name;
 
   std::uint8_t master_can_id;
-  std::uint8_t front_driver_can_id;
-  std::uint8_t rear_driver_can_id;
+  std::uint8_t driver_can_id;
 
   std::chrono::milliseconds pdo_motor_states_timeout_ms;
   std::chrono::milliseconds pdo_driver_state_timeout_ms;
@@ -74,8 +73,7 @@ public:
    */
   void Deinitialize();
 
-  std::shared_ptr<RoboteqDriver> GetFrontDriver() { return front_driver_; }
-  std::shared_ptr<RoboteqDriver> GetRearDriver() { return rear_driver_; }
+  std::shared_ptr<RoboteqDriver> GetDriver() { return driver_; }
 
 private:
   void InitializeCANCommunication();
@@ -115,8 +113,7 @@ private:
   std::shared_ptr<lely::io::CanChannel> chan_;
   std::shared_ptr<lely::canopen::AsyncMaster> master_;
 
-  std::shared_ptr<RoboteqDriver> front_driver_;
-  std::shared_ptr<RoboteqDriver> rear_driver_;
+  std::shared_ptr<RoboteqDriver> driver_;
 
   const CANopenSettings canopen_settings_;
 };
