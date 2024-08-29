@@ -104,6 +104,17 @@ std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmo
   return file;
 }
 
+/**
+ * @brief Checks if a version meets the required version.
+ *
+ * @param panther_version The Panther version.
+ * @param version The required version.
+ */
+bool MeetsVersionRequirement(const float panther_version, const float version)
+{
+  return panther_version >= version - std::numeric_limits<float>::epsilon();
+}
+
 }  // namespace panther_utils::common_utilities
 
 #endif  // PANTHER_UTILS_COMMON_UTILITIES_HPP_

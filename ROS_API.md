@@ -1,12 +1,12 @@
 # ROS API
 
-> [!IMPORTANT]  
-> **Beta Release**  
->   
-> Please be advised that the software you are about to use is a Beta version of the ROS 2 Driver for Panther. It is functional, and the architecture will not change significantly. Although it has been tested by the Husarion team, some stability issues and bugs may still occur.  
->   
+> [!IMPORTANT]
+> **Beta Release**
+>
+> Please be advised that the software you are about to use is a Beta version of the ROS 2 Driver for Panther. It is functional, and the architecture will not change significantly. Although it has been tested by the Husarion team, some stability issues and bugs may still occur.
+>
 > We would greatly appreciate your feedback regarding the Panther ROS 2 driver. You can reach us in the following ways:
-> 
+>
 > - By email at: [support@husarion.com](mailto:support@husarion.com)
 > - Via our community forum: [Husarion Community](https://community.husarion.com)
 > - By submitting an issue request on: [GitHub](https://github.com/husarion/panther_ros/issues)

@@ -17,7 +17,8 @@ set(PACKAGE_DEPENDENCIES
     rclcpp_action
     sensor_msgs
     std_srvs
-    yaml-cpp)
+    yaml-cpp
+    opennav_docking_msgs)
 
 foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
   find_package(${PACKAGE} REQUIRED)
@@ -50,6 +51,13 @@ add_library(shutdown_hosts_from_file_bt_node SHARED
             src/plugins/action/shutdown_hosts_from_file_node.cpp)
 target_link_libraries(shutdown_hosts_from_file_bt_node ssh yaml-cpp)
 list(APPEND plugin_libs shutdown_hosts_from_file_bt_node)
+
+add_library(dock_robot_bt_node SHARED src/plugins/action/dock_robot_node.cpp)
+list(APPEND plugin_libs dock_robot_bt_node)
+
+add_library(undock_robot_bt_node SHARED
+            src/plugins/action/undock_robot_node.cpp)
+list(APPEND plugin_libs undock_robot_bt_node)
 
 add_library(are_buttons_pressed_bt_node SHARED
             src/plugins/condition/are_buttons_pressed.cpp)
@@ -139,6 +147,18 @@ if(BUILD_TESTING)
     test/plugins/action/test_shutdown_hosts_from_file_node.cpp
     src/plugins/action/shutdown_hosts_from_file_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_shutdown_hosts_from_file_node)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_dock_robot_node
+    test/plugins/action/test_dock_robot_node.cpp
+    src/plugins/action/dock_robot_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_dock_robot_node)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_undock_robot_node
+    test/plugins/action/test_undock_robot_node.cpp
+    src/plugins/action/undock_robot_node.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_node)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_are_buttons_pressed
