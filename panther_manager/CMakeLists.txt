@@ -59,6 +59,10 @@ add_library(undock_robot_bt_node SHARED
             src/plugins/action/undock_robot_node.cpp)
 list(APPEND plugin_libs undock_robot_bt_node)
 
+add_library(are_buttons_pressed_bt_node SHARED
+            src/plugins/condition/are_buttons_pressed.cpp)
+list(APPEND plugin_libs are_buttons_pressed_bt_node)
+
 add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
 list(APPEND plugin_libs tick_after_timeout_bt_node)
@@ -154,8 +158,13 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_undock_robot_node
     test/plugins/action/test_undock_robot_node.cpp
     src/plugins/action/undock_robot_node.cpp)
-
   list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_node)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_are_buttons_pressed
+    test/plugins/condition/test_are_buttons_pressed.cpp
+    src/plugins/condition/are_buttons_pressed.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_are_buttons_pressed)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_tick_after_timeout_node
