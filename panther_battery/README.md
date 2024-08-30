@@ -22,7 +22,7 @@ Publishes battery state read from ADC unit for Panther version 1.2 and above, or
 - `battery/charging_status` [*panther_msgs/ChargingStatus*]: Battery charging status.
 - `diagnostics` [*diagnostic_msgs/DiagnosticArray*]: Battery diagnostic messages.
 
-#### Subscribes
+#### Subscribers
 
 - `hardware/io_state` [*panther_msgs/IOState*]: Current state of IO.
 - `hardware/robot_driver_state` [*panther_msgs/RobotDriverState*]: Current motor controllers' state and error flags. Subscribed if using Roboteq motor controllers data.
