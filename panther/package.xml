@@ -16,6 +16,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>panther_bringup</depend>
+  <depend>lynx_bringup</depend>
   <depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">panther_gazebo</depend>
 
   <export>

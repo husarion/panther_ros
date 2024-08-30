@@ -73,7 +73,7 @@ TestGPIOController::TestGPIOController()
 
 float TestGPIOController::GetRobotVersion()
 {
-  const char * robot_version_env = std::getenv("PANTHER_ROBOT_VERSION");
+  const char * robot_version_env = std::getenv("ROBOT_VERSION");
 
   if (!robot_version_env) {
     throw std::runtime_error("Can't read 'PANTHER_ROBOT_VERSION' environment variable");

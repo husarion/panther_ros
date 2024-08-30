@@ -16,7 +16,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
+from launch.conditions import UnlessCondition
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
@@ -29,7 +29,6 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
     panther_manager_dir = FindPackageShare("panther_manager")
 
     lights_bt_project_path = LaunchConfiguration("lights_bt_project_path")
@@ -55,7 +54,6 @@ def generate_launch_description():
             [panther_manager_dir, "behavior_trees", "PantherSafetyBT.btproj"]
         ),
         description="Path to BehaviorTree project file, responsible for safety and shutdown management.",
-        condition=IfCondition(PythonExpression([panther_version, ">=", "1.2"])),
     )
 
     shutdown_hosts_config_path = LaunchConfiguration("shutdown_hosts_config_path")
@@ -103,7 +101,7 @@ def generate_launch_description():
         ],
         namespace=namespace,
         emulate_tty=True,
-        condition=IfCondition(PythonExpression([panther_version, ">=", "1.2 and not ", use_sim])),
+        condition=UnlessCondition(use_sim),
     )
 
     actions = [

@@ -28,13 +28,10 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
-
     battery_driver_node = Node(
         package="panther_battery",
         executable="battery_driver_node",
         name="battery_driver",
-        parameters=[{"panther_version": panther_version}],
         namespace=namespace,
         remappings=[("/diagnostics", "diagnostics")],
         emulate_tty=True,

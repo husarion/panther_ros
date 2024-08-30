@@ -77,8 +77,10 @@ def generate_launch_description():
         launch_arguments={
             "namespace": namespace,
             "led_config_file": PathJoinSubstitution(
-                [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
+                [FindPackageShare("panther_lights"), "config", "lynx_led_config.yaml"]
             ),
+            "channel_1_num_led": "20",
+            "channel_2_num_led": "28",
         }.items(),
     )
 
