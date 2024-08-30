@@ -21,6 +21,7 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
@@ -34,6 +35,14 @@ def generate_launch_description():
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
+    )
+
+    robot = LaunchConfiguration("robot")
+    declare_robot_arg = DeclareLaunchArgument(
+        "robot",
+        default_value=EnvironmentVariable("ROBOT_MODEL", default_value="panther"),
+        description="Specify robot model.",
+        choices=["panther", "lynx"],
     )
 
     x = LaunchConfiguration("x")
@@ -72,16 +81,19 @@ def generate_launch_description():
     }
     welcome_msg = welcomeMsg("---", "simulation", log_stats)
 
+    urdf_packages = PythonExpression(["'", robot, "_description'"])
     add_wheel_joints = LaunchConfiguration("add_wheel_joints", default="True")
+
     load_urdf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_description"), "launch", "load_urdf.launch.py"]
+                [FindPackageShare(urdf_packages), "launch", "load_urdf.launch.py"]
             )
         ),
         launch_arguments={
             "add_wheel_joints": add_wheel_joints,
             "namespace": namespace,
+            "robot": robot,
             "use_sim": "True",
         }.items(),
     )
@@ -114,6 +126,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             declare_namespace_arg,
+            declare_robot_arg,
             declare_x_arg,
             declare_y_arg,
             declare_z_arg,

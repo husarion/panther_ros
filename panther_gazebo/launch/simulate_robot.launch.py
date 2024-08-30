@@ -72,6 +72,14 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    robot = LaunchConfiguration("robot")
+    declare_robot_arg = DeclareLaunchArgument(
+        "robot",
+        default_value=EnvironmentVariable("ROBOT_MODEL", default_value="panther"),
+        description="Specify robot model.",
+        choices=["panther", "lynx"],
+    )
+
     use_ekf = LaunchConfiguration("use_ekf")
     declare_use_ekf_arg = DeclareLaunchArgument(
         "use_ekf",
@@ -89,6 +97,7 @@ def generate_launch_description():
         launch_arguments={
             "add_wheel_joints": "False",
             "namespace": namespace,
+            "robot": robot,
             "use_sim": "True",
         }.items(),
     )
@@ -191,6 +200,7 @@ def generate_launch_description():
             declare_components_config_path_arg,
             declare_gz_bridge_config_path_arg,
             declare_namespace_arg,
+            declare_robot_arg,
             declare_use_ekf_arg,
             SetUseSimTime(True),
             spawn_robot_launch,

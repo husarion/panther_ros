@@ -61,7 +61,7 @@
           <param name="e_stop_initial_state">true</param>
         </xacro:if>
 
-        <xacro:unless value="$(arg use_sim)">
+        <xacro:unless value="${use_sim}">
           <plugin>panther_hardware_interfaces/PantherSystem</plugin>
 
           <param name="panther_version">${panther_version}</param>
@@ -143,7 +143,7 @@
       </xacro:if>
     </ros2_control>
 
-    <xacro:unless value="$(arg use_sim)">
+    <xacro:unless value="${use_sim}">
       <ros2_control name="${ns}imu" type="sensor">
         <hardware>
           <plugin>panther_hardware_interfaces/PantherImuSensor</plugin>

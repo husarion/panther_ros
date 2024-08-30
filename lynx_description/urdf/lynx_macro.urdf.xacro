@@ -57,10 +57,11 @@
     <ros2_control name="${ns}lynx_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <plugin>ign_ros2_control/IgnitionSystem</plugin>
+          <plugin>panther_gazebo/GzPantherSystem</plugin>
+          <param name="e_stop_initial_state">true</param>
         </xacro:if>
 
-        <xacro:unless value="$(arg use_sim)">
+        <xacro:unless value="${use_sim}">
           <plugin>panther_hardware_interfaces/PantherSystem</plugin>
 
           <param name="encoder_resolution">1600</param>
@@ -140,7 +141,7 @@
       </xacro:if>
     </ros2_control>
 
-    <xacro:unless value="$(arg use_sim)">
+    <xacro:unless value="${use_sim}">
       <ros2_control name="${ns}imu" type="sensor">
         <hardware>
           <plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
