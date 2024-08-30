@@ -13,8 +13,11 @@
 // limitations under the License.
 
 #include <cstdlib>
+#include <functional>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <gpiod.hpp>
 
 #include <panther_hardware_interfaces/panther_system/gpio/gpio_controller.hpp>
@@ -22,27 +25,31 @@
 using GPIOInfo = panther_hardware_interfaces::GPIOInfo;
 using GPIOPin = panther_hardware_interfaces::GPIOPin;
 
-const std::vector<GPIOInfo> gpio_config_info_storage{
-  GPIOInfo{GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
-  GPIOInfo{GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::GPIN1, gpiod::line::direction::INPUT},
-  GPIOInfo{GPIOPin::GPIN2, gpiod::line::direction::INPUT},
-  GPIOInfo{GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
-  GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
-  GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT},
-  GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT},
+class MockGPIODriver : public panther_hardware_interfaces::GPIODriverInterface
+{
+public:
+  MOCK_METHOD(
+    void, GPIOMonitorEnable, (const bool use_rt, const unsigned gpio_monit_thread_sched_priority),
+    (override));
+  MOCK_METHOD(
+    void, ConfigureEdgeEventCallback, (const std::function<void(const GPIOInfo &)> & callback),
+    (override));
+  MOCK_METHOD(
+    void, ChangePinDirection, (const GPIOPin pin, const gpiod::line::direction direction),
+    (override));
+  MOCK_METHOD(bool, IsPinAvailable, (const GPIOPin pin), (const, override));
+  MOCK_METHOD(bool, IsPinActive, (const GPIOPin pin), (override));
+  MOCK_METHOD(bool, SetPinValue, (const GPIOPin pin, const bool value), (override));
 };
 
 class GPIOControllerWrapper : public panther_hardware_interfaces::GPIOControllerPTH12X
 {
 public:
+  GPIOControllerWrapper(std::shared_ptr<MockGPIODriver> gpio_driver)
+  : panther_hardware_interfaces::GPIOControllerPTH12X(gpio_driver)
+  {
+  }
+
   void WatchdogEnable() { this->watchdog_->TurnOn(); }
   void WatchdogDisable() { this->watchdog_->TurnOff(); }
   bool IsWatchdogEnabled() { return this->watchdog_->IsWatchdogEnabled(); }
@@ -57,118 +64,129 @@ public:
 protected:
   float GetRobotVersion();
 
+  std::shared_ptr<MockGPIODriver> gpio_driver_;
   std::unique_ptr<GPIOControllerWrapper> gpio_controller_wrapper_;
   static constexpr int watchdog_edges_per_100ms_ = 10;
 };
 
 TestGPIOController::TestGPIOController()
 {
-  if (GetRobotVersion() < 1.2 - std::numeric_limits<float>::epsilon()) {
-    throw std::runtime_error("Tests for this robot versions are not implemented");
-  }
+  gpio_driver_ = std::make_shared<MockGPIODriver>();
 
-  gpio_controller_wrapper_ = std::make_unique<GPIOControllerWrapper>();
+  // Mock methods called during the initialization process
+  ON_CALL(*gpio_driver_, SetPinValue(GPIOPin::VMOT_ON, true)).WillByDefault(testing::Return(true));
+  ON_CALL(*gpio_driver_, SetPinValue(GPIOPin::DRIVER_EN, true))
+    .WillByDefault(testing::Return(true));
+  ON_CALL(*gpio_driver_, IsPinAvailable(GPIOPin::WATCHDOG)).WillByDefault(testing::Return(true));
+
+  gpio_controller_wrapper_ = std::make_unique<GPIOControllerWrapper>(gpio_driver_);
   gpio_controller_wrapper_->Start();
 }
 
-float TestGPIOController::GetRobotVersion()
+struct GPIOTestParam
 {
-  const char * robot_version_env = std::getenv("PANTHER_ROBOT_VERSION");
+  GPIOPin pin;
+  std::function<bool(GPIOControllerWrapper *, bool)> enable_method;
+  bool is_inverted = false;
+};
 
-  if (!robot_version_env) {
-    throw std::runtime_error("Can't read 'PANTHER_ROBOT_VERSION' environment variable");
-  }
+class ParametrizedTestGPIOController : public TestGPIOController,
+                                       public ::testing::WithParamInterface<GPIOTestParam>
+{
+};
 
-  return std::stof(robot_version_env);
+TEST(TestGPIOControllerInitialization, GPIODriverUninitialized)
+{
+  std::shared_ptr<MockGPIODriver> gpio_driver;
+
+  EXPECT_THROW(std::make_unique<GPIOControllerWrapper>(gpio_driver), std::runtime_error);
 }
 
-TEST_F(TestGPIOController, TestMotorsInit)
+TEST(TestGPIOControllerInitialization, WatchdogPinNotAvailable)
 {
+  auto gpio_driver = std::make_shared<MockGPIODriver>();
+
+  EXPECT_CALL(*gpio_driver, SetPinValue(testing::_, true))
+    .Times(2)
+    .WillRepeatedly(testing::Return(true));
+  ON_CALL(*gpio_driver, IsPinAvailable(GPIOPin::WATCHDOG)).WillByDefault(testing::Return(false));
+
+  auto gpio_controller_wrapper = std::make_unique<GPIOControllerWrapper>(gpio_driver);
+
+  EXPECT_THROW(gpio_controller_wrapper->Start(), std::runtime_error);
+}
+
+TEST_F(TestGPIOController, TestMotorsInitSuccess)
+{
+  ON_CALL(*gpio_driver_, IsPinActive(GPIOPin::VMOT_ON)).WillByDefault(testing::Return(true));
+  ON_CALL(*gpio_driver_, IsPinActive(GPIOPin::DRIVER_EN)).WillByDefault(testing::Return(true));
+
   EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::VMOT_ON));
   EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::DRIVER_EN));
 }
 
-TEST_F(TestGPIOController, TestWatchdog)
+TEST_F(TestGPIOController, TestEStopResetAlreadyDeactivated)
 {
-  auto edge_cnt = std::make_shared<int>(0);
+  // The E_STOP_RESET pin is already deactivated
+  EXPECT_CALL(*gpio_driver_, IsPinActive(GPIOPin::E_STOP_RESET)).WillOnce(testing::Return(true));
 
-  gpio_controller_wrapper_->RegisterGPIOEventCallback([this, edge_cnt](const auto & state) mutable {
-    if (state.pin == GPIOPin::WATCHDOG) {
-      (*edge_cnt)++;
-    }
-  });
-
-  gpio_controller_wrapper_->WatchdogEnable();
-  ASSERT_TRUE(gpio_controller_wrapper_->IsWatchdogEnabled());
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  gpio_controller_wrapper_->WatchdogDisable();
-
-  ASSERT_FALSE(gpio_controller_wrapper_->IsWatchdogEnabled());
-  EXPECT_EQ(*edge_cnt, watchdog_edges_per_100ms_ + 1);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  EXPECT_EQ(*edge_cnt, watchdog_edges_per_100ms_ + 1);
+  gpio_controller_wrapper_->EStopReset();
 }
 
-TEST_F(TestGPIOController, TestPinsAvailability)
+TEST_P(ParametrizedTestGPIOController, TestGPIOEnableDisable)
 {
-  for (const auto & info : gpio_config_info_storage) {
-    EXPECT_TRUE(gpio_controller_wrapper_->IsPinAvailable(info.pin));
-  }
+  const auto & param = GetParam();
+
+  // Set the enable command based on the pin inversion
+  auto const enable = param.is_inverted ? false : true;
+  auto const disable = !enable;
+
+  // Enable GPIO
+  EXPECT_CALL(*gpio_driver_, SetPinValue(param.pin, enable)).WillOnce(testing::Return(true));
+  EXPECT_CALL(*gpio_driver_, IsPinActive(param.pin)).WillOnce(testing::Return(enable));
+
+  param.enable_method(gpio_controller_wrapper_.get(), true);
+  EXPECT_EQ(enable, gpio_controller_wrapper_->IsPinActive(param.pin));
+
+  // Disable GPIO
+  EXPECT_CALL(*gpio_driver_, SetPinValue(param.pin, disable)).WillOnce(testing::Return(true));
+  EXPECT_CALL(*gpio_driver_, IsPinActive(param.pin)).WillOnce(testing::Return(disable));
+
+  param.enable_method(gpio_controller_wrapper_.get(), false);
+  EXPECT_EQ(disable, gpio_controller_wrapper_->IsPinActive(param.pin));
 }
 
-TEST_F(TestGPIOController, TestFanEnbale)
-{
-  gpio_controller_wrapper_->FanEnable(true);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::FAN_SW));
-
-  gpio_controller_wrapper_->FanEnable(false);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::FAN_SW));
-}
-
-TEST_F(TestGPIOController, TestAUXPowerEnbale)
-{
-  gpio_controller_wrapper_->AUXPowerEnable(true);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::AUX_PW_EN));
-
-  gpio_controller_wrapper_->AUXPowerEnable(false);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::AUX_PW_EN));
-}
-
-TEST_F(TestGPIOController, TestChargerEnable)
-{
-  gpio_controller_wrapper_->ChargerEnable(true);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::CHRG_DISABLE));
-
-  gpio_controller_wrapper_->ChargerEnable(false);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::CHRG_DISABLE));
-}
-
-TEST_F(TestGPIOController, TestLEDControlEnable)
-{
-  gpio_controller_wrapper_->LEDControlEnable(true);
-  EXPECT_TRUE(gpio_controller_wrapper_->IsPinActive(GPIOPin::LED_SBC_SEL));
-
-  gpio_controller_wrapper_->LEDControlEnable(false);
-  EXPECT_FALSE(gpio_controller_wrapper_->IsPinActive(GPIOPin::LED_SBC_SEL));
-}
+INSTANTIATE_TEST_SUITE_P(
+  GPIOTests, ParametrizedTestGPIOController,
+  ::testing::Values(
+    GPIOTestParam{GPIOPin::DRIVER_EN, &GPIOControllerWrapper::MotorPowerEnable},
+    GPIOTestParam{GPIOPin::AUX_PW_EN, &GPIOControllerWrapper::AUXPowerEnable},
+    GPIOTestParam{GPIOPin::FAN_SW, &GPIOControllerWrapper::FanEnable},
+    GPIOTestParam{GPIOPin::VDIG_OFF, &GPIOControllerWrapper::DigitalPowerEnable, true},
+    GPIOTestParam{GPIOPin::CHRG_DISABLE, &GPIOControllerWrapper::ChargerEnable, true},
+    GPIOTestParam{GPIOPin::LED_SBC_SEL, &GPIOControllerWrapper::LEDControlEnable}));
 
 TEST_F(TestGPIOController, TestQueryControlInterfaceIOStates)
 {
+  EXPECT_CALL(*gpio_driver_, IsPinActive(testing::_))
+    .Times(7)
+    .WillRepeatedly(testing::Return(true));
+
   std::unordered_map<GPIOPin, bool> io_states =
     gpio_controller_wrapper_->QueryControlInterfaceIOStates();
 
   ASSERT_EQ(io_states.size(), 7);
 
-  for (const auto & [pin, expected_state] : io_states) {
-    bool actual_state = gpio_controller_wrapper_->IsPinActive(pin);
-    EXPECT_EQ(expected_state, actual_state);
+  for (const auto & [pin, state] : io_states) {
+    EXPECT_TRUE(state);
   }
 }
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  auto result = RUN_ALL_TESTS();
+
+  return result;
 }
