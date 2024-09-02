@@ -42,24 +42,33 @@ void CANopenManager::Initialize()
 
   canopen_communication_started_.store(false);
 
+  try {
+    panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "An exception occurred while configuring RT: " << e.what() << std::endl
+              << "Continuing with regular thread settings (it may have a negative impact on the "
+                 "performance)."
+              << std::endl;
+  }
+
+  try {
+    InitializeCANCommunication();
+  } catch (const std::system_error & e) {
+    std::cerr << "An exception occurred while initializing CAN: " << e.what() << std::endl;
+    NotifyCANCommunicationStarted(false);
+    return;
+  }
+
+  initialized_ = true;
+}
+
+void CANopenManager::Activate()
+{
+  if (!initialized_) {
+    throw std::runtime_error("CANopenManager not initialized.");
+  }
+
   canopen_communication_thread_ = std::thread([this]() {
-    try {
-      panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
-    } catch (const std::runtime_error & e) {
-      std::cerr << "An exception occurred while configuring RT: " << e.what() << std::endl
-                << "Continuing with regular thread settings (it may have a negative impact on the "
-                   "performance)."
-                << std::endl;
-    }
-
-    try {
-      InitializeCANCommunication();
-    } catch (const std::system_error & e) {
-      std::cerr << "An exception occurred while initializing CAN: " << e.what() << std::endl;
-      NotifyCANCommunicationStarted(false);
-      return;
-    }
-
     NotifyCANCommunicationStarted(true);
 
     try {
@@ -77,10 +86,8 @@ void CANopenManager::Initialize()
   }
 
   if (!canopen_communication_started_.load()) {
-    throw std::runtime_error("CAN communication not initialized.");
+    throw std::runtime_error("CAN communication not activated.");
   }
-
-  initialized_ = true;
 }
 
 void CANopenManager::Deinitialize()

@@ -24,6 +24,8 @@
 #include "utils/fake_can_socket.hpp"
 #include "utils/test_constants.hpp"
 
+#include "panther_utils/test/test_utils.hpp"
+
 class TestCANopenManager : public ::testing::Test
 {
 public:
@@ -47,25 +49,49 @@ TestCANopenManager::TestCANopenManager()
 
 TEST_F(TestCANopenManager, InitializeAndDeinitialize)
 {
-  can_socket_->Initialize();
-
   ASSERT_NO_THROW(canopen_manager_->Initialize());
   ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 
   // Check if deinitialization worked correctly - initialize once again
   ASSERT_NO_THROW(canopen_manager_->Initialize());
-  ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 }
 
-TEST_F(TestCANopenManager, InitializeWithError)
+TEST_F(TestCANopenManager, Activate)
 {
-  // CAN socket not initialized, should throw
-  ASSERT_THROW(canopen_manager_->Initialize(), std::runtime_error);
+  can_socket_->Initialize();
+
+  ASSERT_NO_THROW(canopen_manager_->Initialize());
+  EXPECT_NO_THROW(canopen_manager_->Activate());
   ASSERT_NO_THROW(canopen_manager_->Deinitialize());
 
+  // Check if deinitialization worked correctly - activate once again
+  ASSERT_NO_THROW(canopen_manager_->Initialize());
+  EXPECT_NO_THROW(canopen_manager_->Activate());
+}
+
+TEST_F(TestCANopenManager, ActivateNotInitialized)
+{
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    [&]() { canopen_manager_->Activate(); }, "CANopenManager not initialized."));
+}
+
+TEST_F(TestCANopenManager, ActivateNoCommunication)
+{
+  ASSERT_NO_THROW(canopen_manager_->Initialize());
+  EXPECT_THROW(canopen_manager_->Activate(), std::runtime_error);
+}
+
+TEST_F(TestCANopenManager, GetMaster)
+{
   can_socket_->Initialize();
   ASSERT_NO_THROW(canopen_manager_->Initialize());
-  ASSERT_NO_THROW(canopen_manager_->Deinitialize());
+  EXPECT_NO_THROW(canopen_manager_->GetMaster());
+}
+
+TEST_F(TestCANopenManager, GetMasterNotInitialized)
+{
+  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    [&]() { canopen_manager_->GetMaster(); }, "CANopenManager not initialized."));
 }
 
 int main(int argc, char ** argv)
