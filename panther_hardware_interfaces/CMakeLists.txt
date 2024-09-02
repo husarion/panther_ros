@@ -55,7 +55,7 @@ add_library(
   src/panther_imu_sensor/panther_imu_sensor.cpp
   src/panther_system/gpio/gpio_controller.cpp
   src/panther_system/gpio/gpio_driver.cpp
-  src/panther_system/motors_controller/canopen_controller.cpp
+  src/panther_system/motors_controller/canopen_manager.cpp
   src/panther_system/motors_controller/motors_controller.cpp
   src/panther_system/motors_controller/roboteq_data_converters.cpp
   src/panther_system/motors_controller/roboteq_driver.cpp
@@ -118,24 +118,24 @@ if(BUILD_TESTING)
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_canopen_controller
-    test/panther_system/motors_controller/test_canopen_controller.cpp
-    src/panther_system/motors_controller/canopen_controller.cpp
+    ${PROJECT_NAME}_test_canopen_manager
+    test/unit/panther_system/motors_controller/test_canopen_manager.cpp
+    src/panther_system/motors_controller/canopen_manager.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/utils.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_canopen_controller
+    ${PROJECT_NAME}_test_canopen_manager
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_canopen_controller rclcpp
+  ament_target_dependencies(${PROJECT_NAME}_test_canopen_manager rclcpp
                             panther_msgs panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_canopen_controller
+  target_link_libraries(${PROJECT_NAME}_test_canopen_manager
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver
-    test/panther_system/motors_controller/test_roboteq_driver.cpp
-    src/panther_system/motors_controller/canopen_controller.cpp
+    test/unit/panther_system/motors_controller/test_roboteq_driver.cpp
+    src/panther_system/motors_controller/canopen_manager.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/utils.cpp)
   target_include_directories(
@@ -150,7 +150,7 @@ if(BUILD_TESTING)
   ament_add_gtest(
     ${PROJECT_NAME}_test_motors_controller
     test/panther_system/motors_controller/test_motors_controller.cpp
-    src/panther_system/motors_controller/canopen_controller.cpp
+    src/panther_system/motors_controller/canopen_manager.cpp
     src/panther_system/motors_controller/roboteq_driver.cpp
     src/panther_system/motors_controller/roboteq_data_converters.cpp
     src/panther_system/motors_controller/motors_controller.cpp
