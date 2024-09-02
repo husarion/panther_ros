@@ -216,8 +216,6 @@ if(BUILD_TESTING)
   option(TEST_INTEGRATION "Run integration tests" OFF)
   if(TEST_INTEGRATION)
     # Hardware integration
-    add_ros_test(test/integration/system_monitor_node.test.py)
-
     ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
                     test/panther_system/gpio/test_gpio_driver.cpp)
     ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)

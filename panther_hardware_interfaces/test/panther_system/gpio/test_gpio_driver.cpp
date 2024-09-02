@@ -21,8 +21,8 @@
 #include <utility>
 #include <vector>
 
-#include "gpiod.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <gpiod.hpp>
 
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_driver.hpp"
 #include "panther_utils/test/test_utils.hpp"
@@ -102,15 +102,41 @@ TEST(TestGPIODriverInitialization, WrongPinConfigFail)
 
 TEST_F(TestGPIODriver, SetWrongPinValue)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { this->gpio_driver_->SetPinValue(static_cast<GPIOPin>(-1), true); },
-    "Pin not found in GPIO info storage."));
+    "Pin not found in GPIO info storage.");
+
+  EXPECT_TRUE(is_message_thrown);
 }
 
-TEST_F(TestGPIODriver, IsPinAvailable)
+TEST_F(TestGPIODriver, IsPinAvailableValidPin)
 {
-  EXPECT_TRUE(this->gpio_driver_->IsPinAvailable(GPIOPin::LED_SBC_SEL));
-  EXPECT_FALSE(this->gpio_driver_->IsPinAvailable(static_cast<GPIOPin>(-1)));
+  auto is_pin_available = this->gpio_driver_->IsPinAvailable(GPIOPin::LED_SBC_SEL);
+
+  EXPECT_TRUE(is_pin_available);
+}
+
+TEST_F(TestGPIODriver, IsPinAvailableInvalidPin)
+{
+  auto is_pin_available = this->gpio_driver_->IsPinAvailable(static_cast<GPIOPin>(-1));
+
+  EXPECT_FALSE(is_pin_available);
+}
+
+TEST_F(TestGPIODriver, IsPinActive)
+{
+  this->gpio_driver_->GPIOMonitorEnable();
+
+  SetAndVerifyPinState(GPIOPin::LED_SBC_SEL);
+}
+
+TEST_F(TestGPIODriver, IsPinActiveNoMonitorThread)
+{
+  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+    [&]() { this->gpio_driver_->IsPinActive(GPIOPin::LED_SBC_SEL); },
+    "GPIO monitor thread is not running!");
+
+  EXPECT_TRUE(is_message_thrown);
 }
 
 TEST_F(TestGPIODriver, GPIOMonitorEnableNoRT)
@@ -138,14 +164,16 @@ TEST_F(TestGPIODriver, GPIOMonitorEnableUseRT)
   SetAndVerifyPinState(GPIOPin::LED_SBC_SEL);
 }
 
-TEST_F(TestGPIODriver, GPIOEventCallbackFailWhenNoMonitorThread)
+TEST_F(TestGPIODriver, GPIOEventCallbackNoMonitorThread)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() {
       this->gpio_driver_->ConfigureEdgeEventCallback(
         std::bind(&TestGPIODriver::GPIOEventCallback, this, std::placeholders::_1));
     },
-    "GPIO monitor thread is not running!"));
+    "GPIO monitor thread is not running!");
+
+  EXPECT_TRUE(is_message_thrown);
 }
 
 TEST_F(TestGPIODriver, GPIOEventCallbackShareNewPinState)
@@ -174,9 +202,11 @@ TEST_F(TestGPIODriver, ChangePinDirection)
   this->gpio_driver_->GPIOMonitorEnable();
   this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::INPUT);
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { this->gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, true); },
-    "Cannot set value for INPUT pin."));
+    "Cannot set value for INPUT pin.");
+
+  ASSERT_TRUE(is_message_thrown);
 
   this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT);
 
@@ -186,5 +216,8 @@ TEST_F(TestGPIODriver, ChangePinDirection)
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  auto result = RUN_ALL_TESTS();
+
+  return result;
 }
