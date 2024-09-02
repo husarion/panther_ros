@@ -152,53 +152,53 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  panther_hardware_interfaces::MotorDriverState fb_motor_1 =
+  panther_hardware_interfaces::MotorDriverState motor_driver_state_1 =
     roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadMotorDriverState();
-  panther_hardware_interfaces::MotorDriverState fb_motor_2 =
+  panther_hardware_interfaces::MotorDriverState motor_driver_state_2 =
     roboteq_driver_->GetMotorDriver(kMotor2Name)->ReadMotorDriverState();
 
-  EXPECT_EQ(fb_motor_1.pos, motor_1_pos);
-  EXPECT_EQ(fb_motor_1.vel, motor_1_vel);
-  EXPECT_EQ(fb_motor_1.current, motor_1_current);
+  EXPECT_EQ(motor_driver_state_1.pos, motor_1_pos);
+  EXPECT_EQ(motor_driver_state_1.vel, motor_1_vel);
+  EXPECT_EQ(motor_driver_state_1.current, motor_1_current);
 
-  EXPECT_EQ(fb_motor_2.pos, motor_2_pos);
-  EXPECT_EQ(fb_motor_2.vel, motor_2_vel);
-  EXPECT_EQ(fb_motor_2.current, motor_2_current);
+  EXPECT_EQ(motor_driver_state_2.pos, motor_2_pos);
+  EXPECT_EQ(motor_driver_state_2.vel, motor_2_vel);
+  EXPECT_EQ(motor_driver_state_2.current, motor_2_current);
 }
 
 TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
 {
   BootRoboteqDriver();
 
-  panther_hardware_interfaces::MotorDriverState fb_motor_1 =
+  panther_hardware_interfaces::MotorDriverState motor_driver_state_1 =
     roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadMotorDriverState();
 
   // based on publishing frequency in the Roboteq mock (100Hz)
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  panther_hardware_interfaces::MotorDriverState fb_motor_2 =
+  panther_hardware_interfaces::MotorDriverState motor_driver_state_2 =
     roboteq_driver_->GetMotorDriver(kMotor2Name)->ReadMotorDriverState();
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart
   EXPECT_LE(
-    lely::util::from_timespec(fb_motor_2.pos_timestamp) -
-      lely::util::from_timespec(fb_motor_1.pos_timestamp),
+    lely::util::from_timespec(motor_driver_state_2.pos_timestamp) -
+      lely::util::from_timespec(motor_driver_state_1.pos_timestamp),
     std::chrono::milliseconds(15));
 
   EXPECT_GE(
-    lely::util::from_timespec(fb_motor_2.pos_timestamp) -
-      lely::util::from_timespec(fb_motor_1.pos_timestamp),
+    lely::util::from_timespec(motor_driver_state_2.pos_timestamp) -
+      lely::util::from_timespec(motor_driver_state_1.pos_timestamp),
     std::chrono::milliseconds(5));
 
   EXPECT_LE(
-    lely::util::from_timespec(fb_motor_2.vel_current_timestamp) -
-      lely::util::from_timespec(fb_motor_1.vel_current_timestamp),
+    lely::util::from_timespec(motor_driver_state_2.vel_current_timestamp) -
+      lely::util::from_timespec(motor_driver_state_1.vel_current_timestamp),
     std::chrono::milliseconds(15));
 
   EXPECT_GE(
-    lely::util::from_timespec(fb_motor_2.vel_current_timestamp) -
-      lely::util::from_timespec(fb_motor_1.vel_current_timestamp),
+    lely::util::from_timespec(motor_driver_state_2.vel_current_timestamp) -
+      lely::util::from_timespec(motor_driver_state_1.vel_current_timestamp),
     std::chrono::milliseconds(5));
 }
 
@@ -230,51 +230,51 @@ TEST_F(TestRoboteqDriver, ReadDriverState)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-  panther_hardware_interfaces::DriverState fb = roboteq_driver_->ReadDriverState();
+  panther_hardware_interfaces::DriverState driver_state = roboteq_driver_->ReadDriverState();
 
-  EXPECT_EQ(fb.mcu_temp, temp);
-  EXPECT_EQ(fb.heatsink_temp, heatsink_temp);
-  EXPECT_EQ(fb.battery_voltage, volt);
-  EXPECT_EQ(fb.battery_current_1, battery_current_1);
-  EXPECT_EQ(fb.battery_current_2, battery_current_2);
+  EXPECT_EQ(driver_state.mcu_temp, temp);
+  EXPECT_EQ(driver_state.heatsink_temp, heatsink_temp);
+  EXPECT_EQ(driver_state.battery_voltage, volt);
+  EXPECT_EQ(driver_state.battery_current_1, battery_current_1);
+  EXPECT_EQ(driver_state.battery_current_2, battery_current_2);
 
-  EXPECT_EQ(fb.fault_flags, 0b00000001);
-  EXPECT_EQ(fb.script_flags, 0b00000010);
-  EXPECT_EQ(fb.runtime_stat_flag_motor_1, 0b00000100);
-  EXPECT_EQ(fb.runtime_stat_flag_motor_2, 0b00001000);
+  EXPECT_EQ(driver_state.fault_flags, 0b00000001);
+  EXPECT_EQ(driver_state.script_flags, 0b00000010);
+  EXPECT_EQ(driver_state.runtime_stat_flag_motor_1, 0b00000100);
+  EXPECT_EQ(driver_state.runtime_stat_flag_motor_2, 0b00001000);
 }
 
 TEST_F(TestRoboteqDriver, ReadDriverStateTimestamp)
 {
   BootRoboteqDriver();
 
-  panther_hardware_interfaces::DriverState fb1 = roboteq_driver_->ReadDriverState();
+  panther_hardware_interfaces::DriverState driver_state_1 = roboteq_driver_->ReadDriverState();
 
   // based on publishing frequency in the Roboteq mock (20Hz)
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-  panther_hardware_interfaces::DriverState fb2 = roboteq_driver_->ReadDriverState();
+  panther_hardware_interfaces::DriverState driver_state_2 = roboteq_driver_->ReadDriverState();
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart
   EXPECT_LE(
-    lely::util::from_timespec(fb2.flags_current_timestamp) -
-      lely::util::from_timespec(fb1.flags_current_timestamp),
+    lely::util::from_timespec(driver_state_2.flags_current_timestamp) -
+      lely::util::from_timespec(driver_state_1.flags_current_timestamp),
     std::chrono::milliseconds(75));
 
   EXPECT_GE(
-    lely::util::from_timespec(fb2.flags_current_timestamp) -
-      lely::util::from_timespec(fb1.flags_current_timestamp),
+    lely::util::from_timespec(driver_state_2.flags_current_timestamp) -
+      lely::util::from_timespec(driver_state_1.flags_current_timestamp),
     std::chrono::milliseconds(25));
 
   EXPECT_LE(
-    lely::util::from_timespec(fb2.voltages_temps_timestamp) -
-      lely::util::from_timespec(fb1.voltages_temps_timestamp),
+    lely::util::from_timespec(driver_state_2.voltages_temps_timestamp) -
+      lely::util::from_timespec(driver_state_1.voltages_temps_timestamp),
     std::chrono::milliseconds(75));
 
   EXPECT_GE(
-    lely::util::from_timespec(fb2.voltages_temps_timestamp) -
-      lely::util::from_timespec(fb1.voltages_temps_timestamp),
+    lely::util::from_timespec(driver_state_2.voltages_temps_timestamp) -
+      lely::util::from_timespec(driver_state_1.voltages_temps_timestamp),
     std::chrono::milliseconds(25));
 }
 
