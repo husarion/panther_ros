@@ -4,7 +4,7 @@
 
 ### Requirements
 
-- [ ] Guidelines followed
+- [ ] Code style guidelines followed
 - [ ] Documentation updated
 
 ### Tests 🧪
