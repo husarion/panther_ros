@@ -78,7 +78,27 @@ public:
    */
   void Deinitialize();
 
-  std::shared_ptr<lely::canopen::AsyncMaster> GetMaster() { return master_; }
+  /**
+   * @brief Activates CANopen communication thread. This method should be invoked after all objects
+   * using this communication are created.
+   *
+   * @exception std::runtime_error if CAN communication not activated or not initialized
+   */
+  void Activate();
+
+  /**
+   * @brief Returns master controller
+   *
+   * @return std::shared_ptr<lely::canopen::AsyncMaster> master controller
+   * @exception std::runtime_error if CANopenManager is not initialized
+   */
+  std::shared_ptr<lely::canopen::AsyncMaster> GetMaster()
+  {
+    if (!initialized_) {
+      throw std::runtime_error("CANopenManager not initialized.");
+    }
+    return master_;
+  }
 
 private:
   void InitializeCANCommunication();
