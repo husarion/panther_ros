@@ -4,11 +4,11 @@
 
 ### Requirements
 
-- [] Guidelines followed
-- [] Documentation updated
+- [ ] Guidelines followed
+- [ ] Documentation updated
 
 ### Tests 🧪
 
-- [] Robot
-- [] [Container]()
-- [] Simulation
+- [ ] Robot
+- [ ] [Container]()
+- [ ] Simulation
