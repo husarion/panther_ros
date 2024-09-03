@@ -82,8 +82,7 @@ void SafetyManagerNode::Initialize()
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
     "battery/battery_status", 10, std::bind(&SafetyManagerNode::BatteryCB, this, _1));
   driver_state_sub_ = this->create_subscription<RobotDriverStateMsg>(
-    "hardware/robot_driver_state", 10,
-    std::bind(&SafetyManagerNode::RobotDriverStateCB, this, _1));
+    "hardware/robot_driver_state", 10, std::bind(&SafetyManagerNode::RobotDriverStateCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&SafetyManagerNode::EStopCB, this, _1));

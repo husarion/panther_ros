@@ -25,7 +25,7 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
-from panther_utils.welcomeMsg import welcomeMsg
+from panther_utils.messages import welcome_msg
 
 
 def generate_launch_description():
@@ -79,7 +79,7 @@ def generate_launch_description():
         "Robot namespace": namespace,
         "Initial pose": ["(", x, ", ", y, ", ", z, ", ", roll, ", ", pitch, ", ", yaw, ")"],
     }
-    welcome_msg = welcomeMsg("---", "simulation", log_stats)
+    welcome_info = welcome_msg("---", "simulation", log_stats)
 
     urdf_packages = PythonExpression(["'", robot, "_description'"])
     add_wheel_joints = LaunchConfiguration("add_wheel_joints", default="True")
@@ -134,7 +134,7 @@ def generate_launch_description():
             declare_pitch_arg,
             declare_yaw_arg,
             SetUseSimTime(True),
-            welcome_msg,
+            welcome_info,
             load_urdf,
             spawn_robot,
         ]

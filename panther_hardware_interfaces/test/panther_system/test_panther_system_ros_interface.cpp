@@ -159,14 +159,15 @@ TEST_F(TestPantherSystemRosInterface, ErrorFlags)
 
   EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.fault_flag.overheat);
   EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.script_flag.encoder_disconnected);
-  EXPECT_TRUE(driver_state_msg_->driver_states.at(0).state.channel_2_motor_runtime_error.loop_error);
+  EXPECT_TRUE(
+    driver_state_msg_->driver_states.at(0).state.channel_2_motor_runtime_error.loop_error);
   EXPECT_TRUE(
     driver_state_msg_->driver_states.at(0).state.channel_1_motor_runtime_error.safety_stop_active);
 
   EXPECT_TRUE(driver_state_msg_->driver_states.at(1).state.fault_flag.overvoltage);
   EXPECT_TRUE(driver_state_msg_->driver_states.at(1).state.script_flag.loop_error);
-  EXPECT_TRUE(
-    driver_state_msg_->driver_states.at(1).state.channel_2_motor_runtime_error.forward_limit_triggered);
+  EXPECT_TRUE(driver_state_msg_->driver_states.at(1)
+                .state.channel_2_motor_runtime_error.forward_limit_triggered);
   EXPECT_TRUE(driver_state_msg_->driver_states.at(1)
                 .state.channel_1_motor_runtime_error.reverse_limit_triggered);
 }

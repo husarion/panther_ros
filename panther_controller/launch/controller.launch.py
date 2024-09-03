@@ -125,10 +125,9 @@ def generate_launch_description():
         "wheel_type",
         default_value="WH01",
         description=(
-            "Type of wheel. If you choose a value from the preset options ('WH01', 'WH02',"
-            " 'WH04'), you can ignore the 'wheel_config_path' and 'controller_config_path'"
-            " parameters. For custom wheels, please define these parameters to point to files that"
-            " accurately describe the custom wheels."
+            "Specify the wheel type. If the selected wheel type is not 'custom', "
+            "the 'wheel_config_path' and 'controller_config_path' arguments will be "
+            "automatically adjusted and can be omitted."
         ),
         choices=["WH01", "WH02", "WH04", "custom"],
     )
@@ -219,8 +218,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,
@@ -235,8 +232,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,
@@ -259,8 +254,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,

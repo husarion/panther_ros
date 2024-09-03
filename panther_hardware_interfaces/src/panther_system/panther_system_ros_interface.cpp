@@ -140,7 +140,8 @@ void PantherSystemRosInterface::UpdateMsgErrorFlags(
   front_driver_state.state.fault_flag = front.GetFaultFlag().GetMessage();
   front_driver_state.state.script_flag = front.GetScriptFlag().GetMessage();
   front_driver_state.state.channel_2_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
-  front_driver_state.state.channel_1_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
+  front_driver_state.state.channel_1_motor_runtime_error =
+    front.GetRightRuntimeError().GetMessage();
 
   rear_driver_state.state.fault_flag = rear.GetFaultFlag().GetMessage();
   rear_driver_state.state.script_flag = rear.GetScriptFlag().GetMessage();

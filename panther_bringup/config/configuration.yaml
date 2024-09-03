@@ -1,0 +1,16 @@
+# The minimal configuration file with the default values.
+# namespace is optional - without this element namespace will not be provided.
+
+# namespace:
+#   robot_model: panther
+#   init_pose: [0.0, 0.0, 0.0]
+#   init_rotation: [0.0, 0.0, 0.0]
+#   configuration:
+#     wheel_type: WH01
+
+panther:
+  robot_model: panther
+  init_pose: [0.0, 0.0, 0.0]
+  init_rotation: [0.0, 0.0, 0.0]
+  configuration:
+    wheel_type: WH01

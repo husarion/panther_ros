@@ -33,7 +33,7 @@ def flatten(lst):
         return [lst]
 
 
-def welcomeMsg(
+def welcome_msg(
     serial_number: SomeSubstitutionsType,
     robot_hw_version: SomeSubstitutionsType,
     additional_stats: Dict = {},
