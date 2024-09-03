@@ -16,11 +16,24 @@
 #define PANTHER_LIGHTS_APA102_HPP_
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
-namespace panther_lights::apa102
+namespace panther_lights
 {
+
+class APA102Interface
+{
+public:
+  virtual ~APA102Interface() = default;
+
+  virtual void SetGlobalBrightness(const std::uint8_t brightness) = 0;
+  virtual void SetGlobalBrightness(const float brightness) = 0;
+  virtual void SetPanel(const std::vector<std::uint8_t> & frame) const = 0;
+
+  using SharedPtr = std::shared_ptr<APA102Interface>;
+};
 
 /**
  * @brief Class representing an APA102 LED panel.
@@ -28,7 +41,7 @@ namespace panther_lights::apa102
  * This class provides methods to control the APA102 LED panel, including setting the global
  * brightness, setting the LED panel based on a given frame.
  */
-class APA102
+class APA102 : public APA102Interface
 {
 public:
   APA102(
@@ -42,7 +55,7 @@ public:
    *
    * @exception std::out_of_range if brightness value is out of defined range
    */
-  void SetGlobalBrightness(const std::uint8_t brightness);
+  void SetGlobalBrightness(const std::uint8_t brightness) override;
 
   /**
    * @brief Set APA102 LED global brightness
@@ -51,7 +64,7 @@ public:
    *
    * @exception std::out_of_range if brightness value is out of defined range
    */
-  void SetGlobalBrightness(const float brightness);
+  void SetGlobalBrightness(const float brightness) override;
 
   /**
    * @brief Set APA102 LED panel based on given frame
@@ -61,7 +74,7 @@ public:
    * @exception std::ios_base::failure if failed to send data over SPI
    * or std::runtime_error if frame is invalid
    */
-  void SetPanel(const std::vector<std::uint8_t> & frame) const;
+  void SetPanel(const std::vector<std::uint8_t> & frame) const override;
 
 protected:
   /**
@@ -96,6 +109,6 @@ private:
   const std::uint32_t speed_;
 };
 
-}  // namespace panther_lights::apa102
+}  // namespace panther_lights
 
 #endif  // PANTHER_LIGHTS_APA102_HPP_

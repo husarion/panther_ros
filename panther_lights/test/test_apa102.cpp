@@ -16,7 +16,7 @@
 
 #include "panther_lights/apa102.hpp"
 
-class APA102Wrapper : public panther_lights::apa102::APA102
+class APA102Wrapper : public panther_lights::APA102
 {
 public:
   APA102Wrapper(const std::string & device) : APA102(device) {}
@@ -40,8 +40,8 @@ protected:
 
 TEST_F(TestAPA102, PortsAvailable)
 {
-  EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_1_("/dev/spidev0.0"); });
-  EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_2_("/dev/spidev0.1"); });
+  EXPECT_NO_THROW({ panther_lights::APA102 channel_1_("/dev/spidev0.0"); });
+  EXPECT_NO_THROW({ panther_lights::APA102 channel_2_("/dev/spidev0.1"); });
 }
 
 TEST_F(TestAPA102, SetGlobalBrightnessFloat)

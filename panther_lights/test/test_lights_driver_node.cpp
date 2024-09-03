@@ -42,8 +42,8 @@ public:
   int getNumLeds() const { return num_led_; }
   double getTimeout() const { return frame_timeout_; }
   bool isInitialised() const { return led_control_granted_; }
-  rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
-  rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
+  rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return channel_1_ts_ = ts; }
+  rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return channel_2_ts_ = ts; }
 };
 
 class TestDriverNode : public testing::Test

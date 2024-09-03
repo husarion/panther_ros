@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace panther_lights::apa102
+namespace panther_lights
 {
 
 APA102::APA102(const std::string & device, const std::uint32_t speed, const bool cs_high)
@@ -126,4 +126,4 @@ void APA102::SPISendBuffer(const std::vector<std::uint8_t> & buffer) const
   }
 }
 
-}  // namespace panther_lights::apa102
+}  // namespace panther_lights
