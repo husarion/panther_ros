@@ -16,32 +16,15 @@
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_LYNX_ROBOT_DRIVER_HPP_
 
 #include <chrono>
-#include <string>
+#include <memory>
+#include <vector>
 
-#include <panther_hardware_interfaces/panther_system/robot_driver/robot_driver.hpp>
 #include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
-#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_robot_driver.hpp"
 
 namespace panther_hardware_interfaces
 {
-
-struct LynxMotorNames
-{
-  static constexpr char LEFT[] = "left";
-  static constexpr char RIGHT[] = "right";
-};
-
-struct LynxDriverNames
-{
-  static constexpr char DEFAULT[] = "default";
-};
-
-struct LynxMotorChannel
-{
-  static constexpr std::uint8_t LEFT = RoboteqDriver::kChannel2;
-  static constexpr std::uint8_t RIGHT = RoboteqDriver::kChannel1;
-};
 
 /**
  * @brief This class abstracts the usage of one Roboteq controller.
@@ -50,139 +33,40 @@ struct LynxMotorChannel
  * and provides methods to get data feedback and send commands.
  * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
  */
-class LynxRobotDriver : public RobotDriver
+class LynxRobotDriver : public RoboteqRobotDriver
 {
 public:
   LynxRobotDriver(
     const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
-    const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000));
-
-  ~LynxRobotDriver()
+    const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000))
+  : RoboteqRobotDriver(canopen_settings, drivetrain_settings, activate_wait_time)
   {
-    driver_.reset();
-    Deinitialize();
-  };
+  }
 
-  /**
-   * @brief Starts CAN communication and waits for boot to finish
-   *
-   * @exception std::runtime_error if boot fails
-   */
-  void Initialize() override;
-
-  /**
-   * @brief Deinitialize can communication
-   */
-  void Deinitialize() override;
-
-  /**
-   * @brief Activate procedure for Roboteq drivers - reset scripts and send 0 commands on both
-   * channels. Blocking function, takes around 2 seconds to finish
-   *
-   * @exception std::runtime_error if any procedure step fails
-   */
-  void Activate() override;
-
-  /**
-   * @brief Updates current communication state with Roboteq drivers
-   *
-   * @exception std::runtime_error if CAN error was detected
-   */
-  void UpdateCommunicationState() override;
-
-  /**
-   * @brief Updates current motors' state (position, velocity, current).
-   *
-   * @exception std::runtime_error if CAN error was detected
-   */
-  void UpdateMotorsState() override;
-
-  /**
-   * @brief Updates current Roboteq driver state (flags, temperatures, voltage, battery current)
-   *
-   * @exception std::runtime_error if CAN error was detected
-   */
-  void UpdateDriversState() override;
-
-  /**
-   * @brief Get data feedback from the driver
-   *
-   * @param name name of the data to get
-   *
-   * @return data feedback
-   * @exception std::runtime_error if data with the given name does not exist
-   */
-  const RoboteqData & GetData(const std::string & name) override;
+  ~LynxRobotDriver() = default;
 
   /**
    * @brief Write speed commands to motors
    *
-   * @param speed_fl front left motor speed in rad/s
-   * @param speed_fr front right motor speed in rad/s
-   * @param speed_rl rear left motor speed in rad/s
-   * @param speed_rr rear right motor speed in rad/s
+   * @param speeds vector of motor speeds in rad/s. The order is: left, right
    *
-   * @exception std::runtime_error if send command fails or CAN error was detected
+   * @exception std::runtime_error if invalid vector size, send command fails or CAN error is
+   * detected
    */
-  void SendSpeedCommands(
-    const float speed_left, const float speed_right, const float /*speed_rl*/,
-    const float /*speed_rr*/) override;
-
-  /**
-   * @brief Turns on Roboteq E-stop
-   *
-   * @exception std::runtime_error if any operation returns error
-   */
-  void TurnOnEStop() override;
-
-  /**
-   * @brief Turns off Roboteq E-stop
-   *
-   * @exception std::runtime_error if any operation returns error
-   */
-  void TurnOffEStop() override;
-
-  /**
-   * @brief Turns on Roboteq safety stop. To turn it off, it is necessary to send
-   * 0 commands to motors.
-   *
-   * @exception std::runtime_error if any operation returns error
-   */
-  void TurnOnSafetyStop() override;
+  void SendSpeedCommands(const std::vector<float> & speeds) override;
 
   /**
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
    * driver faults still exist, the error flag will remain active.
    */
-  inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
+  inline void AttemptErrorFlagResetWithZeroSpeed() override { SendSpeedCommands({0.0, 0.0}); };
 
 protected:
   /**
-   * @brief This method defines driver object and adds motor drivers to it. It is virtual to allow
-   * mocking driver in tests.
+   * @brief This method defines driver objects and adds motor drivers for them. It is virtual to
+   * allow mocking drivers in tests.
    */
-  virtual void DefineDriver();
-
-  std::shared_ptr<Driver> driver_;
-
-private:
-  void SetMotorsStates(
-    RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
-    const timespec & current_time);
-  void SetDriverState(RoboteqData & data, const DriverState & state, const timespec & current_time);
-
-  bool initialized_ = false;
-
-  CANopenSettings canopen_settings_;
-  CANopenManager canopen_manager_;
-
-  RoboteqData data_;
-
-  RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
-
-  const std::chrono::milliseconds pdo_motor_states_timeout_ms_;
-  const std::chrono::milliseconds pdo_driver_state_timeout_ms_;
-  const std::chrono::milliseconds activate_wait_time_;
+  virtual void DefineDrivers();
 };
 
 }  // namespace panther_hardware_interfaces

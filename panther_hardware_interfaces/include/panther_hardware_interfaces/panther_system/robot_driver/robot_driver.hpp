@@ -16,6 +16,7 @@
 #define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOT_DRIVER_HPP_
 
 #include <string>
+#include <vector>
 
 #include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
 
@@ -81,15 +82,11 @@ public:
   /**
    * @brief Write speed commands to motors
    *
-   * @param speed_fl front left motor speed in rad/s
-   * @param speed_fr front right motor speed in rad/s
-   * @param speed_rl rear left motor speed in rad/s
-   * @param speed_rr rear right motor speed in rad/s
+   * @param speeds vector of motor speeds in rad/s
    *
-   * @exception std::runtime_error if send command fails
+   * @exception std::runtime_error if vector has invalid size or send command fails
    */
-  virtual void SendSpeedCommands(
-    const float speed_fl, const float speed_fr, const float speed_rl, const float speed_rr) = 0;
+  virtual void SendSpeedCommands(const std::vector<float> & speeds) = 0;
 
   /**
    * @brief Turns on E-stop
@@ -117,7 +114,7 @@ public:
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If driver
    * faults still exist, the error flag will remain active.
    */
-  inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
+  virtual inline void AttemptErrorFlagResetWithZeroSpeed() = 0;
 };
 
 }  // namespace panther_hardware_interfaces

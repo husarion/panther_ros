@@ -147,11 +147,29 @@ if(BUILD_TESTING)
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gmock(
+    ${PROJECT_NAME}_test_roboteq_robot_driver
+    test/unit/panther_system/robot_driver/test_roboteq_robot_driver.cpp
+    src/panther_system/robot_driver/canopen_manager.cpp
+    src/panther_system/robot_driver/roboteq_driver.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_robot_driver.cpp
+    src/utils.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_roboteq_robot_driver
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_roboteq_robot_driver rclcpp
+                            panther_msgs panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_roboteq_robot_driver
+                        PkgConfig::LIBLELY_COAPP)
+
+  ament_add_gmock(
     ${PROJECT_NAME}_test_panther_robot_driver
     test/unit/panther_system/robot_driver/test_panther_robot_driver.cpp
     src/panther_system/robot_driver/canopen_manager.cpp
     src/panther_system/robot_driver/roboteq_driver.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_robot_driver.cpp
     src/panther_system/robot_driver/panther_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
@@ -169,6 +187,7 @@ if(BUILD_TESTING)
     src/panther_system/robot_driver/canopen_manager.cpp
     src/panther_system/robot_driver/roboteq_driver.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_robot_driver.cpp
     src/panther_system/robot_driver/lynx_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
