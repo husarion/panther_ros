@@ -44,8 +44,8 @@ LightsDriverNode::LightsDriverNode(const rclcpp::NodeOptions & options)
   led_control_granted_(false),
   led_control_pending_(false),
   initialization_attempt_(0),
-  channel_1_(std::make_shared<APA102>("/dev/spiled-channel1")),
-  channel_2_(std::make_shared<APA102>("/dev/spiled-channel2")),
+  channel_1_(std::make_shared<APA102>(std::make_shared<SPIDevice>(), "/dev/spiled-channel1")),
+  channel_2_(std::make_shared<APA102>(std::make_shared<SPIDevice>(), "/dev/spiled-channel2")),
   diagnostic_updater_(this)
 {
   RCLCPP_INFO(this->get_logger(), "Constructing node.");
