@@ -160,6 +160,9 @@ private:
     RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
     const timespec & current_time);
   void SetDriverState(RoboteqData & data, const DriverState & state, const timespec & current_time);
+  bool DataTimeout(
+    const timespec & current_time, const timespec & data_timestamp,
+    const std::chrono::milliseconds & timeout);
 
   bool initialized_ = false;
 

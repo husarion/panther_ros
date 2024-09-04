@@ -207,13 +207,11 @@ void RoboteqRobotDriver::SetMotorsStates(
   RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
   const timespec & current_time)
 {
-  // TODO figure out both motors timestamps
-  bool data_timed_out =
-    (lely::util::from_timespec(current_time) - lely::util::from_timespec(left_state.pos_timestamp) >
-     pdo_motor_states_timeout_ms_) ||
-    (lely::util::from_timespec(current_time) -
-       lely::util::from_timespec(left_state.vel_current_timestamp) >
-     pdo_motor_states_timeout_ms_);
+  const bool data_timed_out =
+    DataTimeout(current_time, left_state.pos_timestamp, pdo_motor_states_timeout_ms_) ||
+    DataTimeout(current_time, left_state.vel_current_timestamp, pdo_motor_states_timeout_ms_) ||
+    DataTimeout(current_time, right_state.pos_timestamp, pdo_motor_states_timeout_ms_) ||
+    DataTimeout(current_time, right_state.vel_current_timestamp, pdo_motor_states_timeout_ms_);
 
   // Channel 1 - right, Channel 2 - left
   data.SetMotorsStates(right_state, left_state, data_timed_out);
@@ -222,14 +220,19 @@ void RoboteqRobotDriver::SetMotorsStates(
 void RoboteqRobotDriver::SetDriverState(
   RoboteqData & data, const DriverState & state, const timespec & current_time)
 {
-  bool data_timed_out = (lely::util::from_timespec(current_time) -
-                           lely::util::from_timespec(state.flags_current_timestamp) >
-                         pdo_driver_state_timeout_ms_) ||
-                        (lely::util::from_timespec(current_time) -
-                           lely::util::from_timespec(state.voltages_temps_timestamp) >
-                         pdo_driver_state_timeout_ms_);
+  const bool data_timed_out =
+    DataTimeout(current_time, state.flags_current_timestamp, pdo_driver_state_timeout_ms_) ||
+    DataTimeout(current_time, state.voltages_temps_timestamp, pdo_driver_state_timeout_ms_);
 
   data.SetDriverState(state, data_timed_out);
+}
+
+bool RoboteqRobotDriver::DataTimeout(
+  const timespec & current_time, const timespec & data_timestamp,
+  const std::chrono::milliseconds & timeout)
+{
+  return lely::util::from_timespec(current_time) - lely::util::from_timespec(data_timestamp) >
+         timeout;
 }
 
 }  // namespace panther_hardware_interfaces
