@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_controller.hpp"
+#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
 
 #include <condition_variable>
 #include <filesystem>
-#include <future>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -30,12 +29,12 @@
 namespace panther_hardware_interfaces
 {
 
-CANopenController::CANopenController(const CANopenSettings & canopen_settings)
+CANopenManager::CANopenManager(const CANopenSettings & canopen_settings)
 : canopen_settings_(canopen_settings)
 {
 }
 
-void CANopenController::Initialize()
+void CANopenManager::Initialize()
 {
   if (initialized_) {
     return;
@@ -43,24 +42,33 @@ void CANopenController::Initialize()
 
   canopen_communication_started_.store(false);
 
+  try {
+    panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "An exception occurred while configuring RT: " << e.what() << std::endl
+              << "Continuing with regular thread settings (it may have a negative impact on the "
+                 "performance)."
+              << std::endl;
+  }
+
+  try {
+    InitializeCANCommunication();
+  } catch (const std::system_error & e) {
+    std::cerr << "An exception occurred while initializing CAN: " << e.what() << std::endl;
+    NotifyCANCommunicationStarted(false);
+    return;
+  }
+
+  initialized_ = true;
+}
+
+void CANopenManager::Activate()
+{
+  if (!initialized_) {
+    throw std::runtime_error("CANopenManager not initialized.");
+  }
+
   canopen_communication_thread_ = std::thread([this]() {
-    try {
-      panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
-    } catch (const std::runtime_error & e) {
-      std::cerr << "An exception occurred while configuring RT: " << e.what() << std::endl
-                << "Continuing with regular thread settings (it may have a negative impact on the "
-                   "performance)."
-                << std::endl;
-    }
-
-    try {
-      InitializeCANCommunication();
-    } catch (const std::system_error & e) {
-      std::cerr << "An exception occurred while initializing CAN: " << e.what() << std::endl;
-      NotifyCANCommunicationStarted(false);
-      return;
-    }
-
     NotifyCANCommunicationStarted(true);
 
     try {
@@ -78,15 +86,11 @@ void CANopenController::Initialize()
   }
 
   if (!canopen_communication_started_.load()) {
-    throw std::runtime_error("CAN communication not initialized.");
+    throw std::runtime_error("CAN communication not activated.");
   }
-
-  BootDrivers();
-
-  initialized_ = true;
 }
 
-void CANopenController::Deinitialize()
+void CANopenManager::Deinitialize()
 {
   // Deinitialization should be done regardless of the initialized_ state - in case some operation
   // during initialization fails, it is still necessary to do the cleanup
@@ -101,8 +105,6 @@ void CANopenController::Deinitialize()
 
   canopen_communication_started_.store(false);
 
-  rear_driver_.reset();
-  front_driver_.reset();
   master_.reset();
   chan_.reset();
   ctrl_.reset();
@@ -115,7 +117,7 @@ void CANopenController::Deinitialize()
   initialized_ = false;
 }
 
-void CANopenController::InitializeCANCommunication()
+void CANopenManager::InitializeCANCommunication()
 {
   lely::io::IoGuard io_guard;
 
@@ -141,50 +143,17 @@ void CANopenController::InitializeCANCommunication()
   master_ = std::make_shared<lely::canopen::AsyncMaster>(
     *timer_, *chan_, master_dcf_path, "", canopen_settings_.master_can_id);
 
-  front_driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.front_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
-  rear_driver_ = std::make_shared<RoboteqDriver>(
-    master_, canopen_settings_.rear_driver_can_id, canopen_settings_.sdo_operation_timeout_ms);
-
   // Start the NMT service of the master by pretending to receive a 'reset node' command.
   master_->Reset();
 }
 
-void CANopenController::NotifyCANCommunicationStarted(const bool result)
+void CANopenManager::NotifyCANCommunicationStarted(const bool result)
 {
   {
     std::lock_guard<std::mutex> lck_g(canopen_communication_started_mtx_);
     canopen_communication_started_.store(result);
   }
   canopen_communication_started_cond_.notify_all();
-}
-
-void CANopenController::BootDrivers()
-{
-  try {
-    auto front_driver_future = front_driver_->Boot();
-    auto rear_driver_future = rear_driver_->Boot();
-
-    auto front_driver_status = front_driver_future.wait_for(std::chrono::seconds(5));
-    auto rear_driver_status = rear_driver_future.wait_for(std::chrono::seconds(5));
-
-    if (
-      front_driver_status == std::future_status::ready &&
-      rear_driver_status == std::future_status::ready) {
-      try {
-        front_driver_future.get();
-        rear_driver_future.get();
-      } catch (const std::exception & e) {
-        throw std::runtime_error("Boot failed with exception: " + std::string(e.what()));
-      }
-    } else {
-      throw std::runtime_error("Boot timed out or failed.");
-    }
-
-  } catch (const std::system_error & e) {
-    throw std::runtime_error(
-      "An exception occurred while trying to Boot driver " + std::string(e.what()));
-  }
 }
 
 }  // namespace panther_hardware_interfaces

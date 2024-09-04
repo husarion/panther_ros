@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_CONTROLLER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_CONTROLLER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
 
 #include <atomic>
 #include <chrono>
@@ -33,10 +33,14 @@
 #include "lely/io2/sys/sigset.hpp"
 #include "lely/io2/sys/timer.hpp"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
-
 namespace panther_hardware_interfaces
 {
+
+struct CANopenObject
+{
+  const std::uint16_t id;
+  const std::uint8_t subid;
+};
 
 struct CANopenSettings
 {
@@ -52,15 +56,15 @@ struct CANopenSettings
 };
 
 /**
- * @brief CANopenController takes care of CANopen communication - creates master controller
+ * @brief CANopenManager takes care of CANopen communication - creates master controller
  * and two Roboteq drivers (front and rear)
  */
-class CANopenController
+class CANopenManager
 {
 public:
-  CANopenController(const CANopenSettings & canopen_settings);
+  CANopenManager(const CANopenSettings & canopen_settings);
 
-  ~CANopenController() { Deinitialize(); }
+  ~CANopenManager() { Deinitialize(); }
 
   /**
    * @brief Starts CANopen communication (in a new thread) and waits for boot to finish
@@ -74,8 +78,27 @@ public:
    */
   void Deinitialize();
 
-  std::shared_ptr<RoboteqDriver> GetFrontDriver() { return front_driver_; }
-  std::shared_ptr<RoboteqDriver> GetRearDriver() { return rear_driver_; }
+  /**
+   * @brief Activates CANopen communication thread. This method should be invoked after all objects
+   * using this communication are created.
+   *
+   * @exception std::runtime_error if CAN communication not activated or not initialized
+   */
+  void Activate();
+
+  /**
+   * @brief Returns master controller
+   *
+   * @return std::shared_ptr<lely::canopen::AsyncMaster> master controller
+   * @exception std::runtime_error if CANopenManager is not initialized
+   */
+  std::shared_ptr<lely::canopen::AsyncMaster> GetMaster()
+  {
+    if (!initialized_) {
+      throw std::runtime_error("CANopenManager not initialized.");
+    }
+    return master_;
+  }
 
 private:
   void InitializeCANCommunication();
@@ -87,13 +110,6 @@ private:
    * @param result status of CAN communication started
    */
   void NotifyCANCommunicationStarted(const bool result);
-
-  /**
-   * @brief Triggers boot on front and rear Roboteq drivers and waits for finish
-   *
-   * @exception std::runtime_error if boot fails
-   */
-  void BootDrivers();
 
   // Priority set to be higher than the priority of the main ros2 control node (50)
   static constexpr unsigned kCANopenThreadSchedPriority = 60;
@@ -115,12 +131,9 @@ private:
   std::shared_ptr<lely::io::CanChannel> chan_;
   std::shared_ptr<lely::canopen::AsyncMaster> master_;
 
-  std::shared_ptr<RoboteqDriver> front_driver_;
-  std::shared_ptr<RoboteqDriver> rear_driver_;
-
   const CANopenSettings canopen_settings_;
 };
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_CONTROLLER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_

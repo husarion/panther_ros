@@ -90,7 +90,6 @@ protected:
   void UpdateHwStates();
   void UpdateMotorsStateDataTimedOut();
   bool AreVelocityCommandsNearZero();
-  bool IsPantherVersionAtLeast(const float version);
 
   void UpdateDriverStateMsg();
   void UpdateFlagErrors();
