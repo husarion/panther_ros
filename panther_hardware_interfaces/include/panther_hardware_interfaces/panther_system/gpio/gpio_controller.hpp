@@ -152,6 +152,7 @@ public:
    * @brief Constructor for GPIOControllerPTH12X class.
    *
    * @param gpio_driver Pointer to the GPIODriver object.
+   * @throw `std::runtime_error` When the GPIO driver is not initialized.
    */
   GPIOControllerPTH12X(std::shared_ptr<GPIODriverInterface> gpio_driver);
 
@@ -281,6 +282,7 @@ public:
    * @brief Constructor for GPIOControllerPTH10X class.
    *
    * @param gpio_driver Pointer to the GPIODriver object.
+   * @throw `std::runtime_error` When the GPIO driver is not initialized.
    */
   GPIOControllerPTH10X(std::shared_ptr<GPIODriverInterface> gpio_driver);
 
