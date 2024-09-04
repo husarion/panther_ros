@@ -32,11 +32,10 @@ namespace panther_hardware_interfaces
 {
 
 LynxRobotDriver::LynxRobotDriver(
-  const std::shared_ptr<Driver> driver, const CANopenSettings & canopen_settings,
-  const DrivetrainSettings & drivetrain_settings,
+  const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
   const std::chrono::milliseconds activate_wait_time)
-: canopen_manager_(canopen_settings),
-  driver_(std::move(driver)),
+: canopen_settings_(canopen_settings),
+  canopen_manager_(canopen_settings),
   data_(drivetrain_settings),
   roboteq_vel_cmd_converter_(drivetrain_settings),
   pdo_motor_states_timeout_ms_(canopen_settings.pdo_motor_states_timeout_ms),
@@ -53,6 +52,7 @@ void LynxRobotDriver::Initialize()
 
   try {
     canopen_manager_.Initialize();
+    DefineDriver();
     driver_->Boot();
   } catch (const std::runtime_error & e) {
     throw e;
@@ -194,6 +194,21 @@ void LynxRobotDriver::TurnOnSafetyStop()
     throw std::runtime_error(
       "Failed to turn on safety stop on the front driver: " + std::string(e.what()));
   }
+}
+
+void LynxRobotDriver::DefineDriver()
+{
+  driver_ = std::make_shared<RoboteqDriver>(
+    canopen_manager_.GetMaster(), canopen_settings_.front_driver_can_id,
+    canopen_settings_.sdo_operation_timeout_ms);
+
+  auto left_motor_driver = std::make_shared<RoboteqMotorDriver>(
+    std::dynamic_pointer_cast<RoboteqDriver>(driver_), LynxMotorChannel::LEFT);
+  auto right_motor_driver = std::make_shared<RoboteqMotorDriver>(
+    std::dynamic_pointer_cast<RoboteqDriver>(driver_), LynxMotorChannel::RIGHT);
+
+  driver_->AddMotorDriver(LynxMotorNames::LEFT, left_motor_driver);
+  driver_->AddMotorDriver(LynxMotorNames::RIGHT, right_motor_driver);
 }
 
 void LynxRobotDriver::SetMotorsStates(

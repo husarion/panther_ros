@@ -55,7 +55,6 @@ class PantherRobotDriver : public RobotDriver
 {
 public:
   PantherRobotDriver(
-    const std::shared_ptr<Driver> front_driver, const std::shared_ptr<Driver> rear_driver,
     const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
     const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000));
 
@@ -158,6 +157,16 @@ public:
    */
   inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
 
+protected:
+  /**
+   * @brief This method defines driver objects and adds motor drivers for them. It is virtual to
+   * allow mocking drivers in tests.
+   */
+  virtual void DefineDrivers();
+
+  std::shared_ptr<Driver> front_driver_;
+  std::shared_ptr<Driver> rear_driver_;
+
 private:
   void SetMotorsStates(
     RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
@@ -166,10 +175,8 @@ private:
 
   bool initialized_ = false;
 
+  CANopenSettings canopen_settings_;
   CANopenManager canopen_manager_;
-
-  std::shared_ptr<Driver> front_driver_;
-  std::shared_ptr<Driver> rear_driver_;
 
   RoboteqData front_data_;
   RoboteqData rear_data_;

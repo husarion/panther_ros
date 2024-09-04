@@ -33,12 +33,10 @@ namespace panther_hardware_interfaces
 {
 
 PantherRobotDriver::PantherRobotDriver(
-  const std::shared_ptr<Driver> front_driver, const std::shared_ptr<Driver> rear_driver,
   const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
   const std::chrono::milliseconds activate_wait_time)
-: canopen_manager_(canopen_settings),
-  front_driver_(std::move(front_driver)),
-  rear_driver_(std::move(rear_driver)),
+: canopen_settings_(canopen_settings),
+  canopen_manager_(canopen_settings),
   front_data_(drivetrain_settings),
   rear_data_(drivetrain_settings),
   roboteq_vel_cmd_converter_(drivetrain_settings),
@@ -56,6 +54,7 @@ void PantherRobotDriver::Initialize()
 
   try {
     canopen_manager_.Initialize();
+    DefineDrivers();
     front_driver_->Boot();
     rear_driver_->Boot();
   } catch (const std::runtime_error & e) {
@@ -255,6 +254,30 @@ void PantherRobotDriver::TurnOnSafetyStop()
     throw std::runtime_error(
       "Failed to turn on safety stop on the rear driver: " + std::string(e.what()));
   }
+}
+
+void PantherRobotDriver::DefineDrivers()
+{
+  front_driver_ = std::make_shared<RoboteqDriver>(
+    canopen_manager_.GetMaster(), canopen_settings_.front_driver_can_id,
+    canopen_settings_.sdo_operation_timeout_ms);
+  rear_driver_ = std::make_shared<RoboteqDriver>(
+    canopen_manager_.GetMaster(), canopen_settings_.rear_driver_can_id,
+    canopen_settings_.sdo_operation_timeout_ms);
+
+  auto fl_motor_driver = std::make_shared<RoboteqMotorDriver>(
+    std::dynamic_pointer_cast<RoboteqDriver>(front_driver_), PantherMotorChannel::LEFT);
+  auto fr_motor_driver = std::make_shared<RoboteqMotorDriver>(
+    std::dynamic_pointer_cast<RoboteqDriver>(front_driver_), PantherMotorChannel::RIGHT);
+  auto rl_motor_driver = std::make_shared<RoboteqMotorDriver>(
+    std::dynamic_pointer_cast<RoboteqDriver>(rear_driver_), PantherMotorChannel::LEFT);
+  auto rr_motor_driver = std::make_shared<RoboteqMotorDriver>(
+    std::dynamic_pointer_cast<RoboteqDriver>(rear_driver_), PantherMotorChannel::RIGHT);
+
+  front_driver_->AddMotorDriver(PantherMotorNames::LEFT, fl_motor_driver);
+  front_driver_->AddMotorDriver(PantherMotorNames::RIGHT, fr_motor_driver);
+  rear_driver_->AddMotorDriver(PantherMotorNames::LEFT, rl_motor_driver);
+  rear_driver_->AddMotorDriver(PantherMotorNames::RIGHT, rr_motor_driver);
 }
 
 void PantherRobotDriver::SetMotorsStates(

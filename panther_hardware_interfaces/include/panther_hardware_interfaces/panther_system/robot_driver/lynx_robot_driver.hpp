@@ -54,8 +54,7 @@ class LynxRobotDriver : public RobotDriver
 {
 public:
   LynxRobotDriver(
-    const std::shared_ptr<Driver> driver, const CANopenSettings & canopen_settings,
-    const DrivetrainSettings & drivetrain_settings,
+    const CANopenSettings & canopen_settings, const DrivetrainSettings & drivetrain_settings,
     const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000));
 
   ~LynxRobotDriver()
@@ -157,6 +156,15 @@ public:
    */
   inline void AttemptErrorFlagResetWithZeroSpeed() { SendSpeedCommands(0.0, 0.0, 0.0, 0.0); };
 
+protected:
+  /**
+   * @brief This method defines driver object and adds motor drivers to it. It is virtual to allow
+   * mocking driver in tests.
+   */
+  virtual void DefineDriver();
+
+  std::shared_ptr<Driver> driver_;
+
 private:
   void SetMotorsStates(
     RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
@@ -165,9 +173,8 @@ private:
 
   bool initialized_ = false;
 
+  CANopenSettings canopen_settings_;
   CANopenManager canopen_manager_;
-
-  std::shared_ptr<Driver> driver_;
 
   RoboteqData data_;
 
