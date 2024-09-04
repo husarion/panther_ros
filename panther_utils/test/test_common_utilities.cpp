@@ -158,6 +158,42 @@ TEST(TestOpenFile, HandleOpenFileThrow)
     { panther_utils::common_utilities::OpenFile(path, std::ios_base::in); }, std::runtime_error);
 }
 
+TEST(TestMeetsVersionRequirement, SameVersion)
+{
+  float version = 1.06;
+
+  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+
+  EXPECT_TRUE(is_met);
+}
+
+TEST(TestMeetsVersionRequirement, LowerVersion)
+{
+  float version = 1.2;
+
+  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+
+  EXPECT_TRUE(is_met);
+}
+
+TEST(TestMeetsVersionRequirement, HigherVersion)
+{
+  float version = 1.0;
+
+  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+
+  EXPECT_FALSE(is_met);
+}
+
+TEST(TestMeetsVersionRequirement, NaNVersionRequired)
+{
+  float version = std::numeric_limits<float>::quiet_NaN();
+
+  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+
+  EXPECT_FALSE(is_met);
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

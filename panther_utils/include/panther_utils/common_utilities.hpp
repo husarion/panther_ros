@@ -15,6 +15,7 @@
 #ifndef PANTHER_UTILS_COMMON_UTILITIES_HPP_
 #define PANTHER_UTILS_COMMON_UTILITIES_HPP_
 
+#include <cmath>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -95,13 +96,29 @@ std::map<std::string, T> PrefixMapKeys(
  *
  * @throws std::runtime_error if the file fails to open.
  */
-std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmode & mode)
+inline std::fstream OpenFile(const std::string & file_path, const std::ios_base::openmode & mode)
 {
   std::fstream file(file_path, mode);
   if (!file.is_open()) {
     throw std::runtime_error("Failed to open file: " + file_path);
   }
   return file;
+}
+
+/**
+ * @brief Checks if required version is satisfied.
+ *
+ * @param version Version to be verified.
+ * @param required_version The required version.
+ * @return true if the required version is satisfied, false otherwise.
+ */
+inline bool MeetsVersionRequirement(const float version, const float required_version)
+{
+  if (std::isnan(version) || std::isnan(required_version)) {
+    return false;
+  }
+
+  return version >= required_version - std::numeric_limits<float>::epsilon();
 }
 
 }  // namespace panther_utils::common_utilities

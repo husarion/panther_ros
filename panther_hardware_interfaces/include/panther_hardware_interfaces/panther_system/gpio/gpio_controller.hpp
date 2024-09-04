@@ -29,7 +29,10 @@
 
 #include "gpiod.hpp"
 
+#include "panther_utils/common_utilities.hpp"
+
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/gpio/types.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -54,7 +57,7 @@ public:
    * @exception std::runtime_error if the Watchdog pin is not configured by GPIODriver or not
    * described in GPIOController gpio_info storage
    */
-  Watchdog(std::shared_ptr<GPIODriver> gpio_driver);
+  Watchdog(std::shared_ptr<GPIODriverInterface> gpio_driver);
 
   /**
    * @brief Destructor for Watchdog class. Turns off the watchdog thread.
@@ -84,7 +87,7 @@ private:
   void WatchdogThread();
 
   GPIOPin watchdog_pin_ = GPIOPin::WATCHDOG;
-  std::shared_ptr<GPIODriver> gpio_driver_;
+  std::shared_ptr<GPIODriverInterface> gpio_driver_;
   std::thread watchdog_thread_;
   std::atomic_bool watchdog_thread_enabled_ = false;
 };
@@ -139,12 +142,20 @@ public:
   bool IsPinAvailable(const GPIOPin pin) const;
 
 protected:
-  std::shared_ptr<GPIODriver> gpio_driver_;
+  std::shared_ptr<GPIODriverInterface> gpio_driver_;
 };
 
 class GPIOControllerPTH12X : public GPIOControllerInterface
 {
 public:
+  /**
+   * @brief Constructor for GPIOControllerPTH12X class.
+   *
+   * @param gpio_driver Pointer to the GPIODriver object.
+   * @throw `std::runtime_error` When the GPIO driver is not initialized.
+   */
+  GPIOControllerPTH12X(std::shared_ptr<GPIODriverInterface> gpio_driver);
+
   /**
    * @brief Initializes the GPIODriver, Watchdog, and powers on the motors.
    */
@@ -162,17 +173,19 @@ public:
    * @brief Resets the E-stop.
    *
    * This method verifies the status of the E_STOP_RESET pin, which is configured as an input.
-   * If the pin is active, it attempts to reset the E-stop by momentarily setting it to an inactive
-   * state. During this reset process, the pin is configured as an output for a specific duration.
-   * If the attempt to reset the E-stop fails (the pin reads its value as an input again), it throws
-   * a runtime error. The Watchdog thread is temporarily activated during the E-stop reset process.
+   * If the pin is active, it attempts to reset the E-stop by momentarily setting it to an
+   * inactive state. During this reset process, the pin is configured as an output for a specific
+   * duration. If the attempt to reset the E-stop fails (the pin reads its value as an input
+   * again), it throws a runtime error. The Watchdog thread is temporarily activated during the
+   * E-stop reset process.
    * @return true if the E-stop is successfully reset.
    * @exception std::runtime_error when the E-stop reset fails.
    */
   void EStopReset() override;
 
   /**
-   * @brief Controls the motor power by enabling or disabling them based on the 'enable' parameter.
+   * @brief Controls the motor power by enabling or disabling them based on the 'enable'
+   * parameter.
    *
    * @param enable Set to 'true' to enable the motors, 'false' to disable.
    * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
@@ -204,7 +217,8 @@ public:
   bool DigitalPowerEnable(const bool enable) override;
 
   /**
-   * @brief Enables or disables the use of an external charger according to the 'enable' parameter.
+   * @brief Enables or disables the use of an external charger according to the 'enable'
+   * parameter.
    *
    * @param enable Set to 'true' to enable external charger, 'false' to disable.
    * @return 'true' if the charger control pin value is successfully set, 'false' otherwise.
@@ -226,6 +240,11 @@ public:
    */
   std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
+  /**
+   * @brief Returns the GPIO pin configuration information for the PTH12X.
+   */
+  static const std::vector<GPIOInfo> & GetGPIOConfigInfoStorage();
+
   void InterruptEStopReset() override;
 
 protected:
@@ -235,9 +254,9 @@ private:
   /**
    * @brief Waits for a specific duration or until an interruption is signaled.
    *
-   * This method is designed to block execution for the specified timeout duration. It also monitors
-   * for an interruption signal which, if received, will cause the method to return early. The
-   * interruption is controlled by the `should_abort_e_stop_reset_` flag.
+   * This method is designed to block execution for the specified timeout duration. It also
+   * monitors for an interruption signal which, if received, will cause the method to return
+   * early. The interruption is controlled by the `should_abort_e_stop_reset_` flag.
    *
    * @param timeout Duration to wait for in milliseconds.
    * @return `true` if the wait completed without interruption, `false` if an interruption was
@@ -246,25 +265,10 @@ private:
   bool WaitFor(std::chrono::milliseconds timeout);
 
   /**
-   * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
+   * @brief Vector containing GPIO pin configuration information such as pin direction, value,
+   * etc.
    */
-  const std::vector<GPIOInfo> gpio_config_info_storage_{
-    GPIOInfo{GPIOPin::WATCHDOG, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::AUX_PW_EN, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::CHRG_DISABLE, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::DRIVER_EN, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::E_STOP_RESET, gpiod::line::direction::INPUT},
-    GPIOInfo{GPIOPin::FAN_SW, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::GPOUT1, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::GPOUT2, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::GPIN1, gpiod::line::direction::INPUT},
-    GPIOInfo{GPIOPin::GPIN2, gpiod::line::direction::INPUT},
-    GPIOInfo{GPIOPin::SHDN_INIT, gpiod::line::direction::INPUT},
-    GPIOInfo{GPIOPin::VDIG_OFF, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::VMOT_ON, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::CHRG_SENSE, gpiod::line::direction::INPUT, true},
-    GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
-  };
+  static const std::vector<GPIOInfo> gpio_config_info_storage_;
 
   std::mutex e_stop_cv_mtx_;
   std::condition_variable e_stop_cv_;
@@ -274,6 +278,14 @@ private:
 class GPIOControllerPTH10X : public GPIOControllerInterface
 {
 public:
+  /**
+   * @brief Constructor for GPIOControllerPTH10X class.
+   *
+   * @param gpio_driver Pointer to the GPIODriver object.
+   * @throw `std::runtime_error` When the GPIO driver is not initialized.
+   */
+  GPIOControllerPTH10X(std::shared_ptr<GPIODriverInterface> gpio_driver);
+
   /**
    * @brief Initializes the GPIODriver and powers on the motors.
    */
@@ -297,7 +309,8 @@ public:
   void EStopReset() override;
 
   /**
-   * @brief Controls the motor power by enabling or disabling them based on the 'enable' parameter.
+   * @brief Controls the motor power by enabling or disabling them based on the 'enable'
+   * parameter.
    *
    * This method checks if the motors are powered up by verifying the 'STAGE2_INPUT' pin.
    *
@@ -333,8 +346,8 @@ public:
    * robot version.
    *
    * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for digital
-   * power control.
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for
+   * digital power control.
    */
   bool DigitalPowerEnable(const bool /* enable */) override;
 
@@ -343,8 +356,8 @@ public:
    * robot version.
    *
    * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for charging
-   * process control.
+   * @exception std::runtime_error Always throws a runtime error due to lack of support for
+   * charging process control.
    */
   bool ChargerEnable(const bool /* enable */) override;
 
@@ -364,14 +377,45 @@ public:
    */
   std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const override;
 
+  /**
+   * @brief Returns the GPIO pin configuration information for the PTH10X.
+   */
+  static const std::vector<GPIOInfo> & GetGPIOConfigInfoStorage();
+
 private:
   /**
-   * @brief Vector containing GPIO pin configuration information such as pin direction, value, etc.
+   * @brief Vector containing GPIO pin configuration information such as pin direction, value,
+   * etc.
    */
-  const std::vector<GPIOInfo> gpio_config_info_storage_{
-    GPIOInfo{GPIOPin::STAGE2_INPUT, gpiod::line::direction::INPUT},
-    GPIOInfo{GPIOPin::MOTOR_ON, gpiod::line::direction::OUTPUT},
-    GPIOInfo{GPIOPin::LED_SBC_SEL, gpiod::line::direction::OUTPUT, true},
+  static const std::vector<GPIOInfo> gpio_config_info_storage_;
+};
+
+class GPIOControllerFactory
+{
+public:
+  /**
+   * @brief Creates a GPIO controller based on the robot version.
+   *
+   * @param robot_version The robot version to create the GPIO controller for.
+   * @return A unique pointer to the created GPIO controller.
+   */
+  static std::unique_ptr<GPIOControllerInterface> CreateGPIOController(const float robot_version)
+  {
+    std::unique_ptr<GPIOControllerInterface> gpio_controller;
+
+    if (panther_utils::common_utilities::MeetsVersionRequirement(robot_version, 1.2)) {
+      auto config_info_storage = GPIOControllerPTH12X::GetGPIOConfigInfoStorage();
+      auto gpio_driver = std::make_shared<GPIODriver>(config_info_storage);
+
+      gpio_controller = std::make_unique<GPIOControllerPTH12X>(gpio_driver);
+    } else {
+      auto config_info_storage = GPIOControllerPTH10X::GetGPIOConfigInfoStorage();
+      auto gpio_driver = std::make_shared<GPIODriver>(config_info_storage);
+
+      gpio_controller = std::make_unique<GPIOControllerPTH10X>(gpio_driver);
+    }
+
+    return gpio_controller;
   };
 };
 
