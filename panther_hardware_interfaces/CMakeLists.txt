@@ -85,6 +85,7 @@ install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
+  find_package(ros_testing REQUIRED)
   find_package(panther_utils REQUIRED)
 
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
@@ -179,13 +180,7 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_lynx_robot_driver
                         PkgConfig::LIBLELY_COAPP)
 
-  ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
-                  test/panther_system/gpio/test_gpio_driver.cpp)
-  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
-                        PkgConfig::LIBGPIOD)
-
-  ament_add_gtest(
+  ament_add_gmock(
     ${PROJECT_NAME}_test_gpiod_controller
     test/panther_system/gpio/test_gpio_controller.cpp
     src/panther_system/gpio/gpio_controller.cpp
@@ -230,6 +225,17 @@ if(BUILD_TESTING)
     panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_panther_system
                         PkgConfig::LIBLELY_COAPP)
+
+  # Integration tests
+  option(TEST_INTEGRATION "Run integration tests" OFF)
+  if(TEST_INTEGRATION)
+    # Hardware integration
+    ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
+                    test/panther_system/gpio/test_gpio_driver.cpp)
+    ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
+    target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
+                          PkgConfig::LIBGPIOD)
+  endif()
 
 endif()
 
