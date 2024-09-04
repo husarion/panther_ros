@@ -51,19 +51,18 @@ pkg_check_modules(LIBLELY_COAPP REQUIRED IMPORTED_TARGET liblely-coapp)
 pkg_check_modules(LIBGPIOD REQUIRED IMPORTED_TARGET libgpiodcxx)
 
 add_library(
-  ${PROJECT_NAME}
-  SHARED
-  # src/panther_imu_sensor/panther_imu_sensor.cpp
-  # src/panther_system/gpio/gpio_controller.cpp
-  # src/panther_system/gpio/gpio_driver.cpp
-  # src/panther_system/robot_driver/canopen_manager.cpp
-  # src/panther_system/robot_driver/robot_driver.cpp
-  # src/panther_system/robot_driver/roboteq_data_converters.cpp
-  # src/panther_system/robot_driver/roboteq_driver.cpp
-  # src/panther_system/robot_driver/roboteq_error_filter.cpp
-  # src/panther_system/panther_system_e_stop.cpp
-  # src/panther_system/panther_system_ros_interface.cpp
-  # src/panther_system/panther_system.cpp
+  ${PROJECT_NAME} SHARED
+  src/panther_imu_sensor/panther_imu_sensor.cpp
+  src/panther_system/gpio/gpio_controller.cpp
+  src/panther_system/gpio/gpio_driver.cpp
+  src/panther_system/robot_driver/canopen_manager.cpp
+  src/panther_system/robot_driver/robot_driver.cpp
+  src/panther_system/robot_driver/roboteq_data_converters.cpp
+  src/panther_system/robot_driver/roboteq_driver.cpp
+  src/panther_system/robot_driver/roboteq_error_filter.cpp
+  src/panther_system/panther_system_e_stop.cpp
+  src/panther_system/panther_system_ros_interface.cpp
+  src/panther_system/panther_system.cpp
   src/utils.cpp)
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_DEPENDENCIES})
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
@@ -90,15 +89,15 @@ if(BUILD_TESTING)
 
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
 
-  # ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp
-  # src/utils.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
 
-  # ament_add_gtest(${PROJECT_NAME}_test_panther_imu_sensor
-  # test/panther_imu_sensor/test_panther_imu_sensor.cpp)
-  # ament_target_dependencies( ${PROJECT_NAME}_test_panther_imu_sensor
-  # hardware_interface rclcpp panther_utils panther_msgs phidgets_api)
-  # target_link_libraries(${PROJECT_NAME}_test_panther_imu_sensor
-  # ${PROJECT_NAME} phidgets_spatial_parameters)
+  ament_add_gtest(${PROJECT_NAME}_test_panther_imu_sensor
+                  test/panther_imu_sensor/test_panther_imu_sensor.cpp)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_panther_imu_sensor hardware_interface rclcpp
+    panther_utils panther_msgs phidgets_api)
+  target_link_libraries(${PROJECT_NAME}_test_panther_imu_sensor ${PROJECT_NAME}
+                        phidgets_spatial_parameters)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
@@ -180,43 +179,57 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_lynx_robot_driver
                         PkgConfig::LIBLELY_COAPP)
 
-  # ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
-  # test/panther_system/gpio/test_gpio_driver.cpp)
-  # ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
-  # target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
-  # PkgConfig::LIBGPIOD)
+  ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
+                  test/panther_system/gpio/test_gpio_driver.cpp)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
+                        PkgConfig::LIBGPIOD)
 
-  # ament_add_gtest( ${PROJECT_NAME}_test_gpiod_controller
-  # test/panther_system/gpio/test_gpio_controller.cpp
-  # src/panther_system/gpio/gpio_controller.cpp
-  # src/panther_system/gpio/gpio_driver.cpp)
-  # ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller
-  # panther_utils) target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
-  # PkgConfig::LIBGPIOD)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_gpiod_controller
+    test/panther_system/gpio/test_gpio_controller.cpp
+    src/panther_system/gpio/gpio_controller.cpp
+    src/panther_system/gpio/gpio_driver.cpp)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
+                        PkgConfig::LIBGPIOD)
 
-  # ament_add_gtest( ${PROJECT_NAME}_test_panther_system_ros_interface
-  # test/panther_system/test_panther_system_ros_interface.cpp
-  # src/panther_system/panther_system_ros_interface.cpp
-  # src/panther_system/robot_driver/roboteq_data_converters.cpp src/utils.cpp
-  # src/panther_system/gpio/gpio_controller.cpp
-  # src/panther_system/gpio/gpio_driver.cpp) target_include_directories(
-  # ${PROJECT_NAME}_test_panther_system_ros_interface PUBLIC
-  # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
-  # $<INSTALL_INTERFACE:include>) ament_target_dependencies(
-  # ${PROJECT_NAME}_test_panther_system_ros_interface diagnostic_updater rclcpp
-  # panther_msgs panther_utils realtime_tools std_srvs)
-  # target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
-  # PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    test/panther_system/test_panther_system_ros_interface.cpp
+    src/panther_system/panther_system_ros_interface.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/utils.cpp
+    src/panther_system/gpio/gpio_controller.cpp
+    src/panther_system/gpio/gpio_driver.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_panther_system_ros_interface
+    diagnostic_updater
+    rclcpp
+    panther_msgs
+    panther_utils
+    realtime_tools
+    std_srvs)
+  target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
-  # ament_add_gtest(${PROJECT_NAME}_test_panther_system
-  # test/panther_system/test_panther_system.cpp)
-  # set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
-  # 120) target_include_directories( ${PROJECT_NAME}_test_panther_system PUBLIC
-  # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
-  # $<INSTALL_INTERFACE:include>) ament_target_dependencies(
-  # ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
-  # panther_utils) target_link_libraries(${PROJECT_NAME}_test_panther_system
-  # PkgConfig::LIBLELY_COAPP)
+  ament_add_gtest(${PROJECT_NAME}_test_panther_system
+                  test/panther_system/test_panther_system.cpp)
+  set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
+                                                                      120)
+  target_include_directories(
+    ${PROJECT_NAME}_test_panther_system
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
+    panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_panther_system
+                        PkgConfig::LIBLELY_COAPP)
 
 endif()
 
