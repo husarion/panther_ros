@@ -47,8 +47,7 @@ struct CANopenSettings
   std::string can_interface_name;
 
   std::uint8_t master_can_id;
-  std::uint8_t front_driver_can_id;
-  std::uint8_t rear_driver_can_id;
+  std::map<std::string, std::uint8_t> driver_can_ids;
 
   std::chrono::milliseconds pdo_motor_states_timeout_ms;
   std::chrono::milliseconds pdo_driver_state_timeout_ms;

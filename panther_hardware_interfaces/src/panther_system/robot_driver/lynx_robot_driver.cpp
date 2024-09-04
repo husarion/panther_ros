@@ -199,7 +199,7 @@ void LynxRobotDriver::TurnOnSafetyStop()
 void LynxRobotDriver::DefineDriver()
 {
   driver_ = std::make_shared<RoboteqDriver>(
-    canopen_manager_.GetMaster(), canopen_settings_.front_driver_can_id,
+    canopen_manager_.GetMaster(), canopen_settings_.driver_can_ids.at(LynxDriverNames::DEFAULT),
     canopen_settings_.sdo_operation_timeout_ms);
 
   auto left_motor_driver = std::make_shared<RoboteqMotorDriver>(

@@ -30,8 +30,7 @@ namespace panther_hardware_interfaces_test
 const panther_hardware_interfaces::CANopenSettings kCANopenSettings{
   "panther_can",
   3,
-  1,
-  2,
+  {{"default", 1}, {"front", 1}, {"rear", 2}},
   std::chrono::milliseconds(15),
   std::chrono::milliseconds(75),
   std::chrono::milliseconds(100),

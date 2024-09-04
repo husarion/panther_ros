@@ -259,10 +259,10 @@ void PantherRobotDriver::TurnOnSafetyStop()
 void PantherRobotDriver::DefineDrivers()
 {
   front_driver_ = std::make_shared<RoboteqDriver>(
-    canopen_manager_.GetMaster(), canopen_settings_.front_driver_can_id,
+    canopen_manager_.GetMaster(), canopen_settings_.driver_can_ids.at(PantherDriverNames::FRONT),
     canopen_settings_.sdo_operation_timeout_ms);
   rear_driver_ = std::make_shared<RoboteqDriver>(
-    canopen_manager_.GetMaster(), canopen_settings_.rear_driver_can_id,
+    canopen_manager_.GetMaster(), canopen_settings_.driver_can_ids.at(PantherDriverNames::REAR),
     canopen_settings_.sdo_operation_timeout_ms);
 
   auto fl_motor_driver = std::make_shared<RoboteqMotorDriver>(
