@@ -2,8 +2,8 @@
 Changelog for package panther_localization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * Merge branch 'ros2-devel' into ros2-ns-refactor
 * Add pre-commit workflow (`#395 <https://github.com/husarion/panther_ros/issues/395>`_)
 * Merge pull request `#388 <https://github.com/husarion/panther_ros/issues/388>`_ from husarion/ros2-add-nmea-gps

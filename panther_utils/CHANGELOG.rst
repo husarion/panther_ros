@@ -2,8 +2,8 @@
 Changelog for package panther_utils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * Merge branch 'ros2-devel' into ros2-ns-refactor
 * Merge pull request `#349 <https://github.com/husarion/panther_ros/issues/349>`_ from husarion/ros2-testing-poc
 * Review changes

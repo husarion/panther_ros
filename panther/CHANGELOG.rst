@@ -2,8 +2,8 @@
 Changelog for package panther
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * Merge branch 'ros2-devel' into ros2-ns-refactor
 * Merge branch 'ros2-devel' of https://github.com/husarion/panther_ros into ros2-add-nmea-gps
 * Merge pull request `#383 <https://github.com/husarion/panther_ros/issues/383>`_ from husarion/ros-sim-estop

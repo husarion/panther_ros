@@ -2,8 +2,8 @@
 Changelog for package panther_gazebo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * LEDStrip plugin to Gazebo (`#391 <https://github.com/husarion/panther_ros/issues/391>`_)
 * Merge branch 'ros2-devel' into ros2-ns-refactor
 * Merge branch 'ros2-devel' of https://github.com/husarion/panther_ros into ros2-add-nmea-gps

@@ -2,8 +2,8 @@
 Changelog for package panther_hardware_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * Merge branch 'ros2-devel' into ros2-ns-refactor
 * Merge branch 'ros2-devel' of https://github.com/husarion/panther_ros into ros2-add-nmea-gps
 * Merge remote-tracking branch 'origin/ros2-devel' into ros2-testing-poc

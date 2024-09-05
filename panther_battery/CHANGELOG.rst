@@ -2,8 +2,8 @@
 Changelog for package panther_battery
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * LEDStrip plugin to Gazebo (`#391 <https://github.com/husarion/panther_ros/issues/391>`_)
 * Merge branch 'ros2-devel' into ros2-ns-refactor
 * Merge pull request `#349 <https://github.com/husarion/panther_ros/issues/349>`_ from husarion/ros2-testing-poc

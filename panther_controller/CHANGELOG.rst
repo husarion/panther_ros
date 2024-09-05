@@ -2,8 +2,8 @@
 Changelog for package panther_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2024-09-05)
+------------------
 * Merge pull request `#403 <https://github.com/husarion/panther_ros/issues/403>`_ from husarion/ros2-control-ns-fix
 * Remove deprecated --namespace arg
 * Merge remote-tracking branch 'origin/ros2-devel' into ros2-testing-poc
