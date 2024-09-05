@@ -89,6 +89,8 @@ install(DIRECTORY animations config launch DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(ros_testing REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_animation
                   test/animation/test_animation.cpp)
@@ -183,6 +185,25 @@ if(BUILD_TESTING)
                             panther_utils rclcpp)
   target_link_libraries(${PROJECT_NAME}_test_led_animations_queue yaml-cpp)
 
+  ament_add_gmock(${PROJECT_NAME}_test_apa102 test/test_apa102.cpp
+                  src/apa102.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_apa102
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_lights_driver_node test/test_lights_driver_node.cpp
+    src/apa102.cpp src/lights_driver_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_lights_driver_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_lights_driver_node
+                            panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_lights_driver_node
+                        lights_driver_node_component)
+
   ament_add_gtest(
     ${PROJECT_NAME}_test_lights_controller_node
     test/test_lights_controller_node.cpp
@@ -200,24 +221,6 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_lights_controller_node
                         lights_controller_node_component yaml-cpp)
 
-  ament_add_gtest(${PROJECT_NAME}_test_apa102 test/test_apa102.cpp
-                  src/apa102.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_apa102
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
-
-  ament_add_gtest(
-    ${PROJECT_NAME}_test_lights_driver_node test/test_lights_driver_node.cpp
-    src/apa102.cpp src/lights_driver_node.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_lights_driver_node
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_lights_driver_node
-                            panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_lights_driver_node
-                        lights_driver_node_component)
 endif()
 
 ament_export_include_directories(include)
