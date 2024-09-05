@@ -32,7 +32,7 @@ def generate_launch_description():
 
     battery_driver_node = Node(
         package="panther_battery",
-        executable="battery_node",
+        executable="battery_driver_node",
         name="battery_driver",
         parameters=[{"panther_version": panther_version}],
         namespace=namespace,

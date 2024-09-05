@@ -73,7 +73,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/<wheel_type arg>_controller.yaml'. You can also specify"
+            " 'panther_controller/config/{wheel_type}_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
     )
@@ -93,7 +93,7 @@ def generate_launch_description():
             "Whether to launch the robot_state_publisher node."
             "When set to False, users should publish their own robot description."
         ),
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     wheel_config_path = LaunchConfiguration("wheel_config_path")
@@ -101,7 +101,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     declare_wheel_config_path_arg = DeclareLaunchArgument(
@@ -115,7 +115,7 @@ def generate_launch_description():
         ),
         description=(
             "Path to wheel configuration file. By default, it is located in "
-            "'panther_description/config/<wheel_type arg>.yaml'. You can also specify the path "
+            "'panther_description/config/{wheel_type}.yaml'. You can also specify the path "
             "to your custom wheel configuration file here. "
         ),
     )
@@ -219,8 +219,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,
@@ -235,8 +233,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,
@@ -259,8 +255,6 @@ def generate_launch_description():
             "controller_manager",
             "--controller-manager-timeout",
             "10",
-            "--namespace",
-            namespace,
         ],
         namespace=namespace,
         emulate_tty=True,

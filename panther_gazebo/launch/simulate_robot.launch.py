@@ -77,7 +77,7 @@ def generate_launch_description():
         "use_ekf",
         default_value="True",
         description="Enable or disable EKF.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     spawn_robot_launch = IncludeLaunchDescription(
@@ -105,7 +105,7 @@ def generate_launch_description():
     manager_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_manager"), "launch", "manager_bt.launch.py"]
+                [FindPackageShare("panther_manager"), "launch", "manager.launch.py"]
             )
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
@@ -119,13 +119,6 @@ def generate_launch_description():
         source_file=gz_led_strip_config,
         replacements={"parent_link: panther": ["parent_link: ", namespace]},
         condition=UnlessCondition(PythonExpression(["'", namespace, "' == ''"])),
-    )
-
-    gz_led_strip_manager = Node(
-        package="panther_gazebo",
-        executable="gz_led_strip_manager",
-        namespace=namespace,
-        arguments=["--config-file", gz_led_strip_config],
     )
 
     controller_launch = IncludeLaunchDescription(
@@ -203,7 +196,6 @@ def generate_launch_description():
             spawn_robot_launch,
             lights_launch,
             manager_launch,
-            gz_led_strip_manager,
             controller_launch,
             ekf_launch,
             simulate_components,

@@ -39,7 +39,7 @@ namespace panther_lights
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-DriverNode::DriverNode(const rclcpp::NodeOptions & options)
+LightsDriverNode::LightsDriverNode(const rclcpp::NodeOptions & options)
 : Node("lights_driver", options),
   led_control_granted_(false),
   led_control_pending_(false),
@@ -50,7 +50,7 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & options)
 {
   RCLCPP_INFO(this->get_logger(), "Constructing node.");
 
-  rclcpp::on_shutdown(std::bind(&DriverNode::OnShutdown, this));
+  rclcpp::on_shutdown(std::bind(&LightsDriverNode::OnShutdown, this));
 
   this->declare_parameter<double>("global_brightness", 1.0);
   this->declare_parameter<double>("frame_timeout", 0.1);
@@ -70,11 +70,11 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & options)
     "hardware/led_control_enable", rmw_qos_profile_services_default, client_callback_group_);
 
   set_brightness_server_ = this->create_service<SetLEDBrightnessSrv>(
-    "lights/set_brightness", std::bind(&DriverNode::SetBrightnessCB, this, _1, _2));
+    "lights/set_brightness", std::bind(&LightsDriverNode::SetBrightnessCB, this, _1, _2));
 
   // running at 10 Hz
   initialization_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(100), std::bind(&DriverNode::InitializationTimerCB, this));
+    std::chrono::milliseconds(100), std::bind(&LightsDriverNode::InitializationTimerCB, this));
 
   chanel_1_ts_ = this->get_clock()->now();
   chanel_1_sub_ = this->create_subscription<ImageMsg>(
@@ -91,12 +91,12 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & options)
     });
 
   diagnostic_updater_.setHardwareID("Bumper Lights");
-  diagnostic_updater_.add("Lights driver status", this, &DriverNode::DiagnoseLights);
+  diagnostic_updater_.add("Lights driver status", this, &LightsDriverNode::DiagnoseLights);
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
-void DriverNode::OnShutdown()
+void LightsDriverNode::OnShutdown()
 {
   ClearLEDs();
 
@@ -105,7 +105,7 @@ void DriverNode::OnShutdown()
   }
 }
 
-void DriverNode::InitializationTimerCB()
+void LightsDriverNode::InitializationTimerCB()
 {
   if (led_control_granted_) {
     initialization_timer_->cancel();
@@ -131,13 +131,13 @@ void DriverNode::InitializationTimerCB()
   initialization_attempt_++;
 }
 
-void DriverNode::ClearLEDs()
+void LightsDriverNode::ClearLEDs()
 {
   chanel_1_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
   chanel_2_.SetPanel(std::vector<std::uint8_t>(num_led_ * 4, 0));
 }
 
-void DriverNode::ToggleLEDControl(const bool enable)
+void LightsDriverNode::ToggleLEDControl(const bool enable)
 {
   RCLCPP_DEBUG(
     this->get_logger(), "Calling service to toggle LED control to '%s'.",
@@ -154,7 +154,7 @@ void DriverNode::ToggleLEDControl(const bool enable)
   }
 
   enable_led_control_client_->async_send_request(
-    request, std::bind(&DriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
+    request, std::bind(&LightsDriverNode::ToggleLEDControlCB, this, std::placeholders::_1));
 
   led_control_pending_ = true;
   led_control_call_time_ = this->now();
@@ -162,7 +162,8 @@ void DriverNode::ToggleLEDControl(const bool enable)
     this->get_logger(), "Sent request toggling LED control to '%s'.", enable ? "true" : "false");
 }
 
-void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future)
+void LightsDriverNode::ToggleLEDControlCB(
+  rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future)
 {
   RCLCPP_DEBUG(this->get_logger(), "Received response after toggling LED control.");
 
@@ -189,7 +190,7 @@ void DriverNode::ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWith
   led_control_pending_ = false;
 }
 
-void DriverNode::FrameCB(
+void LightsDriverNode::FrameCB(
   const ImageMsg::UniquePtr & msg, const apa102::APA102 & panel, const rclcpp::Time & last_time,
   const std::string & panel_name)
 {
@@ -224,7 +225,7 @@ void DriverNode::FrameCB(
   panel.SetPanel(msg->data);
 }
 
-void DriverNode::SetBrightnessCB(
+void LightsDriverNode::SetBrightnessCB(
   const SetLEDBrightnessSrv::Request::SharedPtr & req, SetLEDBrightnessSrv::Response::SharedPtr res)
 {
   const float brightness = req->data;
@@ -246,7 +247,7 @@ void DriverNode::SetBrightnessCB(
   res->message = "Changed brightness to " + str_bright;
 }
 
-void DriverNode::PanelThrottleWarnLog(const std::string panel_name, const std::string message)
+void LightsDriverNode::PanelThrottleWarnLog(const std::string panel_name, const std::string message)
 {
   if (panel_name == "channel_1") {
     RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000, message);
@@ -255,7 +256,7 @@ void DriverNode::PanelThrottleWarnLog(const std::string panel_name, const std::s
   }
 }
 
-void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status)
+void LightsDriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   unsigned char error_level{diagnostic_updater::DiagnosticStatusWrapper::ERROR};
   std::string message{"Driver is not functional!"};
@@ -278,4 +279,4 @@ void DriverNode::DiagnoseLights(diagnostic_updater::DiagnosticStatusWrapper & st
 }  // namespace panther_lights
 
 #include <rclcpp_components/register_node_macro.hpp>
-RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::DriverNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(panther_lights::LightsDriverNode)

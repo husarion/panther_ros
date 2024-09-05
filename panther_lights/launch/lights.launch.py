@@ -67,7 +67,7 @@ def generate_launch_description():
         composable_node_descriptions=[
             ComposableNode(
                 package="panther_lights",
-                plugin="panther_lights::DriverNode",
+                plugin="panther_lights::LightsDriverNode",
                 name="lights_driver",
                 namespace=namespace,
                 remappings=[("/diagnostics", "diagnostics")],
@@ -78,7 +78,7 @@ def generate_launch_description():
             ),
             ComposableNode(
                 package="panther_lights",
-                plugin="panther_lights::ControllerNode",
+                plugin="panther_lights::LightsControllerNode",
                 name="lights_controller",
                 namespace=namespace,
                 parameters=[

@@ -15,8 +15,9 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
@@ -33,7 +34,15 @@ def generate_launch_description():
         "fuse_gps",
         default_value="False",
         description="Include GPS for data fusion",
-        choices=["False", "True"],
+        choices=["True", "true", "False", "false"],
+    )
+
+    launch_nmea_gps = LaunchConfiguration("launch_nmea_gps")
+    declare_launch_nmea_gps_arg = DeclareLaunchArgument(
+        "launch_nmea_gps",
+        default_value="False",
+        description="Launch NMEA navsat gps driver",
+        choices=["True", "true", "False", "false"],
     )
 
     localization_mode = LaunchConfiguration("localization_mode")
@@ -60,7 +69,7 @@ def generate_launch_description():
         "use_sim",
         default_value="False",
         description="Whether simulation is used.",
-        choices=["True", "False"],
+        choices=["True", "true", "False", "false"],
     )
 
     mode_prefix = PythonExpression(["'", localization_mode, "_'"])
@@ -92,6 +101,16 @@ def generate_launch_description():
         ],
     )
 
+    nmea_navsat_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [FindPackageShare("panther_localization"), "launch", "nmea_navsat.launch.py"]
+            )
+        ),
+        launch_arguments={"namespace": namespace}.items(),
+        condition=IfCondition(launch_nmea_gps),
+    )
+
     navsat_transform_node = Node(
         package="robot_localization",
         executable="navsat_transform_node",
@@ -108,12 +127,14 @@ def generate_launch_description():
 
     actions = [
         declare_fuse_gps_arg,
+        declare_launch_nmea_gps_arg,
         declare_localization_mode_arg,
         declare_localization_config_path_arg,  # localization_config_path use fuse_gps and localization_mode
         declare_namespace_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         ekf_filter_node,
+        nmea_navsat_launch,
         navsat_transform_node,
     ]
 

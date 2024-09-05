@@ -28,8 +28,8 @@
 #include "panther_msgs/srv/set_led_animation.hpp"
 
 #include "panther_lights/animation/animation.hpp"
-#include "panther_lights/led_animations_queue.hpp"
-#include "panther_lights/segment_converter.hpp"
+#include "panther_lights/led_components/led_animations_queue.hpp"
+#include "panther_lights/led_components/segment_converter.hpp"
 #include "panther_utils/yaml_utils.hpp"
 
 namespace panther_lights
@@ -38,11 +38,11 @@ namespace panther_lights
 using ImageMsg = sensor_msgs::msg::Image;
 using SetLEDAnimationSrv = panther_msgs::srv::SetLEDAnimation;
 
-class ControllerNode : public rclcpp::Node
+class LightsControllerNode : public rclcpp::Node
 {
 public:
-  ControllerNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-  ~ControllerNode() {}
+  LightsControllerNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+  ~LightsControllerNode() {}
 
 protected:
   /**
