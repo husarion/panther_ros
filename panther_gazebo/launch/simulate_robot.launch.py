@@ -26,10 +26,17 @@ from launch.substitutions import (
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ReplaceString
-from panther_utils.arguments import declare_robot_args
+from panther_utils.arguments import DeclareRobotArgs
 
 
 def generate_launch_description():
+
+    components_config_path = LaunchConfiguration("components_config_path")
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
+    namespace = LaunchConfiguration("namespace")
+    robot_model = LaunchConfiguration("robot_model")
+    robot_configuration = LaunchConfiguration("robot_configuration")
+    use_ekf = LaunchConfiguration("use_ekf")
 
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -42,7 +49,6 @@ def generate_launch_description():
         ),
     )
 
-    components_config_path = LaunchConfiguration("components_config_path")
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
         default_value=PathJoinSubstitution(
@@ -56,7 +62,6 @@ def generate_launch_description():
         ),
     )
 
-    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
@@ -65,10 +70,14 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file.",
     )
 
-    namespace = LaunchConfiguration("namespace")
-    robot_model = LaunchConfiguration("robot_model")
+    declare_robot_configuration_arg = DeclareLaunchArgument(
+        "robot_configuration",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
+        ),
+        description="Path to robot configuration YAML file.",
+    )
 
-    use_ekf = LaunchConfiguration("use_ekf")
     declare_use_ekf_arg = DeclareLaunchArgument(
         "use_ekf",
         default_value="True",
@@ -182,14 +191,10 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    path = PathJoinSubstitution(
-        [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
-    )
-    list_of_robot_args = declare_robot_args(path)
-
     return LaunchDescription(
         [
-            *list_of_robot_args,
+            declare_robot_configuration_arg,
+            DeclareRobotArgs(robot_configuration),
             declare_battery_config_path_arg,
             declare_components_config_path_arg,
             declare_gz_bridge_config_path_arg,

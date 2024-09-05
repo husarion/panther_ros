@@ -17,20 +17,19 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    EnvironmentVariable,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-)
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ReplaceString
-from panther_utils.arguments import load_yaml_file, normalize_robot_configuration
+from panther_utils.arguments import DeclareRobotArgs
 
 
 def generate_launch_description():
 
     gz_gui = LaunchConfiguration("gz_gui")
+    namespace = LaunchConfiguration("namespace")
+    robot_configuration = LaunchConfiguration("robot_configuration")
+
     declare_gz_gui = DeclareLaunchArgument(
         "gz_gui",
         default_value=PathJoinSubstitution(
@@ -39,18 +38,12 @@ def generate_launch_description():
         description="Run simulation with specific GUI layout.",
     )
 
-    path = PathJoinSubstitution(
-        [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
-    )
-    yaml_data = load_yaml_file(path)
-    yaml_data = normalize_robot_configuration(yaml_data)
-    ns_from_config = list(yaml_data.keys())[0]
-
-    namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=ns_from_config),
-        description="Add namespace to all launched nodes.",
+    declare_robot_configuration_arg = DeclareLaunchArgument(
+        "robot_configuration",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
+        ),
+        description="Path to robot configuration YAML file.",
     )
 
     namespaced_gz_gui = ReplaceString(
@@ -73,7 +66,7 @@ def generate_launch_description():
                 [
                     FindPackageShare("panther_gazebo"),
                     "launch",
-                    "simulate_multiple_robots.launch.py",
+                    "simulate_robot.launch.py",
                 ]
             )
         ),
@@ -82,7 +75,8 @@ def generate_launch_description():
     return LaunchDescription(
         [
             declare_gz_gui,
-            declare_namespace_arg,
+            declare_robot_configuration_arg,
+            DeclareRobotArgs(robot_configuration),
             # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
             SetUseSimTime(True),
             gz_sim,

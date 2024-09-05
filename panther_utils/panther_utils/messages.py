@@ -20,10 +20,35 @@ from typing import Dict
 import click
 from launch.actions import LogInfo
 from launch.some_substitutions_type import SomeSubstitutionsType
-from launch.substitutions import Command
+from launch.substitutions import Command, PythonExpression
+
+# Correct ASCII art strings
+LYNX_ASCII = r"""
+     _
+    | |   _   _ _ __ __  __
+    | |  | | | | '_ \ \/ /
+    | |__| |_| | | | |>  <
+    |_____\__, |_| |_/_/\_\
+          |___/
+
+    """  # noqa: W605
+
+PANTHER_ASCII = r"""
+     ____             _   _
+    |  _ \ __ _ _ __ | |_| |__   ___ _ __
+    | |_) / _` | '_ \| __| '_ \ / _ \ '__|
+    |  __/ (_| | | | | |_| | | |  __/ |
+    |_|   \__,_|_| |_|\__|_| |_|\___|_|
+
+    """  # noqa: W605
+
+# Ensure the text substitution correctly wraps the ASCII art
+LYNX_TEXT = click.style(textwrap.dedent(LYNX_ASCII), bold=True)
+PANTHER_TEXT = click.style(textwrap.dedent(PANTHER_ASCII), bold=True)
 
 
 def flatten(lst):
+    """Flatten a nested list into a single list."""
     if isinstance(lst, list):
         flat_list = []
         for element in lst:
@@ -34,23 +59,20 @@ def flatten(lst):
 
 
 def welcome_msg(
+    robot_model: SomeSubstitutionsType,
     serial_number: SomeSubstitutionsType,
     robot_hw_version: SomeSubstitutionsType,
     additional_stats: Dict = {},
 ):
+    """Generate a welcome message with robot information and stats."""
     pkg_version = Command(command="ros2 pkg xml -t version panther")
 
-    PANTHER_TEXT = """
-     ____             _   _
-    |  _ \ __ _ _ __ | |_| |__   ___ _ __
-    | |_) / _` | '_ \| __| '_ \ / _ \ '__|
-    |  __/ (_| | | | | |_| | | |  __/ |
-    |_|   \__,_|_| |_|\__|_| |_|\___|_|
+    # Properly format the PythonExpression to avoid syntax errors
+    robot_model_expr = PythonExpression(
+        [f"r'''{LYNX_TEXT}''' if '", robot_model, f"' == 'lynx' else r'''{PANTHER_TEXT}'''"]
+    )
 
-    """  # noqa: W605
-    pth_txt = textwrap.dedent(PANTHER_TEXT)
-    pth_txt = click.style(pth_txt, bold=True)
-
+    # Prepare stats to display in the message
     stats_to_show = {
         "Serial Number": serial_number,
         "Robot Version": robot_hw_version,
@@ -61,6 +83,7 @@ def welcome_msg(
         "Bug Tracker": "https://github.com/husarion/panther_ros/issues",
     }
 
+    # Flatten stats into a message format
     nested_list_of_stats = [
         item
         for name, value in stats_to_show.items()
@@ -68,6 +91,7 @@ def welcome_msg(
     ]
     stats_msg = flatten(nested_list_of_stats)
 
-    stats_msg.insert(0, pth_txt)
+    # Insert robot model ASCII art at the beginning of the message
+    stats_msg.insert(0, robot_model_expr)
 
     return LogInfo(msg=stats_msg)
