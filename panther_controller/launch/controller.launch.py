@@ -129,7 +129,7 @@ def generate_launch_description():
             "the 'wheel_config_path' and 'controller_config_path' arguments will be "
             "automatically adjusted and can be omitted."
         ),
-        choices=["WH01", "WH02", "WH04", "custom"],
+        choices=["WH01", "WH02", "WH04", "WH05", "custom"],
     )
 
     # Get URDF via xacro

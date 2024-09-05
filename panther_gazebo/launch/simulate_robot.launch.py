@@ -19,7 +19,6 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
-    EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
@@ -27,6 +26,7 @@ from launch.substitutions import (
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ReplaceString
+from panther_utils.arguments import declare_robot_args
 
 
 def generate_launch_description():
@@ -66,19 +66,7 @@ def generate_launch_description():
     )
 
     namespace = LaunchConfiguration("namespace")
-    declare_namespace_arg = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
-        description="Add namespace to all launched nodes.",
-    )
-
-    robot = LaunchConfiguration("robot")
-    declare_robot_arg = DeclareLaunchArgument(
-        "robot",
-        default_value=EnvironmentVariable("ROBOT_MODEL", default_value="panther"),
-        description="Specify robot model.",
-        choices=["panther", "lynx"],
-    )
+    robot_model = LaunchConfiguration("robot_model")
 
     use_ekf = LaunchConfiguration("use_ekf")
     declare_use_ekf_arg = DeclareLaunchArgument(
@@ -97,7 +85,7 @@ def generate_launch_description():
         launch_arguments={
             "add_wheel_joints": "False",
             "namespace": namespace,
-            "robot": robot,
+            "robot_model": robot_model,
             "use_sim": "True",
         }.items(),
     )
@@ -194,13 +182,17 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
+    path = PathJoinSubstitution(
+        [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
+    )
+    list_of_robot_args = declare_robot_args(path)
+
     return LaunchDescription(
         [
+            *list_of_robot_args,
             declare_battery_config_path_arg,
             declare_components_config_path_arg,
             declare_gz_bridge_config_path_arg,
-            declare_namespace_arg,
-            declare_robot_arg,
             declare_use_ekf_arg,
             SetUseSimTime(True),
             spawn_robot_launch,

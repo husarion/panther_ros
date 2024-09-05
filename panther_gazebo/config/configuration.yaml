@@ -10,7 +10,7 @@
 
 panther:
   robot_model: panther
-  init_pose: [0.0, 0.0, 0.0]
+  init_pose: [0.0, -2.0, 0.0]
   init_rotation: [0.0, 0.0, 0.0]
   configuration:
     wheel_type: WH01

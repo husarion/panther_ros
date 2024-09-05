@@ -15,19 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-from typing import Iterable, Tuple
+from typing import Tuple
 
 import yaml
 from launch import LaunchContext, Substitution
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import EnvironmentVariable, PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 
 # Define valid configurations for each robot model
 VALID_CONFIGURATIONS = {
-    "panther": {"wheel_type": ["WH01", "WH02", "WH03"]},
-    "lynx": {"wheel_type": ["WH04"]},
+    "panther": {"wheel_type": ["WH01", "WH02", "WH04"]},
+    "lynx": {"wheel_type": ["WH05"]},
 }
 
 
@@ -38,8 +36,9 @@ def resolve_path(path: str | Substitution) -> str:
     return path
 
 
-def load_yaml_file(path: str) -> dict:
+def load_yaml_file(path: str | Substitution) -> dict:
     """Load YAML file and return its contents."""
+    path = resolve_path(path)
     try:
         with open(path, "r") as file:
             return yaml.safe_load(file)
@@ -47,15 +46,7 @@ def load_yaml_file(path: str) -> dict:
         raise ValueError(f"Error reading YAML file: {exc}") from exc
 
 
-def load_robot_configuration(yaml_data: dict) -> Tuple[str, dict]:
-    """Retrieve first element data if exists; otherwise, return the base structure."""
-    if "configuration" not in yaml_data:
-        namespace = next(iter(yaml_data.keys()))
-        return namespace, yaml_data[namespace]
-    return "", yaml_data
-
-
-def validate_configuration(yaml_data: dict) -> None:
+def validate_robot_configuration(yaml_data: dict) -> None:
     """Validate the robot model and wheel type configuration."""
     robot_model = yaml_data.get("robot_model", "")
     configuration_data = yaml_data.get("configuration", {})
@@ -75,11 +66,58 @@ def validate_configuration(yaml_data: dict) -> None:
         )
 
 
-def create_launch_arguments(namespace: str, yaml_data: dict) -> Iterable[DeclareLaunchArgument]:
-    """Generate ROS 2 launch description based on the YAML configuration."""
-    x, y, z = yaml_data.get("initial_pose", [0.0, 0.0, 0.0])
-    roll, pitch, yaw = yaml_data.get("initial_rotation", [0.0, 0.0, 0.0])
-    configuration_data = yaml_data.get("configuration", {})
+def normalize_robot_configuration(yaml_data: dict) -> dict:
+    """Normalizes the YAML dictionary structure to a flat to nested format and validates the structure."""
+
+    obligatory_keys = {"configuration"}
+
+    # Checking and normalize flat structure
+    if obligatory_keys.issubset(yaml_data.keys()):
+        validate_robot_configuration(yaml_data)
+        return {"": yaml_data}
+
+    # Checking nested structure
+    if all(isinstance(value, dict) for value in yaml_data.values()):
+        nested_data = {}
+        for namespace, robot_config in yaml_data.items():
+            if not obligatory_keys.issubset(robot_config.keys()):
+                raise ValueError(
+                    f"Invalid nested YAML structure at '{namespace}': Missing required keys."
+                )
+            validate_robot_configuration(robot_config)
+            nested_data[namespace] = robot_config
+        return nested_data
+
+    raise ValueError("Invalid YAML structure: The data does not match expected formats.")
+
+
+def extract_single_robot_configuration(yaml_data: dict, idx: int = 0) -> Tuple[str, dict]:
+    """Extracts the namespace and configuration based on the provided index from a YAML dictionary."""
+    keys = list(yaml_data.keys())
+    namespace = keys[idx]
+    configuration = yaml_data[namespace]
+    return namespace, configuration
+
+
+def create_launch_arguments(namespace: str, robot_config: dict) -> list[DeclareLaunchArgument]:
+    """Declare launch arguments based on the YAML configuration files."""
+    robot_model = robot_config.get("robot_model", "panther")
+    x, y, z = robot_config.get("init_pose", [0.0, 0.0, 0.0])
+    roll, pitch, yaw = robot_config.get("init_rotation", [0.0, 0.0, 0.0])
+    x, y, z, roll, pitch, yaw = map(str, [x, y, z, roll, pitch, yaw])
+    configuration_data = robot_config.get("configuration", {})
+    wheel_type = configuration_data.get("wheel_type", "")
+
+    # Prefer declaration over configuration:
+    namespace = LaunchConfiguration("namespace", default=namespace)
+    robot_model = LaunchConfiguration("robot_model", default=robot_model)
+    wheel_type = LaunchConfiguration("wheel_type", default=wheel_type)
+    x = LaunchConfiguration("x", default=x)
+    y = LaunchConfiguration("y", default=y)
+    z = LaunchConfiguration("z", default=z)
+    roll = LaunchConfiguration("roll", default=roll)
+    pitch = LaunchConfiguration("pitch", default=pitch)
+    yaw = LaunchConfiguration("yaw", default=yaw)
 
     return [
         DeclareLaunchArgument(
@@ -89,14 +127,12 @@ def create_launch_arguments(namespace: str, yaml_data: dict) -> Iterable[Declare
         ),
         DeclareLaunchArgument(
             "robot_model",
-            default_value=EnvironmentVariable(
-                "ROBOT_MODEL", default_value=yaml_data.get("robot_model", "panther")
-            ),
+            default_value=EnvironmentVariable("ROBOT_MODEL", default_value=robot_model),
             description="Specify robot model type.",
         ),
         DeclareLaunchArgument(
             "wheel_type",
-            default_value=configuration_data["wheel_type"],
+            default_value=wheel_type,
             description=(
                 "Specify the wheel type. If the selected wheel type is not 'custom', "
                 "the 'wheel_config_path' and 'controller_config_path' arguments will be "
@@ -124,19 +160,10 @@ def create_launch_arguments(namespace: str, yaml_data: dict) -> Iterable[Declare
     ]
 
 
-def declare_robot_args(path: str | Substitution) -> Iterable[DeclareLaunchArgument]:
-    """Declare launch arguments based on the YAML configuration files."""
-    path = resolve_path(path)
+def declare_robot_args(path: str | Substitution) -> list[DeclareLaunchArgument]:
+    """Retrieves and validate the robot configuration from the YAML data."""
     yaml_data = load_yaml_file(path)
-    namespace, robot_config = load_robot_configuration(yaml_data)
-    try:
-        validate_configuration(robot_config)
-    except ValueError as error:
-        print(f"Validation Error: {error}")
-        sys.exit(1)
+    yaml_data = normalize_robot_configuration(yaml_data)
+    namespace, robot_config = extract_single_robot_configuration(yaml_data)
     list_of_args = create_launch_arguments(namespace, robot_config)
     return list_of_args
-
-
-path = PathJoinSubstitution([FindPackageShare("panther_bringup"), "config", "configuration.yaml"])
-print(declare_robot_args(path))

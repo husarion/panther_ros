@@ -25,6 +25,7 @@ from launch.substitutions import (
 from launch_ros.actions import SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ReplaceString
+from panther_utils.arguments import load_yaml_file, normalize_robot_configuration
 
 
 def generate_launch_description():
@@ -38,10 +39,17 @@ def generate_launch_description():
         description="Run simulation with specific GUI layout.",
     )
 
+    path = PathJoinSubstitution(
+        [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
+    )
+    yaml_data = load_yaml_file(path)
+    yaml_data = normalize_robot_configuration(yaml_data)
+    ns_from_config = list(yaml_data.keys())[0]
+
     namespace = LaunchConfiguration("namespace")
     declare_namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=ns_from_config),
         description="Add namespace to all launched nodes.",
     )
 

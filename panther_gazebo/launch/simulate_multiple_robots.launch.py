@@ -25,7 +25,7 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
-from nav2_common.launch import ParseMultiRobotPose
+from panther_utils.arguments import load_yaml_file, normalize_robot_configuration
 
 
 def generate_launch_description():
@@ -40,36 +40,32 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
-    declare_robots_arg = DeclareLaunchArgument(
-        "robots",
-        default_value=[],
-        description=(
-            "The list of the robots spawned in the simulation e. g. "
-            "robots:='robot1={x: 1.0, y: -2.0}; robot2={x: 1.0, y: -4.0}'."
-        ),
+    path = PathJoinSubstitution(
+        [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
     )
-
-    robots_list = ParseMultiRobotPose("robots").value()
-    # If robots arg is empty, use default arguments from simulate_robot.launch.py
-    if len(robots_list) == 0:
-        robots_list = {
-            LaunchConfiguration("namespace", default=""): {
-                "x": LaunchConfiguration("x", default="0.0"),
-                "y": LaunchConfiguration("y", default="-2.0"),
-                "z": LaunchConfiguration("z", default="0.2"),
-                "roll": LaunchConfiguration("roll", default="0.0"),
-                "pitch": LaunchConfiguration("pitch", default="0.0"),
-                "yaw": LaunchConfiguration("yaw", default="0.0"),
-            }
-        }
-    else:
-        for robot_name, init_pose in robots_list.items():
-            robots_list[robot_name] = {k: str(v) for k, v in init_pose.items()}
+    yaml_data = load_yaml_file(path)
+    yaml_data = normalize_robot_configuration(yaml_data)
 
     simulate_robot = []
-    for idx, robot_name in enumerate(robots_list):
-        init_pose = robots_list[robot_name]
-        x, y, z, roll, pitch, yaw = [value for value in init_pose.values()]
+    idx = 0
+    for namespace, robot_config in yaml_data.items():
+        robot_model = robot_config.get("robot_model", "panther")
+        x, y, z = robot_config.get("init_pose", [0.0, 0.0, 0.0])
+        roll, pitch, yaw = robot_config.get("init_rotation", [0.0, 0.0, 0.0])
+        x, y, z, roll, pitch, yaw = map(str, [x, y, z, roll, pitch, yaw])
+        configuration_data = robot_config.get("configuration", {})
+        wheel_type = configuration_data.get("wheel_type", "")
+
+        # Prefer declaration over configuration:
+        namespace = LaunchConfiguration("namespace", default=namespace)
+        robot_model = LaunchConfiguration("robot_model", default=robot_model)
+        wheel_type = LaunchConfiguration("wheel_type", default=wheel_type)
+        x = LaunchConfiguration("x", default=x)
+        y = LaunchConfiguration("y", default=y)
+        z = LaunchConfiguration("z", default=z)
+        roll = LaunchConfiguration("roll", default=roll)
+        pitch = LaunchConfiguration("pitch", default=pitch)
+        yaw = LaunchConfiguration("yaw", default=yaw)
 
         spawn_robot_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -78,7 +74,9 @@ def generate_launch_description():
                 )
             ),
             launch_arguments={
-                "namespace": robot_name,
+                "namespace": namespace,
+                "robot_model": robot_model,
+                "wheel_type": wheel_type,
                 "x": x,
                 "y": y,
                 "z": z,
@@ -89,7 +87,7 @@ def generate_launch_description():
         )
 
         child_tf = PythonExpression(
-            ["'", robot_name, "' + '/odom' if '", robot_name, "' else 'odom'"]
+            ["'", namespace, "' + '/odom' if '", namespace, "' else 'odom'"]
         )
 
         world_transform = Node(
@@ -97,7 +95,7 @@ def generate_launch_description():
             executable="static_transform_publisher",
             name="static_tf_publisher",
             arguments=[x, y, z, roll, pitch, yaw, "world", child_tf],
-            namespace=robot_name,
+            namespace=namespace,
             emulate_tty=True,
             condition=IfCondition(add_world_transform),
         )
@@ -110,12 +108,12 @@ def generate_launch_description():
                 world_transform,
             ],
         )
+        idx += 1
         simulate_robot.append(group)
 
     return LaunchDescription(
         [
             declare_add_world_transform_arg,
-            declare_robots_arg,
             SetUseSimTime(True),
             *simulate_robot,
         ]
