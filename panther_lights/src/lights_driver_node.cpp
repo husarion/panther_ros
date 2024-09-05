@@ -191,8 +191,8 @@ void LightsDriverNode::ToggleLEDControlCB(
 }
 
 void LightsDriverNode::FrameCB(
-  const ImageMsg::UniquePtr & msg, const APA102::SharedPtr & panel, const rclcpp::Time & last_time,
-  const std::string & panel_name)
+  const ImageMsg::UniquePtr & msg, const APA102Interface::SharedPtr & panel,
+  const rclcpp::Time & last_time, const std::string & panel_name)
 {
   if (!led_control_granted_) {
     PanelThrottleWarnLog(
