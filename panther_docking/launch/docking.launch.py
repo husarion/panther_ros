@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
@@ -85,25 +84,11 @@ def generate_launch_description():
         namespace=namespace,
     )
 
-    station_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_docking"),
-                    "launch",
-                    "station.launch.py",
-                ]
-            ),
-        ),
-        launch_arguments={"namespace": namespace}.items(),
-    )
-
     return LaunchDescription(
         [
             declare_use_sim_arg,
             declare_namespace_arg,
             declare_docking_server_config_path_arg,
-            station_launch,
             docking_server_node,
             docking_server_activate_node,
         ]
