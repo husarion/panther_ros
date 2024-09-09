@@ -82,7 +82,7 @@ Node responsible for managing safety features, and software shutdown of componen
 - `ros_communication_timeout.availability` [*float*, default: **1.0**]: Timeout **[s]** to wait for a service/action while initializing BT node.
 - `ros_communication_timeout.response` [*float*, default: **1.0**]: Timeout **[s]** to receive a service/action response after call.
 - `ros_plugin_libs` [*list*, default: **Empty list**]: List with names of ROS plugins that are used in a BT project.
-- `shutdown_hosts_path` [*string*, default: **None**]: Path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
+- `shutdown_hosts_config_path` [*string*, default: **None**]: Path to a YAML file containing a list of hosts to request shutdown. To correctly format the YAML file, include a **hosts** field consisting of a list with the following fields:
   - `command` [*string*, default: **sudo shutdown now**]: Command executed on shutdown of given device.
   - `ip` [*string*, default: **None**]: IP of a host to shutdown over SSH.
   - `ping_for_success` [*bool*, default: **true**]: Ping host until it is not available or timeout is reached.

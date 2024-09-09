@@ -98,7 +98,7 @@ def generate_launch_description():
             PathJoinSubstitution([panther_manager_dir, "config", "safety_manager.yaml"]),
             {
                 "bt_project_path": safety_bt_project_path,
-                "shutdown_hosts_path": shutdown_hosts_config_path,
+                "shutdown_hosts_config_path": shutdown_hosts_config_path,
             },
         ],
         namespace=namespace,

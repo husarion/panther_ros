@@ -181,7 +181,7 @@ A tree responsible for the graceful shutdown of robot components, user computers
 
 Default constant blackboard entries:
 
-- `SHUTDOWN_HOSTS_PATH` [*string*, default: **None**]: refers to `shutdown_hosts_path` ROS parameter.
+- `SHUTDOWN_HOSTS_FILE` [*string*, default: **None**]: refers to `shutdown_hosts_config_path` ROS parameter.
 
 Expected blackboard entries:
 

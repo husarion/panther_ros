@@ -60,9 +60,10 @@ SafetyManagerNode::SafetyManagerNode(
   safety_tree_manager_ = std::make_unique<BehaviorTreeManager>(
     "Safety", safety_initial_blackboard, 6666);
 
-  const auto shutdown_hosts_path = this->get_parameter("shutdown_hosts_path").as_string();
+  const auto shutdown_hosts_config_path =
+    this->get_parameter("shutdown_hosts_config_path").as_string();
   const std::map<std::string, std::any> shutdown_initial_blackboard = {
-    {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_path.c_str()},
+    {"SHUTDOWN_HOSTS_FILE", shutdown_hosts_config_path.c_str()},
   };
   shutdown_tree_manager_ = std::make_unique<BehaviorTreeManager>(
     "Shutdown", shutdown_initial_blackboard, 7777);
@@ -120,7 +121,7 @@ void SafetyManagerNode::DeclareParameters()
   const std::vector<std::string> default_plugin_libs = {};
 
   this->declare_parameter<std::string>("bt_project_path", default_bt_project_path);
-  this->declare_parameter<std::string>("shutdown_hosts_path", "");
+  this->declare_parameter<std::string>("shutdown_hosts_config_path", "");
   this->declare_parameter<std::vector<std::string>>("plugin_libs", default_plugin_libs);
   this->declare_parameter<std::vector<std::string>>("ros_plugin_libs", default_plugin_libs);
   this->declare_parameter<double>("ros_communication_timeout.availability", 1.0);
