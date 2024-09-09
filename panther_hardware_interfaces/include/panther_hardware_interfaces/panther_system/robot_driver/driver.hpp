@@ -87,7 +87,7 @@ public:
 };
 
 /**
- * @brief Abstract class for  driver
+ * @brief Abstract class that provides functionality for managing motor drivers
  */
 class Driver
 {

@@ -27,11 +27,9 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @brief This class abstracts the usage of two Roboteq controllers.
- * It uses canopen_manager for communication with Roboteq controllers,
- * implements the activation procedure for controllers (resets script and sends initial 0 command),
- * and provides methods to get data feedback and send commands.
- * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
+ * @brief This class implements the RoboteqRobotDriver for the Panther robot.
+ * It defines two Roboteq drivers (front and rear) with two motors each for controlling the left
+ * and right wheels.
  */
 class PantherRobotDriver : public RoboteqRobotDriver
 {

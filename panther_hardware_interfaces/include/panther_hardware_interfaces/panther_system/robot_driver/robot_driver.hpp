@@ -24,7 +24,7 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @brief Abstract class for managing robot drivers.
+ * @brief Abstract class for managing different robot drivers.
  */
 class RobotDriver
 {

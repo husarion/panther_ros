@@ -47,11 +47,12 @@ struct MotorChannels
 };
 
 /**
- * @brief Abstract class for use with Roboteq controllers.
- * It uses canopen_manager for communication with Roboteq controllers,
- * implements the activation procedure for controllers (resets script and sends initial 0 command),
- * and provides methods to get data feedback and send commands.
- * Data is converted between raw Roboteq formats and SI units using roboteq_data_converters.
+ * @brief Abstract class implementing RobotDriver for robots using Roboteq drivers.
+ * It uses canopen_manager for communication with Roboteq controllers.
+ * This class implements the activation procedure for controllers, which involves resetting the
+ * script and sending an initial 0 command. It also provides methods to get data feedback and send
+ * commands. Data is converted between raw Roboteq formats and SI units using
+ * roboteq_data_converters.
  */
 class RoboteqRobotDriver : public RobotDriver
 {
