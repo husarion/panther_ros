@@ -106,10 +106,10 @@ class TestNode(unittest.TestCase):
 
         self.assertTrue(self.led_control_requested)
 
-        ## Controller initialization
+        # Controller initialization
         proc_output.assertWaitFor("[lights_controller]: Loaded default animations.")
         proc_output.assertWaitFor("[lights_controller]: Initialized successfully.")
-        ## Driver initialization
+        # Driver initialization
         proc_output.assertWaitFor("[lights_driver]: Node constructed successfully.")
         proc_output.assertWaitFor("[lights_driver]: LED control granted.")
 
