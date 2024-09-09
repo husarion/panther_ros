@@ -20,7 +20,9 @@
   <depend>opennav_docking</depend>
   <depend>panther_utils</depend>
   <depend>pluginlib</depend>
+  <depend>python3-imageio</depend>
   <depend>rclcpp</depend>
+  <depend>ros_components_description</depend>
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf2_ros</depend>
