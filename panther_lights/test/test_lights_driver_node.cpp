@@ -218,8 +218,10 @@ TEST_F(TestLightsDriverNode, FrameCBSuccess)
   lights_driver_node_->ToggleLEDControlCB(std::move(future));
 
   EXPECT_CALL(*channel_1_, SetPanel(testing::_)).Times(1);
+  EXPECT_CALL(*channel_2_, SetPanel(testing::_)).Times(1);
 
   lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
+  lights_driver_node_->FrameCB(msg, channel_2_, msg->header.stamp, "channel_2");
 }
 
 TEST_F(TestLightsDriverNode, FrameCBTimeout)
