@@ -204,9 +204,9 @@ TEST_F(TestPantherRobotDriver, SendSpeedCommandsInvalidVectorSize)
     [&]() { robot_driver_->SendSpeedCommands(speeds); }, "Invalid speeds vector size"));
 }
 
-TEST_F(TestPantherRobotDriver, AttemptErrorFlagResetWithZeroSpeed)
+TEST_F(TestPantherRobotDriver, AttemptErrorFlagReset)
 {
-  EXPECT_NO_THROW(robot_driver_->AttemptErrorFlagResetWithZeroSpeed());
+  EXPECT_NO_THROW(robot_driver_->AttemptErrorFlagReset());
 }
 
 int main(int argc, char ** argv)

@@ -54,7 +54,7 @@ struct MotorChannels
  * commands. Data is converted between raw Roboteq formats and SI units using
  * roboteq_data_converters.
  */
-class RoboteqRobotDriver : public RobotDriver
+class RoboteqRobotDriver : public RobotDriverInterface
 {
 public:
   RoboteqRobotDriver(
@@ -123,14 +123,6 @@ public:
   void TurnOffEStop() override;
 
   /**
-   * @brief Turns on Roboteq safety stop. To turn it off, it is necessary to send
-   * 0 commands to motors.
-   *
-   * @exception std::runtime_error if any operation returns error
-   */
-  void TurnOnSafetyStop() override;
-
-  /**
    * @brief Get data feedback from the driver
    *
    * @param name name of the data to get
@@ -154,7 +146,7 @@ protected:
   DrivetrainSettings drivetrain_settings_;
 
   CANopenManager canopen_manager_;
-  std::map<std::string, std::shared_ptr<Driver>> drivers_;
+  std::map<std::string, std::shared_ptr<DriverInterface>> drivers_;
 
 private:
   void SetMotorsStates(

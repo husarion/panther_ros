@@ -27,19 +27,19 @@
 namespace panther_hardware_interfaces_test
 {
 
-class MockDriver : public panther_hardware_interfaces::Driver
+class MockDriver : public panther_hardware_interfaces::DriverInterface
 {
 public:
   MOCK_METHOD(std::future<void>, Boot, (), (override));
   MOCK_METHOD(bool, IsCANError, (), (const, override));
   MOCK_METHOD(bool, IsHeartbeatTimeout, (), (const, override));
 
-  MOCK_METHOD(panther_hardware_interfaces::DriverState, ReadDriverState, (), (override));
+  MOCK_METHOD(panther_hardware_interfaces::DriverState, ReadState, (), (override));
   MOCK_METHOD(void, ResetScript, (), (override));
   MOCK_METHOD(void, TurnOnEStop, (), (override));
   MOCK_METHOD(void, TurnOffEStop, (), (override));
 
-  std::shared_ptr<panther_hardware_interfaces::MotorDriver> GetMotorDriver(
+  std::shared_ptr<panther_hardware_interfaces::MotorDriverInterface> GetMotorDriver(
     const std::string & name) override
   {
     return motor_drivers_.at(name);
@@ -47,19 +47,20 @@ public:
 
   void AddMotorDriver(
     const std::string name,
-    std::shared_ptr<panther_hardware_interfaces::MotorDriver> motor_driver) override
+    std::shared_ptr<panther_hardware_interfaces::MotorDriverInterface> motor_driver) override
   {
     motor_drivers_.emplace(name, motor_driver);
   }
 
 private:
-  std::map<std::string, std::shared_ptr<panther_hardware_interfaces::MotorDriver>> motor_drivers_;
+  std::map<std::string, std::shared_ptr<panther_hardware_interfaces::MotorDriverInterface>>
+    motor_drivers_;
 };
 
-class MockMotorDriver : public panther_hardware_interfaces::MotorDriver
+class MockMotorDriver : public panther_hardware_interfaces::MotorDriverInterface
 {
 public:
-  MOCK_METHOD(panther_hardware_interfaces::MotorDriverState, ReadMotorDriverState, (), (override));
+  MOCK_METHOD(panther_hardware_interfaces::MotorDriverState, ReadState, (), (override));
   MOCK_METHOD(void, SendCmdVel, (const std::int32_t cmd), (override));
   MOCK_METHOD(void, TurnOnSafetyStop, (), (override));
 };

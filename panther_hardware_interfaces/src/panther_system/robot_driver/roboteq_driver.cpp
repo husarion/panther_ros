@@ -55,7 +55,7 @@ struct RoboteqCANObjects
   static constexpr CANopenObject turn_on_safety_stop = {0x202C, 0};  // Cmd_SFT
 };
 
-MotorDriverState RoboteqMotorDriver::ReadMotorDriverState()
+MotorDriverState RoboteqMotorDriver::ReadState()
 {
   MotorDriverState state;
 
@@ -112,7 +112,7 @@ std::future<void> RoboteqDriver::Boot()
   return future;
 }
 
-DriverState RoboteqDriver::ReadDriverState()
+DriverState RoboteqDriver::ReadState()
 {
   DriverState state;
 
@@ -177,7 +177,7 @@ void RoboteqDriver::TurnOffEStop()
 }
 
 void RoboteqDriver::AddMotorDriver(
-  const std::string name, std::shared_ptr<MotorDriver> motor_driver)
+  const std::string name, std::shared_ptr<MotorDriverInterface> motor_driver)
 {
   if (std::dynamic_pointer_cast<RoboteqMotorDriver>(motor_driver) == nullptr) {
     throw std::runtime_error("Motor driver is not of type RoboteqMotorDriver");
@@ -185,7 +185,7 @@ void RoboteqDriver::AddMotorDriver(
   motor_drivers_.emplace(name, motor_driver);
 }
 
-std::shared_ptr<MotorDriver> RoboteqDriver::GetMotorDriver(const std::string & name)
+std::shared_ptr<MotorDriverInterface> RoboteqDriver::GetMotorDriver(const std::string & name)
 {
   auto it = motor_drivers_.find(name);
   if (it == motor_drivers_.end()) {

@@ -56,7 +56,7 @@ public:
    * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If Roboteq
    * driver faults still exist, the error flag will remain active.
    */
-  inline void AttemptErrorFlagResetWithZeroSpeed() override { SendSpeedCommands({0.0, 0.0}); };
+  void AttemptErrorFlagReset() override { SendSpeedCommands({0.0, 0.0}); };
 
 protected:
   /**

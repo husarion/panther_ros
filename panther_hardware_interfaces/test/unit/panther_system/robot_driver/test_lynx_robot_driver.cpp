@@ -154,9 +154,9 @@ TEST_F(TestLynxRobotDriver, SendSpeedCommandsInvalidVectorSize)
     [&]() { robot_driver_->SendSpeedCommands(speeds); }, "Invalid speeds vector size"));
 }
 
-TEST_F(TestLynxRobotDriver, AttemptErrorFlagResetWithZeroSpeed)
+TEST_F(TestLynxRobotDriver, AttemptErrorFlagReset)
 {
-  EXPECT_NO_THROW(robot_driver_->AttemptErrorFlagResetWithZeroSpeed());
+  EXPECT_NO_THROW(robot_driver_->AttemptErrorFlagReset());
 }
 
 int main(int argc, char ** argv)
