@@ -231,24 +231,36 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
                         PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_system
-                  test/panther_system/test_panther_system.cpp)
-  set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
-                                                                      120)
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_ugv_system
+    test/unit/panther_system/test_ugv_system.cpp
+    src/panther_system/gpio/gpio_controller.cpp
+    src/panther_system/gpio/gpio_driver.cpp
+    src/panther_system/system_e_stop.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_error_filter.cpp
+    src/panther_system/system_ros_interface.cpp
+    src/panther_system/ugv_system.cpp
+    src/utils.cpp)
+  set_tests_properties(${PROJECT_NAME}_test_ugv_system PROPERTIES TIMEOUT 120)
   target_include_directories(
-    ${PROJECT_NAME}_test_panther_system
+    ${PROJECT_NAME}_test_ugv_system
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
-    panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_panther_system
-                        PkgConfig::LIBLELY_COAPP)
+    ${PROJECT_NAME}_test_ugv_system
+    diagnostic_updater
+    hardware_interface
+    rclcpp
+    panther_msgs
+    panther_utils
+    std_msgs
+    std_srvs)
+  target_link_libraries(${PROJECT_NAME}_test_ugv_system
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
-  # Integration tests
-  option(TEST_INTEGRATION "Run integration tests" OFF)
-  if(TEST_INTEGRATION)
-    # Hardware integration
+  # Integration tests option(TEST_INTEGRATION "Run integration tests" OFF)
+  if(TEST_INTEGRATION) # Hardware integration
     ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
                     test/panther_system/gpio/test_gpio_driver.cpp)
     ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
