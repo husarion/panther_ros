@@ -181,10 +181,10 @@ private:
 /**
  * @brief Class that combines all the data that the one Roboteq driver provides
  */
-class RoboteqData
+class DriverData
 {
 public:
-  RoboteqData(const DrivetrainSettings & drivetrain_settings)
+  DriverData(const DrivetrainSettings & drivetrain_settings)
   : channel_1_motor_state_(drivetrain_settings), channel_2_motor_state_(drivetrain_settings)
   {
   }

@@ -77,7 +77,7 @@ public:
    * @return data feedback
    * @exception std::runtime_error if data with the given name does not exist
    */
-  virtual const RoboteqData & GetData(const std::string & name) = 0;
+  virtual const DriverData & GetData(const std::string & name) = 0;
 
   /**
    * @brief Write speed commands to motors

@@ -202,7 +202,7 @@ std::map<std::string, bool> RuntimeError::GetErrorMap() const
   return error_map;
 }
 
-void RoboteqData::SetMotorsStates(
+void DriverData::SetMotorsStates(
   const MotorDriverState & channel_1_state, const MotorDriverState & channel_2_state,
   const bool data_timed_out)
 {
@@ -211,7 +211,7 @@ void RoboteqData::SetMotorsStates(
   motor_states_data_timed_out_ = data_timed_out;
 }
 
-void RoboteqData::SetDriverState(const DriverState & state, const bool data_timed_out)
+void DriverData::SetDriverState(const DriverState & state, const bool data_timed_out)
 {
   driver_state_.SetTemperature(state.mcu_temp);
   driver_state_.SetHeatsinkTemperature(state.heatsink_temp);
@@ -227,7 +227,7 @@ void RoboteqData::SetDriverState(const DriverState & state, const bool data_time
   driver_state_data_timed_out_ = data_timed_out;
 }
 
-const MotorState & RoboteqData::GetMotorState(const std::uint8_t channel) const
+const MotorState & DriverData::GetMotorState(const std::uint8_t channel) const
 {
   if (channel == RoboteqDriver::kChannel1) {
     return channel_1_motor_state_;
@@ -238,7 +238,7 @@ const MotorState & RoboteqData::GetMotorState(const std::uint8_t channel) const
   throw std::runtime_error("Invalid channel number");
 }
 
-const RuntimeError & RoboteqData::GetRuntimeError(const std::uint8_t channel) const
+const RuntimeError & DriverData::GetRuntimeError(const std::uint8_t channel) const
 {
   if (channel == RoboteqDriver::kChannel1) {
     return channel_1_runtime_error_;
@@ -249,7 +249,7 @@ const RuntimeError & RoboteqData::GetRuntimeError(const std::uint8_t channel) co
   throw std::runtime_error("Invalid channel number");
 }
 
-std::string RoboteqData::GetFlagErrorLog() const
+std::string DriverData::GetFlagErrorLog() const
 {
   return "Fault flags: " + fault_flags_.GetErrorLog() +
          "Script flags: " + script_flags_.GetErrorLog() +
@@ -257,7 +257,7 @@ std::string RoboteqData::GetFlagErrorLog() const
          "Channel 2 motor runtime flags: " + channel_2_runtime_error_.GetErrorLog();
 }
 
-std::map<std::string, bool> RoboteqData::GetFlagErrorMap() const
+std::map<std::string, bool> DriverData::GetFlagErrorMap() const
 {
   std::map<std::string, bool> flag_error_map;
 
@@ -276,7 +276,7 @@ std::map<std::string, bool> RoboteqData::GetFlagErrorMap() const
   return flag_error_map;
 }
 
-std::map<std::string, bool> RoboteqData::GetErrorMap() const
+std::map<std::string, bool> DriverData::GetErrorMap() const
 {
   std::map<std::string, bool> error_map;
 

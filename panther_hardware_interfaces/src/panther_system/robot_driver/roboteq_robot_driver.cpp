@@ -55,11 +55,11 @@ void RoboteqRobotDriver::Initialize()
     canopen_manager_.Initialize();
     DefineDrivers();
     for (auto & [name, driver] : drivers_) {
-      data_.emplace(name, RoboteqData(drivetrain_settings_));
+      data_.emplace(name, DriverData(drivetrain_settings_));
       driver->Boot();
     }
   } catch (const std::runtime_error & e) {
-    throw e;
+    throw std::runtime_error("Failed to initialize robot driver: " + std::string(e.what()));
   }
 
   initialized_ = true;
@@ -157,7 +157,7 @@ void RoboteqRobotDriver::UpdateDriversState()
   }
 }
 
-const RoboteqData & RoboteqRobotDriver::GetData(const std::string & name)
+const DriverData & RoboteqRobotDriver::GetData(const std::string & name)
 {
   if (data_.find(name) == data_.end()) {
     throw std::runtime_error("Data with name '" + name + "' does not exist.");
@@ -191,7 +191,7 @@ void RoboteqRobotDriver::TurnOffEStop()
 }
 
 void RoboteqRobotDriver::SetMotorsStates(
-  RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
+  DriverData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
   const timespec & current_time)
 {
   const bool data_timed_out =
@@ -205,7 +205,7 @@ void RoboteqRobotDriver::SetMotorsStates(
 }
 
 void RoboteqRobotDriver::SetDriverState(
-  RoboteqData & data, const DriverState & state, const timespec & current_time)
+  DriverData & data, const DriverState & state, const timespec & current_time)
 {
   const bool data_timed_out =
     DataTimeout(current_time, state.flags_current_timestamp, pdo_driver_state_timeout_ms_) ||
