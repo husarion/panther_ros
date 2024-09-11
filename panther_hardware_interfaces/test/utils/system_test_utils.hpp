@@ -31,7 +31,7 @@
 namespace panther_hardware_interfaces_test
 {
 
-class MockRobotDriver : public panther_hardware_interfaces::RobotDriver
+class MockRobotDriver : public panther_hardware_interfaces::RobotDriverInterface
 {
 public:
   MOCK_METHOD(void, Initialize, (), (override));
@@ -45,8 +45,7 @@ public:
   MOCK_METHOD(void, SendSpeedCommands, (const std::vector<float> &), (override));
   MOCK_METHOD(void, TurnOnEStop, (), (override));
   MOCK_METHOD(void, TurnOffEStop, (), (override));
-  MOCK_METHOD(void, TurnOnSafetyStop, (), (override));
-  MOCK_METHOD(void, AttemptErrorFlagResetWithZeroSpeed, (), (override));
+  MOCK_METHOD(void, AttemptErrorFlagReset, (), (override));
 };
 
 class MockGPIODriver : public panther_hardware_interfaces::GPIODriverInterface
@@ -97,6 +96,69 @@ public:
   MOCK_METHOD(void, TriggerEStop, (), (override));
   MOCK_METHOD(void, ResetEStop, (), (override));
 };
+
+hardware_interface::HardwareInfo GenerateDefaultHardwareInfo()
+{
+  hardware_interface::HardwareInfo hardware_info;
+  hardware_info.name = "test";
+  hardware_info.hardware_class_type = "UGVSystem";
+
+  hardware_interface::InterfaceInfo vel_command_interface;
+  vel_command_interface.name = "velocity";
+  hardware_interface::InterfaceInfo pos_state_interface;
+  pos_state_interface.name = "position";
+  hardware_interface::InterfaceInfo vel_state_interface;
+  vel_state_interface.name = "velocity";
+  hardware_interface::InterfaceInfo eff_state_interface;
+  eff_state_interface.name = "effort";
+
+  hardware_interface::ComponentInfo wheel_joint;
+  wheel_joint.command_interfaces = {vel_command_interface};
+  wheel_joint.state_interfaces = {pos_state_interface, vel_state_interface, eff_state_interface};
+
+  auto fl_wheel_joint = wheel_joint;
+  fl_wheel_joint.name = "fl_wheel_joint";
+  auto fr_wheel_joint = wheel_joint;
+  fr_wheel_joint.name = "fr_wheel_joint";
+  auto rl_wheel_joint = wheel_joint;
+  rl_wheel_joint.name = "rl_wheel_joint";
+  auto rr_wheel_joint = wheel_joint;
+  rr_wheel_joint.name = "rr_wheel_joint";
+
+  hardware_info.joints = {fl_wheel_joint, fr_wheel_joint, rl_wheel_joint, rr_wheel_joint};
+
+  std::unordered_map<std::string, std::string> hardware_paremeters = {
+    // drivetrain settings
+    {"motor_torque_constant", "0.11"},
+    {"gear_ratio", "30.08"},
+    {"gearbox_efficiency", "0.75"},
+    {"encoder_resolution", "1600"},
+    {"max_rpm_motor_speed", "3600.0"},
+
+    // CANopen settings
+    {"can_interface_name", "panther_can"},
+    {"master_can_id", "3"},
+    {"pdo_motor_states_timeout_ms", "15"},
+    {"pdo_driver_state_timeout_ms", "75"},
+    {"sdo_operation_timeout_ms", "100"},
+
+    // Driver states update frequency
+    {"driver_states_update_frequency", "20.0"},
+
+    // Roboteq initialization and activation attempts
+    {"max_roboteq_initialization_attempts", "5"},
+    {"max_roboteq_activation_attempts", "5"},
+
+    // Roboteq error filter params
+    {"max_write_pdo_cmds_errors_count", "4"},
+    {"max_read_pdo_motor_states_errors_count", "4"},
+    {"max_read_pdo_driver_state_errors_count", "20"},
+  };
+
+  hardware_info.hardware_parameters = hardware_paremeters;
+
+  return hardware_info;
+}
 
 }  // namespace panther_hardware_interfaces_test
 

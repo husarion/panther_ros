@@ -102,7 +102,8 @@ CallbackReturn UGVSystem::on_activate(const rclcpp_lifecycle::State &)
   std::fill(hw_states_efforts_.begin(), hw_states_efforts_.end(), 0.0);
 
   if (!OperationWithAttempts(
-        std::bind(&RobotDriver::Activate, robot_driver_), max_roboteq_activation_attempts_)) {
+        std::bind(&RobotDriverInterface::Activate, robot_driver_),
+        max_roboteq_activation_attempts_)) {
     RCLCPP_ERROR_STREAM(
       logger_, "Failed to activate UGV System: Couldn't activate RobotDriver in "
                  << max_roboteq_activation_attempts_ << " attempts.");
@@ -264,7 +265,10 @@ return_type UGVSystem::write(const rclcpp::Time & /* time */, const rclcpp::Dura
   const bool e_stop = e_stop_->ReadEStopState();
 
   if (!e_stop) {
-    HandleWriteOperation();
+    HandleRobotDriverWriteOperation([this] {
+      const auto speed_cmds = GetSpeedCommands();
+      robot_driver_->SendSpeedCommands(speed_cmds);
+    });
   }
 
   return return_type::OK;
@@ -307,12 +311,11 @@ void UGVSystem::SetInitialValues()
   // It isn't safe to set command to NaN - sometimes it could be interpreted as Inf (although it
   // shouldn't). In case of velocity, I think that setting the initial value to 0.0 is the best
   // option.
-  hw_commands_velocities_ = std::vector<double>(joint_size_, 0.0);
+  hw_commands_velocities_.resize(joint_size_, 0.0);
 
-  hw_states_positions_ = std::vector<double>(joint_size_, std::numeric_limits<double>::quiet_NaN());
-  hw_states_velocities_ = std::vector<double>(
-    joint_size_, std::numeric_limits<double>::quiet_NaN());
-  hw_states_efforts_ = std::vector<double>(joint_size_, std::numeric_limits<double>::quiet_NaN());
+  hw_states_positions_.resize(joint_size_, std::numeric_limits<double>::quiet_NaN());
+  hw_states_velocities_.resize(joint_size_, std::numeric_limits<double>::quiet_NaN());
+  hw_states_efforts_.resize(joint_size_, std::numeric_limits<double>::quiet_NaN());
 }
 
 void UGVSystem::CheckInterfaces() const
@@ -430,8 +433,9 @@ void UGVSystem::ConfigureRobotDriver()
   DefineRobotDriver();
 
   if (!OperationWithAttempts(
-        std::bind(&RobotDriver::Initialize, robot_driver_), max_roboteq_initialization_attempts_,
-        std::bind(&RobotDriver::Deinitialize, robot_driver_))) {
+        std::bind(&RobotDriverInterface::Initialize, robot_driver_),
+        max_roboteq_initialization_attempts_,
+        std::bind(&RobotDriverInterface::Deinitialize, robot_driver_))) {
     throw std::runtime_error("Roboteq drivers initialization failed.");
   }
 
@@ -493,7 +497,7 @@ void UGVSystem::UpdateEStopState()
   system_ros_interface_->PublishEStopStateIfChanged(e_stop);
 }
 
-void UGVSystem::HandleWriteOperation()
+void UGVSystem::HandleRobotDriverWriteOperation(std::function<void()> write_operation)
 {
   try {
     {
@@ -503,8 +507,7 @@ void UGVSystem::HandleWriteOperation()
         throw std::runtime_error(
           "Can't acquire mutex for writing commands - E-stop is being triggered.");
       }
-      const auto speed_cmds = GetSpeedCommands();
-      robot_driver_->SendSpeedCommands(speed_cmds);
+      write_operation();
     }
 
     roboteq_error_filter_->UpdateError(ErrorsFilterIds::WRITE_PDO_CMDS, false);

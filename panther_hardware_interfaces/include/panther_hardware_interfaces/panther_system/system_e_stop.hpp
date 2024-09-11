@@ -52,8 +52,8 @@ public:
   EStop(
     std::shared_ptr<GPIOControllerInterface> gpio_controller,
     std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter,
-    std::shared_ptr<RobotDriver> robot_driver, std::shared_ptr<std::mutex> robot_driver_write_mtx,
-    std::function<bool()> zero_velocity_check)
+    std::shared_ptr<RobotDriverInterface> robot_driver,
+    std::shared_ptr<std::mutex> robot_driver_write_mtx, std::function<bool()> zero_velocity_check)
   : EStopInterface(),
     gpio_controller_(gpio_controller),
     roboteq_error_filter_(roboteq_error_filter),
@@ -106,7 +106,7 @@ public:
 protected:
   std::shared_ptr<GPIOControllerInterface> gpio_controller_;
   std::shared_ptr<RoboteqErrorFilter> roboteq_error_filter_;
-  std::shared_ptr<RobotDriver> robot_driver_;
+  std::shared_ptr<RobotDriverInterface> robot_driver_;
   std::shared_ptr<std::mutex> robot_driver_write_mtx_;
 
   std::function<bool()> ZeroVelocityCheck;

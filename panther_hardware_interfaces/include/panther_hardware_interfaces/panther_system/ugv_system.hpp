@@ -107,7 +107,7 @@ protected:
   virtual void UpdateFlagErrors() = 0;               // possible but needs changes in robot driver
   virtual void UpdateDriverStateDataTimedOut() = 0;  // possible but needs changes in robot driver
 
-  void HandleWriteOperation();
+  void HandleRobotDriverWriteOperation(std::function<void()> write_operation);
   virtual std::vector<float> GetSpeedCommands() const = 0;
 
   void MotorsPowerEnable(const bool enable);
@@ -134,7 +134,7 @@ protected:
   std::vector<std::string> joints_names_sorted_;
 
   std::shared_ptr<GPIOControllerInterface> gpio_controller_;
-  std::shared_ptr<RobotDriver> robot_driver_;
+  std::shared_ptr<RobotDriverInterface> robot_driver_;
   std::shared_ptr<EStopInterface> e_stop_;
 
   DrivetrainSettings drivetrain_settings_;
