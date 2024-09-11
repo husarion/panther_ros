@@ -14,191 +14,289 @@
 
 #include <thread>
 
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
 
-#include "sensor_msgs/image_encodings.hpp"
-#include "sensor_msgs/msg/image.hpp"
-#include "std_srvs/srv/set_bool.hpp"
+#include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 
-#include "panther_lights/lights_driver_node.hpp"
 #include "panther_msgs/srv/set_led_brightness.hpp"
+
+#include "panther_lights/apa102.hpp"
+#include "panther_lights/lights_driver_node.hpp"
 #include "panther_utils/test/ros_test_utils.hpp"
 
 using ImageMsg = sensor_msgs::msg::Image;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using SetLEDBrightnessSrv = panther_msgs::srv::SetLEDBrightness;
 
+class MockAPA102 : public panther_lights::APA102Interface
+{
+public:
+  MOCK_METHOD(void, SetGlobalBrightness, (const std::uint8_t brightness), (override));
+  MOCK_METHOD(void, SetGlobalBrightness, (const float brightness), (override));
+  MOCK_METHOD(void, SetPanel, (const std::vector<std::uint8_t> & frame), (const, override));
+
+  using NiceMock = testing::NiceMock<MockAPA102>;
+};
+
+// LightsDriverNode constructor implemented for testing purposes
+panther_lights::LightsDriverNode::LightsDriverNode(
+  APA102Interface::SharedPtr channel_1, APA102Interface::SharedPtr channel_2,
+  const rclcpp::NodeOptions & options)
+: Node("lights_driver", options),
+  led_control_granted_(false),
+  led_control_pending_(false),
+  initialization_attempt_(0),
+  channel_1_(channel_1),
+  channel_2_(channel_2),
+  diagnostic_updater_(this)
+{
+  num_led_ = 46;
+  frame_timeout_ = 0.1;
+};
+
 class DriverNodeWrapper : public panther_lights::LightsDriverNode
 {
 public:
   DriverNodeWrapper(
+    std::shared_ptr<MockAPA102> channel_1, std::shared_ptr<MockAPA102> channel_2,
     const rclcpp::NodeOptions & options = rclcpp::NodeOptions().use_intra_process_comms(true))
-  : LightsDriverNode(options)
+  : LightsDriverNode(channel_1, channel_2, options)
   {
   }
 
-  int getNumLeds() const { return num_led_; }
-  double getTimeout() const { return frame_timeout_; }
-  bool isInitialised() const { return led_control_granted_; }
-  rclcpp::Time setChanel1TS(const rclcpp::Time & ts) { return chanel_1_ts_ = ts; }
-  rclcpp::Time setChanel2TS(const rclcpp::Time & ts) { return chanel_2_ts_ = ts; }
+  void ClearLEDs() { return LightsDriverNode::ClearLEDs(); }
+
+  void ToggleLEDControlCB(rclcpp::Client<SetBoolSrv>::SharedFutureWithRequest future)
+  {
+    return LightsDriverNode::ToggleLEDControlCB(future);
+  }
+
+  void FrameCB(
+    const ImageMsg::UniquePtr & msg, const panther_lights::APA102Interface::SharedPtr & panel,
+    const rclcpp::Time & last_time, const std::string & panel_name)
+  {
+    return LightsDriverNode::FrameCB(msg, panel, last_time, panel_name);
+  }
+
+  int GetNumLed() const { return num_led_; }
+  double GetTimeout() const { return frame_timeout_; }
+  bool GetLedControlGranted() const { return led_control_granted_; }
+  bool GetLedControlPending() const { return led_control_pending_; }
+
+  rclcpp::Time SetChannel1Ts(const rclcpp::Time & ts) { return channel_1_ts_ = ts; }
+  rclcpp::Time SetChannel2Ts(const rclcpp::Time & ts) { return channel_2_ts_ = ts; }
 };
 
-class TestDriverNode : public testing::Test
+class TestLightsDriverNode : public testing::Test
 {
-public:
-  TestDriverNode()
-  {
-    service_node_ = std::make_shared<rclcpp::Node>("dummy_service_node");
-    server_callback_group_ =
-      service_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
-    led_control_enable_service_ = service_node_->create_service<SetBoolSrv>(
-      "hardware/led_control_enable",
-      [](const SetBoolSrv::Request::SharedPtr & req, SetBoolSrv::Response::SharedPtr res) {
-        res->success = req->data;
-      },
-
-      rmw_qos_profile_services_default, server_callback_group_);
-
-    lights_driver_node_ = std::make_shared<DriverNodeWrapper>();
-    channel_1_pub_ = lights_driver_node_->create_publisher<ImageMsg>("lights/channel_1_frame", 5);
-    channel_2_pub_ = lights_driver_node_->create_publisher<ImageMsg>("lights/channel_2_frame", 5);
-    set_brightness_client_ =
-      lights_driver_node_->create_client<SetLEDBrightnessSrv>("lights/set_brightness");
-  }
-
-  ~TestDriverNode() {}
-
 protected:
-  ImageMsg::UniquePtr CreateImageMsg()
-  {
-    ImageMsg::UniquePtr msg(new ImageMsg);
+  TestLightsDriverNode();
+  ~TestLightsDriverNode() {};
 
-    // Filling msg with dummy data
-    msg->header.stamp = lights_driver_node_->now();
-    msg->header.frame_id = "image_frame";
-    msg->height = 1;
-    msg->width = lights_driver_node_->getNumLeds();
-    msg->encoding = sensor_msgs::image_encodings::RGBA8;
-    msg->is_bigendian = false;
-    msg->step = msg->width * 4;
-    msg->data = std::vector<uint8_t>(msg->step * msg->height, 0);
+  ImageMsg::UniquePtr CreateValidImageMsg();
+  std::shared_future<std::pair<SetBoolSrv::Request::SharedPtr, SetBoolSrv::Response::SharedPtr>>
+  CreateSetBoolSrvFuture(bool request_data, bool response_success);
 
-    return msg;
-  }
-
-  std::shared_ptr<DriverNodeWrapper> lights_driver_node_;
-  rclcpp::Node::SharedPtr service_node_;
-  rclcpp::Publisher<ImageMsg>::SharedPtr channel_1_pub_;
-  rclcpp::Publisher<ImageMsg>::SharedPtr channel_2_pub_;
-  rclcpp::Client<SetLEDBrightnessSrv>::SharedPtr set_brightness_client_;
-
-  rclcpp::CallbackGroup::SharedPtr server_callback_group_;
-  rclcpp::Service<SetBoolSrv>::SharedPtr led_control_enable_service_;
+  std::shared_ptr<MockAPA102> channel_1_;
+  std::shared_ptr<MockAPA102> channel_2_;
+  std::unique_ptr<DriverNodeWrapper> lights_driver_node_;
 };
 
-TEST_F(TestDriverNode, ServiceTestSuccess)
+TestLightsDriverNode::TestLightsDriverNode()
 {
-  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
-  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
-  request->data = 0.5;
-  auto future = set_brightness_client_->async_send_request(request);
-  ASSERT_TRUE(
-    panther_utils::test_utils::WaitForFuture(lights_driver_node_, future, std::chrono::seconds(1)));
-  auto response = future.get();
-  EXPECT_TRUE(response->success);
+  channel_1_ = std::make_shared<MockAPA102::NiceMock>();
+  channel_2_ = std::make_shared<MockAPA102::NiceMock>();
+
+  lights_driver_node_ = std::make_unique<DriverNodeWrapper>(channel_1_, channel_2_);
 }
 
-TEST_F(TestDriverNode, ServiceTestFail)
+ImageMsg::UniquePtr TestLightsDriverNode::CreateValidImageMsg()
 {
-  ASSERT_TRUE(set_brightness_client_->wait_for_service(std::chrono::seconds(1)));
-  auto request = std::make_shared<SetLEDBrightnessSrv::Request>();
-  request->data = 2;
-  auto future = set_brightness_client_->async_send_request(request);
-  ASSERT_TRUE(
-    panther_utils::test_utils::WaitForFuture(lights_driver_node_, future, std::chrono::seconds(1)));
-  auto response = future.get();
-  EXPECT_FALSE(response->success);
+  ImageMsg::UniquePtr msg(new ImageMsg);
+
+  // Filling the message with valid data
+  msg->header.stamp = lights_driver_node_->now();
+  msg->header.frame_id = "image_frame";
+  msg->height = 1;
+  msg->width = lights_driver_node_->GetNumLed();
+  msg->encoding = sensor_msgs::image_encodings::RGBA8;
+  msg->is_bigendian = false;
+  msg->step = msg->width * 4;
+  msg->data = std::vector<uint8_t>(msg->step * msg->height, 255);
+
+  return msg;
 }
 
-// TODO check and fix following tests.
-// Following test pass but I'm not sure if they actually test what they indicate they do.
-// This is because the initialization has changed and it works completely different now.
-// Now way to check if publishing / initialization was successful because SPI control is
-// controlled in different package. This has to be refactored but needs more thinking it through.
-TEST_F(TestDriverNode, PublishTimeoutFail)
+std::shared_future<std::pair<SetBoolSrv::Request::SharedPtr, SetBoolSrv::Response::SharedPtr>>
+TestLightsDriverNode::CreateSetBoolSrvFuture(bool request_data, bool response_success)
 {
-  auto msg = CreateImageMsg();
-  msg->header.stamp.sec = lights_driver_node_->get_clock()->now().seconds() -
-                          lights_driver_node_->getTimeout() - 1;
-  channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(lights_driver_node_);
-  rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(lights_driver_node_->isInitialised());
+  auto request = std::make_shared<SetBoolSrv::Request>();
+  request->data = request_data;
+
+  auto response = std::make_shared<SetBoolSrv::Response>();
+  response->success = response_success;
+
+  std::promise<std::pair<SetBoolSrv::Request::SharedPtr, SetBoolSrv::Response::SharedPtr>> promise;
+  promise.set_value(std::make_pair(request, response));
+
+  return promise.get_future();
 }
 
-TEST_F(TestDriverNode, PublishOldMsgFail)
+TEST_F(TestLightsDriverNode, TestInitialization)
 {
-  auto msg = CreateImageMsg();
-  lights_driver_node_->setChanel1TS(msg->header.stamp);
-  msg->header.stamp.nanosec--;
-  channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(lights_driver_node_);
-  rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(lights_driver_node_->isInitialised());
+  auto channel_1 = std::make_shared<MockAPA102>();
+  auto channel_2 = std::make_shared<MockAPA102>();
+  auto lights_driver_node = std::make_shared<DriverNodeWrapper>(channel_1, channel_2);
+
+  EXPECT_TRUE(lights_driver_node != nullptr);
 }
 
-TEST_F(TestDriverNode, PublishEncodingFail)
+TEST_F(TestLightsDriverNode, ClearLEDs)
 {
-  auto msg = CreateImageMsg();
+  auto num_led = lights_driver_node_->GetNumLed();
+  std::vector<std::uint8_t> zero_frame(num_led * 4, 0);
+
+  EXPECT_CALL(*channel_1_, SetPanel(zero_frame)).Times(1);
+  EXPECT_CALL(*channel_2_, SetPanel(zero_frame)).Times(1);
+
+  lights_driver_node_->ClearLEDs();
+}
+
+// ### ToggleLEDControlCB tests ###
+
+TEST_F(TestLightsDriverNode, ToggleLEDControlCBFailure)
+{
+  auto future = CreateSetBoolSrvFuture(true, false);
+
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_FALSE(lights_driver_node_->GetLedControlPending());
+  EXPECT_FALSE(lights_driver_node_->GetLedControlGranted());
+}
+
+TEST_F(TestLightsDriverNode, ToggleLEDControlCBEnabled)
+{
+  auto future = CreateSetBoolSrvFuture(true, true);
+
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_FALSE(lights_driver_node_->GetLedControlPending());
+  EXPECT_TRUE(lights_driver_node_->GetLedControlGranted());
+}
+
+TEST_F(TestLightsDriverNode, ToggleLEDControlCBDisabled)
+{
+  auto future = CreateSetBoolSrvFuture(false, true);
+
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_FALSE(lights_driver_node_->GetLedControlPending());
+  EXPECT_FALSE(lights_driver_node_->GetLedControlGranted());
+}
+
+// ### FrameCB tests ###
+
+TEST_F(TestLightsDriverNode, FrameCBSuccessNoControl)
+{
+  auto msg = CreateValidImageMsg();
+
+  EXPECT_CALL(*channel_1_, SetPanel(testing::_)).Times(0);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
+}
+
+TEST_F(TestLightsDriverNode, FrameCBSuccess)
+{
+  auto msg = CreateValidImageMsg();
+
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_CALL(*channel_1_, SetPanel(testing::_)).Times(1);
+  EXPECT_CALL(*channel_2_, SetPanel(testing::_)).Times(1);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
+  lights_driver_node_->FrameCB(msg, channel_2_, msg->header.stamp, "channel_2");
+}
+
+TEST_F(TestLightsDriverNode, FrameCBTimeout)
+{
+  auto msg = CreateValidImageMsg();
+  auto timeout = lights_driver_node_->GetTimeout();
+
+  // Set timestamp to exceed timeout
+  msg->header.stamp.sec = msg->header.stamp.sec - timeout - 1;
+
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_CALL(*channel_1_, SetPanel(msg->data)).Times(0);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
+}
+
+TEST_F(TestLightsDriverNode, FrameCBPast)
+{
+  auto msg = CreateValidImageMsg();
+
+  // Set last_time to be younger than msg timestamp
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_CALL(*channel_1_, SetPanel(msg->data)).Times(0);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, lights_driver_node_->now(), "channel_1");
+}
+
+TEST_F(TestLightsDriverNode, FrameCBEncoding)
+{
+  auto msg = CreateValidImageMsg();
+
+  // Set incorrect encoding
   msg->encoding = sensor_msgs::image_encodings::RGB8;
-  channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(lights_driver_node_);
-  rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(lights_driver_node_->isInitialised());
+
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_CALL(*channel_1_, SetPanel(msg->data)).Times(0);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
 }
 
-TEST_F(TestDriverNode, PublishHeightFail)
+TEST_F(TestLightsDriverNode, FrameCBHeight)
 {
-  auto msg = CreateImageMsg();
+  auto msg = CreateValidImageMsg();
+
+  // Set incorrect height
   msg->height = 2;
-  channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(lights_driver_node_);
-  rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(lights_driver_node_->isInitialised());
+
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_CALL(*channel_1_, SetPanel(msg->data)).Times(0);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
 }
 
-TEST_F(TestDriverNode, PublishWidthFail)
+TEST_F(TestLightsDriverNode, FrameCBWidth)
 {
-  auto msg = CreateImageMsg();
-  msg->width = lights_driver_node_->getNumLeds() + 1;
-  channel_1_pub_->publish(std::move(msg));
-  rclcpp::spin_some(lights_driver_node_);
-  rclcpp::spin_some(service_node_);
-  EXPECT_FALSE(lights_driver_node_->isInitialised());
+  auto msg = CreateValidImageMsg();
+
+  // Set incorrect width
+  msg->width = lights_driver_node_->GetNumLed() + 1;
+
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  EXPECT_CALL(*channel_1_, SetPanel(msg->data)).Times(0);
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
 }
-
-// // TODO: For some reason this function breaks other test that's why PublishSuccess is last one.
-// // Update: now it also fails during destruction because SPI can not be accessed. Commented out
-// // for now.
-// TEST_F(TestDriverNode, PublishSuccess)
-// {
-//   auto msg_1 = CreateImageMsg();
-//   auto msg_2 = CreateImageMsg();
-
-//   channel_1_pub_->publish(std::move(msg_1));
-//   channel_2_pub_->publish(std::move(msg_2));
-//   rclcpp::spin_some(lights_driver_node_);
-//   rclcpp::spin_some(service_node_);
-//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   rclcpp::spin_some(lights_driver_node_);
-//   rclcpp::spin_some(service_node_);
-//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-//   EXPECT_TRUE(lights_driver_node_->isInitialised());
-// }
 
 int main(int argc, char ** argv)
 {

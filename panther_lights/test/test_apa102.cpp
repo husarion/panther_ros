@@ -12,14 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "panther_lights/apa102.hpp"
 
-class APA102Wrapper : public panther_lights::apa102::APA102
+static constexpr char kMockDeviceName[] = "/dev/mocked_device";
+static constexpr int kStartFrame = 0x00;
+static constexpr int kEndFrame = 0xFF;
+
+class MockSPIDevice : public panther_lights::SPIDeviceInterface
 {
 public:
-  APA102Wrapper(const std::string & device) : APA102(device) {}
+  MOCK_METHOD(int, Open, (const std::string & device), (override));
+  MOCK_METHOD(int, IOControl, (int fd, unsigned long request, const void * arg), (override));
+  MOCK_METHOD(int, Close, (int fd), (override));
+
+  // Nice mock suppresses warnings about uninteresting calls
+  using NiceMock = testing::NiceMock<MockSPIDevice>;
+};
+
+class APA102Wrapper : public panther_lights::APA102
+{
+public:
+  APA102Wrapper(std::shared_ptr<MockSPIDevice> spi_device, const std::string & device_name)
+  : APA102(spi_device, device_name)
+  {
+  }
 
   std::vector<std::uint8_t> RGBAFrameToBGRBuffer(const std::vector<std::uint8_t> & frame) const
   {
@@ -31,52 +50,115 @@ public:
 class TestAPA102 : public testing::Test
 {
 protected:
-  TestAPA102() { apa102_ = std::make_unique<APA102Wrapper>("/dev/spidev0.0"); }
-
+  TestAPA102();
   ~TestAPA102() { apa102_.reset(); }
 
+  std::shared_ptr<MockSPIDevice> spi_device_;
   std::unique_ptr<APA102Wrapper> apa102_;
 };
 
-TEST_F(TestAPA102, PortsAvailable)
+TestAPA102::TestAPA102()
 {
-  EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_1_("/dev/spidev0.0"); });
-  EXPECT_NO_THROW({ panther_lights::apa102::APA102 chanel_2_("/dev/spidev0.1"); });
+  spi_device_ = std::make_shared<MockSPIDevice::NiceMock>();
+
+  apa102_ = std::make_unique<APA102Wrapper>(spi_device_, kMockDeviceName);
 }
 
-TEST_F(TestAPA102, SetGlobalBrightnessFloat)
+TEST(TestInitialization, InvalidDevices)
 {
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 0);
+  auto spi_device = std::make_shared<MockSPIDevice::NiceMock>();
 
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0.001)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 1);
+  // Return -1 to simulate failed device opening
+  ON_CALL(*spi_device, Open(kMockDeviceName)).WillByDefault(testing::Return(-1));
 
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0.5)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 16);
-
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(0.999)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 31);
-
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(static_cast<float>(1.0)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 31);
-
-  EXPECT_THROW(apa102_->SetGlobalBrightness(static_cast<float>(-1.0)), std::out_of_range);
-  EXPECT_THROW(apa102_->SetGlobalBrightness(static_cast<float>(1.1)), std::out_of_range);
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
 }
 
-TEST_F(TestAPA102, SetGlobalBrightnessUint8)
+TEST(TestInitialization, SetModeFailure)
 {
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(0)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 0);
+  auto spi_device = std::make_shared<MockSPIDevice::NiceMock>();
 
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(16)));
+  // Return -1 to simulate failed setting mode
+  ON_CALL(*spi_device, IOControl(testing::_, SPI_IOC_WR_MODE32, testing::_))
+    .WillByDefault(testing::Return(-1));
+  EXPECT_CALL(*spi_device, Close(testing::_)).Times(1);
+
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
+}
+
+TEST(TestInitialization, SetBitsFailure)
+{
+  auto spi_device = std::make_shared<MockSPIDevice::NiceMock>();
+
+  // Return -1 to simulate failed setting bits
+  ON_CALL(*spi_device, IOControl(testing::_, SPI_IOC_WR_BITS_PER_WORD, testing::_))
+    .WillByDefault(testing::Return(-1));
+  EXPECT_CALL(*spi_device, Close(testing::_)).Times(1);
+
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
+}
+
+TEST(TestInitialization, SetSpeedFailure)
+{
+  auto spi_device = std::make_shared<MockSPIDevice::NiceMock>();
+
+  // Return -1 to simulate failed setting speed
+  ON_CALL(*spi_device, IOControl(testing::_, SPI_IOC_WR_MAX_SPEED_HZ, testing::_))
+    .WillByDefault(testing::Return(-1));
+  EXPECT_CALL(*spi_device, Close(testing::_)).Times(1);
+
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
+}
+
+TEST_F(TestAPA102, SetGlobalBrightnessRatioNegative)
+{
+  const float brightness_ratio = -1.0;
+  EXPECT_THROW(apa102_->SetGlobalBrightness(brightness_ratio), std::out_of_range);
+}
+
+TEST_F(TestAPA102, SetGlobalBrightnessRatioTooHigh)
+{
+  const float brightness_ratio = 1.1;
+  EXPECT_THROW(apa102_->SetGlobalBrightness(brightness_ratio), std::out_of_range);
+}
+
+TEST_F(TestAPA102, SetGlobalBrightnessRatioValid)
+{
+  const float brightness_ratio = 0.5;
+
+  ASSERT_NO_THROW(apa102_->SetGlobalBrightness(brightness_ratio));
   EXPECT_EQ(apa102_->GetGlobalBrightness(), 16);
+}
 
-  EXPECT_NO_THROW(apa102_->SetGlobalBrightness(std::uint8_t(31)));
-  EXPECT_EQ(apa102_->GetGlobalBrightness(), 31);
+TEST_F(TestAPA102, SetGlobalBrightnessNegative)
+{
+  // Wrap around to 255
+  const std::uint8_t brightness = -1;
 
-  EXPECT_THROW(apa102_->SetGlobalBrightness(std::uint8_t(32)), std::out_of_range);
+  EXPECT_THROW(apa102_->SetGlobalBrightness(brightness), std::out_of_range);
+}
+
+TEST_F(TestAPA102, SetGlobalBrightnessTooHigh)
+{
+  const std::uint8_t brightness = 32;
+
+  EXPECT_THROW(apa102_->SetGlobalBrightness(brightness), std::out_of_range);
+}
+
+TEST_F(TestAPA102, SetGlobalBrightnessValid)
+{
+  const std::uint8_t brightness = 16;
+
+  ASSERT_NO_THROW(apa102_->SetGlobalBrightness(brightness));
+  EXPECT_EQ(apa102_->GetGlobalBrightness(), 16);
+}
+
+TEST_F(TestAPA102, RGBAFrameToBGRBufferInvalidFrame)
+{
+  std::vector<std::uint8_t> frame = {
+    255, 128, 64};  // Valid frame requires 4 values to match RGBA format
+
+  EXPECT_THROW(apa102_->RGBAFrameToBGRBuffer(frame), std::runtime_error);
 }
 
 TEST_F(TestAPA102, RGBAFrameToBGRBuffer)
@@ -86,23 +168,28 @@ TEST_F(TestAPA102, RGBAFrameToBGRBuffer)
   apa102_->SetGlobalBrightness(std::uint8_t(16));
   auto buffer = apa102_->RGBAFrameToBGRBuffer(frame);
 
-  EXPECT_EQ(buffer.size(), static_cast<size_t>(12));
-  EXPECT_EQ(buffer[0], 0x00);   // Init frame
-  EXPECT_EQ(buffer[1], 0x00);   // Init frame
-  EXPECT_EQ(buffer[2], 0x00);   // Init frame
-  EXPECT_EQ(buffer[3], 0x00);   // Init frame
-  EXPECT_EQ(buffer[4], 0xEC);   // brightness value based on the frame
-  EXPECT_EQ(buffer[5], 0x0F);   // B component after color correction
-  EXPECT_EQ(buffer[6], 0x64);   // G component after color correction
-  EXPECT_EQ(buffer[7], 0xFF);   // R component after color correction
-  EXPECT_EQ(buffer[8], 0xFF);   // End frame
-  EXPECT_EQ(buffer[9], 0xFF);   // End frame
-  EXPECT_EQ(buffer[10], 0xFF);  // End frame
-  EXPECT_EQ(buffer[11], 0xFF);  // End frame
+  ASSERT_EQ(buffer.size(), static_cast<size_t>(12));
+
+  // Verify start frame
+  for (int i = 0; i < 4; i++) {
+    EXPECT_EQ(buffer[i], kStartFrame);
+  }
+  // Verify end frame
+  for (int i = 8; i < 12; i++) {
+    EXPECT_EQ(buffer[i], kEndFrame);
+  }
+
+  // Verify RGBA frame
+  EXPECT_EQ(buffer[4], 0xEC);  // brightness value based on the frame
+  EXPECT_EQ(buffer[5], 0x0F);  // B component after color correction
+  EXPECT_EQ(buffer[6], 0x64);  // G component after color correction
+  EXPECT_EQ(buffer[7], 0xFF);  // R component after color correction
 }
 
 int main(int argc, char ** argv)
 {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+
+  auto result = RUN_ALL_TESTS();
+  return result;
 }

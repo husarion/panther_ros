@@ -27,6 +27,10 @@
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
 
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>google-mock</test_depend>
+  <test_depend>ros_testing</test_depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>
