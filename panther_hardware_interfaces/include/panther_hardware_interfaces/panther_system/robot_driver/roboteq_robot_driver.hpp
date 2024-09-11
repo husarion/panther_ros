@@ -130,7 +130,7 @@ public:
    * @return data feedback
    * @exception std::runtime_error if data with the given name does not exist
    */
-  const RoboteqData & GetData(const std::string & name) override;
+  const DriverData & GetData(const std::string & name) override;
 
 protected:
   /**
@@ -150,16 +150,16 @@ protected:
 
 private:
   void SetMotorsStates(
-    RoboteqData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
+    DriverData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
     const timespec & current_time);
-  void SetDriverState(RoboteqData & data, const DriverState & state, const timespec & current_time);
+  void SetDriverState(DriverData & data, const DriverState & state, const timespec & current_time);
   bool DataTimeout(
     const timespec & current_time, const timespec & data_timestamp,
     const std::chrono::milliseconds & timeout);
 
   bool initialized_ = false;
 
-  std::map<std::string, RoboteqData> data_;
+  std::map<std::string, DriverData> data_;
   RoboteqVelocityCommandConverter roboteq_vel_cmd_converter_;
 
   const std::chrono::milliseconds pdo_motor_states_timeout_ms_;

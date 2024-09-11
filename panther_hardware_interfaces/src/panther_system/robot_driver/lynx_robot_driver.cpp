@@ -51,7 +51,7 @@ void LynxRobotDriver::SendSpeedCommands(const std::vector<float> & speeds)
 void LynxRobotDriver::DefineDrivers()
 {
   auto driver = std::make_shared<RoboteqDriver>(
-    canopen_manager_.GetMaster(), canopen_settings_.driver_can_ids.at(DriverNames::FRONT),
+    canopen_manager_.GetMaster(), canopen_settings_.driver_can_ids.at(DriverNames::DEFAULT),
     canopen_settings_.sdo_operation_timeout_ms);
 
   auto left_motor_driver = std::make_shared<RoboteqMotorDriver>(

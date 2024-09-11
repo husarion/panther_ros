@@ -231,14 +231,14 @@ TEST(TestRoboteqDataConverters, DriverState)
   EXPECT_FLOAT_EQ(driver_state.GetCurrent(), 3.5);
 }
 
-TEST(TestRoboteqDataConverters, RoboteqData)
+TEST(TestRoboteqDataConverters, DriverData)
 {
   using panther_hardware_interfaces::RoboteqDriver;
   using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
   using panther_hardware_interfaces_test::kRbtqPosFbToRad;
   using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
 
-  panther_hardware_interfaces::RoboteqData roboteq_data(
+  panther_hardware_interfaces::DriverData roboteq_data(
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
   ASSERT_FALSE(roboteq_data.IsError());
