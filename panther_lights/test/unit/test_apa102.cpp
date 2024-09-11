@@ -64,8 +64,6 @@ TestAPA102::TestAPA102()
   apa102_ = std::make_unique<APA102Wrapper>(spi_device_, kMockDeviceName);
 }
 
-TEST_F(TestAPA102, TestInitialization) { EXPECT_TRUE(spi_device_ != nullptr); }
-
 TEST(TestInitialization, InvalidDevices)
 {
   auto spi_device = std::make_shared<MockSPIDevice::NiceMock>();
@@ -73,8 +71,7 @@ TEST(TestInitialization, InvalidDevices)
   // Return -1 to simulate failed device opening
   ON_CALL(*spi_device, Open(kMockDeviceName)).WillByDefault(testing::Return(-1));
 
-  EXPECT_THROW(std::make_unique<APA102Wrapper>(spi_device, kMockDeviceName);
-               , std::ios_base::failure);
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
 }
 
 TEST(TestInitialization, SetModeFailure)
@@ -86,8 +83,7 @@ TEST(TestInitialization, SetModeFailure)
     .WillByDefault(testing::Return(-1));
   EXPECT_CALL(*spi_device, Close(testing::_)).Times(1);
 
-  EXPECT_THROW(std::make_unique<APA102Wrapper>(spi_device, kMockDeviceName);
-               , std::ios_base::failure);
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
 }
 
 TEST(TestInitialization, SetBitsFailure)
@@ -99,8 +95,7 @@ TEST(TestInitialization, SetBitsFailure)
     .WillByDefault(testing::Return(-1));
   EXPECT_CALL(*spi_device, Close(testing::_)).Times(1);
 
-  EXPECT_THROW(std::make_unique<APA102Wrapper>(spi_device, kMockDeviceName);
-               , std::ios_base::failure);
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
 }
 
 TEST(TestInitialization, SetSpeedFailure)
@@ -112,8 +107,7 @@ TEST(TestInitialization, SetSpeedFailure)
     .WillByDefault(testing::Return(-1));
   EXPECT_CALL(*spi_device, Close(testing::_)).Times(1);
 
-  EXPECT_THROW(std::make_unique<APA102Wrapper>(spi_device, kMockDeviceName);
-               , std::ios_base::failure);
+  EXPECT_THROW(APA102Wrapper(spi_device, kMockDeviceName), std::ios_base::failure);
 }
 
 TEST_F(TestAPA102, SetGlobalBrightnessRatioNegative)
