@@ -40,85 +40,48 @@ public:
     const std::chrono::milliseconds activate_wait_time = std::chrono::milliseconds(1000))
   : PantherRobotDriver(canopen_settings, drivetrain_settings, activate_wait_time)
   {
-    mock_fl_motor_driver_ =
+    mock_fl_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
-    mock_fr_motor_driver_ =
+    mock_fr_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
-    mock_rl_motor_driver_ =
+    mock_rl_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
-    mock_rr_motor_driver_ =
+    mock_rr_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
 
-    mock_front_driver_ =
+    mock_front_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>();
-    mock_front_driver_->AddMotorDriver(
-      panther_hardware_interfaces::MotorNames::LEFT, mock_fl_motor_driver_);
-    mock_front_driver_->AddMotorDriver(
-      panther_hardware_interfaces::MotorNames::RIGHT, mock_fr_motor_driver_);
+    mock_front_driver->AddMotorDriver(
+      panther_hardware_interfaces::MotorNames::LEFT, mock_fl_motor_driver);
+    mock_front_driver->AddMotorDriver(
+      panther_hardware_interfaces::MotorNames::RIGHT, mock_fr_motor_driver);
 
-    mock_rear_driver_ =
+    mock_rear_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>();
-    mock_rear_driver_->AddMotorDriver(
-      panther_hardware_interfaces::MotorNames::LEFT, mock_rl_motor_driver_);
-    mock_rear_driver_->AddMotorDriver(
-      panther_hardware_interfaces::MotorNames::RIGHT, mock_rr_motor_driver_);
+    mock_rear_driver->AddMotorDriver(
+      panther_hardware_interfaces::MotorNames::LEFT, mock_rl_motor_driver);
+    mock_rear_driver->AddMotorDriver(
+      panther_hardware_interfaces::MotorNames::RIGHT, mock_rr_motor_driver);
   }
 
   void DefineDrivers() override
   {
-    drivers_.emplace(panther_hardware_interfaces::DriverNames::FRONT, mock_front_driver_);
-    drivers_.emplace(panther_hardware_interfaces::DriverNames::REAR, mock_rear_driver_);
+    drivers_.emplace(panther_hardware_interfaces::DriverNames::FRONT, mock_front_driver);
+    drivers_.emplace(panther_hardware_interfaces::DriverNames::REAR, mock_rear_driver);
   }
 
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-  GetMockFrontDriver()
-  {
-    return mock_front_driver_;
-  }
-
+    mock_front_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-  GetMockRearDriver()
-  {
-    return mock_rear_driver_;
-  }
-
+    mock_rear_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockFLMotorDriver()
-  {
-    return mock_fl_motor_driver_;
-  }
-
+    mock_fl_motor_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockFRMotorDriver()
-  {
-    return mock_fr_motor_driver_;
-  }
-
+    mock_fr_motor_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockRLMotorDriver()
-  {
-    return mock_rl_motor_driver_;
-  }
-
+    mock_rl_motor_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockRRMotorDriver()
-  {
-    return mock_rr_motor_driver_;
-  }
-
-private:
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-    mock_front_driver_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-    mock_rear_driver_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_fl_motor_driver_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_fr_motor_driver_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_rl_motor_driver_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_rr_motor_driver_;
+    mock_rr_motor_driver;
 };
 
 class TestPantherRobotDriver : public ::testing::Test
@@ -154,22 +117,22 @@ TEST_F(TestPantherRobotDriver, SendSpeedCommands)
   const float rl_v = 0.3;
   const float rr_v = 0.4;
 
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), IsCANError()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), IsCANError()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsCANError()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsCANError()).Times(1);
   EXPECT_CALL(
-    *robot_driver_->GetMockFLMotorDriver(),
+    *robot_driver_->mock_fl_motor_driver,
     SendCmdVel(::testing::Eq(static_cast<std::int32_t>(fl_v * kRadPerSecToRbtqCmd))))
     .Times(1);
   EXPECT_CALL(
-    *robot_driver_->GetMockFRMotorDriver(),
+    *robot_driver_->mock_fr_motor_driver,
     SendCmdVel(::testing::Eq(static_cast<std::int32_t>(fr_v * kRadPerSecToRbtqCmd))))
     .Times(1);
   EXPECT_CALL(
-    *robot_driver_->GetMockRLMotorDriver(),
+    *robot_driver_->mock_rl_motor_driver,
     SendCmdVel(::testing::Eq(static_cast<std::int32_t>(rl_v * kRadPerSecToRbtqCmd))))
     .Times(1);
   EXPECT_CALL(
-    *robot_driver_->GetMockRRMotorDriver(),
+    *robot_driver_->mock_rr_motor_driver,
     SendCmdVel(::testing::Eq(static_cast<std::int32_t>(rr_v * kRadPerSecToRbtqCmd))))
     .Times(1);
 
@@ -179,7 +142,7 @@ TEST_F(TestPantherRobotDriver, SendSpeedCommands)
 
 TEST_F(TestPantherRobotDriver, SendSpeedCommandsSendCmdVelError)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFLMotorDriver(), SendCmdVel(::testing::_))
+  EXPECT_CALL(*robot_driver_->mock_fl_motor_driver, SendCmdVel(::testing::_))
     .WillOnce(::testing::Throw(std::runtime_error("")));
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
@@ -189,7 +152,7 @@ TEST_F(TestPantherRobotDriver, SendSpeedCommandsSendCmdVelError)
 
 TEST_F(TestPantherRobotDriver, SendSpeedCommandsCANError)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), IsCANError()).WillOnce(::testing::Return(true));
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsCANError()).WillOnce(::testing::Return(true));
 
   EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { robot_driver_->SendSpeedCommands({0.0, 0.0, 0.0, 0.0}); },
