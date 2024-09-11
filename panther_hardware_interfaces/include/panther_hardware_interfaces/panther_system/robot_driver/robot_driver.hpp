@@ -26,7 +26,7 @@ namespace panther_hardware_interfaces
 /**
  * @brief Abstract class for managing different robot drivers.
  */
-class RobotDriver
+class RobotDriverInterface
 {
 public:
   /**
@@ -103,18 +103,10 @@ public:
   virtual void TurnOffEStop() = 0;
 
   /**
-   * @brief Turns on safety stop. To turn it off, it is necessary to send
-   * 0 commands to motors.
-   *
-   * @exception std::runtime_error if any operation returns error
+   * @brief Attempt to clear driver error flags. If driver faults still exist,
+   * the error flags should remain active.
    */
-  virtual void TurnOnSafetyStop() = 0;
-
-  /**
-   * @brief Attempt to clear driver error flags by sending 0 velocity commands to motors. If driver
-   * faults still exist, the error flag will remain active.
-   */
-  virtual inline void AttemptErrorFlagResetWithZeroSpeed() = 0;
+  virtual void AttemptErrorFlagReset() = 0;
 };
 
 }  // namespace panther_hardware_interfaces

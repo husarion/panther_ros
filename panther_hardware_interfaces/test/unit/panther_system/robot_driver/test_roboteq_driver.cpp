@@ -153,9 +153,9 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStates)
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   panther_hardware_interfaces::MotorDriverState motor_driver_state_1 =
-    roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadMotorDriverState();
+    roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadState();
   panther_hardware_interfaces::MotorDriverState motor_driver_state_2 =
-    roboteq_driver_->GetMotorDriver(kMotor2Name)->ReadMotorDriverState();
+    roboteq_driver_->GetMotorDriver(kMotor2Name)->ReadState();
 
   EXPECT_EQ(motor_driver_state_1.pos, motor_1_pos);
   EXPECT_EQ(motor_driver_state_1.vel, motor_1_vel);
@@ -171,13 +171,13 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
   BootRoboteqDriver();
 
   panther_hardware_interfaces::MotorDriverState motor_driver_state_1 =
-    roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadMotorDriverState();
+    roboteq_driver_->GetMotorDriver(kMotor1Name)->ReadState();
 
   // based on publishing frequency in the Roboteq mock (100Hz)
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   panther_hardware_interfaces::MotorDriverState motor_driver_state_2 =
-    roboteq_driver_->GetMotorDriver(kMotor2Name)->ReadMotorDriverState();
+    roboteq_driver_->GetMotorDriver(kMotor2Name)->ReadState();
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart
@@ -202,7 +202,7 @@ TEST_F(TestRoboteqDriver, ReadRoboteqMotorStatesTimestamps)
     std::chrono::milliseconds(5));
 }
 
-TEST_F(TestRoboteqDriver, ReadDriverState)
+TEST_F(TestRoboteqDriver, ReadState)
 {
   using panther_hardware_interfaces_test::DriverChannel;
   using panther_hardware_interfaces_test::DriverFaultFlags;
@@ -230,7 +230,7 @@ TEST_F(TestRoboteqDriver, ReadDriverState)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-  panther_hardware_interfaces::DriverState driver_state = roboteq_driver_->ReadDriverState();
+  panther_hardware_interfaces::DriverState driver_state = roboteq_driver_->ReadState();
 
   EXPECT_EQ(driver_state.mcu_temp, temp);
   EXPECT_EQ(driver_state.heatsink_temp, heatsink_temp);
@@ -244,16 +244,16 @@ TEST_F(TestRoboteqDriver, ReadDriverState)
   EXPECT_EQ(driver_state.runtime_stat_flag_channel_2, 0b00001000);
 }
 
-TEST_F(TestRoboteqDriver, ReadDriverStateTimestamp)
+TEST_F(TestRoboteqDriver, ReadStateTimestamp)
 {
   BootRoboteqDriver();
 
-  panther_hardware_interfaces::DriverState driver_state_1 = roboteq_driver_->ReadDriverState();
+  panther_hardware_interfaces::DriverState driver_state_1 = roboteq_driver_->ReadState();
 
   // based on publishing frequency in the Roboteq mock (20Hz)
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-  panther_hardware_interfaces::DriverState driver_state_2 = roboteq_driver_->ReadDriverState();
+  panther_hardware_interfaces::DriverState driver_state_2 = roboteq_driver_->ReadState();
 
   // feedback is published with a 100ms period, to check if timestamps are accurate, it is checked
   // if consecutive messages will have timestamps 100ms + some threshold apart

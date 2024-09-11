@@ -43,95 +43,58 @@ public:
   : RoboteqRobotDriver(canopen_settings, drivetrain_settings, activate_wait_time)
   {
     // Assume 2 drivers and 4 motor drivers
-    mock_fl_motor_driver_ =
+    mock_fl_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
-    mock_fr_motor_driver_ =
+    mock_fr_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
-    mock_rl_motor_driver_ =
+    mock_rl_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
-    mock_rr_motor_driver_ =
+    mock_rr_motor_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
 
-    mock_front_driver_ =
+    mock_front_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>();
-    mock_front_driver_->AddMotorDriver(kLeftMotorDriverName, mock_fl_motor_driver_);
-    mock_front_driver_->AddMotorDriver(kRightMotorDriverName, mock_fr_motor_driver_);
+    mock_front_driver->AddMotorDriver(kLeftMotorDriverName, mock_fl_motor_driver);
+    mock_front_driver->AddMotorDriver(kRightMotorDriverName, mock_fr_motor_driver);
 
-    mock_rear_driver_ =
+    mock_rear_driver =
       std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>();
-    mock_rear_driver_->AddMotorDriver(kLeftMotorDriverName, mock_rl_motor_driver_);
-    mock_rear_driver_->AddMotorDriver(kRightMotorDriverName, mock_rr_motor_driver_);
+    mock_rear_driver->AddMotorDriver(kLeftMotorDriverName, mock_rl_motor_driver);
+    mock_rear_driver->AddMotorDriver(kRightMotorDriverName, mock_rr_motor_driver);
   }
 
   void DefineDrivers() override
   {
-    drivers_.emplace(kFrontDriverName, mock_front_driver_);
-    drivers_.emplace(kRearDriverName, mock_rear_driver_);
+    drivers_.emplace(kFrontDriverName, mock_front_driver);
+    drivers_.emplace(kRearDriverName, mock_rear_driver);
   }
 
   void SendSpeedCommands(const std::vector<float> & /*velocities*/) override {}
-  void AttemptErrorFlagResetWithZeroSpeed() override {}
-
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-  GetMockFrontDriver()
-  {
-    return mock_front_driver_;
-  }
-
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-  GetMockRearDriver()
-  {
-    return mock_rear_driver_;
-  }
-
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockFLMotorDriver()
-  {
-    return mock_fl_motor_driver_;
-  }
-
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockFRMotorDriver()
-  {
-    return mock_fr_motor_driver_;
-  }
-
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockRLMotorDriver()
-  {
-    return mock_rl_motor_driver_;
-  }
-
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-  GetMockRRMotorDriver()
-  {
-    return mock_rr_motor_driver_;
-  }
+  void AttemptErrorFlagReset() override {}
 
   static constexpr char kFrontDriverName[] = "front";
   static constexpr char kRearDriverName[] = "rear";
   static constexpr char kLeftMotorDriverName[] = "left";
   static constexpr char kRightMotorDriverName[] = "right";
 
-private:
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-    mock_front_driver_;
+    mock_front_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-    mock_rear_driver_;
+    mock_rear_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_fl_motor_driver_;
+    mock_fl_motor_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_fr_motor_driver_;
+    mock_fr_motor_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_rl_motor_driver_;
+    mock_rl_motor_driver;
   std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_rr_motor_driver_;
+    mock_rr_motor_driver;
 };
 
-class TestPantherRobotDriverInitialization : public ::testing::Test
+class TestRoboteqRobotDriverInitialization : public ::testing::Test
 {
 public:
-  TestPantherRobotDriverInitialization()
+  TestRoboteqRobotDriverInitialization()
   {
     can_socket_ = std::make_unique<panther_hardware_interfaces_test::FakeCANSocket>(
       panther_hardware_interfaces_test::kCANopenSettings.can_interface_name);
@@ -142,59 +105,69 @@ public:
       panther_hardware_interfaces_test::kDrivetrainSettings, std::chrono::milliseconds(10));
   }
 
-  ~TestPantherRobotDriverInitialization() {}
+  ~TestRoboteqRobotDriverInitialization() {}
 
 protected:
   std::unique_ptr<panther_hardware_interfaces_test::FakeCANSocket> can_socket_;
   std::unique_ptr<RoboteqRobotDriverWrapper> robot_driver_;
 };
 
-class TestPantherRobotDriver : public TestPantherRobotDriverInitialization
+class TestRoboteqRobotDriver : public TestRoboteqRobotDriverInitialization
 {
 public:
-  TestPantherRobotDriver()
+  TestRoboteqRobotDriver()
   {
     robot_driver_->Initialize();
     robot_driver_->Activate();
   }
 
-  ~TestPantherRobotDriver() { robot_driver_->Deinitialize(); }
+  ~TestRoboteqRobotDriver() { robot_driver_->Deinitialize(); }
+
+  timespec GetCurrentTimeWithTimeout(const std::chrono::nanoseconds & timeout_ns)
+  {
+    timespec current_time;
+    clock_gettime(CLOCK_MONOTONIC, &current_time);
+
+    current_time.tv_nsec -= timeout_ns.count();
+
+    return current_time;
+  }
 };
 
-TEST_F(TestPantherRobotDriverInitialization, Initialize)
+TEST_F(TestRoboteqRobotDriverInitialization, Initialize)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), Boot()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), Boot()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, Boot()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, Boot()).Times(1);
 
   EXPECT_NO_THROW(robot_driver_->Initialize());
   ASSERT_NO_THROW(robot_driver_->Deinitialize());
 
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), Boot()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), Boot()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, Boot()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, Boot()).Times(1);
   // Check if deinitialization worked correctly - initialize once again
   EXPECT_NO_THROW(robot_driver_->Initialize());
 }
 
-TEST_F(TestPantherRobotDriverInitialization, Activate)
+TEST_F(TestRoboteqRobotDriverInitialization, Activate)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), ResetScript()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), ResetScript()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockFLMotorDriver(), SendCmdVel(::testing::Eq(0))).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockFRMotorDriver(), SendCmdVel(::testing::Eq(0))).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRLMotorDriver(), SendCmdVel(::testing::Eq(0))).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRRMotorDriver(), SendCmdVel(::testing::Eq(0))).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, ResetScript()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, ResetScript()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_fl_motor_driver, SendCmdVel(::testing::Eq(0))).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_fr_motor_driver, SendCmdVel(::testing::Eq(0))).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rl_motor_driver, SendCmdVel(::testing::Eq(0))).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rr_motor_driver, SendCmdVel(::testing::Eq(0))).Times(1);
 
   ASSERT_NO_THROW(robot_driver_->Initialize());
   ASSERT_NO_THROW(robot_driver_->Activate());
 }
 
-TEST_F(TestPantherRobotDriver, GetData)
+TEST_F(TestRoboteqRobotDriver, GetData)
 {
   EXPECT_NO_THROW(robot_driver_->GetData(RoboteqRobotDriverWrapper::kFrontDriverName));
   EXPECT_NO_THROW(robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName));
 }
 
-TEST_F(TestPantherRobotDriver, GetDataError)
+TEST_F(TestRoboteqRobotDriver, GetDataError)
 {
   const std::string name = "invalid_name";
   const std::string error_msg = "Data with name '" + name + "' does not exist.";
@@ -203,20 +176,20 @@ TEST_F(TestPantherRobotDriver, GetDataError)
     [&] { robot_driver_->GetData(name); }, error_msg));
 }
 
-TEST_F(TestPantherRobotDriver, UpdateCommunicationState)
+TEST_F(TestRoboteqRobotDriver, UpdateCommunicationState)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), IsCANError()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), IsHeartbeatTimeout()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), IsCANError()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), IsHeartbeatTimeout()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsCANError()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsHeartbeatTimeout()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsCANError()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsHeartbeatTimeout()).Times(1);
 
   ASSERT_NO_THROW(robot_driver_->UpdateCommunicationState());
 }
 
-TEST_F(TestPantherRobotDriver, UpdateCommunicationStateCANErorr)
+TEST_F(TestRoboteqRobotDriver, UpdateCommunicationStateCANErorr)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), IsCANError()).WillOnce(::testing::Return(true));
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), IsCANError()).WillOnce(::testing::Return(true));
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsCANError()).WillOnce(::testing::Return(true));
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsCANError()).WillOnce(::testing::Return(true));
 
   ASSERT_NO_THROW(robot_driver_->UpdateCommunicationState());
 
@@ -224,11 +197,11 @@ TEST_F(TestPantherRobotDriver, UpdateCommunicationStateCANErorr)
   EXPECT_TRUE(robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName).IsCANError());
 }
 
-TEST_F(TestPantherRobotDriver, UpdateCommunicationStateHeartbeatTimeout)
+TEST_F(TestRoboteqRobotDriver, UpdateCommunicationStateHeartbeatTimeout)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), IsHeartbeatTimeout())
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsHeartbeatTimeout())
     .WillOnce(::testing::Return(true));
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), IsHeartbeatTimeout())
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsHeartbeatTimeout())
     .WillOnce(::testing::Return(true));
 
   ASSERT_NO_THROW(robot_driver_->UpdateCommunicationState());
@@ -239,7 +212,7 @@ TEST_F(TestPantherRobotDriver, UpdateCommunicationStateHeartbeatTimeout)
     robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName).IsHeartbeatTimeout());
 }
 
-TEST_F(TestPantherRobotDriver, UpdateMotorsState)
+TEST_F(TestRoboteqRobotDriver, UpdateMotorsState)
 {
   using panther_hardware_interfaces::MotorChannels;
   using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
@@ -259,16 +232,16 @@ TEST_F(TestPantherRobotDriver, UpdateMotorsState)
   const std::int32_t rr_vel = 402;
   const std::int32_t rr_current = 403;
 
-  ON_CALL(*robot_driver_->GetMockFLMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_fl_motor_driver, ReadState())
     .WillByDefault(::testing::Return(
       panther_hardware_interfaces::MotorDriverState({fl_pos, fl_vel, fl_current, {0, 0}, {0, 0}})));
-  ON_CALL(*robot_driver_->GetMockFRMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_fr_motor_driver, ReadState())
     .WillByDefault(::testing::Return(
       panther_hardware_interfaces::MotorDriverState({fr_pos, fr_vel, fr_current, {0, 0}, {0, 0}})));
-  ON_CALL(*robot_driver_->GetMockRLMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_rl_motor_driver, ReadState())
     .WillByDefault(::testing::Return(
       panther_hardware_interfaces::MotorDriverState({rl_pos, rl_vel, rl_current, {0, 0}, {0, 0}})));
-  ON_CALL(*robot_driver_->GetMockRRMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_rr_motor_driver, ReadState())
     .WillByDefault(::testing::Return(
       panther_hardware_interfaces::MotorDriverState({rr_pos, rr_vel, rr_current, {0, 0}, {0, 0}})));
 
@@ -300,30 +273,31 @@ TEST_F(TestPantherRobotDriver, UpdateMotorsState)
   EXPECT_FLOAT_EQ(rr_data.GetTorque(), rr_current * kRbtqCurrentFbToNewtonMeters);
 }
 
-TEST_F(TestPantherRobotDriver, UpdateMotorsStateTimestamps)
+TEST_F(TestRoboteqRobotDriver, UpdateMotorsStateTimestamps)
 {
-  auto read_motor_driver_state_method = []() {
+  auto current_time = GetCurrentTimeWithTimeout(
+    panther_hardware_interfaces_test::kCANopenSettings.pdo_motor_states_timeout_ms);
+
+  auto read_motor_driver_state_method = [&current_time]() {
     panther_hardware_interfaces::MotorDriverState state;
-    clock_gettime(CLOCK_MONOTONIC, &state.pos_timestamp);
-    clock_gettime(CLOCK_MONOTONIC, &state.vel_current_timestamp);
+    state.pos_timestamp = current_time;
+    state.vel_current_timestamp = current_time;
     return state;
   };
 
-  ON_CALL(*robot_driver_->GetMockFLMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_fl_motor_driver, ReadState())
     .WillByDefault(::testing::Invoke(read_motor_driver_state_method));
-  ON_CALL(*robot_driver_->GetMockFRMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_fr_motor_driver, ReadState())
     .WillByDefault(::testing::Invoke(read_motor_driver_state_method));
-  ON_CALL(*robot_driver_->GetMockRLMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_rl_motor_driver, ReadState())
     .WillByDefault(::testing::Invoke(read_motor_driver_state_method));
-  ON_CALL(*robot_driver_->GetMockRRMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_rr_motor_driver, ReadState())
     .WillByDefault(::testing::Invoke(read_motor_driver_state_method));
 
   robot_driver_->UpdateMotorsState();
 
-  // sleep for timeout and check if timestamps were updated correctly
-  std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCANopenSettings.pdo_motor_states_timeout_ms +
-    std::chrono::milliseconds(10));
+  // Update current time to exceed timeout
+  clock_gettime(CLOCK_MONOTONIC, &current_time);
 
   robot_driver_->UpdateMotorsState();
 
@@ -333,26 +307,21 @@ TEST_F(TestPantherRobotDriver, UpdateMotorsStateTimestamps)
     robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName).IsMotorStatesDataTimedOut());
 }
 
-TEST_F(TestPantherRobotDriver, UpdateMotorsStateTimeout)
+TEST_F(TestRoboteqRobotDriver, UpdateMotorsStateTimeout)
 {
-  timespec current_time;
-  clock_gettime(CLOCK_MONOTONIC, &current_time);
+  const auto current_time = GetCurrentTimeWithTimeout(
+    panther_hardware_interfaces_test::kCANopenSettings.pdo_motor_states_timeout_ms);
 
   panther_hardware_interfaces::MotorDriverState state = {0, 0, 0, current_time, current_time};
 
-  ON_CALL(*robot_driver_->GetMockFLMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_fl_motor_driver, ReadState())
     .WillByDefault(::testing::Return(state));
-  ON_CALL(*robot_driver_->GetMockFRMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_fr_motor_driver, ReadState())
     .WillByDefault(::testing::Return(state));
-  ON_CALL(*robot_driver_->GetMockRLMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_rl_motor_driver, ReadState())
     .WillByDefault(::testing::Return(state));
-  ON_CALL(*robot_driver_->GetMockRRMotorDriver(), ReadMotorDriverState())
+  ON_CALL(*robot_driver_->mock_rr_motor_driver, ReadState())
     .WillByDefault(::testing::Return(state));
-
-  // sleep for pdo_motor_states_timeout_ms + 10ms
-  std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCANopenSettings.pdo_motor_states_timeout_ms +
-    std::chrono::milliseconds(10));
 
   robot_driver_->UpdateMotorsState();
 
@@ -364,7 +333,7 @@ TEST_F(TestPantherRobotDriver, UpdateMotorsStateTimeout)
   EXPECT_TRUE(robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName).IsError());
 }
 
-TEST_F(TestPantherRobotDriver, UpdateDriverState)
+TEST_F(TestRoboteqRobotDriver, UpdateDriverState)
 {
   using panther_hardware_interfaces::MotorChannels;
 
@@ -388,32 +357,38 @@ TEST_F(TestPantherRobotDriver, UpdateDriverState)
   const std::uint8_t runtime_error_forward_limit_triggered = static_cast<std::uint8_t>(0b10000);
   const std::uint8_t runtime_error_reverse_limit_triggered = static_cast<std::uint8_t>(0b100000);
 
-  ON_CALL(*robot_driver_->GetMockFrontDriver(), ReadDriverState())
-    .WillByDefault(::testing::Return(panther_hardware_interfaces::DriverState(
-      {fault_flag_overheat,
-       script_flag_encoder_disconnected,
-       runtime_error_loop_error,
-       runtime_error_safety_stop_active,
-       f_battery_current_1,
-       f_battery_current_2,
-       f_volt,
-       f_temp,
-       f_heatsink_temp,
-       {0, 0},
-       {0, 0}})));
-  ON_CALL(*robot_driver_->GetMockRearDriver(), ReadDriverState())
-    .WillByDefault(::testing::Return(panther_hardware_interfaces::DriverState(
-      {fault_flag_overvoltage,
-       script_flag_amp_limiter,
-       runtime_error_forward_limit_triggered,
-       runtime_error_reverse_limit_triggered,
-       r_battery_current_1,
-       r_battery_current_2,
-       r_volt,
-       r_temp,
-       r_heatsink_temp,
-       {0, 0},
-       {0, 0}})));
+  panther_hardware_interfaces::DriverState front_driver_state_data = {
+    fault_flag_overheat,
+    script_flag_encoder_disconnected,
+    runtime_error_loop_error,
+    runtime_error_safety_stop_active,
+    f_battery_current_1,
+    f_battery_current_2,
+    f_volt,
+    f_temp,
+    f_heatsink_temp,
+    {0, 0},
+    {0, 0}};
+
+  panther_hardware_interfaces::DriverState rear_driver_state_data = {
+    fault_flag_overvoltage,
+    script_flag_amp_limiter,
+    runtime_error_forward_limit_triggered,
+    runtime_error_reverse_limit_triggered,
+    r_battery_current_1,
+    r_battery_current_2,
+    r_volt,
+    r_temp,
+    r_heatsink_temp,
+    {0, 0},
+    {0, 0}};
+
+  ON_CALL(*robot_driver_->mock_front_driver, ReadState())
+    .WillByDefault(
+      ::testing::Return(panther_hardware_interfaces::DriverState(front_driver_state_data)));
+  ON_CALL(*robot_driver_->mock_rear_driver, ReadState())
+    .WillByDefault(
+      ::testing::Return(panther_hardware_interfaces::DriverState(rear_driver_state_data)));
 
   robot_driver_->UpdateDriversState();
 
@@ -450,26 +425,27 @@ TEST_F(TestPantherRobotDriver, UpdateDriverState)
   EXPECT_TRUE(rear_data.GetRuntimeError(MotorChannels::LEFT).GetMessage().reverse_limit_triggered);
 }
 
-TEST_F(TestPantherRobotDriver, UpdateDriverStateTimestamps)
+TEST_F(TestRoboteqRobotDriver, UpdateDriverStateTimestamps)
 {
-  auto read_driver_state_method = []() {
+  auto current_time = GetCurrentTimeWithTimeout(
+    panther_hardware_interfaces_test::kCANopenSettings.pdo_driver_state_timeout_ms);
+
+  auto read_driver_state_method = [&current_time]() {
     panther_hardware_interfaces::DriverState state;
-    clock_gettime(CLOCK_MONOTONIC, &state.flags_current_timestamp);
-    clock_gettime(CLOCK_MONOTONIC, &state.voltages_temps_timestamp);
+    state.flags_current_timestamp = current_time;
+    state.voltages_temps_timestamp = current_time;
     return state;
   };
 
-  ON_CALL(*robot_driver_->GetMockFrontDriver(), ReadDriverState())
+  ON_CALL(*robot_driver_->mock_front_driver, ReadState())
     .WillByDefault(::testing::Invoke(read_driver_state_method));
-  ON_CALL(*robot_driver_->GetMockRearDriver(), ReadDriverState())
+  ON_CALL(*robot_driver_->mock_rear_driver, ReadState())
     .WillByDefault(::testing::Invoke(read_driver_state_method));
 
   robot_driver_->UpdateDriversState();
 
-  // sleep for timeout and check if timestamps were updated correctly
-  std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCANopenSettings.pdo_driver_state_timeout_ms +
-    std::chrono::milliseconds(10));
+  // Update current time to exceed timeout
+  clock_gettime(CLOCK_MONOTONIC, &current_time);
 
   robot_driver_->UpdateDriversState();
 
@@ -479,23 +455,16 @@ TEST_F(TestPantherRobotDriver, UpdateDriverStateTimestamps)
     robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName).IsDriverStateDataTimedOut());
 }
 
-TEST_F(TestPantherRobotDriver, UpdateDriverStateTimeout)
+TEST_F(TestRoboteqRobotDriver, UpdateDriverStateTimeout)
 {
-  timespec current_time;
-  clock_gettime(CLOCK_MONOTONIC, &current_time);
+  const auto current_time = GetCurrentTimeWithTimeout(
+    panther_hardware_interfaces_test::kCANopenSettings.pdo_driver_state_timeout_ms);
 
   panther_hardware_interfaces::DriverState state = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, current_time, current_time};
 
-  ON_CALL(*robot_driver_->GetMockFrontDriver(), ReadDriverState())
-    .WillByDefault(::testing::Return(state));
-  ON_CALL(*robot_driver_->GetMockRearDriver(), ReadDriverState())
-    .WillByDefault(::testing::Return(state));
-
-  // sleep for pdo_driver_state_timeout_ms + 10ms
-  std::this_thread::sleep_for(
-    panther_hardware_interfaces_test::kCANopenSettings.pdo_driver_state_timeout_ms +
-    std::chrono::milliseconds(10));
+  ON_CALL(*robot_driver_->mock_front_driver, ReadState()).WillByDefault(::testing::Return(state));
+  ON_CALL(*robot_driver_->mock_rear_driver, ReadState()).WillByDefault(::testing::Return(state));
 
   robot_driver_->UpdateDriversState();
 
@@ -507,59 +476,38 @@ TEST_F(TestPantherRobotDriver, UpdateDriverStateTimeout)
   EXPECT_TRUE(robot_driver_->GetData(RoboteqRobotDriverWrapper::kRearDriverName).IsError());
 }
 
-TEST_F(TestPantherRobotDriver, TurnOnEStop)
+TEST_F(TestRoboteqRobotDriver, TurnOnEStop)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), TurnOnEStop()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), TurnOnEStop()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, TurnOnEStop()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, TurnOnEStop()).Times(1);
 
   EXPECT_NO_THROW(robot_driver_->TurnOnEStop());
 }
 
-TEST_F(TestPantherRobotDriver, TurnOffEStop)
+TEST_F(TestRoboteqRobotDriver, TurnOffEStop)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), TurnOffEStop()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), TurnOffEStop()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_front_driver, TurnOffEStop()).Times(1);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, TurnOffEStop()).Times(1);
 
   EXPECT_NO_THROW(robot_driver_->TurnOffEStop());
 }
 
-TEST_F(TestPantherRobotDriver, TurnOnEStopError)
+TEST_F(TestRoboteqRobotDriver, TurnOnEStopError)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), TurnOnEStop())
+  EXPECT_CALL(*robot_driver_->mock_front_driver, TurnOnEStop())
     .WillOnce(::testing::Throw(std::runtime_error("")));
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), TurnOnEStop()).Times(0);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, TurnOnEStop()).Times(0);
 
   EXPECT_THROW(robot_driver_->TurnOnEStop(), std::runtime_error);
 }
 
-TEST_F(TestPantherRobotDriver, TurnOffEStopError)
+TEST_F(TestRoboteqRobotDriver, TurnOffEStopError)
 {
-  EXPECT_CALL(*robot_driver_->GetMockFrontDriver(), TurnOffEStop())
+  EXPECT_CALL(*robot_driver_->mock_front_driver, TurnOffEStop())
     .WillOnce(::testing::Throw(std::runtime_error("")));
-  EXPECT_CALL(*robot_driver_->GetMockRearDriver(), TurnOffEStop()).Times(0);
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, TurnOffEStop()).Times(0);
 
   EXPECT_THROW(robot_driver_->TurnOffEStop(), std::runtime_error);
-}
-
-TEST_F(TestPantherRobotDriver, SafetyStop)
-{
-  EXPECT_CALL(*robot_driver_->GetMockFLMotorDriver(), TurnOnSafetyStop()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockFRMotorDriver(), TurnOnSafetyStop()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRLMotorDriver(), TurnOnSafetyStop()).Times(1);
-  EXPECT_CALL(*robot_driver_->GetMockRRMotorDriver(), TurnOnSafetyStop()).Times(1);
-
-  EXPECT_NO_THROW(robot_driver_->TurnOnSafetyStop());
-}
-
-TEST_F(TestPantherRobotDriver, SafetyStopError)
-{
-  EXPECT_CALL(*robot_driver_->GetMockFLMotorDriver(), TurnOnSafetyStop())
-    .WillOnce(::testing::Throw(std::runtime_error("")));
-  EXPECT_CALL(*robot_driver_->GetMockFRMotorDriver(), TurnOnSafetyStop()).Times(0);
-  EXPECT_CALL(*robot_driver_->GetMockRLMotorDriver(), TurnOnSafetyStop()).Times(0);
-  EXPECT_CALL(*robot_driver_->GetMockRRMotorDriver(), TurnOnSafetyStop()).Times(0);
-
-  EXPECT_THROW(robot_driver_->TurnOnSafetyStop(), std::runtime_error);
 }
 
 int main(int argc, char ** argv)

@@ -114,8 +114,8 @@ void RoboteqRobotDriver::UpdateMotorsState()
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
   for (auto & [name, driver] : drivers_) {
-    const auto left_state = driver->GetMotorDriver(MotorNames::LEFT)->ReadMotorDriverState();
-    const auto right_state = driver->GetMotorDriver(MotorNames::RIGHT)->ReadMotorDriverState();
+    const auto left_state = driver->GetMotorDriver(MotorNames::LEFT)->ReadState();
+    const auto right_state = driver->GetMotorDriver(MotorNames::RIGHT)->ReadState();
 
     SetMotorsStates(data_.at(name), left_state, right_state, current_time);
   }
@@ -140,7 +140,7 @@ void RoboteqRobotDriver::UpdateDriversState()
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
   for (auto & [name, driver] : drivers_) {
-    SetDriverState(data_.at(name), driver->ReadDriverState(), current_time);
+    SetDriverState(data_.at(name), driver->ReadState(), current_time);
   }
 
   UpdateCommunicationState();
@@ -186,19 +186,6 @@ void RoboteqRobotDriver::TurnOffEStop()
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
         "Failed to turn off E-stop on " + name + " driver: " + std::string(e.what()));
-    }
-  }
-}
-
-void RoboteqRobotDriver::TurnOnSafetyStop()
-{
-  for (auto & [name, driver] : drivers_) {
-    try {
-      driver->GetMotorDriver(MotorNames::LEFT)->TurnOnSafetyStop();
-      driver->GetMotorDriver(MotorNames::RIGHT)->TurnOnSafetyStop();
-    } catch (const std::runtime_error & e) {
-      throw std::runtime_error(
-        "Failed to turn on safety stop on " + name + " driver: " + std::string(e.what()));
     }
   }
 }
