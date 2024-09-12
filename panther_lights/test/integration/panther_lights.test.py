@@ -65,7 +65,7 @@ def generate_test_description():
     )
 
 
-class TestNode(unittest.TestCase):
+class TestNodesIntegration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
