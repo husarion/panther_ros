@@ -44,21 +44,19 @@ public:
   {
     // Assume 2 drivers and 4 motor drivers
     mock_fl_motor_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockMotorDriver::NiceMock>();
     mock_fr_motor_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockMotorDriver::NiceMock>();
     mock_rl_motor_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockMotorDriver::NiceMock>();
     mock_rr_motor_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockMotorDriver::NiceMock>();
 
-    mock_front_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>();
+    mock_front_driver = std::make_shared<panther_hardware_interfaces_test::MockDriver::NiceMock>();
     mock_front_driver->AddMotorDriver(kLeftMotorDriverName, mock_fl_motor_driver);
     mock_front_driver->AddMotorDriver(kRightMotorDriverName, mock_fr_motor_driver);
 
-    mock_rear_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>();
+    mock_rear_driver = std::make_shared<panther_hardware_interfaces_test::MockDriver::NiceMock>();
     mock_rear_driver->AddMotorDriver(kLeftMotorDriverName, mock_rl_motor_driver);
     mock_rear_driver->AddMotorDriver(kRightMotorDriverName, mock_rr_motor_driver);
   }
@@ -77,18 +75,12 @@ public:
   static constexpr char kLeftMotorDriverName[] = "left";
   static constexpr char kRightMotorDriverName[] = "right";
 
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-    mock_front_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockDriver>>
-    mock_rear_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_fl_motor_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_fr_motor_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_rl_motor_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockMotorDriver>>
-    mock_rr_motor_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockDriver::NiceMock> mock_front_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockDriver::NiceMock> mock_rear_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockMotorDriver::NiceMock> mock_fl_motor_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockMotorDriver::NiceMock> mock_fr_motor_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockMotorDriver::NiceMock> mock_rl_motor_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockMotorDriver::NiceMock> mock_rr_motor_driver;
 };
 
 class TestRoboteqRobotDriverInitialization : public ::testing::Test

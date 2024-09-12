@@ -41,11 +41,13 @@ public:
   MOCK_METHOD(void, UpdateMotorsState, (), (override));
   MOCK_METHOD(void, UpdateDriversState, (), (override));
   MOCK_METHOD(
-    const panther_hardware_interfaces::RoboteqData &, GetData, (const std::string &), (override));
+    const panther_hardware_interfaces::DriverData &, GetData, (const std::string &), (override));
   MOCK_METHOD(void, SendSpeedCommands, (const std::vector<float> &), (override));
   MOCK_METHOD(void, TurnOnEStop, (), (override));
   MOCK_METHOD(void, TurnOffEStop, (), (override));
   MOCK_METHOD(void, AttemptErrorFlagReset, (), (override));
+
+  using NiceMock = testing::NiceMock<MockRobotDriver>;
 };
 
 class MockGPIODriver : public panther_hardware_interfaces::GPIODriverInterface
@@ -63,6 +65,8 @@ public:
   MOCK_METHOD(bool, IsPinActive, (const panther_hardware_interfaces::GPIOPin), (override));
   MOCK_METHOD(
     bool, SetPinValue, (const panther_hardware_interfaces::GPIOPin, const bool), (override));
+
+  using NiceMock = testing::NiceMock<MockGPIODriver>;
 };
 
 class MockGPIOController : public panther_hardware_interfaces::GPIOControllerInterface
@@ -85,6 +89,8 @@ public:
   MOCK_METHOD(
     (std::unordered_map<panther_hardware_interfaces::GPIOPin, bool>), QueryControlInterfaceIOStates,
     (), (const, override));
+
+  using NiceMock = testing::NiceMock<MockGPIOController>;
 };
 
 class MockEStop : public panther_hardware_interfaces::EStopInterface
@@ -95,6 +101,8 @@ public:
   MOCK_METHOD(bool, ReadEStopState, (), (override));
   MOCK_METHOD(void, TriggerEStop, (), (override));
   MOCK_METHOD(void, ResetEStop, (), (override));
+
+  using NiceMock = testing::NiceMock<MockEStop>;
 };
 
 hardware_interface::HardwareInfo GenerateDefaultHardwareInfo()
@@ -146,13 +154,13 @@ hardware_interface::HardwareInfo GenerateDefaultHardwareInfo()
     {"driver_states_update_frequency", "20.0"},
 
     // Roboteq initialization and activation attempts
-    {"max_roboteq_initialization_attempts", "5"},
-    {"max_roboteq_activation_attempts", "5"},
+    {"max_roboteq_initialization_attempts", "1"},
+    {"max_roboteq_activation_attempts", "1"},
 
     // Roboteq error filter params
-    {"max_write_pdo_cmds_errors_count", "4"},
-    {"max_read_pdo_motor_states_errors_count", "4"},
-    {"max_read_pdo_driver_state_errors_count", "20"},
+    {"max_write_pdo_cmds_errors_count", "1"},
+    {"max_read_pdo_motor_states_errors_count", "1"},
+    {"max_read_pdo_driver_state_errors_count", "1"},
   };
 
   hardware_info.hardware_parameters = hardware_paremeters;

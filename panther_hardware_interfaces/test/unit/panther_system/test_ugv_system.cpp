@@ -34,11 +34,10 @@ public:
   : panther_hardware_interfaces::UGVSystem(joint_order)
   {
     mock_robot_driver_ =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockRobotDriver::NiceMock>();
     mock_gpio_controller_ =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>();
-    mock_e_stop_ =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>>();
+      std::make_shared<panther_hardware_interfaces_test::MockGPIOController::NiceMock>();
+    mock_e_stop_ = std::make_shared<panther_hardware_interfaces_test::MockEStop::NiceMock>();
 
     ON_CALL(*this, DefineRobotDriver()).WillByDefault(::testing::Invoke([&]() {
       robot_driver_ = mock_robot_driver_;
@@ -70,8 +69,7 @@ public:
 
   void DefaultDefineRobotDriver()
   {
-    robot_driver_ =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>();
+    robot_driver_ = std::make_shared<panther_hardware_interfaces_test::MockRobotDriver::NiceMock>();
   }
 
   void SetHwCommandVelocity(const std::vector<double> & velocity)
@@ -85,29 +83,29 @@ public:
   }
   void SetHwStateEffort(const std::vector<double> & effort) { hw_states_efforts_ = effort; }
 
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>
-  GetMockRobotDriver()
+  std::shared_ptr<panther_hardware_interfaces_test::MockRobotDriver::NiceMock> GetMockRobotDriver()
   {
     return mock_robot_driver_;
   }
 
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>
+  std::shared_ptr<panther_hardware_interfaces_test::MockGPIOController::NiceMock>
   GetMockGPIOController()
   {
     return mock_gpio_controller_;
   }
 
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>> GetMockEStop()
+  std::shared_ptr<panther_hardware_interfaces_test::MockEStop::NiceMock> GetMockEStop()
   {
     return mock_e_stop_;
   }
 
+  using NiceMock = testing::NiceMock<MockUGVSystem>;
+
 private:
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>
-    mock_robot_driver_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>
+  std::shared_ptr<panther_hardware_interfaces_test::MockRobotDriver::NiceMock> mock_robot_driver_;
+  std::shared_ptr<panther_hardware_interfaces_test::MockGPIOController::NiceMock>
     mock_gpio_controller_;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>> mock_e_stop_;
+  std::shared_ptr<panther_hardware_interfaces_test::MockEStop::NiceMock> mock_e_stop_;
 };
 
 class TestUGVSystem : public ::testing::Test
@@ -115,8 +113,8 @@ class TestUGVSystem : public ::testing::Test
 public:
   TestUGVSystem()
   {
-    ugv_system_ = std::make_shared<::testing::NiceMock<MockUGVSystem>>(
-      std::vector<std::string>{"fl", "fr", "rl", "rr"});
+    ugv_system_ =
+      std::make_shared<MockUGVSystem::NiceMock>(std::vector<std::string>{"fl", "fr", "rl", "rr"});
 
     hardware_info_ = panther_hardware_interfaces_test::GenerateDefaultHardwareInfo();
   }
@@ -124,7 +122,7 @@ public:
   ~TestUGVSystem() {}
 
 protected:
-  std::shared_ptr<::testing::NiceMock<MockUGVSystem>> ugv_system_;
+  std::shared_ptr<MockUGVSystem::NiceMock> ugv_system_;
   hardware_interface::HardwareInfo hardware_info_;
 };
 
