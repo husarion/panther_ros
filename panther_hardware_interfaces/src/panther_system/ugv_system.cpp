@@ -439,7 +439,7 @@ void UGVSystem::ConfigureRobotDriver()
     throw std::runtime_error("Roboteq drivers initialization failed.");
   }
 
-  RCLCPP_INFO(logger_, "Successfully configured motors controller");
+  RCLCPP_INFO(logger_, "Successfully configured robot driver");
 }
 
 void UGVSystem::ConfigureEStop()

@@ -225,7 +225,7 @@ public:
    * @param name The name of the driver to update the flags for
    * @param data The data to update the flags with
    */
-  void UpdateMsgErrorFlags(const std::string & name, const RoboteqData & data);
+  void UpdateMsgErrorFlags(const std::string & name, const DriverData & data);
 
   /**
    * @brief Updates parameters of the driver (voltage, current and temperature) in robot driver

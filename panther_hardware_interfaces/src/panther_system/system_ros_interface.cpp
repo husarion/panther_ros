@@ -126,7 +126,7 @@ SystemROSInterface::~SystemROSInterface()
   node_.reset();
 }
 
-void SystemROSInterface::UpdateMsgErrorFlags(const std::string & name, const RoboteqData & data)
+void SystemROSInterface::UpdateMsgErrorFlags(const std::string & name, const DriverData & data)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
   auto & driver_state_named = GetDriverStateByName(driver_state, name);

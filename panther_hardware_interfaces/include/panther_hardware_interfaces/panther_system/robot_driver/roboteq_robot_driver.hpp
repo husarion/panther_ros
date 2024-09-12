@@ -156,6 +156,7 @@ private:
   bool DataTimeout(
     const timespec & current_time, const timespec & data_timestamp,
     const std::chrono::milliseconds & timeout);
+  void BootDrivers();
 
   bool initialized_ = false;
 
