@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_CANOPEN_MANAGER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_CANOPEN_MANAGER_HPP_
 
 #include <atomic>
 #include <chrono>
@@ -47,8 +47,7 @@ struct CANopenSettings
   std::string can_interface_name;
 
   std::uint8_t master_can_id;
-  std::uint8_t front_driver_can_id;
-  std::uint8_t rear_driver_can_id;
+  std::map<std::string, std::uint8_t> driver_can_ids;
 
   std::chrono::milliseconds pdo_motor_states_timeout_ms;
   std::chrono::milliseconds pdo_driver_state_timeout_ms;
@@ -136,4 +135,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_CANOPEN_MANAGER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_CANOPEN_MANAGER_HPP_

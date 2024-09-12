@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_DRIVER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_DRIVER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_DRIVER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_DRIVER_HPP_
 
 #include <atomic>
 #include <chrono>
@@ -42,8 +42,8 @@ struct DriverState
 {
   std::uint8_t fault_flags;
   std::uint8_t script_flags;
-  std::uint8_t runtime_stat_flag_motor_1;
-  std::uint8_t runtime_stat_flag_motor_2;
+  std::uint8_t runtime_stat_flag_channel_1;
+  std::uint8_t runtime_stat_flag_channel_2;
 
   std::int16_t battery_current_1;
   std::int16_t battery_current_2;
@@ -60,14 +60,14 @@ struct DriverState
 /**
  * @brief Abstract class for motor driver
  */
-class MotorDriver
+class MotorDriverInterface
 {
 public:
   /**
    * @brief Reads motors' state data returned from  (PDO 1 and 2) and saves
    * last timestamps
    */
-  virtual MotorDriverState ReadMotorDriverState() = 0;
+  virtual MotorDriverState ReadState() = 0;
 
   /**
    * @brief Sends commands to the motors
@@ -87,9 +87,9 @@ public:
 };
 
 /**
- * @brief Abstract class for  driver
+ * @brief Abstract class that provides functionality for managing motor drivers
  */
-class Driver
+class DriverInterface
 {
 public:
   /**
@@ -114,7 +114,7 @@ public:
    * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
    * temperatures. Also saves the last timestamps
    */
-  virtual DriverState ReadDriverState() = 0;
+  virtual DriverState ReadState() = 0;
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -135,16 +135,16 @@ public:
    * @brief Adds a motor driver to the driver
    */
   virtual void AddMotorDriver(
-    const std::string name, std::shared_ptr<MotorDriver> motor_driver) = 0;
+    const std::string name, std::shared_ptr<MotorDriverInterface> motor_driver) = 0;
 
-  virtual std::shared_ptr<MotorDriver> GetMotorDriver(const std::string & name) = 0;
+  virtual std::shared_ptr<MotorDriverInterface> GetMotorDriver(const std::string & name) = 0;
 
   /**
    * @brief Alias for a shared pointer to a Driver object.
    */
-  using SharedPtr = std::shared_ptr<Driver>;
+  using SharedPtr = std::shared_ptr<DriverInterface>;
 };
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_DRIVER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_DRIVER_HPP_

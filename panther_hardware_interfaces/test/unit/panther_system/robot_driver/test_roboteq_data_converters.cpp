@@ -19,7 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
+
 #include "utils/test_constants.hpp"
 
 void TestFaultFlagMsg(
@@ -83,6 +84,10 @@ TEST(TestRoboteqDataConverters, CommandConverter)
 
 TEST(TestRoboteqDataConverters, MotorState)
 {
+  using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
+  using panther_hardware_interfaces_test::kRbtqPosFbToRad;
+  using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
+
   panther_hardware_interfaces::MotorState motor_state(
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
@@ -90,29 +95,25 @@ TEST(TestRoboteqDataConverters, MotorState)
   EXPECT_FLOAT_EQ(motor_state.GetVelocity(), 0.0);
   EXPECT_FLOAT_EQ(motor_state.GetTorque(), 0.0);
 
-  panther_hardware_interfaces::RoboteqMotorState feedback1;
+  panther_hardware_interfaces::MotorDriverState feedback1;
   feedback1.pos = 48128;
   feedback1.vel = 1000;
   feedback1.current = 1;
   motor_state.SetData(feedback1);
 
-  const float pos_to_radians = 0.00013055156;
-  const float vel_to_radians_per_second = 0.003481375;
-  const float current_to_newton_meters = 0.24816;
+  EXPECT_FLOAT_EQ(motor_state.GetPosition(), feedback1.pos * kRbtqPosFbToRad);
+  EXPECT_FLOAT_EQ(motor_state.GetVelocity(), feedback1.vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(motor_state.GetTorque(), feedback1.current * kRbtqCurrentFbToNewtonMeters);
 
-  EXPECT_FLOAT_EQ(motor_state.GetPosition(), feedback1.pos * pos_to_radians);
-  EXPECT_FLOAT_EQ(motor_state.GetVelocity(), feedback1.vel * vel_to_radians_per_second);
-  EXPECT_FLOAT_EQ(motor_state.GetTorque(), feedback1.current * current_to_newton_meters);
-
-  panther_hardware_interfaces::RoboteqMotorState feedback2;
+  panther_hardware_interfaces::MotorDriverState feedback2;
   feedback2.pos = -48128;
   feedback2.vel = -1000;
   feedback2.current = -1;
   motor_state.SetData(feedback2);
 
-  EXPECT_FLOAT_EQ(motor_state.GetPosition(), feedback2.pos * pos_to_radians);
-  EXPECT_FLOAT_EQ(motor_state.GetVelocity(), feedback2.vel * vel_to_radians_per_second);
-  EXPECT_FLOAT_EQ(motor_state.GetTorque(), feedback2.current * current_to_newton_meters);
+  EXPECT_FLOAT_EQ(motor_state.GetPosition(), feedback2.pos * kRbtqPosFbToRad);
+  EXPECT_FLOAT_EQ(motor_state.GetVelocity(), feedback2.vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(motor_state.GetTorque(), feedback2.current * kRbtqCurrentFbToNewtonMeters);
 }
 
 TEST(TestRoboteqDataConverters, FlagError)
@@ -214,7 +215,7 @@ TEST(TestRoboteqDataConverters, RuntimeError)
 
 TEST(TestRoboteqDataConverters, DriverState)
 {
-  panther_hardware_interfaces::DriverState driver_state;
+  panther_hardware_interfaces::RoboteqDriverState driver_state;
 
   EXPECT_FLOAT_EQ(driver_state.GetTemperature(), 0.0);
   EXPECT_FLOAT_EQ(driver_state.GetVoltage(), 0.0);
@@ -230,21 +231,28 @@ TEST(TestRoboteqDataConverters, DriverState)
   EXPECT_FLOAT_EQ(driver_state.GetCurrent(), 3.5);
 }
 
-TEST(TestRoboteqDataConverters, RoboteqData)
+TEST(TestRoboteqDataConverters, DriverData)
 {
-  panther_hardware_interfaces::RoboteqData roboteq_data(
+  using panther_hardware_interfaces::RoboteqDriver;
+  using panther_hardware_interfaces_test::kRbtqCurrentFbToNewtonMeters;
+  using panther_hardware_interfaces_test::kRbtqPosFbToRad;
+  using panther_hardware_interfaces_test::kRbtqVelFbToRadPerSec;
+
+  panther_hardware_interfaces::DriverData roboteq_data(
     panther_hardware_interfaces_test::kDrivetrainSettings);
 
   ASSERT_FALSE(roboteq_data.IsError());
 
-  const panther_hardware_interfaces::RoboteqMotorState left_state = {48128, 1000, 1};
-  const panther_hardware_interfaces::RoboteqMotorState right_state = {0, 0, 0};
-  roboteq_data.SetMotorsStates(left_state, right_state, true);
+  const panther_hardware_interfaces::MotorDriverState channel_1_state = {0, 0, 0, {0, 0}, {0, 0}};
+  const panther_hardware_interfaces::MotorDriverState channel_2_state = {
+    48128, 1000, 1, {0, 0}, {0, 0}};
+
+  roboteq_data.SetMotorsStates(channel_1_state, channel_2_state, true);
 
   ASSERT_TRUE(roboteq_data.IsError());
   ASSERT_TRUE(roboteq_data.IsMotorStatesDataTimedOut());
 
-  roboteq_data.SetMotorsStates(left_state, right_state, false);
+  roboteq_data.SetMotorsStates(channel_1_state, channel_2_state, false);
 
   ASSERT_FALSE(roboteq_data.IsError());
 
@@ -256,25 +264,25 @@ TEST(TestRoboteqDataConverters, RoboteqData)
   roboteq_data.SetCANError(false);
   ASSERT_FALSE(roboteq_data.IsError());
 
-  const float pos_to_radians = 0.00013055156;
-  const float vel_to_radians_per_second = 0.003481375;
-  const float current_to_newton_meters = 0.24816;
-
-  EXPECT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetPosition(), 0.0);
-  EXPECT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetVelocity(), 0.0);
-  EXPECT_FLOAT_EQ(roboteq_data.GetRightMotorState().GetTorque(), 0.0);
-  EXPECT_FLOAT_EQ(roboteq_data.GetLeftMotorState().GetPosition(), left_state.pos * pos_to_radians);
+  EXPECT_FLOAT_EQ(roboteq_data.GetMotorState(RoboteqDriver::kChannel1).GetPosition(), 0.0);
+  EXPECT_FLOAT_EQ(roboteq_data.GetMotorState(RoboteqDriver::kChannel1).GetVelocity(), 0.0);
+  EXPECT_FLOAT_EQ(roboteq_data.GetMotorState(RoboteqDriver::kChannel1).GetTorque(), 0.0);
   EXPECT_FLOAT_EQ(
-    roboteq_data.GetLeftMotorState().GetVelocity(), left_state.vel * vel_to_radians_per_second);
+    roboteq_data.GetMotorState(RoboteqDriver::kChannel2).GetPosition(),
+    channel_2_state.pos * kRbtqPosFbToRad);
   EXPECT_FLOAT_EQ(
-    roboteq_data.GetLeftMotorState().GetTorque(), left_state.current * current_to_newton_meters);
+    roboteq_data.GetMotorState(RoboteqDriver::kChannel2).GetVelocity(),
+    channel_2_state.vel * kRbtqVelFbToRadPerSec);
+  EXPECT_FLOAT_EQ(
+    roboteq_data.GetMotorState(RoboteqDriver::kChannel2).GetTorque(),
+    channel_2_state.current * kRbtqCurrentFbToNewtonMeters);
 
-  panther_hardware_interfaces::RoboteqDriverState state;
+  panther_hardware_interfaces::DriverState state;
 
   state.fault_flags = 0b00000001;
   state.script_flags = 0b00000010;
-  state.runtime_stat_flag_motor_1 = 0b00010000;
-  state.runtime_stat_flag_motor_2 = 0b00000100;
+  state.runtime_stat_flag_channel_1 = 0b00010000;
+  state.runtime_stat_flag_channel_2 = 0b00000100;
 
   state.mcu_temp = 32;
   state.heatsink_temp = 31;
@@ -288,8 +296,9 @@ TEST(TestRoboteqDataConverters, RoboteqData)
 
   EXPECT_TRUE(roboteq_data.GetFaultFlag().GetMessage().overheat);
   EXPECT_TRUE(roboteq_data.GetScriptFlag().GetMessage().encoder_disconnected);
-  EXPECT_TRUE(roboteq_data.GetLeftRuntimeError().GetMessage().loop_error);
-  EXPECT_TRUE(roboteq_data.GetRightRuntimeError().GetMessage().forward_limit_triggered);
+  EXPECT_TRUE(roboteq_data.GetRuntimeError(RoboteqDriver::kChannel2).GetMessage().loop_error);
+  EXPECT_TRUE(
+    roboteq_data.GetRuntimeError(RoboteqDriver::kChannel1).GetMessage().forward_limit_triggered);
 
   EXPECT_FLOAT_EQ(roboteq_data.GetDriverState().GetTemperature(), 32);
   EXPECT_FLOAT_EQ(roboteq_data.GetDriverState().GetHeatsinkTemperature(), 31);

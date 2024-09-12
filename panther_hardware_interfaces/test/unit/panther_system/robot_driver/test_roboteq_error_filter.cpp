@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include <panther_hardware_interfaces/panther_system/motors_controller/roboteq_error_filter.hpp>
+#include <panther_hardware_interfaces/panther_system/robot_driver/roboteq_error_filter.hpp>
 
 TEST(TestRoboteqErrorFilter, InitialState)
 {

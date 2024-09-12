@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -24,7 +24,7 @@
 #include <string>
 #include <system_error>
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp"
 #include "panther_hardware_interfaces/utils.hpp"
 
 namespace panther_hardware_interfaces
@@ -55,7 +55,7 @@ struct RoboteqCANObjects
   static constexpr CANopenObject turn_on_safety_stop = {0x202C, 0};  // Cmd_SFT
 };
 
-MotorDriverState RoboteqMotorDriver::ReadMotorDriverState()
+MotorDriverState RoboteqMotorDriver::ReadState()
 {
   MotorDriverState state;
 
@@ -112,15 +112,15 @@ std::future<void> RoboteqDriver::Boot()
   return future;
 }
 
-DriverState RoboteqDriver::ReadDriverState()
+DriverState RoboteqDriver::ReadState()
 {
   DriverState state;
 
   std::int32_t flags = static_cast<std::int32_t>(
     rpdo_mapped[RoboteqCANObjects::flags.id][RoboteqCANObjects::flags.subid]);
   state.fault_flags = GetByte(flags, 0);
-  state.runtime_stat_flag_motor_1 = GetByte(flags, 1);
-  state.runtime_stat_flag_motor_2 = GetByte(flags, 2);
+  state.runtime_stat_flag_channel_1 = GetByte(flags, 1);
+  state.runtime_stat_flag_channel_2 = GetByte(flags, 2);
   state.script_flags = GetByte(flags, 3);
 
   state.mcu_temp = rpdo_mapped[RoboteqCANObjects::mcu_temp.id][RoboteqCANObjects::mcu_temp.subid];
@@ -177,7 +177,7 @@ void RoboteqDriver::TurnOffEStop()
 }
 
 void RoboteqDriver::AddMotorDriver(
-  const std::string name, std::shared_ptr<MotorDriver> motor_driver)
+  const std::string name, std::shared_ptr<MotorDriverInterface> motor_driver)
 {
   if (std::dynamic_pointer_cast<RoboteqMotorDriver>(motor_driver) == nullptr) {
     throw std::runtime_error("Motor driver is not of type RoboteqMotorDriver");
@@ -185,7 +185,7 @@ void RoboteqDriver::AddMotorDriver(
   motor_drivers_.emplace(name, motor_driver);
 }
 
-std::shared_ptr<MotorDriver> RoboteqDriver::GetMotorDriver(const std::string & name)
+std::shared_ptr<MotorDriverInterface> RoboteqDriver::GetMotorDriver(const std::string & name)
 {
   auto it = motor_drivers_.find(name);
   if (it == motor_drivers_.end()) {

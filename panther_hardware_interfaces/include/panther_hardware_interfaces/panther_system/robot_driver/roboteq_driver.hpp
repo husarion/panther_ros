@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DRIVER_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DRIVER_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DRIVER_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DRIVER_HPP_
 
 #include <atomic>
 #include <chrono>
@@ -25,7 +25,7 @@
 
 #include "lely/coapp/loop_driver.hpp"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/driver.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -37,7 +37,7 @@ class RoboteqMotorDriver;
  * @brief Hardware implementation of Driver with lely LoopDriver for Roboteq drivers
  * control
  */
-class RoboteqDriver : public Driver, public lely::canopen::LoopDriver
+class RoboteqDriver : public DriverInterface, public lely::canopen::LoopDriver
 {
 public:
   RoboteqDriver(
@@ -66,7 +66,7 @@ public:
    * voltage, battery currents (for channel 1 and 2, they are not the same as motor currents),
    * temperatures. Also saves the last timestamps
    */
-  DriverState ReadDriverState() override;
+  DriverState ReadState() override;
 
   /**
    * @exception std::runtime_error if any operation returns error
@@ -86,14 +86,15 @@ public:
   /**
    * @brief Adds a motor driver to the driver
    */
-  void AddMotorDriver(const std::string name, std::shared_ptr<MotorDriver> motor_driver) override;
+  void AddMotorDriver(
+    const std::string name, std::shared_ptr<MotorDriverInterface> motor_driver) override;
 
   /**
    * @brief Returns a motor driver by name
    *
    * @exception std::runtime_error if motor driver with the given name does not exist
    */
-  std::shared_ptr<MotorDriver> GetMotorDriver(const std::string & name) override;
+  std::shared_ptr<MotorDriverInterface> GetMotorDriver(const std::string & name) override;
 
   /**
    * @brief Blocking SDO write operation
@@ -156,13 +157,13 @@ private:
 
   const std::chrono::milliseconds sdo_operation_timeout_ms_;
 
-  std::map<std::string, std::shared_ptr<MotorDriver>> motor_drivers_;
+  std::map<std::string, std::shared_ptr<MotorDriverInterface>> motor_drivers_;
 };
 
-class RoboteqMotorDriver : public MotorDriver
+class RoboteqMotorDriver : public MotorDriverInterface
 {
 public:
-  RoboteqMotorDriver(std::shared_ptr<RoboteqDriver> driver, const std::uint8_t channel)
+  RoboteqMotorDriver(std::weak_ptr<RoboteqDriver> driver, const std::uint8_t channel)
   : driver_(driver), channel_(channel)
   {
   }
@@ -170,7 +171,7 @@ public:
   /**
    * @brief Reads motor state data and saves last timestamps
    */
-  MotorDriverState ReadMotorDriverState() override;
+  MotorDriverState ReadState() override;
 
   /**
    * @brief Sends commands to the motors
@@ -196,4 +197,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DRIVER_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DRIVER_HPP_
