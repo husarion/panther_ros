@@ -52,7 +52,7 @@ void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
     response->message = err.what();
 
     RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("PantherSystem"),
+      rclcpp::get_logger("UGVSystem"),
       "An exception occurred while handling the request: " << err.what());
   }
 }
@@ -75,7 +75,7 @@ SystemROSInterface::SystemROSInterface(
   const std::string & node_name, const rclcpp::NodeOptions & node_options)
 : node_(rclcpp::Node::make_shared(node_name, node_options)), diagnostic_updater_(node_)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Constructing node.");
+  RCLCPP_INFO(rclcpp::get_logger("UGVSystem"), "Constructing node.");
 
   executor_ = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
   executor_->add_node(node_);
@@ -97,9 +97,9 @@ SystemROSInterface::SystemROSInterface(
   realtime_e_stop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
 
-  diagnostic_updater_.setHardwareID("Panther System");
+  diagnostic_updater_.setHardwareID("UGV System");
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Node constructed successfully.");
+  RCLCPP_INFO(rclcpp::get_logger("UGVSystem"), "Node constructed successfully.");
 }
 
 SystemROSInterface::~SystemROSInterface()

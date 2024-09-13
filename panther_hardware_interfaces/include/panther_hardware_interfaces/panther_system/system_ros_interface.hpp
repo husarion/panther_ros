@@ -247,7 +247,7 @@ public:
   void InitializeAndPublishIOStateMsg(const std::unordered_map<GPIOPin, bool> & io_state);
   void PublishIOState(const GPIOInfo & gpio_info);
 
-private:
+protected:
   /**
    * @brief Updates the IOState message and indicates whether its state has changed.
    *

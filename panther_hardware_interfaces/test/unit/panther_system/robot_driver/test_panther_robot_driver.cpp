@@ -62,14 +62,6 @@ public:
       panther_hardware_interfaces::MotorNames::LEFT, mock_rl_motor_driver);
     mock_rear_driver->AddMotorDriver(
       panther_hardware_interfaces::MotorNames::RIGHT, mock_rr_motor_driver);
-
-    ON_CALL(*mock_front_driver, Boot()).WillByDefault(::testing::Invoke([&]() {
-      return ReturnFutureCompleted();
-    }));
-
-    ON_CALL(*mock_rear_driver, Boot()).WillByDefault(::testing::Invoke([&]() {
-      return ReturnFutureCompleted();
-    }));
   }
 
   void DefineDrivers() override

@@ -213,26 +213,25 @@ if(BUILD_TESTING)
                         PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_panther_system_ros_interface
-    test/panther_system/test_panther_system_ros_interface.cpp
-    src/panther_system/panther_system_ros_interface.cpp
+    ${PROJECT_NAME}_test_system_ros_interface
+    test/unit/panther_system/test_system_ros_interface.cpp
+    src/panther_system/system_ros_interface.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/utils.cpp
     src/panther_system/gpio/gpio_controller.cpp
-    src/panther_system/gpio/gpio_driver.cpp)
+    src/utils.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_panther_system_ros_interface
+    ${PROJECT_NAME}_test_system_ros_interface
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system_ros_interface
+    ${PROJECT_NAME}_test_system_ros_interface
     diagnostic_updater
     rclcpp
     panther_msgs
     panther_utils
     realtime_tools
     std_srvs)
-  target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
+  target_link_libraries(${PROJECT_NAME}_test_system_ros_interface
                         PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
   ament_add_gmock(
