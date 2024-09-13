@@ -201,11 +201,8 @@ TEST_F(TestLynxSystem, UpdateDriverStateMsg)
 
 TEST_F(TestLynxSystem, UpdateFlagErrors)
 {
-  panther_hardware_interfaces::DriverState driver_state;
+  auto driver_state = panther_hardware_interfaces::DriverState();
   driver_state.fault_flags = 0b01;
-  driver_state.script_flags = 0;
-  driver_state.runtime_stat_flag_channel_1 = 0;
-  driver_state.runtime_stat_flag_channel_2 = 0;
 
   panther_hardware_interfaces::DriverData roboteq_data(
     panther_hardware_interfaces_test::kDrivetrainSettings);
@@ -281,6 +278,8 @@ TEST_F(TestLynxSystem, UpdateDriverStateDataTimedOut)
 
   EXPECT_FALSE(error);
 }
+
+// TODO GetSpeedCommands tests
 
 int main(int argc, char ** argv)
 {
