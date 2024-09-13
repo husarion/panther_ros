@@ -92,8 +92,9 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ros_testing REQUIRED)
 
+  # Unit tests
   ament_add_gtest(${PROJECT_NAME}_test_animation
-                  test/animation/test_animation.cpp)
+                  test/unit/animation/test_animation.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_animation
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -103,7 +104,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_charging_animation
-    test/animation/test_charging_animation.cpp
+    test/unit/animation/test_charging_animation.cpp
     src/animation/charging_animation.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_charging_animation
@@ -115,7 +116,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_image_animation
-    test/animation/test_image_animation.cpp src/animation/image_animation.cpp)
+    test/unit/animation/test_image_animation.cpp
+    src/animation/image_animation.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_image_animation
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -125,7 +127,7 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_image_animation png yaml-cpp)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_led_panel test/led_components/test_led_panel.cpp
+    ${PROJECT_NAME}_test_led_panel test/unit/led_components/test_led_panel.cpp
     src/led_components/led_panel.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_led_panel
@@ -133,7 +135,8 @@ if(BUILD_TESTING)
            $<INSTALL_INTERFACE:include>)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_led_segment test/led_components/test_led_segment.cpp
+    ${PROJECT_NAME}_test_led_segment
+    test/unit/led_components/test_led_segment.cpp
     src/led_components/led_segment.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_led_segment
@@ -145,7 +148,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_segment_converter
-    test/led_components/test_segment_converter.cpp
+    test/unit/led_components/test_segment_converter.cpp
     src/led_components/segment_converter.cpp
     src/led_components/led_panel.cpp
     src/led_components/led_segment.cpp)
@@ -159,7 +162,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_led_animation
-    test/led_components/test_led_animation.cpp
+    test/unit/led_components/test_led_animation.cpp
     src/led_components/led_panel.cpp
     src/led_components/led_segment.cpp
     src/led_components/led_animations_queue.cpp)
@@ -173,7 +176,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_led_animations_queue
-    test/led_components/test_led_animations_queue.cpp
+    test/unit/led_components/test_led_animations_queue.cpp
     src/led_components/led_panel.cpp
     src/led_components/led_segment.cpp
     src/led_components/led_animations_queue.cpp)
@@ -185,7 +188,7 @@ if(BUILD_TESTING)
                             panther_utils rclcpp)
   target_link_libraries(${PROJECT_NAME}_test_led_animations_queue yaml-cpp)
 
-  ament_add_gmock(${PROJECT_NAME}_test_apa102 test/test_apa102.cpp
+  ament_add_gmock(${PROJECT_NAME}_test_apa102 test/unit/test_apa102.cpp
                   src/apa102.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_apa102
@@ -193,8 +196,9 @@ if(BUILD_TESTING)
            $<INSTALL_INTERFACE:include>)
 
   ament_add_gmock(
-    ${PROJECT_NAME}_test_lights_driver_node test/test_lights_driver_node.cpp
-    src/apa102.cpp src/lights_driver_node.cpp)
+    ${PROJECT_NAME}_test_lights_driver_node
+    test/unit/test_lights_driver_node.cpp src/apa102.cpp
+    src/lights_driver_node.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_lights_driver_node
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -206,7 +210,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_lights_controller_node
-    test/test_lights_controller_node.cpp
+    test/unit/test_lights_controller_node.cpp
     src/lights_controller_node.cpp
     src/led_components/led_segment.cpp
     src/led_components/led_panel.cpp
@@ -220,6 +224,12 @@ if(BUILD_TESTING)
                             panther_utils)
   target_link_libraries(${PROJECT_NAME}_test_lights_controller_node
                         lights_controller_node_component yaml-cpp)
+
+  # Integration tests
+  option(TEST_INTEGRATION "Run integration tests" OFF)
+  if(TEST_INTEGRATION)
+    add_ros_test(test/integration/panther_lights.test.py)
+  endif()
 
 endif()
 
