@@ -76,35 +76,35 @@ class TestNodesIntegration(unittest.TestCase):
         rclpy.shutdown()
 
     def setUp(self):
-        self.test_node = rclpy.create_node("test_node")
-        self.led_control_requested = None
+        self._test_node = rclpy.create_node("test_node")
+        self._led_control_requested = None
 
-        self.led_control_enable_srv = self.test_node.create_service(
+        self._led_control_enable_srv = self._test_node.create_service(
             srv_type=SetBool,
             srv_name="hardware/led_control_enable",
-            callback=self.led_control_enable_cb,
+            callback=self._led_control_enable_cb,
             qos_profile=rclpy.qos.qos_profile_services_default,
         )
 
-        self.set_led_animation_client = self.test_node.create_client(
+        self._set_led_animation_client = self._test_node.create_client(
             srv_type=SetLEDAnimation,
             srv_name="lights/set_animation",
             qos_profile=rclpy.qos.qos_profile_services_default,
         )
 
     def tearDown(self):
-        self.test_node.destroy_node()
+        self._test_node.destroy_node()
 
-    def led_control_enable_cb(self, request, response):
-        self.led_control_requested = request.data
+    def _led_control_enable_cb(self, request, response):
+        self._led_control_requested = request.data
         response.success = True
         response.message = "LED control enabled"
         return response
 
     def test_initialization(self, proc_output):
-        rclpy.spin_until_future_complete(self.test_node, rclpy.task.Future(), timeout_sec=2.0)
+        rclpy.spin_until_future_complete(self._test_node, rclpy.task.Future(), timeout_sec=2.0)
 
-        self.assertTrue(self.led_control_requested)
+        self.assertTrue(self._led_control_requested)
 
         # Controller initialization
         proc_output.assertWaitFor("[lights_controller]: Loaded default animations.")
@@ -113,16 +113,16 @@ class TestNodesIntegration(unittest.TestCase):
         proc_output.assertWaitFor("[lights_driver]: Node constructed successfully.")
         proc_output.assertWaitFor("[lights_driver]: LED control granted.")
 
-    def request_error_animation(self):
+    def _request_error_animation(self):
         request = SetLEDAnimation.Request()
         request.animation = LEDAnimation(id=LEDAnimation.ERROR)
         request.repeating = False
 
-        self.set_led_animation_client.wait_for_service(timeout_sec=1.0)
-        self.set_led_animation_client.call_async(request)
+        self._set_led_animation_client.wait_for_service(timeout_sec=1.0)
+        self._set_led_animation_client.call_async(request)
 
     def test_msg_publishers(self):
-        self.request_error_animation()
+        self._request_error_animation()
 
         topic_list = [
             ("lights/channel_1_frame", Image),
