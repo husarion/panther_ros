@@ -41,6 +41,9 @@ def get_node_info(node_name: str) -> ROSNodeInfo:
 
     Returns:
         ROSNodeInfo: An object representing a complete node info.
+
+    Raises:
+        RuntimeError: If the command execution fails.
     """
     node_info = ROSNodeInfo()
 
@@ -73,7 +76,6 @@ def get_node_info(node_name: str) -> ROSNodeInfo:
                 current_section = None
 
     except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {e}")
-        print(f"stderr: {e.stderr}")
+        raise RuntimeError(f"Error executing command: {e}. stderr: {e.stderr}") from e
 
     return node_info
