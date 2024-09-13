@@ -19,6 +19,7 @@ import unittest
 
 import launch
 import launch_testing
+import panther_utils.integration_test_utils as test_utils
 import rclpy
 import rclpy.qos
 from diagnostic_msgs.msg import DiagnosticArray
@@ -133,6 +134,12 @@ class TestNodesIntegration(unittest.TestCase):
         with WaitForTopics(topic_list, timeout=5.0) as wait_for_topics:
             received_topics_str = ", ".join(wait_for_topics.topics_received())
             print("Received messages from the following topics: [" + received_topics_str + "]")
+
+    def test_msg_subscribers(self):
+        node_info = test_utils.get_node_info("/lights_driver")
+
+        self.assertIn("/lights/channel_1_frame", node_info.subscribers)
+        self.assertIn("/lights/channel_2_frame", node_info.subscribers)
 
 
 @launch_testing.post_shutdown_test()
