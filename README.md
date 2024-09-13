@@ -44,7 +44,6 @@ cp -r src/ros2_controllers/diff_drive_controller src
 cp -r src/ros2_controllers/imu_sensor_broadcaster src
 rm -rf src/ros2_controllers
 
-pip3 install moms_apriltag # used for apriltag generation
 sudo rosdep init
 rosdep update --rosdistro $ROS_DISTRO
 rosdep install --from-paths src -y -i

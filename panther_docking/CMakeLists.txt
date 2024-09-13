@@ -22,6 +22,8 @@ foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
   find_package(${PACKAGE} REQUIRED)
 endforeach()
 
+execute_process(COMMAND ${Python_EXECUTABLE} -m pip install moms_apriltag)
+
 include_directories(include)
 
 pluginlib_export_plugin_description_file(opennav_docking_core plugin.xml)
