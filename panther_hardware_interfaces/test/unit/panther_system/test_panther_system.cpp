@@ -57,8 +57,17 @@ public:
   void UpdateMotorsStateDataTimedOut() { PantherSystem::UpdateMotorsStateDataTimedOut(); }
   void UpdateDriverStateDataTimedOut() { PantherSystem::UpdateDriverStateDataTimedOut(); }
 
-  // void UpdateDriverStateMsg() { PantherSystem::UpdateDriverStateMsg(); }
+  void UpdateDriverStateMsg() { PantherSystem::UpdateDriverStateMsg(); }
   void UpdateFlagErrors() { PantherSystem::UpdateFlagErrors(); }
+  std::vector<float> GetSpeedCommands() const { return PantherSystem::GetSpeedCommands(); }
+
+  void SetHwCommandsVelocities(std::vector<double> & velocities)
+  {
+    hw_commands_velocities_[0] = velocities[0];
+    hw_commands_velocities_[1] = velocities[1];
+    hw_commands_velocities_[2] = velocities[2];
+    hw_commands_velocities_[3] = velocities[3];
+  }
 
   panther_hardware_interfaces::CANopenSettings GetCANopenSettings() { return canopen_settings_; }
   std::vector<double> GetHwStatesPositions() { return hw_states_positions_; }
@@ -342,7 +351,23 @@ TEST_F(TestPantherSystem, UpdateDriverStateDataTimedOut)
   EXPECT_FALSE(error);
 }
 
-// TODO GetSpeedCommands tests
+TEST_F(TestPantherSystem, GetSpeedCommands)
+{
+  const auto fl_v = 0.1;
+  const auto fr_v = 0.2;
+  const auto rl_v = 0.3;
+  const auto rr_v = 0.4;
+
+  std::vector<double> velocities = {fl_v, fr_v, rl_v, rr_v};
+  panther_system_->SetHwCommandsVelocities(velocities);
+  const auto speed_cmd = panther_system_->GetSpeedCommands();
+
+  ASSERT_EQ(speed_cmd.size(), 4);
+  EXPECT_FLOAT_EQ(speed_cmd[0], fl_v);
+  EXPECT_FLOAT_EQ(speed_cmd[1], fr_v);
+  EXPECT_FLOAT_EQ(speed_cmd[2], rl_v);
+  EXPECT_FLOAT_EQ(speed_cmd[3], rr_v);
+}
 
 int main(int argc, char ** argv)
 {
