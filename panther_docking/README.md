@@ -4,7 +4,8 @@ The package contains a `PantherChargingDock` plugin for the [opennav_docking](ht
 
 ## Launch Files
 
-- `docking.launch.py`: Launch a node that creates `docking_server` and run a `PantherChargingDock` plugin.
+- `docking.launch.py`: Launch a node that creates `docking_server` and runs a `PantherChargingDock` plugin. Also it launches `station.launch.py`.
+- `station.launch.py`: Launch a node that creates a charging station description with generated apriltag.
 
 ## Configuration Files
 

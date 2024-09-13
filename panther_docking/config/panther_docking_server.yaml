@@ -19,26 +19,25 @@
       base_frame: "<robot_namespace>/base_link"
       docking_distance_threshold: 0.15
       docking_yaw_threshold: 0.15
-      staging_x_offset: -0.5
+      staging_x_offset: -0.8
       staging_yaw_offset: 0.0
 
       # TODO: @delihus Try to remove this parameters by using docking station description in the ros_components_description
       # Transform between april tag frame and dock pose. An april tag Z+ faces always a camera
       external_detection_timeout: 0.3
-      external_detection_translation_x: 0.0
-      external_detection_translation_y: -0.175 # Distance between the detection and ground
-      external_detection_translation_z: 0.8 # Distance between the detection and the front of the robot
+      external_detection_translation_x: 0.6
+      external_detection_translation_y: 0.0
+      external_detection_translation_z: 0.0
       external_detection_rotation_roll: 0.0
-      external_detection_rotation_pitch: 1.57
-      external_detection_rotation_yaw:  0.0
-      filter_coef: 0.1
+      external_detection_rotation_pitch: 0.0
+      external_detection_rotation_yaw: 3.14
 
       enable_charger_service_call_timeout: 1.0
 
     docks: ["main_dock"]
     main_dock:
       type: panther_charging_dock
-      frame: <robot_namespace>/main_dock
+      frame: <robot_namespace>/wibotic_station_link
       pose: [0.0, 0.0, 0.0] # position of the dock device (not the staging position), the front (X+) of the dock should point away from the robot
 
     controller:
