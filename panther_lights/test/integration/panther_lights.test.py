@@ -138,8 +138,8 @@ class TestNodesIntegration(unittest.TestCase):
     def test_msg_subscribers(self):
         node_info = test_utils.get_node_info("/lights_driver")
 
-        self.assertIn("/lights/channel_1_frame", node_info.subscribers)
-        self.assertIn("/lights/channel_2_frame", node_info.subscribers)
+        self.assertTrue("/lights/channel_1_frame" in node_info.subscribers)
+        self.assertTrue("/lights/channel_2_frame" in node_info.subscribers)
 
 
 @launch_testing.post_shutdown_test()
