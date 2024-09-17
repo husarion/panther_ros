@@ -30,6 +30,15 @@ namespace panther_hardware_interfaces_test
 class MockDriver : public panther_hardware_interfaces::DriverInterface
 {
 public:
+  MockDriver()
+  {
+    ON_CALL(*this, Boot()).WillByDefault(::testing::Invoke([]() {
+      std::promise<void> promise;
+      promise.set_value();
+      return promise.get_future();
+    }));
+  }
+
   MOCK_METHOD(std::future<void>, Boot, (), (override));
   MOCK_METHOD(bool, IsCANError, (), (const, override));
   MOCK_METHOD(bool, IsHeartbeatTimeout, (), (const, override));
@@ -52,6 +61,8 @@ public:
     motor_drivers_.emplace(name, motor_driver);
   }
 
+  using NiceMock = testing::NiceMock<MockDriver>;
+
 private:
   std::map<std::string, std::shared_ptr<panther_hardware_interfaces::MotorDriverInterface>>
     motor_drivers_;
@@ -63,6 +74,8 @@ public:
   MOCK_METHOD(panther_hardware_interfaces::MotorDriverState, ReadState, (), (override));
   MOCK_METHOD(void, SendCmdVel, (const std::int32_t cmd), (override));
   MOCK_METHOD(void, TurnOnSafetyStop, (), (override));
+
+  using NiceMock = testing::NiceMock<MockMotorDriver>;
 };
 
 }  // namespace panther_hardware_interfaces_test

@@ -56,13 +56,17 @@ add_library(
   src/panther_system/gpio/gpio_controller.cpp
   src/panther_system/gpio/gpio_driver.cpp
   src/panther_system/robot_driver/canopen_manager.cpp
-  src/panther_system/robot_driver/robot_driver.cpp
   src/panther_system/robot_driver/roboteq_data_converters.cpp
   src/panther_system/robot_driver/roboteq_driver.cpp
   src/panther_system/robot_driver/roboteq_error_filter.cpp
-  src/panther_system/panther_system_e_stop.cpp
-  src/panther_system/panther_system_ros_interface.cpp
+  src/panther_system/robot_driver/roboteq_robot_driver.cpp
+  src/panther_system/robot_driver/lynx_robot_driver.cpp
+  src/panther_system/robot_driver/panther_robot_driver.cpp
+  src/panther_system/system_e_stop.cpp
+  src/panther_system/system_ros_interface.cpp
+  src/panther_system/lynx_system.cpp
   src/panther_system/panther_system.cpp
+  src/panther_system/ugv_system.cpp
   src/utils.cpp)
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_DEPENDENCIES})
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
@@ -164,24 +168,6 @@ if(BUILD_TESTING)
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gmock(
-    ${PROJECT_NAME}_test_panther_robot_driver
-    test/unit/panther_system/robot_driver/test_panther_robot_driver.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_robot_driver.cpp
-    src/panther_system/robot_driver/panther_robot_driver.cpp
-    src/utils.cpp)
-  target_include_directories(
-    ${PROJECT_NAME}_test_panther_robot_driver
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
-           $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_panther_robot_driver rclcpp
-                            panther_msgs panther_utils)
-  target_link_libraries(${PROJECT_NAME}_test_panther_robot_driver
-                        PkgConfig::LIBLELY_COAPP)
-
-  ament_add_gmock(
     ${PROJECT_NAME}_test_lynx_robot_driver
     test/unit/panther_system/robot_driver/test_lynx_robot_driver.cpp
     src/panther_system/robot_driver/canopen_manager.cpp
@@ -200,6 +186,24 @@ if(BUILD_TESTING)
                         PkgConfig::LIBLELY_COAPP)
 
   ament_add_gmock(
+    ${PROJECT_NAME}_test_panther_robot_driver
+    test/unit/panther_system/robot_driver/test_panther_robot_driver.cpp
+    src/panther_system/robot_driver/canopen_manager.cpp
+    src/panther_system/robot_driver/roboteq_driver.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_robot_driver.cpp
+    src/panther_system/robot_driver/panther_robot_driver.cpp
+    src/utils.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_panther_robot_driver
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(${PROJECT_NAME}_test_panther_robot_driver rclcpp
+                            panther_msgs panther_utils)
+  target_link_libraries(${PROJECT_NAME}_test_panther_robot_driver
+                        PkgConfig::LIBLELY_COAPP)
+
+  ament_add_gmock(
     ${PROJECT_NAME}_test_gpiod_controller
     test/panther_system/gpio/test_gpio_controller.cpp
     src/panther_system/gpio/gpio_controller.cpp
@@ -209,30 +213,104 @@ if(BUILD_TESTING)
                         PkgConfig::LIBGPIOD)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_panther_system_ros_interface
-    test/panther_system/test_panther_system_ros_interface.cpp
-    src/panther_system/panther_system_ros_interface.cpp
+    ${PROJECT_NAME}_test_system_ros_interface
+    test/unit/panther_system/test_system_ros_interface.cpp
+    src/panther_system/system_ros_interface.cpp
     src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/utils.cpp
     src/panther_system/gpio/gpio_controller.cpp
-    src/panther_system/gpio/gpio_driver.cpp)
+    src/utils.cpp)
   target_include_directories(
-    ${PROJECT_NAME}_test_panther_system_ros_interface
+    ${PROJECT_NAME}_test_system_ros_interface
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system_ros_interface
+    ${PROJECT_NAME}_test_system_ros_interface
     diagnostic_updater
     rclcpp
     panther_msgs
     panther_utils
     realtime_tools
     std_srvs)
-  target_link_libraries(${PROJECT_NAME}_test_panther_system_ros_interface
+  target_link_libraries(${PROJECT_NAME}_test_system_ros_interface
                         PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_system
-                  test/panther_system/test_panther_system.cpp)
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_ugv_system
+    test/unit/panther_system/test_ugv_system.cpp
+    src/panther_system/gpio/gpio_controller.cpp
+    src/panther_system/gpio/gpio_driver.cpp
+    src/panther_system/system_e_stop.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_error_filter.cpp
+    src/panther_system/system_ros_interface.cpp
+    src/panther_system/ugv_system.cpp
+    src/utils.cpp)
+  set_tests_properties(${PROJECT_NAME}_test_ugv_system PROPERTIES TIMEOUT 120)
+  target_include_directories(
+    ${PROJECT_NAME}_test_ugv_system
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_ugv_system
+    diagnostic_updater
+    hardware_interface
+    rclcpp
+    panther_msgs
+    panther_utils
+    std_msgs
+    std_srvs)
+  target_link_libraries(${PROJECT_NAME}_test_ugv_system
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
+
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_lynx_system
+    test/unit/panther_system/test_lynx_system.cpp
+    src/panther_system/gpio/gpio_controller.cpp
+    src/panther_system/gpio/gpio_driver.cpp
+    src/panther_system/system_e_stop.cpp
+    src/panther_system/robot_driver/canopen_manager.cpp
+    src/panther_system/robot_driver/roboteq_robot_driver.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_driver.cpp
+    src/panther_system/robot_driver/roboteq_error_filter.cpp
+    src/panther_system/robot_driver/lynx_robot_driver.cpp
+    src/panther_system/system_ros_interface.cpp
+    src/panther_system/lynx_system.cpp
+    src/panther_system/ugv_system.cpp
+    src/utils.cpp)
+  set_tests_properties(${PROJECT_NAME}_test_lynx_system PROPERTIES TIMEOUT 120)
+  target_include_directories(
+    ${PROJECT_NAME}_test_lynx_system
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
+           $<INSTALL_INTERFACE:include>)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_lynx_system
+    diagnostic_updater
+    hardware_interface
+    rclcpp
+    panther_msgs
+    panther_utils
+    std_msgs
+    std_srvs)
+  target_link_libraries(${PROJECT_NAME}_test_lynx_system
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
+
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_panther_system
+    test/unit/panther_system/test_panther_system.cpp
+    src/panther_system/gpio/gpio_controller.cpp
+    src/panther_system/gpio/gpio_driver.cpp
+    src/panther_system/system_e_stop.cpp
+    src/panther_system/robot_driver/canopen_manager.cpp
+    src/panther_system/robot_driver/roboteq_robot_driver.cpp
+    src/panther_system/robot_driver/roboteq_data_converters.cpp
+    src/panther_system/robot_driver/roboteq_driver.cpp
+    src/panther_system/robot_driver/roboteq_error_filter.cpp
+    src/panther_system/robot_driver/panther_robot_driver.cpp
+    src/panther_system/system_ros_interface.cpp
+    src/panther_system/panther_system.cpp
+    src/panther_system/ugv_system.cpp
+    src/utils.cpp)
   set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
                                                                       120)
   target_include_directories(
@@ -240,15 +318,19 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_system hardware_interface rclcpp panther_msgs
-    panther_utils)
+    ${PROJECT_NAME}_test_panther_system
+    diagnostic_updater
+    hardware_interface
+    rclcpp
+    panther_msgs
+    panther_utils
+    std_msgs
+    std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_panther_system
-                        PkgConfig::LIBLELY_COAPP)
+                        PkgConfig::LIBLELY_COAPP PkgConfig::LIBGPIOD)
 
-  # Integration tests
-  option(TEST_INTEGRATION "Run integration tests" OFF)
-  if(TEST_INTEGRATION)
-    # Hardware integration
+  # Integration tests option(TEST_INTEGRATION "Run integration tests" OFF)
+  if(TEST_INTEGRATION) # Hardware integration
     ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
                     test/panther_system/gpio/test_gpio_driver.cpp)
     ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)

@@ -12,30 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_SYSTEM_ROS_INTERFACE_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_SYSTEM_ROS_INTERFACE_HPP_
 
 #include <any>
-#include <atomic>
 #include <functional>
+#include <map>
 #include <memory>
 #include <thread>
 #include <unordered_map>
 
-#include "diagnostic_updater/diagnostic_updater.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "realtime_tools/realtime_publisher.h"
+#include <realtime_tools/realtime_publisher.h>
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-#include "std_msgs/msg/bool.hpp"
-#include "std_srvs/srv/set_bool.hpp"
-#include "std_srvs/srv/trigger.hpp"
+#include <std_msgs/msg/bool.hpp>
+#include <std_srvs/srv/set_bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
 #include "panther_msgs/msg/driver_state_named.hpp"
 #include "panther_msgs/msg/io_state.hpp"
 #include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_controller.hpp"
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
 
 using namespace std::placeholders;
 
@@ -49,6 +49,14 @@ using DriverStateNamedMsg = panther_msgs::msg::DriverStateNamed;
 using SetBoolSrv = std_srvs::srv::SetBool;
 using TriggerSrv = std_srvs::srv::Trigger;
 
+struct DriverCANErrors
+{
+  bool motor_states_data_timed_out;
+  bool driver_state_data_timed_out;
+  bool can_error;
+  bool heartbeat_timeout;
+};
+
 struct CANErrors
 {
   bool error;
@@ -57,17 +65,7 @@ struct CANErrors
   bool read_pdo_motor_states_error;
   bool read_pdo_driver_state_error;
 
-  bool front_motor_states_data_timed_out;
-  bool rear_motor_states_data_timed_out;
-
-  bool front_driver_state_data_timed_out;
-  bool rear_driver_state_data_timed_out;
-
-  bool front_can_error;
-  bool rear_can_error;
-
-  bool front_heartbeat_timeout;
-  bool rear_heartbeat_timeout;
+  std::unordered_map<std::string, DriverCANErrors> driver_errors;
 };
 
 /**
@@ -143,7 +141,7 @@ private:
  * @brief Class that takes care of additional ROS interface of panther system, such as publishing
  * driver state and providing service for clearing errors
  */
-class PantherSystemRosInterface
+class SystemROSInterface
 {
 public:
   /**
@@ -152,10 +150,10 @@ public:
    * @param node_name
    * @param node_options
    */
-  PantherSystemRosInterface(
+  SystemROSInterface(
     const std::string & node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
-  ~PantherSystemRosInterface();
+  ~SystemROSInterface();
 
   /**
    * @brief Registers a new service server associated with a specific service type and callback on
@@ -222,14 +220,21 @@ public:
   }
 
   /**
-   * @brief Updates fault flags, script flags, and runtime errors in the driver state msg
+   * @brief Updates fault flags, script flags, and runtime errors in the robot driver state msg
+   *
+   * @param name The name of the driver to update the flags for
+   * @param data The data to update the flags with
    */
-  void UpdateMsgErrorFlags(const RoboteqData & front, const RoboteqData & rear);
+  void UpdateMsgErrorFlags(const std::string & name, const DriverData & data);
 
   /**
-   * @brief Updates parameters of the drivers: voltage, current and temperature
+   * @brief Updates parameters of the driver (voltage, current and temperature) in robot driver
+   * state msg
+   *
+   * @param name The name of the driver to update the parameters for
+   * @param state The data to update the parameters with
    */
-  void UpdateMsgDriversStates(const DriverState & front, const DriverState & rear);
+  void UpdateMsgDriversStates(const std::string & name, const RoboteqDriverState & state);
 
   /**
    * @brief Updates the current state of communication errors and general error state
@@ -242,7 +247,7 @@ public:
   void InitializeAndPublishIOStateMsg(const std::unordered_map<GPIOPin, bool> & io_state);
   void PublishIOState(const GPIOInfo & gpio_info);
 
-private:
+protected:
   /**
    * @brief Updates the IOState message and indicates whether its state has changed.
    *
@@ -271,8 +276,15 @@ private:
   rclcpp::CallbackGroup::SharedPtr GetOrCreateNodeCallbackGroup(
     const unsigned group_id, rclcpp::CallbackGroupType callback_group_type);
 
-  void InitializeRobotDriverStateMsg();
-
+  /**
+   * @brief Retrieves the driver state message associated with the specified name. If the driver
+   * state is not found, it is created.
+   *
+   * @param robot_driver_state The robot driver state message to retrieve driver state from.
+   * @param name The name of the driver state to be retrieved.
+   *
+   * @return Reference to the driver state message associated with the specified name.
+   */
   DriverStateNamedMsg & GetDriverStateByName(
     RobotDriverStateMsg & robot_driver_state, const std::string & name);
 
@@ -298,4 +310,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_ROS_INTERFACE_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_SYSTEM_ROS_INTERFACE_HPP_

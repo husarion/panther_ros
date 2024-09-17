@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_hardware_interfaces/panther_system/panther_system_ros_interface.hpp"
+#include "panther_hardware_interfaces/panther_system/system_ros_interface.hpp"
 
 #include <memory>
 #include <string>
@@ -22,7 +22,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "realtime_tools/realtime_publisher.h"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -52,7 +52,7 @@ void ROSServiceWrapper<SrvT, CallbackT>::CallbackWrapper(
     response->message = err.what();
 
     RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("PantherSystem"),
+      rclcpp::get_logger("UGVSystem"),
       "An exception occurred while handling the request: " << err.what());
   }
 }
@@ -71,11 +71,11 @@ void ROSServiceWrapper<std_srvs::srv::Trigger, std::function<void()>>::ProccessC
   callback_();
 }
 
-PantherSystemRosInterface::PantherSystemRosInterface(
+SystemROSInterface::SystemROSInterface(
   const std::string & node_name, const rclcpp::NodeOptions & node_options)
 : node_(rclcpp::Node::make_shared(node_name, node_options)), diagnostic_updater_(node_)
 {
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Constructing node.");
+  RCLCPP_INFO(rclcpp::get_logger("UGVSystem"), "Constructing node.");
 
   executor_ = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
   executor_->add_node(node_);
@@ -87,8 +87,6 @@ PantherSystemRosInterface::PantherSystemRosInterface(
     std::make_unique<realtime_tools::RealtimePublisher<RobotDriverStateMsg>>(
       driver_state_publisher_);
 
-  InitializeRobotDriverStateMsg();
-
   io_state_publisher_ = node_->create_publisher<IOStateMsg>(
     "~/io_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   realtime_io_state_publisher_ =
@@ -99,12 +97,12 @@ PantherSystemRosInterface::PantherSystemRosInterface(
   realtime_e_stop_state_publisher_ =
     std::make_unique<realtime_tools::RealtimePublisher<BoolMsg>>(e_stop_state_publisher_);
 
-  diagnostic_updater_.setHardwareID("Panther System");
+  diagnostic_updater_.setHardwareID("UGV System");
 
-  RCLCPP_INFO(rclcpp::get_logger("PantherSystem"), "Node constructed successfully.");
+  RCLCPP_INFO(rclcpp::get_logger("UGVSystem"), "Node constructed successfully.");
 }
 
-PantherSystemRosInterface::~PantherSystemRosInterface()
+SystemROSInterface::~SystemROSInterface()
 {
   if (executor_) {
     executor_->cancel();
@@ -128,71 +126,55 @@ PantherSystemRosInterface::~PantherSystemRosInterface()
   node_.reset();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrorFlags(
-  const RoboteqData & front, const RoboteqData & rear)
+void SystemROSInterface::UpdateMsgErrorFlags(const std::string & name, const DriverData & data)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
-  auto & front_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_FRONT);
-  auto & rear_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_REAR);
+  auto & driver_state_named = GetDriverStateByName(driver_state, name);
 
   driver_state.header.stamp = node_->get_clock()->now();
 
-  front_driver_state.state.fault_flag = front.GetFaultFlag().GetMessage();
-  front_driver_state.state.script_flag = front.GetScriptFlag().GetMessage();
-  front_driver_state.state.channel_2_motor_runtime_error = front.GetLeftRuntimeError().GetMessage();
-  front_driver_state.state.channel_1_motor_runtime_error = front.GetRightRuntimeError().GetMessage();
-
-  rear_driver_state.state.fault_flag = rear.GetFaultFlag().GetMessage();
-  rear_driver_state.state.script_flag = rear.GetScriptFlag().GetMessage();
-  rear_driver_state.state.channel_2_motor_runtime_error = rear.GetLeftRuntimeError().GetMessage();
-  rear_driver_state.state.channel_1_motor_runtime_error = rear.GetRightRuntimeError().GetMessage();
+  driver_state_named.state.fault_flag = data.GetFaultFlag().GetMessage();
+  driver_state_named.state.script_flag = data.GetScriptFlag().GetMessage();
+  driver_state_named.state.channel_1_motor_runtime_error =
+    data.GetRuntimeError(RoboteqDriver::kChannel1).GetMessage();
+  driver_state_named.state.channel_2_motor_runtime_error =
+    data.GetRuntimeError(RoboteqDriver::kChannel2).GetMessage();
 }
 
-void PantherSystemRosInterface::UpdateMsgDriversStates(
-  const DriverState & front, const DriverState & rear)
+void SystemROSInterface::UpdateMsgDriversStates(
+  const std::string & name, const RoboteqDriverState & state)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
-  auto & front_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_FRONT);
-  auto & rear_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_REAR);
+  auto & driver_state_named = GetDriverStateByName(driver_state, name);
 
-  front_driver_state.state.voltage = front.GetVoltage();
-  front_driver_state.state.current = front.GetCurrent();
-  front_driver_state.state.temperature = front.GetTemperature();
-  front_driver_state.state.heatsink_temperature = front.GetHeatsinkTemperature();
-
-  rear_driver_state.state.voltage = rear.GetVoltage();
-  rear_driver_state.state.current = rear.GetCurrent();
-  rear_driver_state.state.temperature = rear.GetTemperature();
-  rear_driver_state.state.heatsink_temperature = rear.GetHeatsinkTemperature();
+  driver_state_named.state.voltage = state.GetVoltage();
+  driver_state_named.state.current = state.GetCurrent();
+  driver_state_named.state.temperature = state.GetTemperature();
+  driver_state_named.state.heatsink_temperature = state.GetHeatsinkTemperature();
 }
 
-void PantherSystemRosInterface::UpdateMsgErrors(const CANErrors & can_errors)
+void SystemROSInterface::UpdateMsgErrors(const CANErrors & can_errors)
 {
   auto & driver_state = realtime_driver_state_publisher_->msg_;
-  auto & front_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_FRONT);
-  auto & rear_driver_state = GetDriverStateByName(driver_state, DriverStateNamedMsg::NAME_REAR);
 
   driver_state.error = can_errors.error;
   driver_state.write_pdo_cmds_error = can_errors.write_pdo_cmds_error;
   driver_state.read_pdo_motor_states_error = can_errors.read_pdo_motor_states_error;
   driver_state.read_pdo_driver_state_error = can_errors.read_pdo_driver_state_error;
 
-  front_driver_state.state.motor_states_data_timed_out =
-    can_errors.front_motor_states_data_timed_out;
-  rear_driver_state.state.motor_states_data_timed_out = can_errors.rear_motor_states_data_timed_out;
+  for (const auto & [name, driver_errors] : can_errors.driver_errors) {
+    auto & driver_state_named = GetDriverStateByName(driver_state, name);
 
-  front_driver_state.state.driver_state_data_timed_out =
-    can_errors.front_driver_state_data_timed_out;
-  rear_driver_state.state.driver_state_data_timed_out = can_errors.rear_driver_state_data_timed_out;
-
-  front_driver_state.state.can_error = can_errors.front_can_error;
-  rear_driver_state.state.can_error = can_errors.rear_can_error;
-
-  front_driver_state.state.heartbeat_timeout = can_errors.front_heartbeat_timeout;
-  rear_driver_state.state.heartbeat_timeout = can_errors.rear_heartbeat_timeout;
+    driver_state_named.state.motor_states_data_timed_out =
+      driver_errors.motor_states_data_timed_out;
+    driver_state_named.state.driver_state_data_timed_out =
+      driver_errors.driver_state_data_timed_out;
+    driver_state_named.state.can_error = driver_errors.can_error;
+    driver_state_named.state.heartbeat_timeout = driver_errors.heartbeat_timeout;
+  }
 }
 
-void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)
+void SystemROSInterface::PublishEStopStateMsg(const bool e_stop)
 {
   realtime_e_stop_state_publisher_->msg_.data = e_stop;
   if (realtime_e_stop_state_publisher_->trylock()) {
@@ -200,21 +182,21 @@ void PantherSystemRosInterface::PublishEStopStateMsg(const bool e_stop)
   }
 }
 
-void PantherSystemRosInterface::PublishEStopStateIfChanged(const bool e_stop)
+void SystemROSInterface::PublishEStopStateIfChanged(const bool e_stop)
 {
   if (realtime_e_stop_state_publisher_->msg_.data != e_stop) {
     PublishEStopStateMsg(e_stop);
   }
 }
 
-void PantherSystemRosInterface::PublishRobotDriverState()
+void SystemROSInterface::PublishRobotDriverState()
 {
   if (realtime_driver_state_publisher_->trylock()) {
     realtime_driver_state_publisher_->unlockAndPublish();
   }
 }
 
-void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
+void SystemROSInterface::InitializeAndPublishIOStateMsg(
   const std::unordered_map<GPIOPin, bool> & io_state)
 {
   for (const auto & [pin, pin_value] : io_state) {
@@ -226,7 +208,7 @@ void PantherSystemRosInterface::InitializeAndPublishIOStateMsg(
   }
 }
 
-void PantherSystemRosInterface::PublishIOState(const GPIOInfo & gpio_info)
+void SystemROSInterface::PublishIOState(const GPIOInfo & gpio_info)
 {
   const bool pin_value = (gpio_info.value == gpiod::line::value::ACTIVE);
 
@@ -239,7 +221,7 @@ void PantherSystemRosInterface::PublishIOState(const GPIOInfo & gpio_info)
   }
 }
 
-bool PantherSystemRosInterface::UpdateIOStateMsg(const GPIOPin pin, const bool pin_value)
+bool SystemROSInterface::UpdateIOStateMsg(const GPIOPin pin, const bool pin_value)
 {
   auto & io_state_msg = realtime_io_state_publisher_->msg_;
 
@@ -276,7 +258,7 @@ bool PantherSystemRosInterface::UpdateIOStateMsg(const GPIOPin pin, const bool p
   return true;
 }
 
-rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallbackGroup(
+rclcpp::CallbackGroup::SharedPtr SystemROSInterface::GetOrCreateNodeCallbackGroup(
   const unsigned group_id, rclcpp::CallbackGroupType callback_group_type)
 {
   if (group_id == 0) {
@@ -301,19 +283,7 @@ rclcpp::CallbackGroup::SharedPtr PantherSystemRosInterface::GetOrCreateNodeCallb
   return callback_group;
 }
 
-void PantherSystemRosInterface::InitializeRobotDriverStateMsg()
-{
-  DriverStateNamedMsg front_driver_state;
-  DriverStateNamedMsg rear_driver_state;
-  front_driver_state.name = DriverStateNamedMsg::NAME_FRONT;
-  rear_driver_state.name = DriverStateNamedMsg::NAME_REAR;
-
-  auto & driver_state = realtime_driver_state_publisher_->msg_;
-  driver_state.driver_states.push_back(front_driver_state);
-  driver_state.driver_states.push_back(rear_driver_state);
-}
-
-DriverStateNamedMsg & PantherSystemRosInterface::GetDriverStateByName(
+DriverStateNamedMsg & SystemROSInterface::GetDriverStateByName(
   RobotDriverStateMsg & robot_driver_state, const std::string & name)
 {
   auto & driver_states = robot_driver_state.driver_states;
@@ -323,7 +293,10 @@ DriverStateNamedMsg & PantherSystemRosInterface::GetDriverStateByName(
     [&name](const DriverStateNamedMsg & msg) { return msg.name == name; });
 
   if (it == driver_states.end()) {
-    throw std::runtime_error("Driver with name '" + name + "' not found.");
+    DriverStateNamedMsg driver_state_named;
+    driver_state_named.name = name;
+    driver_states.push_back(driver_state_named);
+    it = driver_states.end() - 1;
   }
 
   return *it;

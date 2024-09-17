@@ -107,6 +107,13 @@ public:
    * the error flags should remain active.
    */
   virtual void AttemptErrorFlagReset() = 0;
+
+  /**
+   * @brief Check if communication with drivers is working properly
+   *
+   * @return true if communication error occurred
+   */
+  virtual bool CommunicationError() = 0;
 };
 
 }  // namespace panther_hardware_interfaces

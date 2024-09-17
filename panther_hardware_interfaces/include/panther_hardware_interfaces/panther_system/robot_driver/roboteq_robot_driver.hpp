@@ -132,6 +132,8 @@ public:
    */
   const DriverData & GetData(const std::string & name) override;
 
+  bool CommunicationError() override;
+
 protected:
   /**
    * @brief This method defines driver objects and adds motor drivers for them.
@@ -156,6 +158,7 @@ private:
   bool DataTimeout(
     const timespec & current_time, const timespec & data_timestamp,
     const std::chrono::milliseconds & timeout);
+  void BootDrivers();
 
   bool initialized_ = false;
 

@@ -63,7 +63,7 @@ protected:
    * @brief This method defines driver objects and adds motor drivers for them. It is virtual to
    * allow mocking drivers in tests.
    */
-  virtual void DefineDrivers();
+  void DefineDrivers() override;
 };
 
 }  // namespace panther_hardware_interfaces
