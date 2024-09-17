@@ -56,8 +56,11 @@ void RoboteqRobotDriver::Initialize()
     DefineDrivers();
     for (auto & [name, driver] : drivers_) {
       data_.emplace(name, DriverData(drivetrain_settings_));
-      driver->Boot();
     }
+
+    canopen_manager_.Activate();
+    BootDrivers();
+
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Failed to initialize robot driver: " + std::string(e.what()));
   }
@@ -81,7 +84,7 @@ void RoboteqRobotDriver::Activate()
       driver->ResetScript();
     } catch (const std::runtime_error & e) {
       throw std::runtime_error(
-        "Reset Roboteq script exception on " + name + "driver : " + std::string(e.what()));
+        "Reset Roboteq script exception on " + name + " driver : " + std::string(e.what()));
     }
   }
 
@@ -190,6 +193,13 @@ void RoboteqRobotDriver::TurnOffEStop()
   }
 }
 
+bool RoboteqRobotDriver::CommunicationError()
+{
+  return std::any_of(data_.begin(), data_.end(), [](const auto & data) {
+    return data.second.IsCANError() || data.second.IsHeartbeatTimeout();
+  });
+}
+
 void RoboteqRobotDriver::SetMotorsStates(
   DriverData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
   const timespec & current_time)
@@ -220,6 +230,31 @@ bool RoboteqRobotDriver::DataTimeout(
 {
   return lely::util::from_timespec(current_time) - lely::util::from_timespec(data_timestamp) >
          timeout;
+}
+
+void RoboteqRobotDriver::BootDrivers()
+{
+  for (auto & [name, driver] : drivers_) {
+    try {
+      auto driver_future = driver->Boot();
+      auto driver_status = driver_future.wait_for(std::chrono::seconds(5));
+
+      if (driver_status == std::future_status::ready) {
+        try {
+          driver_future.get();
+        } catch (const std::exception & e) {
+          throw std::runtime_error(
+            "Boot for " + name + " driver failed with exception: " + std::string(e.what()));
+        }
+      } else {
+        throw std::runtime_error("Boot for " + name + " driver timed out or failed.");
+      }
+
+    } catch (const std::system_error & e) {
+      throw std::runtime_error(
+        "An exception occurred while trying to Boot " + name + " driver " + std::string(e.what()));
+    }
+  }
 }
 
 }  // namespace panther_hardware_interfaces

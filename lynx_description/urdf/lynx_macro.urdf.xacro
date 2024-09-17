@@ -61,8 +61,8 @@
           <param name="e_stop_initial_state">true</param>
         </xacro:if>
 
-        <xacro:unless value="${use_sim}">
-          <plugin>panther_hardware_interfaces/PantherSystem</plugin>
+        <xacro:unless value="$(arg use_sim)">
+          <plugin>panther_hardware_interfaces/LynxSystem</plugin>
 
           <param name="encoder_resolution">1600</param>
 
@@ -77,8 +77,7 @@
 
           <param name="can_interface_name">panther_can</param>
           <param name="master_can_id">3</param>
-          <param name="front_driver_can_id">1</param>
-          <param name="rear_driver_can_id">2</param>
+          <param name="driver_can_id">1</param>
           <param name="sdo_operation_timeout_ms">100</param>
 
           <!-- Depends on frequency of the controller, more critical motors state are sent with

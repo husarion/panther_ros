@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_LYNX_SYSTEM_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_LYNX_SYSTEM_HPP_
 
 #include <string>
 #include <vector>
@@ -24,16 +24,16 @@ namespace panther_hardware_interfaces
 {
 
 /**
- * @brief Class that implements UGVSystem for Panther robot
+ * @brief Class that implements UGVSystem for Lynx robot
  */
-class PantherSystem : public UGVSystem
+class LynxSystem : public UGVSystem
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(PantherSystem)
+  RCLCPP_SHARED_PTR_DEFINITIONS(LynxSystem)
 
-  PantherSystem() : UGVSystem(kJointOrder) {}
+  LynxSystem() : UGVSystem(kJointOrder) {}
 
-  ~PantherSystem() = default;
+  ~LynxSystem() = default;
 
 protected:
   void ReadCANopenSettingsDriverCANIDs() override;
@@ -57,4 +57,4 @@ protected:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_LYNX_SYSTEM_HPP_
