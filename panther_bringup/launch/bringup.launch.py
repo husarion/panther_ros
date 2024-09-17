@@ -51,9 +51,10 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    robot_model = EnvironmentVariable("ROBOT_MODEL", default_value="panther")
     serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
     panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
-    welcome_info = welcome_msg(serial_no, panther_version)
+    welcome_info = welcome_msg(robot_model, serial_no, panther_version)
 
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

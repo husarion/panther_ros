@@ -52,7 +52,7 @@ def generate_launch_description():
         "Robot namespace": namespace,
         "Initial pose": ["(", x, ", ", y, ", ", z, ", ", roll, ", ", pitch, ", ", yaw, ")"],
     }
-    welcome_info = welcome_msg(robot_model, "---", "simulation", log_stats)
+    welcome_info = welcome_msg(robot_model, "----", "simulation", log_stats)
 
     urdf_packages = PythonExpression(["'", robot_model, "_description'"])
     add_wheel_joints = LaunchConfiguration("add_wheel_joints", default="True")

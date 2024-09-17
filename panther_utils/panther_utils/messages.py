@@ -26,7 +26,7 @@ from launch.substitutions import Command, PythonExpression
 LYNX_ASCII = r"""
      _
     | |   _   _ _ __ __  __
-    | |  | | | | '_ \ \/ /
+    | |  | | | | '_ \\ \/ /
     | |__| |_| | | | |>  <
     |_____\__, |_| |_/_/\_\
           |___/

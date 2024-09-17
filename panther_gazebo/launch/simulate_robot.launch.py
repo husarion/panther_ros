@@ -34,8 +34,8 @@ def generate_launch_description():
     components_config_path = LaunchConfiguration("components_config_path")
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     namespace = LaunchConfiguration("namespace")
-    robot_model = LaunchConfiguration("robot_model")
     robot_configuration = LaunchConfiguration("robot_configuration")
+    robot_model = LaunchConfiguration("robot_model")
     use_ekf = LaunchConfiguration("use_ekf")
 
     declare_battery_config_path_arg = DeclareLaunchArgument(

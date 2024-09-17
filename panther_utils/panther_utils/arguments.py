@@ -17,7 +17,6 @@
 
 from typing import List, Text, Tuple
 
-import launch
 import yaml
 from launch.action import Action
 from launch.actions import DeclareLaunchArgument
@@ -40,13 +39,6 @@ class DeclareRobotArgs(Action):
         """Create a DeclareRobotArgs action."""
         super().__init__(**kwargs)
         self.__path = normalize_to_list_of_substitutions(path)
-        self.__logger = launch.logging.get_logger(__name__)
-
-        # This is used later to determine if this launch argument will be
-        # conditionally visited.
-        # Its value will be read and set at different times and so the value
-        # may change depending at different times based on the context.
-        # self._conditionally_included = False
 
     @classmethod
     def parse(cls, entity: Entity, parser: "Parser"):
@@ -80,26 +72,6 @@ class DeclareRobotArgs(Action):
         list_of_args = self.create_launch_arguments(namespace, robot_config)
         for arg in list_of_args:
             arg.execute(context)
-
-        # if self.name not in context.launch_configurations:
-        #     if self.default_value is None:
-        #         # Argument not already set and no default value given, error.
-        #         self.__logger.error(
-        #             'Required launch argument "{}" (description: "{}") was not provided'
-        #             .format(self.name, self.description)
-        #         )
-        #         raise RuntimeError(
-        #             'Required launch argument "{}" was not provided.'.format(self.name))
-        #     context.launch_configurations[self.name] = \
-        #         perform_substitutions(context, self.default_value)
-
-        # if self.__choices is not None:
-        #     value = context.launch_configurations[self.name]
-        #     if value not in self.__choices:
-        #         error_msg = ('Argument "{}" provided value "{}" is not valid. Valid options '
-        #                      'are: {}'.format(self.name, value, self.__choices))
-        #         self.__logger.error(error_msg)
-        #         raise RuntimeError(error_msg)
 
     def load_yaml_file(self, path: str) -> dict:
         """Load YAML file and return its contents."""
