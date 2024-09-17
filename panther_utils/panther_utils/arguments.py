@@ -15,12 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Text, Tuple
+from typing import Text, Tuple
 
 import yaml
 from launch.action import Action
 from launch.actions import DeclareLaunchArgument
-from launch.frontend import Entity, Parser
 from launch.launch_context import LaunchContext
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch.utilities import normalize_to_list_of_substitutions, perform_substitutions
@@ -40,24 +39,6 @@ class DeclareRobotArgs(Action):
         super().__init__(**kwargs)
         self.__path = normalize_to_list_of_substitutions(path)
 
-    @classmethod
-    def parse(cls, entity: Entity, parser: "Parser"):
-        """Parse `arg` tag."""
-        _, kwargs = super().parse(entity, parser)
-        kwargs["name"] = parser.escape_characters(entity.get_attr("name"))
-        default_value = entity.get_attr("default", optional=True)
-        if default_value is not None:
-            kwargs["default_value"] = parser.parse_substitution(default_value)
-        description = entity.get_attr("description", optional=True)
-        if description is not None:
-            kwargs["description"] = parser.escape_characters(description)
-        choices = entity.get_attr("choice", data_type=List[Entity], optional=True)
-        if choices is not None:
-            kwargs["choices"] = [
-                parser.escape_characters(choice.get_attr("value")) for choice in choices
-            ]
-        return cls, kwargs
-
     @property
     def path(self) -> Text:
         """Getter for self.__path."""
@@ -68,7 +49,7 @@ class DeclareRobotArgs(Action):
         path = perform_substitutions(context, self.path)
         yaml_data = self.load_yaml_file(path)
         yaml_data = self.normalize_robot_configuration(yaml_data)
-        namespace, robot_config = self.extract_single_robot_configuration(yaml_data)
+        namespace, robot_config = self.extract_first_robot_configuration(yaml_data)
         list_of_args = self.create_launch_arguments(namespace, robot_config)
         for arg in list_of_args:
             arg.execute(context)
@@ -124,12 +105,10 @@ class DeclareRobotArgs(Action):
 
         raise ValueError("Invalid YAML structure: The data does not match expected formats.")
 
-    def extract_single_robot_configuration(
-        self, yaml_data: dict, idx: int = 0
-    ) -> Tuple[str, dict]:
-        """Extracts the namespace and configuration based on the provided index from a YAML dictionary."""
+    def extract_first_robot_configuration(self, yaml_data: dict) -> Tuple[str, dict]:
+        """Extracts the namespace and configuration of first element in dict."""
         keys = list(yaml_data.keys())
-        namespace = keys[idx]
+        namespace = keys[0]
         configuration = yaml_data[namespace]
         return namespace, configuration
 
