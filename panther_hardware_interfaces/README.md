@@ -44,9 +44,6 @@ CAN settings
 
 - `can_interface_name` [*string*, default: **panther_can**]: Name of the CAN interface.
 - `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
-- `driver_can_id` [*int*, default: **1**, **Required only for LynxSystem**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
-- `front_driver_can_id` [*int*, default: **1**, **Required only for PantherSystem**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
-- `rear_driver_can_id` [*int*, default: **2**, **Required only for PantherSystem**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
 - `sdo_operation_timeout_ms` [*int*, default: **100**]: Timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
 - `pdo_motor_states_timeout_ms` [*int*, default: **15**]: Depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
 - `pdo_driver_state_timeout_ms` [*int*, default: **75**]: Depends on the frequency at which Roboteq is configured to send driver state (PDO 3 and 4) data. By default, there should be 50 **[ms]** between received data, if it takes more than `pdo_driver_state_timeout_ms`, a driver state read error is triggered. The default value is set to be expected period +50% margin.
@@ -56,6 +53,15 @@ CAN settings
 - `max_write_pdo_cmds_errors_count` [*int*, default: **2**]: How many consecutive errors can happen before escalating to general error.
 - `max_read_pdo_motor_states_errors_count` [*int*, default: **2**]: How many consecutive errors can happen before escalating to general error.
 - `max_read_pdo_driver_state_errors_count` [*int*, default: **2**]: How many consecutive errors can happen before escalating to general error.
+
+PantherSystem additional CAN settings
+
+- `front_driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+- `rear_driver_can_id` [*int*, default: **2**, **Required only for PantherSystem**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
+
+LynxSystem additional CAN settings
+
+- `driver_can_id` [*int*, default: **1**]: CAN ID defined in the properties of Roboteq (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
 
 > [!CAUTION]
 > `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
