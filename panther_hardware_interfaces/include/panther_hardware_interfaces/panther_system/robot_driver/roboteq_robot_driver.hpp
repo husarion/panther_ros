@@ -132,6 +132,8 @@ public:
    */
   const DriverData & GetData(const std::string & name) override;
 
+  bool CommunicationError() override;
+
 protected:
   /**
    * @brief This method defines driver objects and adds motor drivers for them.

@@ -193,6 +193,13 @@ void RoboteqRobotDriver::TurnOffEStop()
   }
 }
 
+bool RoboteqRobotDriver::CommunicationError()
+{
+  return std::any_of(data_.begin(), data_.end(), [](const auto & data) {
+    return data.second.IsCANError() || data.second.IsHeartbeatTimeout();
+  });
+}
+
 void RoboteqRobotDriver::SetMotorsStates(
   DriverData & data, const MotorDriverState & left_state, const MotorDriverState & right_state,
   const timespec & current_time)

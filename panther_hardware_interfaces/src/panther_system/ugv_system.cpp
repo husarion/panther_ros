@@ -487,11 +487,9 @@ void UGVSystem::UpdateDriverState()
 
 void UGVSystem::UpdateEStopState()
 {
-  // if (
-  //   robot_driver_->GetFrontData().IsHeartbeatTimeout() ||
-  //   robot_driver_->GetRearData().IsHeartbeatTimeout()) {
-  //   e_stop_->TriggerEStop();
-  // }
+  if (robot_driver_->CommunicationError()) {
+    e_stop_->TriggerEStop();
+  }
 
   const bool e_stop = e_stop_->ReadEStopState();
   system_ros_interface_->PublishEStopStateIfChanged(e_stop);

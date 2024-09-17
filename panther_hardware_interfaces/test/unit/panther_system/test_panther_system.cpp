@@ -34,11 +34,10 @@ public:
   PantherSystemWrapper() : PantherSystem()
   {
     mock_robot_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockRobotDriver::NiceMock>();
     mock_gpio_controller =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>();
-    mock_e_stop =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>>();
+      std::make_shared<panther_hardware_interfaces_test::MockGPIOController::NiceMock>();
+    mock_e_stop = std::make_shared<panther_hardware_interfaces_test::MockEStop::NiceMock>();
 
     ON_CALL(
       *mock_robot_driver, GetData(::testing::Eq(panther_hardware_interfaces::DriverNames::FRONT)))
@@ -79,11 +78,10 @@ public:
     return roboteq_error_filter_;
   }
 
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>
-    mock_robot_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>
+  std::shared_ptr<panther_hardware_interfaces_test::MockRobotDriver::NiceMock> mock_robot_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockGPIOController::NiceMock>
     mock_gpio_controller;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>> mock_e_stop;
+  std::shared_ptr<panther_hardware_interfaces_test::MockEStop::NiceMock> mock_e_stop;
 
 private:
   panther_hardware_interfaces::DriverData default_driver_data =

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_E_STOP_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_E_STOP_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_SYSTEM_E_STOP_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_SYSTEM_E_STOP_HPP_
 
 #include <atomic>
 #include <memory>
@@ -117,4 +117,4 @@ protected:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_PANTHER_SYSTEM_E_STOP_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_SYSTEM_E_STOP_HPP_

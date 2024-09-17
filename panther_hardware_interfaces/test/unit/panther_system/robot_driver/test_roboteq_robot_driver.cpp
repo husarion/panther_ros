@@ -502,6 +502,29 @@ TEST_F(TestRoboteqRobotDriver, TurnOffEStopError)
   EXPECT_THROW(robot_driver_->TurnOffEStop(), std::runtime_error);
 }
 
+TEST_F(TestRoboteqRobotDriver, CommunicationError)
+{
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsHeartbeatTimeout())
+    .WillOnce(::testing::Return(false));
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsHeartbeatTimeout())
+    .WillOnce(::testing::Return(false));
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsCANError()).WillOnce(::testing::Return(false));
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsCANError()).WillOnce(::testing::Return(false));
+
+  ASSERT_NO_THROW(robot_driver_->UpdateCommunicationState());
+  EXPECT_FALSE(robot_driver_->CommunicationError());
+
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsHeartbeatTimeout())
+    .WillOnce(::testing::Return(true));
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsHeartbeatTimeout())
+    .WillOnce(::testing::Return(true));
+  EXPECT_CALL(*robot_driver_->mock_front_driver, IsCANError()).WillOnce(::testing::Return(true));
+  EXPECT_CALL(*robot_driver_->mock_rear_driver, IsCANError()).WillOnce(::testing::Return(true));
+
+  ASSERT_NO_THROW(robot_driver_->UpdateCommunicationState());
+  EXPECT_TRUE(robot_driver_->CommunicationError());
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

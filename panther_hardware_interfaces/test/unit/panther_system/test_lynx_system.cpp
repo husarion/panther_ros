@@ -34,11 +34,10 @@ public:
   LynxSystemWrapper() : LynxSystem()
   {
     mock_robot_driver =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>();
+      std::make_shared<panther_hardware_interfaces_test::MockRobotDriver::NiceMock>();
     mock_gpio_controller =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>();
-    mock_e_stop =
-      std::make_shared<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>>();
+      std::make_shared<panther_hardware_interfaces_test::MockGPIOController::NiceMock>();
+    mock_e_stop = std::make_shared<panther_hardware_interfaces_test::MockEStop::NiceMock>();
   }
 
   void DefineRobotDriver() override { robot_driver_ = mock_robot_driver; }
@@ -72,11 +71,10 @@ public:
     return roboteq_error_filter_;
   }
 
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockRobotDriver>>
-    mock_robot_driver;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockGPIOController>>
+  std::shared_ptr<panther_hardware_interfaces_test::MockRobotDriver::NiceMock> mock_robot_driver;
+  std::shared_ptr<panther_hardware_interfaces_test::MockGPIOController::NiceMock>
     mock_gpio_controller;
-  std::shared_ptr<::testing::NiceMock<panther_hardware_interfaces_test::MockEStop>> mock_e_stop;
+  std::shared_ptr<panther_hardware_interfaces_test::MockEStop::NiceMock> mock_e_stop;
 };
 
 class TestLynxSystem : public ::testing::Test

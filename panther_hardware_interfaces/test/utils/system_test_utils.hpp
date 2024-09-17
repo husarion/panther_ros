@@ -46,6 +46,7 @@ public:
   MOCK_METHOD(void, TurnOnEStop, (), (override));
   MOCK_METHOD(void, TurnOffEStop, (), (override));
   MOCK_METHOD(void, AttemptErrorFlagReset, (), (override));
+  MOCK_METHOD(bool, CommunicationError, (), (override));
 
   using NiceMock = testing::NiceMock<MockRobotDriver>;
 };
