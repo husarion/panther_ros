@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
@@ -24,13 +24,14 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
-from panther_utils.arguments import declare_robot_args
+from panther_utils.arguments import DeclareRobotArgs
 from panther_utils.messages import welcome_msg
 
 
 def generate_launch_description():
 
     namespace = LaunchConfiguration("namespace")
+    robot_configuration = LaunchConfiguration("robot_configuration")
     robot_model = LaunchConfiguration("robot_model")
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
@@ -39,11 +40,19 @@ def generate_launch_description():
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
 
+    declare_robot_configuration_arg = DeclareLaunchArgument(
+        "robot_configuration",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
+        ),
+        description="Path to robot configuration YAML file.",
+    )
+
     log_stats = {
         "Robot namespace": namespace,
         "Initial pose": ["(", x, ", ", y, ", ", z, ", ", roll, ", ", pitch, ", ", yaw, ")"],
     }
-    welcome_info = welcome_msg("---", "simulation", log_stats)
+    welcome_info = welcome_msg(robot_model, "----", "simulation", log_stats)
 
     urdf_packages = PythonExpression(["'", robot_model, "_description'"])
     add_wheel_joints = LaunchConfiguration("add_wheel_joints", default="True")
@@ -87,14 +96,10 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    path = PathJoinSubstitution(
-        [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
-    )
-    list_of_robot_args = declare_robot_args(path)
-
     return LaunchDescription(
         [
-            *list_of_robot_args,
+            declare_robot_configuration_arg,
+            DeclareRobotArgs(robot_configuration),
             SetUseSimTime(True),
             welcome_info,
             load_urdf,

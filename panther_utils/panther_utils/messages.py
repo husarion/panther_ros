@@ -20,10 +20,33 @@ from typing import Dict
 import click
 from launch.actions import LogInfo
 from launch.some_substitutions_type import SomeSubstitutionsType
-from launch.substitutions import Command
+from launch.substitutions import Command, PythonExpression
+
+LYNX_ASCII = r"""
+     _
+    | |   _   _ _ __ __  __
+    | |  | | | | '_ \\ \/ /
+    | |__| |_| | | | |>  <
+    |_____\__, |_| |_/_/\_\
+          |___/
+
+    """  # noqa: W605
+
+PANTHER_ASCII = r"""
+     ____             _   _
+    |  _ \ __ _ _ __ | |_| |__   ___ _ __
+    | |_) / _` | '_ \| __| '_ \ / _ \ '__|
+    |  __/ (_| | | | | |_| | | |  __/ |
+    |_|   \__,_|_| |_|\__|_| |_|\___|_|
+
+    """  # noqa: W605
+
+LYNX_TEXT = click.style(textwrap.dedent(LYNX_ASCII), bold=True)
+PANTHER_TEXT = click.style(textwrap.dedent(PANTHER_ASCII), bold=True)
 
 
 def flatten(lst):
+    """Flatten a nested list into a single list."""
     if isinstance(lst, list):
         flat_list = []
         for element in lst:
@@ -34,22 +57,17 @@ def flatten(lst):
 
 
 def welcome_msg(
+    robot_model: SomeSubstitutionsType,
     serial_number: SomeSubstitutionsType,
     robot_hw_version: SomeSubstitutionsType,
     additional_stats: Dict = {},
 ):
+    """Generate a welcome message with robot information and stats."""
     pkg_version = Command(command="ros2 pkg xml -t version panther")
 
-    PANTHER_TEXT = """
-     ____             _   _
-    |  _ \ __ _ _ __ | |_| |__   ___ _ __
-    | |_) / _` | '_ \| __| '_ \ / _ \ '__|
-    |  __/ (_| | | | | |_| | | |  __/ |
-    |_|   \__,_|_| |_|\__|_| |_|\___|_|
-
-    """  # noqa: W605
-    pth_txt = textwrap.dedent(PANTHER_TEXT)
-    pth_txt = click.style(pth_txt, bold=True)
+    robot_model_expr = PythonExpression(
+        [f"r'''{LYNX_TEXT}''' if '", robot_model, f"' == 'lynx' else r'''{PANTHER_TEXT}'''"]
+    )
 
     stats_to_show = {
         "Serial Number": serial_number,
@@ -68,6 +86,6 @@ def welcome_msg(
     ]
     stats_msg = flatten(nested_list_of_stats)
 
-    stats_msg.insert(0, pth_txt)
+    stats_msg.insert(0, robot_model_expr)
 
     return LogInfo(msg=stats_msg)
