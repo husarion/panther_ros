@@ -31,12 +31,24 @@ from panther_utils.arguments import DeclareRobotArgs
 
 def generate_launch_description():
 
+    add_world_transform = LaunchConfiguration("add_world_transform")
     components_config_path = LaunchConfiguration("components_config_path")
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     namespace = LaunchConfiguration("namespace")
     robot_configuration = LaunchConfiguration("robot_configuration")
     robot_model = LaunchConfiguration("robot_model")
     use_ekf = LaunchConfiguration("use_ekf")
+    wheel_type = LaunchConfiguration("wheel_type")
+
+    declare_add_world_transform_arg = DeclareLaunchArgument(
+        "add_world_transform",
+        default_value="False",
+        description=(
+            "Adds a world frame that connects the tf trees of individual robots (useful when running"
+            " multiple robots)."
+        ),
+        choices=["True", "true", "False", "false"],
+    )
 
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
@@ -96,6 +108,7 @@ def generate_launch_description():
             "namespace": namespace,
             "robot_model": robot_model,
             "use_sim": "True",
+            "wheel_type": wheel_type,
         }.items(),
     )
 
@@ -141,6 +154,7 @@ def generate_launch_description():
             "namespace": namespace,
             "publish_robot_state": "False",
             "use_sim": "True",
+            "wheel_type": wheel_type,
         }.items(),
     )
 
@@ -191,10 +205,32 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
+    child_tf = PythonExpression(["'", namespace, "' + '/odom' if '", namespace, "' else 'odom'"])
+
+    world_transform = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="static_tf_publisher",
+        arguments=[
+            LaunchConfiguration("x"),
+            LaunchConfiguration("y"),
+            LaunchConfiguration("z"),
+            LaunchConfiguration("roll"),
+            LaunchConfiguration("pitch"),
+            LaunchConfiguration("yaw"),
+            "world",
+            child_tf,
+        ],
+        namespace=namespace,
+        emulate_tty=True,
+        condition=IfCondition(add_world_transform),
+    )
+
     return LaunchDescription(
         [
             declare_robot_configuration_arg,
             DeclareRobotArgs(robot_configuration),
+            declare_add_world_transform_arg,
             declare_battery_config_path_arg,
             declare_components_config_path_arg,
             declare_gz_bridge_config_path_arg,
@@ -207,5 +243,6 @@ def generate_launch_description():
             ekf_launch,
             simulate_components,
             gz_bridge,
+            world_transform,
         ]
     )

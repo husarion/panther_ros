@@ -39,6 +39,7 @@ def generate_launch_description():
     roll = LaunchConfiguration("roll")
     pitch = LaunchConfiguration("pitch")
     yaw = LaunchConfiguration("yaw")
+    wheel_type = LaunchConfiguration("wheel_type")
 
     declare_robot_configuration_arg = DeclareLaunchArgument(
         "robot_configuration",
@@ -67,6 +68,7 @@ def generate_launch_description():
             "add_wheel_joints": add_wheel_joints,
             "namespace": namespace,
             "robot_model": robot_model,
+            "wheel_type": wheel_type,
             "use_sim": "True",
         }.items(),
     )

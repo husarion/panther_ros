@@ -34,10 +34,10 @@ VALID_CONFIGURATIONS = {
 class DeclareRobotArgs(Action):
     """Retrieves and validate the robot configuration from the YAML data."""
 
-    def __init__(self, path: LaunchConfiguration, **kwargs) -> None:
+    def __init__(self, robot_configuration_path: LaunchConfiguration, **kwargs) -> None:
         """Create a DeclareRobotArgs action."""
         super().__init__(**kwargs)
-        self.__path = normalize_to_list_of_substitutions(path)
+        self.__path = normalize_to_list_of_substitutions(robot_configuration_path)
 
     @property
     def path(self) -> Text:
