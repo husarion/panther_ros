@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include <panther_hardware_interfaces/panther_system/motors_controller/canopen_manager.hpp>
-#include <panther_hardware_interfaces/panther_system/motors_controller/roboteq_data_converters.hpp>
+#include <panther_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp>
+#include <panther_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp>
 
 namespace panther_hardware_interfaces_test
 {
@@ -30,8 +30,7 @@ namespace panther_hardware_interfaces_test
 const panther_hardware_interfaces::CANopenSettings kCANopenSettings{
   "panther_can",
   3,
-  1,
-  2,
+  {{"default", 1}, {"front", 1}, {"rear", 2}},
   std::chrono::milliseconds(15),
   std::chrono::milliseconds(75),
   std::chrono::milliseconds(100),
@@ -42,7 +41,7 @@ const panther_hardware_interfaces::DrivetrainSettings kDrivetrainSettings{
 
 constexpr float kRadPerSecToRbtqCmd = 30.08 * (1.0 / (2.0 * M_PI)) * 60.0 * (1000.0 / 3600.0);
 constexpr float kRbtqPosFbToRad = (1. / 1600) * (1.0 / 30.08) * (2.0 * M_PI);
-constexpr float kRbtqVelFbToRadPerSec = (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
+constexpr float kRbtqVelFbToRadPerSec = (3600. / 1000.) * (1. / 30.08) * (1. / 60.) * (2.0 * M_PI);
 constexpr float kRbtqCurrentFbToNewtonMeters = (1. / 10.) * 0.11 * 30.08 * 0.75;
 
 const std::string kPantherSystemName = "wheels";

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DATA_CONVERTERS_HPP_
-#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DATA_CONVERTERS_HPP_
+#ifndef PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DATA_CONVERTERS_HPP_
+#define PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DATA_CONVERTERS_HPP_
 
 #include <algorithm>
 #include <bitset>
@@ -25,7 +25,7 @@
 #include "panther_msgs/msg/runtime_error.hpp"
 #include "panther_msgs/msg/script_flag.hpp"
 
-#include "panther_hardware_interfaces/panther_system/motors_controller/roboteq_driver.hpp"
+#include "panther_hardware_interfaces/panther_system/robot_driver/roboteq_driver.hpp"
 #include "panther_hardware_interfaces/utils.hpp"
 
 namespace panther_hardware_interfaces
@@ -181,16 +181,16 @@ private:
 /**
  * @brief Class that combines all the data that the one Roboteq driver provides
  */
-class RoboteqData
+class DriverData
 {
 public:
-  RoboteqData(const DrivetrainSettings & drivetrain_settings)
-  : left_motor_state_(drivetrain_settings), right_motor_state_(drivetrain_settings)
+  DriverData(const DrivetrainSettings & drivetrain_settings)
+  : channel_1_motor_state_(drivetrain_settings), channel_2_motor_state_(drivetrain_settings)
   {
   }
 
   void SetMotorsStates(
-    const MotorDriverState & left_state, const MotorDriverState & right_state,
+    const MotorDriverState & channel_1_state, const MotorDriverState & channel_2_state,
     const bool data_timed_out);
   void SetDriverState(const DriverState & state, const bool data_timed_out);
   void SetCANError(const bool can_error) { can_error_ = can_error; }
@@ -198,8 +198,8 @@ public:
 
   bool IsFlagError() const
   {
-    return fault_flags_.IsError() || script_flags_.IsError() || left_runtime_error_.IsError() ||
-           right_runtime_error_.IsError();
+    return fault_flags_.IsError() || script_flags_.IsError() ||
+           channel_1_runtime_error_.IsError() || channel_2_runtime_error_.IsError();
   }
 
   bool IsError() const
@@ -208,8 +208,15 @@ public:
            can_error_ || heartbeat_timeout_;
   }
 
-  const MotorState & GetLeftMotorState() const { return left_motor_state_; }
-  const MotorState & GetRightMotorState() const { return right_motor_state_; }
+  /**
+   * @brief Returns motor state data for the given channel
+   *
+   * @param channel 1 or 2
+   * @return motor state data
+   * @throws std::runtime_error if invalid channel number
+   */
+  const MotorState & GetMotorState(const std::uint8_t channel) const;
+
   const RoboteqDriverState & GetDriverState() const { return driver_state_; }
 
   bool IsMotorStatesDataTimedOut() const { return motor_states_data_timed_out_; }
@@ -219,8 +226,15 @@ public:
 
   const FaultFlag & GetFaultFlag() const { return fault_flags_; }
   const ScriptFlag & GetScriptFlag() const { return script_flags_; }
-  const RuntimeError & GetLeftRuntimeError() const { return left_runtime_error_; }
-  const RuntimeError & GetRightRuntimeError() const { return right_runtime_error_; }
+
+  /**
+   * @brief Returns runtime error flags for the given channel
+   *
+   * @param channel 1 or 2
+   * @return runtime error flags
+   * @throws std::runtime_error if invalid channel number
+   */
+  const RuntimeError & GetRuntimeError(const std::uint8_t channel) const;
 
   std::string GetFlagErrorLog() const;
 
@@ -228,15 +242,15 @@ public:
   std::map<std::string, bool> GetErrorMap() const;
 
 private:
-  MotorState left_motor_state_;
-  MotorState right_motor_state_;
+  MotorState channel_1_motor_state_;
+  MotorState channel_2_motor_state_;
 
   RoboteqDriverState driver_state_;
 
   FaultFlag fault_flags_;
   ScriptFlag script_flags_;
-  RuntimeError left_runtime_error_;
-  RuntimeError right_runtime_error_;
+  RuntimeError channel_1_runtime_error_;
+  RuntimeError channel_2_runtime_error_;
 
   bool motor_states_data_timed_out_ = false;
   bool driver_state_data_timed_out_ = false;
@@ -246,4 +260,4 @@ private:
 
 }  // namespace panther_hardware_interfaces
 
-#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_MOTORS_CONTROLLER_ROBOTEQ_DATA_CONVERTERS_HPP_
+#endif  // PANTHER_HARDWARE_INTERFACES_PANTHER_SYSTEM_ROBOT_DRIVER_ROBOTEQ_DATA_CONVERTERS_HPP_
