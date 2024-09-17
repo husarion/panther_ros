@@ -22,7 +22,6 @@ from launch.actions import LogInfo
 from launch.some_substitutions_type import SomeSubstitutionsType
 from launch.substitutions import Command, PythonExpression
 
-# Correct ASCII art strings
 LYNX_ASCII = r"""
      _
     | |   _   _ _ __ __  __
@@ -42,7 +41,6 @@ PANTHER_ASCII = r"""
 
     """  # noqa: W605
 
-# Ensure the text substitution correctly wraps the ASCII art
 LYNX_TEXT = click.style(textwrap.dedent(LYNX_ASCII), bold=True)
 PANTHER_TEXT = click.style(textwrap.dedent(PANTHER_ASCII), bold=True)
 
@@ -67,12 +65,10 @@ def welcome_msg(
     """Generate a welcome message with robot information and stats."""
     pkg_version = Command(command="ros2 pkg xml -t version panther")
 
-    # Properly format the PythonExpression to avoid syntax errors
     robot_model_expr = PythonExpression(
         [f"r'''{LYNX_TEXT}''' if '", robot_model, f"' == 'lynx' else r'''{PANTHER_TEXT}'''"]
     )
 
-    # Prepare stats to display in the message
     stats_to_show = {
         "Serial Number": serial_number,
         "Robot Version": robot_hw_version,
@@ -83,7 +79,6 @@ def welcome_msg(
         "Bug Tracker": "https://github.com/husarion/panther_ros/issues",
     }
 
-    # Flatten stats into a message format
     nested_list_of_stats = [
         item
         for name, value in stats_to_show.items()
@@ -91,7 +86,6 @@ def welcome_msg(
     ]
     stats_msg = flatten(nested_list_of_stats)
 
-    # Insert robot model ASCII art at the beginning of the message
     stats_msg.insert(0, robot_model_expr)
 
     return LogInfo(msg=stats_msg)
