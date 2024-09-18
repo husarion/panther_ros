@@ -96,7 +96,7 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
+    use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
         default_value="False",
@@ -104,6 +104,7 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
         default_value=PathJoinSubstitution(
@@ -120,7 +121,6 @@ def generate_launch_description():
         ),
     )
 
-    use_sim = LaunchConfiguration("use_sim")
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",

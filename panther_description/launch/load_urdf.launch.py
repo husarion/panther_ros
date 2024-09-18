@@ -98,6 +98,7 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
         default_value=PathJoinSubstitution(
@@ -114,7 +115,6 @@ def generate_launch_description():
         ),
     )
 
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH01",

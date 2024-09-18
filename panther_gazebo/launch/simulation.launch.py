@@ -17,19 +17,19 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    EnvironmentVariable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ReplaceString
-from panther_utils.arguments import DeclareRobotArgs
 
 
 def generate_launch_description():
 
     gz_gui = LaunchConfiguration("gz_gui")
-    namespace = LaunchConfiguration("namespace")
-    robot_configuration = LaunchConfiguration("robot_configuration")
-
     declare_gz_gui = DeclareLaunchArgument(
         "gz_gui",
         default_value=PathJoinSubstitution(
@@ -38,12 +38,11 @@ def generate_launch_description():
         description="Run simulation with specific GUI layout.",
     )
 
-    declare_robot_configuration_arg = DeclareLaunchArgument(
-        "robot_configuration",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
-        ),
-        description="Path to robot configuration YAML file.",
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all launched nodes.",
     )
 
     namespaced_gz_gui = ReplaceString(
@@ -72,14 +71,13 @@ def generate_launch_description():
         ),
     )
 
-    return LaunchDescription(
-        [
-            declare_gz_gui,
-            declare_robot_configuration_arg,
-            DeclareRobotArgs(robot_configuration),
-            # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
-            SetUseSimTime(True),
-            gz_sim,
-            simulate_robots,
-        ]
-    )
+    actions = [
+        declare_gz_gui,
+        declare_namespace_arg,
+        # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
+        SetUseSimTime(True),
+        gz_sim,
+        simulate_robots,
+    ]
+
+    return LaunchDescription(actions)

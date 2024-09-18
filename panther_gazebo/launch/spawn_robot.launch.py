@@ -14,39 +14,69 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
+    EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
-from panther_utils.arguments import DeclareRobotArgs
 from panther_utils.messages import welcome_msg
 
 
 def generate_launch_description():
 
     namespace = LaunchConfiguration("namespace")
-    robot_configuration = LaunchConfiguration("robot_configuration")
-    robot_model = LaunchConfiguration("robot_model")
-    x = LaunchConfiguration("x")
-    y = LaunchConfiguration("y")
-    z = LaunchConfiguration("z")
-    roll = LaunchConfiguration("roll")
-    pitch = LaunchConfiguration("pitch")
-    yaw = LaunchConfiguration("yaw")
-    wheel_type = LaunchConfiguration("wheel_type")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all launched nodes.",
+    )
 
-    declare_robot_configuration_arg = DeclareLaunchArgument(
-        "robot_configuration",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
-        ),
-        description="Path to robot configuration YAML file.",
+    robot_model = LaunchConfiguration("robot_model")
+    robot_model_env = os.environ.get("ROBOT_MODEL_env", default="PTH")
+    robot_model_env = "lynx" if robot_model_env == "LNX" else "panther"
+    declare_robot_model_arg = DeclareLaunchArgument(
+        "robot_model",
+        default_value=robot_model_env,
+        description="Specify robot model",
+        choices=["lynx", "panther"],
+    )
+
+    x = LaunchConfiguration("x")
+    declare_x_arg = DeclareLaunchArgument(
+        "x", default_value="0.0", description="Initial robot position in the global 'x' axis."
+    )
+
+    y = LaunchConfiguration("y")
+    declare_y_arg = DeclareLaunchArgument(
+        "y", default_value="-2.0", description="Initial robot position in the global 'y' axis."
+    )
+
+    z = LaunchConfiguration("z")
+    declare_z_arg = DeclareLaunchArgument(
+        "z", default_value="0.2", description="Initial robot position in the global 'z' axis."
+    )
+
+    roll = LaunchConfiguration("roll")
+    declare_roll_arg = DeclareLaunchArgument(
+        "roll", default_value="0.0", description="Initial robot 'roll' orientation."
+    )
+
+    pitch = LaunchConfiguration("pitch")
+    declare_pitch_arg = DeclareLaunchArgument(
+        "pitch", default_value="0.0", description="Initial robot 'pitch' orientation."
+    )
+
+    yaw = LaunchConfiguration("yaw")
+    declare_yaw_arg = DeclareLaunchArgument(
+        "yaw", default_value="0.0", description="Initial robot 'yaw' orientation."
     )
 
     log_stats = {
@@ -56,8 +86,6 @@ def generate_launch_description():
     welcome_info = welcome_msg(robot_model, "----", "simulation", log_stats)
 
     urdf_packages = PythonExpression(["'", robot_model, "_description'"])
-    add_wheel_joints = LaunchConfiguration("add_wheel_joints", default="True")
-
     load_urdf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -65,10 +93,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "add_wheel_joints": add_wheel_joints,
-            "namespace": namespace,
-            "robot_model": robot_model,
-            "wheel_type": wheel_type,
+            "add_wheel_joints": LaunchConfiguration("add_wheel_joints", default="True"),
             "use_sim": "True",
         }.items(),
     )
@@ -98,13 +123,19 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    return LaunchDescription(
-        [
-            declare_robot_configuration_arg,
-            DeclareRobotArgs(robot_configuration),
-            SetUseSimTime(True),
-            welcome_info,
-            load_urdf,
-            spawn_robot,
-        ]
-    )
+    actions = [
+        declare_namespace_arg,
+        declare_robot_model_arg,
+        declare_x_arg,
+        declare_y_arg,
+        declare_z_arg,
+        declare_roll_arg,
+        declare_pitch_arg,
+        declare_yaw_arg,
+        SetUseSimTime(True),
+        welcome_info,
+        load_urdf,
+        spawn_robot,
+    ]
+
+    return LaunchDescription(actions)

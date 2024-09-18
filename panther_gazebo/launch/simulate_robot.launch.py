@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition, UnlessCondition
@@ -26,20 +28,13 @@ from launch.substitutions import (
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import ReplaceString
-from panther_utils.arguments import DeclareRobotArgs
 
 
 def generate_launch_description():
 
-    add_world_transform = LaunchConfiguration("add_world_transform")
-    components_config_path = LaunchConfiguration("components_config_path")
-    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     namespace = LaunchConfiguration("namespace")
-    robot_configuration = LaunchConfiguration("robot_configuration")
-    robot_model = LaunchConfiguration("robot_model")
-    use_ekf = LaunchConfiguration("use_ekf")
-    wheel_type = LaunchConfiguration("wheel_type")
 
+    add_world_transform = LaunchConfiguration("add_world_transform")
     declare_add_world_transform_arg = DeclareLaunchArgument(
         "add_world_transform",
         default_value="False",
@@ -74,6 +69,7 @@ def generate_launch_description():
         ),
     )
 
+    gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
@@ -82,19 +78,33 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file.",
     )
 
-    declare_robot_configuration_arg = DeclareLaunchArgument(
-        "robot_configuration",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "configuration.yaml"]
-        ),
-        description="Path to robot configuration YAML file.",
+    robot_model = LaunchConfiguration("robot_model")
+    robot_model_env = os.environ.get("ROBOT_MODEL", default="PTH")
+    robot_model_env = "lynx" if robot_model_env == "LNX" else "panther"
+    declare_robot_model_arg = DeclareLaunchArgument(
+        "robot_model",
+        default_value=robot_model_env,
+        description="Specify robot model",
+        choices=["lynx", "panther"],
     )
 
+    use_ekf = LaunchConfiguration("use_ekf")
     declare_use_ekf_arg = DeclareLaunchArgument(
         "use_ekf",
         default_value="True",
         description="Enable or disable EKF.",
         choices=["True", "true", "False", "false"],
+    )
+
+    declare_wheel_type_arg = DeclareLaunchArgument(
+        "wheel_type",
+        default_value=PythonExpression(["'WH01' if '", robot_model, "' == 'panther' else 'WH05'"]),
+        description=(
+            "Specify the wheel type. If the selected wheel type is not 'custom', "
+            "the 'wheel_config_path' and 'controller_config_path' arguments will be "
+            "automatically adjusted and can be omitted."
+        ),
+        choices=["WH01", "WH02", "WH04", "WH05", "custom"],
     )
 
     spawn_robot_launch = IncludeLaunchDescription(
@@ -105,10 +115,6 @@ def generate_launch_description():
         ),
         launch_arguments={
             "add_wheel_joints": "False",
-            "namespace": namespace,
-            "robot_model": robot_model,
-            "use_sim": "True",
-            "wheel_type": wheel_type,
         }.items(),
     )
 
@@ -151,10 +157,8 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "namespace": namespace,
             "publish_robot_state": "False",
             "use_sim": "True",
-            "wheel_type": wheel_type,
         }.items(),
     )
 
@@ -183,8 +187,6 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "components_config_path": components_config_path,
-            "namespace": namespace,
             "use_sim": "True",
         }.items(),
     )
@@ -212,13 +214,21 @@ def generate_launch_description():
         executable="static_transform_publisher",
         name="static_tf_publisher",
         arguments=[
+            "--x",
             LaunchConfiguration("x"),
+            "--y",
             LaunchConfiguration("y"),
+            "--z",
             LaunchConfiguration("z"),
+            "--roll",
             LaunchConfiguration("roll"),
+            "--pitch",
             LaunchConfiguration("pitch"),
+            "--yaw",
             LaunchConfiguration("yaw"),
+            "--frame-id",
             "world",
+            "--child-frame-id",
             child_tf,
         ],
         namespace=namespace,
@@ -226,23 +236,23 @@ def generate_launch_description():
         condition=IfCondition(add_world_transform),
     )
 
-    return LaunchDescription(
-        [
-            declare_robot_configuration_arg,
-            DeclareRobotArgs(robot_configuration),
-            declare_add_world_transform_arg,
-            declare_battery_config_path_arg,
-            declare_components_config_path_arg,
-            declare_gz_bridge_config_path_arg,
-            declare_use_ekf_arg,
-            SetUseSimTime(True),
-            spawn_robot_launch,
-            lights_launch,
-            manager_launch,
-            controller_launch,
-            ekf_launch,
-            simulate_components,
-            gz_bridge,
-            world_transform,
-        ]
-    )
+    actions = [
+        declare_add_world_transform_arg,
+        declare_battery_config_path_arg,
+        declare_components_config_path_arg,
+        declare_gz_bridge_config_path_arg,
+        declare_robot_model_arg,
+        declare_use_ekf_arg,
+        declare_wheel_type_arg,
+        SetUseSimTime(True),
+        spawn_robot_launch,
+        lights_launch,
+        manager_launch,
+        controller_launch,
+        ekf_launch,
+        simulate_components,
+        gz_bridge,
+        world_transform,
+    ]
+
+    return LaunchDescription(actions)

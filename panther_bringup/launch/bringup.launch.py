@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
@@ -51,10 +53,11 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
-    robot_model = EnvironmentVariable("ROBOT_MODEL", default_value="panther")
-    serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
-    welcome_info = welcome_msg(robot_model, serial_no, panther_version)
+    robot_model = os.environ.get("ROBOT_MODEL", default="PTH")
+    robot_model = "lynx" if robot_model == "LNX" else "panther"
+    robot_serial_no = EnvironmentVariable(name="ROBOT_SERIAL_NO", default_value="----")
+    robot_version = EnvironmentVariable(name="ROBOT_VERSION", default_value="1.0")
+    welcome_info = welcome_msg(robot_model, robot_serial_no, robot_version)
 
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
