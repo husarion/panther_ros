@@ -65,7 +65,7 @@ def generate_launch_description():
         ),
     )
 
-    wheel_type = LaunchConfiguration("wheel_type")  # wheel_type is used by controller_config_path
+    wheel_type = LaunchConfiguration("wheel_type")
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",

@@ -18,9 +18,10 @@ import os
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
+    EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
@@ -31,8 +32,6 @@ from nav2_common.launch import ReplaceString
 
 
 def generate_launch_description():
-
-    namespace = LaunchConfiguration("namespace")
 
     add_world_transform = LaunchConfiguration("add_world_transform")
     declare_add_world_transform_arg = DeclareLaunchArgument(
@@ -56,10 +55,13 @@ def generate_launch_description():
         ),
     )
 
+    components_config_path = LaunchConfiguration("components_config_path")
+    robot_model = LaunchConfiguration("robot_model")
+    robot_description_pkg = PythonExpression(["'", robot_model, "_description'"])
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_description"), "config", "components.yaml"]
+            [FindPackageShare(robot_description_pkg), "config", "components.yaml"]
         ),
         description=(
             "Additional components configuration file. Components described in this file "
@@ -78,7 +80,13 @@ def generate_launch_description():
         description="Path to the parameter_bridge configuration file.",
     )
 
-    robot_model = LaunchConfiguration("robot_model")
+    namespace = LaunchConfiguration("namespace")
+    declare_namespace_arg = DeclareLaunchArgument(
+        "namespace",
+        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
+        description="Add namespace to all launched nodes.",
+    )
+
     robot_model_env = os.environ.get("ROBOT_MODEL", default="PTH")
     robot_model_env = "lynx" if robot_model_env == "LNX" else "panther"
     declare_robot_model_arg = DeclareLaunchArgument(
@@ -115,6 +123,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "add_wheel_joints": "False",
+            "namespace": namespace,
         }.items(),
     )
 
@@ -136,16 +145,6 @@ def generate_launch_description():
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
     )
 
-    gz_led_strip_config = PathJoinSubstitution(
-        [FindPackageShare("panther_gazebo"), "config", "led_strips.yaml"]
-    )
-
-    gz_led_strip_config = ReplaceString(
-        source_file=gz_led_strip_config,
-        replacements={"parent_link: panther": ["parent_link: ", namespace]},
-        condition=UnlessCondition(PythonExpression(["'", namespace, "' == ''"])),
-    )
-
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -157,6 +156,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
+            "namespace": namespace,
             "publish_robot_state": "False",
             "use_sim": "True",
         }.items(),
@@ -187,6 +187,8 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
+            "components_config_path": components_config_path,
+            "namespace": namespace,
             "use_sim": "True",
         }.items(),
     )
@@ -239,9 +241,10 @@ def generate_launch_description():
     actions = [
         declare_add_world_transform_arg,
         declare_battery_config_path_arg,
+        declare_robot_model_arg,  # robot_model is used by components_config_path
         declare_components_config_path_arg,
         declare_gz_bridge_config_path_arg,
-        declare_robot_model_arg,
+        declare_namespace_arg,
         declare_use_ekf_arg,
         declare_wheel_type_arg,
         SetUseSimTime(True),

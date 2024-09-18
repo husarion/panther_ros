@@ -85,15 +85,16 @@ def generate_launch_description():
     }
     welcome_info = welcome_msg(robot_model, "----", "simulation", log_stats)
 
-    urdf_packages = PythonExpression(["'", robot_model, "_description'"])
+    robot_description_pkg = PythonExpression(["'", robot_model, "_description'"])
     load_urdf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare(urdf_packages), "launch", "load_urdf.launch.py"]
+                [FindPackageShare(robot_description_pkg), "launch", "load_urdf.launch.py"]
             )
         ),
         launch_arguments={
             "add_wheel_joints": LaunchConfiguration("add_wheel_joints", default="True"),
+            "namespace": namespace,
             "use_sim": "True",
         }.items(),
     )
