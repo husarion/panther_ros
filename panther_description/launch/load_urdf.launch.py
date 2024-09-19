@@ -126,8 +126,13 @@ def generate_launch_description():
         choices=["WH01", "WH02", "WH04", "custom"],
     )
 
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
     # Get URDF via xacro
+    imu_pos_x = os.environ.get("ROBOT_IMU_LOCALIZATION_X", "0.168")
+    imu_pos_y = os.environ.get("ROBOT_IMU_LOCALIZATION_Y", "0.028")
+    imu_pos_z = os.environ.get("ROBOT_IMU_LOCALIZATION_Z", "0.083")
+    imu_rot_r = os.environ.get("ROBOT_IMU_ORIENTATION_R", "3.14")
+    imu_rot_p = os.environ.get("ROBOT_IMU_ORIENTATION_P", "-1.57")
+    imu_rot_y = os.environ.get("ROBOT_IMU_ORIENTATION_Y", "0.0")
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -135,8 +140,6 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("panther_description"), "urdf", "panther.urdf.xacro"]
             ),
-            " panther_version:=",
-            panther_version,
             " use_sim:=",
             use_sim,
             " wheel_config_file:=",
@@ -146,9 +149,9 @@ def generate_launch_description():
             " battery_config_file:=",
             battery_config_path,
             " imu_xyz:=",
-            f"\"{os.environ.get('PANTHER_IMU_LOCALIZATION_X', '0.168')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Y', '0.028')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Z', '0.083')}\"",
+            f"'{imu_pos_x} {imu_pos_y} {imu_pos_z}'",
             " imu_rpy:=",
-            f"\"{os.environ.get('PANTHER_IMU_ORIENTATION_R', '3.14')} {os.environ.get('PANTHER_IMU_ORIENTATION_P', '-1.57')} {os.environ.get('PANTHER_IMU_ORIENTATION_Y', '0.0')}\"",
+            f"'{imu_rot_r} {imu_rot_p} {imu_rot_y}'",
             " namespace:=",
             namespace,
             " components_config_path:=",

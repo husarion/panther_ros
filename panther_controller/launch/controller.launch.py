@@ -142,19 +142,25 @@ def generate_launch_description():
     )
 
     # Get URDF via xacro
+    robot_description_pkg = PythonExpression(["'", robot_model, "_description'"])
+    robot_description_file = PythonExpression(["'", robot_model, ".urdf.xacro'"])
+    imu_pos_x = os.environ.get("ROBOT_IMU_LOCALIZATION_X", "0.168")
+    imu_pos_y = os.environ.get("ROBOT_IMU_LOCALIZATION_Y", "0.028")
+    imu_pos_z = os.environ.get("ROBOT_IMU_LOCALIZATION_Z", "0.083")
+    imu_rot_r = os.environ.get("ROBOT_IMU_ORIENTATION_R", "3.14")
+    imu_rot_p = os.environ.get("ROBOT_IMU_ORIENTATION_P", "-1.57")
+    imu_rot_y = os.environ.get("ROBOT_IMU_ORIENTATION_Y", "0.0")
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("panther_description"),
+                    FindPackageShare(robot_description_pkg),
                     "urdf",
-                    "panther.urdf.xacro",
+                    robot_description_file,
                 ]
             ),
-            " panther_version:=",
-            os.environ.get("PANTHER_ROBOT_VERSION", "1.0"),
             " use_sim:=",
             use_sim,
             " wheel_config_file:=",
@@ -164,9 +170,9 @@ def generate_launch_description():
             " battery_config_file:=",
             battery_config_path,
             " imu_xyz:=",
-            f"\"{os.environ.get('PANTHER_IMU_LOCALIZATION_X', '0.168')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Y', '0.028')} {os.environ.get('PANTHER_IMU_LOCALIZATION_Z', '0.083')}\"",
+            f"'{imu_pos_x} {imu_pos_y} {imu_pos_z}'",
             " imu_rpy:=",
-            f"\"{os.environ.get('PANTHER_IMU_ORIENTATION_R', '3.14')} {os.environ.get('PANTHER_IMU_ORIENTATION_P', '-1.57')} {os.environ.get('PANTHER_IMU_ORIENTATION_Y', '0.0')}\"",
+            f"'{imu_rot_r} {imu_rot_p} {imu_rot_y}'",
             " namespace:=",
             namespace,
             " components_config_path:=",

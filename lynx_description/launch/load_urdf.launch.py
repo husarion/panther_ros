@@ -127,14 +127,13 @@ def generate_launch_description():
         choices=["WH05", "custom"],
     )
 
-    imu_localization_x = os.environ.get("LYNX_IMU_LOCALIZATION_X", "0.168")
-    imu_localization_y = os.environ.get("LYNX_IMU_LOCALIZATION_Y", "0.028")
-    imu_localization_z = os.environ.get("LYNX_IMU_LOCALIZATION_Z", "0.083")
-    imu_orientation_r = os.environ.get("LYNX_IMU_ORIENTATION_R", "3.14")
-    imu_orientation_p = os.environ.get("LYNX_IMU_ORIENTATION_P", "-1.57")
-    imu_orientation_y = os.environ.get("LYNX_IMU_ORIENTATION_Y", "0.0")
-
     # Get URDF via xacro
+    imu_pos_x = os.environ.get("ROBOT_IMU_LOCALIZATION_X", "0.168")
+    imu_pos_y = os.environ.get("ROBOT_IMU_LOCALIZATION_Y", "0.028")
+    imu_pos_z = os.environ.get("ROBOT_IMU_LOCALIZATION_Z", "0.083")
+    imu_rot_r = os.environ.get("ROBOT_IMU_ORIENTATION_R", "3.14")
+    imu_rot_p = os.environ.get("ROBOT_IMU_ORIENTATION_P", "-1.57")
+    imu_rot_y = os.environ.get("ROBOT_IMU_ORIENTATION_Y", "0.0")
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -151,9 +150,9 @@ def generate_launch_description():
             " battery_config_file:=",
             battery_config_path,
             " imu_xyz:=",
-            f'"{imu_localization_x} {imu_localization_y} {imu_localization_z}"',
+            f"'{imu_pos_x} {imu_pos_y} {imu_pos_z}'",
             " imu_rpy:=",
-            f'"{imu_orientation_r} {imu_orientation_p} {imu_orientation_y}"',
+            f"'{imu_rot_r} {imu_rot_p} {imu_rot_y}'",
             " namespace:=",
             namespace,
             " components_config_path:=",

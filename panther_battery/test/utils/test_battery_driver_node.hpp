@@ -40,7 +40,7 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class TestBatteryNode : public testing::Test
 {
 public:
-  TestBatteryNode(const float panther_version = 1.2, const bool dual_battery = false);
+  TestBatteryNode(const bool dual_battery = false);
   ~TestBatteryNode();
 
 protected:
@@ -63,43 +63,40 @@ protected:
   rclcpp::Publisher<RobotDriverStateMsg>::SharedPtr driver_state_pub_;
 };
 
-TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_battery)
+TestBatteryNode::TestBatteryNode(const bool dual_battery)
 {
   std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("panther_version", panther_version));
 
-  if (panther_version >= 1.2 - std::numeric_limits<float>::epsilon()) {
-    device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
-    device1_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice1;
+  device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
+  device1_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice1;
 
-    params.push_back(rclcpp::Parameter("adc/device0", device0_path_.string()));
-    params.push_back(rclcpp::Parameter("adc/device1", device1_path_.string()));
-    params.push_back(rclcpp::Parameter("adc/path", testing::TempDir()));
+  params.push_back(rclcpp::Parameter("adc/device0", device0_path_.string()));
+  params.push_back(rclcpp::Parameter("adc/device1", device1_path_.string()));
+  params.push_back(rclcpp::Parameter("adc/path", testing::TempDir()));
 
-    // Create the device0 and device1 directories if they do not exist
-    std::filesystem::create_directory(device0_path_);
-    std::filesystem::create_directory(device1_path_);
+  // Create the device0 and device1 directories if they do not exist
+  std::filesystem::create_directory(device0_path_);
+  std::filesystem::create_directory(device1_path_);
 
-    // Create only files that are required for adc_node to start
-    int dual_bat_volt = dual_battery ? 800 : 1600;
-    WriteNumberToFile<int>(dual_bat_volt, std::filesystem::path(device0_path_ / "in_voltage0_raw"));
-    WriteNumberToFile<int>(800, std::filesystem::path(device0_path_ / "in_voltage1_raw"));
-    WriteNumberToFile<int>(2, std::filesystem::path(device0_path_ / "in_voltage2_raw"));
-    WriteNumberToFile<int>(2, std::filesystem::path(device0_path_ / "in_voltage3_raw"));
-    WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage0_scale"));
-    WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage1_scale"));
-    WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage2_scale"));
-    WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage3_scale"));
+  // Create only files that are required for adc_node to start
+  int dual_bat_volt = dual_battery ? 800 : 1600;
+  WriteNumberToFile<int>(dual_bat_volt, std::filesystem::path(device0_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(800, std::filesystem::path(device0_path_ / "in_voltage1_raw"));
+  WriteNumberToFile<int>(2, std::filesystem::path(device0_path_ / "in_voltage2_raw"));
+  WriteNumberToFile<int>(2, std::filesystem::path(device0_path_ / "in_voltage3_raw"));
+  WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage0_scale"));
+  WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage1_scale"));
+  WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage2_scale"));
+  WriteNumberToFile<float>(2.0, std::filesystem::path(device0_path_ / "in_voltage3_scale"));
 
-    WriteNumberToFile<int>(1400, std::filesystem::path(device1_path_ / "in_voltage0_raw"));
-    WriteNumberToFile<int>(600, std::filesystem::path(device1_path_ / "in_voltage1_raw"));
-    WriteNumberToFile<int>(600, std::filesystem::path(device1_path_ / "in_voltage2_raw"));
-    WriteNumberToFile<int>(1400, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
-    WriteNumberToFile<float>(1.0, std::filesystem::path(device1_path_ / "in_voltage0_scale"));
-    WriteNumberToFile<float>(2.0, std::filesystem::path(device1_path_ / "in_voltage1_scale"));
-    WriteNumberToFile<float>(2.0, std::filesystem::path(device1_path_ / "in_voltage2_scale"));
-    WriteNumberToFile<float>(1.0, std::filesystem::path(device1_path_ / "in_voltage3_scale"));
-  }
+  WriteNumberToFile<int>(1400, std::filesystem::path(device1_path_ / "in_voltage0_raw"));
+  WriteNumberToFile<int>(600, std::filesystem::path(device1_path_ / "in_voltage1_raw"));
+  WriteNumberToFile<int>(600, std::filesystem::path(device1_path_ / "in_voltage2_raw"));
+  WriteNumberToFile<int>(1400, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device1_path_ / "in_voltage0_scale"));
+  WriteNumberToFile<float>(2.0, std::filesystem::path(device1_path_ / "in_voltage1_scale"));
+  WriteNumberToFile<float>(2.0, std::filesystem::path(device1_path_ / "in_voltage2_scale"));
+  WriteNumberToFile<float>(1.0, std::filesystem::path(device1_path_ / "in_voltage3_scale"));
 
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
