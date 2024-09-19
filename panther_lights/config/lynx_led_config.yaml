@@ -1,21 +1,28 @@
 panels:
   - channel: 1
-    number_of_leds: 46
+    number_of_leds: 22
   - channel: 2
-    number_of_leds: 46
+    number_of_leds: 22
 
 segments:
-  - name: front
+  - name: fl
     channel: 1
-    led_range: 0-45
-  - name: rear
+    led_range: 0-10
+  - name: rl
+    channel: 1
+    led_range: 21-11
+  - name: fr
     channel: 2
-    led_range: 45-0
+    led_range: 0-10
+  - name: fl
+    channel: 2
+    led_range: 21-11
+
 
 segments_map:
-  all: [front, rear]
-  front: [front]
-  rear: [rear]
+  all: [fl, fr, rl, rr]
+  front: [fl, fr]
+  rear: [rl, rr]
 
 led_animations:
   - id: 0
@@ -25,7 +32,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/triangle01_red.png
+          image: $(find panther_lights)/animations/lynx/triangle01_red.png
           duration: 2
 
   - id: 1
@@ -35,7 +42,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/triangle01_green.png
+          image: $(find panther_lights)/animations/lynx/triangle01_green.png
           duration: 2
 
   - id: 2
@@ -45,7 +52,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/strip01_red.png
+          image: $(find panther_lights)/animations/lynx/strip01_red.png
           duration: 3
           repeat: 2
 
@@ -56,7 +63,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/triangle01_blue.png
+          image: $(find panther_lights)/animations/lynx/triangle01_blue.png
           duration: 3
 
   - id: 4
@@ -66,7 +73,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/triangle01_orange.png
+          image: $(find panther_lights)/animations/lynx/triangle01_orange.png
           duration: 3
 
   - id: 5
@@ -76,7 +83,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/strip01_purple.png
+          image: $(find panther_lights)/animations/lynx/strip01_purple.png
           duration: 3
           repeat: 2
 
@@ -87,7 +94,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/battery_low.png
+          image: $(find panther_lights)/animations/lynx/battery_low.png
           duration: 2
           repeat: 2
 
@@ -98,7 +105,7 @@ led_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find panther_lights)/animations/battery_critical.png
+          image: $(find panther_lights)/animations/lynx/battery_critical.png
           duration: 2
           repeat: 2
 

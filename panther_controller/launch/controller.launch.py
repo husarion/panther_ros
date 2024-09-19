@@ -285,8 +285,8 @@ def generate_launch_description():
 
     actions = [
         declare_battery_config_path_arg,
-        declare_robot_model_arg,  # robot_model must be before wheel_type
-        declare_wheel_type_arg,  # wheel_type must be before controller_config_path
+        declare_robot_model_arg,  # robot_model is used by wheel_type
+        declare_wheel_type_arg,  # wheel_type is used by controller_config_path
         declare_components_config_path_arg,
         declare_controller_config_path_arg,
         declare_namespace_arg,

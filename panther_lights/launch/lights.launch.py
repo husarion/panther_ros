@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown
 from launch.conditions import UnlessCondition
@@ -22,6 +24,7 @@ from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
@@ -29,11 +32,13 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    robot_model = LaunchConfiguration("robot_model")
+    robot_led_config = PythonExpression(["'", robot_model, "_config.yaml'"])
     led_config_file = LaunchConfiguration("led_config_file")
     declare_led_config_file_arg = DeclareLaunchArgument(
         "led_config_file",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_lights"), "config", "led_config.yaml"]
+            [FindPackageShare("panther_lights"), "config", robot_led_config]
         ),
         description="Path to a YAML file with a description of led configuration.",
     )
@@ -43,6 +48,15 @@ def generate_launch_description():
         "namespace",
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value=""),
         description="Add namespace to all launched nodes.",
+    )
+
+    robot_model_dict = {"LNX": "lynx", "PTH": "panther"}
+    robot_model_env = os.environ.get("ROBOT_MODEL", default="PTH")
+    declare_robot_model_arg = DeclareLaunchArgument(
+        "robot_model",
+        default_value=robot_model_dict[robot_model_env],
+        description="Specify robot model",
+        choices=["lynx", "panther"],
     )
 
     use_sim = LaunchConfiguration("use_sim")
@@ -95,6 +109,7 @@ def generate_launch_description():
     )
 
     actions = [
+        declare_robot_model_arg,  # robot_model is used by led_config_file
         declare_led_config_file_arg,
         declare_namespace_arg,
         declare_use_sim_arg,
