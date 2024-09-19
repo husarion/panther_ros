@@ -94,6 +94,16 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    robot_model = LaunchConfiguration("robot_model")
+    robot_model_dict = {"LNX": "lynx", "PTH": "panther"}
+    robot_model_env = os.environ.get("ROBOT_MODEL", default="PTH")
+    declare_robot_model_arg = DeclareLaunchArgument(
+        "robot_model",
+        default_value=robot_model_dict[robot_model_env],
+        description="Specify robot model",
+        choices=["lynx", "panther"],
+    )
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -119,9 +129,10 @@ def generate_launch_description():
         ),
     )
 
+    default_wheel_type = {"lynx": "WH05", "panther": "WH01"}
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
-        default_value="WH01",
+        default_value=PythonExpression([f"{default_wheel_type}['", robot_model, "']"]),
         description=(
             "Specify the wheel type. If the selected wheel type is not 'custom', "
             "the 'wheel_config_path' and 'controller_config_path' arguments will be "
@@ -268,6 +279,7 @@ def generate_launch_description():
 
     actions = [
         declare_battery_config_path_arg,
+        declare_robot_model_arg,  # robot_model must be before wheel_type
         declare_wheel_type_arg,  # wheel_type must be before controller_config_path
         declare_components_config_path_arg,
         declare_controller_config_path_arg,

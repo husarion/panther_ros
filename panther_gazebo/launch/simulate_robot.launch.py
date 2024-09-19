@@ -87,11 +87,12 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    robot_model_dict = {"LNX": "lynx", "PTH": "panther"}
     robot_model_env = os.environ.get("ROBOT_MODEL", default="PTH")
-    robot_model_env = "lynx" if robot_model_env == "LNX" else "panther"
+    robot_model_default = robot_model_dict[robot_model_env]
     declare_robot_model_arg = DeclareLaunchArgument(
         "robot_model",
-        default_value=robot_model_env,
+        default_value=robot_model_default,
         description="Specify robot model",
         choices=["lynx", "panther"],
     )
@@ -102,17 +103,6 @@ def generate_launch_description():
         default_value="True",
         description="Enable or disable EKF.",
         choices=["True", "true", "False", "false"],
-    )
-
-    declare_wheel_type_arg = DeclareLaunchArgument(
-        "wheel_type",
-        default_value=PythonExpression(["'WH01' if '", robot_model, "' == 'panther' else 'WH05'"]),
-        description=(
-            "Specify the wheel type. If the selected wheel type is not 'custom', "
-            "the 'wheel_config_path' and 'controller_config_path' arguments will be "
-            "automatically adjusted and can be omitted."
-        ),
-        choices=["WH01", "WH02", "WH04", "WH05", "custom"],
     )
 
     spawn_robot_launch = IncludeLaunchDescription(
@@ -246,7 +236,6 @@ def generate_launch_description():
         declare_gz_bridge_config_path_arg,
         declare_namespace_arg,
         declare_use_ekf_arg,
-        declare_wheel_type_arg,
         SetUseSimTime(True),
         spawn_robot_launch,
         lights_launch,
