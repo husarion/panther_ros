@@ -66,7 +66,6 @@ protected:
 TestBatteryNode::TestBatteryNode(const bool use_adc_battery, const bool dual_battery)
 {
   std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("use_adc_battery", use_adc_battery));
 
   if (use_adc_battery) {
     device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
