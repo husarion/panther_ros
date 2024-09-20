@@ -65,19 +65,19 @@ def generate_launch_description():
                 [
                     FindPackageShare("panther_gazebo"),
                     "launch",
-                    "simulate_multiple_robots.launch.py",
+                    "simulate_robot.launch.py",
                 ]
             )
         ),
     )
 
-    return LaunchDescription(
-        [
-            declare_gz_gui,
-            declare_namespace_arg,
-            # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
-            SetUseSimTime(True),
-            gz_sim,
-            simulate_robots,
-        ]
-    )
+    actions = [
+        declare_gz_gui,
+        declare_namespace_arg,
+        # Sets use_sim_time for all nodes started below (doesn't work for nodes started from ignition gazebo)
+        SetUseSimTime(True),
+        gz_sim,
+        simulate_robots,
+    ]
+
+    return LaunchDescription(actions)

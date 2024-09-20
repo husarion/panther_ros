@@ -66,7 +66,7 @@ def generate_launch_description():
         ),
     )
 
-    wheel_type = LaunchConfiguration("wheel_type")  # wheel_type is used by controller_config_path
+    wheel_type = LaunchConfiguration("wheel_type")
     controller_config_path = LaunchConfiguration("controller_config_path")
     declare_controller_config_path_arg = DeclareLaunchArgument(
         "controller_config_path",
@@ -99,6 +99,7 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
         default_value=PathJoinSubstitution(
@@ -115,15 +116,13 @@ def generate_launch_description():
         ),
     )
 
-    wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_type_arg = DeclareLaunchArgument(
         "wheel_type",
         default_value="WH05",
         description=(
-            "Type of wheel. If you choose a value from the preset options ('WH05'), you can "
-            "ignore the 'wheel_config_path' and 'controller_config_path' parameters. "
-            "For custom wheels, please define these parameters to point to files that "
-            "accurately describe the custom wheels."
+            "Specify the wheel type. If the selected wheel type is not 'custom', "
+            "the 'wheel_config_path' and 'controller_config_path' arguments will be "
+            "automatically adjusted and can be omitted."
         ),
         choices=["WH05", "custom"],
     )

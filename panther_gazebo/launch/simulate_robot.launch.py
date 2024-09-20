@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -31,6 +33,17 @@ from nav2_common.launch import ReplaceString
 
 def generate_launch_description():
 
+    add_world_transform = LaunchConfiguration("add_world_transform")
+    declare_add_world_transform_arg = DeclareLaunchArgument(
+        "add_world_transform",
+        default_value="False",
+        description=(
+            "Adds a world frame that connects the tf trees of individual robots (useful when running"
+            " multiple robots)."
+        ),
+        choices=["True", "true", "False", "false"],
+    )
+
     declare_battery_config_path_arg = DeclareLaunchArgument(
         "battery_config_path",
         description=(
@@ -43,10 +56,12 @@ def generate_launch_description():
     )
 
     components_config_path = LaunchConfiguration("components_config_path")
+    robot_model = LaunchConfiguration("robot_model")
+    robot_description_pkg = PythonExpression(["'", robot_model, "_description'"])
     declare_components_config_path_arg = DeclareLaunchArgument(
         "components_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_description"), "config", "components.yaml"]
+            [FindPackageShare(robot_description_pkg), "config", "components.yaml"]
         ),
         description=(
             "Additional components configuration file. Components described in this file "
@@ -72,6 +87,15 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    robot_model_dict = {"LNX": "lynx", "PTH": "panther"}
+    robot_model_env = os.environ.get("ROBOT_MODEL", default="PTH")
+    declare_robot_model_arg = DeclareLaunchArgument(
+        "robot_model",
+        default_value=robot_model_dict[robot_model_env],
+        description="Specify robot model",
+        choices=["lynx", "panther"],
+    )
+
     use_ekf = LaunchConfiguration("use_ekf")
     declare_use_ekf_arg = DeclareLaunchArgument(
         "use_ekf",
@@ -89,7 +113,6 @@ def generate_launch_description():
         launch_arguments={
             "add_wheel_joints": "False",
             "namespace": namespace,
-            "use_sim": "True",
         }.items(),
     )
 
@@ -109,16 +132,6 @@ def generate_launch_description():
             )
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
-    )
-
-    gz_led_strip_config = PathJoinSubstitution(
-        [FindPackageShare("panther_gazebo"), "config", "led_strips.yaml"]
-    )
-
-    gz_led_strip_config = ReplaceString(
-        source_file=gz_led_strip_config,
-        replacements={"parent_link: panther": ["parent_link: ", namespace]},
-        condition=UnlessCondition(PythonExpression(["'", namespace, "' == ''"])),
     )
 
     controller_launch = IncludeLaunchDescription(
@@ -185,20 +198,52 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    return LaunchDescription(
-        [
-            declare_battery_config_path_arg,
-            declare_components_config_path_arg,
-            declare_gz_bridge_config_path_arg,
-            declare_namespace_arg,
-            declare_use_ekf_arg,
-            SetUseSimTime(True),
-            spawn_robot_launch,
-            lights_launch,
-            manager_launch,
-            controller_launch,
-            ekf_launch,
-            simulate_components,
-            gz_bridge,
-        ]
+    child_tf = PythonExpression(["'", namespace, "' + '/odom' if '", namespace, "' else 'odom'"])
+
+    world_transform = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="static_tf_publisher",
+        arguments=[
+            "--x",
+            LaunchConfiguration("x"),
+            "--y",
+            LaunchConfiguration("y"),
+            "--z",
+            LaunchConfiguration("z"),
+            "--roll",
+            LaunchConfiguration("roll"),
+            "--pitch",
+            LaunchConfiguration("pitch"),
+            "--yaw",
+            LaunchConfiguration("yaw"),
+            "--frame-id",
+            "world",
+            "--child-frame-id",
+            child_tf,
+        ],
+        namespace=namespace,
+        emulate_tty=True,
+        condition=IfCondition(add_world_transform),
     )
+
+    actions = [
+        declare_add_world_transform_arg,
+        declare_battery_config_path_arg,
+        declare_robot_model_arg,  # robot_model is used by components_config_path
+        declare_components_config_path_arg,
+        declare_gz_bridge_config_path_arg,
+        declare_namespace_arg,
+        declare_use_ekf_arg,
+        SetUseSimTime(True),
+        spawn_robot_launch,
+        lights_launch,
+        manager_launch,
+        controller_launch,
+        ekf_launch,
+        simulate_components,
+        gz_bridge,
+        world_transform,
+    ]
+
+    return LaunchDescription(actions)

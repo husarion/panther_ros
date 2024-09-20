@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
@@ -24,7 +26,7 @@ from launch.substitutions import (
     PathJoinSubstitution,
 )
 from launch_ros.substitutions import FindPackageShare
-from panther_utils.welcomeMsg import welcomeMsg
+from panther_utils.messages import welcome_msg
 
 
 def generate_launch_description():
@@ -51,9 +53,11 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
-    serial_no = EnvironmentVariable(name="PANTHER_SERIAL_NO", default_value="----")
-    panther_version = EnvironmentVariable(name="PANTHER_ROBOT_VERSION", default_value="1.0")
-    welcome_msg = welcomeMsg(serial_no, panther_version)
+    robot_model = os.environ.get("ROBOT_MODEL", default="PTH")
+    robot_model = "lynx" if robot_model == "LNX" else "panther"
+    robot_serial_no = EnvironmentVariable(name="ROBOT_SERIAL_NO", default_value="----")
+    robot_version = EnvironmentVariable(name="ROBOT_VERSION", default_value="1.0")
+    welcome_info = welcome_msg(robot_model, robot_serial_no, robot_version)
 
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -129,7 +133,7 @@ def generate_launch_description():
         declare_disable_manager_arg,
         declare_namespace_arg,
         declare_use_ekf_arg,
-        welcome_msg,
+        welcome_info,
         controller_launch,
         system_monitor_launch,
         delayed_action,
