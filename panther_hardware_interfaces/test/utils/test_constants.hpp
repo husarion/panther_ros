@@ -67,7 +67,6 @@ const std::string kPluginName =
 )";
 
 const std::map<std::string, std::string> kDefaultParamMap = {
-  {"panther_version", "1.2"},
   {"encoder_resolution", "1600"},
   {"gear_ratio", "30.08"},
   {"gearbox_efficiency", "0.75"},

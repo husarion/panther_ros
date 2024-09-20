@@ -25,7 +25,7 @@
 class TestBatteryNodeADCSingle : public TestBatteryNode
 {
 public:
-  TestBatteryNodeADCSingle() : TestBatteryNode(1.2, false) {}
+  TestBatteryNodeADCSingle() : TestBatteryNode(true, false) {}
 };
 
 TEST_F(TestBatteryNodeADCSingle, BatteryValues)

@@ -40,7 +40,7 @@ using IOStateMsg = panther_msgs::msg::IOState;
 class TestBatteryNode : public testing::Test
 {
 public:
-  TestBatteryNode(const float panther_version = 1.2, const bool dual_battery = false);
+  TestBatteryNode(const bool use_adc_battery = true, const bool dual_battery = false);
   ~TestBatteryNode();
 
 protected:
@@ -63,12 +63,11 @@ protected:
   rclcpp::Publisher<RobotDriverStateMsg>::SharedPtr driver_state_pub_;
 };
 
-TestBatteryNode::TestBatteryNode(const float panther_version, const bool dual_battery)
+TestBatteryNode::TestBatteryNode(const bool use_adc_battery, const bool dual_battery)
 {
   std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("panther_version", panther_version));
 
-  if (panther_version >= 1.2 - std::numeric_limits<float>::epsilon()) {
+  if (use_adc_battery) {
     device0_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice0;
     device1_path_ = std::filesystem::path(testing::TempDir()) / kADCDevice1;
 

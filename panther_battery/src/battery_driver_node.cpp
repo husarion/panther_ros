@@ -41,7 +41,6 @@ BatteryDriverNode::BatteryDriverNode(
 {
   RCLCPP_INFO(this->get_logger(), "Constructing node.");
 
-  this->declare_parameter<float>("panther_version", 1.2);
   this->declare_parameter<int>("ma_window_len/voltage", 10);
   this->declare_parameter<int>("ma_window_len/current", 10);
 
@@ -58,17 +57,14 @@ void BatteryDriverNode::Initialize()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
-  const float panther_version = this->get_parameter("panther_version").as_double();
-  if (panther_version >= (1.2f - std::numeric_limits<float>::epsilon())) {
-    try {
-      InitializeWithADCBattery();
-      return;
-    } catch (const std::runtime_error & e) {
-      RCLCPP_WARN_STREAM(
-        this->get_logger(), "An exception occurred while initializing with ADC: "
-                              << e.what()
-                              << " Falling back to using Roboteq drivers to publish battery data.");
-    }
+  try {
+    InitializeWithADCBattery();
+    return;
+  } catch (const std::runtime_error & e) {
+    RCLCPP_WARN_STREAM(
+      this->get_logger(), "An exception occurred while initializing with ADC: "
+                            << e.what()
+                            << " Falling back to using Roboteq drivers to publish battery data.");
   }
   InitializeWithRoboteqBattery();
 
