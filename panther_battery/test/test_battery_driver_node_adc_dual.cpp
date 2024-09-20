@@ -25,7 +25,7 @@
 class TestBatteryNodeADCDual : public TestBatteryNode
 {
 public:
-  TestBatteryNodeADCDual() : TestBatteryNode(1.2, true) {}
+  TestBatteryNodeADCDual() : TestBatteryNode(true, true) {}
 };
 
 TEST_F(TestBatteryNodeADCDual, BatteryValues)

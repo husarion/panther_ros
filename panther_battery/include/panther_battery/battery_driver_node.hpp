@@ -42,6 +42,7 @@ private:
   void BatteryPubTimerCB();
   void Initialize();
   void InitializeWithADCBattery();
+  void InitializeWithRoboteqBattery();
 
   static constexpr int kADCCurrentOffset = 625;
 
