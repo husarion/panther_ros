@@ -14,7 +14,7 @@ segments:
   - name: fr
     channel: 2
     led_range: 0-10
-  - name: fl
+  - name: rr
     channel: 2
     led_range: 21-11
 

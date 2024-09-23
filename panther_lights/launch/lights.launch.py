@@ -34,13 +34,12 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     robot_model = LaunchConfiguration("robot_model")
     lights_pkg = FindPackageShare("panther_lights")
-    animations_file = PythonExpression(["'", robot_model, "_animation.yaml'"])
-    default_animations_path = PathJoinSubstitution([lights_pkg, "config", animations_file])
+    animations_config = PythonExpression(["'", robot_model, "_animations.yaml'"])
 
     animations_config_path = LaunchConfiguration("animations_config_path")
     declare_animations_config_path_arg = DeclareLaunchArgument(
         "animations_config_path",
-        default_value=default_animations_path,
+        default_value=PathJoinSubstitution([lights_pkg, "config", animations_config]),
         description="Path to a YAML file with a description of led configuration.",
     )
 
@@ -74,8 +73,8 @@ def generate_launch_description():
         description="Path to a YAML file with a description of the user defined animations.",
     )
 
-    driver_file = PythonExpression(["'", robot_model, "_driver.yaml'"])
-    driver_path = PathJoinSubstitution([lights_pkg, "config", driver_file])
+    driver_config = PythonExpression(["'", robot_model, "_driver.yaml'"])
+    driver_config_path = PathJoinSubstitution([lights_pkg, "config", driver_config])
     lights_container = ComposableNodeContainer(
         package="rclcpp_components",
         name="lights_container",
@@ -88,7 +87,7 @@ def generate_launch_description():
                 name="lights_driver",
                 namespace=namespace,
                 remappings=[("/diagnostics", "diagnostics")],
-                parameters=[driver_path],
+                parameters=[driver_config_path],
                 extra_arguments=[
                     {"use_intra_process_comms": True},
                 ],
