@@ -112,12 +112,13 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    robot_description_pkg = PythonExpression(["'", robot_model, "_description'"])
     wheel_config_path = LaunchConfiguration("wheel_config_path")
     declare_wheel_config_path_arg = DeclareLaunchArgument(
         "wheel_config_path",
         default_value=PathJoinSubstitution(
             [
-                FindPackageShare("panther_description"),
+                FindPackageShare(robot_description_pkg),
                 "config",
                 PythonExpression(["'", wheel_type, ".yaml'"]),
             ]

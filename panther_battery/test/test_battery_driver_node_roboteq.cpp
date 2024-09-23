@@ -27,7 +27,7 @@
 class TestBatteryNodeRoboteq : public TestBatteryNode
 {
 public:
-  TestBatteryNodeRoboteq() : TestBatteryNode(1.0) {}
+  TestBatteryNodeRoboteq() : TestBatteryNode(false) {}
 };
 
 TEST_F(TestBatteryNodeRoboteq, BatteryValues)
