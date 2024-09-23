@@ -18,7 +18,6 @@ segments:
     channel: 2
     led_range: 21-11
 
-
 segments_map:
   all: [fl, fr, rl, rr]
   front: [fl, fr]

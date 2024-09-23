@@ -1,0 +1,5 @@
+/**:
+  lights_driver:
+    ros__parameters:
+      channel_1_num_led: 46
+      channel_2_num_led: 46

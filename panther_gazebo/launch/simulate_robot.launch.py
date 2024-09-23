@@ -51,7 +51,7 @@ def generate_launch_description():
             "This configuration is intended for use in simulations only."
         ),
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "battery_plugin_config.yaml"]
+            [FindPackageShare("panther_gazebo"), "config", "battery_plugin.yaml"]
         ),
     )
 

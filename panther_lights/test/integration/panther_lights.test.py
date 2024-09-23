@@ -36,14 +36,15 @@ from std_srvs.srv import SetBool
 
 def generate_test_description():
 
-    led_config_file = (
-        PathJoinSubstitution([FindPackageShare("panther_lights"), "config", "led_config.yaml"]),
+    # TODO: Fix the path for specific robot model
+    animations_config_path = (
+        PathJoinSubstitution([FindPackageShare("panther_lights"), "config", "animations.yaml"]),
     )
 
     lights_controller_node = Node(
         package="panther_lights",
         executable="lights_controller_node",
-        parameters=[{"led_config_file": led_config_file}],
+        parameters=[{"animations_config_path": animations_config_path}],
     )
 
     lights_driver_node = Node(

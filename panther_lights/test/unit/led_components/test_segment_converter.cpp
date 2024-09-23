@@ -63,9 +63,7 @@ YAML::Node TestSegmentConverter::CreateSegmentDescription(
 
 YAML::Node TestSegmentConverter::CreateImageAnimationDescription()
 {
-  return YAML::Load(
-    "{image: $(find panther_lights)/animations/triangle01_red.png, "
-    "duration: 2}");
+  return YAML::Load("{image: $(find panther_lights)/test/files/animation.png, duration: 2}");
 }
 
 TEST_F(TestSegmentConverter, ConvertInvalidChannel)

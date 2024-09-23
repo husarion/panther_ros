@@ -55,7 +55,8 @@ panther_lights::LightsDriverNode::LightsDriverNode(
   channel_2_(channel_2),
   diagnostic_updater_(this)
 {
-  num_led_ = 46;
+  channel_1_num_led_ = 46;
+  channel_2_num_led_ = 46;
   frame_timeout_ = 0.1;
 };
 
@@ -83,7 +84,10 @@ public:
     return LightsDriverNode::FrameCB(msg, panel, last_time, panel_name);
   }
 
-  int GetNumLed() const { return num_led_; }
+  int GetNumLed(const std::string & panel_name) const
+  {
+    return panel_name == "channel_1" ? channel_1_num_led_ : channel_2_num_led_;
+  }
   double GetTimeout() const { return frame_timeout_; }
   bool GetLedControlGranted() const { return led_control_granted_; }
   bool GetLedControlPending() const { return led_control_pending_; }
@@ -98,7 +102,7 @@ protected:
   TestLightsDriverNode();
   ~TestLightsDriverNode() {};
 
-  ImageMsg::UniquePtr CreateValidImageMsg();
+  ImageMsg::UniquePtr CreateValidImageMsg(const std::string & panel_name);
   std::shared_future<std::pair<SetBoolSrv::Request::SharedPtr, SetBoolSrv::Response::SharedPtr>>
   CreateSetBoolSrvFuture(bool request_data, bool response_success);
 
@@ -115,7 +119,7 @@ TestLightsDriverNode::TestLightsDriverNode()
   lights_driver_node_ = std::make_unique<DriverNodeWrapper>(channel_1_, channel_2_);
 }
 
-ImageMsg::UniquePtr TestLightsDriverNode::CreateValidImageMsg()
+ImageMsg::UniquePtr TestLightsDriverNode::CreateValidImageMsg(const std::string & panel_name)
 {
   ImageMsg::UniquePtr msg(new ImageMsg);
 
@@ -123,7 +127,7 @@ ImageMsg::UniquePtr TestLightsDriverNode::CreateValidImageMsg()
   msg->header.stamp = lights_driver_node_->now();
   msg->header.frame_id = "image_frame";
   msg->height = 1;
-  msg->width = lights_driver_node_->GetNumLed();
+  msg->width = lights_driver_node_->GetNumLed(panel_name);
   msg->encoding = sensor_msgs::image_encodings::RGBA8;
   msg->is_bigendian = false;
   msg->step = msg->width * 4;
@@ -158,11 +162,13 @@ TEST_F(TestLightsDriverNode, TestInitialization)
 
 TEST_F(TestLightsDriverNode, ClearLEDs)
 {
-  auto num_led = lights_driver_node_->GetNumLed();
-  std::vector<std::uint8_t> zero_frame(num_led * 4, 0);
+  auto num_led_1 = lights_driver_node_->GetNumLed("channel_1");
+  auto num_led_2 = lights_driver_node_->GetNumLed("channel_2");
+  std::vector<std::uint8_t> zero_frame_1(num_led_1 * 4, 0);
+  std::vector<std::uint8_t> zero_frame_2(num_led_2 * 4, 0);
 
-  EXPECT_CALL(*channel_1_, SetPanel(zero_frame)).Times(1);
-  EXPECT_CALL(*channel_2_, SetPanel(zero_frame)).Times(1);
+  EXPECT_CALL(*channel_1_, SetPanel(zero_frame_1)).Times(1);
+  EXPECT_CALL(*channel_2_, SetPanel(zero_frame_2)).Times(1);
 
   lights_driver_node_->ClearLEDs();
 }
@@ -203,7 +209,7 @@ TEST_F(TestLightsDriverNode, ToggleLEDControlCBDisabled)
 
 TEST_F(TestLightsDriverNode, FrameCBSuccessNoControl)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg = CreateValidImageMsg("channel_1");
 
   EXPECT_CALL(*channel_1_, SetPanel(testing::_)).Times(0);
 
@@ -212,7 +218,8 @@ TEST_F(TestLightsDriverNode, FrameCBSuccessNoControl)
 
 TEST_F(TestLightsDriverNode, FrameCBSuccess)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg_1 = CreateValidImageMsg("channel_1");
+  auto msg_2 = CreateValidImageMsg("channel_2");
 
   auto future = CreateSetBoolSrvFuture(true, true);
   lights_driver_node_->ToggleLEDControlCB(std::move(future));
@@ -220,13 +227,13 @@ TEST_F(TestLightsDriverNode, FrameCBSuccess)
   EXPECT_CALL(*channel_1_, SetPanel(testing::_)).Times(1);
   EXPECT_CALL(*channel_2_, SetPanel(testing::_)).Times(1);
 
-  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
-  lights_driver_node_->FrameCB(msg, channel_2_, msg->header.stamp, "channel_2");
+  lights_driver_node_->FrameCB(msg_1, channel_1_, msg_1->header.stamp, "channel_1");
+  lights_driver_node_->FrameCB(msg_2, channel_2_, msg_2->header.stamp, "channel_2");
 }
 
 TEST_F(TestLightsDriverNode, FrameCBTimeout)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg = CreateValidImageMsg("channel_1");
   auto timeout = lights_driver_node_->GetTimeout();
 
   // Set timestamp to exceed timeout
@@ -242,7 +249,7 @@ TEST_F(TestLightsDriverNode, FrameCBTimeout)
 
 TEST_F(TestLightsDriverNode, FrameCBPast)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg = CreateValidImageMsg("channel_1");
 
   // Set last_time to be younger than msg timestamp
   auto future = CreateSetBoolSrvFuture(true, true);
@@ -255,7 +262,7 @@ TEST_F(TestLightsDriverNode, FrameCBPast)
 
 TEST_F(TestLightsDriverNode, FrameCBEncoding)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg = CreateValidImageMsg("channel_1");
 
   // Set incorrect encoding
   msg->encoding = sensor_msgs::image_encodings::RGB8;
@@ -270,7 +277,7 @@ TEST_F(TestLightsDriverNode, FrameCBEncoding)
 
 TEST_F(TestLightsDriverNode, FrameCBHeight)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg = CreateValidImageMsg("channel_1");
 
   // Set incorrect height
   msg->height = 2;
@@ -285,10 +292,10 @@ TEST_F(TestLightsDriverNode, FrameCBHeight)
 
 TEST_F(TestLightsDriverNode, FrameCBWidth)
 {
-  auto msg = CreateValidImageMsg();
+  auto msg = CreateValidImageMsg("channel_1");
 
   // Set incorrect width
-  msg->width = lights_driver_node_->GetNumLed() + 1;
+  msg->width = lights_driver_node_->GetNumLed("channel_1") + 1;
 
   auto future = CreateSetBoolSrvFuture(true, true);
   lights_driver_node_->ToggleLEDControlCB(std::move(future));

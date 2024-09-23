@@ -83,7 +83,8 @@ protected:
    */
   void PanelThrottleWarnLog(const std::string panel_name, const std::string message);
 
-  int num_led_;
+  int channel_1_num_led_;
+  int channel_2_num_led_;
   double frame_timeout_;
   bool led_control_granted_;
   bool led_control_pending_;

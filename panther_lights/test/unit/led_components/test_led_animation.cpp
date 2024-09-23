@@ -54,7 +54,7 @@ TestLEDAnimation::TestLEDAnimation()
   anim_desc.segments = {kTestSegmentName1, kTestSegmentName2};
   anim_desc.type = "panther_lights::ImageAnimation";
   anim_desc.animation =
-    YAML::Load("{image: $(find panther_lights)/animations/triangle01_red.png, duration: 2.0}");
+    YAML::Load("{image: $(find panther_lights)/test/files/animation.png, duration: 2.0}");
 
   panther_lights::LEDAnimationDescription led_anim_desc;
   led_anim_desc.id = 0;

@@ -77,18 +77,18 @@ protected:
   static constexpr char kTestSegmentName[] = "test";
   static constexpr char kTestSegmentLedRange[] = "0-9";
 
-  std::filesystem::path led_config_file_;
+  std::filesystem::path animations_config_path_;
   std::shared_ptr<ControllerNodeWrapper> lights_controller_node_;
 };
 
 TestLightsControllerNode::TestLightsControllerNode()
 {
-  led_config_file_ = testing::TempDir() + "/led_config.yaml";
+  animations_config_path_ = testing::TempDir() + "/animations.yaml";
 
-  CreateLEDConfig(led_config_file_);
+  CreateLEDConfig(animations_config_path_);
 
   std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("led_config_file", led_config_file_));
+  params.push_back(rclcpp::Parameter("animations_config_path", animations_config_path_));
 
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
@@ -96,7 +96,10 @@ TestLightsControllerNode::TestLightsControllerNode()
   lights_controller_node_ = std::make_shared<ControllerNodeWrapper>(options);
 }
 
-TestLightsControllerNode::~TestLightsControllerNode() { std::filesystem::remove(led_config_file_); }
+TestLightsControllerNode::~TestLightsControllerNode()
+{
+  std::filesystem::remove(animations_config_path_);
+}
 
 void TestLightsControllerNode::CreateLEDConfig(const std::filesystem::path file_path)
 {
@@ -113,7 +116,7 @@ void TestLightsControllerNode::CreateLEDConfig(const std::filesystem::path file_
   segments_map["test"] = std::vector<std::string>(1, kTestSegmentName);
 
   YAML::Node animation;
-  animation["image"] = "$(find panther_lights)/animations/triangle01_red.png";
+  animation["image"] = "$(find panther_lights)/test/files/strip01_red.png";
   animation["duration"] = 2;
 
   YAML::Node animation_desc;
@@ -133,14 +136,14 @@ void TestLightsControllerNode::CreateLEDConfig(const std::filesystem::path file_
   led_animations.push_back(led_animation_0);
   led_animations.push_back(led_animation_1);
 
-  YAML::Node led_config;
-  led_config["panels"] = std::vector<YAML::Node>(1, panel);
-  led_config["segments"] = std::vector<YAML::Node>(1, segment);
-  led_config["segments_map"] = segments_map;
-  led_config["led_animations"] = led_animations;
+  YAML::Node animations_config;
+  animations_config["panels"] = std::vector<YAML::Node>(1, panel);
+  animations_config["segments"] = std::vector<YAML::Node>(1, segment);
+  animations_config["segments_map"] = segments_map;
+  animations_config["led_animations"] = led_animations;
 
   YAML::Emitter out;
-  out << led_config;
+  out << animations_config;
 
   std::ofstream fout(file_path);
   if (fout.is_open()) {

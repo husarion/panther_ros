@@ -2,7 +2,7 @@
 
 ## LED Animations
 
-Basic led configuration is loaded from [`led_config.yaml`](config/led_config.yaml) file. It includes definition of robot panels, virtual segments and default animations. Default animations can be found in the table below:
+Basic led configuration is loaded from [`{robot_model}_animations.yaml`](config) file. It includes definition of robot panels, virtual segments and default animations. Default animations can be found in the table below:
 
 |  ID   | NAME              | PRIORITY | ANIMATION                                          |
 | :---: | ----------------- | :------: | -------------------------------------------------- |
@@ -121,7 +121,7 @@ user_animations:
       - type: panther_lights::ImageAnimation
         segments: all
         animation:
-          image: $(find my_custom_animation_package)/animations/custom_image.png
+          image: $(find custom_pkg)/animations/custom_image.png
           duration: 3
           repeat: 1
 
@@ -133,22 +133,21 @@ user_animations:
       - type: panther_lights::ImageAnimation
         segments: front
         animation:
-          image: $(find panther_lights)/animations/triangle01_blue.png
+          image: $(find custom_pkg)/animations/front_custom_image.png
           duration: 2
           repeat: 2
       - type: panther_lights::ImageAnimation
         segments: rear
         animation:
-          image: $(find panther_lights)/animations/triangle01_red.png
+          image: $(find custom_pkg)/animations/rear_custom_image.png
           duration: 3
           repeat: 1
 ```
 
-> [!NOTE]
-> ID numbers from 0 to 19 are reserved for system animations.
-
-> [!NOTE]
-> Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
+> [!IMPORTANT]
+>
+> - ID numbers from 0 to 19 are reserved for system animations.
+> - Priority **1** is reserved for crucial system animations. Users can only define animations with priority **2** and **3**.
 
 Remember to modify launch command to use user animations:
 

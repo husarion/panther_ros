@@ -48,23 +48,23 @@ LightsControllerNode::LightsControllerNode(const rclcpp::NodeOptions & options)
 
   using namespace std::placeholders;
 
-  this->declare_parameter<std::string>("led_config_file");
-  this->declare_parameter<std::string>("user_led_animations_file", "");
+  this->declare_parameter<std::string>("animations_config_path");
+  this->declare_parameter<std::string>("user_led_animations_path", "");
   this->declare_parameter<float>("controller_freq", 50.0);
 
-  const auto led_config_file = this->get_parameter("led_config_file").as_string();
-  const auto user_led_animations_file = this->get_parameter("user_led_animations_file").as_string();
+  const auto animations_config_path = this->get_parameter("animations_config_path").as_string();
+  const auto user_led_animations_path = this->get_parameter("user_led_animations_path").as_string();
   const float controller_freq = this->get_parameter("controller_freq").as_double();
 
-  YAML::Node led_config_desc = YAML::LoadFile(led_config_file);
+  YAML::Node led_config_desc = YAML::LoadFile(animations_config_path);
 
   InitializeLEDPanels(led_config_desc["panels"]);
   InitializeLEDSegments(led_config_desc["segments"], controller_freq);
   InitializeLEDSegmentsMap(led_config_desc["segments_map"]);
   LoadDefaultAnimations(led_config_desc["led_animations"]);
 
-  if (user_led_animations_file != "") {
-    LoadUserAnimations(user_led_animations_file);
+  if (user_led_animations_path != "") {
+    LoadUserAnimations(user_led_animations_path);
   }
 
   segment_converter_ = std::make_shared<SegmentConverter>();
@@ -159,12 +159,12 @@ void LightsControllerNode::LoadDefaultAnimations(const YAML::Node & animations_d
   RCLCPP_INFO(this->get_logger(), "Loaded default animations.");
 }
 
-void LightsControllerNode::LoadUserAnimations(const std::string & user_led_animations_file)
+void LightsControllerNode::LoadUserAnimations(const std::string & user_led_animations_path)
 {
   RCLCPP_DEBUG(this->get_logger(), "Loading user's animations.");
 
   try {
-    YAML::Node user_led_animations = YAML::LoadFile(user_led_animations_file);
+    YAML::Node user_led_animations = YAML::LoadFile(user_led_animations_path);
     auto user_animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
       user_led_animations, "user_animations");
 

@@ -5,7 +5,7 @@
 For more information regarding shutdown behavior, refer to `ShutdownSingleHost` BT node in the [Actions](#actions) section. An example of a shutdown hosts YAML file can be found below.
 
 ``` yaml
-# My shutdown_hosts_config.yaml
+# My shutdown_hosts.yaml
 hosts:
   # Intel NUC, user computer
   - ip: 10.15.20.3

@@ -10,7 +10,8 @@ This package contains:
 
 ## Configuration Files
 
-- [`led_config.yaml`](./config/led_config.yaml): Defines and describes the appearance and parameters of the animations.
+- [`{robot_model}_animations.yaml`](./config): Defines and describes the appearance and parameters of the animations for specific robot.
+- [`{robot_model}_driver.yaml`](./config): Defines and describes specific hardware configuration for specific robot.
 
 ## ROS Nodes
 
@@ -29,9 +30,9 @@ This node is of type rclcpp_components is responsible for processing animations 
 
 #### Parameters
 
+- `~animations_config_path` [*string*, default: **$(find panther_lights)/panther_lights/config/{robot_model}_animations.yaml**]: Path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
 - `~controller_frequency` [*float*, default: **50.0**]: Frequency [Hz] at which the lights controller node will process animations.
-- `~led_config_file` [*string*, default: **$(find panther_lights)/panther_lights/config/led_config.yaml**]: Path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
-- `~user_led_animations_file` [*string*, default: **None**]: Path to a YAML file with a description of the user defined animations.
+- `~user_led_animations_path` [*string*, default: **None**]: Path to a YAML file with a description of the user defined animations.
 
 ### LightsDriverNode
 
