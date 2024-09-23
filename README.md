@@ -71,6 +71,9 @@ Simulation:
 ros2 launch panther_gazebo simulation.launch.py
 ```
 
+> [!IMPORTANT]
+> You can change spawning robot in simulation, by adding `robot_model:={robot_model}` argument.
+
 ### Launch Arguments
 
 Launch arguments are largely common to both simulation and physical robot. However, there is a group of arguments that apply only to hardware or only to the simulator. Below is a legend to the tables with all launch arguments.
