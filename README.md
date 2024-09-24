@@ -71,6 +71,9 @@ Simulation:
 ros2 launch panther_gazebo simulation.launch.py
 ```
 
+> [!IMPORTANT]
+> You can change spawning robot in simulation, by adding `robot_model:={robot_model}` argument.
+
 ### Launch Arguments
 
 Launch arguments are largely common to both simulation and physical robot. However, there is a group of arguments that apply only to hardware or only to the simulator. Below is a legend to the tables with all launch arguments.
@@ -106,7 +109,7 @@ Launch arguments are largely common to both simulation and physical robot. Howev
 | 🤖🖥️  | `shutdown_hosts_config_path` | Path to file with list of hosts to request shutdown. <br/> ***string:*** [`shutdown_hosts_config.yaml`](./panther_manager/config/shutdown_hosts_config.yaml)                                                                                                                                                                                                               |
 | 🤖🖥️  | `use_ekf`                    | Enable or disable EKF. <br/> ***bool:*** `True`                                                                                                                                                                                                                                                                                   |
 | 🤖🖥️  | `use_sim`                    | Whether simulation is used. <br/> ***bool:*** `False`                                                                                                                                                                                                                                                                             |
-| 🤖🖥️  | `user_led_animations_file`   | Path to a YAML file with a description of the user-defined animations. <br/> ***string:*** `''`                                                                                                                                                                                                                                                             |
+| 🤖🖥️  | `user_led_animations_path`   | Path to a YAML file with a description of the user-defined animations. <br/> ***string:*** `''`                                                                                                                                                                                                                                                             |
 | 🤖🖥️  | `wheel_config_path`          | Path to wheel configuration file. <br/> ***string:*** [`{wheel_type}.yaml`](./panther_description/config)                                                                                                                                                                                                                                                   |
 | 🤖🖥️  | `wheel_type`                 | Specify the wheel type. If the selected wheel type is not 'custom', the wheel_config_path and controller_config_path arguments will be automatically adjusted and can be omitted. <br/> ***string:*** `WH01` (for Panther), `WH05` (for Lynx) (choices: `WH01`, `WH02`, `WH04`, `WH05`, `custom`) |
 | 🖥️   | `x`                          | Initial robot position in the global 'x' axis. <br/> ***float:*** `0.0`                                                                                                                                                                                                                                                                                          |

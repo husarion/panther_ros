@@ -11,7 +11,7 @@ The package contains a launch file and source files used to run the robot simula
 
 ## Configuration Files
 
-- [`battery_plugin_config.yaml`](./config/battery_plugin_config.yaml): Simulated LinearBatteryPlugin configuration.
+- [`battery_plugin.yaml`](./config/battery_plugin.yaml): Simulated LinearBatteryPlugin configuration.
 - [`gz_bridge.yaml`](./config/gz_bridge.yaml): Specify data to exchange between ROS and Gazebo simulation.
 - [`teleop_with_estop.config`](./config/teleop_with_estop.config): Gazebo layout configuration file, which adds E-Stop and Teleop widgets.
 

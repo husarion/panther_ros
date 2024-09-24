@@ -52,9 +52,9 @@ def generate_launch_description():
         description="Whether simulation is used",
     )
 
-    user_led_animations_file = LaunchConfiguration("user_led_animations_file")
-    declare_user_led_animations_file_arg = DeclareLaunchArgument(
-        "user_led_animations_file",
+    user_led_animations_path = LaunchConfiguration("user_led_animations_path")
+    declare_user_led_animations_path_arg = DeclareLaunchArgument(
+        "user_led_animations_path",
         default_value="",
         description="Path to a YAML file with a description of the user defined animations.",
     )
@@ -83,7 +83,7 @@ def generate_launch_description():
                 namespace=namespace,
                 parameters=[
                     {"led_config_file": led_config_file},
-                    {"user_led_animations_file": user_led_animations_file},
+                    {"user_led_animations_path": user_led_animations_path},
                 ],
                 extra_arguments=[
                     {"use_intra_process_comms": True},
@@ -98,7 +98,7 @@ def generate_launch_description():
         declare_led_config_file_arg,
         declare_namespace_arg,
         declare_use_sim_arg,
-        declare_user_led_animations_file_arg,
+        declare_user_led_animations_path_arg,
         lights_container,
     ]
 

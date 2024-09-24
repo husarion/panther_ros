@@ -90,9 +90,9 @@ protected:
   /**
    * @brief Adds animations to an unordered map with animations
    *
-   * @param user_led_animations_file path to YAML file with user animations description
+   * @param user_led_animations_path path to YAML file with user animations description
    */
-  void LoadUserAnimations(const std::string & user_led_animations_file);
+  void LoadUserAnimations(const std::string & user_led_animations_path);
 
   /**
    * @brief Adds animation to an unordered map with animations
