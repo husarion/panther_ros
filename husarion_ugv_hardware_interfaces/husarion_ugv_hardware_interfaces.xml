@@ -15,8 +15,8 @@
     </description>
   </class>
 
-  <class name="husarion_ugv_hardware_interfaces/PantherImuSensor"
-    type="husarion_ugv_hardware_interfaces::PantherImuSensor"
+  <class name="husarion_ugv_hardware_interfaces/PhidgetImuSensor"
+    type="husarion_ugv_hardware_interfaces::PhidgetImuSensor"
     base_class_type="hardware_interface::SensorInterface">
     <description>
       Hardware IMU sensor for Panther's Phidget Spatial Inertial Measurement Unit

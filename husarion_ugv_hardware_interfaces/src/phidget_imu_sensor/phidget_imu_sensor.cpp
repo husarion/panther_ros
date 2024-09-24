@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "husarion_ugv_hardware_interfaces/panther_imu_sensor/panther_imu_sensor.hpp"
+#include "husarion_ugv_hardware_interfaces/phidget_imu_sensor/phidget_imu_sensor.hpp"
 
 #include <array>
 #include <chrono>
@@ -33,7 +33,7 @@
 namespace husarion_ugv_hardware_interfaces
 {
 
-CallbackReturn PantherImuSensor::on_init(const hardware_interface::HardwareInfo & hardware_info)
+CallbackReturn PhidgetImuSensor::on_init(const hardware_interface::HardwareInfo & hardware_info)
 {
   if (hardware_interface::SensorInterface::on_init(hardware_info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -52,7 +52,7 @@ CallbackReturn PantherImuSensor::on_init(const hardware_interface::HardwareInfo 
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
+CallbackReturn PhidgetImuSensor::on_configure(const rclcpp_lifecycle::State &)
 {
   try {
     ReadObligatoryParams();
@@ -91,12 +91,12 @@ CallbackReturn PantherImuSensor::on_configure(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherImuSensor::on_cleanup(const rclcpp_lifecycle::State &)
+CallbackReturn PhidgetImuSensor::on_cleanup(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
+CallbackReturn PhidgetImuSensor::on_activate(const rclcpp_lifecycle::State &)
 {
   rclcpp::NodeOptions ros_interface_options;
 
@@ -108,9 +108,9 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
     if (!spatial_) {
       spatial_ = std::make_unique<phidgets::Spatial>(
         params_.serial, params_.hub_port, false,
-        std::bind(&PantherImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
-        std::bind(&PantherImuSensor::SpatialAttachCallback, this),
-        std::bind(&PantherImuSensor::SpatialDetachCallback, this));
+        std::bind(&PhidgetImuSensor::SpatialDataCallback, this, _1, _2, _3, _4), nullptr,
+        std::bind(&PhidgetImuSensor::SpatialAttachCallback, this),
+        std::bind(&PhidgetImuSensor::SpatialDetachCallback, this));
     }
 
     imu_connected_ = true;
@@ -131,22 +131,22 @@ CallbackReturn PantherImuSensor::on_activate(const rclcpp_lifecycle::State &)
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
+CallbackReturn PhidgetImuSensor::on_deactivate(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherImuSensor::on_shutdown(const rclcpp_lifecycle::State &)
+CallbackReturn PhidgetImuSensor::on_shutdown(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn PantherImuSensor::on_error(const rclcpp_lifecycle::State &)
+CallbackReturn PhidgetImuSensor::on_error(const rclcpp_lifecycle::State &)
 {
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
+std::vector<StateInterface> PhidgetImuSensor::export_state_interfaces()
 {
   std::vector<StateInterface> state_interfaces;
 
@@ -159,7 +159,7 @@ std::vector<StateInterface> PantherImuSensor::export_state_interfaces()
   return state_interfaces;
 }
 
-return_type PantherImuSensor::read(
+return_type PhidgetImuSensor::read(
   const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
 {
   if (!imu_connected_) {
@@ -168,14 +168,14 @@ return_type PantherImuSensor::read(
   return return_type::OK;
 }
 
-void PantherImuSensor::CheckSensorName() const
+void PhidgetImuSensor::CheckSensorName() const
 {
   if (!info_.sensors.size()) {
     throw std::runtime_error("Sensor is not defined in URDF!");
   }
 }
 
-void PantherImuSensor::CheckStatesSize() const
+void PhidgetImuSensor::CheckStatesSize() const
 {
   if (info_.sensors.at(0).state_interfaces.size() != kImuInterfacesSize) {
     throw std::runtime_error(
@@ -185,7 +185,7 @@ void PantherImuSensor::CheckStatesSize() const
   }
 }
 
-void PantherImuSensor::CheckInterfaces() const
+void PhidgetImuSensor::CheckInterfaces() const
 {
   const auto names_start_iter = kImuInterfacesNames.begin();
   const auto names_end_iter = kImuInterfacesNames.end();
@@ -201,7 +201,7 @@ void PantherImuSensor::CheckInterfaces() const
   }
 }
 
-void PantherImuSensor::ReadObligatoryParams()
+void PhidgetImuSensor::ReadObligatoryParams()
 {
   params_.serial = std::stoi(info_.hardware_parameters.at("serial"));
   params_.hub_port = std::stoi(info_.hardware_parameters.at("hub_port"));
@@ -215,7 +215,7 @@ void PantherImuSensor::ReadObligatoryParams()
   }
 }
 
-void PantherImuSensor::ReadCompassParams()
+void PhidgetImuSensor::ReadCompassParams()
 {
   params_.cc_mag_field = hardware_interface::stod(info_.hardware_parameters.at("cc_mag_field"));
   params_.cc_offset0 = hardware_interface::stod(info_.hardware_parameters.at("cc_offset0"));
@@ -232,7 +232,7 @@ void PantherImuSensor::ReadCompassParams()
   params_.cc_t5 = hardware_interface::stod(info_.hardware_parameters.at("cc_t5"));
 }
 
-void PantherImuSensor::ReadMadgwickFilterParams()
+void PhidgetImuSensor::ReadMadgwickFilterParams()
 {
   params_.gain = hardware_interface::stod(info_.hardware_parameters.at("gain"));
   params_.zeta = hardware_interface::stod(info_.hardware_parameters.at("zeta"));
@@ -247,7 +247,7 @@ void PantherImuSensor::ReadMadgwickFilterParams()
   CheckMadgwickFilterWorldFrameParam();
 }
 
-void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
+void PhidgetImuSensor::CheckMadgwickFilterWorldFrameParam()
 {
   const auto world_frame = info_.hardware_parameters.at("world_frame");
 
@@ -265,13 +265,13 @@ void PantherImuSensor::CheckMadgwickFilterWorldFrameParam()
   }
 }
 
-void PantherImuSensor::SetInitialValues()
+void PhidgetImuSensor::SetInitialValues()
 {
   imu_sensor_state_.resize(
     info_.sensors.at(0).state_interfaces.size(), std::numeric_limits<double>::quiet_NaN());
 }
 
-void PantherImuSensor::Calibrate()
+void PhidgetImuSensor::Calibrate()
 {
   spatial_->zero();
 
@@ -284,12 +284,12 @@ void PantherImuSensor::Calibrate()
   RCLCPP_INFO(logger_, "IMU sensor calibration completed.");
 }
 
-bool PantherImuSensor::IsParamDefined(const std::string & param_name) const
+bool PhidgetImuSensor::IsParamDefined(const std::string & param_name) const
 {
   return info_.hardware_parameters.find(param_name) != info_.hardware_parameters.end();
 }
 
-bool PantherImuSensor::AreParamsDefined(const std::unordered_set<std::string> & params_names) const
+bool PhidgetImuSensor::AreParamsDefined(const std::unordered_set<std::string> & params_names) const
 {
   for (const auto & param_name : params_names) {
     if (!IsParamDefined(param_name)) {
@@ -299,7 +299,7 @@ bool PantherImuSensor::AreParamsDefined(const std::unordered_set<std::string> & 
   return true;
 }
 
-void PantherImuSensor::ConfigureCompassParams()
+void PhidgetImuSensor::ConfigureCompassParams()
 {
   if (AreParamsDefined(
         {"cc_mag_field", "cc_offset0", "cc_offset1", "cc_offset2", "cc_gain0", "cc_gain1",
@@ -316,7 +316,7 @@ void PantherImuSensor::ConfigureCompassParams()
   }
 }
 
-void PantherImuSensor::ConfigureHeating()
+void PhidgetImuSensor::ConfigureHeating()
 {
   if (IsParamDefined("heating_enabled")) {
     params_.heating_enabled =
@@ -327,7 +327,7 @@ void PantherImuSensor::ConfigureHeating()
   }
 }
 
-void PantherImuSensor::ConfigureMadgwickFilter()
+void PhidgetImuSensor::ConfigureMadgwickFilter()
 {
   filter_ = std::make_unique<ImuFilter>();
   filter_->setWorldFrame(world_frame_);
@@ -335,7 +335,7 @@ void PantherImuSensor::ConfigureMadgwickFilter()
   filter_->setDriftBiasGain(params_.zeta);
 }
 
-geometry_msgs::msg::Vector3 PantherImuSensor::ParseMagnitude(const double magnetic_field[3])
+geometry_msgs::msg::Vector3 PhidgetImuSensor::ParseMagnitude(const double magnetic_field[3])
 {
   geometry_msgs::msg::Vector3 mag_fld;
 
@@ -352,7 +352,7 @@ geometry_msgs::msg::Vector3 PantherImuSensor::ParseMagnitude(const double magnet
   return mag_fld;
 }
 
-geometry_msgs::msg::Vector3 PantherImuSensor::ParseGyration(const double angular_rate[3])
+geometry_msgs::msg::Vector3 PhidgetImuSensor::ParseGyration(const double angular_rate[3])
 {
   geometry_msgs::msg::Vector3 ang_vel;
 
@@ -362,7 +362,7 @@ geometry_msgs::msg::Vector3 PantherImuSensor::ParseGyration(const double angular
   return ang_vel;
 }
 
-geometry_msgs::msg::Vector3 PantherImuSensor::ParseAcceleration(const double acceleration[3])
+geometry_msgs::msg::Vector3 PhidgetImuSensor::ParseAcceleration(const double acceleration[3])
 {
   geometry_msgs::msg::Vector3 lin_acc;
 
@@ -372,7 +372,7 @@ geometry_msgs::msg::Vector3 PantherImuSensor::ParseAcceleration(const double acc
   return lin_acc;
 }
 
-void PantherImuSensor::InitializeMadgwickAlgorithm(
+void PhidgetImuSensor::InitializeMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & mag_compensated, const geometry_msgs::msg::Vector3 & lin_acc,
   const rclcpp::Time & timestamp)
 {
@@ -389,7 +389,7 @@ void PantherImuSensor::InitializeMadgwickAlgorithm(
   algorithm_initialized_ = true;
 }
 
-void PantherImuSensor::RestartMadgwickAlgorithm()
+void PhidgetImuSensor::RestartMadgwickAlgorithm()
 {
   if (!filter_) {
     return;
@@ -399,7 +399,7 @@ void PantherImuSensor::RestartMadgwickAlgorithm()
   filter_->setOrientation(restarted_value, restarted_value, restarted_value, restarted_value);
 }
 
-bool PantherImuSensor::IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated)
+bool PhidgetImuSensor::IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_compensated)
 {
   if (imu_calibrated_) {
     return true;
@@ -409,18 +409,18 @@ bool PantherImuSensor::IsIMUCalibrated(const geometry_msgs::msg::Vector3 & mag_c
   return imu_calibrated_;
 }
 
-bool PantherImuSensor::IsVectorFinite(const geometry_msgs::msg::Vector3 & vec)
+bool PhidgetImuSensor::IsVectorFinite(const geometry_msgs::msg::Vector3 & vec)
 {
   return std::isfinite(vec.x) && std::isfinite(vec.y) && std::isfinite(vec.z);
 }
 
-bool PantherImuSensor::IsMagnitudeSynchronizedWithAccelerationAndGyration(
+bool PhidgetImuSensor::IsMagnitudeSynchronizedWithAccelerationAndGyration(
   const geometry_msgs::msg::Vector3 & mag_compensated)
 {
   return IsVectorFinite(mag_compensated);
 }
 
-void PantherImuSensor::SpatialDataCallback(
+void PhidgetImuSensor::SpatialDataCallback(
   const double acceleration[3], const double angular_rate[3], const double magnetic_field[3],
   const double timestamp)
 {
@@ -475,14 +475,14 @@ void PantherImuSensor::SpatialDataCallback(
   UpdateAllStatesValues(ang_vel, lin_acc);
 }
 
-void PantherImuSensor::SpatialAttachCallback()
+void PhidgetImuSensor::SpatialAttachCallback()
 {
   RCLCPP_INFO(logger_, "IMU sensor has successfully attached and is now connected.");
   imu_connected_ = true;
   on_activate(rclcpp_lifecycle::State{});
 }
 
-void PantherImuSensor::SpatialDetachCallback()
+void PhidgetImuSensor::SpatialDetachCallback()
 {
   RCLCPP_WARN(
     logger_,
@@ -495,7 +495,7 @@ void PantherImuSensor::SpatialDetachCallback()
   on_deactivate(rclcpp_lifecycle::State{});
 }
 
-void PantherImuSensor::UpdateMadgwickAlgorithm(
+void PhidgetImuSensor::UpdateMadgwickAlgorithm(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
   const geometry_msgs::msg::Vector3 & mag_compensated, const double dt)
 {
@@ -504,7 +504,7 @@ void PantherImuSensor::UpdateMadgwickAlgorithm(
     mag_compensated.y, mag_compensated.z, dt);
 }
 
-void PantherImuSensor::UpdateMadgwickAlgorithmIMU(
+void PhidgetImuSensor::UpdateMadgwickAlgorithmIMU(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc,
   const double dt)
 {
@@ -512,7 +512,7 @@ void PantherImuSensor::UpdateMadgwickAlgorithmIMU(
     ang_vel.x, ang_vel.y, ang_vel.z, lin_acc.x, lin_acc.y, lin_acc.z, dt);
 }
 
-void PantherImuSensor::UpdateAccelerationAndGyrationStateValues(
+void PhidgetImuSensor::UpdateAccelerationAndGyrationStateValues(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
 {
   imu_sensor_state_[angular_velocity_x] = ang_vel.x;
@@ -532,7 +532,7 @@ void PantherImuSensor::UpdateAccelerationAndGyrationStateValues(
   }
 }
 
-void PantherImuSensor::UpdateAllStatesValues(
+void PhidgetImuSensor::UpdateAllStatesValues(
   const geometry_msgs::msg::Vector3 & ang_vel, const geometry_msgs::msg::Vector3 & lin_acc)
 {
   filter_->getOrientation(
@@ -542,7 +542,7 @@ void PantherImuSensor::UpdateAllStatesValues(
   UpdateAccelerationAndGyrationStateValues(ang_vel, lin_acc);
 }
 
-void PantherImuSensor::SetStateValuesToNans()
+void PhidgetImuSensor::SetStateValuesToNans()
 {
   std::fill(
     imu_sensor_state_.begin(), imu_sensor_state_.end(), std::numeric_limits<double>::quiet_NaN());
@@ -552,4 +552,4 @@ void PantherImuSensor::SetStateValuesToNans()
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  husarion_ugv_hardware_interfaces::PantherImuSensor, hardware_interface::SensorInterface)
+  husarion_ugv_hardware_interfaces::PhidgetImuSensor, hardware_interface::SensorInterface)

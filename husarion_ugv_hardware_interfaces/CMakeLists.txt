@@ -52,7 +52,7 @@ pkg_check_modules(LIBGPIOD REQUIRED IMPORTED_TARGET libgpiodcxx)
 
 add_library(
   ${PROJECT_NAME} SHARED
-  src/panther_imu_sensor/panther_imu_sensor.cpp
+  src/phidget_imu_sensor/phidget_imu_sensor.cpp
   src/panther_system/gpio/gpio_controller.cpp
   src/panther_system/gpio/gpio_driver.cpp
   src/panther_system/robot_driver/canopen_manager.cpp
@@ -96,12 +96,12 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_utils test/test_utils.cpp src/utils.cpp)
 
-  ament_add_gtest(${PROJECT_NAME}_test_panther_imu_sensor
-                  test/panther_imu_sensor/test_panther_imu_sensor.cpp)
+  ament_add_gtest(${PROJECT_NAME}_test_phidget_imu_sensor
+                  test/phidget_imu_sensor/test_phidget_imu_sensor.cpp)
   ament_target_dependencies(
-    ${PROJECT_NAME}_test_panther_imu_sensor hardware_interface rclcpp
+    ${PROJECT_NAME}_test_phidget_imu_sensor hardware_interface rclcpp
     husarion_ugv_utils panther_msgs phidgets_api)
-  target_link_libraries(${PROJECT_NAME}_test_panther_imu_sensor ${PROJECT_NAME}
+  target_link_libraries(${PROJECT_NAME}_test_phidget_imu_sensor ${PROJECT_NAME}
                         phidgets_spatial_parameters)
 
   ament_add_gtest(

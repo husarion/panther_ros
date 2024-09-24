@@ -66,7 +66,7 @@ LynxSystem additional CAN settings
 > [!CAUTION]
 > `max_write_pdo_cmds_errors_count`, `max_read_pdo_motor_states_errors_count`, `max_read_pdo_driver_state_errors_count`, `sdo_operation_timeout`, `pdo_motor_states_timeout_ms` and `pdo_driver_state_timeout_ms` are safety-critical parameters, they should be changed only in very specific cases, be sure that you know how they work and be really cautious when changing them.
 
-### PantherImuSensor
+### PhidgetImuSensor
 
 Plugin responsible for communicating with IMU and filtering data using Madgwick Filter.
 

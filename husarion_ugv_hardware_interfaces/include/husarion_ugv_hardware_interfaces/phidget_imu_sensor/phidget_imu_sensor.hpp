@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef HUSARION_UGV_HARDWARE_INTERFACES_PANTHER_IMU_SENSOR_PANTHER_IMU_SENSOR_HPP_
-#define HUSARION_UGV_HARDWARE_INTERFACES_PANTHER_IMU_SENSOR_PANTHER_IMU_SENSOR_HPP_
+#ifndef HUSARION_UGV_HARDWARE_INTERFACES_PHIDGET_IMU_SENSOR_PHIDGET_IMU_SENSOR_HPP_
+#define HUSARION_UGV_HARDWARE_INTERFACES_PHIDGET_IMU_SENSOR_PHIDGET_IMU_SENSOR_HPP_
 
 #include <array>
 #include <condition_variable>
@@ -54,10 +54,10 @@ using CommandInterface = hardware_interface::CommandInterface;
 /**
  * @brief Class that implements SensorInterface from ros2_control for Panther
  */
-class PantherImuSensor : public hardware_interface::SensorInterface
+class PhidgetImuSensor : public hardware_interface::SensorInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(PantherImuSensor)
+  RCLCPP_SHARED_PTR_DEFINITIONS(PhidgetImuSensor)
 
   CallbackReturn on_init(const hardware_interface::HardwareInfo & hardware_info) override;
   CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
@@ -143,7 +143,7 @@ protected:
 
   std::vector<double> imu_sensor_state_;
 
-  rclcpp::Logger logger_{rclcpp::get_logger("PantherImuSensor")};
+  rclcpp::Logger logger_{rclcpp::get_logger("PhidgetImuSensor")};
   rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 
   inline static const std::array<std::string, kImuInterfacesSize> kImuInterfacesNames = {
@@ -182,4 +182,4 @@ protected:
 
 }  // namespace husarion_ugv_hardware_interfaces
 
-#endif  // HUSARION_UGV_HARDWARE_INTERFACES_PANTHER_IMU_SENSOR_PANTHER_IMU_SENSOR_HPP_
+#endif  // HUSARION_UGV_HARDWARE_INTERFACES_PHIDGET_IMU_SENSOR_PHIDGET_IMU_SENSOR_HPP_
