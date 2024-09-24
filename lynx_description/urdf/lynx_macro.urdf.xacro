@@ -57,12 +57,12 @@
     <ros2_control name="${ns}lynx_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <plugin>panther_gazebo/GzPantherSystem</plugin>
+          <plugin>husarion_ugv_gazebo/EStopSystem</plugin>
           <param name="e_stop_initial_state">true</param>
         </xacro:if>
 
         <xacro:unless value="$(arg use_sim)">
-          <plugin>panther_hardware_interfaces/LynxSystem</plugin>
+          <plugin>husarion_ugv_hardware_interfaces/LynxSystem</plugin>
 
           <param name="encoder_resolution">1600</param>
 
@@ -143,7 +143,7 @@
     <xacro:unless value="${use_sim}">
       <ros2_control name="${ns}imu" type="sensor">
         <hardware>
-          <plugin>panther_hardware_interfaces/PantherImuSensor</plugin>
+          <plugin>husarion_ugv_hardware_interfaces/PantherImuSensor</plugin>
           <param name="serial">-1</param>
           <param name="hub_port">0</param>
           <param name="data_interval_ms">8</param>

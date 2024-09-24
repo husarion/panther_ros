@@ -10,7 +10,7 @@
   <xacro:arg name="wheel_config_file"
     default="$(find lynx_description)/config/WH05.yaml" />
   <xacro:arg name="controller_config_file"
-    default="$(find panther_controller)/config/WH05_controller.yaml" />
+    default="$(find husarion_ugv_controller)/config/WH05_controller.yaml" />
   <xacro:arg name="battery_config_file"
     default="" />
   <xacro:arg name="namespace" default="" />
