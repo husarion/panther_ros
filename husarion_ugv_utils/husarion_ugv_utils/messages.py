@@ -63,7 +63,7 @@ def welcome_msg(
     additional_stats: Dict = {},
 ):
     """Generate a welcome message with robot information and stats."""
-    pkg_version = Command(command="ros2 pkg xml -t version panther")
+    pkg_version = Command(command="ros2 pkg xml -t version husarion_ugv")
 
     robot_model_expr = PythonExpression(
         [f"r'''{LYNX_TEXT}''' if '", robot_model, f"' == 'lynx' else r'''{PANTHER_TEXT}'''"]
