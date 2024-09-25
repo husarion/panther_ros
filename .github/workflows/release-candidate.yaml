@@ -25,7 +25,21 @@ jobs:
 
   check_docs:
     name: Check docs build
-    uses: husarion/docs_new/.github/workflows/build.yml@add-workflow-call
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trigger repository build workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: husarion
+          repo: docs_new
+          github_token: ${{ secrets.GH_PAT }}
+          workflow_file_name: build.yml
+          ref: add-workflow-call
+          wait_interval: 10
+          client_payload: |
+            {
+              "publish": false,
+            }
 
   # create_release_candidate_branches:
   #   name: Create release candidate branches
