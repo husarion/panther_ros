@@ -15,13 +15,6 @@ env:
   RC_BRANCH_NAME: ${{ github.event.inputs.version }}-${{ github.event.inputs.date }}
 
 jobs:
-    # TODO: Add unit testing for panther_ros when ready
-  # unit_test_panther_ros:
-  #   name: Run unit tests for panther_ros
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - name: Trigger repository build workflow
-  #       run: echo "Unit tests for panther_ros are not fully implemented yet -> SKIPPING!"
 
   check_docs:
     name: Check docs build
