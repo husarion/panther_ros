@@ -15,7 +15,6 @@ env:
   RC_BRANCH_NAME: ${{ github.event.inputs.version }}-${{ github.event.inputs.date }}
 
 jobs:
-
   check_docs:
     name: Check docs build
     runs-on: ubuntu-22.04
@@ -28,8 +27,112 @@ jobs:
           github_token: ${{ secrets.GH_PAT }}
           workflow_file_name: test-release.yml
           ref: add-workflow-call
-          wait_interval: 10
+          client_payload: '{"husarion_ugv_branch": "ros2-devel"}'
+
+  # TODO: Add unit testing for panther_ros when ready
+  unit_test_panther_ros:
+    name: Run unit tests for panther_ros
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trigger repository build workflow
+        run: echo "Unit tests for panther_ros are not fully implemented yet -> SKIPPING!"
+
+  create_release_candidate_branches:
+    name: Create release candidate branches
+    runs-on: ubuntu-22.04
+    needs:
+      - unit_test_panther_ros
+    strategy:
+      matrix:
+        repo: [panther_ros, panther_msgs, panther-docker, panther-rpi-os-img]
+    steps:
+      - name: Create test branch
+        uses: GuillaumeFalourd/create-other-repo-branch-action@v1.5
+        with:
+          repository_owner: husarion
+          repository_name: ${{ matrix.repo }}
+          new_branch_name: ${{ env.RC_BRANCH_NAME }}
+          new_branch_ref: ros2-devel
+          access_token: ${{ secrets.GH_PAT}}
+
+  update_tags_in_compose:
+    name: Update Docker image tags in compose
+    runs-on: ubuntu-22.04
+    needs:
+      - create_release_candidate_branches
+    steps:
+      - name: Trigger repository build workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: husarion
+          repo: panther-docker
+          github_token: ${{ secrets.GH_PAT }}
+          workflow_file_name: update-tags-in-compose.yaml
+          ref: ${{ env.RC_BRANCH_NAME }}
           client_payload: |
             {
-              "husarion_ugv_branch": "ros2-devel"
+              "branch_name": "${{ env.RC_BRANCH_NAME }}",
+              "image_tag": "humble-${{ env.RC_BRANCH_NAME }}"
+            }
+
+  build_and_push_docker_images:
+    name: Build panther docker images
+    runs-on: ubuntu-22.04
+    needs:
+      - update_tags_in_compose
+    steps:
+      - name: Trigger repository build workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: husarion
+          repo: panther-docker
+          github_token: ${{ secrets.GH_PAT }}
+          workflow_file_name: ros-docker-image.yaml
+          ref: ${{ env.RC_BRANCH_NAME }}
+          client_payload: |
+            {
+              "panther_codebase_version": "${{ env.RC_BRANCH_NAME }}",
+              "build_type": "development",
+              "target_distro": "humble"
+            }
+
+  build_and_publish_rpi_image:
+    name: Build panther system image
+    needs:
+      - update_tags_in_compose
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trigger repository build workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: husarion
+          repo: panther-rpi-os-img
+          github_token: ${{ secrets.GH_PAT }}
+          workflow_file_name: build_and_deploy_image.yaml
+          ref: ${{ env.RC_BRANCH_NAME }}
+          client_payload: |
+            {
+              "dev_image": "true",
+              "panther_codebase_version": "${{ env.RC_BRANCH_NAME }}",
+              "image_tag": "${{ github.event.inputs.version }}"
+            }
+
+  build_and_publish_rpi_flash_os_image:
+    name: Build panther flash OS image
+    if: ${{ fromJSON(github.event.inputs.automatic_mode) == true }}
+    needs:
+      - build_and_publish_rpi_image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trigger repository build workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: husarion
+          repo: panther-rpi-os-img
+          github_token: ${{ secrets.GH_PAT }}
+          workflow_file_name: build_and_deploy_flash_os_image.yaml
+          ref: ${{ env.RC_BRANCH_NAME }}
+          client_payload: |
+            {
+              "image_tag": "${{ github.event.inputs.version }}"
             }
