@@ -46,7 +46,7 @@ led_animations:
         segments: all
         animation:
           image: $(find panther_lights)/animations/panther/strip01_red.png
-          duration: 3
+          duration: 2
           repeat: 2
 
   - id: 3

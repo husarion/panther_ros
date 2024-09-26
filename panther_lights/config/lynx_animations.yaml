@@ -22,6 +22,10 @@ segments_map:
   all: [fl, fr, rl, rr]
   front: [fl, fr]
   rear: [rl, rr]
+  fl: [fl]
+  fr: [fr]
+  rl: [rl]
+  rr: [rr]
 
 led_animations:
   - id: 0
@@ -52,7 +56,7 @@ led_animations:
         segments: all
         animation:
           image: $(find panther_lights)/animations/lynx/strip01_red.png
-          duration: 3
+          duration: 2
           repeat: 2
 
   - id: 3
