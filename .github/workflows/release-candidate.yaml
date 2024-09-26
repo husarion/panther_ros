@@ -26,7 +26,7 @@ jobs:
           repo: docs_new
           github_token: ${{ secrets.GH_PAT }}
           workflow_file_name: test-release.yml
-          ref: add-workflow-call
+          ref: master
           client_payload: '{"husarion_ugv_branch": "ros2-devel"}'
 
   # TODO: Add unit testing for panther_ros when ready
