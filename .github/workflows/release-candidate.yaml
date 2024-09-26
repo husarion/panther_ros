@@ -31,5 +31,5 @@ jobs:
           wait_interval: 10
           client_payload: |
             {
-              "husarion_ugv_branch": ros2-devel,
+              "husarion_ugv_branch": "ros2-devel"
             }
