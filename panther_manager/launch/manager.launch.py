@@ -62,7 +62,7 @@ def generate_launch_description():
             [
                 FindPackageShare("panther_manager"),
                 "config",
-                "shutdown_hosts_config.yaml",
+                "shutdown_hosts.yaml",
             ]
         ),
         description="Path to file with list of hosts to request shutdown.",

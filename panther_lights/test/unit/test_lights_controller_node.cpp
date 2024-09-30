@@ -77,18 +77,18 @@ protected:
   static constexpr char kTestSegmentName[] = "test";
   static constexpr char kTestSegmentLedRange[] = "0-9";
 
-  std::filesystem::path led_config_file_;
+  std::filesystem::path animations_config_path_;
   std::shared_ptr<ControllerNodeWrapper> lights_controller_node_;
 };
 
 TestLightsControllerNode::TestLightsControllerNode()
 {
-  led_config_file_ = testing::TempDir() + "/led_config.yaml";
+  animations_config_path_ = testing::TempDir() + "/led_config.yaml";
 
-  CreateLEDConfig(led_config_file_);
+  CreateLEDConfig(animations_config_path_);
 
   std::vector<rclcpp::Parameter> params;
-  params.push_back(rclcpp::Parameter("led_config_file", led_config_file_));
+  params.push_back(rclcpp::Parameter("animations_config_path", animations_config_path_));
 
   rclcpp::NodeOptions options;
   options.parameter_overrides(params);
@@ -96,7 +96,10 @@ TestLightsControllerNode::TestLightsControllerNode()
   lights_controller_node_ = std::make_shared<ControllerNodeWrapper>(options);
 }
 
-TestLightsControllerNode::~TestLightsControllerNode() { std::filesystem::remove(led_config_file_); }
+TestLightsControllerNode::~TestLightsControllerNode()
+{
+  std::filesystem::remove(animations_config_path_);
+}
 
 void TestLightsControllerNode::CreateLEDConfig(const std::filesystem::path file_path)
 {
