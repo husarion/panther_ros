@@ -36,9 +36,11 @@ from std_srvs.srv import SetBool
 
 def generate_test_description():
 
-    # TODO: Fix the path for specific robot model
+    # TODO: Should be possibility to launch integration test for specific robot
     animations_config_path = (
-        PathJoinSubstitution([FindPackageShare("panther_lights"), "config", "animations.yaml"]),
+        PathJoinSubstitution(
+            [FindPackageShare("panther_lights"), "config", "panther_animations.yaml"]
+        ),
     )
 
     lights_controller_node = Node(
