@@ -48,15 +48,15 @@ LightsControllerNode::LightsControllerNode(const rclcpp::NodeOptions & options)
 
   using namespace std::placeholders;
 
-  this->declare_parameter<std::string>("led_config_file");
+  this->declare_parameter<std::string>("animations_config_path");
   this->declare_parameter<std::string>("user_led_animations_path", "");
   this->declare_parameter<float>("controller_freq", 50.0);
 
-  const auto led_config_file = this->get_parameter("led_config_file").as_string();
+  const auto animations_config_path = this->get_parameter("animations_config_path").as_string();
   const auto user_led_animations_path = this->get_parameter("user_led_animations_path").as_string();
   const float controller_freq = this->get_parameter("controller_freq").as_double();
 
-  YAML::Node led_config_desc = YAML::LoadFile(led_config_file);
+  YAML::Node led_config_desc = YAML::LoadFile(animations_config_path);
 
   InitializeLEDPanels(led_config_desc["panels"]);
   InitializeLEDSegments(led_config_desc["segments"], controller_freq);
