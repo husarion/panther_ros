@@ -2,7 +2,7 @@
 
 ## LED Animations
 
-Basic led configuration is loaded from [`{robot_model}_animations.yaml`](config) file. It includes definition of robot panels, virtual segments and default animations. Default animations can be found in the table below:
+Basic led configuration is loaded from [`{robot_model}_animations.yaml`](config) file. It includes definition of robot panels, virtual segments and default animations. The default appearance of the animation when looking at the robot from the front or back is as follows:
 
 |  ID   | NAME              | PRIORITY | ANIMATION                                          |
 | :---: | ----------------- | :------: | -------------------------------------------------- |

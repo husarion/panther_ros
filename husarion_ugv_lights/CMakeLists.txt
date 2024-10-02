@@ -228,7 +228,7 @@ if(BUILD_TESTING)
   # Integration tests
   option(TEST_INTEGRATION "Run integration tests" OFF)
   if(TEST_INTEGRATION)
-    add_ros_test(test/integration/husarion_ugv_lights.test.py)
+    add_ros_test(test/integration/panther_lights.test.py)
   endif()
 
 endif()

@@ -36,10 +36,10 @@ from std_srvs.srv import SetBool
 
 def generate_test_description():
 
-    # TODO: Fix the path for specific robot model
+    # TODO: Should be possibility to launch integration test for specific robot
     animations_config_path = (
         PathJoinSubstitution(
-            [FindPackageShare("husarion_ugv_lights"), "config", "animations.yaml"]
+            [FindPackageShare("husarion_ugv_lights"), "config", "panther_animations.yaml"]
         ),
     )
 
