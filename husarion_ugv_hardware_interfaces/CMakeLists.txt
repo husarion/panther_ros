@@ -53,20 +53,20 @@ pkg_check_modules(LIBGPIOD REQUIRED IMPORTED_TARGET libgpiodcxx)
 add_library(
   ${PROJECT_NAME} SHARED
   src/phidget_imu_sensor/phidget_imu_sensor.cpp
-  src/panther_system/gpio/gpio_controller.cpp
-  src/panther_system/gpio/gpio_driver.cpp
-  src/panther_system/robot_driver/canopen_manager.cpp
-  src/panther_system/robot_driver/roboteq_data_converters.cpp
-  src/panther_system/robot_driver/roboteq_driver.cpp
-  src/panther_system/robot_driver/roboteq_error_filter.cpp
-  src/panther_system/robot_driver/roboteq_robot_driver.cpp
-  src/panther_system/robot_driver/lynx_robot_driver.cpp
-  src/panther_system/robot_driver/panther_robot_driver.cpp
-  src/panther_system/system_e_stop.cpp
-  src/panther_system/system_ros_interface.cpp
-  src/panther_system/lynx_system.cpp
-  src/panther_system/panther_system.cpp
-  src/panther_system/ugv_system.cpp
+  src/robot_system/gpio/gpio_controller.cpp
+  src/robot_system/gpio/gpio_driver.cpp
+  src/robot_system/robot_driver/canopen_manager.cpp
+  src/robot_system/robot_driver/roboteq_data_converters.cpp
+  src/robot_system/robot_driver/roboteq_driver.cpp
+  src/robot_system/robot_driver/roboteq_error_filter.cpp
+  src/robot_system/robot_driver/roboteq_robot_driver.cpp
+  src/robot_system/robot_driver/lynx_robot_driver.cpp
+  src/robot_system/robot_driver/panther_robot_driver.cpp
+  src/robot_system/system_e_stop.cpp
+  src/robot_system/system_ros_interface.cpp
+  src/robot_system/lynx_system.cpp
+  src/robot_system/panther_system.cpp
+  src/robot_system/ugv_system.cpp
   src/utils.cpp)
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_DEPENDENCIES})
 target_link_libraries(${PROJECT_NAME} PkgConfig::LIBLELY_COAPP
@@ -106,13 +106,13 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_error_filter
-    test/unit/panther_system/robot_driver/test_roboteq_error_filter.cpp
-    src/panther_system/robot_driver/roboteq_error_filter.cpp)
+    test/unit/robot_system/robot_driver/test_roboteq_error_filter.cpp
+    src/robot_system/robot_driver/roboteq_error_filter.cpp)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_data_converters
-    test/unit/panther_system/robot_driver/test_roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp src/utils.cpp)
+    test/unit/robot_system/robot_driver/test_roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_data_converters
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
@@ -124,8 +124,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_canopen_manager
-    test/unit/panther_system/robot_driver/test_canopen_manager.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp src/utils.cpp)
+    test/unit/robot_system/robot_driver/test_canopen_manager.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_canopen_manager
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
@@ -137,9 +137,9 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_roboteq_driver
-    test/unit/panther_system/robot_driver/test_roboteq_driver.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
+    test/unit/robot_system/robot_driver/test_roboteq_driver.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp
+    src/robot_system/robot_driver/roboteq_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_driver
@@ -152,11 +152,11 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_roboteq_robot_driver
-    test/unit/panther_system/robot_driver/test_roboteq_robot_driver.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_robot_driver.cpp
+    test/unit/robot_system/robot_driver/test_roboteq_robot_driver.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp
+    src/robot_system/robot_driver/roboteq_driver.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_roboteq_robot_driver
@@ -169,12 +169,12 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_lynx_robot_driver
-    test/unit/panther_system/robot_driver/test_lynx_robot_driver.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_robot_driver.cpp
-    src/panther_system/robot_driver/lynx_robot_driver.cpp
+    test/unit/robot_system/robot_driver/test_lynx_robot_driver.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp
+    src/robot_system/robot_driver/roboteq_driver.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_robot_driver.cpp
+    src/robot_system/robot_driver/lynx_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_lynx_robot_driver
@@ -187,12 +187,12 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_panther_robot_driver
-    test/unit/panther_system/robot_driver/test_panther_robot_driver.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_robot_driver.cpp
-    src/panther_system/robot_driver/panther_robot_driver.cpp
+    test/unit/robot_system/robot_driver/test_panther_robot_driver.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp
+    src/robot_system/robot_driver/roboteq_driver.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_robot_driver.cpp
+    src/robot_system/robot_driver/panther_robot_driver.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_panther_robot_driver
@@ -205,9 +205,9 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_gpiod_controller
-    test/panther_system/gpio/test_gpio_controller.cpp
-    src/panther_system/gpio/gpio_controller.cpp
-    src/panther_system/gpio/gpio_driver.cpp)
+    test/robot_system/gpio/test_gpio_controller.cpp
+    src/robot_system/gpio/gpio_controller.cpp
+    src/robot_system/gpio/gpio_driver.cpp)
   ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller
                             husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
@@ -215,10 +215,10 @@ if(BUILD_TESTING)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_system_ros_interface
-    test/unit/panther_system/test_system_ros_interface.cpp
-    src/panther_system/system_ros_interface.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/gpio/gpio_controller.cpp
+    test/unit/robot_system/test_system_ros_interface.cpp
+    src/robot_system/system_ros_interface.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/gpio/gpio_controller.cpp
     src/utils.cpp)
   target_include_directories(
     ${PROJECT_NAME}_test_system_ros_interface
@@ -237,14 +237,14 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_ugv_system
-    test/unit/panther_system/test_ugv_system.cpp
-    src/panther_system/gpio/gpio_controller.cpp
-    src/panther_system/gpio/gpio_driver.cpp
-    src/panther_system/system_e_stop.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_error_filter.cpp
-    src/panther_system/system_ros_interface.cpp
-    src/panther_system/ugv_system.cpp
+    test/unit/robot_system/test_ugv_system.cpp
+    src/robot_system/gpio/gpio_controller.cpp
+    src/robot_system/gpio/gpio_driver.cpp
+    src/robot_system/system_e_stop.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_error_filter.cpp
+    src/robot_system/system_ros_interface.cpp
+    src/robot_system/ugv_system.cpp
     src/utils.cpp)
   set_tests_properties(${PROJECT_NAME}_test_ugv_system PROPERTIES TIMEOUT 120)
   target_include_directories(
@@ -265,19 +265,19 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_lynx_system
-    test/unit/panther_system/test_lynx_system.cpp
-    src/panther_system/gpio/gpio_controller.cpp
-    src/panther_system/gpio/gpio_driver.cpp
-    src/panther_system/system_e_stop.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_robot_driver.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/panther_system/robot_driver/roboteq_error_filter.cpp
-    src/panther_system/robot_driver/lynx_robot_driver.cpp
-    src/panther_system/system_ros_interface.cpp
-    src/panther_system/lynx_system.cpp
-    src/panther_system/ugv_system.cpp
+    test/unit/robot_system/test_lynx_system.cpp
+    src/robot_system/gpio/gpio_controller.cpp
+    src/robot_system/gpio/gpio_driver.cpp
+    src/robot_system/system_e_stop.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp
+    src/robot_system/robot_driver/roboteq_robot_driver.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_driver.cpp
+    src/robot_system/robot_driver/roboteq_error_filter.cpp
+    src/robot_system/robot_driver/lynx_robot_driver.cpp
+    src/robot_system/system_ros_interface.cpp
+    src/robot_system/lynx_system.cpp
+    src/robot_system/ugv_system.cpp
     src/utils.cpp)
   set_tests_properties(${PROJECT_NAME}_test_lynx_system PROPERTIES TIMEOUT 120)
   target_include_directories(
@@ -298,19 +298,19 @@ if(BUILD_TESTING)
 
   ament_add_gmock(
     ${PROJECT_NAME}_test_panther_system
-    test/unit/panther_system/test_panther_system.cpp
-    src/panther_system/gpio/gpio_controller.cpp
-    src/panther_system/gpio/gpio_driver.cpp
-    src/panther_system/system_e_stop.cpp
-    src/panther_system/robot_driver/canopen_manager.cpp
-    src/panther_system/robot_driver/roboteq_robot_driver.cpp
-    src/panther_system/robot_driver/roboteq_data_converters.cpp
-    src/panther_system/robot_driver/roboteq_driver.cpp
-    src/panther_system/robot_driver/roboteq_error_filter.cpp
-    src/panther_system/robot_driver/panther_robot_driver.cpp
-    src/panther_system/system_ros_interface.cpp
-    src/panther_system/panther_system.cpp
-    src/panther_system/ugv_system.cpp
+    test/unit/robot_system/test_panther_system.cpp
+    src/robot_system/gpio/gpio_controller.cpp
+    src/robot_system/gpio/gpio_driver.cpp
+    src/robot_system/system_e_stop.cpp
+    src/robot_system/robot_driver/canopen_manager.cpp
+    src/robot_system/robot_driver/roboteq_robot_driver.cpp
+    src/robot_system/robot_driver/roboteq_data_converters.cpp
+    src/robot_system/robot_driver/roboteq_driver.cpp
+    src/robot_system/robot_driver/roboteq_error_filter.cpp
+    src/robot_system/robot_driver/panther_robot_driver.cpp
+    src/robot_system/system_ros_interface.cpp
+    src/robot_system/panther_system.cpp
+    src/robot_system/ugv_system.cpp
     src/utils.cpp)
   set_tests_properties(${PROJECT_NAME}_test_panther_system PROPERTIES TIMEOUT
                                                                       120)
@@ -333,7 +333,7 @@ if(BUILD_TESTING)
   # Integration tests option(TEST_INTEGRATION "Run integration tests" OFF)
   if(TEST_INTEGRATION) # Hardware integration
     ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
-                    test/panther_system/gpio/test_gpio_driver.cpp)
+                    test/robot_system/gpio/test_gpio_driver.cpp)
     ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver
                               husarion_ugv_utils)
     target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}

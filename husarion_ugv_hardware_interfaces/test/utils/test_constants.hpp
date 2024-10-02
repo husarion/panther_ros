@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include <husarion_ugv_hardware_interfaces/panther_system/robot_driver/canopen_manager.hpp>
-#include <husarion_ugv_hardware_interfaces/panther_system/robot_driver/roboteq_data_converters.hpp>
+#include <husarion_ugv_hardware_interfaces/robot_system/robot_driver/canopen_manager.hpp>
+#include <husarion_ugv_hardware_interfaces/robot_system/robot_driver/roboteq_data_converters.hpp>
 
 namespace husarion_ugv_hardware_interfaces_test
 {

@@ -573,8 +573,8 @@ TEST_F(TestPhidgetImuSensor, CheckWrongConfigurationWithWrongParameters)
 {
   using hardware_interface::return_type;
 
-  const std::string panther_system_urdf_ = BuildUrdf({}, TestPhidgetImuSensor::kImuInterfaces);
-  CreateResourceManagerFromUrdf(panther_system_urdf_);
+  const std::string robot_system_urdf_ = BuildUrdf({}, TestPhidgetImuSensor::kImuInterfaces);
+  CreateResourceManagerFromUrdf(robot_system_urdf_);
 
   EXPECT_EQ(ConfigurePantherImu(), return_type::ERROR);
   EXPECT_EQ(ShutdownPantherImu(), return_type::OK);

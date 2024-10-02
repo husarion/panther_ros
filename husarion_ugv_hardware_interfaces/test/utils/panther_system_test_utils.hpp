@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef HUSARION_UGV_HARDWARE_INTERFACES_TEST_UTILS_PANTHER_SYSTEM_TEST_UTILS_HPP_
-#define HUSARION_UGV_HARDWARE_INTERFACES_TEST_UTILS_PANTHER_SYSTEM_TEST_UTILS_HPP_
+#ifndef HUSARION_UGV_HARDWARE_INTERFACES_TEST_UTILS_ROBOT_SYSTEM_TEST_UTILS_HPP_
+#define HUSARION_UGV_HARDWARE_INTERFACES_TEST_UTILS_ROBOT_SYSTEM_TEST_UTILS_HPP_
 
 #include <cmath>
 #include <cstdint>
@@ -138,7 +138,7 @@ public:
   std::shared_ptr<hardware_interface::ResourceManager> GetResourceManager() { return rm_; }
   std::shared_ptr<RoboteqsMock> GetRoboteqsMock() { return roboteqs_mock_; }
 
-  std::string GetDefaultPantherSystemUrdf() const { return default_panther_system_urdf_; }
+  std::string GetDefaultPantherSystemUrdf() const { return default_robot_system_urdf_; }
 
 private:
   /**
@@ -161,4 +161,4 @@ private:
 
 }  // namespace husarion_ugv_hardware_interfaces_test
 
-#endif  // HUSARION_UGV_HARDWARE_INTERFACES_TEST_UTILS_PANTHER_SYSTEM_TEST_UTILS_HPP_
+#endif  // HUSARION_UGV_HARDWARE_INTERFACES_TEST_UTILS_ROBOT_SYSTEM_TEST_UTILS_HPP_

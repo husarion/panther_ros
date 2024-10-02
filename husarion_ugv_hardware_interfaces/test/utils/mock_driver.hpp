@@ -22,7 +22,7 @@
 
 #include <gmock/gmock.h>
 
-#include "husarion_ugv_hardware_interfaces/panther_system/robot_driver/driver.hpp"
+#include "husarion_ugv_hardware_interfaces/robot_system/robot_driver/driver.hpp"
 
 namespace husarion_ugv_hardware_interfaces_test
 {

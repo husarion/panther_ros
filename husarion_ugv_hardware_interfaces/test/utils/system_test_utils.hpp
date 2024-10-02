@@ -22,9 +22,9 @@
 
 #include <gmock/gmock.h>
 
-#include "husarion_ugv_hardware_interfaces/panther_system/gpio/gpio_controller.hpp"
-#include "husarion_ugv_hardware_interfaces/panther_system/robot_driver/robot_driver.hpp"
-#include "husarion_ugv_hardware_interfaces/panther_system/system_e_stop.hpp"
+#include "husarion_ugv_hardware_interfaces/robot_system/gpio/gpio_controller.hpp"
+#include "husarion_ugv_hardware_interfaces/robot_system/robot_driver/robot_driver.hpp"
+#include "husarion_ugv_hardware_interfaces/robot_system/system_e_stop.hpp"
 
 #include "utils/mock_driver.hpp"
 
