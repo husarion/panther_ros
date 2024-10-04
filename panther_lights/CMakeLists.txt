@@ -85,7 +85,8 @@ install(
 
 install(TARGETS panther_animation_plugins LIBRARY DESTINATION lib)
 
-install(DIRECTORY animations config launch DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY animations config launch test
+        DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
