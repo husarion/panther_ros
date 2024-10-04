@@ -63,7 +63,7 @@ def generate_launch_description():
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_controller"), "launch", "controller.launch.py"]
+                [FindPackageShare("husarion_ugv_controller"), "launch", "controller.launch.py"]
             )
         ),
         launch_arguments={"namespace": namespace}.items(),

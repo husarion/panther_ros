@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_controller)
+project(husarion_ugv_controller)
 
 find_package(ament_cmake REQUIRED)
 

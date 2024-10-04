@@ -138,7 +138,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("panther_controller"),
+                    FindPackageShare("husarion_ugv_controller"),
                     "launch",
                     "controller.launch.py",
                 ]

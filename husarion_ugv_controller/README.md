@@ -1,4 +1,4 @@
-# panther_controller
+# husarion_ugv_controller
 
 The package contains the default configuration and launch files necessary to start all the basic functionalities of the Husarion Panther robot.
 

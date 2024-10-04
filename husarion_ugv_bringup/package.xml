@@ -16,9 +16,9 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">husarion_ugv_battery</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">husarion_ugv_controller</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">launch</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">launch_ros</exec_depend>
-  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_controller</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_diagnostics</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_lights</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_localization</exec_depend>
