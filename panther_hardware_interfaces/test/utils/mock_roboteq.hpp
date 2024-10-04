@@ -297,7 +297,7 @@ public:
         auto exec = loop.get_executor();
         lely::io::Timer timer(poll, exec, CLOCK_MONOTONIC);
 
-        lely::io::CanController ctrl("panther_can");
+        lely::io::CanController ctrl("robot_can");
 
         lely::io::CanChannel chan1(poll, exec);
         chan1.open(ctrl);
