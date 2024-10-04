@@ -152,7 +152,7 @@ user_animations:
 Remember to modify launch command to use user animations:
 
 ``` bash
-ros2 launch panther_bringup bringup.launch user_animations_file:=/my_awesome_user_animations.yaml
+ros2 launch husarion_ugv_bringup bringup.launch user_animations_file:=/my_awesome_user_animations.yaml
 ```
 
 Test new animations:

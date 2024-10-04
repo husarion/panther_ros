@@ -62,7 +62,7 @@ source install/setup.bash
 Real robot:
 
 ```bash
-ros2 launch panther_bringup bringup.launch.py
+ros2 launch husarion_ugv_bringup bringup.launch.py
 ```
 
 Simulation:
@@ -121,7 +121,7 @@ Launch arguments are largely common to both simulation and physical robot. Howev
 
 > [!TIP]
 >
-> To read the arguments for individual packages, add the `-s` flag to the `ros2 launch` command (e.g. `ros2 launch panther_bringup bringup.launch.py ​​-s`)
+> To read the arguments for individual packages, add the `-s` flag to the `ros2 launch` command (e.g. `ros2 launch husarion_ugv_bringup bringup.launch.py ​​-s`)
 
 ## Developer Info
 
