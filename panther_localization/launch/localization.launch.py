@@ -29,22 +29,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    fuse_gps = LaunchConfiguration("fuse_gps")
-    declare_fuse_gps_arg = DeclareLaunchArgument(
-        "fuse_gps",
-        default_value="False",
-        description="Include GPS for data fusion",
-        choices=["True", "true", "False", "false"],
-    )
-
-    launch_nmea_gps = LaunchConfiguration("launch_nmea_gps")
-    declare_launch_nmea_gps_arg = DeclareLaunchArgument(
-        "launch_nmea_gps",
-        default_value="False",
-        description="Launch NMEA navsat gps driver",
-        choices=["True", "true", "False", "false"],
-    )
-
     localization_mode = LaunchConfiguration("localization_mode")
     declare_localization_mode_arg = DeclareLaunchArgument(
         "localization_mode",
@@ -64,6 +48,17 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    use_gps = LaunchConfiguration("use_gps")
+    declare_use_gps_arg = DeclareLaunchArgument(
+        "use_gps",
+        default_value="False",
+        description=(
+            "Launch NMEA node navsat gps driver and include GPS for data fusion. "
+            "Advisable when the robot is equipped with the [ANT02]"
+        ),
+        choices=["True", "true", "False", "false"],
+    )
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -73,7 +68,7 @@ def generate_launch_description():
     )
 
     mode_prefix = PythonExpression(["'", localization_mode, "_'"])
-    gps_postfix = PythonExpression(["'_with_gps' if ", fuse_gps, " else ''"])
+    gps_postfix = PythonExpression(["'_with_gps' if ", use_gps, " else ''"])
     localization_config_filename = PythonExpression(
         ["'", mode_prefix, "localization", gps_postfix, ".yaml'"]
     )
@@ -108,7 +103,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={"namespace": namespace}.items(),
-        condition=IfCondition(launch_nmea_gps),
+        condition=IfCondition(use_gps),
     )
 
     navsat_transform_node = Node(
@@ -122,15 +117,14 @@ def generate_launch_description():
             ("gps/fix", "gps/fix"),
             ("odometry/gps", "_odometry/gps"),
         ],
-        condition=IfCondition(fuse_gps),
+        condition=IfCondition(use_gps),
     )
 
     actions = [
-        declare_fuse_gps_arg,
-        declare_launch_nmea_gps_arg,
         declare_localization_mode_arg,
-        declare_localization_config_path_arg,  # localization_config_path use fuse_gps and localization_mode
+        declare_localization_config_path_arg,  # localization_config_path use use_gps and localization_mode
         declare_namespace_arg,
+        declare_use_gps_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         ekf_filter_node,
