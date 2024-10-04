@@ -103,14 +103,6 @@ def generate_launch_description():
         choices=["lynx", "panther"],
     )
 
-    use_ekf = LaunchConfiguration("use_ekf")
-    declare_use_ekf_arg = DeclareLaunchArgument(
-        "use_ekf",
-        default_value="True",
-        description="Enable or disable EKF.",
-        choices=["True", "true", "False", "false"],
-    )
-
     spawn_robot_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -170,7 +162,6 @@ def generate_launch_description():
             )
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
-        condition=IfCondition(use_ekf),
     )
 
     simulate_components = IncludeLaunchDescription(
@@ -243,7 +234,6 @@ def generate_launch_description():
         declare_disable_manager_arg,
         declare_gz_bridge_config_path_arg,
         declare_namespace_arg,
-        declare_use_ekf_arg,
         SetUseSimTime(True),
         spawn_robot_launch,
         lights_launch,

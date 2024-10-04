@@ -64,6 +64,14 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
+    use_ekf = LaunchConfiguration("use_ekf")
+    declare_use_ekf_arg = DeclareLaunchArgument(
+        "use_ekf",
+        default_value="True",
+        description="Enable or disable EKF.",
+        choices=["True", "true", "False", "false"],
+    )
+
     use_sim = LaunchConfiguration("use_sim")
     declare_use_sim_arg = DeclareLaunchArgument(
         "use_sim",
@@ -99,6 +107,7 @@ def generate_launch_description():
             ("set_pose", "localization/set_pose"),
             ("toggle", "localization/toggle"),
         ],
+        condition=IfCondition(use_ekf),
     )
 
     nmea_navsat_launch = IncludeLaunchDescription(
@@ -131,6 +140,7 @@ def generate_launch_description():
         declare_localization_mode_arg,
         declare_localization_config_path_arg,  # localization_config_path use fuse_gps and localization_mode
         declare_namespace_arg,
+        declare_use_ekf_arg,
         declare_use_sim_arg,
         SetParameter(name="use_sim_time", value=use_sim),
         ekf_filter_node,
