@@ -189,7 +189,7 @@ TEST_F(TestLEDSegment, SetAnimation)
 {
   // test each known animtion type
   const auto image_anim_desc = YAML::Load(
-    "{image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/test/files/animation.png, "
     "duration: 2}");
   const auto charging_anim_desc = YAML::Load("{duration: 2}");
 
@@ -203,7 +203,7 @@ TEST_F(TestLEDSegment, SetAnimation)
 TEST_F(TestLEDSegment, SetAnimationRepeating)
 {
   const auto anim_desc = YAML::Load(
-    "{image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/test/files/animation.png, "
     "duration: 2}");
   ASSERT_NO_THROW(led_segment_->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
 
@@ -224,7 +224,7 @@ TEST_F(TestLEDSegment, UpdateAnimationAnimationNotSet)
 TEST_F(TestLEDSegment, UpdateAnimation)
 {
   const auto anim_desc = YAML::Load(
-    "{image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/test/files/animation.png, "
     "duration: 2}");
   ASSERT_NO_THROW(led_segment_->SetAnimation("panther_lights::ImageAnimation", anim_desc, false));
   EXPECT_NO_THROW(led_segment_->UpdateAnimation());
@@ -240,7 +240,7 @@ int main(int argc, char ** argv)
 TEST_F(TestLEDSegment, ResetDefaultAnimationWhenNewArrive)
 {
   const auto anim_desc = YAML::Load(
-    "{image: $(find panther_lights)/animations/triangle01_red.png, "
+    "{image: $(find panther_lights)/test/files/animation.png, "
     "duration: 2}");
   ASSERT_NO_THROW(led_segment_->SetAnimation("panther_lights::ImageAnimation", anim_desc, true));
 

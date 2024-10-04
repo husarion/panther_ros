@@ -94,21 +94,21 @@ TEST_F(TestImageAnimation, ParseImagePath)
   EXPECT_EQ(this->test_image_path, animation_->ParseImagePath(this->test_image_path));
 
   // test ROS package path
-  image_path = "$(find invalid_ros_package)/animations/strip01_red.png";
+  image_path = "$(find invalid_ros_package)/test/files/animation.png";
   EXPECT_THROW(animation_->ParseImagePath(image_path), std::runtime_error);
 
   // invalid substitution
-  image_path = "$(fin panther_lights)/animations/strip01_red.png";
+  image_path = "$(fin panther_lights)/test/files/animation.png";
   EXPECT_THROW(animation_->ParseImagePath(image_path), std::runtime_error);
-  image_path = "$(find panther_lights/animations/strip01_red.png";
+  image_path = "$(find panther_lights/test/files/animation.png";
   EXPECT_THROW(animation_->ParseImagePath(image_path), std::runtime_error);
 
   // following ones may not work if ROS package is not build or sourced
-  image_path = "$(find panther_lights)/animations/strip01_red.png";
+  image_path = "$(find panther_lights)/test/files/animation.png";
   EXPECT_NO_THROW(animation_->ParseImagePath(image_path));
 
   // multiple spaces after find syntax
-  image_path = "$(find    panther_lights)/animations/strip01_red.png";
+  image_path = "$(find    panther_lights)/test/files/animation.png";
   EXPECT_NO_THROW(animation_->ParseImagePath(image_path));
 }
 
