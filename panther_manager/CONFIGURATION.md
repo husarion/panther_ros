@@ -39,7 +39,7 @@ ssh-copy-id username@10.15.20.XX
 
 ## Faults Handle
 
-After receiving a message on the `battery/battery_status` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply status, please refer to the [BatteryState](https://docs.ros2.org/latest/api/sensor_msgs/msg/BatteryState.html) message definition and [adc_battery.cpp](../panther_battery/src/battery/adc_battery.cpp) implementation.
+After receiving a message on the `battery/battery_status` topic, the `panther_manager` node makes decisions regarding safety measures. For more information regarding the power supply status, please refer to the [BatteryState](https://docs.ros2.org/latest/api/sensor_msgs/msg/BatteryState.html) message definition and [adc_battery.cpp](../husarion_ugv_battery/src/battery/adc_battery.cpp) implementation.
 
 | Power Supply Health | Procedure                                                                                                                                                                                                                     |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

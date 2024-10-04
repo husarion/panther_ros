@@ -94,7 +94,7 @@ def generate_launch_description():
     battery_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_battery"), "launch", "battery.launch.py"]
+                [FindPackageShare("husarion_ugv_battery"), "launch", "battery.launch.py"]
             ),
         ),
         launch_arguments={"namespace": namespace}.items(),
