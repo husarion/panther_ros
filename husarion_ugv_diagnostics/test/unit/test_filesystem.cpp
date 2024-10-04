@@ -18,7 +18,7 @@
 #include <memory>
 #include <string>
 
-#include "panther_diagnostics/filesystem.hpp"
+#include "husarion_ugv_diagnostics/filesystem.hpp"
 
 class TestFilesystem : public testing::Test
 {
@@ -29,12 +29,13 @@ public:
   void RemoveTestFile(const std::string & file_path);
 
 protected:
-  std::shared_ptr<panther_diagnostics::Filesystem> filesystem_;
+  std::shared_ptr<husarion_ugv_diagnostics::Filesystem> filesystem_;
 
   static constexpr char kDummyString[] = "Hello World!";
 };
 
-TestFilesystem::TestFilesystem() : filesystem_(std::make_shared<panther_diagnostics::Filesystem>())
+TestFilesystem::TestFilesystem()
+: filesystem_(std::make_shared<husarion_ugv_diagnostics::Filesystem>())
 {
 }
 

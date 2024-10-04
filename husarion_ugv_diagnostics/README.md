@@ -1,4 +1,4 @@
-# panther_diagnostics
+# husarion_ugv_diagnostics
 
 Package containing nodes monitoring and publishing the Built-in Computer status of Husarion Panther robot.
 

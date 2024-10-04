@@ -30,7 +30,7 @@ from panther_msgs.msg import SystemStatus
 def generate_test_description():
 
     system_monitor_node = Node(
-        package="panther_diagnostics",
+        package="husarion_ugv_diagnostics",
         executable="system_monitor_node",
     )
 

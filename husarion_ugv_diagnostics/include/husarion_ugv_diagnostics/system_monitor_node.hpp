@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
-#define PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
+#ifndef HUSARION_UGV_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
+#define HUSARION_UGV_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
 
 #include <string>
 
@@ -24,12 +24,12 @@
 
 #include "system_monitor_parameters.hpp"
 
-#include "panther_diagnostics/filesystem.hpp"
-#include "panther_diagnostics/types.hpp"
+#include "husarion_ugv_diagnostics/filesystem.hpp"
+#include "husarion_ugv_diagnostics/types.hpp"
 
 using namespace std::chrono_literals;
 
-namespace panther_diagnostics
+namespace husarion_ugv_diagnostics
 {
 
 class SystemMonitorNode : public rclcpp::Node
@@ -81,5 +81,5 @@ private:
   static constexpr char kTemperatureInfoFilename[] = "/sys/class/thermal/thermal_zone0/temp";
   static constexpr char kRootDirectory[] = "/";
 };
-}  // namespace panther_diagnostics
-#endif  // PANTHER_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_
+}  // namespace husarion_ugv_diagnostics
+#endif  // HUSARION_UGV_DIAGNOSTICS_SYSTEM_MONITOR_NODE_HPP_

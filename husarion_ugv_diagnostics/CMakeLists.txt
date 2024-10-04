@@ -8,7 +8,7 @@ if(USE_SUPERBUILD)
   include(cmake/SuperBuild.cmake)
   return()
 else()
-  project(panther_diagnostics)
+  project(husarion_ugv_diagnostics)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

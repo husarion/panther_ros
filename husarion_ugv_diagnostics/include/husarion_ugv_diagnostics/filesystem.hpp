@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS_FILESYSTEM_HPP_
-#define PANTHER_DIAGNOSTICS_FILESYSTEM_HPP_
+#ifndef HUSARION_UGV_DIAGNOSTICS_FILESYSTEM_HPP_
+#define HUSARION_UGV_DIAGNOSTICS_FILESYSTEM_HPP_
 
 #include <filesystem>
 #include <fstream>
 
-namespace panther_diagnostics
+namespace husarion_ugv_diagnostics
 {
 
 /**
@@ -110,6 +110,6 @@ public:
   }
 };
 
-}  // namespace panther_diagnostics
+}  // namespace husarion_ugv_diagnostics
 
-#endif  // PANTHER_DIAGNOSTICS_FILESYSTEM_HPP_
+#endif  // HUSARION_UGV_DIAGNOSTICS_FILESYSTEM_HPP_

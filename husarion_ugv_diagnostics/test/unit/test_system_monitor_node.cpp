@@ -20,10 +20,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "panther_diagnostics/filesystem.hpp"
-#include "panther_diagnostics/system_monitor_node.hpp"
+#include "husarion_ugv_diagnostics/filesystem.hpp"
+#include "husarion_ugv_diagnostics/system_monitor_node.hpp"
 
-class MockFilesystem : public panther_diagnostics::FilesystemInterface
+class MockFilesystem : public husarion_ugv_diagnostics::FilesystemInterface
 {
 public:
   MOCK_METHOD(
@@ -35,38 +35,38 @@ public:
   MOCK_METHOD(std::string, ReadFile, (const std::string & file_path), (const, override));
 };
 
-class SystemMonitorNodeWrapper : public panther_diagnostics::SystemMonitorNode
+class SystemMonitorNodeWrapper : public husarion_ugv_diagnostics::SystemMonitorNode
 {
 public:
   SystemMonitorNodeWrapper(std::shared_ptr<MockFilesystem> filesystem)
-  : panther_diagnostics::SystemMonitorNode("test_system_statics", filesystem)
+  : husarion_ugv_diagnostics::SystemMonitorNode("test_system_statics", filesystem)
   {
   }
 
   std::vector<float> GetCoresUsages() const
   {
-    return panther_diagnostics::SystemMonitorNode::GetCoresUsages();
+    return husarion_ugv_diagnostics::SystemMonitorNode::GetCoresUsages();
   }
 
   float GetCPUMeanUsage(const std::vector<float> & usages) const
   {
-    return panther_diagnostics::SystemMonitorNode::GetCPUMeanUsage(usages);
+    return husarion_ugv_diagnostics::SystemMonitorNode::GetCPUMeanUsage(usages);
   }
 
   float GetCPUTemperature() const
   {
-    return panther_diagnostics::SystemMonitorNode::GetCPUTemperature();
+    return husarion_ugv_diagnostics::SystemMonitorNode::GetCPUTemperature();
   }
 
-  float GetRAMUsage() const { return panther_diagnostics::SystemMonitorNode::GetRAMUsage(); }
+  float GetRAMUsage() const { return husarion_ugv_diagnostics::SystemMonitorNode::GetRAMUsage(); }
 
-  float GetDiskUsage() const { return panther_diagnostics::SystemMonitorNode::GetDiskUsage(); }
+  float GetDiskUsage() const { return husarion_ugv_diagnostics::SystemMonitorNode::GetDiskUsage(); }
 
   panther_msgs::msg::SystemStatus SystemStatusToMessage(
-    const panther_diagnostics::SystemStatus & status)
+    const husarion_ugv_diagnostics::SystemStatus & status)
 
   {
-    return panther_diagnostics::SystemMonitorNode::SystemStatusToMessage(status);
+    return husarion_ugv_diagnostics::SystemMonitorNode::SystemStatusToMessage(status);
   }
 };
 
@@ -160,7 +160,7 @@ TEST_F(TestSystemMonitorNode, GetDiskUsageInvalidFilesystem)
 
 TEST_F(TestSystemMonitorNode, SystemStatusToMessage)
 {
-  panther_diagnostics::SystemStatus test_status;
+  husarion_ugv_diagnostics::SystemStatus test_status;
   test_status.core_usages = {50.0, 50.0, 50.0};
   test_status.cpu_mean_usage = 50.0;
   test_status.cpu_temperature = 36.6;

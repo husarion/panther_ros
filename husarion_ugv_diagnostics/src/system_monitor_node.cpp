@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_diagnostics/system_monitor_node.hpp"
+#include "husarion_ugv_diagnostics/system_monitor_node.hpp"
 
 #include <chrono>
 #include <exception>
@@ -27,10 +27,10 @@
 #include "panther_utils/common_utilities.hpp"
 #include "panther_utils/ros_utils.hpp"
 
-#include "panther_diagnostics/filesystem.hpp"
-#include "panther_diagnostics/types.hpp"
+#include "husarion_ugv_diagnostics/filesystem.hpp"
+#include "husarion_ugv_diagnostics/types.hpp"
 
-namespace panther_diagnostics
+namespace husarion_ugv_diagnostics
 {
 
 SystemMonitorNode::SystemMonitorNode(
@@ -196,4 +196,4 @@ void SystemMonitorNode::DiagnoseSystem(diagnostic_updater::DiagnosticStatusWrapp
   status.summary(error_level, message);
 }
 
-}  // namespace panther_diagnostics
+}  // namespace husarion_ugv_diagnostics

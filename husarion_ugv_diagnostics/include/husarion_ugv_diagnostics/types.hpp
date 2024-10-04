@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_DIAGNOSTICS_TYPES_HPP_
-#define PANTHER_DIAGNOSTICS_TYPES_HPP_
+#ifndef HUSARION_UGV_DIAGNOSTICS_TYPES_HPP_
+#define HUSARION_UGV_DIAGNOSTICS_TYPES_HPP_
 
 #include <vector>
 
-namespace panther_diagnostics
+namespace husarion_ugv_diagnostics
 {
 
 /**
@@ -35,6 +35,6 @@ struct SystemStatus
   float disk_usage;
 };
 
-}  // namespace panther_diagnostics
+}  // namespace husarion_ugv_diagnostics
 
-#endif  // PANTHER_DIAGNOSTICS_TYPES_HPP_
+#endif  // HUSARION_UGV_DIAGNOSTICS_TYPES_HPP_

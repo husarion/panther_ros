@@ -29,7 +29,7 @@ def generate_launch_description():
     )
 
     system_monitor_node = Node(
-        package="panther_diagnostics",
+        package="husarion_ugv_diagnostics",
         executable="system_monitor_node",
         name="system_monitor",
         namespace=namespace,

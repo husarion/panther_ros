@@ -73,7 +73,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("panther_diagnostics"),
+                    FindPackageShare("husarion_ugv_diagnostics"),
                     "launch",
                     "system_monitor.launch.py",
                 ]

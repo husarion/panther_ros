@@ -30,7 +30,7 @@ ExternalProject_Add(
   BUILD_IN_SOURCE 1)
 
 ExternalProject_Add(
-  ep_panther_diagnostics
+  ep_husarion_ugv_diagnostics
   DEPENDS ${DEPENDENCIES}
   SOURCE_DIR ${PROJECT_SOURCE_DIR}
   CMAKE_ARGS -DUSE_SUPERBUILD=OFF
