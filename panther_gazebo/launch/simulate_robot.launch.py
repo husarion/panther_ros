@@ -18,7 +18,7 @@ import os
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     EnvironmentVariable,
@@ -32,7 +32,6 @@ from nav2_common.launch import ReplaceString
 
 
 def generate_launch_description():
-
     add_world_transform = LaunchConfiguration("add_world_transform")
     declare_add_world_transform_arg = DeclareLaunchArgument(
         "add_world_transform",
@@ -71,6 +70,14 @@ def generate_launch_description():
         ),
     )
 
+    disable_manager = LaunchConfiguration("disable_manager")
+    declare_disable_manager_arg = DeclareLaunchArgument(
+        "disable_manager",
+        default_value="False",
+        description="Enable or disable manager_bt_node.",
+        choices=["True", "true", "False", "false"],
+    )
+
     gz_bridge_config_path = LaunchConfiguration("gz_bridge_config_path")
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
@@ -94,14 +101,6 @@ def generate_launch_description():
         default_value=robot_model_dict[robot_model_env],
         description="Specify robot model",
         choices=["lynx", "panther"],
-    )
-
-    use_ekf = LaunchConfiguration("use_ekf")
-    declare_use_ekf_arg = DeclareLaunchArgument(
-        "use_ekf",
-        default_value="True",
-        description="Enable or disable EKF.",
-        choices=["True", "true", "False", "false"],
     )
 
     spawn_robot_launch = IncludeLaunchDescription(
@@ -132,6 +131,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
+        condition=UnlessCondition(disable_manager),
     )
 
     controller_launch = IncludeLaunchDescription(
@@ -162,7 +162,6 @@ def generate_launch_description():
             )
         ),
         launch_arguments={"namespace": namespace, "use_sim": "True"}.items(),
-        condition=IfCondition(use_ekf),
     )
 
     simulate_components = IncludeLaunchDescription(
@@ -232,9 +231,9 @@ def generate_launch_description():
         declare_battery_config_path_arg,
         declare_robot_model_arg,  # robot_model is used by components_config_path
         declare_components_config_path_arg,
+        declare_disable_manager_arg,
         declare_gz_bridge_config_path_arg,
         declare_namespace_arg,
-        declare_use_ekf_arg,
         SetUseSimTime(True),
         spawn_robot_launch,
         lights_launch,
