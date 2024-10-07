@@ -85,7 +85,7 @@ def generate_launch_description():
     lights_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_lights"), "launch", "lights.launch.py"]
+                [FindPackageShare("husarion_ugv_lights"), "launch", "lights.launch.py"]
             )
         ),
         launch_arguments={"namespace": namespace}.items(),
