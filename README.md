@@ -1,6 +1,6 @@
-# panther_ros
+# husarion_ugv
 
-ROS 2 packages for Panther autonomous mobile robot
+ROS 2 packages for Husarion UGV (Unmanned Ground Vehicle). The repository is a collection of necessary packages enabling the launch of the Lynx and Panther robots.
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
@@ -16,7 +16,7 @@ ROS 2 packages for Panther autonomous mobile robot
 ```bash
 mkdir ~/husarion_ws
 cd ~/husarion_ws
-git clone -b ros2 https://github.com/husarion/panther_ros.git src/panther_ros
+git clone -b ros2 https://github.com/husarion/panther_ros.git src/husarion_ugv
 ```
 
 ### Configure environment
@@ -38,7 +38,7 @@ export HUSARION_ROS_BUILD_TYPE=simulation
 ### Build
 
 ``` bash
-vcs import src < src/panther_ros/panther/panther_$HUSARION_ROS_BUILD_TYPE.repos
+vcs import src < src/husarion_ugv/husarion_ugv/${HUSARION_ROS_BUILD_TYPE}_deps.repos
 
 cp -r src/ros2_controllers/diff_drive_controller src
 cp -r src/ros2_controllers/imu_sensor_broadcaster src
@@ -49,13 +49,13 @@ rosdep update --rosdistro $ROS_DISTRO
 rosdep install --from-paths src -y -i
 
 source /opt/ros/$ROS_DISTRO/setup.bash
-colcon build --symlink-install --packages-up-to panther --cmake-args -DCMAKE_BUILD_TYPE=Release
+colcon build --symlink-install --packages-up-to husarion_ugv --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 source install/setup.bash
 ```
 
 >[!NOTE]
-> To build code on a real robot you need to run above commands on the Panther Built-in Computer.
+> To build code on a real robot you need to run above commands on the robot Built-in Computer.
 
 ### Running
 
@@ -89,7 +89,7 @@ Launch arguments are largely common to both simulation and physical robot. Howev
 | 🖥️   | `add_world_transform`        | Adds a world frame that connects the tf trees of individual robots (useful when running multiple robots). <br/> ***bool:*** `False`                                                                                                                                                                                                                                              |
 | 🤖🖥️  | `animations_config_path`    | Path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations. <br/> ***string:*** [`{robot_model}_animations.yaml`](./husarion_ugv_lights/config)                                                             |
 | 🖥️   | `battery_config_path`        | Path to the Ignition LinearBatteryPlugin configuration file. This configuration is intended for use in simulations only. <br/> ***string:*** `None`                                                                                                                                                                                                           |
-| 🤖🖥️  | `components_config_path`     | Additional components configuration file. Components described in this file are dynamically included in Panther's urdf. Panther options are described in [the manual](https://husarion.com/manuals/panther/panther-options). <br/> ***string:*** [`components.yaml`](./panther_description/config/components.yaml)                                          |
+| 🤖🖥️  | `components_config_path`     | Additional components configuration file. Components described in this file are dynamically included in robot's URDF. Available options are described in [the manual](https://husarion.com/manuals/panther/panther-options). <br/> ***string:*** [`components.yaml`](./panther_description/config/components.yaml)                                          |
 | 🤖🖥️  | `controller_config_path`     | Path to controller configuration file. A path to custom configuration can be specified here. <br/> ***string:*** [`{wheel_type}_controller.yaml`](./husarion_ugv_controller/config/)                                                                                                                                                                              |
 | 🤖   | `disable_manager`            | Enable or disable manager_bt_node. <br/> ***bool:*** `False`                                                                                                                                                                                                                                                                      |
 | 🤖🖥️  | `fuse_gps`                   | Include GPS for data fusion. <br/> ***bool:*** `False`                                                                                                                                                                                                                                                                            |
@@ -103,8 +103,8 @@ Launch arguments are largely common to both simulation and physical robot. Howev
 | 🤖🖥️  | `localization_config_path`   | Specify the path to the localization configuration file. <br/> ***string:*** [`relative_localization.yaml`](./husarion_ugv_localization/config/relative_localization.yaml)                                                                                                                                                                                          |
 | 🤖🖥️  | `localization_mode`          | Specifies the localization mode:  <br/>- 'relative' `odometry/filtered` data is relative to the initial position and orientation. <br/>- 'enu' `odometry/filtered` data is relative to initial position and ENU (East North Up) orientation. <br/> ***string:*** `relative` (choices: `relative`, `enu`)                                                    |
 | 🤖🖥️  | `namespace`                  | Add namespace to all launched nodes. <br/> ***string:*** `env(ROBOT_NAMESPACE)`                                                                                                                                                                                                                                                                               |
-| 🤖🖥️  | `publish_robot_state`        | Whether to publish the default Panther robot description. <br/> ***bool:*** `True`                                                                                                                                                                                                                                                |
-| 🖥️   | `robot_model`                 | Specify robot model type. <br/> ***string:*** `env(ROBOT_MODEL)` if not specified `panther` (choices: `lynx`, `panther`)                                                                                                                                                                                                                  |
+| 🤖🖥️  | `publish_robot_state`        | Whether to publish the default URDF of specified robot. <br/> ***bool:*** `True`                                                                                                                                                                                                                                                |
+| 🖥️   | `robot_model`                 | Specify robot model type. <br/> ***string:*** `env(ROBOT_MODEL)` (choices: `lynx`, `panther`)                                                                                                                                                                                                                  |
 | 🤖🖥️  | `safety_bt_project_path`     | Path to BehaviorTree project file, responsible for safety and shutdown management. <br/> ***string:*** [`PantherSafetyBT.btproj`](./husarion_ugv_manager/behavior_trees/PantherSafetyBT.btproj)                                                                                                                                                                   |
 | 🤖🖥️  | `shutdown_hosts_config_path` | Path to file with list of hosts to request shutdown. <br/> ***string:*** [`shutdown_hosts.yaml`](./husarion_ugv_manager/config/shutdown_hosts.yaml)                                                                                                                                                                                                               |
 | 🤖🖥️  | `use_ekf`                    | Enable or disable EKF. <br/> ***bool:*** `True`                                                                                                                                                                                                                                                                                   |

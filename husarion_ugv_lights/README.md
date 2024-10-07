@@ -1,12 +1,12 @@
 # husarion_ugv_lights
 
-Package used to control the Husarion Panther Bumper Lights.
+Package used to control the Husarion UGV robot's lights.
 
 ## Launch files
 
 This package contains:
 
-- `lights.launch.py`: Responsible for launching the nodes required to control the Panther Bumper Lights.
+- `lights.launch.py`: Responsible for launching the nodes required to control the robot's lights.
 
 ## Configuration Files
 
@@ -17,7 +17,7 @@ This package contains:
 
 ### LightsControllerNode
 
-This node is of type rclcpp_components is responsible for processing animations and publishing frames to be displayed on the Husarion Panther robot Bumper Lights.
+This node is of type rclcpp_components is responsible for processing animations and publishing frames to `light_driver` node.
 
 #### Publishers
 
@@ -36,7 +36,7 @@ This node is of type rclcpp_components is responsible for processing animations 
 
 ### LightsDriverNode
 
-This node is of type rclcpp_components is responsible for displaying frames on the Husarion Panther robot's Bumper Lights.
+This node is of type rclcpp_components is responsible for displaying frames on the robot's lights.
 
 #### Publishers
 

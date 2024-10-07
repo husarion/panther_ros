@@ -3,7 +3,7 @@
 <package format="3">
   <name>husarion_ugv_diagnostics</name>
   <version>2.1.1</version>
-  <description>Package for diagnosting usage of OS on the Panther Robot</description>
+  <description>Package for diagnosting usage of OS on the Husarion UGV robot</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 

@@ -26,12 +26,10 @@ include_directories(include)
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
-add_library(
-  panther_animation_plugins SHARED src/animation/image_animation.cpp
-                                   src/animation/charging_animation.cpp)
-ament_target_dependencies(panther_animation_plugins husarion_ugv_utils
-                          pluginlib)
-target_link_libraries(panther_animation_plugins png yaml-cpp)
+add_library(animation_plugins SHARED src/animation/image_animation.cpp
+                                     src/animation/charging_animation.cpp)
+ament_target_dependencies(animation_plugins husarion_ugv_utils pluginlib)
+target_link_libraries(animation_plugins png yaml-cpp)
 
 add_library(lights_driver_node_component SHARED src/lights_driver_node.cpp
                                                 src/apa102.cpp)
@@ -84,7 +82,7 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
-install(TARGETS panther_animation_plugins LIBRARY DESTINATION lib)
+install(TARGETS animation_plugins LIBRARY DESTINATION lib)
 
 install(DIRECTORY animations config launch test
         DESTINATION share/${PROJECT_NAME})
@@ -236,6 +234,6 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_include_directories(include)
-ament_export_libraries(panther_animation_plugins)
+ament_export_libraries(animation_plugins)
 
 ament_package()

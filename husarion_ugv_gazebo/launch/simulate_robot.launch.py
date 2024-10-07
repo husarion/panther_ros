@@ -65,8 +65,8 @@ def generate_launch_description():
         ),
         description=(
             "Additional components configuration file. Components described in this file "
-            "are dynamically included in Panther's urdf."
-            "Panther options are described here "
+            "are dynamically included in robot's URDF."
+            "Available options are described in the manual: "
             "https://husarion.com/manuals/panther/panther-options/"
         ),
     )
@@ -192,7 +192,7 @@ def generate_launch_description():
     gz_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        name="panther_base_gz_bridge",
+        name="base_gz_bridge",
         parameters=[{"config_file": namespaced_gz_bridge_config_path}],
         namespace=namespace,
         emulate_tty=True,

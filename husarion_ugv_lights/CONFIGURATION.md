@@ -1,4 +1,4 @@
-# panther_light
+# husarion_ugv_lights
 
 ## LED Animations
 

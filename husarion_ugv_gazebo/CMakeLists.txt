@@ -88,6 +88,6 @@ ament_export_include_directories(include)
 
 pluginlib_export_plugin_description_file(ign_ros2_control plugins.xml)
 
-ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/gz_envs.sh.in")
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/setup_envs.sh.in")
 
 ament_package()

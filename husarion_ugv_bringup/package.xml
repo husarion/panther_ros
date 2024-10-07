@@ -3,7 +3,7 @@
 <package format="3">
   <name>husarion_ugv_bringup</name>
   <version>2.1.1</version>
-  <description>Default launch files and configuration used to start Husarion Panther robot</description>
+  <description>Default launch files and configuration used to start Husarion UGV robots</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 

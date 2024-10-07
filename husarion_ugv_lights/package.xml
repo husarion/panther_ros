@@ -3,7 +3,7 @@
 <package format="3">
   <name>husarion_ugv_lights</name>
   <version>2.1.1</version>
-  <description>Package used to control the Husarion Panther Bumper Lights</description>
+  <description>Package used to control the robot lights</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 

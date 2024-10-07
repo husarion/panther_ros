@@ -32,7 +32,7 @@
       wheel_separation: 0.616
       wheel_radius: 0.1016
 
-      # todo: check it for panther
+      # TODO: check it
       # For skid drive kinematics it will act as ICR coefficient, kinematic model with ICR
       # coefficient isn't totally accurate and this coefficient can differ for various ground types
       wheel_separation_multiplier: 1.0

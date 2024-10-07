@@ -52,8 +52,8 @@ def generate_launch_description():
         ),
         description=(
             "Additional components configuration file. Components described in this file "
-            "are dynamically included in Panther's urdf."
-            "Panther options are described here "
+            "are dynamically included in robot's URDF."
+            "Available options are described in the manual: "
             "https://husarion.com/manuals/panther/panther-options/"
         ),
     )
