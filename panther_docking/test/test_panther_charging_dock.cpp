@@ -28,6 +28,8 @@
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 
+#include "wibotic_msgs/msg/wibotic_info.hpp"
+
 #include "panther_docking/panther_charging_dock.hpp"
 #include "panther_utils/test/ros_test_utils.hpp"
 #include "panther_utils/tf2_utils.hpp"
@@ -41,6 +43,7 @@ class PantherChargingDockWrapper : public panther_docking::PantherChargingDock
 public:
   using SharedPtr = std::shared_ptr<PantherChargingDockWrapper>;
   using UniquePtr = std::unique_ptr<PantherChargingDockWrapper>;
+
   PantherChargingDockWrapper() : panther_docking::PantherChargingDock() {}
 
   geometry_msgs::msg::PoseStamped offsetStagingPoseToDockPose(
@@ -68,6 +71,11 @@ public:
   {
     panther_docking::PantherChargingDock::updateStagingPoseAndPublish(frame);
   }
+
+  void setWiboticInfo(const wibotic_msgs::msg::WiboticInfo::SharedPtr msg)
+  {
+    panther_docking::PantherChargingDock::setWiboticInfo(msg);
+  }
 };
 
 class TestPantherChargingDock : public testing::Test
@@ -83,6 +91,7 @@ protected:
     const builtin_interfaces::msg::Time & stamp, const geometry_msgs::msg::Transform & transform);
   void SetDetectionOffsets();
   void SetStagingOffsets();
+  void UseWiboticInfo();
 
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
@@ -99,8 +108,6 @@ protected:
   geometry_msgs::msg::Transform base_link_to_odom_transform_;
   geometry_msgs::msg::Transform dock_to_base_transform_;
   geometry_msgs::msg::Transform dock_to_base_at_external_detection_transform_;
-
-  bool charging_status_;
 
   double external_detection_translation_x_ = 0.3;
   double external_detection_translation_y_ = 0.1;
@@ -209,6 +216,11 @@ void TestPantherChargingDock::SetStagingOffsets()
   node_->declare_parameter("test_dock.staging_x_offset", rclcpp::ParameterValue(staging_x_offset_));
   node_->declare_parameter(
     "test_dock.staging_yaw_offset", rclcpp::ParameterValue(staging_yaw_offset_));
+}
+
+void TestPantherChargingDock::UseWiboticInfo()
+{
+  node_->declare_parameter("test_dock.use_wibotic_info", rclcpp::ParameterValue(true));
 }
 
 TEST_F(TestPantherChargingDock, OffsetStagingPoseToDockPose)
@@ -404,6 +416,45 @@ TEST_F(TestPantherChargingDock, FailedConfigureCannotLockNode)
 {
   rclcpp_lifecycle::LifecycleNode::SharedPtr node;
   ASSERT_THROW({ charging_dock_->configure(node, kDockFrame, tf2_buffer_); }, std::runtime_error);
+}
+
+TEST_F(TestPantherChargingDock, NoWiboticInfo)
+{
+  UseWiboticInfo();
+  ConfigureAndActivateDock();
+
+  ASSERT_THROW({ charging_dock_->isCharging(); }, std::runtime_error);
+}
+
+TEST_F(TestPantherChargingDock, IsChargingTimeout)
+{
+  UseWiboticInfo();
+  ConfigureAndActivateDock();
+
+  auto wibotic_info = std::make_shared<wibotic_msgs::msg::WiboticInfo>();
+  wibotic_info->i_charger = 1.0;
+  charging_dock_->setWiboticInfo(wibotic_info);
+
+  EXPECT_FALSE(charging_dock_->isCharging());
+}
+
+TEST_F(TestPantherChargingDock, IsCharging)
+{
+  UseWiboticInfo();
+  ConfigureAndActivateDock();
+
+  auto wibotic_info = std::make_shared<wibotic_msgs::msg::WiboticInfo>();
+  wibotic_info->header.stamp = node_->now();
+  wibotic_info->i_charger = 0.0;
+  charging_dock_->setWiboticInfo(wibotic_info);
+
+  EXPECT_FALSE(charging_dock_->isCharging());
+
+  wibotic_info->header.stamp = node_->now();
+  wibotic_info->i_charger = 1.0;
+  charging_dock_->setWiboticInfo(wibotic_info);
+
+  EXPECT_TRUE(charging_dock_->isCharging());
 }
 
 int main(int argc, char ** argv)

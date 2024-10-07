@@ -60,6 +60,12 @@ void PantherChargingDock::activate()
   auto node = node_.lock();
   dock_pose_pub_ = node->create_publisher<PoseStampedMsg>("docking/dock_pose", 1);
   staging_pose_pub_ = node->create_publisher<PoseStampedMsg>("docking/staging_pose", 1);
+
+  if (use_wibotic_info_) {
+    wibotic_info_sub_ = node->create_subscription<WiboticInfoMsg>(
+      "wibotic_info", 1,
+      std::bind(&PantherChargingDock::setWiboticInfo, this, std::placeholders::_1));
+  }
 }
 
 void PantherChargingDock::deactivate()
@@ -102,6 +108,12 @@ void PantherChargingDock::declareParameters(const rclcpp_lifecycle::LifecycleNod
 
   nav2_util::declare_parameter_if_not_declared(
     node, name_ + ".filter_coef", rclcpp::ParameterValue(0.1));
+
+  nav2_util::declare_parameter_if_not_declared(
+    node, name_ + ".use_wibotic_info", rclcpp::ParameterValue(false));
+
+  nav2_util::declare_parameter_if_not_declared(
+    node, name_ + ".wibotic_info_timeout", rclcpp::ParameterValue(1.5));
 }
 
 void PantherChargingDock::getParameters(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node)
@@ -127,6 +139,9 @@ void PantherChargingDock::getParameters(const rclcpp_lifecycle::LifecycleNode::S
   node->get_parameter(name_ + ".staging_yaw_offset", staging_yaw_offset_);
 
   node->get_parameter(name_ + ".filter_coef", pose_filter_coef_);
+
+  node->get_parameter(name_ + ".use_wibotic_info", use_wibotic_info_);
+  node->get_parameter(name_ + ".wibotic_info_timeout", wibotic_info_timeout_);
 }
 
 PantherChargingDock::PoseStampedMsg PantherChargingDock::getStagingPose(
@@ -179,10 +194,37 @@ bool PantherChargingDock::isDocked()
 bool PantherChargingDock::isCharging()
 {
   try {
-    return isDocked();
+    if (!use_wibotic_info_) {
+      return isDocked();
+    }
+
+    if (!wibotic_info_) {
+      throw std::runtime_error("No Wibotic info received.");
+    }
+
+    {
+      auto node = node_.lock();
+      const auto now = node->get_clock()->now();
+
+      const auto time_diff = now - wibotic_info_->header.stamp;
+
+      if (time_diff > rclcpp::Duration::from_seconds(wibotic_info_timeout_)) {
+        throw opennav_docking_core::FailedToDetectDock(
+          "Wibotic info is outdated. Time difference is: " + std::to_string(time_diff.seconds()) +
+          "s but timeout is " + std::to_string(wibotic_info_timeout_) + "s.");
+      }
+    }
+
+    if (wibotic_info_->i_charger > 0.0) {
+      return true;
+    }
+
   } catch (const opennav_docking_core::FailedToDetectDock & e) {
+    RCLCPP_ERROR_STREAM(logger_, "An occurred error while checking if charging: " << e.what());
     return false;
   }
+
+  return false;
 }
 
 bool PantherChargingDock::disableCharging() { return true; }
@@ -263,6 +305,11 @@ void PantherChargingDock::updateStagingPoseAndPublish(const std::string & frame)
     throw opennav_docking_core::FailedToStage(
       "An exception occurred while transforming staging pose: " + std::string(e.what()));
   }
+}
+
+void PantherChargingDock::setWiboticInfo(const WiboticInfoMsg::SharedPtr msg)
+{
+  wibotic_info_ = std::make_shared<WiboticInfoMsg>(*msg);
 }
 
 }  // namespace panther_docking
