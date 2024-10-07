@@ -3,7 +3,7 @@
 <package format="3">
   <name>husarion_ugv_gazebo</name>
   <version>2.1.1</version>
-  <description>The panther_description package</description>
+  <description>The packages simulating behaviour of the Husarion robots</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 

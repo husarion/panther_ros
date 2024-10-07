@@ -137,15 +137,15 @@ public:
 
   void CreateResourceManagerFromUrdf(const std::string & urdf);
 
-  hardware_interface::return_type ConfigurePantherImu();
+  hardware_interface::return_type ConfigurePhidgetImu();
 
-  hardware_interface::return_type UnconfigurePantherImu();
+  hardware_interface::return_type UnconfigurePhidgetImu();
 
-  hardware_interface::return_type ActivatePantherImu();
+  hardware_interface::return_type ActivatePhidgetImu();
 
-  hardware_interface::return_type DeactivatePantherImu();
+  hardware_interface::return_type DeactivatePhidgetImu();
 
-  hardware_interface::return_type ShutdownPantherImu();
+  hardware_interface::return_type ShutdownPhidgetImu();
 
   /**
    * @brief Creates and returns URDF as a string
@@ -156,7 +156,7 @@ public:
     const std::unordered_map<std::string, std::string> & param_map,
     const std::list<std::string> & interfaces_list);
 
-  std::string GetDefaultPantherImuUrdf();
+  std::string GetDefaultPhidgetImuUrdf();
 
 protected:
   /**
@@ -179,7 +179,7 @@ protected:
 
   std::list<hardware_interface::LoanedStateInterface> ClaimGoodStateInterfaces();
 
-  inline static const std::string kPantherImuName = "imu";
+  inline static const std::string kPhidgetImuName = "imu";
 
   inline static const std::string kUrdfHeader = R"(<?xml version="1.0" encoding="utf-8"?>
 <robot name="Panther">
@@ -225,35 +225,35 @@ void TestPhidgetImuSensor::CreateResourceManagerFromUrdf(const std::string & urd
   rm_ = std::make_shared<hardware_interface::ResourceManager>(urdf);
 }
 
-hardware_interface::return_type TestPhidgetImuSensor::ConfigurePantherImu()
+hardware_interface::return_type TestPhidgetImuSensor::ConfigurePhidgetImu()
 {
   return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
     hardware_interface::lifecycle_state_names::INACTIVE);
 }
 
-hardware_interface::return_type TestPhidgetImuSensor::UnconfigurePantherImu()
+hardware_interface::return_type TestPhidgetImuSensor::UnconfigurePhidgetImu()
 {
   return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
     hardware_interface::lifecycle_state_names::UNCONFIGURED);
 }
 
-hardware_interface::return_type TestPhidgetImuSensor::ActivatePantherImu()
+hardware_interface::return_type TestPhidgetImuSensor::ActivatePhidgetImu()
 {
   return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE,
     hardware_interface::lifecycle_state_names::ACTIVE);
 }
 
-hardware_interface::return_type TestPhidgetImuSensor::DeactivatePantherImu()
+hardware_interface::return_type TestPhidgetImuSensor::DeactivatePhidgetImu()
 {
   return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE,
     hardware_interface::lifecycle_state_names::INACTIVE);
 }
 
-hardware_interface::return_type TestPhidgetImuSensor::ShutdownPantherImu()
+hardware_interface::return_type TestPhidgetImuSensor::ShutdownPhidgetImu()
 {
   return SetState(
     lifecycle_msgs::msg::State::PRIMARY_STATE_FINALIZED,
@@ -286,7 +286,7 @@ std::string TestPhidgetImuSensor::BuildUrdf(
   return urdf.str();
 }
 
-std::string TestPhidgetImuSensor::GetDefaultPantherImuUrdf()
+std::string TestPhidgetImuSensor::GetDefaultPhidgetImuUrdf()
 {
   return BuildUrdf(kImuObligatoryParams, kImuInterfaces);
 }
@@ -294,7 +294,7 @@ hardware_interface::return_type TestPhidgetImuSensor::SetState(
   const std::uint8_t state_id, const std::string & state_name)
 {
   rclcpp_lifecycle::State state(state_id, state_name);
-  return rm_->set_component_state(kPantherImuName, state);
+  return rm_->set_component_state(kPhidgetImuName, state);
 }
 
 hardware_interface::HardwareInfo TestPhidgetImuSensor::CreateExampleInterfaces(
@@ -344,7 +344,7 @@ std::list<hardware_interface::LoanedStateInterface> TestPhidgetImuSensor::ClaimG
 {
   std::list<hardware_interface::LoanedStateInterface> list;
   for (const auto & interface_name : kImuInterfaces) {
-    list.push_back(rm_->claim_state_interface(kPantherImuName + "/" + interface_name));
+    list.push_back(rm_->claim_state_interface(kPhidgetImuName + "/" + interface_name));
   }
   return list;
 }
@@ -532,7 +532,7 @@ TEST_F(TestPhidgetImuSensor, CheckReconnection)
 
 TEST_F(TestPhidgetImuSensor, CheckInterfacesLoadedByResourceManager)
 {
-  CreateResourceManagerFromUrdf(GetDefaultPantherImuUrdf());
+  CreateResourceManagerFromUrdf(GetDefaultPhidgetImuUrdf());
 
   EXPECT_EQ(rm_->sensor_components_size(), 1u);
   ASSERT_EQ(rm_->state_interface_keys().size(), 10u);
@@ -556,9 +556,9 @@ TEST_F(TestPhidgetImuSensor, CheckStatesInitialValues)
   using hardware_interface::LoanedStateInterface;
   using hardware_interface::return_type;
 
-  CreateResourceManagerFromUrdf(GetDefaultPantherImuUrdf());
+  CreateResourceManagerFromUrdf(GetDefaultPhidgetImuUrdf());
 
-  ASSERT_EQ(ConfigurePantherImu(), return_type::OK);
+  ASSERT_EQ(ConfigurePhidgetImu(), return_type::OK);
 
   auto loaded_state_interfaces = ClaimGoodStateInterfaces();
 
@@ -566,7 +566,7 @@ TEST_F(TestPhidgetImuSensor, CheckStatesInitialValues)
     EXPECT_TRUE(std::isnan(state_interface.get_value()));
   }
 
-  EXPECT_EQ(ShutdownPantherImu(), return_type::OK);
+  EXPECT_EQ(ShutdownPhidgetImu(), return_type::OK);
 }
 
 TEST_F(TestPhidgetImuSensor, CheckWrongConfigurationWithWrongParameters)
@@ -576,8 +576,8 @@ TEST_F(TestPhidgetImuSensor, CheckWrongConfigurationWithWrongParameters)
   const std::string robot_system_urdf_ = BuildUrdf({}, TestPhidgetImuSensor::kImuInterfaces);
   CreateResourceManagerFromUrdf(robot_system_urdf_);
 
-  EXPECT_EQ(ConfigurePantherImu(), return_type::ERROR);
-  EXPECT_EQ(ShutdownPantherImu(), return_type::OK);
+  EXPECT_EQ(ConfigurePhidgetImu(), return_type::ERROR);
+  EXPECT_EQ(ShutdownPhidgetImu(), return_type::OK);
 }
 
 TEST_F(TestPhidgetImuSensor, CheckReadAndConfigureRealSensor)
@@ -585,10 +585,10 @@ TEST_F(TestPhidgetImuSensor, CheckReadAndConfigureRealSensor)
   using hardware_interface::LoanedStateInterface;
   using hardware_interface::return_type;
 
-  CreateResourceManagerFromUrdf(GetDefaultPantherImuUrdf());
-  EXPECT_EQ(ConfigurePantherImu(), return_type::OK);
+  CreateResourceManagerFromUrdf(GetDefaultPhidgetImuUrdf());
+  EXPECT_EQ(ConfigurePhidgetImu(), return_type::OK);
 
-  ASSERT_EQ(ActivatePantherImu(), return_type::OK);
+  ASSERT_EQ(ActivatePhidgetImu(), return_type::OK);
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   auto loaded_state_interfaces = ClaimGoodStateInterfaces();
@@ -596,8 +596,8 @@ TEST_F(TestPhidgetImuSensor, CheckReadAndConfigureRealSensor)
     EXPECT_TRUE(std::isfinite(state_interface.get_value()));
   }
 
-  EXPECT_EQ(UnconfigurePantherImu(), return_type::OK);
-  EXPECT_EQ(ShutdownPantherImu(), return_type::OK);
+  EXPECT_EQ(UnconfigurePhidgetImu(), return_type::OK);
+  EXPECT_EQ(ShutdownPhidgetImu(), return_type::OK);
 }
 
 int main(int argc, char ** argv)
