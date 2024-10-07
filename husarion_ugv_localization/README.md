@@ -1,4 +1,4 @@
-# panther_localization
+# husarion_ugv_localization
 
 The package is responsible for activating mods responsible for fusion of data related to the robot's location.
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_localization)
+project(husarion_ugv_localization)
 
 find_package(ament_cmake REQUIRED)
 

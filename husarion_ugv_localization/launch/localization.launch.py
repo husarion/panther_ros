@@ -82,7 +82,7 @@ def generate_launch_description():
     declare_localization_config_path_arg = DeclareLaunchArgument(
         "localization_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_localization"), "config", localization_config_filename]
+            [FindPackageShare("husarion_ugv_localization"), "config", localization_config_filename]
         ),
         description="Specify the path to the localization configuration file.",
     )
@@ -104,7 +104,7 @@ def generate_launch_description():
     nmea_navsat_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_localization"), "launch", "nmea_navsat.launch.py"]
+                [FindPackageShare("husarion_ugv_localization"), "launch", "nmea_navsat.launch.py"]
             )
         ),
         launch_arguments={"namespace": namespace}.items(),

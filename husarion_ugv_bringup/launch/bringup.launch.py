@@ -103,7 +103,7 @@ def generate_launch_description():
     ekf_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_localization"), "launch", "localization.launch.py"]
+                [FindPackageShare("husarion_ugv_localization"), "launch", "localization.launch.py"]
             )
         ),
         launch_arguments={"namespace": namespace}.items(),

@@ -155,7 +155,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("panther_localization"),
+                    FindPackageShare("husarion_ugv_localization"),
                     "launch",
                     "localization.launch.py",
                 ]

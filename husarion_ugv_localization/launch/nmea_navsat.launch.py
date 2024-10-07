@@ -37,7 +37,7 @@ def generate_launch_description():
     declare_params_file_arg = DeclareLaunchArgument(
         "params_file",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_localization"), "config", "nmea_navsat_params.yaml"]
+            [FindPackageShare("husarion_ugv_localization"), "config", "nmea_navsat_params.yaml"]
         ),
         description="Path to the parameter file for the nmea_socket_driver node.",
     )
