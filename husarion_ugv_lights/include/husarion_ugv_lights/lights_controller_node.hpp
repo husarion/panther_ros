@@ -30,7 +30,7 @@
 #include "husarion_ugv_lights/animation/animation.hpp"
 #include "husarion_ugv_lights/led_components/led_animations_queue.hpp"
 #include "husarion_ugv_lights/led_components/segment_converter.hpp"
-#include "panther_utils/yaml_utils.hpp"
+#include "husarion_ugv_utils/yaml_utils.hpp"
 
 namespace husarion_ugv_lights
 {

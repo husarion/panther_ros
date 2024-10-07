@@ -26,7 +26,7 @@
 #include "behaviortree_ros2/ros_node_params.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 #include <husarion_ugv_manager/behavior_tree_manager.hpp>
 #include <husarion_ugv_manager/behavior_tree_utils.hpp>
@@ -45,7 +45,7 @@ LightsManagerNode::LightsManagerNode(
   const auto battery_percent_window_len =
     this->get_parameter("battery.percent.window_len").as_int();
 
-  battery_percent_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
+  battery_percent_ma_ = std::make_unique<husarion_ugv_utils::MovingAverage<double>>(
     battery_percent_window_len, 1.0);
 
   const auto initial_blackboard = CreateLightsInitialBlackboard();

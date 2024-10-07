@@ -30,7 +30,7 @@
 #include "boost/gil/extension/numeric/resample.hpp"
 #include "boost/gil/extension/numeric/sampler.hpp"
 
-#include "panther_utils/yaml_utils.hpp"
+#include "husarion_ugv_utils/yaml_utils.hpp"
 
 namespace husarion_ugv_lights
 {
@@ -41,8 +41,8 @@ void ImageAnimation::Initialize(
 {
   Animation::Initialize(animation_description, num_led, controller_frequency);
 
-  const auto image_path =
-    ParseImagePath(panther_utils::GetYAMLKeyValue<std::string>(animation_description, "image"));
+  const auto image_path = ParseImagePath(
+    husarion_ugv_utils::GetYAMLKeyValue<std::string>(animation_description, "image"));
   gil::rgba8_image_t base_image;
   gil::read_and_convert_image(std::string(image_path), base_image, gil::png_tag());
   image_ = RGBAImageResize(base_image, this->GetNumberOfLeds(), this->GetAnimationLength());

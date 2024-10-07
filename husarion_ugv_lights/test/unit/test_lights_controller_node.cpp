@@ -27,7 +27,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "husarion_ugv_lights/lights_controller_node.hpp"
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class ControllerNodeWrapper : public husarion_ugv_lights::LightsControllerNode
 {
@@ -174,7 +174,7 @@ TEST_F(TestLightsControllerNode, InitializeLEDPanelsThrowRepeatingChannel)
   YAML::Node panels_desc;
   panels_desc["panels"] = panels;
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { lights_controller_node_->InitializeLEDPanels(panels_desc["panels"]); },
     "Multiple panels with channel nr"));
 }
@@ -198,7 +198,7 @@ TEST_F(TestLightsControllerNode, InitializeLEDSegmentsThrowRepeatingName)
   YAML::Node segments_desc;
   segments_desc["segments"] = segments;
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { lights_controller_node_->InitializeLEDSegments(segments_desc["segments"], 50.0); },
     "Multiple segments with given name found"));
 }
@@ -209,13 +209,13 @@ TEST_F(TestLightsControllerNode, LoadAnimationInvalidPriority)
   led_animation_desc["id"] = 11;
   led_animation_desc["priority"] = 0;
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { lights_controller_node_->LoadAnimation(led_animation_desc); },
     "Invalid LED animation priority"));
 
   led_animation_desc["priority"] = 4;
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { lights_controller_node_->LoadAnimation(led_animation_desc); },
     "Invalid LED animation priority"));
 }
@@ -228,14 +228,14 @@ TEST_F(TestLightsControllerNode, LoadAnimationThrowRepeatingID)
 
   ASSERT_NO_THROW(lights_controller_node_->LoadAnimation(led_animation_desc));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { lights_controller_node_->LoadAnimation(led_animation_desc); },
     "Animation with given ID already exists"));
 }
 
 TEST_F(TestLightsControllerNode, AddAnimationToQueueThrowBadAnimationID)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { lights_controller_node_->AddAnimationToQueue(99, false); }, "No animation with ID:"));
 }
 

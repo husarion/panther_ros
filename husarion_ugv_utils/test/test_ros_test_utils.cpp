@@ -21,7 +21,7 @@
 
 #include "std_msgs/msg/empty.hpp"
 
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 TEST(TestROSTestUtils, WaitForMessage)
 {
@@ -34,11 +34,11 @@ TEST(TestROSTestUtils, WaitForMessage)
     topic_name, 10, [&](const std_msgs::msg::Empty::SharedPtr msg) { empty_msg = msg; });
 
   EXPECT_FALSE(
-    panther_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
+    husarion_ugv_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
 
   pub->publish(std_msgs::msg::Empty());
   EXPECT_TRUE(
-    panther_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
+    husarion_ugv_utils::test_utils::WaitForMsg(node, empty_msg, std::chrono::milliseconds(1000)));
 }
 
 TEST(TestROSTestUtils, PublishAndSpin)
@@ -53,7 +53,7 @@ TEST(TestROSTestUtils, PublishAndSpin)
 
   EXPECT_FALSE(received_msg);
 
-  panther_utils::test_utils::PublishAndSpin(node, topic_name, published_msg);
+  husarion_ugv_utils::test_utils::PublishAndSpin(node, topic_name, published_msg);
 
   EXPECT_TRUE(received_msg);
 }

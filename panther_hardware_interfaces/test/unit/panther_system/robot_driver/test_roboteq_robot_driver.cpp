@@ -31,7 +31,7 @@
 #include "utils/mock_driver.hpp"
 #include "utils/test_constants.hpp"
 
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class RoboteqRobotDriverWrapper : public panther_hardware_interfaces::RoboteqRobotDriver
 {
@@ -164,7 +164,7 @@ TEST_F(TestRoboteqRobotDriver, GetDataError)
   const std::string name = "invalid_name";
   const std::string error_msg = "Data with name '" + name + "' does not exist.";
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&] { robot_driver_->GetData(name); }, error_msg));
 }
 

@@ -27,7 +27,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "husarion_ugv_manager/behavior_tree_utils.hpp"
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class TestRegisterBT : public testing::Test
 {

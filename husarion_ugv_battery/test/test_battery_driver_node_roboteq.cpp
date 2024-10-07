@@ -22,7 +22,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 class TestBatteryNodeRoboteq : public TestBatteryNode
 {
@@ -33,7 +33,7 @@ public:
 TEST_F(TestBatteryNodeRoboteq, BatteryValues)
 {
   // Wait for node to initialize
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state msg values should be NaN
@@ -54,7 +54,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
   driver_state.driver_states.push_back(motor_controller);
   driver_state_pub_->publish(driver_state);
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // This is done to check if values were read correctly, not to verify calculations.
@@ -72,7 +72,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryValues)
 TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
 {
   // Wait for node to initialize
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state msg values should be NaN
@@ -94,7 +94,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
   driver_state.driver_states.push_back(motor_controller);
   driver_state_pub_->publish(driver_state);
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state msg should have some values
@@ -105,7 +105,7 @@ TEST_F(TestBatteryNodeRoboteq, BatteryTimeout)
 
   // Wait for timeout
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state msg values should be NaN

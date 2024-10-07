@@ -17,7 +17,7 @@
 
 #include <std_msgs/msg/header.hpp>
 
-#include "panther_utils/ros_utils.hpp"
+#include "husarion_ugv_utils/ros_utils.hpp"
 
 using HeaderMsg = std_msgs::msg::Header;
 
@@ -32,7 +32,8 @@ TEST(TestVerifyTimestampGap, TimestampGapOk)
   header_2.stamp.nanosec = 500000000;
 
   auto max_timestamp_gap = std::chrono::seconds(2);
-  EXPECT_NO_THROW(panther_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap));
+  EXPECT_NO_THROW(
+    husarion_ugv_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap));
 }
 
 TEST(TestVerifyTimestampGap, TimestampGapExceeding)
@@ -48,7 +49,7 @@ TEST(TestVerifyTimestampGap, TimestampGapExceeding)
   auto max_timestamp_gap = std::chrono::seconds(1);
 
   EXPECT_THROW(
-    panther_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap),
+    husarion_ugv_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap),
     std::runtime_error);
 }
 
@@ -60,7 +61,7 @@ TEST(TestVerifyTimestampGap, TimestampNotSet)
   auto max_timestamp_gap = std::chrono::seconds(1);
 
   EXPECT_THROW(
-    panther_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap),
+    husarion_ugv_utils::ros::VerifyTimestampGap(header_1, header_2, max_timestamp_gap),
     std::runtime_error);
 }
 
@@ -74,7 +75,7 @@ TEST(TestMergeHeaders, SameFrameIds)
 
   HeaderMsg merged_header;
 
-  EXPECT_NO_THROW(merged_header = panther_utils::ros::MergeHeaders(header_1, header_2));
+  EXPECT_NO_THROW(merged_header = husarion_ugv_utils::ros::MergeHeaders(header_1, header_2));
   EXPECT_STREQ("frame", merged_header.frame_id.c_str());
 }
 
@@ -86,7 +87,7 @@ TEST(TestMergeHeaders, DifferentFrameIds)
   HeaderMsg header_2;
   header_2.frame_id = "frame_2";
 
-  EXPECT_THROW(panther_utils::ros::MergeHeaders(header_1, header_2), std::runtime_error);
+  EXPECT_THROW(husarion_ugv_utils::ros::MergeHeaders(header_1, header_2), std::runtime_error);
 }
 
 TEST(TestMergeHeaders, EarlierTimestampNanosec)
@@ -99,7 +100,7 @@ TEST(TestMergeHeaders, EarlierTimestampNanosec)
   header_2.stamp.sec = 10;
   header_2.stamp.nanosec = 500000000;
 
-  auto merged_header = panther_utils::ros::MergeHeaders(header_1, header_2);
+  auto merged_header = husarion_ugv_utils::ros::MergeHeaders(header_1, header_2);
 
   EXPECT_EQ(merged_header.stamp.sec, 10);
   EXPECT_EQ(merged_header.stamp.nanosec, 200000000);
@@ -115,7 +116,7 @@ TEST(TestMergeHeaders, EarlierTimestampSec)
   header_2.stamp.sec = 10;
   header_2.stamp.nanosec = 500000000;
 
-  auto merged_header = panther_utils::ros::MergeHeaders(header_1, header_2);
+  auto merged_header = husarion_ugv_utils::ros::MergeHeaders(header_1, header_2);
 
   EXPECT_EQ(merged_header.stamp.sec, 9);
   EXPECT_EQ(merged_header.stamp.nanosec, 500000000);
@@ -131,7 +132,7 @@ TEST(TestMergeHeaders, LaterTimestamp)
   header_2.stamp.sec = 9;
   header_2.stamp.nanosec = 500000000;
 
-  auto merged_header = panther_utils::ros::MergeHeaders(header_1, header_2);
+  auto merged_header = husarion_ugv_utils::ros::MergeHeaders(header_1, header_2);
 
   EXPECT_EQ(merged_header.stamp.sec, 9);
   EXPECT_EQ(merged_header.stamp.nanosec, 500000000);
@@ -142,7 +143,7 @@ TEST(TestAddNamespaceToFrameID, WithoutNamespace)
   std::string frame_id = "frame";
   std::string ns = "";
 
-  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  auto result = husarion_ugv_utils::ros::AddNamespaceToFrameID(frame_id, ns);
   EXPECT_EQ(result, "frame");
 }
 
@@ -151,7 +152,7 @@ TEST(TestAddNamespaceToFrameID, WithSlashNamespace)
   std::string frame_id = "frame";
   std::string ns = "/";
 
-  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  auto result = husarion_ugv_utils::ros::AddNamespaceToFrameID(frame_id, ns);
   EXPECT_EQ(result, "frame");
 }
 
@@ -160,7 +161,7 @@ TEST(TestAddNamespaceToFrameID, WithSlashedNamespace)
   std::string frame_id = "frame";
   std::string ns = "/namespace";
 
-  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  auto result = husarion_ugv_utils::ros::AddNamespaceToFrameID(frame_id, ns);
   EXPECT_EQ(result, "namespace/frame");
 }
 
@@ -169,7 +170,7 @@ TEST(TestAddNamespaceToFrameID, WithNamespace)
   std::string frame_id = "frame";
   std::string ns = "namespace";
 
-  auto result = panther_utils::ros::AddNamespaceToFrameID(frame_id, ns);
+  auto result = husarion_ugv_utils::ros::AddNamespaceToFrameID(frame_id, ns);
   EXPECT_EQ(result, "namespace/frame");
 }
 

@@ -27,7 +27,7 @@
 #include "husarion_ugv_battery/battery/adc_battery.hpp"
 #include "husarion_ugv_battery/battery/battery.hpp"
 #include "husarion_ugv_battery/battery_publisher/dual_battery_publisher.hpp"
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using ChargingStatusMsg = panther_msgs::msg::ChargingStatus;
@@ -139,13 +139,13 @@ void TestDualBatteryPublisher::TestMergeBatteryPowerSupplyStatus(
 TEST_F(TestDualBatteryPublisher, CorrectTopicPublished)
 {
   battery_publisher_->Publish();
-  ASSERT_TRUE(
-    panther_utils::test_utils::WaitForMsg(node_, battery_state_, std::chrono::milliseconds(1000)));
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
+    node_, battery_state_, std::chrono::milliseconds(1000)));
   battery_publisher_->Publish();
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     node_, battery_1_state_, std::chrono::milliseconds(1000)));
   battery_publisher_->Publish();
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     node_, battery_2_state_, std::chrono::milliseconds(1000)));
 }
 

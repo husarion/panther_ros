@@ -28,7 +28,7 @@
 #include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "husarion_ugv_battery/battery/roboteq_battery.hpp"
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
 using RobotDriverStateMsg = panther_msgs::msg::RobotDriverState;
@@ -105,8 +105,8 @@ void TestRoboteqBattery::TestDefaultBatteryStateMsg(
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
-  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector(battery_state_.cell_voltage));
-  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector(battery_state_.cell_temperature));
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::CheckNaNVector(battery_state_.cell_voltage));
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::CheckNaNVector(battery_state_.cell_temperature));
   EXPECT_TRUE(battery_state_.present);
   EXPECT_EQ("user_compartment", battery_state_.location);
 
@@ -128,8 +128,8 @@ void TestRoboteqBattery::TestBatteryStateMsg(
   EXPECT_TRUE(std::isnan(battery_state_.capacity));
   EXPECT_TRUE(std::isnan(battery_state_.temperature));
   EXPECT_FLOAT_EQ(20.0, battery_state_.design_capacity);
-  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector(battery_state_.cell_voltage));
-  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector(battery_state_.cell_temperature));
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::CheckNaNVector(battery_state_.cell_voltage));
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::CheckNaNVector(battery_state_.cell_temperature));
   EXPECT_EQ(BatteryStateMsg::POWER_SUPPLY_TECHNOLOGY_LION, battery_state_.power_supply_technology);
   EXPECT_EQ("user_compartment", battery_state_.location);
 

@@ -22,7 +22,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "husarion_ugv_lights/led_components/led_segment.hpp"
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class LEDSegmentWrapper : public husarion_ugv_lights::LEDSegment
 {
@@ -67,12 +67,12 @@ YAML::Node CreateSegmentDescription(const std::string & led_range, const std::st
 TEST(TestLEDSegmentInitialization, DescriptionMissingRequiredKey)
 {
   auto segment_desc = YAML::Load("");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "Missing 'channel' in description"));
 
   segment_desc = YAML::Load("channel: 0");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "Missing 'led_range' in description"));
 }
@@ -80,12 +80,12 @@ TEST(TestLEDSegmentInitialization, DescriptionMissingRequiredKey)
 TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 {
   auto segment_desc = CreateSegmentDescription("0-10", "s1");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "Failed to convert 'channel' key"));
 
   segment_desc["channel"] = "-1";
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "Failed to convert 'channel' key"));
 }
@@ -93,17 +93,17 @@ TEST(TestLEDSegmentInitialization, InvalidChannelExpression)
 TEST(TestLEDSegmentInitialization, InvalidLedRangeExpression)
 {
   auto segment_desc = CreateSegmentDescription("010", "1");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "No '-' character found in the led_range expression"));
 
   segment_desc["led_range"] = "s0-10";
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "Error converting string to integer"));
 
   segment_desc["led_range"] = "0-p10";
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [segment_desc]() { husarion_ugv_lights::LEDSegment(segment_desc, 10.0); },
     "Error converting string to integer"));
 }
@@ -150,32 +150,32 @@ TEST(TestLEDSegmentInitialization, FirstLedPosition)
 
 TEST_F(TestLEDSegment, GetAnimationFrameNoAnimation)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { led_segment_->GetAnimationFrame(); }, "Segment animation not defined"));
 }
 
 TEST_F(TestLEDSegment, GetAnimationProgressNoAnimation)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { led_segment_->GetAnimationProgress(); }, "Segment animation not defined"));
 }
 
 TEST_F(TestLEDSegment, ResetAnimationNoAnimation)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { led_segment_->ResetAnimation(); }, "Segment animation not defined"));
 }
 
 TEST_F(TestLEDSegment, GetAnimationBrightnessNoAnimation)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { led_segment_->GetAnimationBrightness(); }, "Segment animation not defined"));
 }
 
 TEST_F(TestLEDSegment, SetAnimationInvalidType)
 {
   const YAML::Node animation_desc;
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() {
       led_segment_->SetAnimation("husarion_ugv_lights::WrongAnimationType}", animation_desc, false);
     },
@@ -185,7 +185,7 @@ TEST_F(TestLEDSegment, SetAnimationInvalidType)
 TEST_F(TestLEDSegment, SetAnimationFailAnimationInitialization)
 {
   const auto animation_desc = YAML::Load("{type: husarion_ugv_lights::ImageAnimation}");
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() {
       led_segment_->SetAnimation("husarion_ugv_lights::ImageAnimation", animation_desc, false);
     },
@@ -226,7 +226,7 @@ TEST_F(TestLEDSegment, SetAnimationRepeating)
 
 TEST_F(TestLEDSegment, UpdateAnimationAnimationNotSet)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { led_segment_->UpdateAnimation(); }, "Segment animation not defined"));
 }
 

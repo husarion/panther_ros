@@ -25,7 +25,7 @@
 
 #include "yaml-cpp/yaml.h"
 
-#include "panther_utils/yaml_utils.hpp"
+#include "husarion_ugv_utils/yaml_utils.hpp"
 
 namespace husarion_ugv_lights
 {
@@ -53,12 +53,12 @@ public:
     num_led_ = num_led;
     frame_ = std::vector<std::uint8_t>(num_led_ * kRGBAColorLen, 0);
 
-    auto duration = panther_utils::GetYAMLKeyValue<float>(animation_description, "duration");
+    auto duration = husarion_ugv_utils::GetYAMLKeyValue<float>(animation_description, "duration");
     if ((duration - std::numeric_limits<float>::epsilon()) <= 0.0) {
       throw std::out_of_range("Duration has to be positive");
     }
 
-    loops_ = panther_utils::GetYAMLKeyValue<std::size_t>(animation_description, "repeat", 1);
+    loops_ = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(animation_description, "repeat", 1);
 
     if (duration * loops_ > 10.0) {
       throw std::runtime_error("Animation display duration (duration * repeat) exceeds 10 seconds");

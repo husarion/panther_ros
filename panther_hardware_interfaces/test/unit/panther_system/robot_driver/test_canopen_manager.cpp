@@ -24,7 +24,7 @@
 #include "utils/fake_can_socket.hpp"
 #include "utils/test_constants.hpp"
 
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class TestCANopenManager : public ::testing::Test
 {
@@ -71,7 +71,7 @@ TEST_F(TestCANopenManager, Activate)
 
 TEST_F(TestCANopenManager, ActivateNotInitialized)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { canopen_manager_->Activate(); }, "CANopenManager not initialized."));
 }
 
@@ -90,7 +90,7 @@ TEST_F(TestCANopenManager, GetMaster)
 
 TEST_F(TestCANopenManager, GetMasterNotInitialized)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { canopen_manager_->GetMaster(); }, "CANopenManager not initialized."));
 }
 

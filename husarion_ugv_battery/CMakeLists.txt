@@ -6,13 +6,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(PACKAGE_DEPENDENCIES ament_cmake diagnostic_updater panther_msgs
-                         panther_utils rclcpp sensor_msgs)
+                         husarion_ugv_utils rclcpp sensor_msgs)
 
 foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
   find_package(${PACKAGE} REQUIRED)
 endforeach()
 
-include_directories(include ${panther_utils_INCLUDE_DIRS})
+include_directories(include ${husarion_ugv_utils_INCLUDE_DIRS})
 
 add_executable(
   battery_driver_node

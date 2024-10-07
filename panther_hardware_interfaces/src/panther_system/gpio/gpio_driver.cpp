@@ -29,7 +29,7 @@
 
 #include "gpiod.hpp"
 
-#include "panther_utils/configure_rt.hpp"
+#include "husarion_ugv_utils/configure_rt.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -222,7 +222,7 @@ void GPIODriver::GPIOMonitorOn()
 void GPIODriver::MonitorAsyncEvents()
 {
   if (use_rt_) {
-    panther_utils::ConfigureRT(gpio_monit_thread_sched_priority_);
+    husarion_ugv_utils::ConfigureRT(gpio_monit_thread_sched_priority_);
   }
 
   auto edge_event_buffer = gpiod::edge_event_buffer(edge_event_buffer_size_);

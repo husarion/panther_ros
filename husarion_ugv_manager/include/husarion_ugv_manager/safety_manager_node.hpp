@@ -29,7 +29,7 @@
 #include "panther_msgs/msg/robot_driver_state.hpp"
 #include "panther_msgs/msg/system_status.hpp"
 
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 #include <husarion_ugv_manager/behavior_tree_manager.hpp>
 
@@ -96,10 +96,10 @@ private:
   rclcpp::Subscription<SystemStatusMsg>::SharedPtr system_status_sub_;
   rclcpp::TimerBase::SharedPtr safety_tree_timer_;
 
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<double>> cpu_temp_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<double>> battery_temp_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<double>> cpu_temp_ma_;
 
-  std::map<std::string, std::unique_ptr<panther_utils::MovingAverage<double>>> driver_temp_ma_;
+  std::map<std::string, std::unique_ptr<husarion_ugv_utils::MovingAverage<double>>> driver_temp_ma_;
 };
 
 }  // namespace husarion_ugv_manager

@@ -26,7 +26,7 @@
 
 #include "panther_msgs/msg/led_animation.hpp"
 
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 #include <husarion_ugv_manager/behavior_tree_manager.hpp>
 
@@ -77,7 +77,7 @@ private:
   rclcpp::Subscription<BoolMsg>::SharedPtr e_stop_sub_;
   rclcpp::TimerBase::SharedPtr lights_tree_timer_;
 
-  std::unique_ptr<panther_utils::MovingAverage<double>> battery_percent_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<double>> battery_percent_ma_;
   BT::BehaviorTreeFactory factory_;
 };
 

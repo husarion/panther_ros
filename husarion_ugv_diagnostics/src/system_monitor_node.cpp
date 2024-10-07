@@ -24,8 +24,8 @@
 
 #include "panther_msgs/msg/system_status.hpp"
 
-#include "panther_utils/common_utilities.hpp"
-#include "panther_utils/ros_utils.hpp"
+#include "husarion_ugv_utils/common_utilities.hpp"
+#include "husarion_ugv_utils/ros_utils.hpp"
 
 #include "husarion_ugv_diagnostics/filesystem.hpp"
 #include "husarion_ugv_diagnostics/types.hpp"
@@ -101,7 +101,7 @@ float SystemMonitorNode::GetCPUMeanUsage(const std::vector<float> & usages) cons
   });
 
   auto sum = std::accumulate(usages.begin(), usages.end(), 0.0);
-  auto mean_usage = panther_utils::common_utilities::SetPrecision(sum / usages.size(), 2);
+  auto mean_usage = husarion_ugv_utils::common_utilities::SetPrecision(sum / usages.size(), 2);
 
   return mean_usage;
 }
@@ -112,7 +112,7 @@ float SystemMonitorNode::GetCPUTemperature() const
 
   try {
     const auto temperature_str = filesystem_->ReadFile(kTemperatureInfoFilename);
-    temperature = panther_utils::common_utilities::SetPrecision(
+    temperature = husarion_ugv_utils::common_utilities::SetPrecision(
       std::stof(temperature_str) / 1000.0, 2);
   } catch (const std::exception & e) {
     RCLCPP_ERROR_STREAM(
@@ -127,7 +127,8 @@ float SystemMonitorNode::GetRAMUsage() const
   int total = 0, free = 0, available = 0;
   uprofile::getSystemMemory(total, available, free);
 
-  const auto ram_usage = panther_utils::common_utilities::CountPercentage(total - available, total);
+  const auto ram_usage = husarion_ugv_utils::common_utilities::CountPercentage(
+    total - available, total);
   return ram_usage;
 }
 
@@ -138,7 +139,8 @@ float SystemMonitorNode::GetDiskUsage() const
   try {
     const auto capacity = filesystem_->GetSpaceCapacity(kRootDirectory);
     const auto available = filesystem_->GetSpaceAvailable(kRootDirectory);
-    disk_usage = panther_utils::common_utilities::CountPercentage(capacity - available, capacity);
+    disk_usage = husarion_ugv_utils::common_utilities::CountPercentage(
+      capacity - available, capacity);
   } catch (const std::exception & e) {
     RCLCPP_ERROR_STREAM(
       this->get_logger(), "An exception occurred while reading disk usage: " << e.what());

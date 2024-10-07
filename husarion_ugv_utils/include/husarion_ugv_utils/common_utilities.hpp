@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_COMMON_UTILITIES_HPP_
-#define PANTHER_UTILS_COMMON_UTILITIES_HPP_
+#ifndef HUSARION_UGV_UTILS_COMMON_UTILITIES_HPP_
+#define HUSARION_UGV_UTILS_COMMON_UTILITIES_HPP_
 
 #include <cmath>
 #include <fstream>
@@ -21,7 +21,7 @@
 #include <sstream>
 #include <string>
 
-namespace panther_utils::common_utilities
+namespace husarion_ugv_utils::common_utilities
 {
 
 /**
@@ -121,6 +121,6 @@ inline bool MeetsVersionRequirement(const float version, const float required_ve
   return version >= required_version - std::numeric_limits<float>::epsilon();
 }
 
-}  // namespace panther_utils::common_utilities
+}  // namespace husarion_ugv_utils::common_utilities
 
-#endif  // PANTHER_UTILS_COMMON_UTILITIES_HPP_
+#endif  // HUSARION_UGV_UTILS_COMMON_UTILITIES_HPP_

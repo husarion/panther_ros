@@ -23,7 +23,7 @@
 
 #include "panther_hardware_interfaces/panther_system/robot_driver/lynx_robot_driver.hpp"
 
-#include "panther_utils/diagnostics.hpp"
+#include "husarion_ugv_utils/diagnostics.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -133,7 +133,7 @@ void LynxSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & st
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
-    panther_utils::diagnostics::AddKeyValueIfTrue(
+    husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(
       status, driver_data.GetErrorMap(), "Driver error: ");
   }
 
@@ -141,7 +141,7 @@ void LynxSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper & st
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
-    panther_utils::diagnostics::AddKeyValueIfTrue(
+    husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(
       status, roboteq_error_filter_->GetErrorMap(), "", " error");
   }
 

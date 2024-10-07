@@ -23,7 +23,7 @@
 
 #include "panther_hardware_interfaces/panther_system/robot_driver/panther_robot_driver.hpp"
 
-#include "panther_utils/diagnostics.hpp"
+#include "husarion_ugv_utils/diagnostics.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -160,7 +160,7 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
-    panther_utils::diagnostics::AddKeyValueIfTrue(
+    husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(
       status, front_driver_data.GetErrorMap(), "Front driver error: ");
   }
 
@@ -169,7 +169,7 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
-    panther_utils::diagnostics::AddKeyValueIfTrue(
+    husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(
       status, rear_driver_data.GetErrorMap(), "Rear driver error: ");
   }
 
@@ -177,7 +177,7 @@ void PantherSystem::DiagnoseErrors(diagnostic_updater::DiagnosticStatusWrapper &
     level = diagnostic_updater::DiagnosticStatusWrapper::ERROR;
     message = "Error detected.";
 
-    panther_utils::diagnostics::AddKeyValueIfTrue(
+    husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(
       status, roboteq_error_filter_->GetErrorMap(), "", " error");
   }
 

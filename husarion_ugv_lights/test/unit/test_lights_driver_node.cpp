@@ -27,7 +27,7 @@
 
 #include "husarion_ugv_lights/apa102.hpp"
 #include "husarion_ugv_lights/lights_driver_node.hpp"
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 using ImageMsg = sensor_msgs::msg::Image;
 using SetBoolSrv = std_srvs::srv::SetBool;

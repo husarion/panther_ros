@@ -20,7 +20,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 class TestBatteryNodeADCSingle : public TestBatteryNode
 {
@@ -35,7 +35,7 @@ TEST_F(TestBatteryNodeADCSingle, BatteryValues)
   WriteNumberToFile<int>(1600, std::filesystem::path(device1_path_ / "in_voltage3_raw"));
   WriteNumberToFile<int>(100, std::filesystem::path(device0_path_ / "in_voltage2_raw"));
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // This is done to check if channels of ADC readers were assigned correctly, not to verify
@@ -56,7 +56,7 @@ TEST_F(TestBatteryNodeADCSingle, BatteryValues)
 
 TEST_F(TestBatteryNodeADCSingle, BatteryTimeout)
 {
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state msg should have some values
@@ -70,7 +70,7 @@ TEST_F(TestBatteryNodeADCSingle, BatteryTimeout)
   std::filesystem::remove(std::filesystem::path(device0_path_ / "in_voltage2_raw"));
   std::filesystem::remove(std::filesystem::path(device1_path_ / "in_voltage2_raw"));
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state msg values should be NaN
@@ -86,14 +86,14 @@ TEST_F(TestBatteryNodeADCSingle, BatteryTimeout)
 TEST_F(TestBatteryNodeADCSingle, BatteryCharging)
 {
   // Wait for node to initialize
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Publish charger connected state
   IOStateMsg io_state;
   io_state.charger_connected = true;
   io_state_pub_->publish(io_state);
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   EXPECT_NE(battery_state_->power_supply_status, BatteryStateMsg::POWER_SUPPLY_STATUS_DISCHARGING);
@@ -105,7 +105,7 @@ TEST_F(TestBatteryNodeADCSingle, RoboteqInitOnADCFail)
   std::filesystem::remove_all(device0_path_);
 
   // Wait for node to initialize
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(5000)));
 
   // Battery state status should be UNKNOWN
@@ -116,7 +116,7 @@ TEST_F(TestBatteryNodeADCSingle, RoboteqInitOnADCFail)
   driver_state.header.stamp = battery_driver_node_->get_clock()->now();
   driver_state_pub_->publish(driver_state);
 
-  ASSERT_TRUE(panther_utils::test_utils::WaitForMsg(
+  ASSERT_TRUE(husarion_ugv_utils::test_utils::WaitForMsg(
     battery_driver_node_, battery_state_, std::chrono::milliseconds(1000)));
 
   // Battery state status should be different than UNKNOWN

@@ -24,7 +24,7 @@
 
 #include "husarion_ugv_manager/plugins/shutdown_host.hpp"
 #include "husarion_ugv_manager/plugins/shutdown_hosts_node.hpp"
-#include "panther_utils/yaml_utils.hpp"
+#include "husarion_ugv_utils/yaml_utils.hpp"
 
 namespace husarion_ugv_manager
 {

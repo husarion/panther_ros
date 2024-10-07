@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_TEST_UTILS_HPP_
-#define PANTHER_UTILS_TEST_UTILS_HPP_
+#ifndef HUSARION_UGV_UTILS_TEST_UTILS_HPP_
+#define HUSARION_UGV_UTILS_TEST_UTILS_HPP_
 
 #include <algorithm>
 #include <cmath>
@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace panther_utils::test_utils
+namespace husarion_ugv_utils::test_utils
 {
 
 /**
@@ -69,6 +69,6 @@ bool IsMessageThrown(const Func & func, const std::string & error_msg)
   return false;
 }
 
-}  // namespace panther_utils::test_utils
+}  // namespace husarion_ugv_utils::test_utils
 
-#endif  // PANTHER_UTILS_TEST_UTILS_HPP_
+#endif  // HUSARION_UGV_UTILS_TEST_UTILS_HPP_

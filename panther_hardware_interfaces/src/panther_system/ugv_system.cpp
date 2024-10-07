@@ -31,8 +31,8 @@
 #include "panther_hardware_interfaces/panther_system/system_ros_interface.hpp"
 #include "panther_hardware_interfaces/utils.hpp"
 
-#include "panther_utils/common_utilities.hpp"
-#include "panther_utils/diagnostics.hpp"
+#include "husarion_ugv_utils/common_utilities.hpp"
+#include "husarion_ugv_utils/diagnostics.hpp"
 
 namespace panther_hardware_interfaces
 {

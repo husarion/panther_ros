@@ -21,7 +21,7 @@ set(PACKAGE_DEPENDENCIES
     diagnostic_updater
     generate_parameter_library
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     PkgConfig
     rclcpp
     std_msgs)

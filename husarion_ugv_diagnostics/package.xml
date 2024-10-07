@@ -20,8 +20,8 @@
   <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
   <depend>generate_parameter_library</depend>
+  <depend>husarion_ugv_utils</depend>
   <depend>panther_msgs</depend>
-  <depend>panther_utils</depend>
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
 

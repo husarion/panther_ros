@@ -24,8 +24,8 @@
 #include <gtest/gtest.h>
 #include <gpiod.hpp>
 
+#include "husarion_ugv_utils/test/test_utils.hpp"
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_driver.hpp"
-#include "panther_utils/test/test_utils.hpp"
 
 using GPIOInfo = panther_hardware_interfaces::GPIOInfo;
 using GPIOPin = panther_hardware_interfaces::GPIOPin;
@@ -102,7 +102,7 @@ TEST(TestGPIODriverInitialization, WrongPinConfigFail)
 
 TEST_F(TestGPIODriver, SetWrongPinValue)
 {
-  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  auto is_message_thrown = husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { this->gpio_driver_->SetPinValue(static_cast<GPIOPin>(-1), true); },
     "Pin not found in GPIO info storage.");
 
@@ -132,7 +132,7 @@ TEST_F(TestGPIODriver, IsPinActive)
 
 TEST_F(TestGPIODriver, IsPinActiveNoMonitorThread)
 {
-  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  auto is_message_thrown = husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { this->gpio_driver_->IsPinActive(GPIOPin::LED_SBC_SEL); },
     "GPIO monitor thread is not running!");
 
@@ -166,7 +166,7 @@ TEST_F(TestGPIODriver, GPIOMonitorEnableUseRT)
 
 TEST_F(TestGPIODriver, GPIOEventCallbackNoMonitorThread)
 {
-  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  auto is_message_thrown = husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() {
       this->gpio_driver_->ConfigureEdgeEventCallback(
         std::bind(&TestGPIODriver::GPIOEventCallback, this, std::placeholders::_1));
@@ -202,7 +202,7 @@ TEST_F(TestGPIODriver, ChangePinDirection)
   this->gpio_driver_->GPIOMonitorEnable();
   this->gpio_driver_->ChangePinDirection(GPIOPin::LED_SBC_SEL, gpiod::line::direction::INPUT);
 
-  auto is_message_thrown = panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  auto is_message_thrown = husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { this->gpio_driver_->SetPinValue(GPIOPin::LED_SBC_SEL, true); },
     "Cannot set value for INPUT pin.");
 

@@ -16,6 +16,7 @@
 
 import os
 
+from husarion_ugv_utils.messages import welcome_msg
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -27,7 +28,6 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node, SetUseSimTime
 from launch_ros.substitutions import FindPackageShare
-from panther_utils.messages import welcome_msg
 
 
 def generate_launch_description():

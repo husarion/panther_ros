@@ -30,7 +30,7 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include <husarion_ugv_manager/lights_manager_node.hpp>
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
@@ -146,7 +146,7 @@ TEST_F(TestLightsManagerNode, BatteryCBBlackboardUpdate)
   battery_state.power_supply_status = expected_status;
   battery_state.power_supply_health = expected_health;
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     lights_manager_node_, "battery/battery_status", battery_state);
 
   auto blackboard = lights_manager_node_->GetLightsTreeBlackboard();
@@ -162,7 +162,7 @@ TEST_F(TestLightsManagerNode, EStopCBBlackboardUpdate)
   auto bool_msg = std_msgs::msg::Bool();
   bool_msg.data = expected_state;
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     lights_manager_node_, "hardware/e_stop", bool_msg,
     rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 

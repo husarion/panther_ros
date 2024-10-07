@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_utils)
+project(husarion_ugv_utils)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)

@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_DIAGNOSTICS_HPP_
-#define PANTHER_UTILS_DIAGNOSTICS_HPP_
+#ifndef HUSARION_UGV_UTILS_DIAGNOSTICS_HPP_
+#define HUSARION_UGV_UTILS_DIAGNOSTICS_HPP_
 
 #include <map>
 #include <string>
 
 #include "diagnostic_updater/diagnostic_status_wrapper.hpp"
 
-namespace panther_utils::diagnostics
+namespace husarion_ugv_utils::diagnostics
 {
 
 /**
@@ -49,6 +49,6 @@ void AddKeyValueIfTrue(
   }
 }
 
-}  // namespace panther_utils::diagnostics
+}  // namespace husarion_ugv_utils::diagnostics
 
-#endif  // PANTHER_UTILS_DIAGNOSTICS_HPP_
+#endif  // HUSARION_UGV_UTILS_DIAGNOSTICS_HPP_

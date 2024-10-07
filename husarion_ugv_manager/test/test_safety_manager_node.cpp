@@ -30,7 +30,7 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include <husarion_ugv_manager/safety_manager_node.hpp>
-#include "panther_utils/test/ros_test_utils.hpp"
+#include "husarion_ugv_utils/test/ros_test_utils.hpp"
 
 using BoolMsg = std_msgs::msg::Bool;
 using BatteryStateMsg = sensor_msgs::msg::BatteryState;
@@ -167,7 +167,7 @@ TEST_F(TestSafetyManagerNode, BatteryCBBlackboardUpdate)
   battery_state.power_supply_health = expected_health;
   battery_state.temperature = expected_temp;
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "battery/battery_status", battery_state);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
@@ -183,7 +183,7 @@ TEST_F(TestSafetyManagerNode, EStopCBBlackboardUpdate)
   auto bool_msg = std_msgs::msg::Bool();
   bool_msg.data = expected_state;
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "hardware/e_stop", bool_msg, transient_local_qos);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
@@ -200,7 +200,7 @@ TEST_F(TestSafetyManagerNode, DriverStateCBBlackboardUpdate)
   auto driver_state_msg = panther_msgs::msg::RobotDriverState();
   driver_state_msg.driver_states.push_back(driver_state);
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "hardware/robot_driver_state", driver_state_msg);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
@@ -216,7 +216,7 @@ TEST_F(TestSafetyManagerNode, IOStateCBBlackboardUpdate)
   io_state_msg.aux_power = expected_aux_state;
   io_state_msg.fan = expected_fan_state;
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "hardware/io_state", io_state_msg, transient_local_qos);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();
@@ -231,7 +231,7 @@ TEST_F(TestSafetyManagerNode, SystemStatusCBBlackboardUpdate)
   auto system_status_msg = panther_msgs::msg::SystemStatus();
   system_status_msg.cpu_temp = expected_temp;
 
-  panther_utils::test_utils::PublishAndSpin(
+  husarion_ugv_utils::test_utils::PublishAndSpin(
     safety_manager_node_, "system_status", system_status_msg);
 
   auto blackboard = safety_manager_node_->GetSafetyTreeBlackboard();

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS__ROS_UTILS_HPP_
-#define PANTHER_UTILS__ROS_UTILS_HPP_
+#ifndef HUSARION_UGV_UTILS__ROS_UTILS_HPP_
+#define HUSARION_UGV_UTILS__ROS_UTILS_HPP_
 
 #include <chrono>
 
 #include "std_msgs/msg/header.hpp"
 
-namespace panther_utils::ros
+namespace husarion_ugv_utils::ros
 {
 
 /**
@@ -105,6 +105,6 @@ std::string AddNamespaceToFrameID(const std::string & frame_id, const std::strin
   return tf_prefix + frame_id;
 }
 
-}  // namespace panther_utils::ros
+}  // namespace husarion_ugv_utils::ros
 
-#endif  // PANTHER_UTILS__ROS_UTILS_HPP_
+#endif  // HUSARION_UGV_UTILS__ROS_UTILS_HPP_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_TEST_UTILS_HPP_
-#define PANTHER_UTILS_TEST_UTILS_HPP_
+#ifndef HUSARION_UGV_UTILS_TEST_UTILS_HPP_
+#define HUSARION_UGV_UTILS_TEST_UTILS_HPP_
 
 #include <chrono>
 #include <limits>
@@ -22,7 +22,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-namespace panther_utils::test_utils
+namespace husarion_ugv_utils::test_utils
 {
 
 /**
@@ -100,6 +100,6 @@ void PublishAndSpin(
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-}  // namespace panther_utils::test_utils
+}  // namespace husarion_ugv_utils::test_utils
 
-#endif  // PANTHER_UTILS_TEST_UTILS_HPP_
+#endif  // HUSARION_UGV_UTILS_TEST_UTILS_HPP_

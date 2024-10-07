@@ -25,7 +25,7 @@
 #include "panther_msgs/msg/robot_driver_state.hpp"
 
 #include "husarion_ugv_battery/battery/battery.hpp"
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 namespace husarion_ugv_battery
 {
@@ -73,8 +73,8 @@ private:
   float current_raw_;
   RobotDriverStateMsg::SharedPtr driver_state_;
 
-  std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> current_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<float>> voltage_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<float>> current_ma_;
 };
 
 }  // namespace husarion_ugv_battery

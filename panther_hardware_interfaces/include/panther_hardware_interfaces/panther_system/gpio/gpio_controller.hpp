@@ -29,7 +29,7 @@
 
 #include "gpiod.hpp"
 
-#include "panther_utils/common_utilities.hpp"
+#include "husarion_ugv_utils/common_utilities.hpp"
 
 #include "panther_hardware_interfaces/panther_system/gpio/gpio_driver.hpp"
 #include "panther_hardware_interfaces/panther_system/gpio/types.hpp"
@@ -403,7 +403,7 @@ public:
   {
     std::unique_ptr<GPIOControllerInterface> gpio_controller;
 
-    if (panther_utils::common_utilities::MeetsVersionRequirement(robot_version, 1.2)) {
+    if (husarion_ugv_utils::common_utilities::MeetsVersionRequirement(robot_version, 1.2)) {
       auto config_info_storage = GPIOControllerPTH12X::GetGPIOConfigInfoStorage();
       auto gpio_driver = std::make_shared<GPIODriver>(config_info_storage);
 

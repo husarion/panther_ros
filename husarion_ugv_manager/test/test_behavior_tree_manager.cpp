@@ -26,7 +26,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "husarion_ugv_manager/behavior_tree_manager.hpp"
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class BehaviorTreeManagerWrapper : public husarion_ugv_manager::BehaviorTreeManager
 {
@@ -69,7 +69,7 @@ TEST_F(TestBehaviorTreeManager, CreateBTConfigInvalidItem)
 {
   const std::map<std::string, std::any> bb_values = {{"value", 1l}};
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     [&]() { behavior_tree_manager_->CreateBTConfig(bb_values); },
     "Invalid type for blackboard entry."));
 }
@@ -109,7 +109,7 @@ TEST_F(TestBehaviorTreeManager, InitializeInvalidTreeName)
   )";
 
   ASSERT_NO_THROW(factory_.registerBehaviorTreeFromText(tree_xml));
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { behavior_tree_manager_->Initialize(factory_); },
     "Can't find a tree with name: " + std::string(kTreeName)));
 }

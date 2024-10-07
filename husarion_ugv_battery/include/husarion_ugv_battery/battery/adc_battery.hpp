@@ -22,7 +22,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "husarion_ugv_battery/battery/battery.hpp"
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 namespace husarion_ugv_battery
 {
@@ -89,10 +89,10 @@ private:
   const std::function<float()> ReadTemp;
   const std::function<float()> ReadCharge;
 
-  std::unique_ptr<panther_utils::MovingAverage<float>> voltage_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> current_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> temp_ma_;
-  std::unique_ptr<panther_utils::MovingAverage<float>> charge_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<float>> voltage_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<float>> current_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<float>> temp_ma_;
+  std::unique_ptr<husarion_ugv_utils::MovingAverage<float>> charge_ma_;
 };
 
 }  // namespace husarion_ugv_battery

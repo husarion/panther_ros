@@ -26,7 +26,7 @@
 
 #include "husarion_ugv_battery/battery/battery.hpp"
 #include "husarion_ugv_battery/battery_publisher/battery_publisher.hpp"
-#include "panther_utils/ros_utils.hpp"
+#include "husarion_ugv_utils/ros_utils.hpp"
 
 namespace husarion_ugv_battery
 {
@@ -172,10 +172,10 @@ ChargingStatusMsg DualBatteryPublisher::MergeChargingStatusMsgs(
   ChargingStatusMsg charging_status_msg;
 
   try {
-    panther_utils::ros::VerifyTimestampGap(
+    husarion_ugv_utils::ros::VerifyTimestampGap(
       charging_status_msg_1.header, charging_status_msg_2.header, std::chrono::seconds(1));
 
-    charging_status_msg.header = panther_utils::ros::MergeHeaders(
+    charging_status_msg.header = husarion_ugv_utils::ros::MergeHeaders(
       charging_status_msg_1.header, charging_status_msg_2.header);
   } catch (const std::exception & e) {
     RCLCPP_ERROR_STREAM_THROTTLE(

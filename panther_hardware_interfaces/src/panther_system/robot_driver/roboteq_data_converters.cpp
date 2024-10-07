@@ -16,8 +16,8 @@
 
 #include <cmath>
 
+#include "husarion_ugv_utils/common_utilities.hpp"
 #include "panther_hardware_interfaces/utils.hpp"
-#include "panther_utils/common_utilities.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -264,10 +264,10 @@ std::map<std::string, bool> DriverData::GetFlagErrorMap() const
   flag_error_map.merge(fault_flags_.GetErrorMap());
   flag_error_map.merge(script_flags_.GetErrorMap());
 
-  auto channel_1_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
+  auto channel_1_runtime_error_map = husarion_ugv_utils::common_utilities::PrefixMapKeys(
     channel_1_runtime_error_.GetErrorMap(), "channel_1_motor.");
 
-  auto channel_2_runtime_error_map = panther_utils::common_utilities::PrefixMapKeys(
+  auto channel_2_runtime_error_map = husarion_ugv_utils::common_utilities::PrefixMapKeys(
     channel_2_runtime_error_.GetErrorMap(), "channel_2_motor.");
 
   flag_error_map.merge(std::move(channel_1_runtime_error_map));

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_MOVING_AVERAGE_HPP_
-#define PANTHER_UTILS_MOVING_AVERAGE_HPP_
+#ifndef HUSARION_UGV_UTILS_MOVING_AVERAGE_HPP_
+#define HUSARION_UGV_UTILS_MOVING_AVERAGE_HPP_
 
 #include <deque>
 
-namespace panther_utils
+namespace husarion_ugv_utils
 {
 
 template <typename T>
@@ -61,6 +61,6 @@ private:
   T sum_;
 };
 
-}  // namespace panther_utils
+}  // namespace husarion_ugv_utils
 
-#endif  // PANTHER_UTILS_MOVING_AVERAGE_HPP_
+#endif  // HUSARION_UGV_UTILS_MOVING_AVERAGE_HPP_

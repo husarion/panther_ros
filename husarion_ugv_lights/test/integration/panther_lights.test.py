@@ -17,9 +17,9 @@
 
 import unittest
 
+import husarion_ugv_utils.integration_test_utils as test_utils
 import launch
 import launch_testing
-import panther_utils.integration_test_utils as test_utils
 import rclpy
 import rclpy.qos
 from diagnostic_msgs.msg import DiagnosticArray

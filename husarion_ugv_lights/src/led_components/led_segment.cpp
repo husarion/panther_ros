@@ -21,7 +21,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "husarion_ugv_lights/animation/animation.hpp"
-#include "panther_utils/yaml_utils.hpp"
+#include "husarion_ugv_utils/yaml_utils.hpp"
 
 namespace husarion_ugv_lights
 {
@@ -29,8 +29,8 @@ namespace husarion_ugv_lights
 LEDSegment::LEDSegment(const YAML::Node & segment_description, const float controller_frequency)
 : controller_frequency_(controller_frequency)
 {
-  channel_ = panther_utils::GetYAMLKeyValue<std::size_t>(segment_description, "channel");
-  const auto led_range = panther_utils::GetYAMLKeyValue<std::string>(
+  channel_ = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(segment_description, "channel");
+  const auto led_range = husarion_ugv_utils::GetYAMLKeyValue<std::string>(
     segment_description, "led_range");
 
   const std::size_t split_char = led_range.find('-');

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_CONFIGURE_RT_HPP_
-#define PANTHER_UTILS_CONFIGURE_RT_HPP_
+#ifndef HUSARION_UGV_UTILS_CONFIGURE_RT_HPP_
+#define HUSARION_UGV_UTILS_CONFIGURE_RT_HPP_
 
 #include <stdexcept>
 
 #include "realtime_tools/thread_priority.hpp"
 
-namespace panther_utils
+namespace husarion_ugv_utils
 {
 /**
  * @brief Configures thread that calls this function to FIFO scheduler with RT priority
@@ -44,6 +44,6 @@ inline void ConfigureRT(const unsigned priority)
   }
 }
 
-}  // namespace panther_utils
+}  // namespace husarion_ugv_utils
 
-#endif  // PANTHER_UTILS_CONFIGURE_RT_HPP_
+#endif  // HUSARION_UGV_UTILS_CONFIGURE_RT_HPP_

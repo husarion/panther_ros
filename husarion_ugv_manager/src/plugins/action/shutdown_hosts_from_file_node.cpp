@@ -59,13 +59,13 @@ bool ShutdownHostsFromFile::UpdateHosts(std::vector<std::shared_ptr<ShutdownHost
         continue;
       }
 
-      const auto ip = panther_utils::GetYAMLKeyValue<std::string>(host, "ip");
-      const auto username = panther_utils::GetYAMLKeyValue<std::string>(host, "username");
-      const auto port = panther_utils::GetYAMLKeyValue<unsigned>(host, "port", 22);
-      const auto command = panther_utils::GetYAMLKeyValue<std::string>(
+      const auto ip = husarion_ugv_utils::GetYAMLKeyValue<std::string>(host, "ip");
+      const auto username = husarion_ugv_utils::GetYAMLKeyValue<std::string>(host, "username");
+      const auto port = husarion_ugv_utils::GetYAMLKeyValue<unsigned>(host, "port", 22);
+      const auto command = husarion_ugv_utils::GetYAMLKeyValue<std::string>(
         host, "command", "sudo shutdown now");
-      const auto timeout = panther_utils::GetYAMLKeyValue<float>(host, "timeout", 5.0);
-      const auto ping_for_success = panther_utils::GetYAMLKeyValue<bool>(
+      const auto timeout = husarion_ugv_utils::GetYAMLKeyValue<float>(host, "timeout", 5.0);
+      const auto ping_for_success = husarion_ugv_utils::GetYAMLKeyValue<bool>(
         host, "ping_for_success", true);
       hosts.push_back(
         std::make_shared<ShutdownHost>(ip, username, port, command, timeout, ping_for_success));

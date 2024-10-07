@@ -12,7 +12,7 @@ set(PACKAGE_DEPENDENCIES
     behaviortree_ros2
     libssh
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     rclcpp
     rclcpp_action
     sensor_msgs
@@ -67,7 +67,7 @@ ament_target_dependencies(
   safety_manager_node
   behaviortree_ros2
   panther_msgs
-  panther_utils
+  husarion_ugv_utils
   rclcpp
   sensor_msgs
   std_msgs)
@@ -80,7 +80,7 @@ ament_target_dependencies(
   lights_manager_node
   behaviortree_ros2
   panther_msgs
-  panther_utils
+  husarion_ugv_utils
   rclcpp
   sensor_msgs
   std_msgs)
@@ -167,8 +167,9 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_behavior_tree_utils
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_behavior_tree_utils
-                            behaviortree_cpp behaviortree_ros2 panther_utils)
+  ament_target_dependencies(
+    ${PROJECT_NAME}_test_behavior_tree_utils behaviortree_cpp behaviortree_ros2
+    husarion_ugv_utils)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_behavior_tree_manager
@@ -178,7 +179,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_behavior_tree_manager
-                            behaviortree_cpp panther_utils)
+                            behaviortree_cpp husarion_ugv_utils)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_lights_manager_node test/test_lights_manager_node.cpp
@@ -192,7 +193,7 @@ if(BUILD_TESTING)
     behaviortree_cpp
     behaviortree_ros2
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     rclcpp
     sensor_msgs
     std_msgs)
@@ -210,7 +211,7 @@ if(BUILD_TESTING)
     behaviortree_cpp
     behaviortree_ros2
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     rclcpp
     sensor_msgs
     std_msgs)
@@ -227,7 +228,7 @@ if(BUILD_TESTING)
     behaviortree_cpp
     behaviortree_ros2
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     rclcpp
     sensor_msgs
     std_msgs)
@@ -245,7 +246,7 @@ if(BUILD_TESTING)
     behaviortree_cpp
     behaviortree_ros2
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     rclcpp
     sensor_msgs
     std_msgs

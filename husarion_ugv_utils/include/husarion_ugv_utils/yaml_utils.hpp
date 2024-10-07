@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_UTILS_YAML_UTILS_HPP_
-#define PANTHER_UTILS_YAML_UTILS_HPP_
+#ifndef HUSARION_UGV_UTILS_YAML_UTILS_HPP_
+#define HUSARION_UGV_UTILS_YAML_UTILS_HPP_
 
 #include <stdexcept>
 #include <string>
 
 #include "yaml-cpp/yaml.h"
 
-namespace panther_utils
+namespace husarion_ugv_utils
 {
 
 /**
@@ -69,6 +69,6 @@ T GetYAMLKeyValue(const YAML::Node & description, const std::string & key, const
   }
 }
 
-}  // namespace panther_utils
+}  // namespace husarion_ugv_utils
 
-#endif  // PANTHER_UTILS_YAML_UTILS_HPP_
+#endif  // HUSARION_UGV_UTILS_YAML_UTILS_HPP_

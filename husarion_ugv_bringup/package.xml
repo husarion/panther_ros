@@ -21,9 +21,9 @@
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">husarion_ugv_lights</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">husarion_ugv_localization</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">husarion_ugv_manager</exec_depend>
+  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">husarion_ugv_utils</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">launch</exec_depend>
   <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">launch_ros</exec_depend>
-  <exec_depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">panther_utils</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

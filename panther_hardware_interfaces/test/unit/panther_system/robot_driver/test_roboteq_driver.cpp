@@ -27,7 +27,7 @@
 #include "utils/mock_roboteq.hpp"
 #include "utils/test_constants.hpp"
 
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class TestRoboteqDriver : public ::testing::Test
 {
@@ -310,7 +310,7 @@ TEST_F(TestRoboteqDriver, ResetRoboteqScriptSDOTimeoutReset)
   BootRoboteqDriver();
 
   mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 100000);
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->ResetScript(); }, "SDO protocol timed out"));
 
   mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x2018, 0, 0);
@@ -330,7 +330,7 @@ TEST_F(TestRoboteqDriver, TurnOnEStopTimeout)
 {
   BootRoboteqDriver();
   mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x200C, 0, 100000);
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->TurnOnEStop(); }, "SDO protocol timed out"));
 }
 
@@ -347,7 +347,7 @@ TEST_F(TestRoboteqDriver, TurnOffEStopTimeout)
 {
   BootRoboteqDriver();
   mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x200D, 0, 100000);
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->TurnOffEStop(); }, "SDO protocol timed out"));
 }
 
@@ -373,7 +373,7 @@ TEST_F(TestRoboteqDriver, WriteTimeout)
 {
   BootRoboteqDriver();
   mock_roboteq_->GetDriver()->SetOnWriteWait<std::uint8_t>(0x202C, 0, 200000);
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { roboteq_driver_->GetMotorDriver(kMotor1Name)->TurnOnSafetyStop(); },
     "SDO protocol timed out"));
 }

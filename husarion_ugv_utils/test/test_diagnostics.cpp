@@ -20,14 +20,14 @@
 
 #include "diagnostic_updater/diagnostic_status_wrapper.hpp"
 
-#include "panther_utils/diagnostics.hpp"
+#include "husarion_ugv_utils/diagnostics.hpp"
 
 TEST(TestAddKeyValueIfTrue, HandlesBoolean)
 {
   diagnostic_updater::DiagnosticStatusWrapper status;
   std::map<std::string, bool> kv_map = {{"key1", true}, {"key2", false}, {"key3", true}};
 
-  panther_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
+  husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
 
   ASSERT_EQ(2, status.values.size());
   EXPECT_EQ("key1", status.values.at(0).key);
@@ -40,7 +40,7 @@ TEST(TestAddKeyValueIfTrue, HandlesSmartPointer)
   std::map<std::string, std::shared_ptr<int>> kv_map = {
     {"key1", nullptr}, {"key2", nullptr}, {"key3", std::make_shared<int>(1)}};
 
-  panther_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
+  husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
 
   ASSERT_EQ(1, status.values.size());
   EXPECT_EQ("key3", status.values.at(0).key);
@@ -51,7 +51,7 @@ TEST(TestAddKeyValueIfTrue, HandlesInteger)
   diagnostic_updater::DiagnosticStatusWrapper status;
   std::map<std::string, int> kv_map = {{"key1", 0}, {"key2", 1}, {"key3", 2}};
 
-  panther_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
+  husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
 
   ASSERT_EQ(2, status.values.size());
   EXPECT_EQ("key2", status.values.at(0).key);
@@ -63,7 +63,7 @@ TEST(TestAddKeyValueIfTrue, HandlesEmptyMap)
   diagnostic_updater::DiagnosticStatusWrapper status;
   std::map<std::string, bool> kv_map;
 
-  panther_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
+  husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(status, kv_map);
 
   ASSERT_EQ(0, status.values.size());
 }
@@ -73,7 +73,7 @@ TEST(TestAddKeyValueIfTrue, HandlesPrefixAndSuffix)
   diagnostic_updater::DiagnosticStatusWrapper status;
   std::map<std::string, bool> kv_map = {{"key1", true}, {"key2", false}, {"key3", true}};
 
-  panther_utils::diagnostics::AddKeyValueIfTrue(status, kv_map, "prefix_", "_suffix");
+  husarion_ugv_utils::diagnostics::AddKeyValueIfTrue(status, kv_map, "prefix_", "_suffix");
 
   ASSERT_EQ(2, status.values.size());
   EXPECT_EQ("prefix_key1_suffix", status.values.at(0).key);

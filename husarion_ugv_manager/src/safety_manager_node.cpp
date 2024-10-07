@@ -28,7 +28,7 @@
 #include "behaviortree_ros2/ros_node_params.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 #include <husarion_ugv_manager/behavior_tree_manager.hpp>
 #include <husarion_ugv_manager/behavior_tree_utils.hpp>
@@ -48,8 +48,8 @@ SafetyManagerNode::SafetyManagerNode(
   const auto cpu_temp_window_len = this->get_parameter("cpu.temp.window_len").as_int();
 
   battery_temp_ma_ =
-    std::make_unique<panther_utils::MovingAverage<double>>(battery_temp_window_len);
-  cpu_temp_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(cpu_temp_window_len);
+    std::make_unique<husarion_ugv_utils::MovingAverage<double>>(battery_temp_window_len);
+  cpu_temp_ma_ = std::make_unique<husarion_ugv_utils::MovingAverage<double>>(cpu_temp_window_len);
 
   const auto safety_initial_blackboard = CreateSafetyInitialBlackboard();
   safety_tree_manager_ = std::make_unique<BehaviorTreeManager>(
@@ -223,7 +223,7 @@ void SafetyManagerNode::RobotDriverStateCB(const RobotDriverStateMsg::SharedPtr 
         this->get_logger(), "Creating moving average for driver '%s'", driver.name.c_str());
       const auto driver_temp_window_len = this->get_parameter("driver.temp.window_len").as_int();
       driver_temp_ma_[driver.name] =
-        std::make_unique<panther_utils::MovingAverage<double>>(driver_temp_window_len);
+        std::make_unique<husarion_ugv_utils::MovingAverage<double>>(driver_temp_window_len);
     }
 
     driver_temp_ma_[driver.name]->Roll(driver.state.temperature);

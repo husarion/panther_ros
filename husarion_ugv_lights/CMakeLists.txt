@@ -10,7 +10,7 @@ set(PACKAGE_DEPENDENCIES
     diagnostic_updater
     image_transport
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     pluginlib
     rclcpp
     rclcpp_components
@@ -29,7 +29,8 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 add_library(
   panther_animation_plugins SHARED src/animation/image_animation.cpp
                                    src/animation/charging_animation.cpp)
-ament_target_dependencies(panther_animation_plugins panther_utils pluginlib)
+ament_target_dependencies(panther_animation_plugins husarion_ugv_utils
+                          pluginlib)
 target_link_libraries(panther_animation_plugins png yaml-cpp)
 
 add_library(lights_driver_node_component SHARED src/lights_driver_node.cpp
@@ -52,7 +53,7 @@ add_library(
 ament_target_dependencies(
   lights_controller_node_component
   panther_msgs
-  panther_utils
+  husarion_ugv_utils
   pluginlib
   rclcpp
   rclcpp_components
@@ -100,7 +101,7 @@ if(BUILD_TESTING)
     ${PROJECT_NAME}_test_animation
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
-  ament_target_dependencies(${PROJECT_NAME}_test_animation panther_utils)
+  ament_target_dependencies(${PROJECT_NAME}_test_animation husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_animation yaml-cpp)
 
   ament_add_gtest(
@@ -112,7 +113,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_charging_animation
-                            ament_index_cpp panther_utils pluginlib)
+                            ament_index_cpp husarion_ugv_utils pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_charging_animation yaml-cpp)
 
   ament_add_gtest(
@@ -124,7 +125,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_image_animation
-                            ament_index_cpp panther_utils pluginlib)
+                            ament_index_cpp husarion_ugv_utils pluginlib)
   target_link_libraries(${PROJECT_NAME}_test_image_animation png yaml-cpp)
 
   ament_add_gtest(
@@ -144,7 +145,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_led_segment pluginlib
-                            panther_utils)
+                            husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_led_segment yaml-cpp)
 
   ament_add_gtest(
@@ -158,7 +159,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_segment_converter pluginlib
-                            panther_utils)
+                            husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_segment_converter yaml-cpp)
 
   ament_add_gtest(
@@ -172,7 +173,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_led_animation pluginlib
-                            panther_utils rclcpp)
+                            husarion_ugv_utils rclcpp)
   target_link_libraries(${PROJECT_NAME}_test_led_animation yaml-cpp)
 
   ament_add_gtest(
@@ -186,7 +187,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_led_animations_queue pluginlib
-                            panther_utils rclcpp)
+                            husarion_ugv_utils rclcpp)
   target_link_libraries(${PROJECT_NAME}_test_led_animations_queue yaml-cpp)
 
   ament_add_gmock(${PROJECT_NAME}_test_apa102 test/unit/test_apa102.cpp
@@ -205,7 +206,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_lights_driver_node
-                            panther_utils)
+                            husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_lights_driver_node
                         lights_driver_node_component)
 
@@ -222,7 +223,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_lights_controller_node
-                            panther_utils)
+                            husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_lights_controller_node
                         lights_controller_node_component yaml-cpp)
 

@@ -35,8 +35,8 @@
 #include "husarion_ugv_lights/led_components/led_panel.hpp"
 #include "husarion_ugv_lights/led_components/led_segment.hpp"
 #include "husarion_ugv_lights/led_components/segment_converter.hpp"
-#include "panther_utils/ros_utils.hpp"
-#include "panther_utils/yaml_utils.hpp"
+#include "husarion_ugv_utils/ros_utils.hpp"
+#include "husarion_ugv_utils/yaml_utils.hpp"
 
 namespace husarion_ugv_lights
 {
@@ -86,8 +86,8 @@ void LightsControllerNode::InitializeLEDPanels(const YAML::Node & panels_descrip
   RCLCPP_DEBUG(this->get_logger(), "Initializing LED panels.");
 
   for (auto & panel : panels_description.as<std::vector<YAML::Node>>()) {
-    const auto channel = panther_utils::GetYAMLKeyValue<std::size_t>(panel, "channel");
-    const auto number_of_leds = panther_utils::GetYAMLKeyValue<std::size_t>(
+    const auto channel = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(panel, "channel");
+    const auto number_of_leds = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(
       panel, "number_of_leds");
 
     const auto result = led_panels_.emplace(channel, std::make_unique<LEDPanel>(number_of_leds));
@@ -115,7 +115,7 @@ void LightsControllerNode::InitializeLEDSegments(
   RCLCPP_DEBUG(this->get_logger(), "Initializing LED segments.");
 
   for (auto & segment : segments_description.as<std::vector<YAML::Node>>()) {
-    const auto segment_name = panther_utils::GetYAMLKeyValue<std::string>(segment, "name");
+    const auto segment_name = husarion_ugv_utils::GetYAMLKeyValue<std::string>(segment, "name");
 
     try {
       const auto result = segments_.emplace(
@@ -165,17 +165,17 @@ void LightsControllerNode::LoadUserAnimations(const std::string & user_led_anima
 
   try {
     YAML::Node user_led_animations = YAML::LoadFile(user_led_animations_path);
-    auto user_animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
+    auto user_animations = husarion_ugv_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
       user_led_animations, "user_animations");
 
     for (auto & animation_description : user_animations) {
       try {
-        auto id = panther_utils::GetYAMLKeyValue<std::size_t>(animation_description, "id");
+        auto id = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(animation_description, "id");
         if (id < 20) {
           throw std::runtime_error("Animation ID must be greater than 19.");
         }
 
-        auto priority = panther_utils::GetYAMLKeyValue<std::size_t>(
+        auto priority = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(
           animation_description, "priority", LEDAnimation::kDefaultPriority);
         if (priority == 1) {
           throw std::runtime_error("User animation can not have priority 1.");
@@ -199,13 +199,13 @@ void LightsControllerNode::LoadAnimation(const YAML::Node & animation_descriptio
   LEDAnimationDescription led_animation_desc;
 
   try {
-    led_animation_desc.id = panther_utils::GetYAMLKeyValue<std::size_t>(
+    led_animation_desc.id = husarion_ugv_utils::GetYAMLKeyValue<std::size_t>(
       animation_description, "id");
-    led_animation_desc.name = panther_utils::GetYAMLKeyValue<std::string>(
+    led_animation_desc.name = husarion_ugv_utils::GetYAMLKeyValue<std::string>(
       animation_description, "name", "ANIMATION_" + std::to_string(led_animation_desc.id));
-    led_animation_desc.priority = panther_utils::GetYAMLKeyValue<std::uint8_t>(
+    led_animation_desc.priority = husarion_ugv_utils::GetYAMLKeyValue<std::uint8_t>(
       animation_description, "priority", LEDAnimation::kDefaultPriority);
-    led_animation_desc.timeout = panther_utils::GetYAMLKeyValue<float>(
+    led_animation_desc.timeout = husarion_ugv_utils::GetYAMLKeyValue<float>(
       animation_description, "timeout", LEDAnimation::kDefaultTimeout);
 
     if (
@@ -215,14 +215,15 @@ void LightsControllerNode::LoadAnimation(const YAML::Node & animation_descriptio
       throw std::runtime_error("Invalid LED animation priority.");
     }
 
-    auto animations = panther_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
+    auto animations = husarion_ugv_utils::GetYAMLKeyValue<std::vector<YAML::Node>>(
       animation_description, "animations");
     for (auto & animation : animations) {
       AnimationDescription animation_desc;
-      animation_desc.type = panther_utils::GetYAMLKeyValue<std::string>(animation, "type");
-      animation_desc.animation = panther_utils::GetYAMLKeyValue<YAML::Node>(animation, "animation");
+      animation_desc.type = husarion_ugv_utils::GetYAMLKeyValue<std::string>(animation, "type");
+      animation_desc.animation = husarion_ugv_utils::GetYAMLKeyValue<YAML::Node>(
+        animation, "animation");
 
-      auto segments_group = panther_utils::GetYAMLKeyValue<std::string>(animation, "segments");
+      auto segments_group = husarion_ugv_utils::GetYAMLKeyValue<std::string>(animation, "segments");
       animation_desc.segments = segments_map_.at(segments_group);
 
       led_animation_desc.animations.push_back(animation_desc);
@@ -258,7 +259,7 @@ void LightsControllerNode::PublishPanelFrame(const std::size_t channel)
   const auto number_of_leds = panel->GetNumberOfLeds();
 
   ImageMsg::UniquePtr image(new ImageMsg);
-  image->header.frame_id = panther_utils::ros::AddNamespaceToFrameID(
+  image->header.frame_id = husarion_ugv_utils::ros::AddNamespaceToFrameID(
     "lights_channel_" + std::to_string(channel) + "_link", std::string(this->get_namespace()));
   image->header.stamp = this->get_clock()->now();
   image->encoding = "rgba8";

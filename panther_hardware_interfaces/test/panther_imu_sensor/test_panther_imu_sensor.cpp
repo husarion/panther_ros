@@ -26,8 +26,8 @@
 
 #include "lifecycle_msgs/msg/state.hpp"
 
+#include "husarion_ugv_utils/test/test_utils.hpp"
 #include "panther_hardware_interfaces/panther_imu_sensor/panther_imu_sensor.hpp"
-#include "panther_utils/test/test_utils.hpp"
 
 class PantherImuSensorWrapper : public panther_hardware_interfaces::PantherImuSensor
 {

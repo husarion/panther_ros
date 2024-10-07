@@ -23,7 +23,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 namespace husarion_ugv_battery
 {
@@ -33,9 +33,9 @@ RoboteqBattery::RoboteqBattery(
   const RoboteqBatteryParams & params)
 : GetRobotDriverState(get_driver_state), driver_state_timeout_(params.driver_state_timeout)
 {
-  voltage_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+  voltage_ma_ = std::make_unique<husarion_ugv_utils::MovingAverage<float>>(
     params.voltage_window_len, std::numeric_limits<float>::quiet_NaN());
-  current_ma_ = std::make_unique<panther_utils::MovingAverage<float>>(
+  current_ma_ = std::make_unique<husarion_ugv_utils::MovingAverage<float>>(
     params.current_window_len, std::numeric_limits<float>::quiet_NaN());
 }
 

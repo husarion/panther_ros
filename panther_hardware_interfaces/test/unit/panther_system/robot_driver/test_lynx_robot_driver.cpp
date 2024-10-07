@@ -29,7 +29,7 @@
 #include "utils/mock_driver.hpp"
 #include "utils/test_constants.hpp"
 
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 class LynxRobotDriverWrapper : public panther_hardware_interfaces::LynxRobotDriver
 {
@@ -115,7 +115,7 @@ TEST_F(TestLynxRobotDriver, SendSpeedCommandsSendCmdVelError)
   EXPECT_CALL(*robot_driver_->mock_left_motor_driver, SendCmdVel(::testing::_))
     .WillOnce(::testing::Throw(std::runtime_error("")));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { robot_driver_->SendSpeedCommands({0.0, 0.0}); }, "Driver send Roboteq cmd failed:"));
 }
 
@@ -123,7 +123,7 @@ TEST_F(TestLynxRobotDriver, SendSpeedCommandsCANError)
 {
   EXPECT_CALL(*robot_driver_->mock_driver, IsCANError()).WillOnce(::testing::Return(true));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { robot_driver_->SendSpeedCommands({0.0, 0.0}); },
     "CAN error detected on the Driver when trying to write speed commands."));
 }
@@ -132,7 +132,7 @@ TEST_F(TestLynxRobotDriver, SendSpeedCommandsInvalidVectorSize)
 {
   const std::vector<float> speeds = {0.1, 0.2, 0.3};
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     [&]() { robot_driver_->SendSpeedCommands(speeds); }, "Invalid speeds vector size"));
 }
 

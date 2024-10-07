@@ -24,7 +24,7 @@ set(PACKAGE_DEPENDENCIES
     hardware_interface
     imu_filter_madgwick
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     phidgets_api
     PkgConfig
     pluginlib
@@ -90,7 +90,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ros_testing REQUIRED)
-  find_package(panther_utils REQUIRED)
+  find_package(husarion_ugv_utils REQUIRED)
 
   install(DIRECTORY test/config DESTINATION share/${PROJECT_NAME}/test)
 
@@ -100,7 +100,7 @@ if(BUILD_TESTING)
                   test/panther_imu_sensor/test_panther_imu_sensor.cpp)
   ament_target_dependencies(
     ${PROJECT_NAME}_test_panther_imu_sensor hardware_interface rclcpp
-    panther_utils panther_msgs phidgets_api)
+    husarion_ugv_utils panther_msgs phidgets_api)
   target_link_libraries(${PROJECT_NAME}_test_panther_imu_sensor ${PROJECT_NAME}
                         phidgets_spatial_parameters)
 
@@ -118,7 +118,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_data_converters
-                            panther_msgs panther_utils)
+                            panther_msgs husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_data_converters
                         PkgConfig::LIBLELY_COAPP)
 
@@ -131,7 +131,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_canopen_manager rclcpp
-                            panther_msgs panther_utils)
+                            panther_msgs husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_canopen_manager
                         PkgConfig::LIBLELY_COAPP)
 
@@ -146,7 +146,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_driver rclcpp
-                            panther_msgs panther_utils)
+                            panther_msgs husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_driver
                         PkgConfig::LIBLELY_COAPP)
 
@@ -163,7 +163,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_roboteq_robot_driver rclcpp
-                            panther_msgs panther_utils)
+                            panther_msgs husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_roboteq_robot_driver
                         PkgConfig::LIBLELY_COAPP)
 
@@ -181,7 +181,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_lynx_robot_driver rclcpp
-                            panther_msgs panther_utils)
+                            panther_msgs husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_lynx_robot_driver
                         PkgConfig::LIBLELY_COAPP)
 
@@ -199,7 +199,7 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>
            $<INSTALL_INTERFACE:include>)
   ament_target_dependencies(${PROJECT_NAME}_test_panther_robot_driver rclcpp
-                            panther_msgs panther_utils)
+                            panther_msgs husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_panther_robot_driver
                         PkgConfig::LIBLELY_COAPP)
 
@@ -208,7 +208,8 @@ if(BUILD_TESTING)
     test/panther_system/gpio/test_gpio_controller.cpp
     src/panther_system/gpio/gpio_controller.cpp
     src/panther_system/gpio/gpio_driver.cpp)
-  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller panther_utils)
+  ament_target_dependencies(${PROJECT_NAME}_test_gpiod_controller
+                            husarion_ugv_utils)
   target_link_libraries(${PROJECT_NAME}_test_gpiod_controller
                         PkgConfig::LIBGPIOD)
 
@@ -228,7 +229,7 @@ if(BUILD_TESTING)
     diagnostic_updater
     rclcpp
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     realtime_tools
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_system_ros_interface
@@ -256,7 +257,7 @@ if(BUILD_TESTING)
     hardware_interface
     rclcpp
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     std_msgs
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_ugv_system
@@ -289,7 +290,7 @@ if(BUILD_TESTING)
     hardware_interface
     rclcpp
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     std_msgs
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_lynx_system
@@ -323,7 +324,7 @@ if(BUILD_TESTING)
     hardware_interface
     rclcpp
     panther_msgs
-    panther_utils
+    husarion_ugv_utils
     std_msgs
     std_srvs)
   target_link_libraries(${PROJECT_NAME}_test_panther_system
@@ -333,7 +334,8 @@ if(BUILD_TESTING)
   if(TEST_INTEGRATION) # Hardware integration
     ament_add_gtest(${PROJECT_NAME}_test_gpiod_driver
                     test/panther_system/gpio/test_gpio_driver.cpp)
-    ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver panther_utils)
+    ament_target_dependencies(${PROJECT_NAME}_test_gpiod_driver
+                              husarion_ugv_utils)
     target_link_libraries(${PROJECT_NAME}_test_gpiod_driver ${PROJECT_NAME}
                           PkgConfig::LIBGPIOD)
   endif()

@@ -19,11 +19,11 @@
 
   <depend>behaviortree_cpp</depend>
   <depend>behaviortree_ros2</depend>
+  <depend>husarion_ugv_utils</depend>
   <depend>iputils-ping</depend>
   <depend>libboost-dev</depend>
   <depend>libssh-dev</depend>
   <depend>panther_msgs</depend>
-  <depend>panther_utils</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
   <depend>std_srvs</depend>

@@ -14,29 +14,29 @@
 
 #include "gtest/gtest.h"
 
-#include "panther_utils/moving_average.hpp"
+#include "husarion_ugv_utils/moving_average.hpp"
 
 TEST(TestMovingAverage, TestDefaultInitialValue)
 {
-  panther_utils::MovingAverage<double> ma(4);
+  husarion_ugv_utils::MovingAverage<double> ma(4);
   EXPECT_EQ(0.0, ma.GetAverage());
 }
 
 TEST(TestMovingAverage, TestIntialValue)
 {
-  panther_utils::MovingAverage<float> ma(4, 1.0);
+  husarion_ugv_utils::MovingAverage<float> ma(4, 1.0);
   EXPECT_EQ(1.0, ma.GetAverage());
 
-  panther_utils::MovingAverage<double> ma_1(10, 3.7);
+  husarion_ugv_utils::MovingAverage<double> ma_1(10, 3.7);
   EXPECT_EQ(3.7, ma_1.GetAverage());
 
-  panther_utils::MovingAverage<int> ma_2(3, 4);
+  husarion_ugv_utils::MovingAverage<int> ma_2(3, 4);
   EXPECT_EQ(4, ma_2.GetAverage());
 }
 
 TEST(TestMovingAverage, TestOutputValues)
 {
-  panther_utils::MovingAverage<double> ma(4);
+  husarion_ugv_utils::MovingAverage<double> ma(4);
   ma.Roll(1.0);
   ASSERT_EQ(1.0, ma.GetAverage());
 
@@ -57,7 +57,7 @@ TEST(TestMovingAverage, TestOutputValues)
 TEST(TestMovingAverage, TestHighOverload)
 {
   const std::size_t window_len = 1000;
-  panther_utils::MovingAverage<double> ma(window_len);
+  husarion_ugv_utils::MovingAverage<double> ma(window_len);
 
   double sum = 0.0;
   for (std::size_t i = 1; i <= window_len * 10; i++) {
@@ -74,7 +74,7 @@ TEST(TestMovingAverage, TestHighOverload)
 
 TEST(TestMovingAverage, TestIntFloorRound)
 {
-  panther_utils::MovingAverage<int> ma;
+  husarion_ugv_utils::MovingAverage<int> ma;
   ma.Roll(1);
   ma.Roll(2);
   EXPECT_EQ(1, ma.GetAverage());
@@ -82,7 +82,7 @@ TEST(TestMovingAverage, TestIntFloorRound)
 
 TEST(TestMovingAverage, TestReset)
 {
-  panther_utils::MovingAverage<double> ma(4);
+  husarion_ugv_utils::MovingAverage<double> ma(4);
   ma.Roll(1.0);
   ma.Roll(2.0);
   ma.Roll(1.0);
@@ -99,7 +99,7 @@ TEST(TestMovingAverage, TestReset)
 
 TEST(TestMovingAverage, TestResetToInitialValue)
 {
-  panther_utils::MovingAverage<double> ma(4, 7.0);
+  husarion_ugv_utils::MovingAverage<double> ma(4, 7.0);
   ma.Roll(1.0);
   ma.Roll(2.0);
   EXPECT_EQ(1.5, ma.GetAverage());

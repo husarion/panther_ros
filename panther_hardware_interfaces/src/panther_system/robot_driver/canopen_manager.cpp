@@ -24,7 +24,7 @@
 
 #include "ament_index_cpp/get_package_share_directory.hpp"
 
-#include "panther_utils/configure_rt.hpp"
+#include "husarion_ugv_utils/configure_rt.hpp"
 
 namespace panther_hardware_interfaces
 {
@@ -43,7 +43,7 @@ void CANopenManager::Initialize()
   canopen_communication_started_.store(false);
 
   try {
-    panther_utils::ConfigureRT(kCANopenThreadSchedPriority);
+    husarion_ugv_utils::ConfigureRT(kCANopenThreadSchedPriority);
   } catch (const std::runtime_error & e) {
     std::cerr << "An exception occurred while configuring RT: " << e.what() << std::endl
               << "Continuing with regular thread settings (it may have a negative impact on the "

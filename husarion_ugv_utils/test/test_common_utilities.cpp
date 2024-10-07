@@ -20,14 +20,14 @@
 
 #include "gtest/gtest.h"
 
-#include "panther_utils/common_utilities.hpp"
+#include "husarion_ugv_utils/common_utilities.hpp"
 
 TEST(TestSetPrecision, TwoDigitPrecision)
 {
   float value = 3.14159;
   float expected_result = 3.14;
 
-  float result = panther_utils::common_utilities::SetPrecision(value, 2);
+  float result = husarion_ugv_utils::common_utilities::SetPrecision(value, 2);
 
   EXPECT_FLOAT_EQ(expected_result, result);
 }
@@ -37,7 +37,7 @@ TEST(TestSetPrecision, ZeroDigitPrecision)
   float value = 3.54159;
   float expected_result = 4.0;
 
-  float result = panther_utils::common_utilities::SetPrecision(value, 0);
+  float result = husarion_ugv_utils::common_utilities::SetPrecision(value, 0);
 
   EXPECT_FLOAT_EQ(expected_result, result);
 }
@@ -46,7 +46,7 @@ TEST(TestSetPrecision, NegativeValue)
 {
   float value = -3.14159;
   float expected_result = -3.14;
-  float result = panther_utils::common_utilities::SetPrecision(value, 2);
+  float result = husarion_ugv_utils::common_utilities::SetPrecision(value, 2);
   EXPECT_FLOAT_EQ(expected_result, result);
 }
 
@@ -54,7 +54,7 @@ TEST(TestSetPrecision, LargeValue)
 {
   float value = 123456.789;
   float expected_result = 123456.79;
-  float result = panther_utils::common_utilities::SetPrecision(value, 2);
+  float result = husarion_ugv_utils::common_utilities::SetPrecision(value, 2);
   EXPECT_FLOAT_EQ(expected_result, result);
 }
 
@@ -64,7 +64,7 @@ TEST(TestCountPercentage, ValidValues)
   int total = 100;
   float expected_result = 25.00;
 
-  float result = panther_utils::common_utilities::CountPercentage(value, total);
+  float result = husarion_ugv_utils::common_utilities::CountPercentage(value, total);
 
   EXPECT_FLOAT_EQ(expected_result, result);
 }
@@ -75,7 +75,7 @@ TEST(TestCountPercentage, ZeroTotal)
   int total = 0;
 
   EXPECT_THROW(
-    panther_utils::common_utilities::CountPercentage(value, total), std::invalid_argument);
+    husarion_ugv_utils::common_utilities::CountPercentage(value, total), std::invalid_argument);
 }
 
 TEST(TestCountPercentage, ZeroValue)
@@ -84,7 +84,7 @@ TEST(TestCountPercentage, ZeroValue)
   int total = 100;
   float expected_result = 0.00;
 
-  float result = panther_utils::common_utilities::CountPercentage(value, total);
+  float result = husarion_ugv_utils::common_utilities::CountPercentage(value, total);
 
   EXPECT_FLOAT_EQ(expected_result, result);
 }
@@ -95,7 +95,7 @@ TEST(TestPrefixMapKeys, CorrectlyPrefixesKeys)
   std::string prefix = "prefix_";
   std::map<std::string, int> expected_map = {{"prefix_key1", 1}, {"prefix_key2", 2}};
 
-  auto result_map = panther_utils::common_utilities::PrefixMapKeys(input_map, prefix);
+  auto result_map = husarion_ugv_utils::common_utilities::PrefixMapKeys(input_map, prefix);
 
   EXPECT_EQ(result_map, expected_map);
 }
@@ -106,7 +106,7 @@ TEST(TestPrefixMapKeys, HandlesEmptyPrefix)
   std::string prefix = "";
   std::map<std::string, int> expected_map = input_map;  // The maps should be identical
 
-  auto result_map = panther_utils::common_utilities::PrefixMapKeys(input_map, prefix);
+  auto result_map = husarion_ugv_utils::common_utilities::PrefixMapKeys(input_map, prefix);
 
   EXPECT_EQ(result_map, expected_map);
 }
@@ -117,7 +117,7 @@ TEST(TestPrefixMapKeys, HandlesEmptyMap)
   std::string prefix = "prefix_";
   std::map<std::string, int> expected_map;
 
-  auto result_map = panther_utils::common_utilities::PrefixMapKeys(input_map, prefix);
+  auto result_map = husarion_ugv_utils::common_utilities::PrefixMapKeys(input_map, prefix);
 
   EXPECT_EQ(result_map, expected_map);
 }
@@ -128,14 +128,14 @@ TEST(TestPrefixMapKeys, HandlesNonAlphanumericPrefix)
   std::string prefix = "prefix_@#";
   std::map<std::string, int> expected_map = {{"prefix_@#key1", 1}, {"prefix_@#key2", 2}};
 
-  auto result_map = panther_utils::common_utilities::PrefixMapKeys(input_map, prefix);
+  auto result_map = husarion_ugv_utils::common_utilities::PrefixMapKeys(input_map, prefix);
 
   EXPECT_EQ(result_map, expected_map);
 }
 
 TEST(TestOpenFile, HandleOpenFile)
 {
-  std::string path = testing::TempDir() + "test_panther_utils_open_file";
+  std::string path = testing::TempDir() + "test_husarion_ugv_utils_open_file";
 
   // Make sure that there is no random file.
   std::filesystem::remove(path);
@@ -143,26 +143,27 @@ TEST(TestOpenFile, HandleOpenFile)
   std::ofstream ofs(path);
   ofs.close();
 
-  EXPECT_NO_THROW({ panther_utils::common_utilities::OpenFile(path, std::ios_base::out); });
+  EXPECT_NO_THROW({ husarion_ugv_utils::common_utilities::OpenFile(path, std::ios_base::out); });
   std::filesystem::remove(path);
 }
 
 TEST(TestOpenFile, HandleOpenFileThrow)
 {
-  std::string path = testing::TempDir() + "test_panther_utils_open_file";
+  std::string path = testing::TempDir() + "test_husarion_ugv_utils_open_file";
 
   // Make sure that there is no random file.
   std::filesystem::remove(path);
 
   EXPECT_THROW(
-    { panther_utils::common_utilities::OpenFile(path, std::ios_base::in); }, std::runtime_error);
+    { husarion_ugv_utils::common_utilities::OpenFile(path, std::ios_base::in); },
+    std::runtime_error);
 }
 
 TEST(TestMeetsVersionRequirement, SameVersion)
 {
   float version = 1.06;
 
-  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+  auto is_met = husarion_ugv_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
 
   EXPECT_TRUE(is_met);
 }
@@ -171,7 +172,7 @@ TEST(TestMeetsVersionRequirement, LowerVersion)
 {
   float version = 1.2;
 
-  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+  auto is_met = husarion_ugv_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
 
   EXPECT_TRUE(is_met);
 }
@@ -180,7 +181,7 @@ TEST(TestMeetsVersionRequirement, HigherVersion)
 {
   float version = 1.0;
 
-  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+  auto is_met = husarion_ugv_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
 
   EXPECT_FALSE(is_met);
 }
@@ -189,7 +190,7 @@ TEST(TestMeetsVersionRequirement, NaNVersionRequired)
 {
   float version = std::numeric_limits<float>::quiet_NaN();
 
-  auto is_met = panther_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
+  auto is_met = husarion_ugv_utils::common_utilities::MeetsVersionRequirement(version, 1.06);
 
   EXPECT_FALSE(is_met);
 }

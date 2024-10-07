@@ -18,15 +18,15 @@
 
 #include "gtest/gtest.h"
 
-#include "panther_utils/test/test_utils.hpp"
+#include "husarion_ugv_utils/test/test_utils.hpp"
 
 template <typename T>
 void TestCheckNaNVector()
 {
   std::vector<T> vector(10, std::numeric_limits<T>::quiet_NaN());
-  EXPECT_TRUE(panther_utils::test_utils::CheckNaNVector(vector));
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::CheckNaNVector(vector));
   vector.push_back(1.0);
-  EXPECT_FALSE(panther_utils::test_utils::CheckNaNVector(vector));
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::CheckNaNVector(vector));
 }
 
 TEST(TestTestUtils, CheckNanVector)
@@ -39,46 +39,46 @@ TEST(TestTestUtils, CheckNanVector)
 
 TEST(TestTestUtils, IsMessageThrownTrue)
 {
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { throw std::runtime_error("Example exception"); }, "Example exception"));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::out_of_range>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::out_of_range>(
     []() { throw std::out_of_range("Example exception"); }, "Example exception"));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     []() { throw std::invalid_argument("Example exception"); }, "Example exception"));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { throw std::runtime_error("Example exception"); }, "Example"));
 
-  EXPECT_TRUE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_TRUE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { throw std::runtime_error("Example exception"); }, "exception"));
 }
 
 TEST(TestTestUtils, IsMessageThrownDifferentException)
 {
-  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { throw std::out_of_range("Example exception"); }, "Example exception"));
 
-  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::out_of_range>(
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::IsMessageThrown<std::out_of_range>(
     []() { throw std::invalid_argument("Example exception"); }, "Example exception"));
 
-  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::invalid_argument>(
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::IsMessageThrown<std::invalid_argument>(
     []() { throw std::runtime_error("Example exception"); }, "Example exception"));
 }
 
 TEST(TestTestUtils, IsMessageThrownDifferentMessage)
 {
-  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { throw std::runtime_error("Example exception"); }, "Different exception message"));
 
-  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { throw std::runtime_error("Example exception"); }, "Example exception "));
 }
 
 TEST(TestTestUtils, IsMessageThrownNoThrow)
 {
-  EXPECT_FALSE(panther_utils::test_utils::IsMessageThrown<std::runtime_error>(
+  EXPECT_FALSE(husarion_ugv_utils::test_utils::IsMessageThrown<std::runtime_error>(
     []() { return; }, "Example exception"));
 }
 
