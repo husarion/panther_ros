@@ -109,7 +109,7 @@
   <!-- Lights -->
   <xacro:macro name="light" params="reference_frame name topic namespace:=''">
     <gazebo>
-      <plugin filename="LEDStrip" name="panther_gazebo::LEDStrip">
+      <plugin filename="LEDStrip" name="husarion_ugv_gazebo::LEDStrip">
         <light_name>${name}</light_name>
         <topic>${topic}</topic>
         <namespace>${namespace}</namespace>

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gazebo/led_strip.hpp"
+#include "husarion_ugv_gazebo/led_strip.hpp"
 
 #include <cstddef>
 #include <limits>
@@ -25,7 +25,7 @@
 #include <gz/msgs/color.pb.h>
 #include <gz/msgs/marker.pb.h>
 
-namespace panther_gazebo
+namespace husarion_ugv_gazebo
 {
 void LEDStrip::Configure(
   const gz::sim::Entity & entity, const std::shared_ptr<const sdf::Element> & sdf,
@@ -275,8 +275,8 @@ void LEDStrip::CreateMarker(
   node_.Request("/marker", marker_msg);
 }
 
-}  // namespace panther_gazebo
+}  // namespace husarion_ugv_gazebo
 
 IGNITION_ADD_PLUGIN(
-  panther_gazebo::LEDStrip, gz::sim::System, panther_gazebo::LEDStrip::ISystemConfigure,
-  panther_gazebo::LEDStrip::ISystemPreUpdate)
+  husarion_ugv_gazebo::LEDStrip, gz::sim::System, husarion_ugv_gazebo::LEDStrip::ISystemConfigure,
+  husarion_ugv_gazebo::LEDStrip::ISystemPreUpdate)

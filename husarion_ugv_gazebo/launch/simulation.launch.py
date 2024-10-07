@@ -33,7 +33,7 @@ def generate_launch_description():
     declare_gz_gui = DeclareLaunchArgument(
         "gz_gui",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "teleop_with_estop.config"]
+            [FindPackageShare("husarion_ugv_gazebo"), "config", "teleop_with_estop.config"]
         ),
         description="Run simulation with specific GUI layout.",
     )
@@ -63,7 +63,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("panther_gazebo"),
+                    FindPackageShare("husarion_ugv_gazebo"),
                     "launch",
                     "simulate_robot.launch.py",
                 ]

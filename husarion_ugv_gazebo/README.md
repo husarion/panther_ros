@@ -1,4 +1,4 @@
-# panther_gazebo
+# husarion_ugv_gazebo
 
 The package contains a launch file and source files used to run the robot simulation in Gazebo. The simulator tries to reproduce the behavior of a real robot as much as possible, including the provision of an analogous ROS_API.
 
@@ -26,7 +26,7 @@ The package contains a launch file and source files used to run the robot simula
 - `hardware/e_stop_reset` [*std_srvs/Trigger*]: Resets E-stop.
 - `hardware/e_stop_trigger` [*std_srvs/Trigger*]: Triggers E-stop.
 
-### GzPantherSystem
+### EStopSystem
 
 Plugin based on `ign_system` is responsible for handling sensor interfaces (only IMU for now) and sending requests for joints compatible with `ros2_control`. Plugin also adds E-Stop support.
 

@@ -1,7 +1,7 @@
-<library path="panther_simulation_plugins">
+<library path="estop_system">
   <class
-    name="panther_gazebo/GzPantherSystem"
-    type="panther_gazebo::GzPantherSystem"
+    name="husarion_ugv_gazebo/EStopSystem"
+    type="husarion_ugv_gazebo::EStopSystem"
     base_class_type="ign_ros2_control::IgnitionSystemInterface">
     <description>
       Control joints position with E-Stop functionalities in Gazebo using ROS2.

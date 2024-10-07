@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO_GUI_E_STOP_HPP_
-#define PANTHER_GAZEBO_GUI_E_STOP_HPP_
+#ifndef HUSARION_UGV_GAZEBO_GUI_E_STOP_HPP_
+#define HUSARION_UGV_GAZEBO_GUI_E_STOP_HPP_
 
 #include <string>
 
@@ -23,7 +23,7 @@
 
 #include <std_srvs/srv/trigger.hpp>
 
-namespace panther_gazebo
+namespace husarion_ugv_gazebo
 {
 
 class EStop : public ignition::gui::Plugin
@@ -59,6 +59,6 @@ private:
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_reset_client_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr e_stop_trigger_client_;
 };
-}  // namespace panther_gazebo
+}  // namespace husarion_ugv_gazebo
 
-#endif  // PANTHER_GAZEBO_GUI_E_STOP_HPP_
+#endif  // HUSARION_UGV_GAZEBO_GUI_E_STOP_HPP_

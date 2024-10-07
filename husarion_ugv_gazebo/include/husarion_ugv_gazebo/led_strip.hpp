@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO_LED_STRIP_HPP_
-#define PANTHER_GAZEBO_LED_STRIP_HPP_
+#ifndef HUSARION_UGV_GAZEBO_LED_STRIP_HPP_
+#define HUSARION_UGV_GAZEBO_LED_STRIP_HPP_
 
 #include <chrono>
 #include <string>
@@ -33,7 +33,7 @@
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/light.pb.h>
 
-namespace panther_gazebo
+namespace husarion_ugv_gazebo
 {
 
 /**
@@ -144,6 +144,6 @@ private:
     1)};  // Avoid initialization errors when the robot is not yet spawned on the scene.
 };
 
-}  // namespace panther_gazebo
+}  // namespace husarion_ugv_gazebo
 
-#endif  // PANTHER_GAZEBO_LED_STRIP_HPP_
+#endif  // HUSARION_UGV_GAZEBO_LED_STRIP_HPP_

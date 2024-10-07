@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_gazebo/gui/e_stop.hpp"
+#include "husarion_ugv_gazebo/gui/e_stop.hpp"
 
 #include <memory>
 
@@ -23,7 +23,7 @@
 
 #include <std_srvs/srv/trigger.hpp>
 
-namespace panther_gazebo
+namespace husarion_ugv_gazebo
 {
 
 EStop::EStop() : ignition::gui::Plugin() { rclcpp::init(0, nullptr); }
@@ -90,6 +90,6 @@ void EStop::SetNamespace(const QString & ns)
   ignmsg << "Changed namespace to: " << namespace_ << std::endl;
 }
 
-}  // namespace panther_gazebo
+}  // namespace husarion_ugv_gazebo
 
-IGNITION_ADD_PLUGIN(panther_gazebo::EStop, ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(husarion_ugv_gazebo::EStop, ignition::gui::Plugin)

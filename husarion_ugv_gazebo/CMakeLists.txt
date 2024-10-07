@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(panther_gazebo)
+project(husarion_ugv_gazebo)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -28,21 +28,21 @@ find_package(Qt5 REQUIRED COMPONENTS Core Quick QuickControls2)
 include_directories(include ${Qt5Core_INCLUDE_DIRS} ${Qt5Qml_INCLUDE_DIRS}
                     ${Qt5Quick_INCLUDE_DIRS} ${Qt5QuickControls2_INCLUDE_DIRS})
 
-add_library(panther_simulation_plugins SHARED src/gz_panther_system.cpp)
+add_library(estop_system SHARED src/estop_system.cpp)
 ament_target_dependencies(
-  panther_simulation_plugins
+  estop_system
   hardware_interface
   ign_ros2_control
   rclcpp
   rclcpp_lifecycle
   std_msgs
   std_srvs)
-target_link_libraries(panther_simulation_plugins ignition-gazebo6)
+target_link_libraries(estop_system ignition-gazebo6)
 
 set(CMAKE_AUTOMOC ON)
 qt5_add_resources(resources_rcc src/gui/EStop.qrc)
 
-add_library(EStop SHARED include/panther_gazebo/gui/e_stop.hpp
+add_library(EStop SHARED include/husarion_ugv_gazebo/gui/e_stop.hpp
                          src/gui/e_stop.cpp ${resources_rcc})
 ament_target_dependencies(EStop rclcpp std_srvs)
 target_link_libraries(
@@ -60,7 +60,7 @@ target_link_libraries(LEDStrip ignition-gazebo6 ignition-msgs8 ignition-plugin1
                       ignition-transport11)
 
 install(
-  TARGETS panther_simulation_plugins
+  TARGETS estop_system
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
@@ -86,10 +86,8 @@ endif()
 
 ament_export_include_directories(include)
 
-pluginlib_export_plugin_description_file(ign_ros2_control
-                                         panther_simulation_plugins.xml)
+pluginlib_export_plugin_description_file(ign_ros2_control plugins.xml)
 
-ament_environment_hooks(
-  "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in")
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/gz_envs.sh.in")
 
 ament_package()

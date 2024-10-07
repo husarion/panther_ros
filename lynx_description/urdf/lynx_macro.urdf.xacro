@@ -57,7 +57,7 @@
     <ros2_control name="${ns}lynx_system" type="system">
       <hardware>
         <xacro:if value="${use_sim}">
-          <plugin>panther_gazebo/GzPantherSystem</plugin>
+          <plugin>husarion_ugv_gazebo/EStopSystem</plugin>
           <param name="e_stop_initial_state">true</param>
         </xacro:if>
 

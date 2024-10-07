@@ -1,4 +1,4 @@
-# panther_gazebo
+# husarion_ugv_gazebo
 
 ## Use of GPS in Simulation
 

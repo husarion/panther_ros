@@ -68,7 +68,7 @@ ros2 launch husarion_ugv_bringup bringup.launch.py
 Simulation:
 
 ```bash
-ros2 launch panther_gazebo simulation.launch.py
+ros2 launch husarion_ugv_gazebo simulation.launch.py
 ```
 
 > [!IMPORTANT]
@@ -93,7 +93,7 @@ Launch arguments are largely common to both simulation and physical robot. Howev
 | 🤖🖥️  | `controller_config_path`     | Path to controller configuration file. A path to custom configuration can be specified here. <br/> ***string:*** [`{wheel_type}_controller.yaml`](./husarion_ugv_controller/config/)                                                                                                                                                                              |
 | 🤖   | `disable_manager`            | Enable or disable manager_bt_node. <br/> ***bool:*** `False`                                                                                                                                                                                                                                                                      |
 | 🤖🖥️  | `fuse_gps`                   | Include GPS for data fusion. <br/> ***bool:*** `False`                                                                                                                                                                                                                                                                            |
-| 🖥️   | `gz_bridge_config_path`      | Path to the parameter_bridge configuration file. <br/> ***string:*** [`gz_bridge.yaml`](./panther_gazebo/config/gz_bridge.yaml)                                                                                                                                                                                                                                 |
+| 🖥️   | `gz_bridge_config_path`      | Path to the parameter_bridge configuration file. <br/> ***string:*** [`gz_bridge.yaml`](./husarion_ugv_gazebo/config/gz_bridge.yaml)                                                                                                                                                                                                                                 |
 | 🖥️   | `gz_gui`                     | Run simulation with specific GUI layout. <br/> ***string:*** [`teleop.config`](https://github.com/husarion/husarion_gz_worlds/blob/main/config/teleop.config)                                                                                                                                                                                                                |
 | 🖥️   | `gz_headless_mode`           | Run the simulation in headless mode. Useful when a GUI is not needed or to reduce the number of calculations. <br/> ***bool:*** `False`                                                                                                                                                                                             |
 | 🖥️   | `gz_log_level`               | Adjust the level of console output. <br/> ***int:*** `1` (choices: `0`, `1`, `2`, `3`, `4`)                                                                                                                                                                                                                                                                               |

@@ -51,7 +51,7 @@ def generate_launch_description():
             "This configuration is intended for use in simulations only."
         ),
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "battery_plugin.yaml"]
+            [FindPackageShare("husarion_ugv_gazebo"), "config", "battery_plugin.yaml"]
         ),
     )
 
@@ -75,7 +75,7 @@ def generate_launch_description():
     declare_gz_bridge_config_path_arg = DeclareLaunchArgument(
         "gz_bridge_config_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_gazebo"), "config", "gz_bridge.yaml"]
+            [FindPackageShare("husarion_ugv_gazebo"), "config", "gz_bridge.yaml"]
         ),
         description="Path to the parameter_bridge configuration file.",
     )
@@ -107,7 +107,7 @@ def generate_launch_description():
     spawn_robot_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [FindPackageShare("panther_gazebo"), "launch", "spawn_robot.launch.py"]
+                [FindPackageShare("husarion_ugv_gazebo"), "launch", "spawn_robot.launch.py"]
             )
         ),
         launch_arguments={

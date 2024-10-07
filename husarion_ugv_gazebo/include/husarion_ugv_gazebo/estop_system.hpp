@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
-#define PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
+#ifndef HUSARION_UGV_GAZEBO_ESTOP_SYSTEM
+#define HUSARION_UGV_GAZEBO_ESTOP_SYSTEM
 
 #include <memory>
 
@@ -27,7 +27,7 @@
 #include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
-namespace panther_gazebo
+namespace husarion_ugv_gazebo
 {
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 using BoolMsg = std_msgs::msg::Bool;
@@ -38,7 +38,7 @@ using TriggerSrv = std_srvs::srv::Trigger;
  * `hardware_interface::SystemInterface`. This class inherits `ign_ros2_control::IgnitionSystem`
  * and implements additional functionalities like E-stop handling.
  */
-class GzPantherSystem : public ign_ros2_control::IgnitionSystem
+class EStopSystem : public ign_ros2_control::IgnitionSystem
 {
 public:
   CallbackReturn on_init(const hardware_interface::HardwareInfo & system_info) override;
@@ -69,6 +69,6 @@ private:
   rclcpp::Service<TriggerSrv>::SharedPtr e_stop_trigger_service_;
 };
 
-}  // namespace panther_gazebo
+}  // namespace husarion_ugv_gazebo
 
-#endif  // PANTHER_GAZEBO_GZ_PANTHER_SYSTEM
+#endif  // HUSARION_UGV_GAZEBO_ESTOP_SYSTEM
