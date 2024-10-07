@@ -26,18 +26,12 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    device_namespace = LaunchConfiguration("device_namespace")
-    declare_device_namespace_arg = DeclareLaunchArgument(
-        "device_namespace",
-        default_value="gps",
-        description="Namespace for the device, utilized in TF frames and preceding device topics. This aids in differentiating between multiple cameras on the same robot.",
-    )
 
-    params_file = LaunchConfiguration("params_file")
-    declare_params_file_arg = DeclareLaunchArgument(
-        "params_file",
+    nmea_params_path = LaunchConfiguration("nmea_params_path")
+    declare_nmea_params_path_arg = DeclareLaunchArgument(
+        "nmea_params_path",
         default_value=PathJoinSubstitution(
-            [FindPackageShare("husarion_ugv_localization"), "config", "nmea_navsat_params.yaml"]
+            [FindPackageShare("panther_localization"), "config", "nmea_navsat.yaml"]
         ),
         description="Path to the parameter file for the nmea_socket_driver node.",
     )
@@ -49,6 +43,7 @@ def generate_launch_description():
         description="Namespace to all launched nodes and use namespace as tf_prefix. This aids in differentiating between multiple robots with the same devices.",
     )
 
+    device_namespace = "gps"
     nmea_driver_node = Node(
         package="nmea_navsat_driver",
         executable="nmea_socket_driver",
@@ -59,7 +54,7 @@ def generate_launch_description():
                 "frame_id": device_namespace,
                 "tf_prefix": namespace,
             },
-            params_file,
+            nmea_params_path,
         ],
         remappings=[
             ("fix", [device_namespace, "/fix"]),
@@ -71,9 +66,8 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            declare_params_file_arg,
+            declare_nmea_params_path_arg,
             declare_robot_namespace_arg,
-            declare_device_namespace_arg,
             nmea_driver_node,
         ]
     )
