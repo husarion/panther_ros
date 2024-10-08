@@ -30,7 +30,7 @@
       right_wheel_names: [fr_wheel_joint, rr_wheel_joint]
 
       wheel_separation: 0.45
-      wheel_radius: 0.1445
+      wheel_radius: 0.1348
 
       # For skid drive kinematics it will act as ICR coefficient, kinematic model with ICR
       # coefficient isn't totally accurate and this coefficient can differ for various ground types
