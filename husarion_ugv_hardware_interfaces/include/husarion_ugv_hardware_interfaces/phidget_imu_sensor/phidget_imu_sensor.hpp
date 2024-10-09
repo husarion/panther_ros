@@ -52,7 +52,7 @@ using StateInterface = hardware_interface::StateInterface;
 using CommandInterface = hardware_interface::CommandInterface;
 
 /**
- * @brief Class that implements SensorInterface from ros2_control for Panther
+ * @brief Class that implements SensorInterface from ros2_control for PhidgetSpatial IMU
  */
 class PhidgetImuSensor : public hardware_interface::SensorInterface
 {
