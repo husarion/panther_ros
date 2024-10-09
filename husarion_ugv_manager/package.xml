@@ -4,7 +4,7 @@
   <name>husarion_ugv_manager</name>
 
   <version>2.1.1</version>
-  <description>Set of nodes used for high level management of Husarion UGV robots</description>
+  <description>Set of nodes used for high level management of Husarion UGV</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 

@@ -5,7 +5,7 @@
 >
 > Please be advised that the software you are about to use is a Beta version of the ROS 2 Driver for Lynx and Panther. It is functional, and the architecture will not change significantly. Although it has been tested by the Husarion team, some stability issues and bugs may still occur.
 >
-> We would greatly appreciate your feedback regarding the Panther ROS 2 driver. You can reach us in the following ways:
+> We would greatly appreciate your feedback regarding the Husarion UGV ROS 2 driver. You can reach us in the following ways:
 >
 > - By email at: [support@husarion.com](mailto:support@husarion.com)
 > - Via our community forum: [Husarion Community](https://community.husarion.com)
@@ -13,12 +13,12 @@
 
 ## ROS 2 System Design
 
-This section describes the ROS packages used in Husarion UGV robots. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros) GitHub repository.
+This section describes the ROS packages used in Husarion UGV. These packages are located in the [panther_ros](https://github.com/husarion/panther_ros) GitHub repository.
 
 > [!NOTE]
 > **Hardware Compatibility**
 >
-> This package supports **Lynx v0.2**, **Panther v1.2+**. This is caused by internal hardware differences. Despite that, the ROS API was kept as closely matched between those revisions as possible and should be transparent in most of the use cases.
+> This package supports **Lynx v0.2+**, **Panther v1.2+**. There may be small differences between robot models. This is caused by the hardware differences. Despite that, the ROS API was kept as closely matched between those revisions as possible and should be transparent in most of the use cases.
 
 <!-- TODO: add this differences -->
 

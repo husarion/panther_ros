@@ -1,6 +1,6 @@
 # husarion_ugv_manager
 
-A package containing nodes responsible for high-level control of Husarion UGV robots.
+A package containing nodes responsible for high-level control of Husarion UGV.
 
 ## Launch Files
 

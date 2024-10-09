@@ -45,7 +45,7 @@ using StateInterface = hardware_interface::StateInterface;
 using CommandInterface = hardware_interface::CommandInterface;
 
 /**
- * @brief Class that implements SystemInterface from ros2_control for Husarion UGV robots
+ * @brief Class that implements SystemInterface from ros2_control for Husarion UGV
  */
 class UGVSystem : public hardware_interface::SystemInterface
 {

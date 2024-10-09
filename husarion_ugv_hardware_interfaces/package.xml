@@ -3,7 +3,7 @@
 <package format="3">
   <name>husarion_ugv_hardware_interfaces</name>
   <version>2.1.1</version>
-  <description>Hardware controller for Panther</description>
+  <description>Hardware controller for Husarion UGV</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 

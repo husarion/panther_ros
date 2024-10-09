@@ -1,6 +1,6 @@
 # husarion_ugv_battery
 
-The package containing nodes monitoring and publishing the internal battery state of the Husarion UGV robots.
+The package containing nodes monitoring and publishing the internal battery state of the Husarion UGV.
 
 ## Launch Files
 

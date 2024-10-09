@@ -34,7 +34,7 @@ using BoolMsg = std_msgs::msg::Bool;
 using TriggerSrv = std_srvs::srv::Trigger;
 
 /**
- * @brief Main class for the Panther System which implements a simulated `ros2_control`
+ * @brief Main class for the Husarion UGV which implements a simulated `ros2_control`
  * `hardware_interface::SystemInterface`. This class inherits `ign_ros2_control::IgnitionSystem`
  * and implements additional functionalities like E-stop handling.
  */

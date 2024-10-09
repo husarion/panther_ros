@@ -1,6 +1,6 @@
 # Structure
 
-A brief introduction to the code structure of the Panther system.
+A brief introduction to the code structure of the Husarion UGV system.
 
 ## RoboteqDriver
 
@@ -44,7 +44,7 @@ As they usually are rare and singular occurrences, it is better to filter some o
 ## GPIODriver
 
 The GPIODriver is a low-level class responsible for direct interaction with the GPIO (General Purpose Input/Output) pins on the Raspberry Pi.
-It comprises a wrapper implementation for the GPIOD library, enabling real-time manipulation of GPIO pins on the Raspberry Pi. Offering convenient interfaces for setting pin values, altering their direction, monitoring events, and conducting other GPIO operations, this library facilitates effective GPIO pin management on the Panther robot. It simplifies integration within robotic applications.
+It comprises a wrapper implementation for the GPIOD library, enabling real-time manipulation of GPIO pins on the Raspberry Pi. Offering convenient interfaces for setting pin values, altering their direction, monitoring events, and conducting other GPIO operations, this library facilitates effective GPIO pin management on the Husarion UGV. It simplifies integration within robotic applications.
 
 ## GPIOController
 
@@ -60,14 +60,13 @@ The GPIOController provides wrappers for the GPIO driver, handling reading and w
 Implementation of emergency stop handling.
 
 * `EStopInterface`: Interface for versioned emergency stop implementations.
-* `EStopPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
-* `EStopPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
+* `EStop`: Class with specific logic for the Husarion UGV.
 
-## PantherSystemRosInterface
+## SystemRosInterface
 
-A class that takes care of additional ROS interface of panther system, such as publishing driver state and providing service for clearing errors.
+A class that takes care of additional ROS interface of Husarion UGV system, such as publishing driver state and providing service for clearing errors.
 
-## PantherSystem
+## {Robot}System
 
 The main class that implements SystemInterface from ros2_control (for details refer to the [ros2_control documentation](https://control.ros.org/master/index.html)).
 Handles transitions (initialization, activation, shutdown, error, etc.), provides interfaces for feedback (position, velocity, effort) and commands (velocity).

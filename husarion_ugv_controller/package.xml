@@ -3,7 +3,7 @@
 <package format="3">
   <name>husarion_ugv_controller</name>
   <version>2.1.1</version>
-  <description>ros2 controllers configuration for Husarion UGV robots</description>
+  <description>ros2 controllers configuration for Husarion UGV</description>
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 
