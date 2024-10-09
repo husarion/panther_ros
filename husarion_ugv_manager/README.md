@@ -11,8 +11,8 @@ This package contains:
 ## Configuration Files
 
 - [`lights.xml`](./behavior_trees/lights.xml): BehaviorTree for managing lights.
-- [`PantherLightsBT.btproj`](./behavior_trees/PantherLightsBT.btproj): BehaviorTree project for managing Panther lights.
-- [`PantherSafetyBT.btproj`](./behavior_trees/PantherSafetyBT.btproj): BehaviorTree project for managing Panther safety protocols.
+- [`LightsBT.btproj`](./behavior_trees/LightsBT.btproj): BehaviorTree project for managing Panther lights.
+- [`SafetyBT.btproj`](./behavior_trees/SafetyBT.btproj): BehaviorTree project for managing Panther safety protocols.
 - [`safety.xml`](./behavior_trees/safety.xml): BehaviorTree for monitoring and managing dangerous situations.
 - [`shutdown.xml`](./behavior_trees/shutdown.xml): BehaviorTree for initiating shutdown procedures.
 - [`lights_manager.yaml`](./config/lights_manager.yaml): Contains parameters for the `lights_manager` node.

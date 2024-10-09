@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4" project_name="PantherSafetyBT">
+<root BTCPP_format="4" project_name="SafetyBT">
     <include path="safety.xml"/>
     <include path="shutdown.xml"/>
     <!-- Description of Node Models (used by Groot) -->

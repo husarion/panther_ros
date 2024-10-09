@@ -34,7 +34,7 @@ def generate_launch_description():
     declare_lights_bt_project_path_arg = DeclareLaunchArgument(
         "lights_bt_project_path",
         default_value=PathJoinSubstitution(
-            [husarion_ugv_manager_dir, "behavior_trees", "PantherLightsBT.btproj"]
+            [husarion_ugv_manager_dir, "behavior_trees", "LightsBT.btproj"]
         ),
         description="Path to BehaviorTree project file, responsible for lights management.",
     )
@@ -50,7 +50,7 @@ def generate_launch_description():
     declare_safety_bt_project_path_arg = DeclareLaunchArgument(
         "safety_bt_project_path",
         default_value=PathJoinSubstitution(
-            [husarion_ugv_manager_dir, "behavior_trees", "PantherSafetyBT.btproj"]
+            [husarion_ugv_manager_dir, "behavior_trees", "SafetyBT.btproj"]
         ),
         description="Path to BehaviorTree project file, responsible for safety and shutdown management.",
     )

@@ -84,7 +84,7 @@ void LightsManagerNode::DeclareParameters()
   const auto husarion_ugv_manager_pkg_path =
     ament_index_cpp::get_package_share_directory("husarion_ugv_manager");
   const std::string default_bt_project_path = husarion_ugv_manager_pkg_path +
-                                              "/behavior_trees/PantherLightsBT.btproj";
+                                              "/behavior_trees/LightsBT.btproj";
   const std::vector<std::string> default_plugin_libs = {};
 
   this->declare_parameter<std::string>("bt_project_path", default_bt_project_path);

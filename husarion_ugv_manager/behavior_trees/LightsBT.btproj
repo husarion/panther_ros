@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4" project_name="PantherLightsBT">
+<root BTCPP_format="4" project_name="LightsBT">
     <include path="lights.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
