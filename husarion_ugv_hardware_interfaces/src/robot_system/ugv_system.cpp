@@ -421,7 +421,7 @@ void UGVSystem::ReadDriverStatesUpdateFrequency()
 
 void UGVSystem::ConfigureGPIOController()
 {
-  gpio_controller_ = GPIOControllerFactory::CreateGPIOController(1.2);
+  gpio_controller_ = GPIOControllerFactory::CreateGPIOController();
   gpio_controller_->Start();
 
   RCLCPP_INFO(logger_, "Successfully configured GPIO controller.");

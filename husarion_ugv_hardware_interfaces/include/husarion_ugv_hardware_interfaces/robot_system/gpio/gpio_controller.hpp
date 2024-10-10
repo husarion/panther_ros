@@ -130,7 +130,7 @@ public:
    * };
    *
    * MyClass my_obj;
-   * GPIOControllerPTH12X gpio_controller;
+   * GPIOController gpio_controller;
    * gpio_controller.RegisterGPIOEventCallback(
    *     std::bind(&MyClass::HandleGPIOEvent, &my_obj, std::placeholders::_1));
    * @endcode
@@ -145,16 +145,16 @@ protected:
   std::shared_ptr<GPIODriverInterface> gpio_driver_;
 };
 
-class GPIOControllerPTH12X : public GPIOControllerInterface
+class GPIOController : public GPIOControllerInterface
 {
 public:
   /**
-   * @brief Constructor for GPIOControllerPTH12X class.
+   * @brief Constructor for GPIOController class.
    *
    * @param gpio_driver Pointer to the GPIODriver object.
    * @throw `std::runtime_error` When the GPIO driver is not initialized.
    */
-  GPIOControllerPTH12X(std::shared_ptr<GPIODriverInterface> gpio_driver);
+  GPIOController(std::shared_ptr<GPIODriverInterface> gpio_driver);
 
   /**
    * @brief Initializes the GPIODriver, Watchdog, and powers on the motors.
@@ -275,145 +275,21 @@ private:
   volatile std::atomic_bool should_abort_e_stop_reset_ = false;
 };
 
-class GPIOControllerPTH10X : public GPIOControllerInterface
-{
-public:
-  /**
-   * @brief Constructor for GPIOControllerPTH10X class.
-   *
-   * @param gpio_driver Pointer to the GPIODriver object.
-   * @throw `std::runtime_error` When the GPIO driver is not initialized.
-   */
-  GPIOControllerPTH10X(std::shared_ptr<GPIODriverInterface> gpio_driver);
-
-  /**
-   * @brief Initializes the GPIODriver and powers on the motors.
-   */
-  void Start() override;
-
-  /**
-   * @brief Placeholder method indicating lack of hardware E-stop support for the robot in this
-   * version.
-   *
-   * @return Always returns true.
-   */
-  void EStopTrigger() override;
-
-  /**
-   * @brief Checks if the motors are powered up (when STAGE2_INPUT is active/main switch is set to
-   * STAGE2 position) without controlling any GPIO.
-   *
-   * @exception std::runtime_error when the motors are not powered up.
-   * @return Always returns true when the motors are powered up.
-   */
-  void EStopReset() override;
-
-  /**
-   * @brief Controls the motor power by enabling or disabling them based on the 'enable'
-   * parameter.
-   *
-   * This method checks if the motors are powered up by verifying the 'STAGE2_INPUT' pin.
-   *
-   * @param enable Set to 'true' to enable the motors, 'false' to disable.
-   * @exception std::runtime_error When attempting to enable the motors without the 'STAGE2_INPUT'
-   * pin active.
-   * @return 'true' if the motor control pin value is successfully set, 'false' otherwise.
-   */
-  bool MotorPowerEnable(const bool enable) override;
-
-  /**
-   * @brief Placeholder method indicating lack of support for controlling the fan in this robot
-   * version.
-   *
-   * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for fan
-   * control.
-   */
-  bool FanEnable(const bool /* enable */) override;
-
-  /**
-   * @brief Placeholder method indicating lack of support for controlling AUX in this robot
-   * version.
-   *
-   * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for AUX
-   * power control.
-   */
-  bool AUXPowerEnable(const bool /* enable */) override;
-
-  /**
-   * @brief Placeholder method indicating lack of support for controlling Digital Power in this
-   * robot version.
-   *
-   * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for
-   * digital power control.
-   */
-  bool DigitalPowerEnable(const bool /* enable */) override;
-
-  /**
-   * @brief Placeholder method indicating lack of support for enabling external charger in this
-   * robot version.
-   *
-   * @param enable Ignored parameter in this version.
-   * @exception std::runtime_error Always throws a runtime error due to lack of support for
-   * charging process control.
-   */
-  bool ChargerEnable(const bool /* enable */) override;
-
-  /**
-   * @brief Enables or disables the LED control based on the 'enable' parameter.
-   *
-   * @param enable Set to 'true' to enable the LED control, 'false' to disable.
-   * @return 'true' if the LED control pin value is successfully set, 'false' otherwise.
-   */
-  bool LEDControlEnable(const bool enable) override;
-
-  /**
-   * @brief Returns imitation of the IO states of the control interface. In this version of the
-   * robot, there is a lack of support for controlling these IOs.
-   *
-   * @return An unordered map containing the GPIOPin as the key and its active state as the value.
-   */
-  std::unordered_map<GPIOPin, bool> QueryControlInterfaceIOStates() const override;
-
-  /**
-   * @brief Returns the GPIO pin configuration information for the PTH10X.
-   */
-  static const std::vector<GPIOInfo> & GetGPIOConfigInfoStorage();
-
-private:
-  /**
-   * @brief Vector containing GPIO pin configuration information such as pin direction, value,
-   * etc.
-   */
-  static const std::vector<GPIOInfo> gpio_config_info_storage_;
-};
-
 class GPIOControllerFactory
 {
 public:
   /**
-   * @brief Creates a GPIO controller based on the robot version.
+   * @brief Creates a GPIO controller.
    *
-   * @param robot_version The robot version to create the GPIO controller for.
    * @return A unique pointer to the created GPIO controller.
    */
-  static std::unique_ptr<GPIOControllerInterface> CreateGPIOController(const float robot_version)
+  static std::unique_ptr<GPIOControllerInterface> CreateGPIOController()
   {
     std::unique_ptr<GPIOControllerInterface> gpio_controller;
+    auto config_info_storage = GPIOController::GetGPIOConfigInfoStorage();
+    auto gpio_driver = std::make_shared<GPIODriver>(config_info_storage);
 
-    if (husarion_ugv_utils::common_utilities::MeetsVersionRequirement(robot_version, 1.2)) {
-      auto config_info_storage = GPIOControllerPTH12X::GetGPIOConfigInfoStorage();
-      auto gpio_driver = std::make_shared<GPIODriver>(config_info_storage);
-
-      gpio_controller = std::make_unique<GPIOControllerPTH12X>(gpio_driver);
-    } else {
-      auto config_info_storage = GPIOControllerPTH10X::GetGPIOConfigInfoStorage();
-      auto gpio_driver = std::make_shared<GPIODriver>(config_info_storage);
-
-      gpio_controller = std::make_unique<GPIOControllerPTH10X>(gpio_driver);
-    }
+    gpio_controller = std::make_unique<GPIOController>(gpio_driver);
 
     return gpio_controller;
   };
