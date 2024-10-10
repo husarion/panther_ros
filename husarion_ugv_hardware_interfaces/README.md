@@ -42,7 +42,7 @@ Physical properties
 
 CAN settings
 
-- `can_interface_name` [*string*, default: **panther_can**]: Name of the CAN interface.
+- `can_interface_name` [*string*, default: **robot_can**]: Name of the CAN interface.
 - `master_can_id` [*int*, default: **3**]: CAN ID of the master device (set as in [canopen_configuration.yaml](./config/canopen_configuration.yaml)).
 - `sdo_operation_timeout_ms` [*int*, default: **100**]: Timeout of the SDO operations, currently no SDO operation is required in RT operation, so this timeout can be set to a higher value.
 - `pdo_motor_states_timeout_ms` [*int*, default: **15**]: Depends on the frequency at which Roboteq is configured to send motor states (PDO 1 and 2) data. By default, there should be 10 **[ms]** between received data, if it takes more than `pdo_motor_states_timeout_ms`, a motor states read error is triggered. The default value is set to be expected period +50% margin.
