@@ -71,9 +71,6 @@ void PantherChargingDock::deactivate()
 void PantherChargingDock::declareParameters(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node)
 {
   nav2_util::declare_parameter_if_not_declared(
-    node, "panther_version", rclcpp::ParameterValue(1.0));
-
-  nav2_util::declare_parameter_if_not_declared(
     node, name_ + ".base_frame", rclcpp::ParameterValue("base_link"));
   nav2_util::declare_parameter_if_not_declared(
     node, name_ + ".external_detection_timeout", rclcpp::ParameterValue(0.2));

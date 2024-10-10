@@ -33,7 +33,6 @@ The package contains a `PantherChargingDock` plugin for the [opennav_docking](ht
 
 #### Parameters
 
-- `~panther_version` [*double*, default: **1.21**]: A version of Panther robot.
 - `~<dock_name>.base_frame` [*string*, default: **base_link**]: A base frame id of a robot.
 - `~<dock_name>.external_detection_timeout` [*double*, default: **0.2**]: A timeout in seconds for looking up a transformation from an april tag of a dock to a base frame id.
 - `~<dock_name>.external_detection_translation_x` [*double*, default: **0.0**]: A translation over an X axis between a detected frame and a dock pose.
