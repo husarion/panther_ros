@@ -1,5 +1,5 @@
 ---
-name: Release Panther project
+name: Release project
 
 on:
   workflow_dispatch:

@@ -71,14 +71,14 @@ def generate_launch_description():
         "controller_config_path",
         default_value=PathJoinSubstitution(
             [
-                FindPackageShare("panther_controller"),
+                FindPackageShare("husarion_ugv_controller"),
                 "config",
                 PythonExpression(["'", wheel_type, "_controller.yaml'"]),
             ]
         ),
         description=(
             "Path to controller configuration file. By default, it is located in"
-            " 'panther_controller/config/{wheel_type}_controller.yaml'. You can also specify"
+            " 'husarion_ugv_controller/config/{wheel_type}_controller.yaml'. You can also specify"
             " the path to your custom controller configuration file here. "
         ),
     )
