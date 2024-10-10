@@ -26,6 +26,7 @@ from launch.substitutions import (
     PythonExpression,
 )
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 from moms_apriltag import TagGenerator2
 
@@ -41,7 +42,7 @@ def generate_apriltag_and_get_path(tag_id):
 
 
 def launch_setup(context, *args, **kwargs):
-    namespace = LaunchConfiguration("namespace")
+    namespace = LaunchConfiguration("namespace").perform(context)
     apriltag_id = int(LaunchConfiguration("apriltag_id").perform(context))
     apriltag_size = LaunchConfiguration("apriltag_size").perform(context)
 
@@ -58,8 +59,8 @@ def launch_setup(context, *args, **kwargs):
                     "wibotic_station.urdf.xacro",
                 ]
             ),
-            " namespace:=",
-            namespace,
+            " device_namespace:=",
+            "main",
             " apriltag_image_path:=",
             apriltag_image_path,
             " apriltag_size:=",
@@ -69,12 +70,16 @@ def launch_setup(context, *args, **kwargs):
 
     namespace_ext = PythonExpression(["'", namespace, "' + '/' if '", namespace, "' else ''"])
 
+    station_description = {
+        "robot_description": ParameterValue(station_description_content, value_type=str)
+    }
+
     station_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="wibotic_station_state_publisher",
         parameters=[
-            {"robot_description": station_description_content},
+            station_description,
             {"frame_prefix": namespace_ext},
         ],
         remappings=[("robot_description", "station_description")],
