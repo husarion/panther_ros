@@ -145,7 +145,7 @@ hardware_interface::HardwareInfo GenerateDefaultHardwareInfo()
     {"max_rpm_motor_speed", "3600.0"},
 
     // CANopen settings
-    {"can_interface_name", "panther_can"},
+    {"can_interface_name", "robot_can"},
     {"master_can_id", "3"},
     {"pdo_motor_states_timeout_ms", "15"},
     {"pdo_driver_state_timeout_ms", "75"},
