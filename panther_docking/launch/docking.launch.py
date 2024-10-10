@@ -63,7 +63,7 @@ def generate_launch_description():
         parameters=[
             {"panther_version": panther_version},
             namespaced_docking_server_config,
-            {"use_sim_time": True},
+            {"use_sim_time": use_sim},
         ],
         namespace=namespace,
         emulate_tty=True,
