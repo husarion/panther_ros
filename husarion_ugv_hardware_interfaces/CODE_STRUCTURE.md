@@ -2,20 +2,36 @@
 
 A brief introduction to the code structure of the Husarion UGV system.
 
-## RoboteqDriver
+## DriverInterface
 
-Low-level CANopen driver implementing LoopDriver from [Lely](https://opensource.lely.com/canopen/).
+Interface to manage robot driver.
+Implementations:
+
+* `RoboteqDriver`: Low-level CANopen driver implementing LoopDriver from [Lely](https://opensource.lely.com/canopen/).
 It takes care of translating CANopen indexes into meaningful data.
 Provided methods can be used for sending commands and reading all the useful parameters from the Roboteq drivers (they abstract low level SDO and PDO communication).
-Timestamp of all received PDO data is also saved, which can be later used for detecting timeout errors.
+Timestamp of all received PDO data is also saved, which can be later used for detecting timeout errors. Also, manages `MotorDrivers`.
 
-## CANopenController
+## MotorDriverInterface
 
-Takes care of CANopen communication - creates and initializes master controller and two Roboteq drivers (front and rear). For handling CANopen communication separate thread is created with configurable RT priority (additionally two threads for each driver are also created).
+Abstract interface for managing each motor connected to the driver.
+Implementations:
 
-## MotorsController
+* `RoboteqMotorDriver`: Responsible for reading state and sending command velocities with usage of `RoboteqDriver` interfaces.
 
-This class abstracts the usage of two Roboteq controllers. It uses canopen_controller for communication with Roboteq controllers, implements the activation procedure for controllers (resets script and sends initial 0 command), and provides methods to get data feedback and send commands. Data is converted between raw Roboteq formats and SI units using `roboteq_data_converters`.
+## CANopenManager
+
+Takes care of CANopen communication - creates and initializes master controller. For handling CANopen communication separate thread is created with configurable RT priority.
+
+## RobotDriver
+
+Interface to control robot drivers.
+Implementations:
+
+* `RoboteqRobotDriver`: This class abstracts the usage of Roboteq controllers. It uses canopen_controller for communication with Roboteq controllers, implements the activation procedure for controllers (resets script and sends initial 0 command), and provides methods to get data feedback and send commands. Data is converted between raw Roboteq formats and SI units using `roboteq_data_converters`.
+It has two concrete implementations:
+  * `LynxRobotDriver`: Contains one Roboteq controller.
+  * `PantherRobotDriver`: Contains two Roboteq controllers.
 
 ## RoboteqDataConverters
 
@@ -27,14 +43,14 @@ Data feedback converters also store data (it is passed using Set methods, and la
 
 * `MotorState` - converts position, velocity and torque feedback
 * `FaultFlag`, `ScriptFlag`, `RuntimeError` - converts flag error data into messages
-* `DriverState` - temperature, voltage, and current
+* `RoboteqDriverState` - temperature, voltage, and current
 
-Feedback converters are combined in the `RoboteqData` class to provide the full state of one controller. It consists of
+Feedback converters are combined in the `DriverData` class to provide the full state of one controller. It consists of
 
 * 2 `MotorState` (left and right)
 * `FaultFlag`, `ScriptFlag`
 * 2 `RuntimeError` (for left and right motors)
-* `DriverState`
+* `RoboteqDriverState`
 
 ## RoboteqErrorFilter
 
@@ -51,9 +67,8 @@ It comprises a wrapper implementation for the GPIOD library, enabling real-time 
 The GPIOController provides wrappers for the GPIO driver, handling reading and writing pins of the RPi GPIO. It includes the following utilities:
 
 * `GPIOControllerInterface`: Interface for all wrappers that handle GPIO control tasks.
-* `GPIOControllerPTH12X`: Class with specific logic for the Panther robot with version 1.20 and above.
-* `GPIOControllerPTH10X`: Class with specific logic for the Panther robot with version below 1.20.
-* `Watchdog`: Entity responsible for spinning the software Watchdog. It periodically sets the high and low states of specific GPIO Watchdog pin. Used only with `GPIOControllerPTH12X`.
+* `GPIOController`: Class with specific logic for Lynx and Panther robot.
+* `Watchdog`: Entity responsible for spinning the software Watchdog. It periodically sets the high and low states of specific GPIO Watchdog pin. Used only with `GPIOController`.
 
 ## EStop
 

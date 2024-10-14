@@ -42,11 +42,11 @@ public:
   MOCK_METHOD(bool, SetPinValue, (const GPIOPin pin, const bool value), (override));
 };
 
-class GPIOControllerWrapper : public husarion_ugv_hardware_interfaces::GPIOControllerPTH12X
+class GPIOControllerWrapper : public husarion_ugv_hardware_interfaces::GPIOController
 {
 public:
   GPIOControllerWrapper(std::shared_ptr<MockGPIODriver> gpio_driver)
-  : husarion_ugv_hardware_interfaces::GPIOControllerPTH12X(gpio_driver)
+  : husarion_ugv_hardware_interfaces::GPIOController(gpio_driver)
   {
   }
 
