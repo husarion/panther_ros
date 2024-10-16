@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Docking">
+    <Fallback name="Menage Robot State">
+      <Sequence name="Error Sequence"
+                _skipIf="robot_state != ROBOT_STATE_ERROR"
+                _onSuccess="robot_state = ROBOT_STATE_ESTOP">
+        <Sleep name="Trigger E-Stop"
+               msec="1000"/>
+        <Sleep msec="1000"/>
+      </Sequence>
+      <Sequence name="E-Stop Sequence"
+                _skipIf="robot_state != ROBOT_STATE_ESTOP"
+                _onFailure="robot_state = ROBOT_STATE_STANDBY">
+        <ScriptCondition name="Check E-Stop"
+                         code="e_stop_state"
+                         _onSuccess="robot_state = ROBOT_STATE_ESTOP"/>
+      </Sequence>
+      <Sequence name="Standby Sequence"
+                _skipIf="robot_state != ROBOT_STATE_STANDBY">
+        <Fallback>
+          <ScriptCondition name="Check Docking"
+                           code="docking_cmd != DOCKING_CMD_NONE"
+                           _onSuccess="robot_state = ROBOT_STATE_DOCKING"/>
+          <ScriptCondition name="Check E-Stop"
+                           code="e_stop_state"
+                           _onSuccess="robot_state = ROBOT_STATE_ESTOP"/>
+          <ScriptCondition name="Check E-Stop"
+                           code="!e_stop_state"
+                           _onSuccess="robot_state = ROBOT_STATE_STANDBY"/>
+        </Fallback>
+      </Sequence>
+      <Sequence name="Docking Sequence"
+                _skipIf="robot_state != ROBOT_STATE_DOCKING"
+                _onSuccess="robot_state = ROBOT_STATE_SUCCESS"
+                _onFailure="robot_state = ROBOT_STATE_ERROR"
+                _post="docking_cmd = DOCKING_CMD_NONE">
+        <Fallback>
+          <Sleep msec="2000"/>
+          <DockRobot use_dock_id="true"
+                     dock_id="main_dock"
+                     dock_type="panther_charging_dock,"
+                     max_staging_time="100"
+                     navigate_to_staging_pose="false"
+                     action_name="dock_robot"
+                     _skipIf="docking_cmd == &apos;{DOCKING_CMD_UNDOCK}&apos;"/>
+          <UndockRobot dock_type="panther_charging_dock,"
+                       max_undocking_time="100"
+                       action_name="undock_robot"
+                       _skipIf="docking_cmd == &apos;{DOCKING_CMD_DOCK}&apos;"/>
+        </Fallback>
+      </Sequence>
+      <Sequence name="Success Sequence"
+                _skipIf="robot_state != ROBOT_STATE_SUCCESS"
+                _onSuccess="robot_state = ROBOT_STATE_STANDBY">
+        <Sleep msec="1000"/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel/>
+
+</root>

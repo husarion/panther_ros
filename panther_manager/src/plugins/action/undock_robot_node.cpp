@@ -39,8 +39,7 @@ BT::NodeStatus UndockRobot::onResultReceived(const WrappedResult & wr)
 {
   const auto & result = wr.result;
 
-  this->setOutput("success", result->success);
-  this->setOutput("error_code", result->error_code);
+  // this->setOutput("error_code", result->error_code);
 
   if (result->success) {
     return BT::NodeStatus::SUCCESS;

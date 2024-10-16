@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_manager/lights_manager_node.hpp"
+#include "panther_manager/robot_states_manager_node.hpp"
 
 #include <any>
 #include <chrono>
@@ -34,7 +34,7 @@
 namespace panther_manager
 {
 
-LightsManagerNode::LightsManagerNode(
+DockingManagerNode::DockingManagerNode(
   const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
@@ -48,46 +48,49 @@ LightsManagerNode::LightsManagerNode(
   battery_percent_ma_ = std::make_unique<panther_utils::MovingAverage<double>>(
     battery_percent_window_len, 1.0);
 
-  const auto initial_blackboard = CreateLightsInitialBlackboard();
-  lights_tree_manager_ = std::make_unique<BehaviorTreeManager>("Lights", initial_blackboard, 5555);
+  const auto initial_blackboard = CreateBlackboard();
+  docking_tree_manager_ = std::make_unique<BehaviorTreeManager>(
+    "Docking", initial_blackboard, 5557);
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
-void LightsManagerNode::Initialize()
+void DockingManagerNode::Initialize()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
   RegisterBehaviorTree();
-  lights_tree_manager_->Initialize(factory_);
+  docking_tree_manager_->Initialize(factory_);
 
   using namespace std::placeholders;
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
-    "battery/battery_status", 10, std::bind(&LightsManagerNode::BatteryCB, this, _1));
+    "battery/battery_status", 10, std::bind(&DockingManagerNode::BatteryCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
-    std::bind(&LightsManagerNode::EStopCB, this, _1));
-  robot_state_sub_ = this->create_subscription<Int8Msg>(
-    "robot_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
-    std::bind(&LightsManagerNode::RobotStateCB, this, _1));
+    std::bind(&DockingManagerNode::EStopCB, this, _1));
+  robot_state_pub_ = this->create_publisher<Int8Msg>(
+    "robot_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+
+  docking_srv_ = this->create_service<SetBoolSrv>(
+    "docking", std::bind(&DockingManagerNode::DockingSrvCB, this, _1, _2));
 
   const float timer_freq = this->get_parameter("timer_frequency").as_double();
   const auto timer_period_ms =
     std::chrono::milliseconds(static_cast<unsigned>(1.0f / timer_freq * 1000));
 
-  lights_tree_timer_ = this->create_wall_timer(
-    timer_period_ms, std::bind(&LightsManagerNode::LightsTreeTimerCB, this));
+  docking_tree_timer_ = this->create_wall_timer(
+    timer_period_ms, std::bind(&DockingManagerNode::DockingTreeTimerCB, this));
 
   RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
-void LightsManagerNode::DeclareParameters()
+void DockingManagerNode::DeclareParameters()
 {
   const auto panther_manager_pkg_path =
     ament_index_cpp::get_package_share_directory("panther_manager");
   const std::string default_bt_project_path = panther_manager_pkg_path +
-                                              "/behavior_trees/PantherLightsBT.btproj";
+                                              "/behavior_trees/RobotStatesBT.btproj";
   const std::vector<std::string> default_plugin_libs = {};
 
   this->declare_parameter<std::string>("bt_project_path", default_bt_project_path);
@@ -105,7 +108,7 @@ void LightsManagerNode::DeclareParameters()
   this->declare_parameter<float>("timer_frequency", 10.0);
 }
 
-void LightsManagerNode::RegisterBehaviorTree()
+void DockingManagerNode::RegisterBehaviorTree()
 {
   const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
 
@@ -131,7 +134,7 @@ void LightsManagerNode::RegisterBehaviorTree()
     this->get_logger(), "BehaviorTree registered from path '%s'", bt_project_path.c_str());
 }
 
-std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard()
+std::map<std::string, std::any> DockingManagerNode::CreateBlackboard()
 {
   update_charging_anim_step_ = this->get_parameter("battery.charging_anim_step").as_double();
   const float critical_battery_anim_period =
@@ -146,9 +149,10 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
   const std::string undefined_charging_anim_percent = "";
   const int undefined_anim_id = -1;
 
-  const std::map<std::string, std::any> lights_initial_bb = {
+  const std::map<std::string, std::any> docking_initial_bb = {
     {"charging_anim_percent", undefined_charging_anim_percent},
     {"current_anim_id", undefined_anim_id},
+    {"docking_cmd", 0},
     {"robot_state", 0},
     {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
     {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
@@ -160,6 +164,10 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
     {"ROBOT_STATE_STANDBY", 1},
     {"ROBOT_STATE_DOCKING", 2},
     {"ROBOT_STATE_SUCCESS", 3},
+    // robot states
+    {"DOCKING_CMD_NONE", 0},
+    {"DOCKING_CMD_DOCK", 1},
+    {"DOCKING_CMD_UNDOCK", 2},
     // anim constants
     {"E_STOP_ANIM_ID", unsigned(LEDAnimationMsg::E_STOP)},
     {"READY_ANIM_ID", unsigned(LEDAnimationMsg::READY)},
@@ -183,15 +191,15 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
   };
 
   RCLCPP_INFO(this->get_logger(), "Blackboard created.");
-  return lights_initial_bb;
+  return docking_initial_bb;
 }
 
-void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
+void DockingManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
 {
   const auto battery_status = battery_state->power_supply_status;
   const auto battery_health = battery_state->power_supply_health;
-  lights_tree_manager_->GetBlackboard()->set<unsigned>("battery_status", battery_status);
-  lights_tree_manager_->GetBlackboard()->set<unsigned>("battery_health", battery_health);
+  docking_tree_manager_->GetBlackboard()->set<unsigned>("battery_status", battery_status);
+  docking_tree_manager_->GetBlackboard()->set<unsigned>("battery_health", battery_health);
 
   // don't update battery percentage if unknown status or health
   if (
@@ -200,43 +208,71 @@ void LightsManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state
     battery_percent_ma_->Roll(battery_state->percentage);
   }
 
-  lights_tree_manager_->GetBlackboard()->set<float>(
+  docking_tree_manager_->GetBlackboard()->set<float>(
     "battery_percent", battery_percent_ma_->GetAverage());
-  lights_tree_manager_->GetBlackboard()->set<std::string>(
+  docking_tree_manager_->GetBlackboard()->set<std::string>(
     "battery_percent_round",
     std::to_string(
       round(battery_percent_ma_->GetAverage() / update_charging_anim_step_) *
       update_charging_anim_step_));
 }
 
-void LightsManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
+void DockingManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
 {
-  lights_tree_manager_->GetBlackboard()->set<bool>("e_stop_state", e_stop->data);
+  docking_tree_manager_->GetBlackboard()->set<bool>("e_stop_state", e_stop->data);
 }
 
-void LightsManagerNode::LightsTreeTimerCB()
+void DockingManagerNode::DockingSrvCB(
+  const SetBoolSrv::Request::SharedPtr & request, SetBoolSrv::Response::SharedPtr response)
+{
+  int robot_state;
+  if (!docking_tree_manager_->GetBlackboard()->get("robot_state", robot_state)) {
+    throw std::runtime_error("Cannot get robot state from blackboard.");
+  }
+
+  if (robot_state != 1) {
+    response->success = false;
+    response->message = "Cannot start docking/undocking robot is not in STANDBY state.";
+    return;
+  }
+
+  if (request->data) {
+    docking_tree_manager_->GetBlackboard()->set<int>("docking_cmd", 1);
+    response->message = "Docking Started";
+  } else {
+    docking_tree_manager_->GetBlackboard()->set<int>("docking_cmd", 2);
+    response->message = "Undocking Started";
+  }
+  response->success = true;
+}
+
+void DockingManagerNode::DockingTreeTimerCB()
 {
   if (!SystemReady()) {
     return;
   }
 
-  lights_tree_manager_->TickOnce();
+  docking_tree_manager_->TickOnce();
+  PublishRobotState();
 
-  if (lights_tree_manager_->GetTreeStatus() == BT::NodeStatus::FAILURE) {
-    RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
+  if (docking_tree_manager_->GetTreeStatus() == BT::NodeStatus::FAILURE) {
+    RCLCPP_WARN(this->get_logger(), "Docking behavior tree returned FAILURE status");
   }
 }
 
-void LightsManagerNode::RobotStateCB(const Int8Msg::SharedPtr robot_state)
+void DockingManagerNode::PublishRobotState()
 {
-  lights_tree_manager_->GetBlackboard()->set<int8_t>("robot_state", robot_state->data);
+  Int8Msg robot_state;
+  if (docking_tree_manager_->GetBlackboard()->get("robot_state", robot_state.data)) {
+    robot_state_pub_->publish(robot_state);
+  }
 }
 
-bool LightsManagerNode::SystemReady()
+bool DockingManagerNode::SystemReady()
 {
   if (
-    !lights_tree_manager_->GetBlackboard()->getEntry("e_stop_state") ||
-    !lights_tree_manager_->GetBlackboard()->getEntry("battery_status")) {
+    !docking_tree_manager_->GetBlackboard()->getEntry("e_stop_state") ||
+    !docking_tree_manager_->GetBlackboard()->getEntry("battery_status")) {
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 5000,
       "Waiting for required system messages to arrive.");
