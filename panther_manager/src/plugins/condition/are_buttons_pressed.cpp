@@ -24,12 +24,11 @@ BT::NodeStatus AreButtonsPressed::onTick(const std::shared_ptr<sensor_msgs::msg:
   getInput<std::vector<int>>("buttons", buttons_);
 
   if (!last_msg) {
-    RCLCPP_WARN_STREAM(this->logger(), GetLoggerPrefix(name()) << "There is no joy messages!");
     return BT::NodeStatus::FAILURE;
   }
 
   if (last_msg->buttons.size() < buttons_.size()) {
-    RCLCPP_ERROR_STREAM(
+    RCLCPP_WARN_STREAM(
       this->logger(), GetLoggerPrefix(name()) << "Joy message has " << last_msg->buttons.size()
                                               << " buttons, expected at least " << buttons_.size());
     return BT::NodeStatus::FAILURE;

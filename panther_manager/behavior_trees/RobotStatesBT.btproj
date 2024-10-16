@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4" project_name="RobotStatesBT">
     <include path="robot_states.xml"/>
-    <include path="lights.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
+        <Condition ID="AreButtonsPressed" editable="true">
+            <input_port name="topic_name">
+Topic name for sensor_msgs/Joy message type</input_port>
+            <input_port name="buttons">Vector of provided input</input_port>
+        </Condition>
         <Action ID="CallSetLedAnimationService" editable="true">
             <input_port name="id">animation ID</input_port>
             <input_port name="param">optional parameter</input_port>
