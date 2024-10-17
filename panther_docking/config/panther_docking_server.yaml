@@ -37,7 +37,7 @@
     docks: ["main_dock"]
     main_dock:
       type: panther_charging_dock
-      frame: <robot_namespace>/wibotic_station_link
+      frame: <robot_namespace>/main_wibotic_station_link
       pose: [0.0, 0.0, 0.0] # position of the dock device (not the staging position), the front (X+) of the dock should point away from the robot
 
     controller:

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
-  <BehaviorTree ID="Docking">
+  <BehaviorTree ID="RobotStates">
     <Fallback name="Menage Robot State">
       <Sequence name="Error Sequence"
                 _skipIf="robot_state != ROBOT_STATE_ERROR"
                 _onSuccess="robot_state = ROBOT_STATE_ESTOP">
-        <Sleep name="Trigger E-Stop"
-               msec="1000"/>
+        <CallTriggerService name="Trigger E-Stop"
+                            service_name="hardware/e_stop_trigger"/>
         <Sleep msec="1000"/>
       </Sequence>
       <Sequence name="E-Stop Sequence"
@@ -18,15 +18,19 @@
       </Sequence>
       <Sequence name="Standby Sequence"
                 _skipIf="robot_state != ROBOT_STATE_STANDBY">
-        <Fallback>
+        <Fallback name="Standby Transition Selector">
           <Fallback name="Check Docking Command"
                     _onFailure="docking_cmd = DOCKING_CMD_NONE">
-            <AreButtonsPressed topic_name="joy"
-                               buttons="0, 0, 0, 1, 1, 1"
-                               _onSuccess="robot_state = ROBOT_STATE_DOCKING;&#10;docking_cmd = DOCKING_CMD_DOCK"/>
-            <AreButtonsPressed topic_name="joy"
-                               buttons="1, 0, 0, 0, 1, 1"
-                               _onSuccess="robot_state = ROBOT_STATE_DOCKING;&#10;docking_cmd = DOCKING_CMD_DOCK"/>
+            <CheckJoyMsg topic_name="joy"
+                         timeout="2.0"
+                         axes=""
+                         buttons="0;0;0;1;1;1"
+                         _onSuccess="robot_state = ROBOT_STATE_DOCKING;&#10;docking_cmd = DOCKING_CMD_DOCK"/>
+            <CheckJoyMsg topic_name="joy"
+                         timeout="2.0"
+                         axes=""
+                         buttons="1;0;0;0;1;1"
+                         _onSuccess="robot_state = ROBOT_STATE_DOCKING;&#10;docking_cmd = DOCKING_CMD_UNDOCK"/>
           </Fallback>
           <ScriptCondition name="Check E-Stop"
                            code="e_stop_state"
@@ -41,7 +45,7 @@
                 _onSuccess="robot_state = ROBOT_STATE_SUCCESS"
                 _onFailure="robot_state = ROBOT_STATE_ERROR"
                 _post="docking_cmd = DOCKING_CMD_NONE">
-        <Fallback>
+        <Fallback name="Docking Selector">
           <DockRobot use_dock_id="true"
                      dock_id="main_dock"
                      dock_type="panther_charging_dock"
@@ -52,7 +56,7 @@
           <UndockRobot dock_type="panther_charging_dock"
                        max_undocking_time="100"
                        action_name="undock_robot"
-                       _skipIf="docking_cmd == DOCKING_CMD_UNDOCK"/>
+                       _skipIf="docking_cmd != DOCKING_CMD_UNDOCK"/>
         </Fallback>
       </Sequence>
       <Sequence name="Success Sequence"
@@ -65,10 +69,17 @@
 
   <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
-    <Condition ID="AreButtonsPressed"
+    <Action ID="CallTriggerService"
+            editable="true">
+      <input_port name="service_name">ROS service name</input_port>
+    </Action>
+    <Condition ID="CheckJoyMsg"
                editable="true">
       <input_port name="topic_name">&#10;Topic name for sensor_msgs/Joy message type</input_port>
-      <input_port name="buttons">Vector of provided input</input_port>
+      <input_port name="timeout"
+                  default="0.0">Max timeout to accept the msg</input_port>
+      <input_port name="axes">Vector of provided axis inputs</input_port>
+      <input_port name="buttons">Vector of provided button inputs</input_port>
     </Condition>
     <Action ID="DockRobot"
             editable="true">

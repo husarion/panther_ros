@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto robot_states_manager_node =
-    std::make_shared<panther_manager::DockingManagerNode>("robot_states_manager");
+    std::make_shared<panther_manager::RobotStateManagerNode>("robot_states_manager");
   robot_states_manager_node->Initialize();
 
   try {

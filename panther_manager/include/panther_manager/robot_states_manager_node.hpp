@@ -45,12 +45,12 @@ using LEDAnimationMsg = panther_msgs::msg::LEDAnimation;
  * @brief This class is responsible for creating a BehaviorTree responsible for docking management,
  * spinning it, and updating blackboard entries based on subscribed topics.
  */
-class DockingManagerNode : public rclcpp::Node
+class RobotStateManagerNode : public rclcpp::Node
 {
 public:
-  DockingManagerNode(
+  RobotStateManagerNode(
     const std::string & node_name, const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-  ~DockingManagerNode() {}
+  ~RobotStateManagerNode() {}
 
   void Initialize();
 

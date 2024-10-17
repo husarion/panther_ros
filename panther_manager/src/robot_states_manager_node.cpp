@@ -34,7 +34,7 @@
 namespace panther_manager
 {
 
-DockingManagerNode::DockingManagerNode(
+RobotStateManagerNode::RobotStateManagerNode(
   const std::string & node_name, const rclcpp::NodeOptions & options)
 : Node(node_name, options)
 {
@@ -50,12 +50,12 @@ DockingManagerNode::DockingManagerNode(
 
   const auto initial_blackboard = CreateBlackboard();
   docking_tree_manager_ = std::make_unique<BehaviorTreeManager>(
-    "Docking", initial_blackboard, 5557);
+    "RobotStates", initial_blackboard, 5557);
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
 
-void DockingManagerNode::Initialize()
+void RobotStateManagerNode::Initialize()
 {
   RCLCPP_INFO(this->get_logger(), "Initializing.");
 
@@ -65,27 +65,27 @@ void DockingManagerNode::Initialize()
   using namespace std::placeholders;
 
   battery_sub_ = this->create_subscription<BatteryStateMsg>(
-    "battery/battery_status", 10, std::bind(&DockingManagerNode::BatteryCB, this, _1));
+    "battery/battery_status", 10, std::bind(&RobotStateManagerNode::BatteryCB, this, _1));
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
-    std::bind(&DockingManagerNode::EStopCB, this, _1));
+    std::bind(&RobotStateManagerNode::EStopCB, this, _1));
   robot_state_pub_ = this->create_publisher<Int8Msg>(
     "robot_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
   docking_srv_ = this->create_service<SetBoolSrv>(
-    "docking", std::bind(&DockingManagerNode::DockingSrvCB, this, _1, _2));
+    "docking", std::bind(&RobotStateManagerNode::DockingSrvCB, this, _1, _2));
 
   const float timer_freq = this->get_parameter("timer_frequency").as_double();
   const auto timer_period_ms =
     std::chrono::milliseconds(static_cast<unsigned>(1.0f / timer_freq * 1000));
 
   docking_tree_timer_ = this->create_wall_timer(
-    timer_period_ms, std::bind(&DockingManagerNode::DockingTreeTimerCB, this));
+    timer_period_ms, std::bind(&RobotStateManagerNode::DockingTreeTimerCB, this));
 
   RCLCPP_INFO(this->get_logger(), "Initialized successfully.");
 }
 
-void DockingManagerNode::DeclareParameters()
+void RobotStateManagerNode::DeclareParameters()
 {
   const auto panther_manager_pkg_path =
     ament_index_cpp::get_package_share_directory("panther_manager");
@@ -108,7 +108,7 @@ void DockingManagerNode::DeclareParameters()
   this->declare_parameter<float>("timer_frequency", 10.0);
 }
 
-void DockingManagerNode::RegisterBehaviorTree()
+void RobotStateManagerNode::RegisterBehaviorTree()
 {
   const auto bt_project_path = this->get_parameter("bt_project_path").as_string();
 
@@ -134,7 +134,7 @@ void DockingManagerNode::RegisterBehaviorTree()
     this->get_logger(), "BehaviorTree registered from path '%s'", bt_project_path.c_str());
 }
 
-std::map<std::string, std::any> DockingManagerNode::CreateBlackboard()
+std::map<std::string, std::any> RobotStateManagerNode::CreateBlackboard()
 {
   update_charging_anim_step_ = this->get_parameter("battery.charging_anim_step").as_double();
   const float critical_battery_anim_period =
@@ -194,7 +194,7 @@ std::map<std::string, std::any> DockingManagerNode::CreateBlackboard()
   return docking_initial_bb;
 }
 
-void DockingManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
+void RobotStateManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_state)
 {
   const auto battery_status = battery_state->power_supply_status;
   const auto battery_health = battery_state->power_supply_health;
@@ -217,12 +217,12 @@ void DockingManagerNode::BatteryCB(const BatteryStateMsg::SharedPtr battery_stat
       update_charging_anim_step_));
 }
 
-void DockingManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
+void RobotStateManagerNode::EStopCB(const BoolMsg::SharedPtr e_stop)
 {
   docking_tree_manager_->GetBlackboard()->set<bool>("e_stop_state", e_stop->data);
 }
 
-void DockingManagerNode::DockingSrvCB(
+void RobotStateManagerNode::DockingSrvCB(
   const SetBoolSrv::Request::SharedPtr & request, SetBoolSrv::Response::SharedPtr response)
 {
   int robot_state;
@@ -246,7 +246,7 @@ void DockingManagerNode::DockingSrvCB(
   response->success = true;
 }
 
-void DockingManagerNode::DockingTreeTimerCB()
+void RobotStateManagerNode::DockingTreeTimerCB()
 {
   if (!SystemReady()) {
     return;
@@ -260,7 +260,7 @@ void DockingManagerNode::DockingTreeTimerCB()
   }
 }
 
-void DockingManagerNode::PublishRobotState()
+void RobotStateManagerNode::PublishRobotState()
 {
   Int8Msg robot_state;
   if (docking_tree_manager_->GetBlackboard()->get("robot_state", robot_state.data)) {
@@ -268,7 +268,7 @@ void DockingManagerNode::PublishRobotState()
   }
 }
 
-bool DockingManagerNode::SystemReady()
+bool RobotStateManagerNode::SystemReady()
 {
   if (
     !docking_tree_manager_->GetBlackboard()->getEntry("e_stop_state") ||

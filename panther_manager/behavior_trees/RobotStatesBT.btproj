@@ -3,17 +3,27 @@
     <include path="robot_states.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
-        <Condition ID="AreButtonsPressed" editable="true">
-            <input_port name="topic_name">
-Topic name for sensor_msgs/Joy message type</input_port>
-            <input_port name="buttons">Vector of provided input</input_port>
-        </Condition>
         <Action ID="CallSetLedAnimationService" editable="true">
             <input_port name="id">animation ID</input_port>
             <input_port name="param">optional parameter</input_port>
             <input_port name="repeating" default="false">indicates if animation should repeat</input_port>
             <input_port name="service_name">ROS service name</input_port>
         </Action>
+        <Action ID="CallTriggerService" editable="true">
+            <input_port name="service_name">ROS service name</input_port>
+        </Action>
+        <Condition ID="CheckBoolMsg" editable="true">
+            <input_port name="topic_name">
+Topic name for sensor_msgs/Joy message type</input_port>
+            <input_port name="data">Vector of provided axis inputs</input_port>
+        </Condition>
+        <Condition ID="CheckJoyMsg" editable="true">
+            <input_port name="topic_name">
+Topic name for sensor_msgs/Joy message type</input_port>
+            <input_port name="timeout" default="0.0">Max timeout to accept the msg</input_port>
+            <input_port name="axes">Vector of provided axis inputs</input_port>
+            <input_port name="buttons">Vector of provided button inputs</input_port>
+        </Condition>
         <Action ID="DockRobot" editable="true">
             <input_port name="use_dock_id">bool value indicating whether to use dock ID</input_port>
             <input_port name="dock_id">dock ID</input_port>

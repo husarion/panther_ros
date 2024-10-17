@@ -18,7 +18,7 @@
       plugin_libs:
         - tick_after_timeout_bt_node
       ros_plugin_libs:
-        - call_set_led_animation_service_bt_node
-        - are_buttons_pressed_bt_node
+        - call_trigger_service_bt_node
+        - check_joy_msg_bt_node
         - dock_robot_bt_node
         - undock_robot_bt_node

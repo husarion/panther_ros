@@ -12,29 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "panther_manager/plugins/condition/are_buttons_pressed.hpp"
+#include "panther_manager/plugins/condition/check_bool_msg.hpp"
 
 #include "panther_manager/behavior_tree_utils.hpp"
 
 namespace panther_manager
 {
 
-BT::NodeStatus AreButtonsPressed::onTick(const std::shared_ptr<sensor_msgs::msg::Joy> & last_msg)
+BT::NodeStatus CheckBoolMsg::onTick(const BoolMsg::SharedPtr & last_msg)
 {
-  getInput<std::vector<int>>("buttons", buttons_);
+  bool expected_data;
+  getInput<bool>("data", expected_data);
 
   if (!last_msg) {
     return BT::NodeStatus::FAILURE;
   }
 
-  if (last_msg->buttons.size() < buttons_.size()) {
-    RCLCPP_WARN_STREAM(
-      this->logger(), GetLoggerPrefix(name()) << "Joy message has " << last_msg->buttons.size()
-                                              << " buttons, expected at least " << buttons_.size());
-    return BT::NodeStatus::FAILURE;
-  }
-
-  if (std::equal(buttons_.begin(), buttons_.end(), last_msg->buttons.begin())) {
+  if (expected_data == last_msg->data) {
     return BT::NodeStatus::SUCCESS;
   }
 
@@ -44,4 +38,4 @@ BT::NodeStatus AreButtonsPressed::onTick(const std::shared_ptr<sensor_msgs::msg:
 }  // namespace panther_manager
 
 #include "behaviortree_ros2/plugins.hpp"
-CreateRosNodePlugin(panther_manager::AreButtonsPressed, "AreButtonsPressed");
+CreateRosNodePlugin(panther_manager::CheckBoolMsg, "CheckBoolMsg");

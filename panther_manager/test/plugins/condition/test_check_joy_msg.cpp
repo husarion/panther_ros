@@ -24,13 +24,13 @@
 
 #include <sensor_msgs/msg/joy.hpp>
 
-#include "panther_manager/plugins/condition/are_buttons_pressed.hpp"
+#include "panther_manager/plugins/condition/check_joy_msg.hpp"
 #include "utils/plugin_test_utils.hpp"
 
-class TestAreButtonsPressed : public panther_manager::plugin_test_utils::PluginTestUtils
+class TestCheckJoyMsg : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
-  TestAreButtonsPressed();
+  TestCheckJoyMsg();
   void PublishJoyMessage(const std::vector<int> & buttons);
 
 protected:
@@ -38,36 +38,36 @@ protected:
   std::map<std::string, std::string> params_ = {{"topic_name", "joy"}, {"buttons", "0;1;0"}};
 };
 
-TestAreButtonsPressed::TestAreButtonsPressed()
+TestCheckJoyMsg::TestCheckJoyMsg()
 {
-  RegisterNodeWithParams<panther_manager::AreButtonsPressed>("AreButtonsPressed");
+  RegisterNodeWithParams<panther_manager::CheckJoyMsg>("CheckJoyMsg");
   joy_publisher_ = bt_node_->create_publisher<sensor_msgs::msg::Joy>("joy", 10);
 }
 
-void TestAreButtonsPressed::PublishJoyMessage(const std::vector<int> & buttons)
+void TestCheckJoyMsg::PublishJoyMessage(const std::vector<int> & buttons)
 {
   sensor_msgs::msg::Joy msg;
   msg.buttons = buttons;
   joy_publisher_->publish(msg);
 }
 
-TEST_F(TestAreButtonsPressed, LoadingAreButtonsPressedPlugin)
+TEST_F(TestCheckJoyMsg, LoadingCheckJoyMsgPlugin)
 {
-  ASSERT_NO_THROW({ CreateTree("AreButtonsPressed", params_); });
+  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", params_); });
 }
 
-TEST_F(TestAreButtonsPressed, NoMessage)
+TEST_F(TestCheckJoyMsg, NoMessage)
 {
-  ASSERT_NO_THROW({ CreateTree("AreButtonsPressed", params_); });
+  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", params_); });
 
   auto & tree = GetTree();
   auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestAreButtonsPressed, WrongMessageTooFewButtons)
+TEST_F(TestCheckJoyMsg, WrongMessageTooFewButtons)
 {
-  ASSERT_NO_THROW({ CreateTree("AreButtonsPressed", params_); });
+  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", params_); });
 
   PublishJoyMessage({0, 1});
 
@@ -76,9 +76,9 @@ TEST_F(TestAreButtonsPressed, WrongMessageTooFewButtons)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestAreButtonsPressed, GoodMessageWrongButtonsState)
+TEST_F(TestCheckJoyMsg, GoodMessageWrongButtonsState)
 {
-  ASSERT_NO_THROW({ CreateTree("AreButtonsPressed", params_); });
+  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", params_); });
 
   PublishJoyMessage({0, 0, 0});
 
@@ -87,9 +87,9 @@ TEST_F(TestAreButtonsPressed, GoodMessageWrongButtonsState)
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestAreButtonsPressed, GoodMessageWithTooMuchButtonsAndGoodButtonsState)
+TEST_F(TestCheckJoyMsg, GoodMessageWithTooMuchButtonsAndGoodButtonsState)
 {
-  ASSERT_NO_THROW({ CreateTree("AreButtonsPressed", params_); });
+  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", params_); });
 
   PublishJoyMessage({0, 1, 0, 0, 0, 1});
 
@@ -98,9 +98,9 @@ TEST_F(TestAreButtonsPressed, GoodMessageWithTooMuchButtonsAndGoodButtonsState)
   EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
-TEST_F(TestAreButtonsPressed, GoodMessageGoodButtonsState)
+TEST_F(TestCheckJoyMsg, GoodMessageGoodButtonsState)
 {
-  ASSERT_NO_THROW({ CreateTree("AreButtonsPressed", params_); });
+  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", params_); });
 
   PublishJoyMessage({0, 1, 0});
 

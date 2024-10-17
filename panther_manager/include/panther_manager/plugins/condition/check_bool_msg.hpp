@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PANTHER_MANAGER_PLUGINS_CONDITION_ARE_BUTTONS_PRESSED_HPP_
-#define PANTHER_MANAGER_PLUGINS_CONDITION_ARE_BUTTONS_PRESSED_HPP_
+#ifndef PANTHER_MANAGER_PLUGINS_CONDITION_CHECK_BOOL_MSG_HPP_
+#define PANTHER_MANAGER_PLUGINS_CONDITION_CHECK_BOOL_MSG_HPP_
 
 #include <memory>
 #include <mutex>
@@ -22,34 +22,34 @@
 #include <behaviortree_ros2/bt_topic_sub_node.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include <sensor_msgs/msg/joy.hpp>
+#include <std_msgs/msg/bool.hpp>
 
 #include "panther_manager/behavior_tree_utils.hpp"
 
 namespace panther_manager
 {
 
-class AreButtonsPressed : public BT::RosTopicSubNode<sensor_msgs::msg::Joy>
+class CheckBoolMsg : public BT::RosTopicSubNode<std_msgs::msg::Bool>
 {
+  using BoolMsg = std_msgs::msg::Bool;
+
 public:
-  AreButtonsPressed(
+  CheckBoolMsg(
     const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
-  : BT::RosTopicSubNode<sensor_msgs::msg::Joy>(name, conf, params)
+  : BT::RosTopicSubNode<BoolMsg>(name, conf, params)
   {
+    // TODO: There is no possibility to set QoS profile
   }
 
-  BT::NodeStatus onTick(const std::shared_ptr<sensor_msgs::msg::Joy> & last_msg);
+  BT::NodeStatus onTick(const BoolMsg::SharedPtr & last_msg);
 
   static BT::PortsList providedPorts()
   {
     return providedBasicPorts(
-      {BT::InputPort<std::vector<int>>("buttons", "state of buttons to accept a condition")});
+      {BT::InputPort<std::vector<float>>("data", "state of data to accept a condition")});
   }
-
-private:
-  std::vector<int> buttons_;
 };
 
 }  // namespace panther_manager
 
-#endif  // PANTHER_MANAGER_PLUGINS_CONDITION_ARE_BUTTONS_PRESSED_HPP_
+#endif  // PANTHER_MANAGER_PLUGINS_CONDITION_CHECK_BOOL_MSG_HPP_

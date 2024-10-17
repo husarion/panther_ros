@@ -16,6 +16,7 @@ set(PACKAGE_DEPENDENCIES
     rclcpp
     rclcpp_action
     sensor_msgs
+    std_msgs
     std_srvs
     yaml-cpp
     opennav_docking_msgs)
@@ -59,9 +60,13 @@ add_library(undock_robot_bt_node SHARED
             src/plugins/action/undock_robot_node.cpp)
 list(APPEND plugin_libs undock_robot_bt_node)
 
-add_library(are_buttons_pressed_bt_node SHARED
-            src/plugins/condition/are_buttons_pressed.cpp)
-list(APPEND plugin_libs are_buttons_pressed_bt_node)
+add_library(check_joy_msg_bt_node SHARED
+            src/plugins/condition/check_joy_msg.cpp)
+list(APPEND plugin_libs check_joy_msg_bt_node)
+
+add_library(check_bool_msg_bt_node SHARED
+            src/plugins/condition/check_bool_msg.cpp)
+list(APPEND plugin_libs check_bool_msg_bt_node)
 
 add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
@@ -175,10 +180,10 @@ if(BUILD_TESTING)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_node)
 
   ament_add_gtest(
-    ${PROJECT_NAME}_test_are_buttons_pressed
-    test/plugins/condition/test_are_buttons_pressed.cpp
-    src/plugins/condition/are_buttons_pressed.cpp)
-  list(APPEND plugin_tests ${PROJECT_NAME}_test_are_buttons_pressed)
+    ${PROJECT_NAME}_test_check_joy_msg
+    test/plugins/condition/test_check_joy_msg.cpp
+    src/plugins/condition/check_joy_msg.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_check_joy_msg)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_tick_after_timeout_node
