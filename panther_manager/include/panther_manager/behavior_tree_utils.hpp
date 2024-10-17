@@ -93,28 +93,25 @@ inline std::string GetLoggerPrefix(const std::string & bt_node_name)
 namespace BT
 {
 /**
- * @brief Converts a string to a vector of integers.
+ * @brief Converts a string to a vector of float.
  *
  * @param str The string to convert.
- * @return std::vector<int> The vector of integers.
+ * @return std::vector<float> The vector of float.
  *
- * @throw BT::RuntimeError Throws when there is no input or cannot parse int.
+ * @throw BT::RuntimeError Throws when there is no input or cannot parse float.
  */
 template <>
-inline std::vector<int> convertFromString<std::vector<int>>(StringView str)
+inline std::vector<float> convertFromString<std::vector<float>>(StringView str)
 {
-  auto parts = BT::splitString(str, ';');
-  if (!parts.size()) {
-    throw BT::RuntimeError("invalid input");
-  } else {
-    std::vector<int> result;
-    for (auto & part : parts) {
-      result.push_back(convertFromString<int>(part));
-    }
-
-    return result;
+  auto parts = splitString(str, ';');
+  std::vector<float> output;
+  output.reserve(parts.size());
+  for (const StringView & part : parts) {
+    output.push_back(convertFromString<float>(part));
   }
+  return output;
 }
+
 }  // namespace BT
 
 #endif  // PANTHER_MANAGER_BEHAVIOR_TREE_UTILS_HPP_
