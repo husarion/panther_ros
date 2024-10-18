@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import (
     EnvironmentVariable,
     LaunchConfiguration,
@@ -26,12 +26,13 @@ from nav2_common.launch import ReplaceString
 
 
 def generate_launch_description():
-    use_sim = LaunchConfiguration("use_sim")
-    declare_use_sim_arg = DeclareLaunchArgument(
-        "use_sim",
-        default_value="False",
-        description="Whether simulation is used",
-        choices=[True, False, "True", "False", "true", "false", "1", "0"],
+    docking_server_config_path = LaunchConfiguration("docking_server_config_path")
+    declare_docking_server_config_path_arg = DeclareLaunchArgument(
+        "docking_server_config_path",
+        default_value=PathJoinSubstitution(
+            [FindPackageShare("panther_docking"), "config", "panther_docking_server.yaml"]
+        ),
+        description=("Path to docking server configuration file."),
     )
 
     namespace = LaunchConfiguration("namespace")
@@ -41,13 +42,20 @@ def generate_launch_description():
         description="Add namespace to all launched nodes.",
     )
 
-    docking_server_config_path = LaunchConfiguration("docking_server_config_path")
-    declare_docking_server_config_path_arg = DeclareLaunchArgument(
-        "docking_server_config_path",
-        default_value=PathJoinSubstitution(
-            [FindPackageShare("panther_docking"), "config", "panther_docking_server.yaml"]
-        ),
-        description=("Path to docking server configuration file."),
+    use_docking = LaunchConfiguration("use_docking")
+    declare_use_docking_arg = DeclareLaunchArgument(
+        "use_docking",
+        default_value="True",
+        description="Enable docking server.",
+        choices=["True", "False", "true", "false"],
+    )
+
+    use_sim = LaunchConfiguration("use_sim")
+    declare_use_sim_arg = DeclareLaunchArgument(
+        "use_sim",
+        default_value="False",
+        description="Whether simulation is used.",
+        choices=["True", "False", "true", "false"],
     )
 
     namespaced_docking_server_config = ReplaceString(
@@ -58,18 +66,21 @@ def generate_launch_description():
     docking_server_node = Node(
         package="opennav_docking",
         executable="opennav_docking",
+        namespace=namespace,
         parameters=[
             namespaced_docking_server_config,
             {"use_sim_time": use_sim},
         ],
-        namespace=namespace,
+        remappings=[("~/transition_event", "~/_transition_event")],
         emulate_tty=True,
+        condition=IfCondition(use_docking),
     )
 
     docking_server_activate_node = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",
         name="nav2_docking_lifecycle_manager",
+        namespace=namespace,
         parameters=[
             {
                 "autostart": True,
@@ -79,28 +90,15 @@ def generate_launch_description():
                 "use_sim_time": use_sim,
             },
         ],
-        namespace=namespace,
-    )
-
-    station_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("panther_docking"),
-                    "launch",
-                    "station.launch.py",
-                ]
-            ),
-        ),
-        launch_arguments={"namespace": namespace}.items(),
+        condition=IfCondition(use_docking),
     )
 
     return LaunchDescription(
         [
-            declare_use_sim_arg,
-            declare_namespace_arg,
             declare_docking_server_config_path_arg,
-            station_launch,
+            declare_namespace_arg,
+            declare_use_docking_arg,
+            declare_use_sim_arg,
             docking_server_node,
             docking_server_activate_node,
         ]

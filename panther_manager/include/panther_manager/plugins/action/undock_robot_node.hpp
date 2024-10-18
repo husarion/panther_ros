@@ -55,8 +55,6 @@ public:
       BT::InputPort<float>(
         "max_undocking_time", 30.0, "Maximum time to get back to the staging pose"),
 
-      BT::OutputPort<UndockRobotActionResult::_success_type>(
-        "success", "If the action was successful"),
       BT::OutputPort<UndockRobotActionResult::_error_code_type>("error_code", "Error code"),
     });
   }

@@ -57,8 +57,6 @@ public:
       BT::InputPort<bool>(
         "navigate_to_staging_pose", true, "Whether to autonomously navigate to staging pose"),
 
-      BT::OutputPort<DockRobotActionResult::_success_type>(
-        "success", "If the action was successful"),
       BT::OutputPort<DockRobotActionResult::_error_code_type>(
         "error_code", "Contextual error code, if any"),
       BT::OutputPort<DockRobotActionResult::_num_retries_type>(
