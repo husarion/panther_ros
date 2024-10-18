@@ -45,7 +45,7 @@ RobotStatesManagerNode::RobotStatesManagerNode(
 
   const auto initial_blackboard = CreateBlackboard();
   docking_tree_manager_ = std::make_unique<BehaviorTreeManager>(
-    "RobotStates", initial_blackboard, 5557);
+    "RobotStates", initial_blackboard, 5556);
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
