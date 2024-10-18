@@ -64,6 +64,7 @@ public:
 TEST_F(TestDockRobot, GoodLoadingDockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
+    {"action_name", "test_dock_action"},
     {"use_dock_id", "true"},
     {"dock_id", "test_dock"},
     {"dock_type", "test_dock_type"},
@@ -79,11 +80,9 @@ TEST_F(TestDockRobot, GoodLoadingDockRobotPlugin)
 TEST_F(TestDockRobot, WrongLoadingDockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
-    {"use_dock_id", "true"},
-    {"dock_id", "test_dock"},
-    {"dock_type", "test_dock_type"},
-    {"max_staging_time", "5.0"},
-    {"navigate_to_staging_pose", "false"},
+    {"action_name", ""},         {"use_dock_id", "true"},
+    {"dock_id", "test_dock"},    {"dock_type", "test_dock_type"},
+    {"max_staging_time", "5.0"}, {"navigate_to_staging_pose", "false"},
   };
 
   RegisterNodeWithParams<panther_manager::DockRobot>("DockRobot");
@@ -94,7 +93,7 @@ TEST_F(TestDockRobot, WrongLoadingDockRobotPlugin)
 TEST_F(TestDockRobot, WrongCallDockRobotServerNotInitialized)
 {
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_dock_action"},
     {"use_dock_id", "true"},
     {"dock_id", "test_dock"},
     {"dock_type", "test_dock_type"},
@@ -117,9 +116,8 @@ TEST_F(TestDockRobot, WrongCallDockRobotServerWithNoDockID)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-    {"use_dock_id", "true"},
-    {"dock_type", "test_dock_type"},
-    {"max_staging_time", "5.0"},
+    {"action_name", "test_dock_action"},   {"use_dock_id", "true"},
+    {"dock_type", "test_dock_type"},       {"max_staging_time", "5.0"},
     {"navigate_to_staging_pose", "false"},
   };
 
@@ -137,9 +135,8 @@ TEST_F(TestDockRobot, CallDockRobotServerWithoutDockID)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-    {"use_dock_id", "false"},
-    {"dock_type", "test_dock_type"},
-    {"max_staging_time", "5.0"},
+    {"action_name", "test_dock_action"},   {"use_dock_id", "false"},
+    {"dock_type", "test_dock_type"},       {"max_staging_time", "5.0"},
     {"navigate_to_staging_pose", "false"},
   };
 
@@ -157,7 +154,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithEmptyDockID)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_dock_action"},
     {"use_dock_id", "true"},
     {"dock_id", ""},
     {"dock_type", "test_dock_type"},
@@ -179,7 +176,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithEmptyDockType)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_dock_action"},
     {"use_dock_id", "true"},
     {"dock_id", "main_dock"},
     {"dock_type", ""},
@@ -200,7 +197,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithNavigateToStagingPoseFailure)
   CreateActionServer(GoalResponse::REJECT, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_dock_action"},
     {"use_dock_id", "true"},
     {"dock_id", "main_dock"},
     {"dock_type", "test_dock_type"},
@@ -222,7 +219,7 @@ TEST_F(TestDockRobot, CallDockRobotServerWithNavigateToStagingPoseSuccess)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_dock_action"},
     {"use_dock_id", "true"},
     {"dock_id", "main_dock"},
     {"dock_type", "test_dock_type"},

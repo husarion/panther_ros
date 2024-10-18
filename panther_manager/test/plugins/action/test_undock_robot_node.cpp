@@ -66,7 +66,7 @@ public:
 TEST_F(TestUndockRobot, GoodLoadingUndockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_undock_action"},
     {"dock_type", "test_dock_type"},
     {"max_undocking_time", "5.0"},
   };
@@ -79,6 +79,7 @@ TEST_F(TestUndockRobot, GoodLoadingUndockRobotPlugin)
 TEST_F(TestUndockRobot, WrongLoadingUndockRobotPlugin)
 {
   std::map<std::string, std::string> params = {
+    {"action_name", ""},
     {"dock_type", "test_dock_type"},
     {"max_undocking_time", "5.0"},
   };
@@ -91,7 +92,7 @@ TEST_F(TestUndockRobot, WrongLoadingUndockRobotPlugin)
 TEST_F(TestUndockRobot, WrongCallUndockRobotServerNotInitialized)
 {
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_undock_action"},
     {"dock_type", "test_dock_type"},
     {"max_undocking_time", "5.0"},
   };
@@ -112,7 +113,7 @@ TEST_F(TestUndockRobot, WrongCallUndockRobotServerWithNoDockType)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_undock_action"},
     {"dock_type", ""},
     {"max_undocking_time", "5.0"},
   };
@@ -130,7 +131,7 @@ TEST_F(TestUndockRobot, CallUndockRobotServerFailure)
   CreateActionServer(GoalResponse::REJECT, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_undock_action"},
     {"dock_type", "test_dock_type"},
     {"max_undocking_time", "5.0"},
   };
@@ -149,7 +150,7 @@ TEST_F(TestUndockRobot, CallUndockRobotServerSuccess)
     GoalResponse::ACCEPT_AND_EXECUTE, CancelResponse::ACCEPT, true, ActionResult::NONE);
 
   std::map<std::string, std::string> params = {
-
+    {"action_name", "test_undock_action"},
     {"dock_type", "test_dock_type"},
     {"max_undocking_time", "5.0"},
   };
