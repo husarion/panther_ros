@@ -38,7 +38,7 @@ def generate_launch_description():
         default_value=PathJoinSubstitution(
             [panther_manager_dir, "behavior_trees", "RobotStatesBT.btproj"]
         ),
-        description="Path to BehaviorTree project file, responsible for lights management.",
+        description="Path to BehaviorTree project file, responsible for robot states management.",
     )
 
     lights_bt_project_path = LaunchConfiguration("lights_bt_project_path")

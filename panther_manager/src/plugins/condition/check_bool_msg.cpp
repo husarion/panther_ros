@@ -24,15 +24,8 @@ BT::NodeStatus CheckBoolMsg::onTick(const BoolMsg::SharedPtr & last_msg)
   bool expected_data;
   getInput<bool>("data", expected_data);
 
-  if (!last_msg) {
-    return BT::NodeStatus::FAILURE;
-  }
-
-  if (expected_data == last_msg->data) {
-    return BT::NodeStatus::SUCCESS;
-  }
-
-  return BT::NodeStatus::FAILURE;
+  return (last_msg && expected_data == last_msg->data) ? BT::NodeStatus::SUCCESS
+                                                       : BT::NodeStatus::FAILURE;
 }
 
 }  // namespace panther_manager

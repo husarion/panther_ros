@@ -23,7 +23,6 @@
 
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "std_msgs/msg/int8.hpp"
 
 #include "panther_msgs/msg/led_animation.hpp"
 #include "panther_msgs/msg/robot_state.hpp"

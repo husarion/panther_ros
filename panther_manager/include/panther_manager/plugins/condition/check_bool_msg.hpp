@@ -29,6 +29,7 @@
 namespace panther_manager
 {
 
+// FIXME: There is no possibility to set QoS profile. Add it in the future to subscribe e_stop.
 class CheckBoolMsg : public BT::RosTopicSubNode<std_msgs::msg::Bool>
 {
   using BoolMsg = std_msgs::msg::Bool;
@@ -38,7 +39,6 @@ public:
     const std::string & name, const BT::NodeConfig & conf, const BT::RosNodeParams & params)
   : BT::RosTopicSubNode<BoolMsg>(name, conf, params)
   {
-    // TODO: There is no possibility to set QoS profile
   }
 
   BT::NodeStatus onTick(const BoolMsg::SharedPtr & last_msg);
@@ -46,7 +46,7 @@ public:
   static BT::PortsList providedPorts()
   {
     return providedBasicPorts(
-      {BT::InputPort<std::vector<float>>("data", "state of data to accept a condition")});
+      {BT::InputPort<std::vector<bool>>("data", "state of data to accept a condition")});
   }
 };
 

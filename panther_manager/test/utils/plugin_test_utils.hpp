@@ -116,6 +116,7 @@ public:
 
   template <typename ActionT>
   void CreateAction(
+    const std::string & action_name,
     std::function<rclcpp_action::GoalResponse(
       const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const typename ActionT::Goal> goal)>
       handle_goal,
@@ -125,9 +126,9 @@ public:
     std::function<void(const std::shared_ptr<rclcpp_action::ServerGoalHandle<ActionT>> goal_handle)>
       handle_accepted)
   {
-    server_node_ = std::make_shared<rclcpp::Node>("test_node");
+    server_node_ = std::make_shared<rclcpp::Node>("test_node_for_" + action_name);
     action_server_ = rclcpp_action::create_server<ActionT>(
-      server_node_, handle_goal, handle_cancel, handle_accepted);
+      server_node_, action_name, handle_goal, handle_cancel, handle_accepted);
     executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
     executor_->add_node(server_node_);
     executor_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });

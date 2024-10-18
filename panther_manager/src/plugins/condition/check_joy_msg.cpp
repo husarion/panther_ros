@@ -21,15 +21,9 @@ namespace panther_manager
 
 BT::NodeStatus CheckJoyMsg::onTick(const JoyMsg::SharedPtr & last_msg)
 {
-  if (!last_msg) {
-    return BT::NodeStatus::FAILURE;
-  }
-
-  if (checkAxes(last_msg) && checkButtons(last_msg) && checkTimeout(last_msg)) {
-    return BT::NodeStatus::SUCCESS;
-  }
-
-  return BT::NodeStatus::FAILURE;
+  return (last_msg && checkAxes(last_msg) && checkButtons(last_msg) && checkTimeout(last_msg))
+           ? BT::NodeStatus::SUCCESS
+           : BT::NodeStatus::FAILURE;
 }
 
 bool CheckJoyMsg::checkAxes(const JoyMsg::SharedPtr & last_msg)
@@ -49,11 +43,7 @@ bool CheckJoyMsg::checkAxes(const JoyMsg::SharedPtr & last_msg)
     return false;
   }
 
-  if (std::equal(expected_axes.begin(), expected_axes.end(), last_msg->buttons.begin())) {
-    return true;
-  }
-
-  return false;
+  return std::equal(expected_axes.begin(), expected_axes.end(), last_msg->axes.begin());
 }
 
 bool CheckJoyMsg::checkButtons(const JoyMsg::SharedPtr & last_msg)
@@ -73,11 +63,7 @@ bool CheckJoyMsg::checkButtons(const JoyMsg::SharedPtr & last_msg)
     return false;
   }
 
-  if (std::equal(expected_buttons.begin(), expected_buttons.end(), last_msg->buttons.begin())) {
-    return true;
-  }
-
-  return false;
+  return std::equal(expected_buttons.begin(), expected_buttons.end(), last_msg->buttons.begin());
 }
 
 bool CheckJoyMsg::checkTimeout(const JoyMsg::SharedPtr & last_msg)
@@ -85,15 +71,8 @@ bool CheckJoyMsg::checkTimeout(const JoyMsg::SharedPtr & last_msg)
   double max_timeout;
   getInput<double>("timeout", max_timeout);
 
-  if (max_timeout <= 0.0) {
-    return true;
-  }
-
-  if (rclcpp::Clock().now().seconds() < last_msg->header.stamp.sec + max_timeout) {
-    return true;
-  }
-
-  return false;
+  return (max_timeout <= 0.0) ||
+         (rclcpp::Clock().now().seconds() < last_msg->header.stamp.sec + max_timeout);
 }
 
 }  // namespace panther_manager

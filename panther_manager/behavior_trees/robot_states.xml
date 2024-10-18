@@ -19,14 +19,16 @@
       <Sequence name="Standby Sequence"
                 _skipIf="robot_state != ROBOT_STATE_STANDBY">
         <Fallback name="Standby Transition Selector">
-          <Fallback name="Check Docking Command"
+          <Fallback name="Check Docking Transitions"
                     _onFailure="docking_cmd = DOCKING_CMD_NONE">
-            <CheckJoyMsg topic_name="joy"
+            <CheckJoyMsg name="Check Joy Docking Request"
+                         topic_name="joy"
                          timeout="2.0"
                          axes=""
                          buttons="0;0;0;1;1;1"
                          _onSuccess="robot_state = ROBOT_STATE_DOCKING;&#10;docking_cmd = DOCKING_CMD_DOCK"/>
-            <CheckJoyMsg topic_name="joy"
+            <CheckJoyMsg name="Check Joy Undocking Request"
+                         topic_name="joy"
                          timeout="2.0"
                          axes=""
                          buttons="1;0;0;0;1;1"
@@ -45,15 +47,17 @@
                 _onSuccess="robot_state = ROBOT_STATE_SUCCESS"
                 _onFailure="robot_state = ROBOT_STATE_ERROR"
                 _post="docking_cmd = DOCKING_CMD_NONE">
-        <Fallback name="Docking Selector">
-          <DockRobot use_dock_id="true"
+        <Fallback name="Dock/Undock Selector">
+          <DockRobot name="Dock Action"
+                     use_dock_id="true"
                      dock_id="main_dock"
                      dock_type="panther_charging_dock"
                      max_staging_time="100"
                      navigate_to_staging_pose="false"
                      action_name="dock_robot"
                      _skipIf="docking_cmd != DOCKING_CMD_DOCK"/>
-          <UndockRobot dock_type="panther_charging_dock"
+          <UndockRobot name="Undock Action"
+                       dock_type="panther_charging_dock"
                        max_undocking_time="100"
                        action_name="undock_robot"
                        _skipIf="docking_cmd != DOCKING_CMD_UNDOCK"/>
