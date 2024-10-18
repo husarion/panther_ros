@@ -2,21 +2,9 @@
   robot_states_manager:
     ros__parameters:
       timer_frequency: 50.0
-      battery:
-        percent:
-          window_len: 6
-          threshold:
-            low: 0.4
-            critical: 0.1
-        animation_period:
-          low: 30.0
-          critical: 15.0
-        charging_anim_step: 0.1
       ros_communication_timeout:
         availability: 1.0
         response: 1.0
-      plugin_libs:
-        - tick_after_timeout_bt_node
       ros_plugin_libs:
         - call_trigger_service_bt_node
         - check_joy_msg_bt_node

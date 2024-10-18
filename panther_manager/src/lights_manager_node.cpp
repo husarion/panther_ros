@@ -68,7 +68,7 @@ void LightsManagerNode::Initialize()
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&LightsManagerNode::EStopCB, this, _1));
-  robot_state_sub_ = this->create_subscription<Int8Msg>(
+  robot_state_sub_ = this->create_subscription<RobotStateMsg>(
     "robot_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&LightsManagerNode::RobotStateCB, this, _1));
 
@@ -149,17 +149,17 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
   const std::map<std::string, std::any> lights_initial_bb = {
     {"charging_anim_percent", undefined_charging_anim_percent},
     {"current_anim_id", undefined_anim_id},
-    {"robot_state", 0},
     {"CRITICAL_BATTERY_ANIM_PERIOD", critical_battery_anim_period},
     {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
     {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
     {"LOW_BATTERY_THRESHOLD_PERCENT", low_battery_threshold_percent},
     // robot states
-    {"ROBOT_STATE_ERROR", -1},
-    {"ROBOT_STATE_ESTOP", 0},
-    {"ROBOT_STATE_STANDBY", 1},
-    {"ROBOT_STATE_DOCKING", 2},
-    {"ROBOT_STATE_SUCCESS", 3},
+    {"robot_state", int(RobotStateMsg::E_STOP)},
+    {"ROBOT_STATE_ERROR", int(RobotStateMsg::ERROR)},
+    {"ROBOT_STATE_ESTOP", int(RobotStateMsg::E_STOP)},
+    {"ROBOT_STATE_STANDBY", int(RobotStateMsg::STANDBY)},
+    {"ROBOT_STATE_DOCKING", int(RobotStateMsg::DOCKING)},
+    {"ROBOT_STATE_SUCCESS", int(RobotStateMsg::SUCCESS)},
     // anim constants
     {"E_STOP_ANIM_ID", unsigned(LEDAnimationMsg::E_STOP)},
     {"READY_ANIM_ID", unsigned(LEDAnimationMsg::READY)},
@@ -227,9 +227,9 @@ void LightsManagerNode::LightsTreeTimerCB()
   }
 }
 
-void LightsManagerNode::RobotStateCB(const Int8Msg::SharedPtr robot_state)
+void LightsManagerNode::RobotStateCB(const RobotStateMsg::SharedPtr robot_state)
 {
-  lights_tree_manager_->GetBlackboard()->set<int8_t>("robot_state", robot_state->data);
+  lights_tree_manager_->GetBlackboard()->set<int8_t>("robot_state", robot_state->state_id);
 }
 
 bool LightsManagerNode::SystemReady()
