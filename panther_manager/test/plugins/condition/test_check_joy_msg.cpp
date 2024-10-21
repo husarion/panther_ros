@@ -50,11 +50,7 @@ public:
   JoyMsg CreateMsg(
     const std::vector<float> & axes = {}, const std::vector<int> & buttons = {},
     const HeaderMsg & header = HeaderMsg());
-  void SetCurrentHeaderTime(HeaderMsg & header)
-  {
-    header.stamp.sec = bt_node_->now().seconds();
-    header.stamp.nanosec = bt_node_->now().nanoseconds();
-  }
+  void SetCurrentMsgTime(JoyMsg & header);
 
 protected:
   rclcpp::Publisher<JoyMsg>::SharedPtr joy_publisher_;
@@ -74,6 +70,12 @@ JoyMsg TestCheckJoyMsg::CreateMsg(
   msg.axes = axes;
   msg.buttons = buttons;
   return msg;
+}
+
+void TestCheckJoyMsg::SetCurrentMsgTime(JoyMsg & msg)
+{
+  msg.header.stamp.sec = bt_node_->now().seconds();
+  msg.header.stamp.nanosec = bt_node_->now().nanoseconds();
 }
 
 TEST_F(TestCheckJoyMsg, NoTopicSet)
@@ -109,10 +111,8 @@ TEST_F(TestCheckJoyMsg, TimeoutTests)
      CreateMsg()}};
 
   for (auto & test_case : test_cases) {
-    SCOPED_TRACE("Test case name: " + test_case.name);
-
     CreateTree(PLUGIN, test_case.input);
-    SetCurrentHeaderTime(test_case.msg.header);
+    SetCurrentMsgTime(test_case.msg);
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     PublishMsg(test_case.msg);
 
@@ -177,7 +177,7 @@ TEST_F(TestCheckJoyMsg, OnTickBehavior)
 
   for (auto & test_case : test_cases) {
     CreateTree(PLUGIN, test_case.input);
-    SetCurrentHeaderTime(test_case.msg.header);
+    SetCurrentMsgTime(test_case.msg);
     PublishMsg(test_case.msg);
 
     auto & tree = GetTree();
