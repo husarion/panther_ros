@@ -60,13 +60,13 @@ add_library(undock_robot_bt_node SHARED
             src/plugins/action/undock_robot_node.cpp)
 list(APPEND plugin_libs undock_robot_bt_node)
 
-add_library(check_joy_msg_bt_node SHARED
-            src/plugins/condition/check_joy_msg.cpp)
-list(APPEND plugin_libs check_joy_msg_bt_node)
-
 add_library(check_bool_msg_bt_node SHARED
             src/plugins/condition/check_bool_msg.cpp)
 list(APPEND plugin_libs check_bool_msg_bt_node)
+
+add_library(check_joy_msg_bt_node SHARED
+            src/plugins/condition/check_joy_msg.cpp)
+list(APPEND plugin_libs check_joy_msg_bt_node)
 
 add_library(tick_after_timeout_bt_node SHARED
             src/plugins/decorator/tick_after_timeout_node.cpp)
@@ -178,6 +178,12 @@ if(BUILD_TESTING)
     test/plugins/action/test_undock_robot_node.cpp
     src/plugins/action/undock_robot_node.cpp)
   list(APPEND plugin_tests ${PROJECT_NAME}_test_undock_robot_node)
+
+  ament_add_gtest(
+    ${PROJECT_NAME}_test_check_bool_msg
+    test/plugins/condition/test_check_bool_msg.cpp
+    src/plugins/condition/check_bool_msg.cpp)
+  list(APPEND plugin_tests ${PROJECT_NAME}_test_check_bool_msg)
 
   ament_add_gtest(
     ${PROJECT_NAME}_test_check_joy_msg

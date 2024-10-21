@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -30,30 +31,43 @@
 
 using JoyMsg = sensor_msgs::msg::Joy;
 using HeaderMsg = std_msgs::msg::Header;
+using bt_ports = std::map<std::string, std::string>;
 
+struct TestCase
+{
+  BT::NodeStatus result;
+  bt_ports input;
+  JoyMsg msg;
+};
+
+constexpr auto TOPIC = "joy";
+constexpr auto PLUGIN = "CheckJoyMsg";
 class TestCheckJoyMsg : public panther_manager::plugin_test_utils::PluginTestUtils
 {
 public:
   TestCheckJoyMsg();
-  JoyMsg CreateJoyMsg(
-    const HeaderMsg & header = HeaderMsg(), const std::vector<float> & axes = {},
-    const std::vector<int> & buttons = {});
-  void PublishJoyMsg(JoyMsg msg);
+  void PublishMsg(JoyMsg msg) { joy_publisher_->publish(msg); };
+  JoyMsg CreateMsg(
+    const std::vector<float> & axes = {}, const std::vector<int> & buttons = {},
+    const HeaderMsg & header = HeaderMsg());
+  void SetCurrentHeaderTime(HeaderMsg & header)
+  {
+    header.stamp.sec = bt_node_->now().seconds();
+    header.stamp.nanosec = bt_node_->now().nanoseconds();
+  }
 
 protected:
   rclcpp::Publisher<JoyMsg>::SharedPtr joy_publisher_;
-  std::map<std::string, std::string> bb_ports_ = {
-    {"topic_name", "joy"}, {"axes", ""}, {"buttons", "0;1;0"}, {"timeout", "0.0"}};
 };
 
 TestCheckJoyMsg::TestCheckJoyMsg()
 {
-  RegisterNodeWithParams<panther_manager::CheckJoyMsg>("CheckJoyMsg");
-  joy_publisher_ = bt_node_->create_publisher<JoyMsg>("joy", 10);
+  RegisterNodeWithParams<panther_manager::CheckJoyMsg>(PLUGIN);
+  joy_publisher_ = bt_node_->create_publisher<JoyMsg>(TOPIC, 10);
 }
 
-JoyMsg TestCheckJoyMsg::CreateJoyMsg(
-  const HeaderMsg & header, const std::vector<float> & axes, const std::vector<int> & buttons)
+JoyMsg TestCheckJoyMsg::CreateMsg(
+  const std::vector<float> & axes, const std::vector<int> & buttons, const HeaderMsg & header)
 {
   JoyMsg msg;
   msg.header = header;
@@ -62,75 +76,120 @@ JoyMsg TestCheckJoyMsg::CreateJoyMsg(
   return msg;
 }
 
-void TestCheckJoyMsg::PublishJoyMsg(JoyMsg msg) { joy_publisher_->publish(msg); }
-
-TEST_F(TestCheckJoyMsg, LoadingCheckJoyMsgPlugin)
+TEST_F(TestCheckJoyMsg, NoTopicSet)
 {
-  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", bb_ports_); });
+  bt_ports input = {{"topic_name", ""}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}};
+  ASSERT_THROW(CreateTree(PLUGIN, input), std::logic_error);
 }
 
 TEST_F(TestCheckJoyMsg, NoMessage)
 {
-  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", bb_ports_); });
+  bt_ports input = {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}};
+  ASSERT_NO_THROW({ CreateTree(PLUGIN, input); });
 
   auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
+  auto status = tree.tickWhileRunning();
   EXPECT_EQ(status, BT::NodeStatus::FAILURE);
 }
 
-TEST_F(TestCheckJoyMsg, WrongMessageTooFewButtons)
+TEST_F(TestCheckJoyMsg, TimeoutTests)
 {
-  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", bb_ports_); });
+  std::vector<TestCase> test_cases = {
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", ""}, {"timeout", "1.0"}},
+     CreateMsg()},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", ""}, {"timeout", "0.0"}},
+     CreateMsg()},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", ""}, {"timeout", "-1.0"}},
+     CreateMsg()},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", ""}, {"timeout", "0.001"}},
+     CreateMsg()}};
 
-  auto msg = CreateJoyMsg(HeaderMsg(), {}, {0, 1});
-  PublishJoyMsg(msg);
+  for (auto & test_case : test_cases) {
+    SCOPED_TRACE("Test case name: " + test_case.name);
 
-  auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
+    CreateTree(PLUGIN, test_case.input);
+    SetCurrentHeaderTime(test_case.msg.header);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    PublishMsg(test_case.msg);
+
+    auto & tree = GetTree();
+    auto status = tree.tickWhileRunning();
+
+    EXPECT_EQ(status, test_case.result);
+  }
 }
 
-TEST_F(TestCheckJoyMsg, GoodMessageWrongButtonsState)
+TEST_F(TestCheckJoyMsg, OnTickBehavior)
 {
-  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", bb_ports_); });
+  std::vector<TestCase> test_cases = {
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", ""}, {"timeout", "1.0"}},
+     CreateMsg()},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", "1"}, {"buttons", ""}, {"timeout", "1.0"}},
+     CreateMsg({1})},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", "1"}, {"timeout", "1.0"}},
+     CreateMsg({}, {1})},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 0}, {0, 0})},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", "34;0;1"}, {"buttons", "0;0;10;0"}, {"timeout", "1.0"}},
+     CreateMsg({34, 0, 1}, {0, 0, 10, 0})},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", "34;0;1"}, {"buttons", ""}, {"timeout", "1.0"}},
+     CreateMsg({34, 0, 1}, {0, 0, 10, 0})},
+    {BT::NodeStatus::SUCCESS,
+     {{"topic_name", TOPIC}, {"axes", ""}, {"buttons", "0;0;10;0"}, {"timeout", "1.0"}},
+     CreateMsg({34, 0, 1}, {0, 0, 10, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "34;0;1"}, {"buttons", "0;0;10;0"}, {"timeout", "1.0"}},
+     CreateMsg({33, 0, 1}, {0, 0, 10, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 0}, {0, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 0}, {0, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 0, 0}, {0, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 0}, {0, 0, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 1}, {0, 0})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({0, 0}, {0, 1})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0"}, {"timeout", "1.0"}},
+     CreateMsg({1, 1}, {1, 1})},
+    {BT::NodeStatus::FAILURE,
+     {{"topic_name", TOPIC}, {"axes", "0;0"}, {"buttons", "0;0;0"}, {"timeout", "1.0"}},
+     CreateMsg({1, 1}, {1, 1, 1})}};
 
-  auto msg = CreateJoyMsg(HeaderMsg(), {}, {0, 0, 0});
-  PublishJoyMsg(msg);
+  for (auto & test_case : test_cases) {
+    CreateTree(PLUGIN, test_case.input);
+    SetCurrentHeaderTime(test_case.msg.header);
+    PublishMsg(test_case.msg);
 
-  auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::FAILURE);
-}
+    auto & tree = GetTree();
+    auto status = tree.tickWhileRunning();
 
-TEST_F(TestCheckJoyMsg, GoodMessageWithTooMuchButtonsAndGoodButtonsState)
-{
-  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", bb_ports_); });
-
-  auto msg = CreateJoyMsg(HeaderMsg(), {}, {0, 1, 0, 0, 0, 1});
-  PublishJoyMsg(msg);
-
-  auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
-}
-
-TEST_F(TestCheckJoyMsg, GoodMessageGoodButtonsState)
-{
-  ASSERT_NO_THROW({ CreateTree("CheckJoyMsg", bb_ports_); });
-
-  auto msg = CreateJoyMsg(HeaderMsg(), {}, {0, 1, 0});
-  PublishJoyMsg(msg);
-
-  auto & tree = GetTree();
-  auto status = tree.tickWhileRunning(std::chrono::milliseconds(100));
-  EXPECT_EQ(status, BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(status, test_case.result);
+  }
 }
 
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-
   auto result = RUN_ALL_TESTS();
-
   return result;
 }
