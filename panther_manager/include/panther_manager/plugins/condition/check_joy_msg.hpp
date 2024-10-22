@@ -45,9 +45,16 @@ public:
   static BT::PortsList providedPorts()
   {
     return providedBasicPorts(
-      {BT::InputPort<std::vector<float>>("axes", "state of axes to accept a condition"),
-       BT::InputPort<std::vector<int>>("buttons", "state of buttons to accept a condition"),
-       BT::InputPort<double>("timeout", 0.0, "max time delay to accept a condition")});
+      {BT::InputPort<std::vector<float>>(
+         "axes", "",
+         "Specifies the expected state of the axes field. An empty string (\"\") means the value "
+         "is ignored."),
+       BT::InputPort<std::vector<int>>(
+         "buttons", "",
+         "Specifies the expected state of the buttons field. An empty string (\"\") means the "
+         "value is ignored."),
+       BT::InputPort<double>(
+         "timeout", 0.0, "Maximum allowable time delay to accept the condition.")});
   }
 
 private:

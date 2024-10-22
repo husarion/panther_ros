@@ -3,7 +3,7 @@
     ros__parameters:
       timer_frequency: 50.0
       ros_communication_timeout:
-        availability: 1.0
+        availability: 2.0
         response: 1.0
       ros_plugin_libs:
         - call_trigger_service_bt_node

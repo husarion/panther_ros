@@ -26,6 +26,9 @@
 #include "behaviortree_cpp/utils/shared_library.h"
 #include "behaviortree_ros2/plugins.hpp"
 
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
 namespace panther_manager::behavior_tree_utils
 {
 
@@ -110,6 +113,57 @@ inline std::vector<float> convertFromString<std::vector<float>>(StringView str)
     output.push_back(convertFromString<float>(part));
   }
   return output;
+}
+
+/**
+ * @brief Converts a string to a PoseStamped message.
+ *
+ * The string format should be "roll,pitch,yaw,x,y,z,frame_id" where:
+ *  - roll, pitch, yaw: Euler angles in radians.
+ *  - x, y, z: Position coordinates.
+ *  - frame_id: Coordinate frame ID (string).
+ *
+ * @param str The string to convert.
+ * @return geometry_msgs::msg::PoseStamped The converted PoseStamped message.
+ *
+ * @throw BT::RuntimeError Throws if the input is invalid or cannot be parsed.
+ */
+template <>
+inline geometry_msgs::msg::PoseStamped convertFromString<geometry_msgs::msg::PoseStamped>(
+  StringView str)
+{
+  auto parts = splitString(str, ';');
+
+  if (parts.size() != 7) {
+    throw BT::RuntimeError(
+      "Invalid input for PoseStamped. Expected 7 values: x;y;z;roll;pitch;yaw;frame_id");
+  }
+
+  geometry_msgs::msg::PoseStamped pose_stamped;
+
+  try {
+    // Position (x, y, z)
+    pose_stamped.pose.position.x = convertFromString<double>(parts[0]);
+    pose_stamped.pose.position.y = convertFromString<double>(parts[1]);
+    pose_stamped.pose.position.z = convertFromString<double>(parts[2]);
+
+    // Orientation (R,P,Y -> Quaternion)
+    double roll = convertFromString<double>(parts[3]);
+    double pitch = convertFromString<double>(parts[4]);
+    double yaw = convertFromString<double>(parts[5]);
+    tf2::Quaternion quaternion;
+    quaternion.setRPY(roll, pitch, yaw);
+    pose_stamped.pose.orientation = tf2::toMsg(quaternion);
+
+    // Frame ID and current time
+    pose_stamped.header.frame_id = convertFromString<std::string>(parts[6]);
+    pose_stamped.header.stamp = rclcpp::Clock().now();
+
+  } catch (const std::exception & e) {
+    throw BT::RuntimeError("Failed to convert string to PoseStamped: " + std::string(e.what()));
+  }
+
+  return pose_stamped;
 }
 
 }  // namespace BT

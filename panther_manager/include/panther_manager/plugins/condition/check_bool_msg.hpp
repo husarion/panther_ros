@@ -45,7 +45,8 @@ public:
 
   static BT::PortsList providedPorts()
   {
-    return providedBasicPorts({BT::InputPort<bool>("data", "state of data to accept a condition")});
+    return providedBasicPorts(
+      {BT::InputPort<bool>("data", "Specifies the expected state of the data field.")});
   }
 };
 
