@@ -49,7 +49,7 @@ LightsManagerNode::LightsManagerNode(
     battery_percent_window_len, 1.0);
 
   const auto initial_blackboard = CreateLightsInitialBlackboard();
-  lights_tree_manager_ = std::make_unique<BehaviorTreeManager>("Lights", initial_blackboard, 5555);
+  lights_tree_manager_ = std::make_unique<BehaviorTreeManager>("Lights", initial_blackboard, 5550);
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
@@ -68,6 +68,9 @@ void LightsManagerNode::Initialize()
   e_stop_sub_ = this->create_subscription<BoolMsg>(
     "hardware/e_stop", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&LightsManagerNode::EStopCB, this, _1));
+  robot_state_sub_ = this->create_subscription<RobotStateMsg>(
+    "robot_state", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
+    std::bind(&LightsManagerNode::RobotStateCB, this, _1));
 
   const float timer_freq = this->get_parameter("timer_frequency").as_double();
   const auto timer_period_ms =
@@ -150,6 +153,13 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
     {"CRITICAL_BATTERY_THRESHOLD_PERCENT", critical_battery_threshold_percent},
     {"LOW_BATTERY_ANIM_PERIOD", low_battery_anim_period},
     {"LOW_BATTERY_THRESHOLD_PERCENT", low_battery_threshold_percent},
+    // robot states
+    {"robot_state", int(RobotStateMsg::E_STOP)},
+    {"ROBOT_STATE_ERROR", int(RobotStateMsg::ERROR)},
+    {"ROBOT_STATE_ESTOP", int(RobotStateMsg::E_STOP)},
+    {"ROBOT_STATE_STANDBY", int(RobotStateMsg::STANDBY)},
+    {"ROBOT_STATE_DOCKING", int(RobotStateMsg::DOCKING)},
+    {"ROBOT_STATE_SUCCESS", int(RobotStateMsg::SUCCESS)},
     // anim constants
     {"E_STOP_ANIM_ID", unsigned(LEDAnimationMsg::E_STOP)},
     {"READY_ANIM_ID", unsigned(LEDAnimationMsg::READY)},
@@ -170,7 +180,6 @@ std::map<std::string, std::any> LightsManagerNode::CreateLightsInitialBlackboard
     {"POWER_SUPPLY_STATUS_FULL", unsigned(BatteryStateMsg::POWER_SUPPLY_STATUS_FULL)},
     // battery health constants
     {"POWER_SUPPLY_HEALTH_OVERHEAT", unsigned(BatteryStateMsg::POWER_SUPPLY_HEALTH_OVERHEAT)},
-
   };
 
   RCLCPP_INFO(this->get_logger(), "Blackboard created.");
@@ -216,6 +225,11 @@ void LightsManagerNode::LightsTreeTimerCB()
   if (lights_tree_manager_->GetTreeStatus() == BT::NodeStatus::FAILURE) {
     RCLCPP_WARN(this->get_logger(), "Lights behavior tree returned FAILURE status");
   }
+}
+
+void LightsManagerNode::RobotStateCB(const RobotStateMsg::SharedPtr robot_state)
+{
+  lights_tree_manager_->GetBlackboard()->set<int8_t>("robot_state", robot_state->state_id);
 }
 
 bool LightsManagerNode::SystemReady()
