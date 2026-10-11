@@ -15,6 +15,7 @@ Forthcoming
 * joint_states, imu/data and odometry/wheels publish at 50 Hz instead of 100 Hz, which saves CPU - the control loop still runs at 100 Hz and the EKF already filtered at 50 Hz
 * new lights_controller_frequency launch argument (default 50) sets how often the lights controller renders frames
 * new groot_enabled launch argument and manager parameter, on by default: turning it off stops the Groot2 publishers of the lights, safety and shutdown trees
+* the hardware image starts faster: its Python is compiled ahead and the ROS environment is set without sourcing setup.bash, and the first-boot config copy no longer starts the ros2 CLI for every package
 
 2.3.2 (2026-06-25)
 ------------------
