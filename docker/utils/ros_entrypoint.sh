@@ -3,10 +3,15 @@
 # workspace and the Husarion robot environment too.
 set -e
 
-source "/opt/ros/${ROS_DISTRO}/setup.bash"
+# The image bakes what the setup files would export (bake_ros_env.sh). The
+# baked function refuses when the start environment differs from the build in
+# any variable it sets, and then the setup files are sourced as before.
+if ! { [ -f /ros_env.bash ] && source /ros_env.bash && ros_env_baked; }; then
+    source "/opt/ros/${ROS_DISTRO}/setup.bash"
 
-if [ -f /ros2_ws/install/setup.bash ]; then
-    source /ros2_ws/install/setup.bash
+    if [ -f /ros2_ws/install/setup.bash ]; then
+        source /ros2_ws/install/setup.bash
+    fi
 fi
 
 # export the robot env to the launched process (populates /config on first run)

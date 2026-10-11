@@ -102,9 +102,23 @@ RUN set -eu; arch=$(dpkg --print-architecture); \
 COPY docker/utils/update_config_directory.sh /usr/local/sbin/update_config_directory
 COPY docker/utils/setup_environment.sh /usr/local/sbin/setup_environment
 COPY docker/utils/ros_entrypoint.sh /ros_entrypoint.sh
+COPY docker/utils/bake_ros_env.sh /tmp/bake_ros_env.sh
 RUN chmod +x /ros_entrypoint.sh \
         /usr/local/sbin/update_config_directory \
-        /usr/local/sbin/setup_environment
+        /usr/local/sbin/setup_environment && \
+    bash /tmp/bake_ros_env.sh /ros_env.bash && \
+    rm /tmp/bake_ros_env.sh
+
+# The container is created fresh on every robot boot, so bytecode Python
+# writes at runtime is lost and every start compiled launch, rclpy and the
+# stdlib again (about half of the time to the first launch line). Compile it
+# into the image instead. This stays the last RUN so nothing installed later
+# ships uncompiled. Timestamp pycs are used as long as the source is the one
+# they were built from, so a source file bind-mounted over the image is still
+# picked up.
+RUN python3 -m compileall -q -j0 -f \
+        /opt/ros/${ROS_DISTRO} /ros2_ws/install /usr/lib/python3 \
+        "$(python3 -c 'import sysconfig; print(sysconfig.get_path("stdlib"))')"
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
