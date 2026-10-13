@@ -36,7 +36,15 @@ bool EStop::ReadEStopState()
     // the transition, once per edge.
     if (e_stop_triggered_ != hardware_line_latched_) {
       hardware_line_latched_ = e_stop_triggered_;
-      if (hardware_line_latched_) {
+      // A software trigger stops the watchdog, and the safety board drops the
+      // line some tens of milliseconds later. That edge is ours, not an outside
+      // device's.
+      if (hardware_line_latched_ && software_trigger_requested_) {
+        software_trigger_requested_ = false;
+        std::cerr << "E-Stop ASSERTED on the hardware line after the software trigger requested "
+                     "by this driver."
+                  << std::endl;
+      } else if (hardware_line_latched_) {
         std::cerr << "E-Stop ASSERTED on the hardware line - stopped by a device outside this "
                      "driver (e-stop button, Roboteq fault or the safety board watchdog). No "
                      "software trigger was requested."
@@ -66,6 +74,7 @@ void EStop::TriggerEStop()
   std::lock_guard<std::mutex> e_stop_lck(e_stop_manipulation_mtx_);
   try {
     software_e_stop_triggered_ = true;
+    software_trigger_requested_ = true;
     gpio_controller_->EStopTrigger();
   } catch (const std::runtime_error & e) {
     throw std::runtime_error("Setting E-stop failed: " + std::string(e.what()));
@@ -101,6 +110,7 @@ void EStop::ResetEStop()
 
     e_stop_triggered_ = false;
     software_e_stop_triggered_ = false;
+    software_trigger_requested_ = false;
   } else {
     std::fprintf(stdout, "E-stop trigger operation is in progress, skipping reset.");
   }
