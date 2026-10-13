@@ -18,6 +18,7 @@ Forthcoming
 * the hardware image starts faster: its Python is compiled ahead and the ROS environment is set without sourcing setup.bash, and the first-boot config copy no longer starts the ros2 CLI for every package
 * the controller_manager statistics threads no longer poll at 2 kHz while nobody subscribes to introspection_data or statistics, which saves about a seventh of a core
 * the lights controller publishes a frame only when it changes, and repeats an unchanged one every frame_keepalive_period (default 1 s)
+* an e-stop triggered in software no longer logs that an outside device stopped the robot
 
 2.3.2 (2026-06-25)
 ------------------
