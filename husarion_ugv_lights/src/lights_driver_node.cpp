@@ -167,6 +167,16 @@ void LightsDriverNode::ClearLEDs()
   channel_2_->SetPanel(std::vector<std::uint8_t>(channel_2_num_led_ * 4, 0));
 }
 
+void LightsDriverNode::RewriteLastFrames()
+{
+  if (!channel_1_frame_.empty()) {
+    channel_1_->SetPanel(channel_1_frame_);
+  }
+  if (!channel_2_frame_.empty()) {
+    channel_2_->SetPanel(channel_2_frame_);
+  }
+}
+
 void LightsDriverNode::ToggleLEDControl(const bool enable)
 {
   RCLCPP_DEBUG(
@@ -270,6 +280,7 @@ void LightsDriverNode::FrameCB(
   }
 
   panel->SetPanel(msg->data);
+  (panel_name == "channel_1" ? channel_1_frame_ : channel_2_frame_) = msg->data;
 }
 
 void LightsDriverNode::SetBrightnessCB(
@@ -288,6 +299,12 @@ void LightsDriverNode::SetBrightnessCB(
 
   global_brightness_ = brightness;
   PublishOutputState();
+
+  // The controller sends an unchanged frame only at its keep-alive period, so write the current
+  // one again or the new brightness shows up a second late.
+  if (led_control_granted_ && led_output_enabled_) {
+    RewriteLastFrames();
+  }
 
   auto str_bright = std::to_string(brightness);
 
@@ -322,8 +339,12 @@ void LightsDriverNode::EnableLEDOutputCB(
   // freezes the animation instead of turning it off. Push one black frame on the
   // way down. Only the driver that holds the LED control line may write, so with
   // control still pending this is left to the grant path, which clears anyway.
+  // On the way up write the last frame again, as the controller may not send
+  // the next one until its keep-alive period has passed.
   if (!enable && led_control_granted_) {
     ClearLEDs();
+  } else if (enable && led_control_granted_) {
+    RewriteLastFrames();
   }
 
   PublishOutputState();

@@ -15,8 +15,10 @@
 #ifndef HUSARION_UGV_LIGHTS_HUSARION_UGV_LIGHTS_LIGHTS_DRIVER_NODE_HPP_
 #define HUSARION_UGV_LIGHTS_HUSARION_UGV_LIGHTS_LIGHTS_DRIVER_NODE_HPP_
 
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -55,6 +57,11 @@ protected:
    * @brief Clears all LEDs on both channels.
    */
   void ClearLEDs();
+
+  /**
+   * @brief Writes the last accepted frame of each channel to the strips again.
+   */
+  void RewriteLastFrames();
 
   /**
    * @brief Callback of the service gating the physical LED output.
@@ -111,6 +118,9 @@ protected:
 
   rclcpp::Time channel_1_ts_;
   rclcpp::Time channel_2_ts_;
+
+  std::vector<std::uint8_t> channel_1_frame_;
+  std::vector<std::uint8_t> channel_2_frame_;
 
 private:
   void OnShutdown();

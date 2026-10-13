@@ -23,8 +23,8 @@ This node is of type rclcpp_components is responsible for processing animations 
 
 #### Publishers
 
-- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: An animation frame to be displayed on robot Front Bumper Lights.
-- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: An animation frame to be displayed on robot Rear Bumper Lights.
+- `lights/channel_1_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: An animation frame to be displayed on robot Front Bumper Lights. Published when the frame changes and at least every `frame_keepalive_period`.
+- `lights/channel_2_frame` [*sensor_msgs/Image*, encoding: **RGBA8**, height: **1**, width: **num_led**]: An animation frame to be displayed on robot Rear Bumper Lights. Published when the frame changes and at least every `frame_keepalive_period`.
 
 #### Service Servers
 
@@ -34,6 +34,7 @@ This node is of type rclcpp_components is responsible for processing animations 
 
 - `animations_config_path` [*string*, default: **$(find husarion_ugv_lights)/husarion_ugv_lights/config/{robot_model}_animations.yaml**]: Path to a YAML file with a description of led configuration. This file includes definition of robot panels, virtual segments and default animations.
 - `controller_frequency` [*float*, default: **50.0**]: Frequency [Hz] at which the lights controller node will process animations.
+- `frame_keepalive_period` [*float*, default: **1.0**]: Time [s] after which an unchanged frame is published again. Frames are otherwise published only when they change.
 - `user_led_animations_path` [*string*, default: **None**]: Path to a YAML file with a description of the user defined animations.
 
 ### LightsDriverNode

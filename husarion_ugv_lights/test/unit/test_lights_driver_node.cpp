@@ -357,6 +357,30 @@ TEST_F(TestLightsDriverNode, EnableLEDOutputCBPublishesState)
   EXPECT_TRUE(wait_for_state(true));
 }
 
+TEST_F(TestLightsDriverNode, EnableLEDOutputCBRewritesLastFrame)
+{
+  auto msg = CreateValidImageMsg("channel_1");
+  const auto frame = msg->data;
+
+  auto future = CreateSetBoolSrvFuture(true, true);
+  lights_driver_node_->ToggleLEDControlCB(std::move(future));
+
+  lights_driver_node_->FrameCB(msg, channel_1_, msg->header.stamp, "channel_1");
+
+  auto req = std::make_shared<SetBoolSrv::Request>();
+  auto res = std::make_shared<SetBoolSrv::Response>();
+  req->data = false;
+  lights_driver_node_->EnableLEDOutputCB(req, res);
+
+  // Only channel 1 received a frame, so only channel 1 is written again.
+  EXPECT_CALL(*channel_1_, SetPanel(frame)).Times(1);
+  EXPECT_CALL(*channel_2_, SetPanel(testing::_)).Times(0);
+
+  req->data = true;
+  lights_driver_node_->EnableLEDOutputCB(req, res);
+  EXPECT_TRUE(res->success);
+}
+
 int main(int argc, char ** argv)
 {
   rclcpp::init(0, nullptr);
