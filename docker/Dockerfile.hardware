@@ -15,13 +15,19 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ros-dev-tools && \
     # Setup workspace
     vcs import src < src/husarion_ugv_ros/husarion_ugv/${HUSARION_ROS_BUILD_TYPE}_deps.repos && \
+    # controller_manager starts two pal_statistics publisher threads that poll
+    # at 2 kHz whether anyone listens. The patched library is built into the
+    # overlay, where it shadows the apt one; the messages stay the apt ones.
+    git -C src/pal_statistics apply \
+        /ros2_ws/src/husarion_ugv_ros/husarion_ugv/patches/pal_statistics-idle-poll.patch && \
+    touch src/pal_statistics/pal_statistics_msgs/COLCON_IGNORE && \
     # Install dependencies (build + exec)
     (rosdep init 2>/dev/null || true) && \
     rosdep update --rosdistro $ROS_DISTRO && \
     rosdep install --from-paths src -y -i && \
     # --merge-install keeps install/ self-contained (no refs into build/ or src/)
     source /opt/ros/$ROS_DISTRO/setup.bash && \
-    colcon build --merge-install --packages-up-to husarion_ugv \
+    colcon build --merge-install --packages-up-to husarion_ugv pal_statistics \
         --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=$BUILD_TEST && \
     # Get version
     sed -rn 's/.*<version>([0-9]+\.[0-9]+\.[0-9]+)<\/version>.*/\1/p' \
