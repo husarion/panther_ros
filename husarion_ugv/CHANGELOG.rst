@@ -19,6 +19,7 @@ Forthcoming
 * the controller_manager statistics threads no longer poll at 2 kHz while nobody subscribes to introspection_data or statistics, which saves about a seventh of a core
 * the lights controller publishes a frame only when it changes, and repeats an unchanged one every frame_keepalive_period (default 1 s)
 * an e-stop triggered in software no longer logs that an outside device stopped the robot
+* patched Fast DDS v4: fixes truncated large samples over shared memory
 
 2.3.2 (2026-06-25)
 ------------------
