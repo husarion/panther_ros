@@ -14,6 +14,8 @@
 
 #include "husarion_ugv_manager/safety_manager_node.hpp"
 
+#include <syslog.h>
+
 #include <algorithm>
 #include <any>
 #include <chrono>
@@ -270,7 +272,15 @@ bool SafetyManagerNode::SystemReady()
 
 void SafetyManagerNode::ShutdownRobot(const std::string & reason)
 {
-  RCLCPP_WARN(this->get_logger(), "Soft shutdown initialized. %s", reason.c_str());
+  RCLCPP_ERROR(this->get_logger(), "Soft shutdown initialized. Reason: %s", reason.c_str());
+
+  // On UGV OS the journal lives in RAM, so the line above is lost with the power off. Syslog is
+  // the log that survives there (bit us live: a Lynx powered off seconds after every driver start
+  // and nothing on disk said the safety manager had seen the power board's shutdown line).
+  openlog("husarion_ugv", LOG_PID | LOG_NDELAY, LOG_DAEMON);
+  syslog(LOG_CRIT, "robot shutdown requested by safety manager: %s", reason.c_str());
+  closelog();
+
   safety_tree_timer_->cancel();
   safety_tree_manager_->HaltTree();
 
