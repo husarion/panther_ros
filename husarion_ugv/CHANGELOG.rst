@@ -21,6 +21,7 @@ Forthcoming
 * when the safety manager shuts the robot down it writes the reason to syslog as well, so it survives the power off on systems that keep the journal in RAM
 * an e-stop triggered in software no longer logs that an outside device stopped the robot
 * patched Fast DDS v4: fixes truncated large samples over shared memory
+* GPS over UDP works with routers that put text in front of each NMEA sentence, such as the "(null)" a Teltonika RUTX50 sends - the GPS launch runs husarion_ugv_localization's own nmea_socket_driver
 
 2.3.2 (2026-06-25)
 ------------------
